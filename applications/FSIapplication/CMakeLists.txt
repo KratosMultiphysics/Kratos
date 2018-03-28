@@ -33,6 +33,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosFSIApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# Add Cotire
+if(USE_COTIRE MATCHES ON)
+  cotire(KratosFSIApplication)
+endif(USE_COTIRE MATCHES ON)
+
 install(TARGETS KratosFSIApplication DESTINATION libs )
 
 if(${INSTALL_TESTING_FILES} MATCHES ON)

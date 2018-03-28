@@ -48,7 +48,7 @@ class dummy {
         typedef typename Backend::value_type value_type;
         typedef typename backend::builtin<value_type>::matrix build_matrix;
 
-        typedef detail::empty_params params;
+        typedef amgcl::detail::empty_params params;
         typedef typename Backend::params backend_params;
 
         template <class Matrix>

@@ -126,8 +126,8 @@ public:
 
     typedef std::size_t SizeType;
 
-    typedef typename boost::shared_ptr< TMatrixType > MatrixPointerType;
-    typedef typename boost::shared_ptr< TVectorType > VectorPointerType;
+    typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
+    typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -279,7 +279,7 @@ public:
     
     /**
      * This method computes the Jacobi norm
-     * @param rA: The matrix to compute the Jacobi norm
+     * @param rA The matrix to compute the Jacobi norm
      * @return aux_sum: The Jacobi norm
      */
     static TDataType JacobiNorm(MatrixType const& rA)

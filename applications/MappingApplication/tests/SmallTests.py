@@ -28,14 +28,15 @@ class controlledExecutionScope:
 class NearestNeighborMapperTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
+        self.execution_path = os.path.dirname(os.path.realpath(__file__))
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with controlledExecutionScope(self.execution_path):
             output_post = True # set to "True" if GiD output is wanted
             self.nearest_neighbor_mapper_test = NearestNeighborMapperTest(output_post)
 
     def test_execution(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with controlledExecutionScope(self.execution_path):
             # the numeric values are the output times for GiD
             self.nearest_neighbor_mapper_test.TestMapConstantScalarValues(1.0)
             self.nearest_neighbor_mapper_test.TestInverseMapConstantScalarValues(2.0)
@@ -57,14 +58,15 @@ class NearestNeighborMapperTestFactory(KratosUnittest.TestCase):
 class NearestElementMapperTest2DFactory(KratosUnittest.TestCase):
   
     def setUp(self):
+        self.execution_path = os.path.dirname(os.path.realpath(__file__))
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with controlledExecutionScope(self.execution_path):
             output_post = True # set to "True" if GiD output is wanted
             self.nearest_element_mapper_test_2D = NearestElementMapperTest2D(output_post)
 
     def test_execution(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with controlledExecutionScope(self.execution_path):
             # the numeric values are the output times for GiD
             self.nearest_element_mapper_test_2D.TestMapConstantScalarValues(1.0)
             self.nearest_element_mapper_test_2D.TestInverseMapConstantScalarValues(2.0)
@@ -83,8 +85,9 @@ class NearestElementMapperTest2DFactory(KratosUnittest.TestCase):
 
 class MapperTestsFactory(KratosUnittest.TestCase):
     def setUp(self):
+        self.execution_path = os.path.dirname(os.path.realpath(__file__))
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with controlledExecutionScope(self.execution_path):
             self.output_post = False # set to "True" if GiD output is wanted
             self.set_up_test_1 = False # set to "True" to print the coordinates and the prescribed values
             self.set_up_test_2 = False # set to "True" to print the mapped Values
@@ -94,7 +97,7 @@ class MapperTestsFactory(KratosUnittest.TestCase):
 
     def test_execution(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with controlledExecutionScope(self.execution_path):
             # the numeric values are the output times for GiD
             for file_name in self.file_name_list:
                 print("Testing Test \"" + file_name + "\" ... ", end='') # this is only printed in case the test fails
@@ -123,7 +126,6 @@ class MapperTestsFactory(KratosUnittest.TestCase):
         else:
             pass
         
-
 class NearestNeighborTest_1(NearestNeighborMapperTestFactory):
     file_name = "Mapper_Test_1/Mapper_Test_1"
 

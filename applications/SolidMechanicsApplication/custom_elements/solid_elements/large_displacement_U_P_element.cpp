@@ -277,16 +277,6 @@ void LargeDisplacementUPElement::InitializeElementVariables (ElementVariables & 
 
     LargeDisplacementElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
 
-    //stabilization factor
-    double StabilizationFactor = 1.0;
-    if( GetProperties().Has(STABILIZATION_FACTOR) ){
-      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
-    }
-    else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR) ){
-      StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR];
-    }
-    GetProperties().SetValue(STABILIZATION_FACTOR, StabilizationFactor);
-
     KRATOS_CATCH( "" )
 }
 
@@ -582,9 +572,15 @@ void LargeDisplacementUPElement::CalculateAndAddPressureForces(VectorType& rRigh
     unsigned int indexp = dimension;
 
     // VectorType Fh=rRightHandSideVector;
-
-    double BulkModulus= GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
-
+    
+    double BulkModulus = 1.0;    
+    if( GetProperties().Has(BULK_MODULUS)  ){
+      BulkModulus= GetProperties()[BULK_MODULUS];
+    }
+    else if( GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO) ){
+      BulkModulus = GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
+    }
+    
     //double consistent=1;
 
     double Coefficient = 0;
@@ -649,14 +645,21 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
     // std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
     //use of this variable for the complete parameter:
-    double AlphaStabilization  = 1.0; 
-    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    double AlphaStabilization  = 1.0;
+    double StabilizationFactor = 1.0;
+    if( GetProperties().Has(STABILIZATION_FACTOR) ){
+      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    }
     AlphaStabilization *= StabilizationFactor;
 
-    const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
-    const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
-
-    double LameMu =  YoungModulus/(2*(1+PoissonCoefficient));
+    double LameMu = 0.0;    
+    if( GetProperties().Has(C10) ){
+      LameMu = 2.0 * GetProperties()[C10];
+    }
+    else if( GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO) ){
+      LameMu = GetProperties()[YOUNG_MODULUS]/(2.0*(1.0+GetProperties()[POISSON_RATIO]));
+    }
+    
 
     //Experimental
     // if(LameMu < rVariables.ConstitutiveMatrix(2,2))
@@ -903,7 +906,13 @@ void LargeDisplacementUPElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMa
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    double BulkModulus= GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
+    double BulkModulus = 1.0;    
+    if( GetProperties().Has(BULK_MODULUS)  ){
+      BulkModulus= GetProperties()[BULK_MODULUS];
+    }
+    else if( GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO) ){
+      BulkModulus = GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
+    }
 
     // MatrixType Kh=rLeftHandSideMatrix;
 
@@ -968,14 +977,20 @@ void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSi
     unsigned int indexpi = dimension;
     
     double AlphaStabilization  = 1.0; 
-    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    double StabilizationFactor = 1.0;
+    if( GetProperties().Has(STABILIZATION_FACTOR) ){
+      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    }
     AlphaStabilization *= StabilizationFactor;
 
-    const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
-    const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
-
-    double LameMu =  YoungModulus/(2*(1+PoissonCoefficient));
-
+    double LameMu = 0.0;    
+    if( GetProperties().Has(C10) ){
+      LameMu = 2.0 * GetProperties()[C10];
+    }
+    else if( GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO) ){
+      LameMu = GetProperties()[YOUNG_MODULUS]/(2.0*(1.0+GetProperties()[POISSON_RATIO]));
+    }
+    
     //Experimental
     // if(LameMu < rVariables.ConstitutiveMatrix(2,2))
     //   LameMu = rVariables.ConstitutiveMatrix(2,2);

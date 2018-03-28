@@ -137,6 +137,8 @@ public:
 
         mpResponseFunction->Initialize(rModelPart);
 
+        InitializeNodeNeighbourCount(rModelPart.Nodes());
+
         KRATOS_CATCH("");
     }
 
@@ -653,6 +655,14 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void InitializeNodeNeighbourCount(ModelPart::NodesContainerType& rNodes)
+    {
+        // This must be done once outside of omp parallel region.
+        for (auto& r_node : rNodes)
+            r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) =
+                NUMBER_OF_NEIGHBOUR_ELEMENTS.Zero();
+    }
 
     ///@}
     ///@name Private  Access

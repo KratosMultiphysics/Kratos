@@ -85,11 +85,11 @@ namespace Kratos {
         };
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
-                double &equiv_visco_damp_coeff_tangential,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                const double kn_el,
-                const double kt_el) {
+                                                double &equiv_visco_damp_coeff_tangential,
+                                                SphericContinuumParticle* element1,
+                                                SphericContinuumParticle* element2,
+                                                const double kn_el,
+                                                const double kt_el) {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) should not be called.","")
         };
         

@@ -94,22 +94,7 @@
             "model_part_name"             : "Structure",
             "assume_master_slave"         : "Parts_parts_hemisphere",
             "contact_model_part"          : "Contact_Part",
-            "contact_type"                : "Frictionless",
-            "axisymmetric"                : true,
-            "search_factor"               : 50.0,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2,
-            "active_check_factor"         : 1.0e-01,
-            "normal_variation"            : false,
-            "dual_search_check"           : false,
-            "strict_search_check"         : true,
-            "stiffness_factor"            : 10.0,
-            "penalty_scale_factor"        : 1.0,
-            "manual_ALM"                  : true,
-            "penalty"                     : 1.0e-6,
-            "scale_factor"                : 1.0e0,
-            "debug_mode"                  : false
+            "contact_type"                : "Frictionless"
         }
     }],
     "json_check_process" : [
@@ -153,8 +138,8 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
-            "nodal_nonhistorical_results": ["NORMAL","AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
+            "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },

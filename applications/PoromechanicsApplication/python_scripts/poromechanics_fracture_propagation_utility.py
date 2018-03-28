@@ -31,8 +31,8 @@ class FracturePropagationUtility:
         self.move_mesh_flag = move_mesh_flag
         
         # Define FracturesData
-        parameter_file = open("FracturesData.json",'r')
-        self.FracturesData = KratosMultiphysics.Parameters( parameter_file.read())
+        with open("FracturesData.json",'r') as parameter_file:
+            self.FracturesData = KratosMultiphysics.Parameters(parameter_file.read())
         
         # Define control variables
         self.propagation_frequency = self.FracturesData["fracture_data"]["propagation_frequency"].GetInt()
@@ -137,8 +137,8 @@ class FracturePropagationUtility:
                 shutil.copy(str(filepath), str(self.last_state_path))
             
             # Update FracturesData
-            parameter_file = open("FracturesData.json",'r')
-            self.FracturesData = KratosMultiphysics.Parameters( parameter_file.read())
+            with open("FracturesData.json",'r') as parameter_file:
+                self.FracturesData = KratosMultiphysics.Parameters(parameter_file.read())
             
             main_model_part,solver,list_of_processes,gid_output = self.GenereateNewModelPart(main_model_part,
                                                                                              solver,
@@ -188,8 +188,8 @@ class FracturePropagationUtility:
         ### Generate New Model ---------------------------------------------------------------------------------------
         
         # Parsing the parameters
-        parameter_file = open("ProjectParameters.json",'r')
-        ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
+        with open("ProjectParameters.json",'r') as parameter_file:
+            ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         ## Model part ------------------------------------------------------------------------------------------------
 

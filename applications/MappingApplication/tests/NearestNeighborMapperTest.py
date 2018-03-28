@@ -55,7 +55,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         self.interface_sub_model_part_destination = self.model_part_destination.GetSubModelPart("StructureInterface3D_interface_dest_struct")
 
         # Initialize Mapper
-        self.nearest_neighbor_mapper = MapperFactory(self.model_part_origin,
+        self.nearest_neighbor_mapper = MapperFactory.CreateMapper(self.model_part_origin,
                                                      self.model_part_destination,
                                                      project_parameters_mapper_1)
 
@@ -100,7 +100,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # Adding Values
         self.nearest_neighbor_mapper.Map(variable_origin,
                                          variable_destination,
-                                         MapperFactory.ADD_VALUES)
+                                         Mapper.ADD_VALUES)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -115,7 +115,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # Swaping the sign of the Values
         self.nearest_neighbor_mapper.Map(variable_origin,
                                          variable_destination,
-                                         MapperFactory.SWAP_SIGN)
+                                         Mapper.SWAP_SIGN)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -135,7 +135,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # to conserve the sum of quantities aka conservative mapping
         self.nearest_neighbor_mapper.Map(variable_origin,
                                          variable_destination,
-                                         MapperFactory.CONSERVATIVE)
+                                         Mapper.CONSERVATIVE)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -184,7 +184,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # Adding Values
         self.nearest_neighbor_mapper.InverseMap(variable_origin,
                                                 variable_destination,
-                                                MapperFactory.ADD_VALUES)
+                                                Mapper.ADD_VALUES)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin,
@@ -200,7 +200,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # Swaping the sign of the Values and adding them
         self.nearest_neighbor_mapper.InverseMap(variable_origin,
                                                 variable_destination,
-                                                MapperFactory.ADD_VALUES | MapperFactory.SWAP_SIGN)
+                                                Mapper.ADD_VALUES | Mapper.SWAP_SIGN)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin,
@@ -213,7 +213,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
                          map_value)
 
 
-        self.nearest_neighbor_mapper.UpdateInterface(MapperFactory.REMESHED)
+        self.nearest_neighbor_mapper.UpdateInterface(Mapper.REMESHED)
 
     def TestMapConstantVectorValues(self, output_time):
         map_value = [15.99, -2.88, 3.123]
@@ -249,7 +249,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # Adding Values
         self.nearest_neighbor_mapper.Map(variable_origin,
                                          variable_destination,
-                                         MapperFactory.ADD_VALUES)
+                                         Mapper.ADD_VALUES)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -265,7 +265,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # Swaping the sign of the Values
         self.nearest_neighbor_mapper.Map(variable_origin,
                                          variable_destination,
-                                         MapperFactory.SWAP_SIGN)
+                                         Mapper.SWAP_SIGN)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -309,7 +309,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # Adding Values
         self.nearest_neighbor_mapper.InverseMap(variable_origin,
                                                 variable_destination,
-                                                MapperFactory.ADD_VALUES)
+                                                Mapper.ADD_VALUES)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin,
@@ -328,7 +328,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # to conserve the sum of quantities aka conservative mapping
         self.nearest_neighbor_mapper.InverseMap(variable_origin,
                                                 variable_destination,
-                                                MapperFactory.CONSERVATIVE)
+                                                Mapper.CONSERVATIVE)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin,

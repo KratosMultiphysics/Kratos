@@ -268,19 +268,6 @@ class IOTools:
 
             prev_time = (incremental_time)
 
-    def CalculationLengthEstimationEcho(self, step, incremental_time, total_steps_expected):
-
-        estimated_sim_duration = 60.0 * (total_steps_expected / step)  # seconds
-
-        print(('The total calculation estimated time is ' + str(estimated_sim_duration) + 'seconds.' + '\n'))
-        print(('In minutes :' + str(estimated_sim_duration / 60) + 'min.' + '\n'))
-        print(('In hours :' + str(estimated_sim_duration / 3600) + 'hrs.' + '\n'))
-        print(('In days :' + str(estimated_sim_duration / 86400) + 'days.' + '\n'))
-
-        if estimated_sim_duration / 86400 > 2.0:
-
-            print(('WARNING!!!:       VERY LASTING CALCULATION' + '\n'))
-
 class ProjectionDebugUtils:
 
     def __init__(self, domain_volume, fluid_model_part, particles_model_part, custom_functions_calculator):
@@ -525,10 +512,6 @@ class ResultsFileCreator:
 
         self.scalar_vars = scalar_vars_list
 
-        for var in self.scalar_vars:
-            a = str(var).split()
-            print(a)
-
         self.vector_vars = vector_vars_list
         self.n_scalars = len(scalar_vars_list)
         self.n_vectors = len(vector_vars_list)
@@ -596,7 +579,7 @@ def CreateRunCode(pp):
         method_name = 'Daitche'
         code.append(method_name)
     else:
-        method_name = pp.CFD_DEM["IntegrationScheme"].GetString()
+        method_name = pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
         code.append(method_name)
 
     DEM_dt = 'Dt=' + str(pp.CFD_DEM["MaxTimeStep"].GetDouble())

@@ -75,15 +75,18 @@ public:
 
     typedef typename BaseType::PropertiesType::Pointer    PropertiesPointerType;
 
+    typedef typename BaseType::GeometryType::ShapeFunctionsGradientsType
+                                                    ShapeFunctionsGradientsType;
+
     struct EmbeddedElementDataStruct : public ElementDataType {
         // Element geometry data
         MatrixType                  N_pos_side;             // Positive distance element side shape functions values
-        std::vector<MatrixType>     DN_DX_pos_side;         // Positive distance element side shape functions gradients values
+        ShapeFunctionsGradientsType DN_DX_pos_side;         // Positive distance element side shape functions gradients values
         VectorType                  w_gauss_pos_side;       // Positive distance element side Gauss pts. weights
 
         // Intersection geometry data
         MatrixType                  N_pos_int;              // Positive interface Gauss pts. shape functions values
-        std::vector<MatrixType>     DN_DX_pos_int;          // Positive interface Gauss pts. shape functions gradients values
+        ShapeFunctionsGradientsType DN_DX_pos_int;          // Positive interface Gauss pts. shape functions gradients values
         VectorType                  w_gauss_pos_int;        // Positive interface Gauss pts. weights
         std::vector<VectorType>     pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
@@ -122,20 +125,20 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, Element::PropertiesType::Pointer pProperties) const override {
         KRATOS_TRY
-        return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
 
     Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override {
-        return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
     }
 
 
     /**
      * Clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param rThisNodes: the nodes of the new element
+     * @param NewId the ID of the new element
+     * @param rThisNodes the nodes of the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override {
@@ -150,8 +153,8 @@ public:
     /**
      * Fill the element data structure. If the element is split,
      * calls the modified shape functions calculator.
-     * @param rData: reference to the element data structure
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rData reference to the element data structure
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     void FillEmbeddedElementData(
         EmbeddedElementDataStruct& rData,
@@ -181,7 +184,7 @@ public:
         }
 
         // If the element is split, get the modified shape functions
-        if ((rData.n_pos != 0) && (rData.n_neg != 0)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             GeometryPointerType p_geom = this->pGetGeometry();
 
@@ -226,9 +229,9 @@ public:
 
     /**
      * Calculates both LHS and RHS contributions
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rRightHandSideVector: reference to the RHS vector
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
@@ -268,41 +271,12 @@ public:
     }
 
     /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
-     * @return 0 if no errors were found.
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override {
-        KRATOS_TRY;
-
-        // Base element check
-        int ErrorCode = NavierStokes<TDim, TNumNodes>::Check(rCurrentProcessInfo);
-        if(ErrorCode != 0) return ErrorCode;
-
-        // Specific embedded element check
-        if(DISTANCE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DISTANCE Key is 0. Check if the application was correctly registered.","");
-
-        for(unsigned int i=0; i<(this->GetGeometry()).size(); ++i) {
-            if(this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        }
-
-        return 0;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
      * Calculates both LHS and RHS elemental contributions for those cases in where
      * all the nodes belong to the fluid domain.
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rRightHandSideVector: reference to the RHS vector
-     * @param rData: reference to element data structure
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rData reference to element data structure
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     template<unsigned int MatrixSize>
     void ComputeElementAsFluid(
@@ -341,10 +315,10 @@ public:
     /**
     * Calculates both LHS and RHS elemental contributions for those cases in where
     * the element has both fluid and structure nodes.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rCurrentProcessInfo: reference to the ProcessInfo
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
+    * @param rCurrentProcessInfo reference to the ProcessInfo
     */
     template<unsigned int MatrixSize>
     void ComputeElementAsMixed(
@@ -377,6 +351,115 @@ public:
         // Add level set boundary terms, penalty and modified Nitche contributions
         AddBoundaryConditionElementContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
     }
+
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
+     * @return 0 if no errors were found.
+     */
+    int Check(const ProcessInfo &rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+
+        // Base element check
+        int error_code = NavierStokes<TDim, TNumNodes>::Check(rCurrentProcessInfo);
+        if (error_code != 0){
+            return error_code;
+        }
+
+        // Specific embedded element check
+        if (DISTANCE.Key() == 0){
+            KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
+        }
+
+        for (unsigned int i = 0; i < (this->GetGeometry()).size(); ++i){
+            if (this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false){
+                KRATOS_ERROR << "missing VELOCITY variable on solution step data for node " << this->GetGeometry()[i].Id();
+            }
+        }
+
+        return 0;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Given a vector variable, this function computes its value inside de element.
+     * If the function has not implemented this variable computation, throws an error.
+     * @param rVariable Variable to be computed.
+     * @param rOutput Reference to the output array.
+     * @param rCurrentProcessInfo Reference to the process info.
+     */
+    void Calculate(
+        const Variable<array_1d<double, 3>> &rVariable,
+        array_1d<double, 3> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override {
+
+        rOutput = ZeroVector(3);
+
+        // If the element is split, integrate sigma·n over the interface
+        // Note that in the ausas formulation, both interface sides need to be integrated
+        if (rVariable == DRAG_FORCE) {
+
+            EmbeddedElementDataStruct data;
+            this->FillEmbeddedElementData(data, rCurrentProcessInfo);
+
+            // Check if the element is split
+            if (data.n_pos != 0 && data.n_neg != 0){
+
+                // Integrate positive interface side drag
+                const unsigned int n_int_pos_gauss = (data.w_gauss_pos_int).size();
+                for (unsigned int i_gauss = 0; i_gauss < n_int_pos_gauss; ++i_gauss) {
+                    // Get Gauss pt. data
+                    const double w_gauss = data.w_gauss_pos_int(i_gauss);
+                    const array_1d<double, TNumNodes> aux_N = row(data.N_pos_int, i_gauss);
+                    const array_1d<double, 3> side_normal = data.pos_int_unit_normals[i_gauss];
+
+                    // Obtain Gauss pt. pressure
+                    const double p_gauss = inner_prod(aux_N, data.p);
+
+                    // Call the constitutive law to compute the shear contribution
+                    // Recall to set data.N and data.DN_DX (required by the constitutive law)
+                    noalias(data.N) = aux_N;
+                    noalias(data.DN_DX) = data.DN_DX_pos_int[i_gauss];
+                    this->ComputeConstitutiveResponse(data, rCurrentProcessInfo);
+
+                    // Get the Voigt notation normal projection matrix
+                    bounded_matrix<double, TDim, (TDim - 1) * 3> normal_proj_mat = ZeroMatrix(TDim, (TDim - 1) * 3);
+                    this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
+
+                    // Add the shear and pressure drag contributions
+                    const array_1d<double, TDim> shear_proj = w_gauss * prod(normal_proj_mat, data.stress);
+                    for (unsigned int i = 0; i < TDim ; ++i){
+                        rOutput(i) -= shear_proj(i);
+                    }
+                    rOutput += w_gauss * p_gauss * side_normal;
+                }
+            }
+        }
+        else
+        {
+            KRATOS_ERROR << "Calculate method not implemented for the requested variable.";
+        }
+    }
+    
+    void Calculate(const Variable<double>& rVariable,
+                   double& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {}
+
+    void Calculate(const Variable<Vector >& rVariable,
+                   Vector& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {}
+
+    void Calculate(const Variable<Matrix >& rVariable,
+                   Matrix& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {}
 
     ///@}
     ///@name Access
@@ -427,9 +510,9 @@ protected:
     * This functions adds the contribution of the boundary terms in the level set cut
     * These terms, which do not vanish at the level set since the test function is not zero
     * at the intersection points, come from the integration by parts of the stress term.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddIntersectionBoundaryTermsContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -501,8 +584,8 @@ protected:
 
     /**
      * This function computes the penalty coefficient for the level set BC imposition
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rData: reference to element data structure
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rData reference to element data structure
      */
     double ComputePenaltyCoefficient(const EmbeddedElementDataStruct& rData) {
 
@@ -515,7 +598,7 @@ protected:
         // Compute the element average values
         double avg_rho = 0.0;
         double avg_visc = 0.0;
-        array_1d<double, 3> avg_vel = ZeroVector(3);
+        array_1d<double, TDim> avg_vel = ZeroVector(TDim);
 
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             avg_rho += rData.rho(i_node);
@@ -544,9 +627,9 @@ protected:
 
     /**
     * This functions adds the penalty extra term level set contribution.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddBoundaryConditionPenaltyContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -615,9 +698,9 @@ protected:
 
     /**
     * This functions adds the level set strong boundary condition imposition contribution.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddBoundaryConditionModifiedNitcheContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -728,9 +811,9 @@ protected:
 
     /**
     * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void DropOuterNodesVelocityContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -758,9 +841,9 @@ protected:
 
     /**
     * This function adds the Nitsche normal component of the penalty contribution (Winter formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSlipWinterNormalPenaltyContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -856,9 +939,9 @@ protected:
 
     /**
     * This function adds the Nitsche normal component of the symmetric counterpart of the fluxes (Winter formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSlipWinterNormalSymmetricCounterpartContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -955,9 +1038,9 @@ protected:
 
     /**
     * This function adds the Nitsche tangential component of the penalty contribution (Winter formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSlipWinterTangentialPenaltyContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -1052,9 +1135,9 @@ protected:
 
     /**
     * This function adds the Nitsche tangential component of the symmetric counterpart of the fluxes (Winter formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSlipWinterTangentialSymmetricCounterpartContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -1154,9 +1237,9 @@ protected:
 
     /**
     * This functions collects and adds all the level set boundary condition contributions
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddBoundaryConditionElementContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -1185,8 +1268,8 @@ protected:
 
     /**
     * This functions sets the B strain matrix (pressure columns are set to zero)
-    * @param rDN_DX: reference to the current Gauss pt. shape function gradients
-    * @param rB_matrix: reference to the computed B strain matrix
+    * @param rDN_DX reference to the current Gauss pt. shape function gradients
+    * @param rB_matrix reference to the computed B strain matrix
     */
     void SetInterfaceStrainMatrix(
         const bounded_matrix<double, TNumNodes, TDim>& rDN_DX,
@@ -1219,8 +1302,8 @@ protected:
 
     /**
     * This functions sets the normal projection matrix nxn
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @param rNormProjMatrix: reference to the computed normal projection matrix
+    * @param rUnitNormal reference to Gauss pt. unit normal vector
+    * @param rNormProjMatrix reference to the computed normal projection matrix
     */
     void SetNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
@@ -1241,8 +1324,8 @@ protected:
 
     /**
     * This functions sets the tangential projection matrix I - nxn
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @param rTangProjMatrix: reference to the computed tangential projection matrix
+    * @param rUnitNormal reference to Gauss pt. unit normal vector
+    * @param rTangProjMatrix reference to the computed tangential projection matrix
     */
     void SetTangentialProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
@@ -1264,8 +1347,8 @@ protected:
 
     /**
     * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @param rVoigtNormProjMatrix: reference to the computed normal projection auxiliar matrix
+    * @param rUnitNormal reference to Gauss pt. unit normal vector
+    * @param rVoigtNormProjMatrix reference to the computed normal projection auxiliar matrix
     */
     void SetVoigtNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
@@ -1293,8 +1376,8 @@ protected:
 
     /**
     * This functions sets a vector containing the element previous solution
-    * @param rData: reference to the element data structure
-    * @param rPrevSolVector: reference to the previous solution vector
+    * @param rData reference to the element data structure
+    * @param rPrevSolVector reference to the previous solution vector
     */
     void GetPreviousSolutionVector(
         const ElementDataType& rData,

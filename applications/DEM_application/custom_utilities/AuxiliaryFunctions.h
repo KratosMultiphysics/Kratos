@@ -303,8 +303,8 @@ namespace Kratos {
             else { phi = 0.333333333333333333333333 * acos(r);}
             
             // the eigenvalues satisfy eig3 <= eig2 <= eig1
-            Result[0] = q + 2.0 * p * cos(phi);
-            Result[2] = q + 2.0 * p * cos(phi + (0.6666666666666666666666*Globals::Pi));
+            Result[0] = q + 2.0 * p * std::cos(phi);
+            Result[2] = q + 2.0 * p * std::cos(phi + (0.6666666666666666666666*Globals::Pi));
             Result[1] = 3.0 * q - Result[0] - Result[2];     //% since trace(A) = eig1 + eig2 + eig3   
 
             return Result;

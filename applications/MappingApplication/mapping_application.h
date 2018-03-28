@@ -14,7 +14,6 @@
 //  Framework for Non-Matching Grid Mapping"
 
 
-
 #if !defined(KRATOS_MAPPING_APPLICATION_H_INCLUDED )
 #define  KRATOS_MAPPING_APPLICATION_H_INCLUDED
 
@@ -30,7 +29,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
 #include "custom_utilities/interface_object.h"
 #include "custom_utilities/interface_node.h"
 #include "custom_utilities/interface_geometry_object.h"
@@ -137,7 +135,6 @@ public:
         rOStream << "Conditions:" << std::endl;
         KratosComponents<Condition>().PrintData(rOStream);
     }
-
 
     ///@}
     ///@name Friends

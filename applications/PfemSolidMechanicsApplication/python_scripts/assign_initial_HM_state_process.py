@@ -19,7 +19,7 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
          "model_part_name": "Main_Domain",
-         "gravity_active": false, 
+         "gravity_active": false,
          "constant_vertical_stress": -50.0,
          "constant_horizontal_stress": -50.0,
          "constant_water_pressure" : -0.0,
@@ -28,7 +28,7 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
          "top_water_pressure": 0.0
         }
         """)
-        
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -42,7 +42,7 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
             return;
 
 
-        ## 
+        ##
 
     def ExecuteBeforeSolutionLoop(self):
         self.model_part = self.model_part[self.model_part_name]
@@ -66,3 +66,8 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
             GG[1] = -10;
             node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION, GG)
 
+    #
+    @classmethod
+    def GetVariables(self):
+        nodal_variables = ['VOLUME_ACCELERATION']
+        return nodal_variables

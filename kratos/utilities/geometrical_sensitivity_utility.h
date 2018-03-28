@@ -30,7 +30,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class GeometricalSensitivityUtility
+class KRATOS_API(KRATOS_CORE) GeometricalSensitivityUtility
 {
 public:
     ///@name Type Definitions

@@ -112,12 +112,12 @@ namespace Kratos
 
 	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
 	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
 
 	if( dimension == 2 ){
 	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 	}
 	else{
+          rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
 	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
 	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
 	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
@@ -645,12 +645,11 @@ namespace Kratos
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( unsigned int j = 0; j < dimension; j++ )
+       array_1d<double, 3 > & CurrentStepDisplacement = GetGeometry()[i].FastGetSolutionStepValue(STEP_DISPLACEMENT,0);
+       
+       for ( unsigned int j = 0; j < dimension; j++ )
 	  {
-            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+	    rDeltaPosition(i,j) = CurrentStepDisplacement[j];		    
 	  }
 
       }
@@ -727,6 +726,9 @@ namespace Kratos
 	if ( rLocalSystem.CalculationFlags.Is(BeamElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	  {
 	    this->CalculateAndAddLHS( rLocalSystem, Variables, IntegrationWeight );
+
+	    
+	    //std::cout<<"["<<this->Id()<<"] Beam Rotated rLeftHandSideMatrix "<<rLocalSystem.GetLeftHandSideMatrix()<<std::endl;
 	  }
 
 	if ( rLocalSystem.CalculationFlags.Is(BeamElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
@@ -735,6 +737,8 @@ namespace Kratos
 	    VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables.N );
 
 	    this->CalculateAndAddRHS( rLocalSystem , Variables, VolumeForce, IntegrationWeight );
+	    
+	    //std::cout<<"["<<this->Id()<<"] Beam Rotated rRightHandSideVector "<<rLocalSystem.GetRightHandSideVector()<<std::endl;
 	  }
 
       }
@@ -1366,7 +1370,7 @@ namespace Kratos
     }
 
     if( ComputeDynamicTangent == true ){
-
+	
       //create local system components
       LocalSystemComponents LocalSystem;
 
@@ -1639,9 +1643,9 @@ namespace Kratos
     KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
       
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
     KRATOS_CHECK_VARIABLE_KEY(CROSS_SECTION_AREA);
     KRATOS_CHECK_VARIABLE_KEY(LOCAL_INERTIA_TENSOR);
+    //KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
     
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
@@ -1650,7 +1654,7 @@ namespace Kratos
 	Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,rNode);
-	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 	
 	// Nodal dofs
 	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);

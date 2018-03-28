@@ -12,7 +12,7 @@ def RunCase(varying_parameters):
     with marine_rain_algorithm.Algorithm(varying_parameters) as algorithm:
         try:
             test = script.Solution(algorithm)
-            test.alg.Run()
+            test.Run()
         except:
             error = sys.exc_info()
             print(error)

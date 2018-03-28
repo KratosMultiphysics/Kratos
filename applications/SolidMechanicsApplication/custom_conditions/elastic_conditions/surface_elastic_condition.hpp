@@ -159,32 +159,6 @@ protected:
 				     ConditionVariables& rVariables,
 				     double& rIntegrationWeight) override;
 
-
-    //utilities::
-
-    void MakeCrossMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
-			 Vector& U );
-
-    void CrossProduct(Vector& cross,
-		      Vector& a,
-		      Vector& b );
-
-
-    void AddMatrix(MatrixType& Destination,
-		   boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
-		   int InitialRow,
-		   int InitialCol );
-
-    void SubtractMatrix(MatrixType& Destination,
-			boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
-			int InitialRow,
-			int InitialCol );
-
-
-    void ExpandReducedMatrix(Matrix& Destination,
-			     Matrix& ReducedMatrix );
-
-
     ///@}
     ///@name Protected  Access
     ///@{

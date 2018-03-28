@@ -277,12 +277,12 @@ namespace Kratos
     const ModelDataType&  rModelData  = rVariables.GetModelData();
     const MaterialDataType& rMaterial = rModelData.GetMaterialParameters();
 
+    rVariables.ConstitutiveTensor.clear();
+    
     // Lame constants
     const double& rYoungModulus       = rMaterial.GetYoungModulus();
     const double& rPoissonCoefficient = rMaterial.GetPoissonCoefficient();
 
-    rVariables.ConstitutiveTensor.clear();
-    
     // 3D linear elastic constitutive matrix       
     rVariables.ConstitutiveTensor ( 0 , 0 ) = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2.0*rPoissonCoefficient)));
     rVariables.ConstitutiveTensor ( 1 , 1 ) = rVariables.ConstitutiveTensor ( 0 , 0 );

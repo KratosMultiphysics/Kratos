@@ -1,6 +1,7 @@
-import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+# Importing the Kratos Library
+import KratosMultiphysics
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -26,7 +27,7 @@ class CheckEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.TestCas
 
         KratosMultiphysics.Process.__init__(self)
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.variable = getattr(StructuralMechanicsApplication, settings["variable_name"].GetString())
+        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         self.reference_values = []
         reference_values = settings["reference_values"].GetString()
         for ev in reference_values.strip('[]').split(','):

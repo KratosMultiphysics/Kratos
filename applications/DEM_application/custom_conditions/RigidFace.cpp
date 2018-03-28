@@ -428,11 +428,13 @@ bool RigidFace3D::CheckProjectionFallsInside(SphericParticle *p_particle)
     const array_1d<double, 3> w  = P - geom[0].Coordinates();
     array_1d<double, 3> u1 = geom[1].Coordinates() - geom[0].Coordinates();
     array_1d<double, 3> u2 = geom[2].Coordinates() - geom[0].Coordinates();
+    array_1d<double, 3> u2_copy;
+    noalias(u2_copy) = u2;
     array_1d<double, 3> n;
-    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(u1, u2, n)
-    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(w, u2, u2)
+    GeometryFunctions::CrossProduct(u1, u2, n);
+    GeometryFunctions::CrossProduct(w, u2_copy, u2);
     const double beta = DEM_INNER_PRODUCT_3(u2, n);
-    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(u1, w, u1)
+    GeometryFunctions::CrossProduct(u1, w, u1);
     const double gamma = DEM_INNER_PRODUCT_3(u1, n);
     const double n2 = DEM_INNER_PRODUCT_3(n, n);
     const double alpha = n2 - beta - gamma;

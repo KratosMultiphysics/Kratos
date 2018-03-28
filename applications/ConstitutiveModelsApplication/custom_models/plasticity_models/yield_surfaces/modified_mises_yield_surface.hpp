@@ -81,9 +81,9 @@ namespace Kratos
     }
     
     /// Clone.
-    virtual BaseTypePointer Clone() const
+    virtual BaseTypePointer Clone() const override
     {
-      return ( ModifiedMisesYieldSurface::Pointer(new ModifiedMisesYieldSurface(*this)) );
+      return BaseTypePointer(new ModifiedMisesYieldSurface(*this));
     }
 
     /// Destructor.

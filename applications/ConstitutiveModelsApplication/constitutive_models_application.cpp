@@ -19,7 +19,9 @@
 
 namespace Kratos {
 
-  KratosConstitutiveModelsApplication::KratosConstitutiveModelsApplication() {}
+  KratosConstitutiveModelsApplication::KratosConstitutiveModelsApplication()
+    :KratosApplication("ConstitutiveModelsApplication")
+  {}
 
   void KratosConstitutiveModelsApplication::Register() {
     // calling base class register to register Kratos components
@@ -68,6 +70,8 @@ namespace Kratos {
     Serializer::Register( "IsochoricNeoHookeanLnJSquaredModel", mIsochoricNeoHookeanLnJSquaredModel );
     Serializer::Register( "IncompressibleNeoHookeanModel", mIncompressibleNeoHookeanModel );
     Serializer::Register( "BorjaModel", mBorjaModel );
+    Serializer::Register( "OgdenModel", mOgdenModel );
+    Serializer::Register( "IsochoricOgdenModel", mIsochoricOgdenModel );
     
     //plasticity models
     Serializer::Register( "VonMisesLinearElasticPlasticityModel", mVonMisesLinearElasticPlasticityModel );

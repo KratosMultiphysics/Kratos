@@ -123,9 +123,9 @@ protected:
     * This matrix is used to extrapolate the subdivisions shape funtion values to the
     * original geometry ones. It has size (nnodes+nedges)x(nnodes).
     * @return rPosSideCondMatrix: Reference to the intersection points condensation matrix.
-    * @param rEdgeNodeI: Integers array containing the nodes "I" that conform the edges.
-    * @param rEdgeNodeJ: Integers array containing the nodes "J" that conform the edges.
-    * @param rSplitEdges: Integers array containing the original nodes ids and the intersected edges nodes ones.
+    * @param rEdgeNodeI Integers array containing the nodes "I" that conform the edges.
+    * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
+    * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
     */
     void SetPositiveSideCondensationMatrix(
         Matrix& rPosSideCondMatrix,
@@ -138,9 +138,9 @@ protected:
     * This matrix is used to extrapolate the subdivisions shape funtion values to the
     * original geometry ones. It has size (nnodes+nedges)x(nnodes).
     * @return rNegSideCondMatrix: Reference to the intersection points condensation matrix.
-    * @param rEdgeNodeI: Integers array containing the nodes "I" that conform the edges.
-    * @param rEdgeNodeJ: Integers array containing the nodes "J" that conform the edges.
-    * @param rSplitEdges: Integers array containing the original nodes ids and the intersected edges nodes ones.
+    * @param rEdgeNodeI Integers array containing the nodes "I" that conform the edges.
+    * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
+    * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
     */
     void SetNegativeSideCondensationMatrix(
         Matrix& rNegSideCondMatrix,

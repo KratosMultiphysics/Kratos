@@ -47,7 +47,6 @@ class DamTemperaturebyDeviceProcess : public Process
         Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed"          : false,
                 "value"             : 0.0,
@@ -64,7 +63,6 @@ class DamTemperaturebyDeviceProcess : public Process
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mIsFixed = rParameters["is_fixed"].GetBool();
         mValue = rParameters["value"].GetDouble();
@@ -95,7 +93,7 @@ class DamTemperaturebyDeviceProcess : public Process
 
         KRATOS_TRY;
 
-        const int nelements = mrModelPart.GetMesh(mMeshId).Elements().size();
+        const int nelements = mrModelPart.GetMesh(0).Elements().size();
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
         bool IsInside = false;
         array_1d<double, 3> LocalCoordinates;
@@ -175,7 +173,6 @@ class DamTemperaturebyDeviceProcess : public Process
     /// Member Variables
 
     ModelPart &mrModelPart;
-    std::size_t mMeshId;
     std::string mVariableName;
     bool mIsFixed;
     double mValue;

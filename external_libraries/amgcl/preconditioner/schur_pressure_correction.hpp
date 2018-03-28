@@ -130,24 +130,53 @@ class schur_pressure_correction {
                   AMGCL_PARAMS_IMPORT_CHILD(p, psolver),
                   AMGCL_PARAMS_IMPORT_VALUE(p, approx_schur)
             {
-                void *pm = 0;
                 size_t n = 0;
 
-                pm = p.get("pmask",     pm);
-                n  = p.get("pmask_size", n);
-
-                precondition(pm,
-                        "Error in schur_complement parameters: "
-                        "pmask is not set");
+                n = p.get("pmask_size", n);
 
                 precondition(n > 0,
                         "Error in schur_complement parameters: "
-                        "pmask is set, but pmask_size is not"
-                        );
+                        "pmask_size is not set");
 
-                pmask.assign(static_cast<char*>(pm), static_cast<char*>(pm) + n);
+                if (p.count("pmask_pattern")) {
+                    pmask.resize(n, 0);
 
-                AMGCL_PARAMS_CHECK(p, (usolver)(psolver)(pmask)(pmask_size)(approx_schur));
+                    std::string pattern = p.get("pmask_pattern", std::string());
+                    switch (pattern[0]) {
+                        case '%':
+                            {
+                                int start  = std::atoi(pattern.substr(1).c_str());
+                                int stride = std::atoi(pattern.substr(3).c_str());
+                                for(size_t i = start; i < n; i += stride) pmask[i] = 1;
+                            }
+                            break;
+                        case '<':
+                            {
+                                size_t m = std::atoi(pattern.c_str()+1);
+                                for(size_t i = 0; i < std::min(m, n); ++i) pmask[i] = 1;
+                            }
+                            break;
+                        case '>':
+                            {
+                                size_t m = std::atoi(pattern.c_str()+1);
+                                for(size_t i = m; i < n; ++i) pmask[i] = 1;
+                            }
+                            break;
+                        default:
+                            precondition(false, "Unknown pattern in pmask_pattern");
+                    }
+                } else if (p.count("pmask")) {
+                    void *pm = 0;
+                    pm = p.get("pmask", pm);
+                    pmask.assign(static_cast<char*>(pm), static_cast<char*>(pm) + n);
+                } else {
+                    precondition(false,
+                            "Error in schur_complement parameters: "
+                            "neither pmask_pattern, nor pmask is set"
+                            );
+                }
+
+                AMGCL_PARAMS_CHECK_OPT(p, (usolver)(psolver)(approx_schur)(pmask_size), (pmask)(pmask_pattern));
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path = "") const

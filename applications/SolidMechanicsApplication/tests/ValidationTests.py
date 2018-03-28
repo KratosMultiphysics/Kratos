@@ -2,8 +2,18 @@
 
 # Import TestFactory
 import TestFactory as TF
-    
-#class ValidationTest(TF.TestFactory):
-    #file_name = "path_to_my_test"
 
+# Import KratosUnittest
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+# to set
+
+def SetTestSuite(suites):
+    validation_suite = suites['validation']
+
+    validation_suite.addTests(
+        KratosUnittest.TestLoader().loadTestsFromTestCases([
+        ])
+    )
+
+    return validation_suite

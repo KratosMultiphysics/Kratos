@@ -453,11 +453,9 @@ public:
 			auto i = mr_grid_model_part.NodesBegin() + iter;
 			if( (i)->SolutionStepsDataHas(NODAL_MOMENTUM) && (i)->SolutionStepsDataHas(NODAL_MASS) && (i)->SolutionStepsDataHas(NODAL_INERTIA))//&& (i)->SolutionStepsDataHas(NODAL_INTERNAL_FORCE) )
             {
-
                 array_1d<double, 3 > & NodalMomentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
                 array_1d<double, 3 > & NodalInertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
                 double & NodalMass = (i)->FastGetSolutionStepValue(NODAL_MASS);
-                //double & NodalMPressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
                 double & NodalPressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
 
                 double & NodalDensity = (i)->FastGetSolutionStepValue(DENSITY);
@@ -468,14 +466,12 @@ public:
                 NodalMomentum.clear();
                 NodalInertia.clear();
                 NodalMass= 0.0;
-                //NodalMPressure = 0.0;
                 NodalPressure = 0.0;
 
                 NodalDensity = 0.0;
                 NodalAuxR = 0.0;
                 NodalAuxRVel.clear();
                 NodalAuxRAcc.clear();
-                //std::cout<< "NodalDensity "<< (i)->FastGetSolutionStepValue(DENSITY)<<std::endl;
             }
 
             if((i)->SolutionStepsDataHas(DISPLACEMENT) && (i)->SolutionStepsDataHas(VELOCITY) && (i)->SolutionStepsDataHas(ACCELERATION) )
@@ -543,18 +539,21 @@ public:
 
                     array_1d<double, 3 > & NodalMomentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
                     array_1d<double, 3 > & NodalInertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-                    double & NodalMPressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
                     array_1d<double, 3 > & DeltaNodalVelocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
                     array_1d<double, 3 > & DeltaNodalAcceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
 
                     double & NodalMass = (i)->FastGetSolutionStepValue(NODAL_MASS);
                     NodalMomentum.clear();
                     NodalInertia.clear();
-                    NodalMPressure = 0.0;
                     DeltaNodalVelocity.clear();
                     DeltaNodalAcceleration.clear();
 
                     NodalMass = 0.0;
+
+                    if(i->SolutionStepsDataHas(NODAL_MPRESSURE)) {
+                        double & NodalMPressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
+                        NodalMPressure = 0.0;
+                    }
                 }
 			}
             
@@ -572,7 +571,7 @@ public:
             int nodes_counter = 0;
             Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part,A,Dx,b);
 
-
+            // int counter = 0;
 			#pragma omp parallel for
 			for(int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
 			{
@@ -592,18 +591,19 @@ public:
 
                     array_1d<double, 3 > & NodalMomentum     = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
                     array_1d<double, 3 > & NodalInertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-                    double & NodalMPressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
 
                     array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
                     array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
                     double & NodalPressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
 
                     
-                    if (i->HasDofFor(PRESSURE))
+                    if (i->HasDofFor(PRESSURE) && i->SolutionStepsDataHas(NODAL_MPRESSURE))
                     {
+                        double & NodalMPressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
                         DeltaNodalPressure = NodalMPressure/NodalMass;
-
                     }
+
+                    // Where the boundary condition is defined
 
                     if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
                     {
@@ -612,6 +612,9 @@ public:
                     }
                     else
                     {
+                        // #pragma omp critical
+                        // counter++;
+
                         DeltaNodalVelocity[0] = 0.0;
                         DeltaNodalAcceleration[0] = 0.0;
                         //DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
@@ -656,7 +659,7 @@ public:
 
                     NodalPressure += DeltaNodalPressure;
 
-                    
+                   
 
 
                     NormDeltaVel += (DeltaNodalVelocity[0]*DeltaNodalVelocity[0]+DeltaNodalVelocity[1]*DeltaNodalVelocity[1]+DeltaNodalVelocity[2]*DeltaNodalVelocity[2]);
@@ -673,7 +676,7 @@ public:
 			
 			}
 
-
+            //  std::cout << "Node Count = " << nodes_counter << std::endl;
             
             
 
@@ -800,6 +803,12 @@ public:
             {
                 NodalVelocity[1] = 0.0;
                 NodalAcceleration[1] = 0.0;
+
+            }
+            if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == true)
+            {
+                NodalVelocity[2] = 0.0;
+                NodalAcceleration[2] = 0.0;
 
             }
         }

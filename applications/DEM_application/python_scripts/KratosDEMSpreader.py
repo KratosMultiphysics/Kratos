@@ -337,7 +337,7 @@ while time < DEM_parameters["FinalTime"].GetDouble():
     # measuring mean velocities in a certain control volume (the 'velocity trap')
     if DEM_parameters["VelocityTrapOption"].GetBool():
         compute_flow = False
-        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
+        post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", time)
 
     #### MATERIAL TEST GRAPHS ############################
     materialTest.MeasureForcesAndPressure()

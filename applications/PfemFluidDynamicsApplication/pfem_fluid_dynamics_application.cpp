@@ -51,7 +51,8 @@
 namespace Kratos
 {
 
-  KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication():   
+  KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication():
+    KratosApplication("PfemFluidDynamicsApplication"),
     mTwoStepUpdatedLagrangianVPElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTwoStepUpdatedLagrangianVPElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
     mTwoStepUpdatedLagrangianVPElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),

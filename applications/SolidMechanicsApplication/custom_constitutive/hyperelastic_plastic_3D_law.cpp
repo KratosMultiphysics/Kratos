@@ -98,6 +98,16 @@ bool HyperElasticPlastic3DLaw::Has( const Variable<Matrix>& rThisVariable )
 }
 
 
+//******************CALCULATE VALUE: DOUBLE - VECTOR - MATRIX*************************
+//************************************************************************************
+
+double& HyperElasticPlastic3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue )
+{
+
+  return (this->GetValue(rThisVariable,rValue ));
+
+}
+  
 //***********************GET VALUE: DOUBLE - VECTOR - MATRIX**************************
 //************************************************************************************
 

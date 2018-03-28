@@ -15,12 +15,8 @@ from . import pouliot_2012_edge_recoverer
 import weakref
 
 class DerivativeRecoveryStrategy:
-    def __init__(self, pp, fluid_model_part, derivative_recovery_tool = None, custom_functions_tool = None):
+    def __init__(self, pp, fluid_model_part, custom_functions_tool = None):
         self.fluid_model_part = fluid_model_part
-        if derivative_recovery_tool is not None:
-            self.derivative_recovery_tool = weakref.proxy(derivative_recovery_tool)
-        else:
-            self.derivative_recovery_tool = None
         if custom_functions_tool is not None:
             self.custom_functions_tool = weakref.proxy(custom_functions_tool)
         else:
@@ -145,6 +141,8 @@ class DerivativeRecoveryStrategy:
     def Recover(self):
         # Some of the following may be empty, and some may do the work of others for efficiency.
         self.mat_deriv_tool.RecoverMaterialAcceleration()
+        # standard = standard_recoverer.StandardMaterialAccelerationRecoverer(self.pp, self.fluid_model_part)
+        # standard.cplusplus_recovery_tool.SmoothVectorField(self.fluid_model_part, MATERIAL_ACCELERATION, VELOCITY_COMPONENT_GRADIENT)
         self.velocity_grad_tool.RecoverGradientOfVelocity()
         self.pressure_grad_tool.RecoverPressureGradient()
         self.fluid_fraction_grad_tool.RecoverFluidFractionGradient()

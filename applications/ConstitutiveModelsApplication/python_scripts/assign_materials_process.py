@@ -37,7 +37,8 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         self.material_name =  self.settings["material_name"].GetString()
         
         #material properties
-        self.properties = self.model_part.Properties[self.settings["properties_id"].GetInt()]
+        self.main_model_part = self.model_part.GetRootModelPart()
+        self.properties      = self.main_model_part.Properties[self.settings["properties_id"].GetInt()]
 
         #read variables
         self.variables = self.settings["variables"]
@@ -77,6 +78,9 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         
         self.properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, self.material_law.Clone())
 
+        splitted_law_name = (self.settings["constitutive_law"]["name"].GetString()).split(".")
+        
+        print("::[Material]:: -"+self.material_name+"- [Model: "+splitted_law_name[len(splitted_law_name)-1]+"]")
               
     #
     def ExecuteInitialize(self):
@@ -86,13 +90,10 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
     def Execute(self):
         
         self._AssignMaterialProperties()
-
-        print("::[Material_Assigned]::", self.material_name)
         
     #
     def ExecuteFinalize(self):
-        pass
-    
+        pass   
 
     #
     def _AssignMaterialProperties(self):
@@ -101,9 +102,13 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         self.dimension = self.model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         
         if(self.material_law.WorkingSpaceDimension() != self.dimension):
-            raise Exception( "mismatch between the ConstitutiveLaw dimension and the dimension of the space")
- 
-        
+            #feature flags
+            self.features =KratosMultiphysics.ConstitutiveLawFeatures()
+            self.material_law.GetLawFeatures(self.features)
+            self.feature_options = self.features.GetOptions()
+            if( self.feature_options.IsNot(KratosMultiphysics.ConstitutiveLaw.PLANE_STRESS_LAW) ):
+                raise Exception("mismatch between the ConstitutiveLaw dimension and the dimension of the space")
+         
         # Assign properties to the model_part elements
         for Element in self.model_part.Elements:
             Element.Properties = self.properties
@@ -129,7 +134,8 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
                 if i != len(splitted)-2:
                     module_name += "."
             module = importlib.import_module(module_name)
-            return getattr(module,splitted[-1])
+            material_law = module_name+"."+splitted[-1]+"()"
+            return eval(material_law)
         elif(len(splitted) == 4):
             module_name = ""
             for i in range(len(splitted)-2):

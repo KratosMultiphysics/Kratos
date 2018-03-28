@@ -140,6 +140,9 @@ public:
     bool Has( const Variable<Vector>& rThisVariable );
     bool Has( const Variable<Matrix>& rThisVariable );
 
+
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue);
+    
     double& GetValue( const Variable<double>& rThisVariable, double& rValue );
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
     Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );

@@ -283,7 +283,15 @@ class mm_reader {
         typename boost::disable_if<typename boost::is_complex<T>::type, T>::type
         read_value(std::istream &s) {
             T x;
-            precondition(s >> x, format_error());
+            if (boost::is_same<T, char>::value) {
+                // Special case:
+                // We want to read 8bit integers from MatrixMarket, not chars.
+                int i;
+                precondition(s >> i, format_error());
+                x = static_cast<char>(i);
+            } else {
+                precondition(s >> x, format_error());
+            }
             return x;
         }
 

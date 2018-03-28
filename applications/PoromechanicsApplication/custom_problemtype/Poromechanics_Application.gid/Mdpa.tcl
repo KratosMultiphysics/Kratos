@@ -253,13 +253,13 @@ proc WriteMdpa { basename dir problemtypedir } {
     set Nodes [GiD_Info Mesh Nodes]
     puts $FileVar "Begin Nodes"
     for {set i 0} {$i < [llength $Nodes]} {incr i 4} {
-        puts $FileVar "  [lindex $Nodes $i]  [lindex $Nodes [expr { $i+1 }]] [lindex $Nodes [expr { $i+2 }]] [lindex $Nodes [expr { $i+3 }]]"
-        #puts -nonewline $FileVar "  [lindex $Nodes $i]  "
-        #puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+1 }]]]
-        #puts -nonewline $FileVar " "
-        #puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+2 }]]]
-        #puts -nonewline $FileVar " "
-        #puts $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+3 }]]]
+        # puts $FileVar "  [lindex $Nodes $i]  [lindex $Nodes [expr { $i+1 }]] [lindex $Nodes [expr { $i+2 }]] [lindex $Nodes [expr { $i+3 }]]"
+        puts -nonewline $FileVar "  [lindex $Nodes $i]  "
+        puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+1 }]]]
+        puts -nonewline $FileVar " "
+        puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+2 }]]]
+        puts -nonewline $FileVar " "
+        puts $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+3 }]]]
     }
     puts $FileVar "End Nodes"
     puts $FileVar ""

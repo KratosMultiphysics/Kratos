@@ -36,6 +36,8 @@ class ShallowWaterBaseSolver(object):
             "calculate_norm_dx"            : true,
             "move_mesh_flag"               : false,
             "volume_model_part_name"       : "volume_model_part",
+            "skin_parts"                   : [""],
+            "no_skin_parts"                : [""],
             "linear_solver_settings"       : {
                     "solver_type"     : "SkylineLUFactorizationSolver"
             },
@@ -64,14 +66,14 @@ class ShallowWaterBaseSolver(object):
 
     def AddVariables(self):
         # Basic variables
-        self.model_part.AddNodalSolutionStepVariable(KratosShallow.HEIGHT);
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY);
+        self.model_part.AddNodalSolutionStepVariable(KratosShallow.HEIGHT)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         # Physic problem parameters
-        self.model_part.AddNodalSolutionStepVariable(KratosShallow.FREE_SURFACE_ELEVATION);
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.GRAVITY);
-        self.model_part.AddNodalSolutionStepVariable(KratosShallow.BATHYMETRY);
-        self.model_part.AddNodalSolutionStepVariable(KratosShallow.RAIN);
-        # Auxiliar variables
+        self.model_part.AddNodalSolutionStepVariable(KratosShallow.FREE_SURFACE_ELEVATION)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.GRAVITY)
+        self.model_part.AddNodalSolutionStepVariable(KratosShallow.BATHYMETRY)
+        self.model_part.AddNodalSolutionStepVariable(KratosShallow.RAIN)
+        # Auxiliary variables
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
@@ -94,7 +96,7 @@ class ShallowWaterBaseSolver(object):
         self._SetBufferSize()
 
     def Initialize(self):
-        self.computing_model_part = self.GetComputingModelPart()
+        #self.computing_model_part = self.GetComputingModelPart()
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
@@ -171,15 +173,15 @@ class ShallowWaterBaseSolver(object):
 
     def _AddPrimitiveDofs(self):
         for node in self.model_part.Nodes:
-            node.AddDof(KratosMultiphysics.VELOCITY_X);
-            node.AddDof(KratosMultiphysics.VELOCITY_Y);
-            node.AddDof(KratosShallow.HEIGHT);
+            node.AddDof(KratosMultiphysics.VELOCITY_X)
+            node.AddDof(KratosMultiphysics.VELOCITY_Y)
+            node.AddDof(KratosShallow.HEIGHT)
         print ("Primitive variables for the SWE solver added correctly")
 
     def _AddConservedDofs(self):
         for node in self.model_part.Nodes:
-            node.AddDof(KratosMultiphysics.MOMENTUM_X);
-            node.AddDof(KratosMultiphysics.MOMENTUM_Y);
-            node.AddDof(KratosShallow.HEIGHT);
+            node.AddDof(KratosMultiphysics.MOMENTUM_X)
+            node.AddDof(KratosMultiphysics.MOMENTUM_Y)
+            node.AddDof(KratosShallow.HEIGHT)
         print ("Conserved variables for the SWE solver added correctly")
 

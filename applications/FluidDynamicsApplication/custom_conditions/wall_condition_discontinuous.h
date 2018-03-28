@@ -208,15 +208,15 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Condition::Pointer(new WallConditionDiscontinuous(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_shared<WallConditionDiscontinuous>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
 
 
-       Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
-        {
-			return Condition::Pointer(new WallConditionDiscontinuous(NewId, pGeom, pProperties));
-		}
+    Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared<WallConditionDiscontinuous>(NewId, pGeom, pProperties);
+	}
 
 
     /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0

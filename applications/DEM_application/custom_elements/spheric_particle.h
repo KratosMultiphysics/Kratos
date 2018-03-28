@@ -42,6 +42,7 @@ typedef WeakPointerVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 /// Default constructor.
+SphericParticle();
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
 SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
@@ -50,6 +51,8 @@ Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, Proper
 
 /// Destructor.
 virtual ~SphericParticle();
+
+SphericParticle& operator=(const SphericParticle& rOther);  
 
 class ParticleDataBuffer
 {
@@ -100,7 +103,7 @@ array_1d<double, 3> mDomainMax;
 SphericParticle* mpThisParticle;
 SphericParticle* mpOtherParticle;
 
-std::vector<DEMWall*> mNeighbourRigidFaces;
+std::vector<DEMWall*> mNeighbourRigidFaces; // why repeated? it is in the sphere as well!
 
 };
 
@@ -153,8 +156,9 @@ virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info);
 
 virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme); 
-virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
+virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
+virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
+virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
 
 virtual void ComputeConditionRelativeData(int rigid_neighbour_index,
                                           DEMWall* const wall,
@@ -188,6 +192,8 @@ virtual double GetYoung();
 void   SetYoungFromProperties(double* young);
 virtual double GetRollingFriction();
 void   SetRollingFrictionFromProperties(double* rolling_friction);
+virtual double GetRollingFrictionWithWalls();
+void   SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
 virtual double GetPoisson();
 void   SetPoissonFromProperties(double* poisson);
 virtual double GetTgOfFrictionAngle();
@@ -227,6 +233,7 @@ void   SetFastProperties(std::vector<PropertiesProxy>& list_of_proxies);
 
 double SlowGetYoung();
 double SlowGetRollingFriction();
+double SlowGetRollingFrictionWithWalls();
 double SlowGetPoisson();
 double SlowGetTgOfFrictionAngle();
 double SlowGetCoefficientOfRestitution();
@@ -282,8 +289,6 @@ double mPartialRepresentativeVolume;
 std::vector<int> mFemOldNeighbourIds;
 
 protected:
-
-SphericParticle();
 
 virtual void ComputeBallToRigidFaceContactForce(ParticleDataBuffer & data_buffer,
                                                 array_1d<double, 3>& rElasticForce,
@@ -399,9 +404,12 @@ virtual void AddUpMomentsAndProject(double LocalCoordSystem[3][3],
                                     double ElasticLocalRotationalMoment[3],
                                     double ViscoLocalRotationalMoment[3]) final;
 
-virtual void ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel, double tangential_vel[3],
-                         double mTimeStep, bool sliding, double inverse_of_volume,
-                         double LocalElasticContactForce, DEMWall* cast_neighbour);
+virtual void ComputeWear(double LocalRelVel[3],
+                         double mTimeStep, 
+                         bool sliding, 
+                         double inverse_of_volume,
+                         double LocalElasticContactForce, 
+                         DEMWall* cast_neighbour);
 
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 
@@ -427,7 +435,8 @@ double mRealMass;
 PropertiesProxy* mFastProperties;
 int mClusterId;
 double mBoundDeltaDispSq;
-DEMIntegrationScheme* mpIntegrationScheme;
+DEMIntegrationScheme* mpTranslationalIntegrationScheme;
+DEMIntegrationScheme* mpRotationalIntegrationScheme;
 double mGlobalDamping;
 
 private:

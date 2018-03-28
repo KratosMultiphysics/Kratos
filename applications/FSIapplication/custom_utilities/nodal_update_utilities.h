@@ -76,9 +76,7 @@ public:
     /**
     * Empty constructor
     */
-    NodalUpdateBaseClass()
-    {
-    }
+    NodalUpdateBaseClass() {}
 
     /*@} */
 
@@ -93,9 +91,7 @@ public:
      */
 
     /*@{ */
-    virtual ~NodalUpdateBaseClass()
-    {
-    }
+    virtual ~NodalUpdateBaseClass() {}
 
     /*@} */
     /**@name Public Operators*/
@@ -107,8 +103,7 @@ public:
      * @param timeStep: time step value
      */
     virtual void UpdateMeshTimeDerivatives(ModelPart& rModelPart,
-                                           const double timeStep)
-    {
+                                           const double timeStep) {
         KRATOS_ERROR << "Calling the nodal update base class UpdateMeshTimeDerivatives() method. Call the proper time scheme derived one.";
     }
 
@@ -116,8 +111,7 @@ public:
      * Sets the fluid interface time derivatives as the mesh displacement computed values.
      * @param rInterfaceModelPart: modelpart in where the nodal update is to be performed
      */
-    virtual void SetMeshTimeDerivativesOnInterface(ModelPart& rInterfaceModelPart)
-    {
+    virtual void SetMeshTimeDerivativesOnInterface(ModelPart& rInterfaceModelPart) {
         auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
         ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
         #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
@@ -125,15 +119,11 @@ public:
         {
             ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
 
-            array_1d<double, 3>& v_node = it_node->FastGetSolutionStepValue(VELOCITY);      // Current step interface velocity
-            array_1d<double, 3>& a_node = it_node->FastGetSolutionStepValue(ACCELERATION);  // Current step interface acceleration
-
-            noalias(v_node) = it_node->FastGetSolutionStepValue(MESH_VELOCITY);        // Set the current interface velocity as the mesh velocity;
-            noalias(a_node) = it_node->FastGetSolutionStepValue(MESH_ACCELERATION);    // Set the current interface acceleration as the mesh acceleration;
+            array_1d<double, 3>& v_node = it_node->FastGetSolutionStepValue(VELOCITY);  // Current step interface velocity
+            noalias(v_node) = it_node->FastGetSolutionStepValue(MESH_VELOCITY);         // Set the current interface velocity as the mesh velocity;
         }
 
         rInterfaceModelPart.GetCommunicator().SynchronizeVariable(VELOCITY);
-        rInterfaceModelPart.GetCommunicator().SynchronizeVariable(ACCELERATION);
     }
 
     /*@} */
@@ -238,11 +228,13 @@ public:
     /**
     * Empty constructor
     */
-    NodalUpdateNewmark(const double BossakAlpha = -0.3)
-    {
-        mBossakAlpha = BossakAlpha;
-        mBossakBeta = 0.5 - mBossakAlpha;
-        mBossakGamma = 0.25*std::pow(1.0 - mBossakAlpha, 2.0);
+    NodalUpdateNewmark(const double BossakAlpha = -0.3) {
+        const double bossak_f = 0.0;
+        const double bossak_beta = 0.25;
+        const double bossak_gamma = 0.5;
+
+        mBossakBeta = std::pow((1.0 + bossak_f - BossakAlpha), 2) * bossak_beta;
+        mBossakGamma = bossak_gamma + bossak_f - BossakAlpha;
     }
 
 
@@ -259,9 +251,7 @@ public:
      */
 
     /*@{ */
-    virtual ~NodalUpdateNewmark()
-    {
-    }
+    virtual ~NodalUpdateNewmark() {}
 
     /*@} */
     /**@name Public Operators*/
@@ -273,14 +263,12 @@ public:
      * @param timeStep: time step value
      */
     virtual void UpdateMeshTimeDerivatives(ModelPart &rModelPart,
-                                           const double timeStep)
-    {
+                                           const double timeStep) {
 
         auto& rLocalMesh = rModelPart.GetCommunicator().LocalMesh();
         ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
         #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
-        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
-        {
+        for(int k = 0; k < static_cast<int>(rLocalMesh.NumberOfNodes()); ++k) {
             const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
 
             const array_1d<double, 3>& umesh_n = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);  // Previous step mesh displacement
@@ -291,10 +279,13 @@ public:
             array_1d<double, 3>& vmesh_n1 = it_node->FastGetSolutionStepValue(MESH_VELOCITY);              // Current step mesh velocity (to be updated)
             array_1d<double, 3>& amesh_n1 = it_node->FastGetSolutionStepValue(MESH_ACCELERATION);          // Current step mesh acceleration (to be updated)
 
-            for (unsigned int jj=0; jj<TDim; ++jj)
-            {
-                amesh_n1[jj] = (umesh_n1[jj] - umesh_n[jj] - timeStep*vmesh_n[jj] - std::pow(timeStep, 2.0)*(0.5-mBossakBeta)*amesh_n[jj])/(std::pow(timeStep, 2.0)*mBossakBeta);
-                vmesh_n1[jj] = vmesh_n[jj] + timeStep*(1-mBossakGamma)*amesh_n[jj] + timeStep*mBossakGamma*amesh_n1[jj];
+            const double const_u = mBossakGamma / (timeStep * mBossakBeta);
+            const double const_v = 1.0 - mBossakGamma / mBossakBeta;
+            const double const_a = timeStep * (1.0 - mBossakGamma / (2.0 * mBossakBeta));
+
+            for (unsigned int d=0; d<TDim; ++d) {
+                vmesh_n1[d] = const_u * (umesh_n1[d] - umesh_n[d]) + const_v * vmesh_n[d] + const_a * amesh_n[d];
+                amesh_n1[d] = (1.0 / (timeStep * mBossakGamma)) * (vmesh_n1[d] - vmesh_n[d]) - ((1 - mBossakGamma) / mBossakGamma) * amesh_n[d];
             }
         }
 
@@ -315,7 +306,6 @@ protected:
     /**@name Protected member Variables */
     /*@{ */
 
-    double mBossakAlpha;
     double mBossakBeta;
     double mBossakGamma;
 

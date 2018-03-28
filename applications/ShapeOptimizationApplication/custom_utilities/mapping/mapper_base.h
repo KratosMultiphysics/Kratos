@@ -87,13 +87,13 @@ public:
   ///@name Operations
   ///@{
 
-  // ==============================================================================
+  // --------------------------------------------------------------------------
   virtual void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace ) = 0;
 
   // --------------------------------------------------------------------------
   virtual void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace ) = 0;
 
-  // ==============================================================================
+  // --------------------------------------------------------------------------
 
   ///@}
   ///@name Access

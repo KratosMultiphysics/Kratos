@@ -62,6 +62,7 @@
 #include "add_testing_to_python.h"
 #include "add_logger_to_python.h"
 #include "add_response_functions_to_python.h"
+#include "add_memory_info_to_python.h"
 
 namespace Kratos
 {
@@ -120,7 +121,7 @@ BOOST_PYTHON_MODULE(Kratos)
     AddSerializerToPython();
     AddTableToPython();
     AddGeometriesToPython();
-//     AddParallelStrategiesToPython(); 
+//     AddParallelStrategiesToPython();
 //     AddParallelLinearSolversToPython();
     AddMatrixMarketInterfaceToPython();
     AddKratosParametersToPython();
@@ -129,6 +130,7 @@ BOOST_PYTHON_MODULE(Kratos)
     AddTestingToPython();
     AddLoggerToPython();
     AddResponseFunctionsToPython();
+    AddMemoryInfoToPython();
 
     def("Hello", greet);
 }

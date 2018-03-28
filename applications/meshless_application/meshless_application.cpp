@@ -39,6 +39,7 @@ namespace Kratos
 
 
 KratosMeshlessApplication::KratosMeshlessApplication():
+    KratosApplication("MeshlessApplication"),
     //mSPHparticlePoly    ( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) ),
     //mSPHparticlePolyPresSpiky    ( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) ),
     //mSPHparticleQuintic    ( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) ),
