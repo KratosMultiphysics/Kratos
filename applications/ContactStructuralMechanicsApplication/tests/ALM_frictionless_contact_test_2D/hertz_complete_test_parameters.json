@@ -11,7 +11,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,        
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -33,7 +33,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
+        "max_iteration"                      : 20,
         "linear_solver_settings"             : {
             "solver_type" : "SkylineLUFactorizationSolver"
         },
@@ -90,19 +90,7 @@
             "model_part_name"             : "Structure",
             "assume_master_slave"         : "Parts_body_upper",
             "contact_model_part"          : "Contact_Part",
-            "contact_type"                : "Frictionless",
-            "search_factor"               : 1.8,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2,
-            "active_check_factor"         : 1.0e-0,
-            "normal_variation"            : "NO_DERIVATIVES_COMPUTATION",
-            "stiffness_factor"            : 10.0,
-            "penalty_scale_factor"        : 1.0,
-            "manual_ALM"                  : false,
-            "penalty"                     : 1.0e1,
-            "scale_factor"                : 1.0e0,
-            "debug_mode"                  : false
+            "contact_type"                : "Frictionless"
         }
     }
     ],

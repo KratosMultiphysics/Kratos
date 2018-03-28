@@ -27,11 +27,13 @@ class MeshSolverStructuralSimilarity(mesh_solver_base.MeshSolverBase):
         time_order = self.settings["time_order"].GetInt()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
+        calculate_mesh_velocities = self.settings["calculate_mesh_velocities"].GetBool()
         echo_level = self.settings["echo_level"].GetInt()
         solver = KratosALE.StructuralMeshMovingStrategy(self.mesh_model_part,
                                                              linear_solver,
                                                              time_order,
                                                              reform_dofs_each_step,
                                                              compute_reactions,
+                                                             calculate_mesh_velocities,
                                                              echo_level)
         return solver

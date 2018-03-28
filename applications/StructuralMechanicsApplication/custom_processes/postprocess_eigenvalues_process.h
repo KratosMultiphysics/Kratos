@@ -110,12 +110,12 @@ class PostprocessEigenvaluesProcess : public Process
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override {
+    void PrintInfo(std::ostream& rOStream) const override {
         rOStream << "PostprocessEigenvaluesProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override {
+    void PrintData(std::ostream& rOStream) const override {
     }
 
     ///@}

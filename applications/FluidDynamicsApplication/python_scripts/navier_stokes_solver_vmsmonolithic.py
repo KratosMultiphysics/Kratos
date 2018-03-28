@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -18,10 +18,13 @@ def CreateSolver(main_model_part, custom_settings):
 class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSolver):
 
     def __init__(self, main_model_part, custom_settings):
-        
+
         self.element_name = "VMS"
         self.condition_name = "MonolithicWallCondition"
         self.min_buffer_size = 2
+
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
 
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
@@ -105,7 +108,7 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
 
     def ImportModelPart(self):
         super(NavierStokesSolverMonolithic, self).ImportModelPart()
-        
+
         ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
         self._set_physical_properties()
 
@@ -146,7 +149,7 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
 
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.main_model_part,
+        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part,
                                                                             self.time_scheme,
                                                                             self.linear_solver,
                                                                             self.conv_criteria,
@@ -157,10 +160,9 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
                                                                             self.settings["move_mesh_flag"].GetBool())
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-        (self.solver).Check()
 
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
+        self.computing_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+        self.computing_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
         (self.solver).Initialize()
 

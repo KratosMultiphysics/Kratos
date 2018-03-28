@@ -35,12 +35,13 @@ template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::InterpolateFromFluidMesh(
         ModelPart& r_fluid_model_part,
         ModelPart& r_dem_model_part,
+        Parameters& parameters,
         BinBasedFastPointLocator<TDim>& bin_of_objects_fluid,
         const double alpha)
 {
     KRATOS_TRY
 
-    DerivativeRecovery<TDim> recoverer(r_fluid_model_part);
+    DerivativeRecovery<TDim> recoverer(r_fluid_model_part, parameters);
     recoverer.RecoverGradientOfAScalar(PRESSURE, TORQUE);
     // setting interpolated variables to their default values
     ResetDEMVariables(r_dem_model_part);

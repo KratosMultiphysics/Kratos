@@ -68,13 +68,13 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
 
         # Setting default configurations true by default
         if (self.settings["clear_storage"].GetBool() == False):
-            self.print_warning_on_rank_zero("Clear storage", "Storage must be cleared each step. Switching to True")
+            self.print_on_rank_zero("Clear storage", "Storage must be cleared each step. Switching to True")
             self.settings["clear_storage"].SetBool(True)
         if (self.settings["reform_dofs_at_each_step"].GetBool() == False):
-            self.print_warning_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
+            self.print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
             self.settings["reform_dofs_at_each_step"].SetBool(True)
         if (self.settings["block_builder"].GetBool() == False):
-            self.print_warning_on_rank_zero("Builder and solver", "EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
+            self.print_on_rank_zero("Builder and solver", "EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
             self.settings["block_builder"].SetBool(True)
 
         # Setting echo level
@@ -96,22 +96,25 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         if  mortar_type != "":
             self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)  # Add normal
             self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # Add nodal size variable
-            if  mortar_type == "ALMContactFrictionless":
-                self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL_CONTACT_STRESS)       # Add normal contact stress
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)              # Add normal contact gap
-            elif mortar_type == "ALMContactFrictionlessComponents":
-                self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)  # Add normal contact stress
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)              # Add normal contact gap
-            elif mortar_type == "ALMContactFrictional":
-                self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)  # Add normal contact stress
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)              # Add normal contact gap
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SLIP)             # Add contact slip
+            if  mortar_type == "ALMContactFrictionless":            # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
+                self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL_CONTACT_STRESS)        # Add normal contact stress
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)               # Add normal contact gap
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL)   # Add scalar LM residual
+            elif mortar_type == "ALMContactFrictionlessComponents": # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
+                self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)   # Add normal contact stress
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)               # Add normal contact gap
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)   # Add vector LM residual
+            elif mortar_type == "ALMContactFrictional":             # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
+                self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)   # Add normal contact stress
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)               # Add normal contact gap
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SLIP)              # Add contact slip
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)   # Add vector LM residual
             elif  mortar_type == "ScalarMeshTying":
-                self.main_model_part.AddNodalSolutionStepVariable(KM.SCALAR_LAGRANGE_MULTIPLIER)  # Add scalar LM
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL)  # Add scalar LM residual
+                self.main_model_part.AddNodalSolutionStepVariable(KM.SCALAR_LAGRANGE_MULTIPLIER)   # Add scalar LM
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL)   # Add scalar LM residual
             elif  mortar_type == "ComponentsMeshTying":
-                self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)  # Add vector LM
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)  # Add vector LM residual
+                self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)   # Add vector LM
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)   # Add vector LM residual
 
         self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "Variables ADDED")
 
@@ -120,12 +123,12 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         super().AddDofs()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
-        if (mortar_type == "ALMContactFrictionless"):
-            KM.VariableUtils().AddDof(KM.NORMAL_CONTACT_STRESS, CSMA.WEIGHTED_GAP, self.main_model_part)
-        elif (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"):
-            KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_X, self.main_model_part)
-            KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, self.main_model_part)
-            KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, self.main_model_part)
+        if (mortar_type == "ALMContactFrictionless"):                                                      # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
+            KM.VariableUtils().AddDof(KM.NORMAL_CONTACT_STRESS, CSMA.WEIGHTED_SCALAR_RESIDUAL, self.main_model_part)
+        elif (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"): # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
+            KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_X, CSMA.WEIGHTED_VECTOR_RESIDUAL_X, self.main_model_part)
+            KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, CSMA.WEIGHTED_VECTOR_RESIDUAL_Y, self.main_model_part)
+            KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, CSMA.WEIGHTED_VECTOR_RESIDUAL_Z, self.main_model_part)
         elif (mortar_type == "ScalarMeshTying"):
             KM.VariableUtils().AddDof(KM.SCALAR_LAGRANGE_MULTIPLIER,CSMA.WEIGHTED_SCALAR_RESIDUAL, self.main_model_part)
         elif (mortar_type == "ComponentsMeshTying"):
@@ -195,7 +198,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"):
             if (self.contact_settings["use_mixed_ulm_solver"].GetBool() == True):
-                KM.Logger.PrintWarning("Using MixedULMLinearSolver, definition of ALM parameters recommended")
+                self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
                 name_mixed_solver = self.contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
                 if (name_mixed_solver == "mixed_ulm_linear_solver"):
                     linear_solver_name = self.settings["linear_solver_settings"]["solver_type"].GetString()

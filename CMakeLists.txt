@@ -7,8 +7,8 @@ endif(POLICY CMP0054)
 project (KratosMultiphysics)
 
 # Set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_MAJOR_VERSION 5)
-set (KratosMultiphysics_MINOR_VERSION 3)
+set (KratosMultiphysics_MAJOR_VERSION 6)
+set (KratosMultiphysics_MINOR_VERSION 0)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # Define custom compiler build types
