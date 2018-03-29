@@ -18,16 +18,14 @@ class BaseKratosAnalysisStage(object):
         model -- The Model to be used
         project_parameters -- The ProjectParameters used
         """
-        if (type(project_parameters) == KratosMultiphysics.Parameters): # a Parameters object is provided
-            self.project_parameters = project_parameters
-        else:
-            raise Exception("Input is expected to be provided as a Kratos Parameters object or a file name")
-
         if (type(model) != KratosMultiphysics.Model):
             raise Exception("Input is expected to be provided as a Kratos Model object")
 
-        self.model = model
+        if (type(project_parameters) != KratosMultiphysics.Parameters):
+            raise Exception("Input is expected to be provided as a Kratos Parameters object or a file name")
 
+        self.model = model
+        self.project_parameters = project_parameters
 
     #### Public functions to run the Analysis ####
     def Run(self):
