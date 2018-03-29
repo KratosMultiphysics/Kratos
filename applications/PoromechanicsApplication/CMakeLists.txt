@@ -7,7 +7,7 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/PoromechanicsMechanicsApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/PoromechanicsApplication )
 
 ## Define application core sources (pure C++ parts)
 set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
