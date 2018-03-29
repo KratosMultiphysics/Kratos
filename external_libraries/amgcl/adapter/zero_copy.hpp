@@ -42,7 +42,7 @@ namespace amgcl {
 namespace adapter {
 
 template <typename Ptr, typename Col, typename Val>
-boost::shared_ptr< backend::crs<Val> >
+std::shared_ptr< backend::crs<Val> >
 zero_copy(size_t n, const Ptr *ptr, const Col *col, const Val *val) {
     // Check that Ptr and Col types are binary-compatible with ptrdiff_t:
     BOOST_STATIC_ASSERT(boost::is_integral<Ptr>::value);
@@ -50,7 +50,7 @@ zero_copy(size_t n, const Ptr *ptr, const Col *col, const Val *val) {
     BOOST_STATIC_ASSERT(sizeof(Ptr) == sizeof(ptrdiff_t));
     BOOST_STATIC_ASSERT(sizeof(Col) == sizeof(ptrdiff_t));
 
-    boost::shared_ptr< backend::crs<Val> > A = boost::make_shared< backend::crs<Val> >();
+    std::shared_ptr< backend::crs<Val> > A = std::make_shared< backend::crs<Val> >();
     A->nrows = n;
     A->ncols = n;
     A->nnz   = ptr[n];
