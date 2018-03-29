@@ -151,6 +151,8 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
             self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(ADJOINT_ROTATION)
         #self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)    
         # TODO: Is it necessary to add other variables (e.g. POINT_LOAD_SENSITIVITY)?
+
+        self.primal_analysis.GetModelPart().ProcessInfo[StructuralMechanicsApplication.IS_ADJOINT] = False
   
         self.response_function_utility = response_function_utility
     def Initialize(self):
@@ -170,6 +172,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         # Replace elements and conditions by its adjoint equivalents
         self.__performReplacementProcess(True)
         self.response_function_utility.Initialize() 
+        self.primal_analysis.GetModelPart().ProcessInfo[StructuralMechanicsApplication.IS_ADJOINT] = True
         # 'Solve' the adjoint problem
         for node in self.primal_analysis.GetModelPart().Nodes:
             disp_x = node.GetSolutionStepValue(DISPLACEMENT_X,0)
@@ -190,6 +193,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         # Replace elements and conditions back to its origins
         self.__performReplacementProcess(False)
         self.__initializeAfterReplacement(self.primal_analysis.GetModelPart())
+        self.primal_analysis.GetModelPart().ProcessInfo[StructuralMechanicsApplication.IS_ADJOINT] = False
     def GetShapeGradient(self):
         gradient = {}
         for node in self.primal_analysis.GetModelPart().Nodes:

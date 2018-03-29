@@ -145,10 +145,8 @@ public:
 		m_current_response_value = 0.0;
 
 		// Check if there are at the time of calling adjoint or primal elements
-		// TODO: ist there a smarter solution to get this information??
-		std::string element_name = r_model_part.Elements()[r_model_part.ElementsBegin()->Id()].Info();
-		if( element_name.find("Adjoint", 0) != std::string::npos)
-			KRATOS_ERROR << "Calculate value for strain energy response is not availibe when using adjoint elements" << std::endl;
+		if(CurrentProcessInfo[IS_ADJOINT] == true)
+			KRATOS_ERROR << "Calculate value for strain energy response is not availible when using adjoint elements" << std::endl;
 			
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
 		for (auto& elem_i : r_model_part.Elements())
