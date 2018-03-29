@@ -22,7 +22,6 @@
 // ------------------------------------------------------------------------------
 // External includes
 // ------------------------------------------------------------------------------
-#include <boost/python.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
 // ------------------------------------------------------------------------------
@@ -259,16 +258,16 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	boost::python::dict GetGradient()
+	pybind11::dict GetGradient()
 	{
 		KRATOS_TRY;
 
 		// Dictionary to store all sensitivities along with Ids of corresponding nodes
-		boost::python::dict dFdX;
+		pybind11::dict dFdX;
 
 		// Fill dictionary with gradient information
 		for (auto& node_i : mr_model_part.Nodes())
-			dFdX[node_i.Id()] = node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT);
+			dFdX[pybind11::cast(node_i.Id())] = node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT);
 
 		return dFdX;
 

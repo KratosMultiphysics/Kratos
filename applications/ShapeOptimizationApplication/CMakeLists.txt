@@ -2,6 +2,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosShapeOptimizationApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## generate variables with the sources
@@ -14,13 +17,10 @@ set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosShapeOptimizationApplication SHARED ${KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES})
-target_link_libraries(KratosShapeOptimizationApplication KratosCore)
+pybind11_add_module(KratosShapeOptimizationApplication MODULE ${KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES})
+target_link_libraries(KratosShapeOptimizationApplication PRIVATE KratosCore)
 set_target_properties(KratosShapeOptimizationApplication PROPERTIES PREFIX "")
 install(TARGETS KratosShapeOptimizationApplication DESTINATION libs )
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
