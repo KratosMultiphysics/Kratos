@@ -6,22 +6,9 @@
 //
 
 // System includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // Project includes
-#include "includes/define.h"
 #include "includes/constitutive_law.h"
-#include "includes/node.h"
-#include "includes/variables.h"
-#include "includes/mesh.h"
-#include "includes/element.h"
-#include "includes/condition.h"
-#include "includes/properties.h"
-
-#include "python/pointer_vector_set_python_interface.h"
-#include "python/variable_indexing_python.h"
-#include "python/add_mesh_to_python.h"
 
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
@@ -57,11 +44,13 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddCustomConstitutiveLawsToPython()
+void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
-    class_< ThermalLinearElastic3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic3DLaw",init<>() );
+    class_< ThermalLinearElastic3DLaw, ThermalLinearElastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "ThermalLinearElastic3DLaw")
+    .def(init<>());
     class_< ThermalLinearElastic2DPlaneStrain, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic2DPlaneStrain",init<>() );
     class_< ThermalLinearElastic2DPlaneStress, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic2DPlaneStress",init<>() );
 
