@@ -60,11 +60,11 @@ public:
 
         Parameters default_parameters( R"(
             {
-                "Add_string": "NAME_OF_ADD_STRING",
-                "Add_before_in_element_name": "ADD_STRING_BEFORE",
-                "Add_before_in_condition_name": "ADD_STRING_BEFORE",
-                "Add_Exception": "NAME_OF_EXEPTION",
-                "From_Primal_To_Adjoint": true
+                "add_string": "NAME_OF_ADD_STRING",
+                "add_before_in_element_name": "ADD_STRING_BEFORE",
+                "add_before_in_condition_name": "ADD_STRING_BEFORE",
+                "elements_conditions_to_ignore": "NAME_OF_EXEPTION",
+                "from_primal_to_adjoint": true
             }  )" );
 
         //now validate agains defaults -- this also ensures no type mismatch*/
@@ -102,11 +102,11 @@ public:
     {
         ModelPart& r_root_model_part = ObtainRootModelPart( mr_model_part );
 
-        std::string sub_name_element = mSettings["Add_before_in_element_name"].GetString();
-        std::string sub_name_condition = mSettings["Add_before_in_condition_name"].GetString();
-        std::string adding_string = mSettings["Add_string"].GetString();
-        std::string exception_string = mSettings["Add_Exception"].GetString();
-        bool  from_primal_to_adjoint = mSettings["From_Primal_To_Adjoint"].GetBool();
+        std::string sub_name_element = mSettings["add_before_in_element_name"].GetString();
+        std::string sub_name_condition = mSettings["add_before_in_condition_name"].GetString();
+        std::string adding_string = mSettings["add_string"].GetString();
+        std::string ignore_string = mSettings["elements_conditions_to_ignore"].GetString();
+        bool  from_primal_to_adjoint = mSettings["from_primal_to_adjoint"].GetBool();
         
     #pragma omp parallel for                              //--> TODO: Check if this really works in parallel
         for(int i=0; i< (int)r_root_model_part.Elements().size(); i++)
@@ -115,7 +115,7 @@ public:
 
             std::string element_name = it->Info();
  
-            if(!(element_name == exception_string))
+            if(!(element_name == ignore_string))
             {
                 if(from_primal_to_adjoint) 
                 {
@@ -155,7 +155,7 @@ public:
 
             std::string condition_name = it->Info();
 
-            if(!(condition_name == exception_string))
+            if(!(condition_name == ignore_string))
             {
                 if(from_primal_to_adjoint) 
                 {

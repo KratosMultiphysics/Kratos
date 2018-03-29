@@ -206,21 +206,21 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
             if(from_primal_to_adjoint == True):
                 self.ProjectParametersPrimal["element_replace_settings"] = Parameters("""
                     {
-                    "Add_string": "Adjoint",
-                    "Add_before_in_element_name": "Element",
-                    "Add_before_in_condition_name": "Condition",
-                    "Add_Exception": "ShapeOptimizationCondition",
-                    "From_Primal_To_Adjoint": true
+                    "add_string": "Adjoint",
+                    "add_before_in_element_name": "Element",
+                    "add_before_in_condition_name": "Condition",
+                    "elements_conditions_to_ignore": "ShapeOptimizationCondition",
+                    "from_primal_to_adjoint": true
                     }
                     """)
             else:
                 self.ProjectParametersPrimal["element_replace_settings"] = Parameters("""
                     {
-                    "Add_string": "Adjoint",
-                    "Add_before_in_element_name": "Element",
-                    "Add_before_in_condition_name": "Condition",
-                    "Add_Exception": "ShapeOptimizationCondition",
-                    "From_Primal_To_Adjoint": false
+                    "add_string": "Adjoint",
+                    "add_before_in_element_name": "Element",
+                    "add_before_in_condition_name": "Condition",
+                    "elements_conditions_to_ignore": "ShapeOptimizationCondition",
+                    "from_primal_to_adjoint": false
                     }
                     """)
 

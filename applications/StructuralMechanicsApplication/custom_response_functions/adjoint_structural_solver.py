@@ -47,11 +47,11 @@ class AdjointStructuralSolver(structural_mechanics_solver.MechanicalSolver):
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
             self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                 {
-                "Add_string": "Adjoint",
-                "Add_before_in_element_name": "Element",
-                "Add_before_in_condition_name": "Condition",
-                "Add_Exception": "ShapeOptimizationCondition",
-                "From_Primal_To_Adjoint": true
+                "add_string": "Adjoint",
+                "add_before_in_element_name": "Element",
+                "add_before_in_condition_name": "Condition",
+                "elements_conditions_to_ignore": "ShapeOptimizationCondition",
+                "from_primal_to_adjoint": true
                 }
                 """)
 
