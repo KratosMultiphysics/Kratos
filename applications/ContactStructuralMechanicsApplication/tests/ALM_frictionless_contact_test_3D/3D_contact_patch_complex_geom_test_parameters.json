@@ -93,8 +93,9 @@
             "model_part_name"           : "Structure",
             "assume_master_slave"       : "Parts_Parts_Auto1",
             "contact_type"              : "Frictionless",
-            "stiffness_factor"          : 10.0,
-            "check_gap"                 : "DirectCheck"
+            "search_parameters" : {
+                "check_gap"             : "direct_check"
+            }
         }
     }],
     "json_check_process" : [
@@ -118,6 +119,7 @@
             "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_LM.json",
             "model_part_name"      : "CONTACT_Contact_Auto1",
+            "check_for_flag"       : "ACTIVE",
             "historical_value"     : false,
             "relative_tolerance"   : 1e-2,
             "time_frequency"       : 1.0
@@ -145,6 +147,7 @@
             "output_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_LM.json",
             "model_part_name"      : "CONTACT_Contact_Auto1",
+            "check_for_flag"       : "ACTIVE",
             "historical_value"     : false,
             "time_frequency"       : 1.00
         }

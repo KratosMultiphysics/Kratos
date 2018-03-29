@@ -4,7 +4,7 @@
         "model_part_name" : "Structure",
         "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.25,
+        "time_step"       : 0.20,
         "start_time"      : 0.0,
         "end_time"        : 17.99,
         "echo_level"      : 0
@@ -148,19 +148,7 @@
             "model_part_name"             : "Structure",
             "assume_master_slave"         : "Parts_Parts_Auto2",
             "contact_model_part"          : "CONTACT_Contact_Auto1",
-            "contact_type"                : "Frictionless",
-            "search_factor"               : 3.5,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2,
-            "active_check_factor"         : 1.0e-2,
-            "normal_variation"            : "NO_DERIVATIVES_COMPUTATION",
-            "stiffness_factor"            : 10.0,
-            "penalty_scale_factor"        : 1.0,
-            "manual_ALM"                  : false,
-            "penalty"                     : 1.0e-6,
-            "scale_factor"                : 1.0e0,
-            "debug_mode"                  : false
+            "contact_type"                : "Frictionless"
         }
     }],
     "_output_configuration"     : {

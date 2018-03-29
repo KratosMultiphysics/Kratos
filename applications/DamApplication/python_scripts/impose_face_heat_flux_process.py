@@ -21,7 +21,6 @@ class ImposeFaceHeatFluxProcess(Process):
             if settings["table"].GetInt() == 0:
                 t_uniform = Parameters("{}")
                 t_uniform.AddValue("model_part_name",settings["model_part_name"])
-                t_uniform.AddValue("mesh_id",settings["mesh_id"])
                 t_uniform.AddEmptyValue("is_fixed").SetBool(False)
                 t_uniform.AddValue("variable_name",settings["variable_name"])
                 t_uniform.AddValue("value",settings["value"])
@@ -34,7 +33,6 @@ class ImposeFaceHeatFluxProcess(Process):
         if "TAmbient" in settings["model_part_name"].GetString():
             t_ambient = Parameters("{}")
             t_ambient.AddValue("model_part_name",settings["model_part_name"])
-            t_ambient.AddValue("mesh_id",settings["mesh_id"])
             t_ambient.AddValue("variable_name",settings["variable_name"])
             t_ambient.AddValue("h_0",settings["h_0"])
             t_ambient.AddValue("ambient_temperature",settings["ambient_temperature"])
