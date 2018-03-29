@@ -79,7 +79,7 @@ void SetDataBuffer(TVariableType const& rVariable,
     KRATOS_TRY;
 
     rData.resize(rNodes.size(), false);
-    if (rVariable.Name() == "ACCELERATION")
+    if (rVariable == ACCELERATION)
     {
 #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rNodes.size()); ++i)
