@@ -35,10 +35,10 @@ class BaseKratosAnalysisStage(object):
     #### Public functions to run the Analysis ####
     def Run(self):
         """This function executes the entire analysis
-        It is NOT intended to be overridden in deriving classes!
+        It is NOT intended to be overridden in deriving classes! TODO change
         """
         self.Initialize()
-        self.RunMainTemporalLoop()
+        self.RunSolutionLoop()
         self.Finalize()
 
     def RunSolutionLoop(self):
@@ -46,9 +46,11 @@ class BaseKratosAnalysisStage(object):
         It is NOT intended to be overridden in deriving classes!
         """
         while self.time < self.end_time:
-            self.InitializeTimeStep()
-            self.SolveStep()
-            self.FinalizeTimeStep()
+            self.AdvanceInTime()
+            self.InitializeSolutionStep()
+            self.Predict()
+            self.SolveSolutionStep()
+            self.FinalizeSolutionStep()
 
     def Initialize(self):
         """This function initializes the analysis
@@ -66,30 +68,13 @@ class BaseKratosAnalysisStage(object):
         """
         pass
 
-    def InitializeTimeStep(self):
-        """This function initializes the time-step
-        Usage: It is designed to be called once at the beginning of EACH time-step
-        This function IS intended to be overridden in deriving classes!
+    def AdvanceInTime(self):
+        """This function prepares the database for the new time-step
+        It is designed to be called once at the beginning of a time-step
+        This function has to be implemented in deriving classes!
         """
-        pass
-
-    def SolveStep(self):
-        """This function solves one step
-        It can be called several times during one time-step
-        This is equivalent to calling "solving_strategy.Solve()" (without "Initialize")
-        This function is NOT intended to be overridden in deriving classes!
-        """
-        self.InitializeSolutionStep()
-        self.Predict()
-        self.SolveSolutionStep()
-        self.FinalizeSolutionStep()
-
-    def FinalizeTimeStep(self):
-        """This function finalizes the time-step
-        Usage: It is designed to be called once at the end of EACH time-step
-        This function IS intended to be overridden in deriving classes!
-        """
-        pass
+        raise NotImplementedError("This function has to be implemented by derived\
+            analysis classes")
 
     def InitializeSolutionStep(self):
         """This function performs all the required operations that should be done
