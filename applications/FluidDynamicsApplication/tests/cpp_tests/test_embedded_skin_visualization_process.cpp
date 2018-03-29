@@ -159,8 +159,8 @@ namespace Kratos {
             // Set the nodal values
             const double p_pos = 1.0;
             const double p_neg = -1.0;
-            array_1d<double,3> v_pos(0.0);
-            array_1d<double,3> v_neg(0.0);
+            array_1d<double,3> v_pos(3,0.0);
+            array_1d<double,3> v_neg(3,0.0);
             v_pos[0] = 1.0;
             v_neg[0] = -1.0;
             const double level_set_height = 4.5;
@@ -312,8 +312,101 @@ namespace Kratos {
             // Set the nodal values
             const double p_pos = 1.0;
             const double p_neg = -1.0;
-            array_1d<double,3> v_pos(0.0);
-            array_1d<double,3> v_neg(0.0);
+            array_1d<double,3> v_pos(3,0.0);
+            array_1d<double,3> v_neg(3,0.0);
+            v_pos[0] = 1.0;
+            v_neg[0] = -1.0;
+            const double level_set_height = 4.5;
+
+            for (unsigned int i_node = 0; i_node < main_model_part.NumberOfNodes(); ++i_node){
+                auto it_node = main_model_part.NodesBegin() + i_node;
+
+                // Set DISTANCE values
+                const double node_distance = (it_node->Z()) - level_set_height;
+                it_node->FastGetSolutionStepValue(DISTANCE) = node_distance;
+
+                // Set the VELOCITY and PRESSURE values
+                if (node_distance > 0.0){
+                    it_node->FastGetSolutionStepValue(VELOCITY) = v_pos;
+                    it_node->FastGetSolutionStepValue(PRESSURE) = p_pos;
+                } else {
+                    it_node->FastGetSolutionStepValue(VELOCITY) = v_neg;
+                    it_node->FastGetSolutionStepValue(PRESSURE) = p_neg;
+                }
+            }
+
+            // Copy the nodal distance to ELEMENTAL_DISTANCES variable
+            // (needed in case the Ausas functions are tested)
+            for (unsigned int i_elem = 0; i_elem < main_model_part.NumberOfElements(); ++i_elem){
+                auto it_elem = main_model_part.ElementsBegin() + i_elem;
+                auto &r_geom = it_elem->GetGeometry();
+                const unsigned int elem_n_nodes = r_geom.PointsNumber();
+                Vector elem_dist(elem_n_nodes);
+                for (unsigned int i_node = 0; i_node < elem_n_nodes; ++i_node){
+                    elem_dist[i_node] = r_geom[i_node].GetSolutionStepValue(DISTANCE);
+                }
+                it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+            }
+
+            // Create the visualization model part
+            ModelPart visualization_model_part("VisualizationModelPart");
+            visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
+            visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
+            visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);
+
+            // Set the embedded skin visualization process
+            Parameters visualization_settings(R"(
+            {
+                "shape_functions"         : "ausas",
+                "visualization_variables" : ["VELOCITY","PRESSURE"]
+            })");
+
+            EmbeddedSkinVisualizationProcess skin_visualization_process(
+                main_model_part, 
+                visualization_model_part, 
+                visualization_settings);
+
+            skin_visualization_process.ExecuteInitialize();
+            skin_visualization_process.ExecuteBeforeSolutionLoop();
+            skin_visualization_process.ExecuteInitializeSolutionStep();
+            skin_visualization_process.ExecuteBeforeOutputStep();
+            skin_visualization_process.ExecuteFinalizeSolutionStep();
+
+            GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/visualizaton_model_part_3d_ausas", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+            gid_io_fluid.InitializeMesh(0.0);
+            gid_io_fluid.WriteMesh(visualization_model_part.GetMesh());
+            gid_io_fluid.FinalizeMesh();
+            gid_io_fluid.InitializeResults(0, visualization_model_part.GetMesh());
+            gid_io_fluid.WriteNodalResults(VELOCITY, visualization_model_part.Nodes(), 0, 0);
+            gid_io_fluid.WriteNodalResults(PRESSURE, visualization_model_part.Nodes(), 0, 0);
+            gid_io_fluid.FinalizeResults();
+
+	    }
+
+	    /** 
+	     * Checks the embedded skin visualization process for tetrahedral meshes.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTetrahedronAusas, FluidDynamicsApplicationFastSuite)
+		{
+            // Set the test model part
+            ModelPart main_model_part("MainModelPart");
+            main_model_part.AddNodalSolutionStepVariable(DISTANCE);
+            main_model_part.AddNodalSolutionStepVariable(VELOCITY);
+            main_model_part.AddNodalSolutionStepVariable(PRESSURE);
+
+            // Generate a tetrahedron
+            Properties::Pointer p_properties(new Properties(0));
+            Node<3>::Pointer p_point_1 = main_model_part.CreateNewNode(1,  0.0,  0.0,  0.0);
+            Node<3>::Pointer p_point_2 = main_model_part.CreateNewNode(2, 10.0,  0.0,  0.0);
+            Node<3>::Pointer p_point_3 = main_model_part.CreateNewNode(3,  0.0, 10.0,  0.0);
+            Node<3>::Pointer p_point_4 = main_model_part.CreateNewNode(4,  0.0,  0.0, 10.0);
+            main_model_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties);
+
+            // Set the nodal values
+            const double p_pos = 1.0;
+            const double p_neg = -1.0;
+            array_1d<double,3> v_pos(3,0.0);
+            array_1d<double,3> v_neg(3,0.0);
             v_pos[0] = 1.0;
             v_neg[0] = -1.0;
             const double level_set_height = 4.5;
