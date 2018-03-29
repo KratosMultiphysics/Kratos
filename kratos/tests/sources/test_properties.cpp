@@ -37,7 +37,7 @@ namespace Kratos {
 			Properties property(0);
 			KRATOS_CHECK_IS_FALSE(property.HasVariables());
 
-			Variable<double> variable("TEST");
+			Variable<double> variable(TEMPERATURE);
 			property.SetValue(variable, 1.0);
 
 			KRATOS_CHECK(property.HasVariables());
@@ -67,7 +67,7 @@ namespace Kratos {
 			Properties property1(1);
 			KRATOS_CHECK(property1.IsEmpty());
 
-			Variable<double> variable("TEST");
+			Variable<double> variable(TEMPERATURE);
 			property1.SetValue(variable, 1.0);
 
 			KRATOS_CHECK_IS_FALSE(property1.IsEmpty());
