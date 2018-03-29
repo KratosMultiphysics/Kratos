@@ -158,7 +158,7 @@ public:
     */
     virtual void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        KRATOS_ERROR << "PerformSolutionStep is not implemented. Try using the Solve function." << std::endl;
+        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
     }
 
     /** This function is designed to be called at the end of the solve step.
@@ -190,7 +190,7 @@ public:
     */
     virtual bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        KRATOS_ERROR << "'Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)' is not implemented." << std::endl;
+        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
     }
 
@@ -204,7 +204,7 @@ public:
     */
     virtual bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
     {
-        KRATOS_ERROR << "'Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)' is not implemented." << std::endl;
+        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
     }
 
@@ -219,7 +219,7 @@ public:
                         DenseVectorType& Eigenvalues,
                         DenseMatrixType& Eigenvectors)
     {
-        KRATOS_ERROR << "'Solve(SparseMatrixType&, SparseMatrixType&, DenseVectorType&, DenseMatrixType&)' is not implemented." << std::endl;
+        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
     }
 
     /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
