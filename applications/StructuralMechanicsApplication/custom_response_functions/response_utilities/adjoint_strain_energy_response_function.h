@@ -144,17 +144,12 @@ public:
 		ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
 		m_current_response_value = 0.0;
 
-		double pre_factor = 0.5;
-
 		// Check if there are at the time of calling adjoint or primal elements
 		// TODO: ist there a smarter solution to get this information??
 		std::string element_name = r_model_part.Elements()[r_model_part.ElementsBegin()->Id()].Info();
 		if( element_name.find("Adjoint", 0) != std::string::npos)
-			pre_factor = 2.0; 
-			// The optional multiplication with 2.0 instead of 0.5 is due to the fact that GetValuesVector of the
-			// adjoint element delivers the adjoint displacements and NOT the primal displacement. In Detail then is
-			// S = 2.0 * (0.5*u)^T * 0.5*f = 0.5 * (u)^T * f computed.
-
+			KRATOS_ERROR << "Calculate value for strain energy response is not availibe when using adjoint elements" << std::endl;
+			
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
 		for (auto& elem_i : r_model_part.Elements())
 		{
@@ -168,7 +163,7 @@ public:
 			elem_i.CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
 
 			// Compute strain energy
-			m_current_response_value += pre_factor * inner_prod(disp,prod(LHS,disp));
+			m_current_response_value += 0.5 * inner_prod(disp,prod(LHS,disp));
  		}
 
 		return m_current_response_value;
