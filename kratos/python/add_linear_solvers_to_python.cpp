@@ -215,11 +215,11 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("__repr__", &SkylineLUFactorizationSolverType::Info )
     ;
 
-//     class_<ComplexSkylineLUSolverType, ComplexSkylineLUSolverType::Pointer, ComplexDirectSolverType>(m,"ComplexSkylineLUSolver")
-//     .def(init< >())
-//     .def(init<Parameters&>())
-//     .def("__repr__", &ComplexSkylineLUSolverType::Info )
-//     ;
+    class_<ComplexSkylineLUSolverType, typename ComplexSkylineLUSolverType::Pointer, ComplexDirectSolverType>(m,"ComplexSkylineLUSolver")
+    .def(init< >())
+    .def(init<Parameters&>())
+    .def("__repr__", &ComplexSkylineLUSolverType::Info )
+    ;
 
     class_<DeflatedCGSolverType, DeflatedCGSolverType::Pointer,IterativeSolverType>(m,"DeflatedCGSolver")
     .def(init<double,bool,int>())
