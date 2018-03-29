@@ -142,7 +142,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
         try:
             import KratosMultiphysics.ExternalSolversApplication
             if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver"):
-                self.skipTest("FEAST is not available")
+                self.skipTest("'feast' is not available")
         except:
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
         try:
@@ -153,7 +153,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type": "FEAST",
+                        "solver_type": "feast",
                         "print_feast_output": false,
                         "perform_stochastic_estimate": true,
                         "solve_eigenvalue_problem": true,
@@ -173,7 +173,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
         try:
             import KratosMultiphysics.ExternalSolversApplication
             if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver"):
-                self.skipTest("FEAST is not available")
+                self.skipTest("'feast' is not available")
         except:
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
         try:
@@ -185,7 +185,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type": "FEAST",
+                        "solver_type": "feast",
                         "print_feast_output": false,
                         "perform_stochastic_estimate": true,
                         "solve_eigenvalue_problem": true,
@@ -205,14 +205,14 @@ class TestEigenSolvers(KratosUnittest.TestCase):
         try:
             import KratosMultiphysics.ExternalSolversApplication
             if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver"):
-                self.skipTest("FEAST is not available")
+                self.skipTest("'feast' is not available")
         except:
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
         self._RunParametrized("""
             {
                 "test_list" : [
                     {
-                        "solver_type": "FEAST",
+                        "solver_type": "feast",
                         "print_feast_output": false,
                         "perform_stochastic_estimate": true,
                         "solve_eigenvalue_problem": true,
