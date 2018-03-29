@@ -43,9 +43,9 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/find_intersected_geometrical_objects_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_discontinuous_distance_to_skin_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_distance_to_skin_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp;	
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_gradient_process.cpp;    
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp;  
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_gradient_process.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -119,7 +119,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define library KratosCore to be included in all of the others
-add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES})
+add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES})
 target_link_libraries(KratosCore PUBLIC gidpost) #${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 
@@ -144,7 +144,7 @@ if(USE_COTIRE MATCHES ON)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    
+
     cotire(Kratos)
 endif(USE_COTIRE MATCHES ON)
 
@@ -155,7 +155,7 @@ endif(USE_COTIRE MATCHES ON)
 #     endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 #     set_target_properties(Kratos PROPERTIES SUFFIX .pyd)
 # endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-# 
+#
 # ## Changing the .dylib suffix to .so (For MacOS)
 # if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 #     if(${KRATOS_BUILD_TESTING} MATCHES ON)

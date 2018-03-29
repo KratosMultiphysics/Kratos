@@ -123,14 +123,14 @@ struct ilut {
             Unz += static_cast<size_t>(lenU * prm.p);
         }
 
-        boost::shared_ptr<build_matrix> L = boost::make_shared<build_matrix>();
-        boost::shared_ptr<build_matrix> U = boost::make_shared<build_matrix>();
+        std::shared_ptr<build_matrix> L = std::make_shared<build_matrix>();
+        std::shared_ptr<build_matrix> U = std::make_shared<build_matrix>();
 
         L->set_size(n, n); L->set_nonzeros(Lnz); L->ptr[0] = 0;
         U->set_size(n, n); U->set_nonzeros(Unz); U->ptr[0] = 0;
 
-        boost::shared_ptr<backend::numa_vector<value_type> > D =
-            boost::make_shared<backend::numa_vector<value_type> >(n, false);
+        std::shared_ptr<backend::numa_vector<value_type> > D =
+            std::make_shared<backend::numa_vector<value_type> >(n, false);
 
         sparse_vector w(n);
 
@@ -175,7 +175,7 @@ struct ilut {
         L->nnz = L->ptr[n];
         U->nnz = U->ptr[n];
 
-        ilu = boost::make_shared<ilu_solve>(L, U, D, prm.solve, bprm);
+        ilu = std::make_shared<ilu_solve>(L, U, D, prm.solve, bprm);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
@@ -211,7 +211,7 @@ struct ilut {
 
     private:
         typedef typename backend::builtin<value_type>::matrix build_matrix;
-        boost::shared_ptr<ilu_solve> ilu;
+        std::shared_ptr<ilu_solve> ilu;
 
         struct sparse_vector {
             struct nonzero {
