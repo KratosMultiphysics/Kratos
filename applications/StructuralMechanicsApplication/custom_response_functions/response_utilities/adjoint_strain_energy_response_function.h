@@ -147,7 +147,7 @@ public:
 		double pre_factor = 0.5;
 
 		// Check if there are at the time of calling adjoint or primal elements
-		// TODO: ist there a nicer solution to get this information??
+		// TODO: ist there a smarter solution to get this information??
 		std::string element_name = r_model_part.Elements()[r_model_part.ElementsBegin()->Id()].Info();
 		if( element_name.find("Adjoint", 0) != std::string::npos)
 			pre_factor = 2.0; 

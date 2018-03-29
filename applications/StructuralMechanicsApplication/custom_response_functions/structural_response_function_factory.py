@@ -32,5 +32,8 @@ def CreateResponseFunction(response_id, response_settings, model_part):
         response_function_utility = StructuralMechanicsApplication.AdjointStrainEnergyResponseFunction( model_part, response_settings )
         return structural_response.AdjointStrainEnergyResponse(response_id, response_settings, response_function_utility, model_part)
 
+    elif response_type == "adjoint_local_stress":
+        return structural_response.AdjointResponseFunction(response_id, response_settings, model_part)
+
     else:
         raise NameError("The type of the following response function is not specified: " + response_id)

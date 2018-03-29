@@ -99,7 +99,6 @@ namespace Kratos
 
 		void GetValuesVector(Vector& values, int Step = 0) override;
 
-
 		double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable);
 
 		double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
@@ -138,10 +137,7 @@ namespace Kratos
 
 		std::string Info() const override; 
 
-		//void Initialize() override;
 		///@}
-
-
 
 		///@name Public specialized Access - Temporary
 		///@{

@@ -451,13 +451,13 @@ namespace Kratos
         double dist_measure = this->GetValue(DISTURBANCE_MEASURE);
 
 		// Built vector of variables containing the DOF-variables of the primal problem 
-		std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_varibale_list;
-        primal_solution_varibale_list.push_back(DISPLACEMENT_X);       
-	 	primal_solution_varibale_list.push_back(DISPLACEMENT_Y);       
-	  	primal_solution_varibale_list.push_back(DISPLACEMENT_Z);       
-	 	primal_solution_varibale_list.push_back(ROTATION_X);       
-		primal_solution_varibale_list.push_back(ROTATION_Y);       
-	 	primal_solution_varibale_list.push_back(ROTATION_Z);       
+		std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list;
+        primal_solution_variable_list.push_back(DISPLACEMENT_X);       
+	 	primal_solution_variable_list.push_back(DISPLACEMENT_Y);       
+	  	primal_solution_variable_list.push_back(DISPLACEMENT_Z);       
+	 	primal_solution_variable_list.push_back(ROTATION_X);       
+		primal_solution_variable_list.push_back(ROTATION_Y);       
+	 	primal_solution_variable_list.push_back(ROTATION_Z);       
 		
 		this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 		unsigned int size_stress_vec = stress_vector_undist.size();	
@@ -467,11 +467,11 @@ namespace Kratos
 		int index = 0;
     	for (int i = 0; i < num_nodes; i++) 
 		{	
-			for(unsigned int j = 0; j < primal_solution_varibale_list.size(); j++)
+			for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
 			{
-        		initial_value_of_state_variable = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_varibale_list[j]);
+        		initial_value_of_state_variable = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
 				
-				this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_varibale_list[j]) = initial_value_of_state_variable + dist_measure;
+				this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable + dist_measure;
 				
 				this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 			
@@ -482,7 +482,7 @@ namespace Kratos
             		rOutput(index,k) = stress_vector_dist[k];
         		}
 
-				this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_varibale_list[j]) = initial_value_of_state_variable;
+				this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable;
 
 				stress_vector_dist.clear();
 				index++;
