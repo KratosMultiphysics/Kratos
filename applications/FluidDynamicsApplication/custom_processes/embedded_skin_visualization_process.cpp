@@ -183,7 +183,7 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation(){
     const int n_new_elems = mNewElementsPointers.size();
     ModelPart::ElementIterator new_elems_begin = mNewElementsPointers.begin();
 
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int i_elem = 0; i_elem < n_new_elems; ++i_elem){
         // Get element geometry
         auto it_elem = new_elems_begin + i_elem;
@@ -243,7 +243,7 @@ void EmbeddedSkinVisualizationProcess::CopyOriginNodes(){
     ModelPart::NodeIterator orig_nodes_begin = mrModelPart.NodesBegin();
     for (int i_node = 0; i_node < n_nodes; ++i_node){
         auto it_node = orig_nodes_begin + i_node;
-        auto p_node = mrVisualizationModelPart.CreateNewNode(it_node->Id(), it_node->X(), it_node->Y(), it_node->Z());
+        auto p_node = mrVisualizationModelPart.CreateNewNode(it_node->Id(), *it_node);
     }
 }
 
@@ -252,7 +252,7 @@ void EmbeddedSkinVisualizationProcess::CopyOriginNodalValues(){
     ModelPart::NodeConstantIterator old_nodes_begin = mrModelPart.NodesBegin();
     ModelPart::NodeIterator new_nodes_begin = mrVisualizationModelPart.NodesBegin();
 
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>(n_old_nodes); ++i_node){
         auto it_new_node = new_nodes_begin + i_node;
         const auto it_old_node = old_nodes_begin + i_node;
@@ -398,6 +398,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
             // Get the interface geometries from the splitting pattern 
             const unsigned int n_pos_interface_geom = (p_split_utility->mPositiveInterfaces).size();
             const unsigned int n_neg_interface_geom = (p_split_utility->mNegativeInterfaces).size();
+
             std::vector<DivideGeometry::IndexedPointGeometryPointerType> split_interface_geometries;
             split_interface_geometries.reserve(n_pos_interface_geom + n_neg_interface_geom);
             split_interface_geometries.insert(split_interface_geometries.end(), (p_split_utility->mPositiveInterfaces).begin(), (p_split_utility->mPositiveInterfaces).end());
