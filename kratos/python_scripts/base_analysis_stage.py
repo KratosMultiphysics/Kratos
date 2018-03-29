@@ -46,11 +46,12 @@ class BaseKratosAnalysisStage(object):
         It is NOT intended to be overridden in deriving classes!
         """
         while self.time < self.end_time:
-            self.AdvanceInTime()
+            self.AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self.Predict()
             self.SolveSolutionStep()
             self.FinalizeSolutionStep()
+            self.OutputStep()
 
     def Initialize(self):
         """This function initializes the analysis
@@ -68,7 +69,7 @@ class BaseKratosAnalysisStage(object):
         """
         pass
 
-    def AdvanceInTime(self):
+    def AdvanceInTime(self, new_time):
         """This function prepares the database for the new time-step
         It is designed to be called once at the beginning of a time-step
         This function has to be implemented in deriving classes!
