@@ -29,10 +29,10 @@ namespace Kratos {
 
             model.AddModelPart(model_part);
 
-            KRATOS_CHECK_EQUAL(model.GetModelPart("Main"), *model_part);
+            KRATOS_CHECK_EQUAL(model.GetModelPart("Main").Name(), model_part->Name());
 
             ModelPart& smp = model_part->GetSubModelPart("Inlet1");
-            KRATOS_CHECK_EQUAL(model.GetModelPart("Main.Inlet1"), smp);
+            KRATOS_CHECK_EQUAL(model.GetModelPart("Main.Inlet1").Name(), smp.Name());
 
             KRATOS_CHECK_EXCEPTION_IS_THROWN(model.GetModelPart("Main.Random"),
                 "Error: The ModelPart named : \"Random\" was not found as SubModelPart of : \"Main\". The total input string was \"Main.Random\"");

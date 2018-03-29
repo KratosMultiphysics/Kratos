@@ -92,11 +92,12 @@ namespace Kratos
 
         auto search = mflat_map.find(rFullModelPartName);
         if(search != mflat_map.end()) {
-            KRATOS_WARNING_IF("Model", (search->second)->IsSubModelPart())
-                << "Getting a SubModelPart from the Model without "
-                << "specifying the RootModelPart is deprecated and will be removed\n"
-                << "Please use e.g \"RootModelPart.SubModelPart.SubSubModelPart\" "
-                << "as input for this function" << std::endl;
+            // TODO enable the warning
+            // KRATOS_WARNING_IF("Model", (search->second)->IsSubModelPart())
+            //     << "Getting a SubModelPart from the Model without "
+            //     << "specifying the RootModelPart is deprecated and will be removed\n"
+            //     << "Please use e.g \"RootModelPart.SubModelPart.SubSubModelPart\" "
+            //     << "as input for this function" << std::endl;
             return *(search->second);
         }
         else //look for it in the "root_map" which is where it is suppossed to be finally
