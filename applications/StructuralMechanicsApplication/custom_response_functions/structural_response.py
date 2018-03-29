@@ -157,13 +157,6 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         self.primal_analysis.Initialize()
     def CalculateValue(self):
         print("\n> Starting primal analysis for response:", self.identifier)
-
-        # exchange the the adjoint elements/conditions with its primal quivalents. Necessary from the 2nd iteration step.
-        step = self.primal_analysis.GetModelPart().ProcessInfo[STEP]
-        if(step > 0): # bigger than 0 because STEP is increased at InitializeTimeStep()
-            self.__performReplacementProcess(False)
-            self.__initializeAfterReplacement(self.primal_analysis.GetModelPart())
-
         startTime = timer.time()
         self.primal_analysis.InitializeTimeStep()
         self.primal_analysis.SolveTimeStep()
@@ -194,6 +187,9 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
                 node.SetSolutionStepValue(ADJOINT_ROTATION_Z,0,rot_z * 0.5)
         # Compute Sensitivities in a post-processing step          
         self.response_function_utility.FinalizeSolutionStep()
+        # Replace elements and conditions back to its origins
+        self.__performReplacementProcess(False)
+        self.__initializeAfterReplacement(self.primal_analysis.GetModelPart())
     def GetShapeGradient(self):
         gradient = {}
         for node in self.primal_analysis.GetModelPart().Nodes:
