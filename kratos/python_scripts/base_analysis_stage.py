@@ -4,12 +4,13 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 class BaseKratosAnalysisStage(object):
-    """The base class for the analysis classes in the applications
+    """The base class for the AnalysisStage-classes in the applications
+    Changes to this BaseClass have to be discussed first!
     """
     def __init__(self, model, project_parameters):
         """The constructor of the AnalysisStage-Object.
 
-        This function is intended to be called from the constructor
+        It is intended to be called from the constructor
         of deriving classes:
         super(DerivedAnalysis, self).__init__(project_parameters)
 
@@ -22,23 +23,22 @@ class BaseKratosAnalysisStage(object):
             raise Exception("Input is expected to be provided as a Kratos Model object")
 
         if (type(project_parameters) != KratosMultiphysics.Parameters):
-            raise Exception("Input is expected to be provided as a Kratos Parameters object or a file name")
+            raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
         self.model = model
         self.project_parameters = project_parameters
 
-    #### Public functions to run the Analysis ####
     def Run(self):
-        """This function executes the entire analysis
-        It is NOT intended to be overridden in deriving classes! TODO change
+        """This function executes the entire AnalysisStage
+        It can be overridden by derived classes
         """
         self.Initialize()
         self.RunSolutionLoop()
         self.Finalize()
 
     def RunSolutionLoop(self):
-        """This function executes the temporal loop of the analysis
-        It is NOT intended to be overridden in deriving classes!
+        """This function executes the solution loop of the AnalysisStage
+        It can be overridden by derived classes
         """
         while self.time < self.end_time:
             self.AdvanceInTime(self.time)
@@ -46,66 +46,59 @@ class BaseKratosAnalysisStage(object):
             self.Predict()
             self.SolveSolutionStep()
             self.FinalizeSolutionStep()
-            self.OutputStep()
+            self.OutputSolutionStep()
 
     def Initialize(self):
-        """This function initializes the analysis
-        Usage: It is designed to be called ONCE, BEFORE the execution of the time-loop
-        This function IS intended to be overridden in deriving classes!
-        At the end of this function the StageAnalysis is ready for the time-loop
-        It should be called AFTER the ModelPart used for this AnalysisStage is used
+        """This function initializes the AnalysisStage
+        Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
+        This function has to be implemented in deriving classes!
         """
-        pass
+        raise NotImplementedError("This function has to be implemented by derived classes")
 
     def Finalize(self):
-        """This function finalizes the analysis
-        Usage: It is designed to be called ONCE, AFTER the execution of the time-loop
-        This function IS intended to be overridden in deriving classes!
+        """This function finalizes the AnalysisStage
+        Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
+        This function has to be implemented in deriving classes!
         """
-        pass
+        raise NotImplementedError("This function has to be implemented by derived classes")
 
     def AdvanceInTime(self, new_time):
         """This function prepares the database for the new time-step
         It is designed to be called once at the beginning of a time-step
-        This function has to be implemented in deriving classes!
+        It typically calles the CloneTimeStep function of a ModelPart
         """
-        raise NotImplementedError("This function has to be implemented by derived\
-            analysis classes")
+        pass
 
     def InitializeSolutionStep(self):
-        """This function performs all the required operations that should be done
-        (for each step) before solving the solution step.
-        This function has to be implemented in deriving classes!
+        """This function performs all the required operations that should be executed
+        (for each step) BEFORE solving the solution step.
         """
-        raise NotImplementedError("This function has to be implemented by derived\
-            analysis classes")
+        pass
 
     def Predict(self):
-        """This function predicts the solution
-        This function has to be implemented in deriving classes!
+        """This function predicts the solution and should be executed
+        (for each step) BEFORE solving the solution step.
         """
-        raise NotImplementedError("This function has to be implemented by derived\
-            analysis classes")
+        pass
 
     def SolveSolutionStep(self):
         """This function solves the current step
-        This function has to be implemented in deriving classes!
+        It can be called multiple times during one time-step
         """
-        raise NotImplementedError("This function has to be implemented by derived\
-            analysis classes")
+        raise NotImplementedError("This function has to be implemented by derived classes")
 
     def FinalizeSolutionStep(self):
-        """This function Performs all the required operations that should be done
-        (for each step) after solving the solution step.
-        This function has to be implemented in deriving classes!
+        """This function performs all the required operations that should be executed
+        (for each step) AFTER solving the solution step.
         """
-        raise NotImplementedError("This function has to be implemented by derived\
-            analysis classes")
+        pass
+
+    def OutputSolutionStep(self):
+        """This function printed / writes output files after the solution of a step
+        """
+        pass
 
     def Check(self):
-        """This function Performs all the required operations that should be done
-        (for each step) after solving the solution step.
-        This function has to be implemented in deriving classes!
+        """This function checks the AnalysisStage
         """
-        raise NotImplementedError("This function has to be implemented by derived\
-            analysis classes")
+        pass
