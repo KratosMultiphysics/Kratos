@@ -1679,9 +1679,9 @@ namespace Kratos {
     double Density = this->mMaterialDensity;
     double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
     double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
-    if(DeviatoricCoeff>0.01){
-      DeviatoricCoeff=0.01;
-    }
+    // if(DeviatoricCoeff>0.01){
+    //   DeviatoricCoeff=0.01;
+    // }
     // if(DeviatoricCoeff>0.1){
     //   DeviatoricCoeff=0.1;
     // }
