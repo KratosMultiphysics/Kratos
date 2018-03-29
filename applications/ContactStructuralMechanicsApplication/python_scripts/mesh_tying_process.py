@@ -31,20 +31,6 @@ class MeshTyingProcess(python_process.PythonProcess):
     settings -- Kratos parameters containing solver settings.
     """
 
-    __type_search = {
-        # JSON input
-        "KdtreeInRadius": CSMA.SearchTreeType.KdtreeInRadius,
-        "KdtreeInBox":  CSMA.SearchTreeType.KdtreeInBox,
-        "Kdop": CSMA.SearchTreeType.Kdop
-        }
-
-    __check_gap = {
-        # JSON input
-        "NoCheck": CSMA.CheckGap.NoCheck,
-        "DirectCheck":  CSMA.CheckGap.DirectCheck,
-        "MappingCheck": CSMA.CheckGap.MappingCheck
-        }
-
     def __init__(self, model_part, settings):
         """ The default constructor of the class
 
