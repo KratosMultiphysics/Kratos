@@ -45,9 +45,9 @@ namespace Kratos
 namespace Python
 {
 template <class TDataType>
-using TSpaceType = UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+using TSpaceType = UblasSpace<TDataType, compressed_matrix<TDataType>, vector<TDataType>>;
 template <class TDataType>
-using TLocalSpaceType = UblasSpace<TDataType, boost::numeric::ublas::matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+using TLocalSpaceType = UblasSpace<TDataType, matrix<TDataType>, vector<TDataType>>;
 template <class TDataType>
 using TLinearSolverType = LinearSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
 template <class TDataType>
@@ -72,12 +72,12 @@ void  AddLinearSolversToPython(pybind11::module& m)
     //linear solvers
     //***************************************************************************
 #ifdef INCLUDE_FEAST
-//     typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;                          //SOME PROBLEM WITH THE SKYLINE_CUSTOM ... TO BE FIXED
-//     class_<FEASTSolverType, FEASTSolverType::Pointer, LinearSolverType >
-//         (m, "FEASTSolver")
-//         .def(init<Parameters::Pointer>() )
-//         .def(init<Parameters::Pointer, TLinearSolverType<std::complex<double>>::Pointer>())
-//         ;
+    typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;                          //SOME PROBLEM WITH THE SKYLINE_CUSTOM ... TO BE FIXED
+    class_<FEASTSolverType, FEASTSolverType::Pointer, LinearSolverType >
+        (m, "FEASTSolver")
+        .def(init<Parameters::Pointer>() )
+        .def(init<Parameters::Pointer, TLinearSolverType<std::complex<double>>::Pointer>())
+        ;
 #endif    
           
     
