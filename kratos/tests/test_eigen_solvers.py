@@ -119,7 +119,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             }
             """)
 
-    def test_eigen_sparse_eigensystem_solver(self):
+    def test_eigen_eigensystem_solver(self):
         try:
             import KratosMultiphysics.EigenSolversApplication
         except:
@@ -141,10 +141,14 @@ class TestEigenSolvers(KratosUnittest.TestCase):
     def test_FEAST_with_eigen_solver(self):
         try:
             import KratosMultiphysics.ExternalSolversApplication
+            if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver"):
+                self.skipTest("FEAST is not available")
+        except:
+            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+        try:
             import KratosMultiphysics.EigenSolversApplication
         except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication or KratosMultiphysics.ExternalSolversApplication is not available")
-        #first Eigenvalues = [ 0.0614628, 0.153184, 0.153184, 0.243965, 0.305007 ]
+            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -168,10 +172,15 @@ class TestEigenSolvers(KratosUnittest.TestCase):
     def test_FEAST_with_mkl_solver(self):
         try:
             import KratosMultiphysics.ExternalSolversApplication
+            if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver"):
+                self.skipTest("FEAST is not available")
+        except:
+            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+        try:
             import KratosMultiphysics.EigenSolversApplication
         except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication or KratosMultiphysics.ExternalSolversApplication is not available")
-        #first Eigenvalues = [ 0.0614628, 0.153184, 0.153184, 0.243965, 0.305007 ]
+            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
+
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -195,9 +204,10 @@ class TestEigenSolvers(KratosUnittest.TestCase):
     def test_FEAST_with_skyline_solver(self):
         try:
             import KratosMultiphysics.ExternalSolversApplication
+            if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver"):
+                self.skipTest("FEAST is not available")
         except:
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-        #first Eigenvalues = [ 0.0614628, 0.153184, 0.153184, 0.243965, 0.305007 ]
         self._RunParametrized("""
             {
                 "test_list" : [
