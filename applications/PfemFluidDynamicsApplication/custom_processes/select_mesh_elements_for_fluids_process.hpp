@@ -176,7 +176,6 @@ public:
 	      // bool isolatedWallElement=true;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
-		  double posY=0;
 		  //set vertices
 		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
 		    if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
