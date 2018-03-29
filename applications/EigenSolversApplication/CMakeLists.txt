@@ -13,6 +13,9 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
 message( "**** configuring KratosEigenSolversApplication ****" )
 
+################### PYBIND11
+include(pybind11Tools)
+
 if( NOT DEFINED EIGEN_ROOT )
 	message( FATAL_ERROR "EIGEN_ROOT not defined" )
 endif()
@@ -48,8 +51,8 @@ set( KRATOS_EIGENSOLVERS_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library( KratosEigenSolversApplication SHARED ${KRATOS_EIGENSOLVERS_APPLICATION_SOURCES} )
-target_link_libraries( KratosEigenSolversApplication KratosCore )
+pybind11_add_module( KratosEigenSolversApplication MODULE ${KRATOS_EIGENSOLVERS_APPLICATION_SOURCES} )
+target_link_libraries( KratosEigenSolversApplication PRIVATE KratosCore )
 
 if( USE_EIGEN_MKL MATCHES ON )
     if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
