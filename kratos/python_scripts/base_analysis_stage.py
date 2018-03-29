@@ -18,10 +18,7 @@ class BaseKratosAnalysisStage(object):
         model -- The Model to be used
         project_parameters -- The ProjectParameters used
         """
-        if (type(project_parameters) == str): # a file name is provided
-            with open(project_parameters,'r') as parameter_file:
-                self.project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        elif (type(project_parameters) == KratosMultiphysics.Parameters): # a Parameters object is provided
+        if (type(project_parameters) == KratosMultiphysics.Parameters): # a Parameters object is provided
             self.project_parameters = project_parameters
         else:
             raise Exception("Input is expected to be provided as a Kratos Parameters object or a file name")
@@ -100,6 +97,14 @@ class BaseKratosAnalysisStage(object):
             analysis classes")
 
     def FinalizeSolutionStep(self):
+        """This function Performs all the required operations that should be done
+        (for each step) after solving the solution step.
+        This function has to be implemented in deriving classes!
+        """
+        raise NotImplementedError("This function has to be implemented by derived\
+            analysis classes")
+
+    def Check(self):
         """This function Performs all the required operations that should be done
         (for each step) after solving the solution step.
         This function has to be implemented in deriving classes!
