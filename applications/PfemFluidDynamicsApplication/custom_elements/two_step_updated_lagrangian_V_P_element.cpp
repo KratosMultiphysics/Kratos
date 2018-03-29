@@ -218,11 +218,8 @@ namespace Kratos {
 
 	this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
 
-	std::vector<double> rOutput;
-	this->GetElementalValueForOutput(YIELDED,rOutput);
-	// std::cout<<"rOutput[0] "<<rOutput[0]<<std::endl;
-	// this->GetValueOnIntegrationPoints(YIELDED,rOutput,rCurrentProcessInfo);
-	// std::cout<<"   rOutput[0] "<<rOutput[0]<<std::endl;
+	// std::vector<double> rOutput;
+	// this->GetElementalValueForOutput(YIELDED,rOutput);
 	
 	if(computeElement==true){
 	  // Add integration point contribution to the local mass matrix

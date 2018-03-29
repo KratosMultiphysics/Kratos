@@ -1498,9 +1498,9 @@ namespace Kratos {
     rElementalVariables.UpdatedTotalCauchyStress[1]=sigmaTot_yy;
     rElementalVariables.UpdatedTotalCauchyStress[2]=sigmaTot_xy;
 
-    double TauNorm=sqrt((0.5*sigmaDev_xx*sigmaDev_xx + 0.5*sigmaDev_yy*sigmaDev_yy + sigmaDev_xy*sigmaDev_xy));
-    double FluidYieldShear=0;
-    this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
+    // double TauNorm=sqrt((0.5*sigmaDev_xx*sigmaDev_xx + 0.5*sigmaDev_yy*sigmaDev_yy + sigmaDev_xy*sigmaDev_xy));
+    // double FluidYieldShear=0;
+    // this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
 
     // const SizeType NumNodes = this->GetGeometry().PointsNumber();
     // for (SizeType i = 0; i < NumNodes; ++i)
@@ -1509,27 +1509,27 @@ namespace Kratos {
     // 	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=DeviatoricCoeff;
     // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=rElementalVariables.EquivalentStrainRate;
     //   }
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-    if(TauNorm>FluidYieldShear){
-      this->SetValue(YIELDED,1.0);
+    // GeometryType& rGeom = this->GetGeometry();
+    // const SizeType NumNodes = rGeom.PointsNumber();
+    // if(TauNorm>FluidYieldShear){
+    //   this->SetValue(YIELDED,1.0);
 
-      for (SizeType i = 0; i < NumNodes; ++i){
+    //   for (SizeType i = 0; i < NumNodes; ++i){
 	
-	rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = 1;
-	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
-      }
-    }else{
+    // 	// rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = 1;
+    // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
+    //   }
+    // }else{
 
-      this->SetValue(YIELDED,0.0);
-      // std::vector<double> rOutput;
-      // this->GetElementalValueForOutput(YIELDED,rOutput);
+    //   this->SetValue(YIELDED,0.0);
+    //   // std::vector<double> rOutput;
+    //   // this->GetElementalValueForOutput(YIELDED,rOutput);
       
-      for (SizeType i = 0; i < NumNodes; ++i){
-	rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = 0;
-	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 0;
-      }
-    }
+    //   for (SizeType i = 0; i < NumNodes; ++i){
+    // 	// rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = 0;
+    // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 0;
+    //   }
+    // }
 
   }
 
