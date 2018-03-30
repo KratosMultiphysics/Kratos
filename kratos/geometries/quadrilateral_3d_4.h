@@ -1506,11 +1506,12 @@ private:
         // Starting with xi = 0
         rResult = ZeroVector( 3 );
         array_1d<double, 2> DeltaXi( 2, 0.0 );
+	const array_1d<double, 3> zero_array(3, 0.0);
         array_1d<double, 3> CurrentGlobalCoords;
 
         //Newton iteration:
         for ( IndexType k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++ ) {
-            noalias(CurrentGlobalCoords) = ZeroVector( 3 );
+            noalias(CurrentGlobalCoords) = zero_array;
             this->GlobalCoordinates( CurrentGlobalCoords, rResult );
 
             noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
