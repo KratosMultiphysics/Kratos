@@ -5,6 +5,7 @@ message("**** configuring KratosPfemFluidDynamicsApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemApplication )
+include(pybind11Tools)
 
 #if(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
 #    message(SEND_ERROR "The Solid Mechanics Application must be compiled before this one. Set SOLID_MECHANICS_APPLICATION=ON in the configure file.")
@@ -49,7 +50,7 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosPfemFluidDynamicsApplication SHARED ${KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES})
+pybind11_add_module(KratosPfemFluidDynamicsApplication MODULE ${KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES})
 #####***target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore)
 #target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore SolidMechanicsApplication KratosPfemApplication)
 target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore KratosPfemApplication)
