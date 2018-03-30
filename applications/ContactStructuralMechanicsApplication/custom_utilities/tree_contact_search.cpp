@@ -730,20 +730,52 @@ inline void TreeContactSearch<TDim, TNumNodes>::NotPredefinedMasterSlave(ModelPa
     ConditionsArrayType& conditions_array = rModelPart.Conditions();
     const int num_conditions = static_cast<int>(conditions_array.size());
 
-//     #pragma omp parallel for
-    for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = conditions_array.begin() + i;
-        IndexSet::Pointer indexes_set = it_cond->GetValue(INDEX_SET);
-        if (indexes_set->size() > 0) {
-            it_cond->Set(SLAVE, true);
-            for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
-                Condition::Pointer p_cond_master = rModelPart.pGetCondition(*it_pair);
-//                 p_cond_master->SetLock();
-                p_cond_master->Set(MASTER, true);
-//                 p_cond_master->UnSetLock();
+    std::vector<IndexType> master_conditions_ids;
+    // Creating a buffer for parallel vector fill
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<std::vector<IndexType>> master_conditions_ids_buffer(num_threads);
+
+    #pragma omp parallel
+    {
+        const int id = OpenMPUtils::ThisThread();
+
+        #pragma omp for
+        for(int i = 0; i < num_conditions; ++i) {
+            auto it_cond = conditions_array.begin() + i;
+            IndexSet::Pointer indexes_set = it_cond->GetValue(INDEX_SET);
+            if (indexes_set->size() > 0) {
+                it_cond->Set(SLAVE, true);
+                for (auto& i_pair : *indexes_set) {
+                    master_conditions_ids_buffer[id].push_back(i_pair);
+                }
             }
         }
+
+        // Combine buffers together
+        #pragma omp single
+        {
+            for( auto& partial_master_conditions_ids : master_conditions_ids_buffer)
+                std::move(partial_master_conditions_ids.begin(),partial_master_conditions_ids.end(),back_inserter(master_conditions_ids));
+        }
     }
+
+    // We create an auxiliar model part to add the MASTER flag
+    rModelPart.CreateSubModelPart("AuxMasterModelPart");
+    ModelPart& aux_model_part = rModelPart.GetSubModelPart("AuxMasterModelPart");
+
+    // Remove duplicates
+    std::sort( master_conditions_ids.begin(), master_conditions_ids.end() );
+    master_conditions_ids.erase( std::unique( master_conditions_ids.begin(), master_conditions_ids.end() ), master_conditions_ids.end() );
+
+    // Add to the auxiliar model part
+    aux_model_part.AddConditions(master_conditions_ids);
+
+    // Set the flag
+    VariableUtils().SetFlag(MASTER, true, aux_model_part.Conditions());
+
+    // Remove auxiliar model part
+    rModelPart.RemoveSubModelPart("AuxMasterModelPart");
+
     // Now we iterate over the conditions to set the nodes indexes
     #pragma omp parallel for
     for(int i = 0; i < num_conditions; ++i) {
