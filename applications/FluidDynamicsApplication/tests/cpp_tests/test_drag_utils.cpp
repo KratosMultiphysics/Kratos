@@ -38,7 +38,7 @@ namespace Kratos {
             bool is_embedded = false) {
 
             // Set buffer size
-            rModelPart.SetBufferSize(2);
+            rModelPart.SetBufferSize(3);
 
             // Variables addition
             rModelPart.AddNodalSolutionStepVariable(DENSITY);
@@ -91,6 +91,16 @@ namespace Kratos {
             p_sub_model_part->AddNodes(sub_model_part_nodes);
             p_sub_model_part->AddConditions(sub_model_part_conds);
 
+            // Add DOFs
+            auto nodes_begin = rModelPart.NodesBegin();
+            for (unsigned int i_node = 0; i_node < rModelPart.NumberOfNodes(); ++i_node){
+                auto it_node = nodes_begin + i_node;
+                it_node->AddDof(VELOCITY_X,REACTION_X);
+                it_node->AddDof(VELOCITY_Y,REACTION_Y);
+                it_node->AddDof(VELOCITY_Z,REACTION_Z);
+                it_node->AddDof(PRESSURE,REACTION_WATER_PRESSURE);
+            }
+
             // Set the VELOCITY and PRESSURE nodal values
             const double p_1 = 1.5;
             const double p_2 = 1.0;
@@ -137,16 +147,21 @@ namespace Kratos {
             // Initialize the fluid element
             p_element->Initialize();
 
-            // Set the STEP value (otherwise the drag wont be computed since the buffer is not filled)
-            model_part.GetProcessInfo().SetValue(STEP, 1);
+            // Set the reaction values manually. Note that the body fitted drag utilities assume
+            // that the REACTION has been already computed. Since this is assumed to be done by 
+            // the builder and solver, which is out of the scope of this test, we do it manually.
+            model_part.GetNode(1).GetDof(VELOCITY_X).GetSolutionStepReactionValue() = 5.0;
+            model_part.GetNode(1).GetDof(VELOCITY_Y).GetSolutionStepReactionValue() = 10.0;
+            model_part.GetNode(2).GetDof(VELOCITY_X).GetSolutionStepReactionValue() = -20.0;
+            model_part.GetNode(2).GetDof(VELOCITY_Y).GetSolutionStepReactionValue() = -40.0;
 
             // Call the body fitted drag utility
             DragUtilities drag_utilities;
             array_1d<double, 3> drag_force = drag_utilities.CalculateBodyFittedDrag(model_part.GetSubModelPart("DragModelPart"));
 
             // Check computed values
-            KRATOS_CHECK_NEAR(drag_force[0], -10.7693, 1e-4);
-            KRATOS_CHECK_NEAR(drag_force[1], -0.740973, 1e-6);
+            KRATOS_CHECK_NEAR(drag_force[0], 15.0, 1e-6);
+            KRATOS_CHECK_NEAR(drag_force[1], 30.0, 1e-6);
             KRATOS_CHECK_NEAR(drag_force[2], 0.0, 1e-6);
 	    }
 
@@ -165,7 +180,7 @@ namespace Kratos {
             // Initialize the fluid element
             p_element->Initialize();
 
-            // Call the body fitted drag utility
+            // Call the embedded drag utility
             DragUtilities drag_utilities;
             array_1d<double, 3> drag_force = drag_utilities.CalculateEmbeddedDrag(model_part);
 
