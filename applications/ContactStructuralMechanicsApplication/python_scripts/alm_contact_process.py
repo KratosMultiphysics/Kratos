@@ -56,7 +56,7 @@ class ALMContactProcess(python_process.PythonProcess):
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
             "contact_model_part"          : "Contact_Part",
-            "assume_master_slave"         : "Parts_Parts_Auto1",
+            "assume_master_slave"         : "",
             "contact_type"                : "Frictionless",
             "interval"                    : [0.0,"End"],
             "normal_variation"            : "no_derivatives_computation",
@@ -123,6 +123,12 @@ class ALMContactProcess(python_process.PythonProcess):
 
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KM.IntervalUtility(self.settings)
+
+        # When all conditions are simultaneously master and slave
+        if (self.settings["assume_master_slave"].GetString() == ""):
+            self.predefined_master_slave = False
+        else:
+            self.predefined_master_slave = True
 
         # Debug
         if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
@@ -197,9 +203,6 @@ class ALMContactProcess(python_process.PythonProcess):
 
         # We initialize the contact values
         self._initialize_contact_values(computing_model_part)
-
-        # When all conditions are simultaneously master and slave
-        self._assign_slave_conditions()
 
         # We initialize the ALM parameters
         self._initialize_alm_parameters(computing_model_part)
@@ -297,16 +300,6 @@ class ALMContactProcess(python_process.PythonProcess):
         """
         pass
 
-    def _assign_slave_conditions(self):
-        """ This method initializes assigment of the slave conditions
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        if (self.settings["assume_master_slave"].GetString() == ""):
-            KM.VariableUtils().SetFlag(KM.SLAVE, True, self.contact_model_part.Conditions)
-
     def _assign_slave_nodes(self):
         """ This method initializes assigment of the slave nodes
 
@@ -314,7 +307,7 @@ class ALMContactProcess(python_process.PythonProcess):
         self -- It signifies an instance of a class.
         """
 
-        if (self.settings["assume_master_slave"].GetString() != ""):
+        if (self.predefined_master_slave is True):
             KM.VariableUtils().SetFlag(KM.SLAVE, False, self.contact_model_part.Nodes)
             KM.VariableUtils().SetFlag(KM.MASTER, True, self.contact_model_part.Nodes)
             model_part_slave = self.main_model_part.GetSubModelPart(self.settings["assume_master_slave"].GetString())
@@ -447,7 +440,7 @@ class ALMContactProcess(python_process.PythonProcess):
                     condition_name = "ALMFrictionalAxisymMortarContact"
                 else:
                     condition_name = "ALMFrictionalMortarContact"
-        search_parameters = KM.Parameters("""{"condition_name": "", "final_string": ""}""")
+        search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true}""")
         search_parameters.AddValue("type_search", self.settings["search_parameters"]["type_search"])
         search_parameters.AddValue("check_gap", self.settings["search_parameters"]["check_gap"])
         search_parameters.AddValue("allocation_size", self.settings["search_parameters"]["max_number_results"])
@@ -456,6 +449,7 @@ class ALMContactProcess(python_process.PythonProcess):
         search_parameters.AddValue("double_formulation", self.settings["alternative_formulations"]["double_formulation"])
         search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
         search_parameters["condition_name"].SetString(condition_name)
+        search_parameters["predefined_master_slave"].SetBool(self.predefined_master_slave)
 
         # We compute the number of nodes of the geometry
         number_nodes = len(computing_model_part.Conditions[1].GetNodes())
