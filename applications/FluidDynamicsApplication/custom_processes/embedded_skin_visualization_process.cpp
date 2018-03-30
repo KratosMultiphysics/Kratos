@@ -315,7 +315,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
             DivideGeometry::Pointer p_split_utility = p_modified_shape_functions->pGetSplittingUtil();
 
             // Create the auxiliar map that will be used to generate the skin
-            std::unordered_map<unsigned int, unsigned int> new_nodes_map;
+            std::unordered_map<std::pair<unsigned int,bool>, unsigned int, Hash, KeyEqual> new_nodes_map;
 
             // Get the split geometries from the splitting pattern
             const unsigned int n_pos_split_geom = (p_split_utility->mPositiveSubdivisions).size();
@@ -327,6 +327,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
 
             // Create the split geometries in the visualization model part
             for (unsigned int i_geom = 0; i_geom < split_geometries.size(); ++i_geom){
+                const bool pos_side = i_geom < n_pos_split_geom ? true : false;
                 DivideGeometry::IndexedPointGeometryPointerType p_sub_geom = split_geometries[i_geom];
                 const unsigned int sub_geom_n_nodes = p_sub_geom->PointsNumber();
 
@@ -375,8 +376,10 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
                         auto new_node_info = std::make_tuple(p_node_i, p_node_j, node_i_weight, node_j_weight);                            
                         mCutNodesMap.insert(CutNodesMapType::value_type(p_new_node, new_node_info));
 
-                        // Link the new node global id. to its local index in the splitting util
-                        std::pair<unsigned int, unsigned int> new_pair(local_id, temp_node_id);
+                        // Link the new node global id. to its local index in the splitting util. Note that the side 
+                        // (positive or negative) is saved as well. This will be used when setting up the skin conditions.
+                        std::pair<unsigned int, bool> aux_info(local_id,pos_side);
+                        std::pair<std::pair<unsigned int,bool>, unsigned int> new_pair(aux_info, temp_node_id);
                         new_nodes_map.insert(new_pair);
 
                         // Update the new nodes id. counter
@@ -385,7 +388,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
                 }
 
                 // Set the new element properties
-                Properties::Pointer p_elem_prop = (i_geom < n_pos_split_geom)? p_pos_prop : p_neg_prop;
+                Properties::Pointer p_elem_prop = pos_side ? p_pos_prop : p_neg_prop;
 
                 // Create the new element
                 Element::Pointer p_new_elem = it_elem->Create(temp_elem_id, sub_geom_nodes_array, p_elem_prop);
@@ -406,6 +409,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
 
             // Create the split interface geometries in the visualization model part
             for (unsigned int i_int_geom = 0; i_int_geom < split_interface_geometries.size(); ++i_int_geom){
+                const bool int_pos_side = (i_int_geom < n_pos_interface_geom) ? true : false;
                 DivideGeometry::IndexedPointGeometryPointerType p_int_sub_geom = split_interface_geometries[i_int_geom];
                 GeometryData::KratosGeometryType p_int_sub_geom_type = p_int_sub_geom->GetGeometryType();
                 const unsigned int sub_int_geom_n_nodes = p_int_sub_geom->PointsNumber();
@@ -419,11 +423,13 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
 
                     // Get the global id from the intersection nodes map
                     unsigned int global_id;
-                    auto got = new_nodes_map.find(local_id);
+                    std::pair<unsigned int,bool> aux_int_info(local_id,int_pos_side);
+                    auto got = new_nodes_map.find(aux_int_info);
                     if (got != new_nodes_map.end()){
                         global_id = got->second;
                     } else {
-                        KRATOS_ERROR << "Local id " << got->first << " not found in new nodes map for element " << it_elem->Id();
+                        const std::string side = int_pos_side ? "positive" : "negative";
+                        KRATOS_ERROR << "Local id " << std::get<0>(aux_int_info) << " in " << side << " side not found in new nodes map for element " << it_elem->Id();
                     }
 
                     sub_int_geom_nodes_array.push_back(mrVisualizationModelPart.pGetNode(global_id));

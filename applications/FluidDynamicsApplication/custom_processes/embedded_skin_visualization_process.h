@@ -91,6 +91,20 @@ public:
     ///@name Type Definitions
     ///@{
 
+    struct Hash{
+        std::size_t operator()(const std::pair<unsigned int,bool>& k) const{
+            std::size_t h1 = std::hash<unsigned int>()(std::get<0>(k));
+            std::size_t h2 = std::hash<bool>()(std::get<1>(k));
+            return h1 ^ (h2 << 1);
+        }
+    };
+
+    struct KeyEqual{
+        bool operator()(const std::pair<unsigned int,bool>& lhs, const std::pair<unsigned int,bool>& rhs) const{
+            return ((std::get<0>(lhs) == std::get<0>(rhs)) && (std::get<1>(lhs) == std::get<1>(rhs)));
+        }
+    };
+
     /// Pointer definition of EmbeddedSkinVisualizationProcess
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedSkinVisualizationProcess);
 
