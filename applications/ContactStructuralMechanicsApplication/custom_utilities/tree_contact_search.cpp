@@ -430,7 +430,7 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
 
     // In case of not predefined master/slave we assign the master/slave nodes and conditions
     if (!mPredefinedMasterSlave)
-        NotPredefinedMasterSlave(conditions_array);
+        NotPredefinedMasterSlave(rcontact_model_part);
 
     // We create the submodelparts for master and slave
     SetOriginDestinationModelParts(rcontact_model_part);
@@ -724,22 +724,30 @@ inline typename TreeContactSearch<TDim, TNumNodes>::CheckResult TreeContactSearc
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TNumNodes>
-inline void TreeContactSearch<TDim, TNumNodes>::NotPredefinedMasterSlave(ConditionsArrayType& ConditionsArray)
+inline void TreeContactSearch<TDim, TNumNodes>::NotPredefinedMasterSlave(ModelPart& rModelPart)
 {
-    const int num_conditions = static_cast<int>(ConditionsArray.size());
+    // We iterate over the conditions
+    ConditionsArrayType& conditions_array = rModelPart.Conditions();
+    const int num_conditions = static_cast<int>(conditions_array.size());
 
+//     #pragma omp parallel for
+    for(int i = 0; i < num_conditions; ++i) {
+        auto it_cond = conditions_array.begin() + i;
+        IndexSet::Pointer indexes_set = it_cond->GetValue(INDEX_SET);
+        if (indexes_set->size() > 0) {
+            it_cond->Set(SLAVE, true);
+            for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
+                Condition::Pointer p_cond_master = rModelPart.pGetCondition(*it_pair);
+//                 p_cond_master->SetLock();
+                p_cond_master->Set(MASTER, true);
+//                 p_cond_master->UnSetLock();
+            }
+        }
+    }
+    // Now we iterate over the conditions to set the nodes indexes
     #pragma omp parallel for
     for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = ConditionsArray.begin() + i;
-        IndexSet::Pointer indexes_set = it_cond->GetValue(INDEX_SET);
-        if (indexes_set->size() > 0)
-            it_cond->Set(SLAVE, true);
-        else
-            it_cond->Set(MASTER, true);
-    }
-    // Now we iterate over the conditions without OMP to set the nodes indexes
-    for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = ConditionsArray.begin() + i;
+        auto it_cond = conditions_array.begin() + i;
         if (it_cond->Is(SLAVE)) {
             GeometryType& this_geometry = it_cond->GetGeometry();
             for (auto& node : this_geometry) {

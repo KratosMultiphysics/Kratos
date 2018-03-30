@@ -336,7 +336,7 @@ private:
      * @brief This method is used in case of not predefined master/slave we assign the master/slave nodes and conditions
      * @param ConditionsArray The array containing the conditions to check and assign
      */
-    inline void NotPredefinedMasterSlave(ConditionsArrayType& ConditionsArray);
+    inline void NotPredefinedMasterSlave(ModelPart& rModelPart);
 
     /**
      * @brief This method reorders the ID of the conditions
