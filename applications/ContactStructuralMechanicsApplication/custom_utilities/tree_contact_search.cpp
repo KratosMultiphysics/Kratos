@@ -262,7 +262,7 @@ void TreeContactSearch<TDim, TNumNodes>::CreatePointListMortar()
             auto it_cond = conditions_array.begin() + i;
 
             if (it_cond->Is(MASTER) == !mInvertedSearch || !mPredefinedMasterSlave) {
-                const PointTypePointer& p_point = PointTypePointer(new PointItem((*it_cond.base()))); // TODO: Replace new for Kratos::make_shared
+                const PointTypePointer& p_point = Kratos::make_shared<PointItem>((*it_cond.base()));
                 (points_buffer[thread_id]).push_back(p_point);
             }
         }
