@@ -10,7 +10,8 @@
 // System includes 
 #if defined(KRATOS_PYTHON)
 // External includes 
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
+
 
 // Project includes 
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -20,6 +21,9 @@
 #include "custom_python/add_custom_modelers_to_python.h"
 #include "custom_python/add_custom_bounding_to_python.h"
 
+#include "includes/define.h"
+#include "includes/define_python.h"
+
 #include "pfem_fluid_dynamics_application.h"
  
 namespace Kratos
@@ -28,25 +32,25 @@ namespace Kratos
   namespace Python
   {
 
-    using namespace boost::python;
+    using namespace pybind11;
 
 
   
-    BOOST_PYTHON_MODULE(KratosPfemFluidDynamicsApplication)
+    PYBIND11_MODULE(KratosPfemFluidDynamicsApplication, m)
     {
 
       class_<KratosPfemFluidDynamicsApplication, 
 	     KratosPfemFluidDynamicsApplication::Pointer, 
-	     bases<KratosApplication>, boost::noncopyable >("KratosPfemFluidDynamicsApplication")
-	//bases<KratosFluidDynamicsApplication>, boost::noncopyable >("KratosPfemFluidDynamicsApplication")
+	     KratosApplication(m, "KratosPfemFluidDynamicsApplication")
+	     .def(init<>());
 	;
 
-      AddCustomProcessesToPython();
-      AddCustomUtilitiesToPython();
-      AddCustomStrategiesToPython();
-      AddCustomConstitutiveLawsToPython();
-      AddCustomModelersToPython();
-      AddCustomBoundingToPython();
+      AddCustomProcessesToPython(m);
+      AddCustomUtilitiesToPython(m);
+      AddCustomStrategiesToPython(m);
+      AddCustomConstitutiveLawsToPython(m);
+      AddCustomModelersToPython(m);
+      AddCustomBoundingToPython(m);
 
       //registering variables in python ( if must to be seen from python )
 
@@ -54,17 +58,17 @@ namespace Kratos
       // KRATOS_REGISTER_IN_PYTHON_VARIABLE( M_MODULUS )
       // KRATOS_REGISTER_IN_PYTHON_VARIABLE(PATCH_INDEX);
       // KRATOS_REGISTER_IN_PYTHON_VARIABLE(NORMVELOCITY);
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(FREESURFACE);
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(INITIAL_DELTA_TIME);
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(CURRENT_DELTA_TIME);
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(TIME_INTERVAL_CHANGED);
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FREESURFACE);
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INITIAL_DELTA_TIME);
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CURRENT_DELTA_TIME);
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_INTERVAL_CHANGED);
 
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(FLOW_INDEX);
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(YIELD_SHEAR);
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(ADAPTIVE_EXPONENT);
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FLOW_INDEX);
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, YIELD_SHEAR);
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ADAPTIVE_EXPONENT);
 
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(PRESSURE_VELOCITY);
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(PRESSURE_ACCELERATION);
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE_VELOCITY);
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE_ACCELERATION);
 
     }
   

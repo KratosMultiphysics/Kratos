@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 
 
 namespace Kratos

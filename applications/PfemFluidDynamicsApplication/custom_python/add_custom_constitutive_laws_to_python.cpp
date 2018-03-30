@@ -8,9 +8,8 @@
 //
 
 // System includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-
+#include <pybind11/pybind11.h>
+#include <pybind11/st1.h>
 // External includes
 
 
@@ -47,11 +46,11 @@ namespace Kratos
   namespace Python
   {
 
-    using namespace boost::python;
+    using namespace pybind11;
 
     typedef ConstitutiveLaw                  ConstitutiveLawBaseType;
 
-    void  AddCustomConstitutiveLawsToPython()
+    void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     {
 
     }
