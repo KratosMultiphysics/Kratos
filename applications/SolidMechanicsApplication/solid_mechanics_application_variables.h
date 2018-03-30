@@ -30,7 +30,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "includes/mat_variables.h"
-#include "custom_strategies/time_integration_methods/time_integration_method.hpp"
+#include "custom_solvers/time_integration_methods/time_integration_method.hpp"
 #include "custom_utilities/shell_cross_section.hpp"
 
 namespace Kratos

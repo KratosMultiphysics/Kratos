@@ -46,7 +46,7 @@ public:
     typedef ModelPart::NodeType                              NodeType;
     typedef ModelPart::NodesContainerType          NodesContainerType;
     typedef ModelPart::ElementsContainerType    ElementsContainerType;
-    typedef NodesContainerType::Pointer     NodesContainerTypePointer;
+    typedef NodesContainerType::Pointer     NodesContainerPointerType;
     typedef ModelPart::ConditionType                    ConditionType;
     typedef ModelPart::PropertiesType                  PropertiesType;
     typedef ConditionType::GeometryType                  GeometryType;
