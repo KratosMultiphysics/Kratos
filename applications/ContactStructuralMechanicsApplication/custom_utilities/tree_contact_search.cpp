@@ -150,29 +150,65 @@ void TreeContactSearch<TDim, TNumNodes>::SetOriginDestinationModelParts(ModelPar
     ModelPart& r_master_model_part = rModelPart.GetSubModelPart("MasterSubModelPart");
     ModelPart& r_slave_model_part = rModelPart.GetSubModelPart("SlaveSubModelPart");
 
-    // TODO: Create vectors of IDs in parallel
+    // The vectors containing the ids
+    std::vector<IndexType> slave_nodes_ids;
+    std::vector<IndexType> master_nodes_ids;
+    std::vector<IndexType> slave_conditions_ids;
+    std::vector<IndexType> master_conditions_ids;
+    // Creating a buffer for parallel vector fill
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<std::vector<IndexType>> slave_nodes_ids_buffer(num_threads);
+    std::vector<std::vector<IndexType>> master_nodes_ids_buffer(num_threads);
+    std::vector<std::vector<IndexType>> slave_conditions_ids_buffer(num_threads);
+    std::vector<std::vector<IndexType>> master_conditions_ids_buffer(num_threads);
 
-    for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-        auto it_cond = rModelPart.ConditionsBegin() + i;
+    #pragma omp parallel
+    {
+        const int id = OpenMPUtils::ThisThread();
 
-        if (it_cond->Is(SLAVE) == !mInvertedSearch) {
-            r_slave_model_part.AddCondition(*(it_cond.base()));
+        #pragma omp for
+        for(int i=0; i<static_cast<int>(rModelPart.Nodes().size()); ++i) {
+            auto it_node = rModelPart.NodesBegin() + i;
+
+            if (it_node->Is(SLAVE) == !mInvertedSearch) {
+                slave_nodes_ids_buffer[id].push_back(it_node->Id());
+            }
+            if (it_node->Is(MASTER) == !mInvertedSearch) {
+                master_nodes_ids_buffer[id].push_back(it_node->Id());
+            }
         }
-        if (it_cond->Is(MASTER) == !mInvertedSearch) {
-            r_master_model_part.AddCondition(*(it_cond.base()));
+
+        #pragma omp for
+        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
+            auto it_cond = rModelPart.ConditionsBegin() + i;
+
+            if (it_cond->Is(SLAVE) == !mInvertedSearch) {
+                slave_conditions_ids_buffer[id].push_back(it_cond->Id());
+            }
+            if (it_cond->Is(MASTER) == !mInvertedSearch) {
+                master_conditions_ids_buffer[id].push_back(it_cond->Id());
+            }
+        }
+
+        // Combine buffers together
+        #pragma omp single
+        {
+            for( auto& partial_slave_nodes_ids : slave_nodes_ids_buffer)
+                std::move(partial_slave_nodes_ids.begin(),partial_slave_nodes_ids.end(),back_inserter(slave_nodes_ids));
+            for( auto& partial_master_nodes_ids : master_nodes_ids_buffer)
+                std::move(partial_master_nodes_ids.begin(),partial_master_nodes_ids.end(),back_inserter(master_nodes_ids));
+            for( auto& partial_slave_conditions_ids : slave_conditions_ids_buffer)
+                std::move(partial_slave_conditions_ids.begin(),partial_slave_conditions_ids.end(),back_inserter(slave_conditions_ids));
+            for( auto& partial_master_conditions_ids : master_conditions_ids_buffer)
+                std::move(partial_master_conditions_ids.begin(),partial_master_conditions_ids.end(),back_inserter(master_conditions_ids));
         }
     }
 
-    for(int i=0; i<static_cast<int>(rModelPart.Nodes().size()); ++i) {
-        auto it_node = rModelPart.NodesBegin() + i;
-
-        if (it_node->Is(SLAVE) == !mInvertedSearch) {
-            r_slave_model_part.AddNode(*(it_node.base()));
-        }
-        if (it_node->Is(MASTER) == !mInvertedSearch) {
-            r_master_model_part.AddNode(*(it_node.base()));
-        }
-    }
+    // Finally we add the nodes and conditions to the submodelparts
+    r_slave_model_part.AddNodes(slave_nodes_ids);
+    r_slave_model_part.AddConditions(slave_conditions_ids);
+    r_master_model_part.AddNodes(master_nodes_ids);
+    r_master_model_part.AddConditions(master_conditions_ids);
 
     KRATOS_ERROR_IF(r_master_model_part.Conditions().size() == 0) << "No origin conditions. Check your flags are properly set" << std::endl;
     KRATOS_ERROR_IF(r_slave_model_part.Conditions().size() == 0) << "No destination conditions. Check your flags are properly set" << std::endl;
