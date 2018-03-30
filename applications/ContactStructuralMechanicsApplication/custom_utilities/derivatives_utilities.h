@@ -559,7 +559,7 @@ public:
                     const array_1d<double, 3>& delta_normal = (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION && i_node < TNumNodes) ? all_delta_normal[i_node * TDim + i_dof] : ZeroVector(3);
 
                     // We compute the residuals
-                    array_1d<double, 3> aux_RHS1 = ZeroVector(3);
+                    array_1d<double, 3> aux_RHS1(3, 0.0);
 
                     // The vertex cell contribution
                     const auto& local_delta_cell = rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof];
@@ -939,8 +939,6 @@ public:
                     const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
                     PointType local_point_parent;
                     PointType gp_global;
-                    decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
-                    SlaveGeometry.PointLocalCoordinates(local_point_parent, gp_global);
 
                     // Calculate the kinematic variables
                     // We compute the current configuration
