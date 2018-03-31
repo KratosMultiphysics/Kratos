@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_DISPLACEMENT_ROTATION_STATIC_SCHEME )
-#define  KRATOS_DISPLACEMENT_ROTATION_STATIC_SCHEME
+#if !defined(KRATOS_DISPLACEMENT_ROTATION_STATIC_SCHEME_H_INCLUDED)
+#define  KRATOS_DISPLACEMENT_ROTATION_STATIC_SCHEME_H_INCLUDED
 
 // System includes
 
@@ -39,7 +39,7 @@ namespace Kratos
   /** @brief Newmark integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class DisplacementRotationStaticScheme: public DisplacementStaticScheme<TSparseSpace,TDenseSpace>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) DisplacementRotationStaticScheme: public DisplacementStaticScheme<TSparseSpace,TDenseSpace>
   {   
   public:
     
@@ -48,11 +48,9 @@ namespace Kratos
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementRotationStaticScheme );
 
     typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
-     
-    typedef typename BaseType::Pointer                                    BasePointerType;
+    typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
 
     typedef typename BaseType::LocalSystemVectorType                LocalSystemVectorType;
-
     typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType;
 
     typedef DisplacementStaticScheme<TSparseSpace,TDenseSpace>                DerivedType;
@@ -70,6 +68,12 @@ namespace Kratos
     {
     }
 
+    /// Constructor.
+    DisplacementRotationStaticScheme(Flags& rOptions)
+      :DerivedType(rOptions)
+    {
+    }
+    
     /// Copy Constructor.
     DisplacementRotationStaticScheme(DisplacementRotationStaticScheme& rOther)
       :DerivedType(rOther)
@@ -417,4 +421,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_DISPLACEMENT_ROTATION_STATIC_SCHEME defined
+#endif // KRATOS_DISPLACEMENT_ROTATION_STATIC_SCHEME_H_INCLUDED defined

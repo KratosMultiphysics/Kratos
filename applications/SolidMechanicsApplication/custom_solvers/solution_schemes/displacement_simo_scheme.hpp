@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_DISPLACEMENT_SIMO_SCHEME )
-#define  KRATOS_DISPLACEMENT_SIMO_SCHEME
+#if !defined(KRATOS_DISPLACEMENT_SIMO_SCHEME_H_INCLUDED)
+#define  KRATOS_DISPLACEMENT_SIMO_SCHEME_H_INCLUDED
 
 // System includes
 
@@ -35,10 +35,10 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /** @brief Bossak integration scheme (for dynamic problems)
+  /** @brief Simo integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class DisplacementSimoScheme: public DisplacementBossakScheme<TSparseSpace,TDenseSpace>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) DisplacementSimoScheme: public DisplacementBossakScheme<TSparseSpace,TDenseSpace>
   {   
   public:
     
@@ -47,11 +47,9 @@ namespace Kratos
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementSimoScheme );
 
     typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
-    
-    typedef typename BaseType::Pointer                                    BasePointerType;
+    typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
 
     typedef typename BaseType::LocalSystemVectorType                LocalSystemVectorType;
-
     typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType;
 
     typedef DisplacementBossakScheme<TSparseSpace,TDenseSpace>                DerivedType;
@@ -67,6 +65,12 @@ namespace Kratos
     /// Default Constructor.
     DisplacementSimoScheme()
       :DerivedType()
+    {
+    }
+
+    /// Default Constructor.
+    DisplacementSimoScheme(Flags& rOptions)
+      :DerivedType(rOptions)
     {
     }
 
@@ -228,4 +232,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_DISPLACEMENT_BOSSAK_SCHEME defined
+#endif // KRATOS_DISPLACEMENT_BOSSAK_SCHEME_H_INCLUDED defined

@@ -40,7 +40,7 @@ namespace Kratos
 * References...
 *
 */
-class ShellCrossSection : public Flags
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellCrossSection : public Flags
 {
 
 public:

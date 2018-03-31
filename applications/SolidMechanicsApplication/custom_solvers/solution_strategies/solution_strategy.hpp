@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_solvers/solution_schemes/solution_scheme.hpp"
-#include "custom_solvers/builders_and_solvers/builder_and_solver.hpp"
+#include "custom_solvers/solution_builders_and_solvers/solution_builder_and_solver.hpp"
 
 namespace Kratos
 {
@@ -48,22 +48,22 @@ template<class TSparseSpace,
          class TDenseSpace,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class SolutionStrategy : public Flags
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SolutionStrategy : public Flags
 {
  public:
 
   ///@name Type Definitions
   ///@{
-  typedef SolverLocalFlags                                                   LocalFlagType;
-  typedef ModelPart::DofsArrayType                                           DofsArrayType;
+  typedef SolverLocalFlags                                                           LocalFlagType;
+  typedef ModelPart::DofsArrayType                                                   DofsArrayType;
 
-  typedef typename TSparseSpace::MatrixType                               SystemMatrixType;
-  typedef typename TSparseSpace::VectorType                               SystemVectorType;
-  typedef typename TSparseSpace::MatrixPointerType                 SystemMatrixPointerType;
-  typedef typename TSparseSpace::VectorPointerType                 SystemVectorPointerType;
- 
-  typedef SolutionScheme<TSparseSpace, TDenseSpace>                             SchemeType;
-  typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>  BuilderAndSolverType;
+  typedef typename TSparseSpace::MatrixType                                       SystemMatrixType;
+  typedef typename TSparseSpace::VectorType                                       SystemVectorType;
+  typedef typename TSparseSpace::MatrixPointerType                         SystemMatrixPointerType;
+  typedef typename TSparseSpace::VectorPointerType                         SystemVectorPointerType;
+  
+  typedef SolutionScheme<TSparseSpace, TDenseSpace>                                     SchemeType;
+  typedef SolutionBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>  BuilderAndSolverType;
   
   
   /// Pointer definition of SolutionStrategy

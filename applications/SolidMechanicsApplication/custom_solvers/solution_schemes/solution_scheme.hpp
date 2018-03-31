@@ -16,10 +16,9 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/checks.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
-
+#include "custom_solvers/time_integration_methods/time_integration_method.hpp"
 
 namespace Kratos
 {
@@ -46,22 +45,23 @@ namespace Kratos
 /** @brief Solver local flags class definition
  *  @details This is the base class for solver local flags
  */
-class SolverLocalFlags
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SolverLocalFlags
 {
  public:
   /// Flags for the solution control:
   KRATOS_DEFINE_LOCAL_FLAG( INITIALIZED );
   KRATOS_DEFINE_LOCAL_FLAG( CONVERGED );
-  KRATOS_DEFINE_LOCAL_FLAG( INITIALIZED_DOFS );
-  KRATOS_DEFINE_LOCAL_FLAG( INITIALIZED_ELEMENTS );
-  KRATOS_DEFINE_LOCAL_FLAG( INITIALIZED_CONDITIONS );
+  KRATOS_DEFINE_LOCAL_FLAG( DOFS_INITIALIZED );
+  KRATOS_DEFINE_LOCAL_FLAG( ELEMENTS_INITIALIZED );
+  KRATOS_DEFINE_LOCAL_FLAG( CONDITIONS_INITIALIZED );
   
   /// Flags for the solution options:
   KRATOS_DEFINE_LOCAL_FLAG( REFORM_DOFS );
   KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_REACTIONS );
-  KRATOS_DEFINE_LOCAL_FLAG( CONSTANT_SYSTEM_LHS );
-  KRATOS_DEFINE_LOCAL_FLAG( LINE_SEARCH );
+  KRATOS_DEFINE_LOCAL_FLAG( CONSTANT_SYSTEM_MATRIX );
+  KRATOS_DEFINE_LOCAL_FLAG( RAYLEIGH_DAMPING );
   KRATOS_DEFINE_LOCAL_FLAG( IMPLEX );
+  
 };
 
 
@@ -89,13 +89,13 @@ class SolutionScheme : public Flags
   typedef typename TDenseSpace::VectorType                   LocalSystemVectorType;
 
   typedef ModelPart::NodesContainerType                         NodesContainerType; 
-  typedef ModelPart::ElementsContainerType                  ElementsContainterType;
+  typedef ModelPart::ElementsContainerType                   ElementsContainerType;
   typedef ModelPart::ConditionsContainerType               ConditionsContainerType;
 
   typedef ModelPart::NodeType                                             NodeType;
   typedef array_1d<double, 3>                                           VectorType;
-  typedef Variable<VectorType >                                       VariableType: 
-  typedef TimeIntegrationMethod<VariableType, VectorType >         IntegrationType;
+  typedef Variable<VectorType>                                        VariableType; 
+  typedef TimeIntegrationMethod<VariableType,VectorType>           IntegrationType;
   typedef typename IntegrationType::Pointer                 IntegrationPointerType;
 
   /// Pointer definition of SolutionScheme
@@ -107,12 +107,15 @@ class SolutionScheme : public Flags
 
   /// Default Constructor.
   SolutionScheme() : Flags() {}
- 
-  /// Constructor.
-  SolutionScheme(IntegrationPointerType pIntegrationMethod) : Flags(), mOptions(rOptions), mpIntegrationMethod(pIntegrationMethod) {}
 
+  /// Constructor.
+  SolutionScheme(Flags& rOptions) : Flags(), mOptions(rOptions) {}
+  
+  /// Constructor.
+  SolutionScheme(IntegrationPointerType pIntegrationMethod, Flags& rOptions) : Flags(), mOptions(rOptions), mpIntegrationMethod(pIntegrationMethod) {}
+  
   /// Copy contructor.
-  SolutionScheme(SolutionScheme& rOther) : mOptions(rOther.rOptions), mpIntegrationMethod(rOther.mpIntegrationMethod) {}
+  SolutionScheme(SolutionScheme& rOther) : mOptions(rOther.mOptions), mpIntegrationMethod(rOther.mpIntegrationMethod) {}
 
   /// Clone.
   virtual SolutionSchemePointerType Clone()
@@ -648,19 +651,18 @@ class SolutionScheme : public Flags
  */
 KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INITIALIZED,               0 );
 KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONVERGED,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INITIALIZED_DOFS,          2 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INITIALIZED_ELEMENTS,      3 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INITIALIZED_CONDITIONS,    4 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, DOFS_INITIALIZED,          2 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, ELEMENTS_INITIALIZED,      3 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONDITIONS_INITIALIZED,    4 );
 
 /**
  * Flags for the Strategy options
  */
 KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, REFORM_DOFS,               0 );
 KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, COMPUTE_REACTIONS,         1 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONSTANT_SYSTEM_LHS,       2 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, LINE_SEARCH,               3 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONSTANT_SYSTEM_MATRIX,    2 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, RAYLEIGH_DAMPING,          3 );
 KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, IMPLEX,                    4 );
-
 ///@}
 ///@name Input and output
 ///@{

@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_HAMILTON_SCHEME)
-#define  KRATOS_EXPLICIT_HAMILTON_SCHEME
+#if !defined(KRATOS_EXPLICIT_HAMILTON_SCHEME_H_INCLUDED)
+#define  KRATOS_EXPLICIT_HAMILTON_SCHEME_H_INCLUDED
 
 /* System includes */
 #ifdef _OPENMP
@@ -22,7 +22,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "solving_strategies/solution_schemes/scheme.h"
+#include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
 #include "utilities/quaternion.h"
 
@@ -59,7 +59,7 @@ namespace Kratos
   template<class TSparseSpace,
 	   class TDenseSpace //= DenseSpace<double>
 	   >
-  class ExplicitHamiltonScheme : public Scheme<TSparseSpace,TDenseSpace>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitHamiltonScheme : public Scheme<TSparseSpace,TDenseSpace>
   {
 
   public:
@@ -1122,5 +1122,5 @@ namespace Kratos
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_EXPLICIT_HAMILTON_SCHEME  defined */
+#endif /* KRATOS_EXPLICIT_HAMILTON_SCHEME_H_INCLUDED  defined */
 

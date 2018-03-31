@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SHELLT3_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED )
+#if !defined(KRATOS_SHELLT3_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED)
 #define  KRATOS_SHELLT3_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED
 
 #include "EICR.hpp"
@@ -42,7 +42,7 @@ namespace Kratos
  * - C.A.Felippa, AFEM.Ch.37, "Triangular Shell Elements",
  *   link: http://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/
  */
-class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTransformation
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTransformation
 {
 
  public:

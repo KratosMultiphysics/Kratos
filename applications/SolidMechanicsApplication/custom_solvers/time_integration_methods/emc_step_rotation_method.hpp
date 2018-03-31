@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_EMC_STEP_ROTATION_METHOD )
-#define  KRATOS_EMC_STEP_ROTATION_METHOD
+#if !defined(KRATOS_EMC_STEP_ROTATION_METHOD_H_INCLUDED)
+#define  KRATOS_EMC_STEP_ROTATION_METHOD_H_INCLUDED
 
 // System includes
 
@@ -269,4 +269,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_EMC_STEP_ROTATION_METHOD defined
+#endif // KRATOS_EMC_STEP_ROTATION_METHOD_H_INCLUDED defined

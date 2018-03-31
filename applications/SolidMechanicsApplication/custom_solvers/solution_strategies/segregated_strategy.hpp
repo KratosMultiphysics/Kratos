@@ -55,7 +55,7 @@ template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
           class TLinearSolver // = LinearSolver<TSparseSpace,TDenseSpace>
           >
-class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
  public:
   ///@name Type Definitions
@@ -65,31 +65,23 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   KRATOS_CLASS_POINTER_DEFINITION(SegregatedStrategy);
 
   typedef SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>            BaseType;
-
   typedef typename BaseType::Pointer                                     BasePointerType;
-
-  typedef typename std::vector<BasePointerType>                  StrategiesContainerType;
-  
   typedef typename BaseType::LocalFlagType                                 LocalFlagType;
+
+  typedef typename std::vector<BasePointerType>                  StrategiesContainerType; 
+  typedef typename StrategiesContainerType::iterator     StrategiesContainerIteratorType;
   
   typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>        ConvergenceCriterionType;
-
   typedef typename BaseType::BuilderAndSolverType                   BuilderAndSolverType;
-
   typedef typename BaseType::SchemeType                                       SchemeType;
 
   typedef TLinearSolver                                                 LinearSolverType;
-
   typedef TSparseSpace                                                   SparseSpaceType;
 
   typedef typename BaseType::DofsArrayType                                 DofsArrayType;
-
   typedef typename BaseType::SystemMatrixType                           SystemMatrixType;
-
   typedef typename BaseType::SystemVectorType                           SystemVectorType;
-
   typedef typename BaseType::SystemMatrixPointerType             SystemMatrixPointerType;
-
   typedef typename BaseType::SystemVectorPointerType             SystemVectorPointerType;
 
   ///@}
@@ -100,11 +92,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   /**
    * Default constructor 
    * @param rModelPart The model part of the problem
-   * @param pScheme The integration scheme
-   * @param pBuilderAndSolver The builder and solver employed
-   * @param pConvergenceCriteria The convergence criteria employed
    * @param rOptions The solution options
-   * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
    */  
   SegregatedStrategy(ModelPart& rModelPart,
                      Flags& rOptions)
@@ -112,65 +100,29 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   {
     KRATOS_TRY
  
-    // Saving the convergence criteria to be used
-    mpConvergenceCriteria = pConvergenceCriterion;
-
-    // Saving the scheme
-    mpScheme = pScheme;
-
-    // Setting up the default builder and solver
-    mpBuilderAndSolver = pBuilderAndSolver;
-       
-    // Maximum iterations allowed
-    mMaxIterationNumber = MaxIterations;
-
-    // Set Options
-    this->mOptions = rOptions;
-
-    // Tells to the builder and solver if the reactions have to be Calculated or not
-    if(this->mOptions.Is(LocalFlagType::COMPUTE_REACTIONS))
-      mpBuilderAndSolver->SetCalculateReactionsFlag(true);
-    else
-      mpBuilderAndSolver->SetCalculateReactionsFlag(false);
-    
-    // Tells to the Builder And Solver if the system matrix and vectors need to be reshaped at each step or not
-    if(this->mOptions.Is(LocalFlagType::REFORM_DOFS))
-      mpBuilderAndSolver->SetReshapeMatrixFlag(true);
-    else
-      mpBuilderAndSolver->SetReshapeMatrixFlag(false);
-
-    mpBuilderAndSolver->SetEchoLevel(this->mEchoLevel);
-    
-    mpA  = TSparseSpace::CreateEmptyMatrixPointer();
-    mpDx = TSparseSpace::CreateEmptyVectorPointer();
-    mpb  = TSparseSpace::CreateEmptyVectorPointer();
-
     KRATOS_CATCH("")
   }
   
-
   /**
-   * Default constructor 
+   * Constructor 
    * @param rModelPart The model part of the problem
-   * @param pScheme The integration scheme
-   * @param pLinearSolver The linear solver employed
-   * @param pConvergenceCriteria The convergence criteria employed
    * @param rOptions The solution options
-   * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
-   */
+   * @param rStrategies Vector with the solution strategies
+   */  
   SegregatedStrategy(ModelPart& rModelPart,
-                        typename SchemeType::Pointer pScheme,
-                        typename LinearSolverType::Pointer pLinearSolver,
-                        typename ConvergenceCriterionType::Pointer pConvergenceCriterion,
-                        Flags& rOptions,
-                        unsigned int MaxIterations = 30)
-      : SegregatedStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, typename BuilderAndSolverType::Pointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pLinearSolver)), pConvergenceCriterion, rOptions, MaxIterations)
-  {}
-    
+                     Flags& rOptions,
+                     StrategiesContainerType& rStrategies)
+      : SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, rOptions)
+  {
+    KRATOS_TRY
 
+    mStrategies = rStrategies;
+        
+    KRATOS_CATCH("")
+  }
+  
   /** 
    * @brief Destructor.
-   * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
    */
   ~SegregatedStrategy() override
   {
@@ -193,10 +145,6 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   {
     KRATOS_TRY
                     
-    //initialize system elements, conditions..
-    if(this->IsNot(LocalFlagType::INITIALIZED))
-      this->Initialize();
-
     //set implex
     if(this->mOptions.Is(LocalFlagType::IMPLEX) && this->GetModelPart().GetProcessInfo().Has(IMPLEX))
       this->GetModelPart().GetProcessInfo()[IMPLEX] = 1;
@@ -204,11 +152,12 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     //prints informations about the current time
     //KRATOS_INFO("") << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::Category::STATUS;
 
-    unsigned int counter = 0;
-    for(StrategiesContainerType::iterator it= mStrategies.begin(); it!= mStrategies.end(); ++it)
+    int counter = 0;
+    for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
     {
-      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, ++counter);
-      it->InitializeSolutionStep();
+      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, counter);
+      (*it)->InitializeSolutionStep();
+      ++counter;
     }
             
     KRATOS_CATCH("")
@@ -227,11 +176,12 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     if(this->mOptions.Is(LocalFlagType::IMPLEX) && this->GetModelPart().GetProcessInfo().Has(IMPLEX))
       this->GetModelPart().GetProcessInfo()[IMPLEX] = 0;
     
-    unsigned int counter = 0;
-    for(StrategiesContainerType::iterator it= mStrategies.begin(); it!= mStrategies.end(); ++it)
+    int counter = 0;
+    for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
     {
-      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, ++counter);
-      it->FinalizeSolutionStep();
+      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, counter);
+      (*it)->FinalizeSolutionStep();
+      ++counter;
     }
 
     //this->Finalize();
@@ -253,24 +203,30 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     //setting the iteration number
     this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
+    //convergence vector
+    std::vector<bool> convergences(mStrategies.size());
+    std::fill(convergences.begin(), convergences.end(), false);
+    
     //Iteration Cicle... performed only for NonLinearProblems
-    while( this->IsNot(LocalFlagType::CONVERGED) && iteration_number++ < mMaxIterationNumber)
+    while( this->IsNot(LocalFlagType::CONVERGED) )
     {
       //setting the iteration number
       this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-      bool is_converged = false;
-      unsigned int counter = 0;
-      for(StrategiesContainerType::iterator it= mStrategies.begin(); it!= mStrategies.end(); ++it)
+      int counter = 0;
+      for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
       {
-        this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, ++counter);
-        is_converged = it->SolveIteration();
+        this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, counter);
+        convergences[counter-1] = (*it)->SolveIteration();
+        ++counter;
       }
 
+      this->Set(LocalFlagType::CONVERGED, std::all_of(convergences.begin(), convergences.end(), [](bool const n){return n == true;}) );
+
+      ++iteration_number;
+
     }
-
-
-           
+          
     return (this->Is(LocalFlagType::CONVERGED));
 
     KRATOS_CATCH("")
@@ -285,11 +241,12 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   {
     KRATOS_TRY
 
-    unsigned int counter = 0;
-    for(StrategiesContainerType::iterator it= mStrategies.begin(); it!= mStrategies.end(); ++it)
+    int counter = 0;
+    for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
     {
-      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, ++counter);
-      it->Clear();
+      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, counter);
+      (*it)->Clear();
+      ++counter;
     }
     
     KRATOS_CATCH("")
@@ -303,13 +260,14 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   {
     KRATOS_TRY
 
-    unsigned int counter = 0;
-    for(StrategiesContainerType::iterator it= mStrategies.begin(); it!= mStrategies.end(); ++it)
+    int counter = 0;
+    for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
     {
-      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, ++counter);
-      it->Check();
+      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, counter);
+      (*it)->Check();
+      ++counter;
     }
-        
+            
     return 0;
 
     KRATOS_CATCH("")
@@ -334,9 +292,9 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   void SetEchoLevel(const int Level) override
   {
     BaseType::SetEchoLevel(Level);
-    for(StrategiesContainerType::iterator it= mStrategies.begin(); it!= mStrategies.end(); ++it)
+    for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
     {
-      it->SetEchoLevel(Level);
+      (*it)->SetEchoLevel(Level);
     }
 
   }
@@ -384,30 +342,9 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   ///@}
   ///@name Protected Operators
   ///@{
-
   ///@}
   ///@name Protected Operations
   ///@{
-
-  /**
-   * @brief Initialization of member variables and prior operations
-   */    
-  void Initialize() override
-  {
-    KRATOS_TRY
-
-    unsigned int counter = 0;
-    for(StrategiesContainerType::iterator it= mStrategies.begin(); it!= mStrategies.end(); ++it)
-    {
-      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, ++counter);
-      it->Initialize();
-    }
-
-    this->Set(LocalFlagType::INITIALIZED,true);
-    
-    KRATOS_CATCH("")
-  }
-  
   ///@}
   ///@name Protected  Access
   ///@{

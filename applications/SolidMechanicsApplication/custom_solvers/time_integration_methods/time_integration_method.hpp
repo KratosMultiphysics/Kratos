@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_TIME_INTEGRATION_METHOD )
-#define  KRATOS_TIME_INTEGRATION_METHOD
+#if !defined(KRATOS_TIME_INTEGRATION_METHOD_H_INCLUDED)
+#define  KRATOS_TIME_INTEGRATION_METHOD_H_INCLUDED
 
 // System includes
 
@@ -43,8 +43,7 @@ namespace Kratos
   ///@}
   ///@name Kratos Classes
   ///@{
-
- 
+    
   /// Short class definition.
   /** Detail class definition.     
    * This class performs predict and update of dofs variables, their time derivatives and time integrals      
@@ -67,7 +66,7 @@ namespace Kratos
     
     KRATOS_CLASS_POINTER_DEFINITION( TimeIntegrationMethod );
 
-	typedef typename TimeIntegrationMethod::Pointer   TimeIntegrationMethodPointer;
+    typedef typename TimeIntegrationMethod::Pointer   TimeIntegrationMethodPointer;
 
     ///@}
     ///@name Life Cycle
@@ -367,18 +366,23 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
-      // rSerializer.save("Variable", mpVariable);
-      // rSerializer.save("FirstDerivative", mpFirstDerivative);
-      // rSerializer.save("SecondDerivative", mpSecondDerivative);
-      // rSerializer.save("InputVariable", mpInputVariable);
+      rSerializer.save("Variable", mpVariable->Name());
+      rSerializer.save("FirstDerivative", mpFirstDerivative->Name());
+      rSerializer.save("SecondDerivative", mpSecondDerivative->Name());
+      rSerializer.save("InputVariable", mpInputVariable->Name());
     };
 
     virtual void load(Serializer& rSerializer)
     {
-      // rSerializer.load("Variable", mpVariable);
-      // rSerializer.load("FirstDerivative", mpFirstDerivative);
-      // rSerializer.load("SecondDerivative", mpSecondDerivative);
-      // rSerializer.load("InputVariable", mpInputVariable);
+      std::string Name;
+      rSerializer.load("Variable", Name);
+      mpVariable = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
+      rSerializer.load("FirstDerivative", Name);
+      mpFirstDerivative = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
+      rSerializer.load("SecondDerivative", Name);
+      mpSecondDerivative = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
+      rSerializer.load("InputVariable", Name);
+      mpInputVariable = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
     };
     ///@}
     ///@name Private Inquiry
@@ -388,15 +392,7 @@ namespace Kratos
     ///@name Un accessible methods
     ///@{
   
-    ///@}
-    
-  public:
-
-    DECLARE_HAS_THIS_TYPE_PROCESS_INFO
-    DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO
-    DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO
-    
-  
+    ///@} 
   }; // Class TimeIntegrationMethod
   
   ///@}
@@ -427,4 +423,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_TIME_INTEGRATION_METHOD defined
+#endif // KRATOS_TIME_INTEGRATION_METHOD_H_INCLUDED defined

@@ -19,7 +19,7 @@
 #include "solid_mechanics_application_variables.h"
 
 //default builder and solver
-#include "custom_solvers/builders_and_solvers/explicit_builder_and_solver.hpp"
+#include "custom_solvers/solution_builders_and_solvers/explicit_builder_and_solver.hpp"
 
 
 namespace Kratos
@@ -48,7 +48,7 @@ template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class ExplicitStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
  public:
 
@@ -98,12 +98,9 @@ class ExplicitStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLin
             
     //saving the scheme
     mpScheme = pScheme;
-
-    //create a dummy linear solver
-    typename TLinearSolver::Pointer pLinearSolver;
             
     //create explicit builder
-    mpBuilderAndSolver = typename BuilderAndSolverType::Pointer(new ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pLinearSolver));
+    mpBuilderAndSolver = typename BuilderAndSolverType::Pointer(new ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>());
             
     //set lumped mass matrix by default
     if( this->GetModelPart().GetProcessInfo().Has(COMPUTE_LUMPED_MASS_MATRIX) )
@@ -186,7 +183,7 @@ class ExplicitStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLin
     KRATOS_TRY
         
     //compute nodal mass and inertia
-    if(this->mOptions.IsNot(LocalFlagType::CONSTANT_SYSTEM_LHS))
+    if(this->mOptions.IsNot(LocalFlagType::CONSTANT_SYSTEM_MATRIX))
       mpBuilderAndSolver->BuildLHS(mpScheme, this->GetModelPart(), (*mpA));
 
         
@@ -278,7 +275,7 @@ class ExplicitStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLin
     KRATOS_TRY
  
     //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-    if (mpScheme->SchemeIsInitialized() == false)
+    if (mpScheme->IsNot(LocalFlagType::INITIALIZED))
       mpScheme->Initialize(this->GetModelPart());
         
     // //Initialize The Elements - OPERATIONS TO BE DONE ONCE
@@ -290,7 +287,7 @@ class ExplicitStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLin
     //   mpScheme->InitializeConditions(this->GetModelPart());
 
     //compute nodal mass and inertia
-    if(this->mOptions.Is(LocalFlagType::CONSTANT_SYSTEM_LHS))
+    if(this->mOptions.Is(LocalFlagType::CONSTANT_SYSTEM_MATRIX))
       mpBuilderAndSolver->BuildLHS(mpScheme, this->GetModelPart(), (*mpA));
 
     this->Set(LocalFlagType::INITIALIZED,true);

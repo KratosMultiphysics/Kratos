@@ -46,7 +46,7 @@ template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class LineSearchStrategy
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineSearchStrategy
     : public NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
  public:

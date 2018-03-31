@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_solvers/builders_and_solvers/builder_and_solver.hpp"
+#include "custom_solvers/solution_builders_and_solvers/solution_builder_and_solver.hpp"
 
 #ifdef USE_GOOGLE_HASH
 #include "sparsehash/dense_hash_set" //included in external libraries
@@ -50,8 +50,8 @@ template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class ReductionBuilderAndSolver
-    : public BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ReductionBuilderAndSolver
+    : public SolutionBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
 {
  public:
   ///@name Type Definitions
@@ -60,11 +60,10 @@ class ReductionBuilderAndSolver
   /// Pointer definition of ReductionBuilderAndSolver
   KRATOS_CLASS_POINTER_DEFINITION(ReductionBuilderAndSolver);
 
-  typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>              BaseType;
-
+  typedef SolutionBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>      BaseType;
   typedef typename BaseType::Pointer                                       BasePointerType;
   
-  typedef BaseType::LocalFlagType                                            LocalFlagType;
+  typedef typename BaseType::LocalFlagType                                   LocalFlagType;
   typedef typename BaseType::DofsArrayType                                   DofsArrayType;
 
   typedef typename BaseType::SystemMatrixType                             SystemMatrixType;
@@ -77,10 +76,9 @@ class ReductionBuilderAndSolver
   typedef typename ModelPart::NodesContainerType                        NodesContainerType;
   typedef typename ModelPart::ElementsContainerType                  ElementsContainerType;
   typedef typename ModelPart::ConditionsContainerType              ConditionsContainerType;
-  typedef typename ModelPart::ElementsContainerType                  ElementsContainerType;
 
-  typedef BaseType::SchemePointerType                                    SchemePointerType;
-  typedef BaseType::LinearSolverPointerType                        LinearSolverPointerType;
+  typedef typename BaseType::SchemePointerType                           SchemePointerType;
+  typedef typename BaseType::LinearSolverPointerType               LinearSolverPointerType;
 
   struct dof_iterator_hash
   {
@@ -163,7 +161,7 @@ class ReductionBuilderAndSolver
       AssembleLHS(rA, LHS_Contribution, EquationId);
 
       // clean local elemental memory
-      pScheme->CleanMemory(*it);
+      pScheme->Clear(*it);
     }
 
     LHS_Contribution.resize(0, 0, false);
@@ -194,7 +192,7 @@ class ReductionBuilderAndSolver
 
     //resetting to zero the vector of reactions
 
-    if(this->mOptions.Is(LocalFlagType::CALCULATE_REACTIONS))
+    if(this->mOptions.Is(LocalFlagType::COMPUTE_REACTIONS))
     {
       TSparseSpace::SetToZero(*(this->mpReactionsVector));
     }
@@ -393,7 +391,7 @@ class ReductionBuilderAndSolver
       this->mpLinearSystemSolver->Solve(rA, rDx, rb);
     }
     else
-      TSparseSpace::SetToZero(Dx);
+      TSparseSpace::SetToZero(rDx);
 
     //prints informations about the current time
     if (this->GetEchoLevel() > 1)
@@ -422,15 +420,15 @@ class ReductionBuilderAndSolver
     double end_time = OpenMPUtils::GetCurrentTime();
 
     if (this->mEchoLevel >=1 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("system_build_time") << begin_time - end_time << std::end;
+      KRATOS_INFO("system_build_time") << begin_time - end_time << std::endl;
 
     ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
     if (this->mEchoLevel == 3)
     {     
-      KRATOS_INFO("LHS before solve") << "Matrix = " << (*pA) << std::endl;
-      KRATOS_INFO("Dx before solve")  << "Solution = " << (*pDx) << std::endl;
-      KRATOS_INFO("RHS before solve") << "Vector = " << (*pb) << std::endl;
+      KRATOS_INFO("LHS before solve") << "Matrix = " << rA << std::endl;
+      KRATOS_INFO("Dx before solve")  << "Solution = " << rDx << std::endl;
+      KRATOS_INFO("RHS before solve") << "Vector = " << rb << std::endl;
     }
 
     begin_time = OpenMPUtils::GetCurrentTime();
@@ -439,13 +437,13 @@ class ReductionBuilderAndSolver
 
     
     if (this->mEchoLevel >=1 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("system_solve_time") << begin_time - end_time << std::end;
+      KRATOS_INFO("system_solve_time") << begin_time - end_time << std::endl;
 
     if (this->mEchoLevel == 3)
     {
-      KRATOS_INFO("LHS after solve") << "Matrix = " << (*pA) << std::endl;
-      KRATOS_INFO("Dx after solve")  << "Solution = " << (*pDx) << std::endl;
-      KRATOS_INFO("RHS after solve") << "Vector = " << (*pb) << std::endl;
+      KRATOS_INFO("LHS after solve") << "Matrix = " << rA << std::endl;
+      KRATOS_INFO("Dx after solve")  << "Solution = " << rDx << std::endl;
+      KRATOS_INFO("RHS after solve") << "Vector = " << rb << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -660,7 +658,7 @@ class ReductionBuilderAndSolver
       KRATOS_INFO("setting_dofs") << "End of setupdofset" << std::endl;
     }    
 
-    this->Set(LocalFlagType::INITIALIZED_DOFS, true)
+    this->Set(LocalFlagType::DOFS_INITIALIZED, true);
     
     KRATOS_CATCH("");
   }
@@ -734,20 +732,20 @@ class ReductionBuilderAndSolver
     }
     else
     {
-      if (A.size1() != this->mEquationSystemSize || A.size2() != this->mEquationSystemSize)
+      if (rA.size1() != this->mEquationSystemSize || rA.size2() != this->mEquationSystemSize)
       {
         KRATOS_WARNING("reduction builder resize") << "it should not come here -> this is SLOW" << std::endl;
-        A.resize(this->mEquationSystemSize, this->mEquationSystemSize, true);
+        rA.resize(this->mEquationSystemSize, this->mEquationSystemSize, true);
         ConstructMatrixStructure(pScheme, rA, rModelPart.Elements(), rModelPart.Conditions(), rModelPart.GetProcessInfo());
       }
     }
-    if (Dx.size() != this->mEquationSystemSize)
-      Dx.resize(this->mEquationSystemSize, false);
-    if (b.size() != this->mEquationSystemSize)
-      b.resize(this->mEquationSystemSize, false);
+    if (rDx.size() != this->mEquationSystemSize)
+      rDx.resize(this->mEquationSystemSize, false);
+    if (rb.size() != this->mEquationSystemSize)
+      rb.resize(this->mEquationSystemSize, false);
 
     //if needed resize the vector for the calculation of reactions
-    if(this->mOptions.Is(LocalFlagType::CALCULATE_REACTIONS))
+    if(this->mOptions.Is(LocalFlagType::COMPUTE_REACTIONS))
     {
       unsigned int ReactionsVectorSize = this->mDofSet.size();
       if (this->mpReactionsVector->size() != ReactionsVectorSize)
@@ -764,7 +762,7 @@ class ReductionBuilderAndSolver
    */
   void InitializeSolutionStep(SchemePointerType pScheme,
                               ModelPart& rModelPart,
-                              SystemMatrixPointerType& pA
+                              SystemMatrixPointerType& pA,
                               SystemVectorPointerType& pDx,
                               SystemVectorPointerType& pb) override
   {
@@ -795,10 +793,10 @@ class ReductionBuilderAndSolver
    * @details this function must be called only once per step.
    */
   void FinalizeSolutionStep(SchemePointerType pScheme,
-                              ModelPart& rModelPart,
-                              SystemMatrixPointerType& pA
-                              SystemVectorPointerType& pDx,
-                              SystemVectorPointerType& pb) override
+                            ModelPart& rModelPart,
+                            SystemMatrixPointerType& pA,
+                            SystemVectorPointerType& pDx,
+                            SystemVectorPointerType& pb) override
   {
     KRATOS_TRY
 
@@ -914,7 +912,7 @@ class ReductionBuilderAndSolver
     KRATOS_TRY
 
     double norm_b;
-    if (TSparseSpace::Size(b) != 0)
+    if (TSparseSpace::Size(rb) != 0)
       norm_b = TSparseSpace::TwoNorm(rb);
     else
       norm_b = 0.00;
@@ -1087,7 +1085,7 @@ class ReductionBuilderAndSolver
         {
           unsigned int j_global = rEquationId[j_local];
           if (j_global < this->mEquationSystemSize)
-            A(i_global, j_global) += rLHS_Contribution(i_local, j_local);
+            rA(i_global, j_global) += rLHS_Contribution(i_local, j_local);
         }
       }
     }
@@ -1100,7 +1098,7 @@ class ReductionBuilderAndSolver
   {
     unsigned int local_size = rRHS_Contribution.size();
 
-    if(this->mOptions.IsNot(LocalFlagType::CALCULATE_REACTIONS))      
+    if(this->mOptions.IsNot(LocalFlagType::COMPUTE_REACTIONS))      
     {
       for (unsigned int i_local = 0; i_local < local_size; i_local++)
       {
@@ -1166,7 +1164,7 @@ class ReductionBuilderAndSolver
 #ifdef _OPENMP
         omp_set_lock(&lock_array[i_global]);
 #endif
-        b[i_global] += rRHS_Contribution(i_local);
+        rb[i_global] += rRHS_Contribution(i_local);
         for (unsigned int j_local = 0; j_local < local_size; j_local++)
         {
           unsigned int j_global = rEquationId[j_local];

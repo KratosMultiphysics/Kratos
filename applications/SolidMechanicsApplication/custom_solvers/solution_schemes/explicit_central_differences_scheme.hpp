@@ -7,20 +7,16 @@
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME)
-#define  KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME
+#if !defined(KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_H_INCLUDED)
+#define  KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_H_INCLUDED
 
 
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
-#include "includes/variables.h"
+#include "custom_solvers/solution_schemes/solution_scheme.hpp"
 
 namespace Kratos
 {
@@ -41,7 +37,7 @@ namespace Kratos
   ///@{
 
   template<class TSparseSpace, class TDenseSpace>
-  class ExplicitCentralDifferencesScheme : public Scheme<TSparseSpace,TDenseSpace>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitCentralDifferencesScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
   {
   public:
 
@@ -50,29 +46,19 @@ namespace Kratos
 
     KRATOS_CLASS_POINTER_DEFINITION( ExplicitCentralDifferencesScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
+    typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
+    typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
+    typedef typename BaseType::LocalFlagType                                LocalFlagType;
 
-    typedef typename BaseType::TDataType                         TDataType;
+    typedef typename BaseType::DofsArrayType                                DofsArrayType;
+    typedef typename BaseType::SystemMatrixType                          SystemMatrixType;
+    typedef typename BaseType::SystemVectorType                          SystemVectorType;
+    typedef typename BaseType::LocalSystemVectorType                LocalSystemVectorType;
+    typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType;
 
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
-
-    typedef typename Element::DofsVectorType                DofsVectorType;
-
-    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
-
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-    typedef ModelPart::NodesContainerType                   NodesArrayType;
-
-    typedef ModelPart::ElementsContainerType             ElementsArrayType;
-
-    typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
-
-    typedef typename BaseType::Pointer                     BasePointerType;
+    typedef ModelPart::NodesContainerType                              NodesContainerType;
+    typedef ModelPart::ElementsContainerType                        ElementsContainerType;
+    typedef ModelPart::ConditionsContainerType                    ConditionsContainerType;
 
     
   protected:
@@ -103,11 +89,11 @@ namespace Kratos
     ///@{
 
     /// Default constructors    
-    ExplicitCentralDifferencesScheme(const double  rMaximumDeltaTime,
+    ExplicitCentralDifferencesScheme(Flags& rOptions,
+                                     const double  rMaximumDeltaTime,
 				     const double  rDeltaTimeFraction,
-				     const double  rDeltaTimePredictionLevel,
-				     const bool    rRayleighDamping = false)
-      : Scheme<TSparseSpace,TDenseSpace>()
+				     const double  rDeltaTimePredictionLevel)
+      : BaseType(rOptions)
     {
 
       mDeltaTime.PredictionLevel  = rDeltaTimePredictionLevel;
@@ -115,8 +101,6 @@ namespace Kratos
       mDeltaTime.Maximum          = rMaximumDeltaTime;
 
       mDeltaTime.Fraction         = rDeltaTimeFraction;
-
-      mRayleighDamping            = rRayleighDamping;
 	
       // Allocate auxiliary memory
       const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
@@ -124,7 +108,7 @@ namespace Kratos
       mMatrix.resize(NumThreads);
       mVector.resize(NumThreads);
 
-      mSchemeIsInitialized = false;
+      this->Set(LocalFlagType::INITIALIZED, false);
     }
 
     ///Copy constructor
@@ -133,8 +117,6 @@ namespace Kratos
         ,mMatrix(rOther.mMatrix)
         ,mVector(rOther.mVector)
 	,mDeltaTime(rOther.mDeltaTime)
-	,mRayleighDamping(rOther.mRayleighDamping)
-	,mSchemeIsInitialized(rOther.mSchemeIsInitialized)	 
     {
     }
 
@@ -160,7 +142,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      if( (mDeltaTime.PredictionLevel>0) && (mSchemeIsInitialized==false) )
+          if( (mDeltaTime.PredictionLevel>0) && this->IsNot(LocalFlagType::INITIALIZED) )
 	{
 	  this->CalculateDeltaTime(rModelPart);
 	}
@@ -174,7 +156,7 @@ namespace Kratos
       mTime.Previous        = mTime.Current -  mTime.Delta;
       mTime.PreviousMiddle  = mTime.Current - 1.5*mTime.Delta;
 
-      if(mSchemeIsInitialized==false)
+      if(this->IsNot(LocalFlagType::INITIALIZED))
 	{
 	  this->InitializeExplicitScheme(rModelPart);
 	}
@@ -183,7 +165,7 @@ namespace Kratos
 	  this->SchemeCustomInitialization(rModelPart);
 	}
 
-      mSchemeIsInitialized = true;
+      this->Set(LocalFlagType::INITIALIZED, true);
 
       KRATOS_CATCH("")
     }
@@ -192,19 +174,16 @@ namespace Kratos
     /**
      * It initializes time step solution. Only for reasons if the time step solution is restarted
      * @param rModelPart: The model of the problem to solve
-     * @param A: LHS matrix
-     * @param Dx: Incremental update of primary variables
-     * @param b: RHS Vector
+     * @param rA: LHS matrix
+     * @param rDx: Incremental update of primary variables
+     * @param rb: RHS Vector
      *
      */
-    void InitializeSolutionStep(ModelPart& rModelPart,
-				TSystemMatrixType& A,
-				TSystemVectorType& Dx,
-				TSystemVectorType& b) override				
+    void InitializeSolutionStep(ModelPart& rModelPart) override				
     {
       KRATOS_TRY
 
-      BaseType::InitializeSolutionStep(rModelPart,A,Dx,b);
+      BaseType::InitializeSolutionStep(rModelPart);
 
       if(mDeltaTime.PredictionLevel>1)
 	{
@@ -221,15 +200,11 @@ namespace Kratos
      * incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
      * @param rModelPart
      * @param rDofSet set of all primary variables
-     * @param A	LHS matrix
-     * @param Dx incremental update of primary variables
-     * @param b RHS Vector
+     * @param rDx incremental update of primary variables
      */
     void Update(ModelPart& rModelPart,
 		DofsArrayType& rDofSet,
-		TSystemMatrixType& A,
-		TSystemVectorType& Dx,
-		TSystemVectorType& b) override
+		SystemVectorType& rDx) override
     {
       KRATOS_TRY
 
@@ -246,12 +221,12 @@ namespace Kratos
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 	
       const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-      NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+      NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
 
       #pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
-	  NodesArrayType::iterator itNode = NodeBegin + i;
+	  NodesContainerType::iterator itNode = NodeBegin + i;
 	  
 	  // Current step information "N+1" (before step update).
 	  const double& nodal_mass                    = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
@@ -326,14 +301,14 @@ namespace Kratos
     /**
      * Functions that calculates the RHS of a "element" object
      * @param rCurrentElement: The element to compute
-     * @param RHS_Contribution: The RHS vector contribution
-     * @param EquationId: The ID's of the condition degrees of freedom
-     * @param CurrentProcessInfo: The current process info instance
+     * @param rRHS_Contribution: The RHS vector contribution
+     * @param rEquationId: The ID's of the condition degrees of freedom
+     * @param rCurrentProcessInfo: The current process info instance
      */
 
     void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
-				    LocalSystemVectorType& RHS_Contribution,
-				    Element::EquationIdVectorType& EquationId,
+				    LocalSystemVectorType& rRHS_Contribution,
+				    Element::EquationIdVectorType& rEquationId,
 				    ProcessInfo& rCurrentProcessInfo) override
     {
 
@@ -342,32 +317,32 @@ namespace Kratos
       int thread = OpenMPUtils::ThisThread();
 
       //basic operations for the element considered
-      (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+      (rCurrentElement) -> CalculateRightHandSide(rRHS_Contribution,rCurrentProcessInfo);
 
-      if(mRayleighDamping)
+      if(this->mOptions.Is(LocalFlagType::RAYLEIGH_DAMPING))
 	{
 	  (rCurrentElement) -> CalculateDampingMatrix(mMatrix[thread], rCurrentProcessInfo);
 
-	  AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix[thread], rCurrentProcessInfo);
+	  AddDynamicsToRHS (rCurrentElement, rRHS_Contribution, mMatrix[thread], rCurrentProcessInfo);
 	}
 
       //add explicit contribution of the Element Residual (RHS) to nodal Force Residual (nodal RHS)
-      (rCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+      (rCurrentElement) -> AddExplicitContribution(rRHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
 
-      KRATOS_CATCH( "" )
+      KRATOS_CATCH("")
     }
 
     /**
      * Functions that calculates the RHS of a "condition" object
      * @param rCurrentCondition: The condition to compute
-     * @param RHS_Contribution: The RHS vector contribution
-     * @param EquationId: The ID's of the condition degrees of freedom
-     * @param CurrentProcessInfo: The current process info instance
+     * @param rRHS_Contribution: The RHS vector contribution
+     * @param rEquationId: The ID's of the condition degrees of freedom
+     * @param rCurrentProcessInfo: The current process info instance
      */
     
     void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
-					      LocalSystemVectorType& RHS_Contribution,
-					      Element::EquationIdVectorType& EquationId,
+					      LocalSystemVectorType& rRHS_Contribution,
+					      Element::EquationIdVectorType& rEquationId,
 					      ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
@@ -375,9 +350,9 @@ namespace Kratos
       //int thread = OpenMPUtils::ThisThread();
 
       //basic operations for the element considered
-      (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+      (rCurrentCondition) -> CalculateRightHandSide(rRHS_Contribution,rCurrentProcessInfo);
           
-      // if(mRayleighDamping)
+      // if(this->mOptions.Is(RAYLEIGH_DAMPING))
       //    {
       // 	   (rCurrentCondition) -> CalculateDampingMatrix(mMatrix[thread], rCurrentProcessInfo);
 	   
@@ -386,10 +361,10 @@ namespace Kratos
 
 
       //add explicit contribution of the Condition Residual (RHS) to nodal Force Residual (nodal RHS)
-      (rCurrentCondition) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+      (rCurrentCondition) -> AddExplicitContribution(rRHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
 
 
-      KRATOS_CATCH( "" )
+      KRATOS_CATCH("")
     }
 
     
@@ -404,65 +379,36 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      BaseType::Check(rModelPart);
-      
-      // Check for variables keys
-      // Verify that the variables are correctly initialized
-      if(DISPLACEMENT.Key() == 0)
+      // Perform base base checks
+      int ErrorCode = 0;
+      ErrorCode  = BaseType::Check(rModelPart);
+
+      // Check that all required variables have been registered
+      KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+      KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+      KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+      KRATOS_CHECK_VARIABLE_KEY(NODAL_MASS);
+      KRATOS_CHECK_VARIABLE_KEY(MIDDLE_VELOCITY);
+      KRATOS_CHECK_VARIABLE_KEY(FORCE_RESIDUAL);
+             
+      // Check that variables are correctly allocated
+      for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); it++)
         {
-	  KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-        }
-      if(VELOCITY.Key() == 0)
-        {
-	  KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is correctly registered" << std::endl;
-        }
-      if(ACCELERATION.Key() == 0)
-        {
-	  KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
-        }
-     if(NODAL_MASS.Key() == 0)
-        {
-	  KRATOS_ERROR << "NODAL_MASS has Key zero! (check if the application is correctly registered" << std::endl;
-        }
-     if(MIDDLE_VELOCITY.Key() == 0)
-        {
-	  KRATOS_ERROR << "MIDDLE_VELOCITY has Key zero! (check if the application is correctly registered" << std::endl;
-        }
-      if(FORCE_RESIDUAL.Key() == 0)
-        {
-	  KRATOS_ERROR << "FORCE_RESIDUAL has Key zero! (check if the application is correctly registered" << std::endl;
+	  // Nodal data
+	  KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,(*it));
+	  KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,(*it));
+	  KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,(*it));
+	  KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_MASS,(*it));
+	  KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MIDDLE_VELOCITY,(*it));
+	  KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FORCE_RESIDUAL,(*it));
+
+	  // Nodal dofs
+	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,(*it));
+	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,(*it));
+	  if( rModelPart.GetProcessInfo()[SPACE_DIMENSION] == 3 )
+	    KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,(*it));
         }
 
-      // Check that variables are correctly allocated
-      for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin();
-	  it!=rModelPart.NodesEnd(); it++)
-        {
-	  if (it->SolutionStepsDataHas(DISPLACEMENT) == false)
-            {
-	      KRATOS_ERROR << "DISPLACEMENT variable is not allocated for node " << it->Id() << std::endl;
-            }
-	  if (it->SolutionStepsDataHas(VELOCITY) == false)
-            {
-	      KRATOS_ERROR << "VELOCITY variable is not allocated for node " << it->Id() << std::endl;
-            }
-	  if (it->SolutionStepsDataHas(ACCELERATION) == false)
-            {
-	      KRATOS_ERROR << "ACCELERATION variable is not allocated for node " << it->Id() << std::endl;
-            }
- 	  if (it->SolutionStepsDataHas(NODAL_MASS) == false)
-            {
-	      KRATOS_ERROR << "NODAL_MASS variable is not allocated for node " << it->Id() << std::endl;
-            }
- 	  if (it->SolutionStepsDataHas(MIDDLE_VELOCITY) == false)
-            {
-	      KRATOS_ERROR << "MIDDLE_VELOCITY variable is not allocated for node " << it->Id() << std::endl;
-            }  
-	  if (it->SolutionStepsDataHas(FORCE_RESIDUAL) == false)
-            {
-	      KRATOS_ERROR << "FORCE_RESIDUAL variable is not allocated for node " << it->Id() << std::endl;
-            }
-        }
-      
       // Check for minimum value of the buffer index
       // Verify buffer size
       if (rModelPart.GetBufferSize() < 2)
@@ -470,8 +416,9 @@ namespace Kratos
 	  KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
         }
       
-      return 0;
-      KRATOS_CATCH( "" );
+      return ErrorCode;
+      
+      KRATOS_CATCH("")
     }
 
     ///@}
@@ -505,9 +452,6 @@ namespace Kratos
     TimeVariables       mTime;
     DeltaTimeParameters mDeltaTime;   
 
-    bool                mRayleighDamping;
-    bool                mSchemeIsInitialized;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -516,11 +460,6 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-
-    //*********************************************************************************
-    // Initialize residual
-    //*********************************************************************************
-    
     void InitializeResidual( ModelPart& rModelPart )
 
     {
@@ -532,22 +471,18 @@ namespace Kratos
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 	
       const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-      NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+      NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
 
       #pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
-	  NodesArrayType::iterator itNode = NodeBegin + i;
+	  NodesContainerType::iterator itNode = NodeBegin + i;
   	  (itNode)->FastGetSolutionStepValue(FORCE_RESIDUAL).clear(); 
         }
 
       KRATOS_CATCH("")
     }
     
-    //*********************************************************************************
-    // Custom initialization
-    //*********************************************************************************
-
     void CalculateDeltaTime(ModelPart& rModelPart)
     {
 
@@ -569,12 +504,12 @@ namespace Kratos
       OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(), NumThreads, ElementPartition);
 	
       const int nelements = static_cast<int>(rModelPart.Elements().size());
-      ElementsArrayType::iterator ElementBegin = rModelPart.Elements().begin();
+      ElementsContainerType::iterator ElementBegin = rModelPart.Elements().begin();
 
       #pragma omp parallel for firstprivate(ElementBegin) private(stable_delta_time)
       for(int i = 0;  i < nelements; i++)
         {
-	  ElementsArrayType::iterator itElement = ElementBegin + i;
+	  ElementsContainerType::iterator itElement = ElementBegin + i;
 	  //get geometric and material properties
 	  double length   = (itElement)->GetGeometry().Length();
 	  double alpha    = (itElement)->GetProperties()[RAYLEIGH_ALPHA];
@@ -614,17 +549,13 @@ namespace Kratos
 	if( current_delta_time > mDeltaTime.Maximum/safety_factor )
 	  rCurrentProcessInfo[DELTA_TIME] = mDeltaTime.Maximum;
       }
-
-      std::cout<< "  [EXPLICIT PREDICTION LEVEL"<<mDeltaTime.PredictionLevel<<"]:(computed stable time step = "<< stable_delta_time <<" s)"<< std::endl;
-      std::cout<< "  Using  = "<< rCurrentProcessInfo[DELTA_TIME] <<" s as time step DELTA_TIME)"<< std::endl;
+      
+      KRATOS_INFO("Time Step prediction") << "  [EXPLICIT PREDICTION LEVEL"<<mDeltaTime.PredictionLevel<<"]:(computed stable time step = "<< stable_delta_time <<" s)"<< std::endl;
+      KRATOS_INFO("Using") << rCurrentProcessInfo[DELTA_TIME] <<" s as time step DELTA_TIME)"<< std::endl;
         
       KRATOS_CATCH("")
     }
 
-    
-    //*********************************************************************************
-    // Custom initialization
-    //*********************************************************************************
 
     void InitializeExplicitScheme(ModelPart& rModelPart)
     {
@@ -636,12 +567,12 @@ namespace Kratos
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 	
       const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-      NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+      NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
 
       #pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
-	  NodesArrayType::iterator itNode = NodeBegin + i;
+	  NodesContainerType::iterator itNode = NodeBegin + i;
 		  
 	  array_1d<double,3>& middle_velocity       = (itNode)->FastGetSolutionStepValue(MIDDLE_VELOCITY);
 	  array_1d<double,3>& current_velocity      = (itNode)->FastGetSolutionStepValue(VELOCITY);
@@ -656,10 +587,7 @@ namespace Kratos
       KRATOS_CATCH("")
     }
 
-    //*********************************************************************************
-    // Custom initialization
-    //*********************************************************************************
-    
+
     void SchemeCustomInitialization(ModelPart& rModelPart)
     {
       KRATOS_TRY
@@ -670,12 +598,12 @@ namespace Kratos
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 	
       const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-      NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+      NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
 
       #pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
-	  NodesArrayType::iterator itNode = NodeBegin + i;
+	  NodesContainerType::iterator itNode = NodeBegin + i;
 	  
 	  // Current step information "N+1" (before step update).
 	  const double& nodal_mass                 = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
@@ -749,48 +677,48 @@ namespace Kratos
     /**
      * It adds the dynamic RHS contribution of the condition: b - D*v
      * @param rCurrentElement: The element to compute
-     * @param RHS_Contribution: The dynamic contribution for the RHS
-     * @param D: The damping matrix
-     * @param CurrentProcessInfo: The current process info instance
+     * @param rRHS_Contribution: The dynamic contribution for the RHS
+     * @param rD: The damping matrix
+     * @param rCurrentProcessInfo: The current process info instance
      */
 
     void AddDynamicsToRHS(Element::Pointer rCurrentElement,
-			  LocalSystemVectorType& RHS_Contribution,
-			  LocalSystemMatrixType& D,
-			  ProcessInfo& CurrentProcessInfo)
+			  LocalSystemVectorType& rRHS_Contribution,
+			  LocalSystemMatrixType& rD,
+			  ProcessInfo& rCurrentProcessInfo)
     {
       int thread = OpenMPUtils::ThisThread();
 
       // Adding damping contribution
-      if (D.size1() != 0)
+      if (rD.size1() != 0)
 	{
 	  this->GetFirstDerivativesVector(rCurrentElement, mVector[thread]);
 
-	  noalias(RHS_Contribution) -= prod(D, mVector[thread]);
+	  noalias(rRHS_Contribution) -= prod(rD, mVector[thread]);
 	}
     }
 
     /**
      * It adds the dynamic RHS contribution of the condition: b - D*v
      * @param rCurrentCondition: The condition to compute
-     * @param RHS_Contribution: The dynamic contribution for the RHS
-     * @param D: The damping matrix
-     * @param CurrentProcessInfo: The current process info instance
+     * @param rRHS_Contribution: The dynamic contribution for the RHS
+     * @param rD: The damping matrix
+     * @param rCurrentProcessInfo: The current process info instance
      */
    
     void AddDynamicsToRHS(Condition::Pointer rCurrentCondition,
-			  LocalSystemVectorType& RHS_Contribution,
-			  LocalSystemMatrixType& D,
-			  ProcessInfo& CurrentProcessInfo)
+			  LocalSystemVectorType& rRHS_Contribution,
+			  LocalSystemMatrixType& rD,
+			  ProcessInfo& rCurrentProcessInfo)
     {
       int thread = OpenMPUtils::ThisThread();
 
       // Adding damping contribution
-      if (D.size1() != 0)
+      if (rD.size1() != 0)
 	{
 	  this->GetFirstDerivativesVector(rCurrentCondition, mVector[thread]);
 
-	  noalias(RHS_Contribution) -= prod(D, mVector[thread]);
+	  noalias(rRHS_Contribution) -= prod(rD, mVector[thread]);
 	}      
     }
 
@@ -891,7 +819,7 @@ namespace Kratos
     ///@name Un accessible methods
     ///@{
     ///@}
-  }; /* Class ExplicitCentralDifferencesScheme */
+  }; // Class ExplicitCentralDifferencesScheme
 ///@}
 ///@name Type Definitions
 ///@{
@@ -899,7 +827,7 @@ namespace Kratos
 ///@name Input and output
 ///@{
 ///@}  
-}  /* namespace Kratos.*/
+}  //namespace Kratos.
 
-#endif /* KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME  defined */
+#endif // KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_H_INCLUDED  defined
 

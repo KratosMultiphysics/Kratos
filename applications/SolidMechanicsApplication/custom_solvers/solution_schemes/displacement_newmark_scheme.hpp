@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_DISPLACEMENT_NEWMARK_SCHEME )
-#define  KRATOS_DISPLACEMENT_NEWMARK_SCHEME
+#if !defined(KRATOS_DISPLACEMENT_NEWMARK_SCHEME_H_INCLUDED)
+#define  KRATOS_DISPLACEMENT_NEWMARK_SCHEME_H_INCLUDED
 
 // System includes
 
@@ -16,8 +16,6 @@
 
 // Project includes
 #include "custom_solvers/solution_schemes/solution_scheme.hpp"
-#include "includes/checks.h"
-
 #include "custom_solvers/time_integration_methods/newmark_method.hpp"
 
 namespace Kratos
@@ -40,7 +38,7 @@ namespace Kratos
   /** @brief Newmark integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class DisplacementNewmarkScheme: public SoluScheme<TSparseSpace,TDenseSpace>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) DisplacementNewmarkScheme: public SolutionScheme<TSparseSpace,TDenseSpace>
   {
   protected:
 
@@ -63,22 +61,22 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementNewmarkScheme );
-
-    typedef SolutionScheme<TSparseSpace,TDenseSpace>              BaseType;
-    typedef typename BaseType::Pointer                     BasePointerType;
-    typedef BaseType::SolverLocalFlags                       LocalFlagType;
     
-    typedef BaseType::DofsArrayType                          DofsArrayType;
-    typedef BaseType::SystemMatrixType                    SystemMatrixType;
-    typedef BaseType::SystemVectorType                    SystemVectorType;
-    typedef BaseType::LocalSystemVectorType          LocalSystemVectorType;
-    typedef BaseType::LocalSystemMatrixType          LocalSystemMatrixType;
+    typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
+    typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
+     typedef typename BaseType::LocalFlagType                               LocalFlagType;
 
-    typedef BaseTye::NodeType                                     NodeType;
-    typedef BaseType::NodesContainerType                NodesContainerType;
-    typedef BaseType::ElementsContainerType         ElementsContainterType;
-    typedef BaseType::ConditionsContainerType      ConditionsContainerType;
-    typedef BaseType::IntegrationPointerType        IntegrationPointerType;
+    typedef typename BaseType::NodeType                                          NodeType;
+    typedef typename BaseType::DofsArrayType                                DofsArrayType;
+    typedef typename BaseType::SystemMatrixType                          SystemMatrixType;
+    typedef typename BaseType::SystemVectorType                          SystemVectorType;
+    typedef typename BaseType::LocalSystemVectorType                LocalSystemVectorType;
+    typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType; 
+
+    typedef typename BaseType::NodesContainerType                      NodesContainerType;
+    typedef typename BaseType::ElementsContainerType                ElementsContainerType;
+    typedef typename BaseType::ConditionsContainerType            ConditionsContainerType;
+    typedef typename BaseType::IntegrationPointerType              IntegrationPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -90,6 +88,12 @@ namespace Kratos
     {
     }
 
+    /// Constructor.
+    DisplacementNewmarkScheme(Flags& rOptions)
+      :BaseType(rOptions)
+    {
+    }
+    
     /// Copy Constructor.
     DisplacementNewmarkScheme(DisplacementNewmarkScheme& rOther)
       :BaseType(rOther)
@@ -182,19 +186,19 @@ namespace Kratos
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
       const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-      NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
+      typename NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
 
 #pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
-	  NodesContainerType::iterator itNode = NodeBegin + i;
+	  typename NodesContainerType::iterator itNode = NodeBegin + i;
 
 	  this->IntegrationMethodUpdate(*itNode);
         }
 
-      this->MoveMesh();
+      this->MoveMesh(rModelPart);
       
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
 
     /**
@@ -219,19 +223,19 @@ namespace Kratos
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
       const int nnodes = static_cast<int>( rModelPart.Nodes().size() );
-      NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
+      typename NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
 
 #pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i< nnodes; i++)
         {
-	  NodesContainerType::iterator itNode = NodeBegin + i;
+	  typename NodesContainerType::iterator itNode = NodeBegin + i;
 
 	  this->IntegrationMethodPredict(*itNode);
         }
 
-      this->MoveMesh();    
+      this->MoveMesh(rModelPart);    
 
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
 
     /**
@@ -248,19 +252,19 @@ namespace Kratos
       OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(), NumThreads, ElementPartition);
 
       const int nelem = static_cast<int>(rModelPart.Elements().size());
-      ElementsContainterType::iterator ElemBegin = rModelPart.Elements().begin();
+      typename ElementsContainerType::iterator ElemBegin = rModelPart.Elements().begin();
 
 #pragma omp parallel for
       for(int i = 0;  i < nelem; i++)
         {
-	  ElementsContainterType::iterator itElem = ElemBegin + i;
+	  typename ElementsContainerType::iterator itElem = ElemBegin + i;
 
 	  itElem->Initialize(); //function to initialize the element
         }
 
-      this->mElementsAreInitialized = true;
+      this->Set(LocalFlagType::ELEMENTS_INITIALIZED,true);
 
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
 
     /**
@@ -272,29 +276,33 @@ namespace Kratos
     {
       KRATOS_TRY;
 
-      if(this->mElementsAreInitialized == false)
+      if(this->IsNot(LocalFlagType::ELEMENTS_INITIALIZED))
         {
 	  KRATOS_ERROR << "Before initilizing Conditions, initialize Elements FIRST";
         }
 
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-      OpenMPUtils::PartitionVector ConditionPartition;
-      OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), NumThreads, ConditionPartition);
+      if(this->IsNot(LocalFlagType::CONDITIONS_INITIALIZED))
+      {
+      
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector ConditionPartition;
+        OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), NumThreads, ConditionPartition);
 
-      const int ncond = static_cast<int>(rModelPart.Conditions().size());
-      ConditionsContainerType::iterator CondBegin = rModelPart.Conditions().begin();
+        const int ncond = static_cast<int>(rModelPart.Conditions().size());
+        typename ConditionsContainerType::iterator CondBegin = rModelPart.Conditions().begin();
 
 #pragma omp parallel for
-      for(int i = 0;  i < ncond; i++)
+        for(int i = 0;  i < ncond; i++)
         {
-	  ConditionsContainerType::iterator itCond = CondBegin + i;
+	  typename ConditionsContainerType::iterator itCond = CondBegin + i;
 
 	  itCond->Initialize(); //function to initialize the condition
         }
+      }
+     
+      this->Set(LocalFlagType::CONDITIONS_INITIALIZED, true);
 
-      this->mConditionsAreInitialized = true;
-
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
 
     /**
@@ -312,7 +320,7 @@ namespace Kratos
       
       BaseType::InitializeSolutionStep(rModelPart);
 
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
 
     /**
@@ -327,7 +335,7 @@ namespace Kratos
 
       BaseType::FinalizeSolutionStep(rModelPart);
 
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
 
     /**
@@ -341,7 +349,7 @@ namespace Kratos
 
       BaseType::InitializeNonLinearIteration(rModelPart);
 
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
 
     /**
@@ -353,9 +361,9 @@ namespace Kratos
     {
       KRATOS_TRY;
 
-      BaseType::FinazeNonLinearIteration(rModelPart);
+      BaseType::FinalizeNonLinearIteration(rModelPart);
 
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
     
     /**
@@ -417,7 +425,7 @@ namespace Kratos
 
       //AssembleTimeSpaceLHS(rCurrentElement, LHS_Contribution, DampMatrix, MassMatrix, rCurrentProcessInfo);
 
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
 
     /**
@@ -452,7 +460,7 @@ namespace Kratos
 
       AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
 
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
 
     /**
@@ -492,7 +500,7 @@ namespace Kratos
 
       // AssembleTimeSpaceLHS_Condition(rCurrentCondition, LHS_Contribution,DampMatrix, MassMatrix, rCurrentProcessInfo);
 
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
 
     /**
@@ -527,7 +535,7 @@ namespace Kratos
       // Adding the dynamic contributions (static is already included)
       AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
 
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
 
     /**
@@ -572,7 +580,7 @@ namespace Kratos
 
       // Perform base base checks
       int ErrorCode = 0;
-      ErrorCode  = Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
+      ErrorCode  = BaseType::Check(rModelPart);
 
       // Check that all required variables have been registered
       KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
@@ -610,7 +618,7 @@ namespace Kratos
 
       return ErrorCode;
       
-      KRATOS_CATCH( "" );
+      KRATOS_CATCH("")
     }
 
     ///@}
@@ -626,7 +634,7 @@ namespace Kratos
     ///@{
     
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Displacement NewmarkScheme";
@@ -634,13 +642,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Displacement NewmarkScheme";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "Displacement NewmarkScheme Data";     
     }
@@ -713,14 +721,14 @@ namespace Kratos
 
       double parameter = 0;
       // Adding mass contribution to the dynamic stiffness
-      if (M.size1() != 0) // if M matrix declared
+      if (rM.size1() != 0) // if M matrix declared
         {
 	  parameter = this->mpIntegrationMethod->GetSecondDerivativeParameter(parameter);
 	  noalias(rLHS_Contribution) += rM * parameter;
         }
 
       // Adding  damping contribution
-      if (D.size1() != 0) // if D matrix declared
+      if (rD.size1() != 0) // if D matrix declared
         {
 	  parameter = this->mpIntegrationMethod->GetFirstDerivativeParameter(parameter);
 	  noalias(rLHS_Contribution) += rD * parameter;
@@ -863,4 +871,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_DISPLACEMENT_NEWMARK_SCHEME defined
+#endif // KRATOS_DISPLACEMENT_NEWMARK_SCHEME_H_INCLUDED defined

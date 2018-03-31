@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_BOSSAK_METHOD )
-#define  KRATOS_BOSSAK_METHOD
+#if !defined(KRATOS_BOSSAK_METHOD_H_INCLUDED)
+#define  KRATOS_BOSSAK_METHOD_H_INCLUDED
 
 // System includes
 
@@ -362,4 +362,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_BOSSAK_METHOD defined
+#endif // KRATOS_BOSSAK_METHOD_H_INCLUDED defined

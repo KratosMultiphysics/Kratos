@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_solvers/builders_and_solvers/builder_and_solver.hpp"
+#include "custom_solvers/solution_builders_and_solvers/solution_builder_and_solver.hpp"
 
 
 #ifdef USE_GOOGLE_HASH
@@ -54,8 +54,8 @@ template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class BlockBuilderAndSolver
-    : public BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) BlockBuilderAndSolver
+    : public SolutionBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
 {
  public:
 
@@ -65,11 +65,11 @@ class BlockBuilderAndSolver
    /// Pointer definition of BlockBuilderAndSolver
   KRATOS_CLASS_POINTER_DEFINITION(BlockBuilderAndSolver);
   
-  typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>              BaseType;
+  typedef SolutionBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>      BaseType;
 
   typedef typename BaseType::Pointer                                       BasePointerType;
   
-  typedef BaseType::LocalFlagType                                            LocalFlagType;
+  typedef typename BaseType::LocalFlagType                                   LocalFlagType;
   typedef typename BaseType::DofsArrayType                                   DofsArrayType;
 
   typedef typename BaseType::SystemMatrixType                             SystemMatrixType;
@@ -82,10 +82,9 @@ class BlockBuilderAndSolver
   typedef typename ModelPart::NodesContainerType                        NodesContainerType;
   typedef typename ModelPart::ElementsContainerType                  ElementsContainerType;
   typedef typename ModelPart::ConditionsContainerType              ConditionsContainerType;
-  typedef typename ModelPart::ElementsContainerType                  ElementsContainerType;
 
-  typedef BaseType::SchemePointerType                                    SchemePointerType;
-  typedef BaseType::LinearSolverPointerType                        LinearSolverPointerType;
+  typedef typename BaseType::SchemePointerType                           SchemePointerType;
+  typedef typename BaseType::LinearSolverPointerType               LinearSolverPointerType;
 
   struct dof_iterator_hash
   {
@@ -141,7 +140,7 @@ class BlockBuilderAndSolver
   {
     KRATOS_TRY
 
-    SystemVectorType tmp(A.size1(), 0.0);
+    SystemVectorType tmp(rA.size1(), 0.0);
     this->Build(pScheme, rModelPart, rA, tmp);
 
     KRATOS_CATCH("")
@@ -304,7 +303,7 @@ class BlockBuilderAndSolver
       this->mpLinearSystemSolver->Solve(rA, rDx, rb);
     }
     else
-      TSparseSpace::SetToZero(Dx);
+      TSparseSpace::SetToZero(rDx);
 
     //prints informations about the current time
     if (this->mEchoLevel > 1)
@@ -332,15 +331,15 @@ class BlockBuilderAndSolver
     double end_time = OpenMPUtils::GetCurrentTime();
 
     if (this->mEchoLevel >=1 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("system_build_time") << begin_time - end_time << std::end;
+      KRATOS_INFO("system_build_time") << begin_time - end_time << std::endl;
 
     ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
     if (this->mEchoLevel == 3)
     {     
-      KRATOS_INFO("LHS before solve") << "Matrix = " << (*pA) << std::endl;
-      KRATOS_INFO("Dx before solve")  << "Solution = " << (*pDx) << std::endl;
-      KRATOS_INFO("RHS before solve") << "Vector = " << (*pb) << std::endl;
+      KRATOS_INFO("LHS before solve") << "Matrix = " << rA << std::endl;
+      KRATOS_INFO("Dx before solve")  << "Solution = " << rDx << std::endl;
+      KRATOS_INFO("RHS before solve") << "Vector = " << rb << std::endl;
     }
 
     begin_time = OpenMPUtils::GetCurrentTime();
@@ -349,13 +348,13 @@ class BlockBuilderAndSolver
 
     
     if (this->mEchoLevel >=1 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("system_solve_time") << begin_time - end_time << std::end;
+      KRATOS_INFO("system_solve_time") << begin_time - end_time << std::endl;
 
     if (this->mEchoLevel == 3)
     {
-      KRATOS_INFO("LHS after solve") << "Matrix = " << (*pA) << std::endl;
-      KRATOS_INFO("Dx after solve")  << "Solution = " << (*pDx) << std::endl;
-      KRATOS_INFO("RHS after solve") << "Vector = " << (*pb) << std::endl;
+      KRATOS_INFO("LHS after solve") << "Matrix = " << rA << std::endl;
+      KRATOS_INFO("Dx after solve")  << "Solution = " << rDx << std::endl;
+      KRATOS_INFO("RHS after solve") << "Vector = " << rb << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -644,7 +643,7 @@ class BlockBuilderAndSolver
       KRATOS_INFO("setting_dofs") << "End of setupdofset" << std::endl;
     }
 
-    this->Set(LocalFlagType::INITIALIZED_DOFS, true)
+    this->Set(LocalFlagType::DOFS_INITIALIZED, true);
     
     KRATOS_CATCH("")
   }
@@ -730,7 +729,7 @@ class BlockBuilderAndSolver
    */
   void InitializeSolutionStep(SchemePointerType pScheme,
                               ModelPart& rModelPart,
-                              SystemMatrixPointerType& pA
+                              SystemMatrixPointerType& pA,
                               SystemVectorPointerType& pDx,
                               SystemVectorPointerType& pb) override
   {
@@ -761,10 +760,10 @@ class BlockBuilderAndSolver
    * @details this function must be called only once per step.
    */
   void FinalizeSolutionStep(SchemePointerType pScheme,
-                              ModelPart& rModelPart,
-                              SystemMatrixPointerType& pA
-                              SystemVectorPointerType& pDx,
-                              SystemVectorPointerType& pb) override
+                            ModelPart& rModelPart,
+                            SystemMatrixPointerType& pA,
+                            SystemVectorPointerType& pDx,
+                            SystemVectorPointerType& pb) override
   {
     KRATOS_TRY
 
@@ -878,8 +877,8 @@ class BlockBuilderAndSolver
     KRATOS_TRY
 
     double norm_b;
-    if (TSparseSpace::Size(b) != 0)
-      norm_b = TSparseSpace::TwoNorm(b);
+    if (TSparseSpace::Size(rb) != 0)
+      norm_b = TSparseSpace::TwoNorm(rb);
     else
       norm_b = 0.00;
 
@@ -911,7 +910,7 @@ class BlockBuilderAndSolver
   virtual void ConstructMatrixStructure(SchemePointerType pScheme,
                                         SystemMatrixType& rA,
                                         ElementsContainerType& rElements,
-                                        ConditionsArrayType& rConditions,
+                                        ConditionsContainerType& rConditions,
                                         ProcessInfo& rCurrentProcessInfo)
   {
     //filling with zero the matrix (creating the structure)
@@ -963,7 +962,7 @@ class BlockBuilderAndSolver
 #pragma omp parallel for firstprivate(nconditions, ids)
     for (int iii = 0; iii<nconditions; iii++)
     {
-      typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
+      typename ConditionsContainerType::iterator i_condition = rConditions.begin() + iii;
       pScheme->Condition_EquationId( *(i_condition.base()), ids, rCurrentProcessInfo);
       for (std::size_t i = 0; i < ids.size(); i++)
       {
@@ -1149,10 +1148,10 @@ class BlockBuilderAndSolver
     KRATOS_TRY
 
     //Getting the Elements
-    ElementsArrayType& rElements = rModelPart.Elements();
+    ElementsContainerType& rElements = rModelPart.Elements();
 
     //getting the array of the conditions
-    ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
+    ConditionsContainerType& ConditionsArray = rModelPart.Conditions();
 
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -1165,7 +1164,7 @@ class BlockBuilderAndSolver
     Element::EquationIdVectorType EquationId;
 
     // assemble all elements
-    //for (typename ElementsArrayType::ptr_iterator it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
+    //for (typename ElementsContainerType::ptr_iterator it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
 
     const int nelements = static_cast<int>(rElements.size());
 #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
@@ -1173,7 +1172,7 @@ class BlockBuilderAndSolver
 #pragma omp for schedule(guided, 512) nowait
       for(int i=0; i<nelements; i++)
       {
-        typename ElementsArrayType::iterator it = rElements.begin() + i;
+        typename ElementsContainerType::iterator it = rElements.begin() + i;
         //detect if the element is active or not. If the user did not make any choice the element
         //is active by default
         bool element_is_active = true;
@@ -1194,7 +1193,7 @@ class BlockBuilderAndSolver
       RHS_Contribution.resize(0, false);
 
       // assemble all conditions
-      //for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
+      //for (typename ConditionsContainerType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
       const int nconditions = static_cast<int>(ConditionsArray.size());
       //#pragma omp parallel for firstprivate(nconditions, RHS_Contribution, EquationId) schedule(dynamic, 1024)
 #pragma omp for schedule(guided, 512)
@@ -1263,9 +1262,9 @@ class BlockBuilderAndSolver
 
     //now find all of the other entries
     size_t pos = 0;
-    for(unsigned int j=1; j<EquationId.size(); j++)
+    for(unsigned int j=1; j<rEquationId.size(); j++)
     {
-      unsigned int id_to_find = EquationId[j];
+      unsigned int id_to_find = rEquationId[j];
       if(id_to_find > last_found)
         pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
       else

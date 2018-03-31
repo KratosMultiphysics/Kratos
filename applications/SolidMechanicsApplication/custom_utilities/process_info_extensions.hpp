@@ -56,4 +56,4 @@ static typename TVariable::Type GetFromProcessInfo(TVariable const& rV, ProcessI
 
 
 
-#endif // PROCESS_INFO_EXTENSIONS_H_INCLUDED
+#endif // PROCESS_INFO_EXTENSIONS_H_INCLUDED defined

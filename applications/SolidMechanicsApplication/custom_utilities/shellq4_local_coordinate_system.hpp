@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SHELLQ4_LOCAL_COORDINATE_SYSTEM_H_INCLUDED )
+#if !defined(KRATOS_SHELLQ4_LOCAL_COORDINATE_SYSTEM_H_INCLUDED)
 #define  KRATOS_SHELLQ4_LOCAL_COORDINATE_SYSTEM_H_INCLUDED
 
 
@@ -19,7 +19,7 @@ namespace Kratos
  * This class represent the local coordinate system of any element whose geometry
  * is a QUAD 4 in 3D space
  */
-class ShellQ4_LocalCoordinateSystem
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellQ4_LocalCoordinateSystem
 {
 
  public:

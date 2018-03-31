@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_NEWMARK_STEP_METHOD )
-#define  KRATOS_NEWMARK_STEP_METHOD
+#if !defined(KRATOS_NEWMARK_STEP_METHOD_H_INCLUDED)
+#define  KRATOS_NEWMARK_STEP_METHOD_H_INCLUDED
 
 // System includes
 
@@ -444,4 +444,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_NEWMARK_STEP_METHOD defined
+#endif // KRATOS_NEWMARK_STEP_METHOD_H_INCLUDED defined

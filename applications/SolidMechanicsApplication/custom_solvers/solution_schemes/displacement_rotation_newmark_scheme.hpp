@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_DISPLACEMENT_ROTATION_NEWMARK_SCHEME )
-#define  KRATOS_DISPLACEMENT_ROTATION_NEWMARK_SCHEME
+#if !defined(KRATOS_DISPLACEMENT_ROTATION_NEWMARK_SCHEME_H_INCLUDED)
+#define  KRATOS_DISPLACEMENT_ROTATION_NEWMARK_SCHEME_H_INCLUDED
 
 // System includes
 
@@ -39,7 +39,7 @@ namespace Kratos
   /** @brief Newmark integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class DisplacementRotationNewmarkScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) DisplacementRotationNewmarkScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
   {   
   public:
     
@@ -47,19 +47,17 @@ namespace Kratos
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementRotationNewmarkScheme );
 
-    typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
+    typedef SolutionScheme<TSparseSpace,TDenseSpace>                                    BaseType;
+    typedef typename BaseType::SolutionSchemePointerType                         BasePointerType;
+
+    typedef typename BaseType::LocalSystemVectorType                       LocalSystemVectorType; 
+    typedef typename BaseType::LocalSystemMatrixType                       LocalSystemMatrixType;
+
+    typedef DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>                      DerivedType;
+
+    typedef typename DerivedType::IntegrationPointerType                  IntegrationPointerType;
     
-    typedef typename BaseType::Pointer                                    BasePointerType;
-
-    typedef typename BaseType::LocalSystemVectorType                LocalSystemVectorType;
- 
-    typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType;
-
-    typedef DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>               DerivedType;
-
-    typedef typename DerivedType::IntegrationPointerType           IntegrationPointerType;
-    
-    typedef typename DerivedType::NodeType                                       NodeType;
+    typedef typename DerivedType::NodeType                                              NodeType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -70,6 +68,12 @@ namespace Kratos
     {
     }
 
+    /// Constructor.
+    DisplacementRotationNewmarkScheme(Flags& rOptions)
+      :DerivedType(rOptions)
+    {
+    }
+    
     /// Copy Constructor.
     DisplacementRotationNewmarkScheme(DisplacementRotationNewmarkScheme& rOther)
       :DerivedType(rOther)
@@ -173,7 +177,7 @@ namespace Kratos
     void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
 						LocalSystemMatrixType& rLHS_Contribution,
 						LocalSystemVectorType& rRHS_Contribution,
-						Element::EquationIdVectorType& EquationId,
+						Element::EquationIdVectorType& rEquationId,
 						ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY;
@@ -181,7 +185,7 @@ namespace Kratos
       int thread = OpenMPUtils::ThisThread();
 
       // Basic operations for the condition considered
-      (rCurrentCondition) -> CalculateLocalSystem(rLHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
+      (rCurrentCondition) -> CalculateLocalSystem(rLHS_Contribution,rRHS_Contribution,rCurrentProcessInfo);
 
       (rCurrentCondition) -> CalculateSecondDerivativesContributions(this->mMatrix.M[thread],this->mVector.a[thread],rCurrentProcessInfo);
 	  
@@ -494,4 +498,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_DISPLACEMENT_ROTATION_NEWMARK_SCHEME defined
+#endif // KRATOS_DISPLACEMENT_ROTATION_NEWMARK_SCHEME_H_INCLUDED defined

@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_BUILDER_AND_SOLVER_H_INCLUDED )
+#if !defined(KRATOS_EXPLICIT_BUILDER_AND_SOLVER_H_INCLUDED)
 #define  KRATOS_EXPLICIT_BUILDER_AND_SOLVER_H_INCLUDED
 
 // System includes
@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_solvers/builders_and_solvers/builder_and_solver.hpp"
+#include "custom_solvers/solution_builders_and_solvers/solution_builder_and_solver.hpp"
 
 namespace Kratos
 {
@@ -46,8 +46,8 @@ template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class ExplicitBuilderAndSolver
-    : public BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitBuilderAndSolver
+    : public SolutionBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
 {
  public:
 
@@ -58,9 +58,9 @@ class ExplicitBuilderAndSolver
   /// Pointer definition of ExplicitBuilderAndSolver
   KRATOS_CLASS_POINTER_DEFINITION( ExplicitBuilderAndSolver );
   
-  typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>              BaseType;
+  typedef SolutionBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>      BaseType;
 
-  typedef BaseType::LocalFlagType                                            LocalFlagType;
+  typedef typename BaseType::LocalFlagType                                   LocalFlagType;
   typedef typename BaseType::DofsArrayType                                   DofsArrayType;
 
   typedef typename BaseType::SystemMatrixType                             SystemMatrixType;
@@ -73,9 +73,8 @@ class ExplicitBuilderAndSolver
   typedef typename ModelPart::NodesContainerType                        NodesContainerType;
   typedef typename ModelPart::ElementsContainerType                  ElementsContainerType;
   typedef typename ModelPart::ConditionsContainerType              ConditionsContainerType;
-  typedef typename ModelPart::ElementsContainerType                  ElementsContainerType;
 
-  typedef BaseType::SchemePointerType                                    SchemePointerType;
+  typedef typename BaseType::SchemePointerType                           SchemePointerType;
 
   ///@}
   ///@name Life Cycle
@@ -200,7 +199,7 @@ class ExplicitBuilderAndSolver
 
   void BuildRHS(SchemePointerType pScheme,
                 ModelPart& rModelPart,
-                TSystemVectorType& rb)
+                SystemVectorType& rb) override
   {
     KRATOS_TRY
         

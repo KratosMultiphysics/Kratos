@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_ASSIGN_TORQUE_FIELD_ABOUT_AN_AXIS_TO_CONDITIONS_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_ASSIGN_TORQUE_FIELD_ABOUT_AN_AXIS_TO_CONDITIONS_PROCESS_H_INCLUDED)
 #define  KRATOS_ASSIGN_TORQUE_FIELD_ABOUT_AN_AXIS_TO_CONDITIONS_PROCESS_H_INCLUDED
 
 
@@ -28,7 +28,7 @@ namespace Kratos
 /// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
 /** This function assigns a value to a variable belonging to all of the nodes in a given mesh
 */
-class AssignTorqueFieldAboutAnAxisToConditionsProcess : public AssignTorqueAboutAnAxisToConditionsProcess
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) AssignTorqueFieldAboutAnAxisToConditionsProcess : public AssignTorqueAboutAnAxisToConditionsProcess
 {
 public:
     ///@name Type Definitions

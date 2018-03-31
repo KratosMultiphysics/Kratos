@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SHELLT3_LOCAL_COORDINATE_SYSTEM_H_INCLUDED )
+#if !defined(KRATOS_SHELLT3_LOCAL_COORDINATE_SYSTEM_H_INCLUDED)
 #define  KRATOS_SHELLT3_LOCAL_COORDINATE_SYSTEM_H_INCLUDED
 
 #include "utilities/quaternion.h"
@@ -20,7 +20,7 @@ namespace Kratos
  * This class represent the local coordinate system of any element whose geometry
  * is a TRIANGLE 3 in 3D space
  */
-class ShellT3_LocalCoordinateSystem
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellT3_LocalCoordinateSystem
 {
 
  public:

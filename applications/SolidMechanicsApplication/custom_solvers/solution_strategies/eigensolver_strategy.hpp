@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_EIGENSOLVER_STRATEGY_H_INCLUDED )
+#if !defined(KRATOS_EIGENSOLVER_STRATEGY_H_INCLUDED)
 #define  KRATOS_EIGENSOLVER_STRATEGY_H_INCLUDED
 
 // System includes
@@ -15,7 +15,6 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
 #include "custom_solvers/solution_strategies/solution_strategy.hpp"
 
 // Application includes
@@ -48,7 +47,7 @@ template<class TSparseSpace,
          class TDenseSpace,
          class TLinearSolver
          >
-class EigensolverStrategy
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) EigensolverStrategy
     : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
  public:
@@ -353,16 +352,8 @@ class EigensolverStrategy
     KRATOS_TRY
             
     //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-    if(mpScheme->SchemeIsInitialized() == false)
+    if(mpScheme->IsNot(LocalFlagType::INITIALIZED))
       mpScheme->Initialize(this->GetModelPart());
-
-    //Initialize The Elements - OPERATIONS TO BE DONE ONCE
-    if(mpScheme->ElementsAreInitialized() == false)
-      mpScheme->InitializeElements(this->GetModelPart());
-      
-    //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
-    if(mpScheme->ConditionsAreInitialized() == false)
-      mpScheme->InitializeConditions(this->GetModelPart());
 
     //set up the system
     this->SetSystemDofs();

@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_BUILDER_AND_SOLVER_H_INCLUDED)
-#define KRATOS_BUILDER_AND_SOLVER_H_INCLUDED
+#if !defined(KRATOS_SOLUTION_BUILDER_AND_SOLVER_H_INCLUDED)
+#define KRATOS_SOLUTION_BUILDER_AND_SOLVER_H_INCLUDED
 
 // System includes
 
@@ -16,7 +16,6 @@
 
 // Project includes
 #include "custom_solvers/solution_schemes/solution_scheme.hpp"
-
 
 namespace Kratos
 {
@@ -60,15 +59,15 @@ template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class BuilderAndSolver : Flags()
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SolutionBuilderAndSolver : public Flags
 {
 public:
 
   ///@name Type Definitions
   ///@{
 
-  /// Pointer definition of BuilderAndSolver
-  KRATOS_CLASS_POINTER_DEFINITION(BuilderAndSolver);
+  /// Pointer definition of SolutionBuilderAndSolver
+  KRATOS_CLASS_POINTER_DEFINITION(SolutionBuilderAndSolver);
   
   typedef SolverLocalFlags                                                   LocalFlagType;
 
@@ -92,25 +91,25 @@ public:
   ///@{
 
   /// Default Constructor.
-  BuilderAndSolver() : Flags()
+  SolutionBuilderAndSolver() : Flags()
   {
-    this->Set(LocalFlagType::INITIALIZED_DOFS, false)
+    this->Set(LocalFlagType::DOFS_INITIALIZED, false);
         
     mpLinearSystemSolver = nullptr;
     mEchoLevel = 0;
   }
 
   /// Constructor.
-  BuilderAndSolver(LinearSolverPointerType pLinearSystemSolver) : Flags()
+  SolutionBuilderAndSolver(LinearSolverPointerType pLinearSystemSolver) : Flags()
   {
-    this->Set(LocalFlagType::INITIALIZED_DOFS, false)
+    this->Set(LocalFlagType::DOFS_INITIALIZED, false);
     
     mpLinearSystemSolver = pLinearSystemSolver;
     mEchoLevel = 0;
   }
 
   /// Destructor.
-  virtual ~BuilderAndSolver() {}
+  virtual ~SolutionBuilderAndSolver() {}
 
   ///@}
   ///@name Operators
@@ -236,7 +235,7 @@ public:
     
   /**
    * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
-   * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
+   * @details The list of dofs is stores insde the SolutionBuilderAndSolver as it is closely connected to the way the matrix and RHS are built
   */
   virtual void SetUpDofSet(SchemePointerType pScheme,
                            ModelPart& rModelPart)
@@ -268,7 +267,7 @@ public:
    * @details this function must be called only once per step.
    */
   virtual void InitializeSolutionStep(SchemePointerType pScheme,
-                                      ModelPart& rModelPart
+                                      ModelPart& rModelPart,
                                       SystemMatrixPointerType& pA,
                                       SystemVectorPointerType& pDx,
                                       SystemVectorPointerType& pb)
@@ -425,7 +424,7 @@ public:
     {
       unsigned int iteration_number = 0;
       if( rModelPart.GetProcessInfo().Has(NL_ITERATION_NUMBER) )
-        iteration_number = rModelPart..GetProcessInfo()[NL_ITERATION_NUMBER];
+        iteration_number = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
       
       std::stringstream matrix_market_name;
       matrix_market_name << "A_" << rModelPart.GetProcessInfo()[TIME] << "_" << iteration_number << ".mm";
@@ -526,7 +525,7 @@ private:
   ///@{
   ///@}
   
-}; /// Class BuilderAndSolver
+}; /// Class SolutionBuilderAndSolver
 
 ///@}
 
@@ -543,5 +542,5 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_BUILDER_AND_SOLVER_H_INCLUDED defined
+#endif // KRATOS_SOLUTION_BUILDER_AND_SOLVER_H_INCLUDED defined
 

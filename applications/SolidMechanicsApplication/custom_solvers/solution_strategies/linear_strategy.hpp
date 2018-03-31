@@ -18,7 +18,7 @@
 #include "custom_solvers/solution_strategies/solution_strategy.hpp"
 
 //default builder and solver
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "custom_solvers/solution_builders_and_solvers/block_builder_and_solver.hpp"
 
 namespace Kratos
 {
@@ -51,7 +51,7 @@ template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
           class TLinearSolver // = LinearSolver<TSparseSpace,TDenseSpace>
           >
-class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
  public:
   ///@name Type Definitions
@@ -138,7 +138,7 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
                  typename SchemeType::Pointer pScheme,
                  typename LinearSolverType::Pointer pLinearSolver,
                  Flags& rOptions)
-      : LinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, typename BuilderAndSolverType::Pointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pLinearSolver)), rOptions)
+      : LinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, typename BuilderAndSolverType::Pointer(new BlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pLinearSolver)), rOptions)
   {}
     
 
@@ -257,7 +257,7 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
     mpScheme->InitializeNonLinearIteration(this->GetModelPart());
     
     //function to perform the building and the solving phase.
-    if(this->mOptions.IsNot(LocalFlagType::CONSTANT_SYSTEM_LHS)){
+    if(this->mOptions.IsNot(LocalFlagType::CONSTANT_SYSTEM_MATRIX)){
 
       TSparseSpace::SetToZero((*mpA));
       TSparseSpace::SetToZero((*mpDx));
@@ -274,7 +274,7 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
     }
 
     // EchoInfo
-    this->EchoInfo(this->GetModelPart(), (*mpA), (*mpDx), (*mpb));
+    mpBuilderAndSolver->EchoInfo(this->GetModelPart(), (*mpA), (*mpDx), (*mpb));
 
     // Updating the results
     this->Update();
@@ -455,7 +455,7 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
     KRATOS_TRY
 
     //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-    if( mpScheme.IsNot(LocalFlagType::INITIALIZED) )
+    if( mpScheme->IsNot(LocalFlagType::INITIALIZED) )
       mpScheme->Initialize(this->GetModelPart());
        
     //set up the system

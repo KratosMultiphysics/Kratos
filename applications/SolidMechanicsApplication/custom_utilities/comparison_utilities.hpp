@@ -45,7 +45,7 @@ namespace Kratos
 /*@{ */
 
 
-class ComparisonUtilities
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ComparisonUtilities
 {
 public:
     /**@name Type Definitions */

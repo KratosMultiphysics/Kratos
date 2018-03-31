@@ -54,8 +54,6 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
     def GetVariables(self):
 
         nodal_variables = super(ImplicitMechanicalSolver, self).GetVariables()
-        if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
-            nodal_variables = nodal_variables + ['INTERNAL_FORCE','EXTERNAL_FORCE']
 
         return nodal_variables
 
@@ -83,37 +81,33 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             if( self.implicit_solver_settings["consistent_mass_matrix"].GetBool() == True ):
                 self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = True
 
-        if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
-            dynamic_factor = self.implicit_solver_settings["dynamic_factor"].GetDouble()
-            damp_factor_m  = self.implicit_solver_settings["bossak_factor"].GetDouble()
-            mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(damp_factor_m, dynamic_factor)
-        elif(integration_method == "Newmark"):
+        if(integration_method == "Newmark"):
             #damp_factor_m = 0.0
             #mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
             self.linear_integration_method = KratosSolid.NewmarkMethod()
             self.angular_integration_method = KratosSolid.BossakMethod() #shells
-            mechanical_scheme = KratosSolid.ResidualBasedDisplacementNewmarkScheme()
+            mechanical_scheme = KratosSolid.DisplacementNewmarkScheme()
         elif(integration_method == "Bossak"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
             #mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(bossak_factor)
             self.linear_integration_method = KratosSolid.BossakMethod()
             self.angular_integration_method = KratosSolid.BossakMethod() #shells
-            mechanical_scheme = KratosSolid.ResidualBasedDisplacementBossakScheme()
+            mechanical_scheme = KratosSolid.DisplacementBossakScheme()
         elif(integration_method == "Simo"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
             #mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(bossak_factor)
             self.linear_integration_method = KratosSolid.SimoMethod()
             self.angular_integration_method = KratosSolid.SimoMethod()  #shells
-            mechanical_scheme = KratosSolid.ResidualBasedDisplacementSimoScheme()
+            mechanical_scheme = KratosSolid.DisplacementSimoScheme()
         elif(integration_method == "RotationNewmark"):
             #dynamic_factor = self.implicit_solver_settings["dynamic_factor"].GetDouble() # 0,1
             #damp_factor_m = self.implicit_solver_settings["bossak_factor"].GetDouble()
             #mechanical_scheme = KratosSolid.ResidualBasedRotationNewmarkScheme(dynamic_factor, damp_factor_m)
             self.linear_integration_method = KratosSolid.NewmarkStepMethod()
             self.angular_integration_method = KratosSolid.NewmarkStepRotationMethod()
-            mechanical_scheme = KratosSolid.ResidualBasedDisplacementRotationNewmarkScheme()
+            mechanical_scheme = KratosSolid.DisplacementRotationNewmarkScheme()
         elif(integration_method == "RotationBossak"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
@@ -121,7 +115,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             #mechanical_scheme = KratosSolid.ResidualBasedRotationNewmarkScheme(dynamic_factor, bossak_factor)
             self.linear_integration_method = KratosSolid.BossakStepMethod()
             self.angular_integration_method = KratosSolid.BossakStepRotationMethod()
-            mechanical_scheme = KratosSolid.ResidualBasedDisplacementRotationBossakScheme()
+            mechanical_scheme = KratosSolid.DisplacementRotationBossakScheme()
         elif(integration_method == "RotationSimo"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
@@ -129,13 +123,13 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             #mechanical_scheme = KratosSolid.ResidualBasedRotationSimoScheme(dynamic_factor, bossak_factor)
             self.linear_integration_method = KratosSolid.SimoStepMethod()
             self.angular_integration_method = KratosSolid.SimoStepRotationMethod()
-            mechanical_scheme = KratosSolid.ResidualBasedDisplacementRotationSimoScheme()
+            mechanical_scheme = KratosSolid.DisplacementRotationSimoScheme()
         elif(integration_method == "RotationEMC"):
             #dynamic_factor = self.implicit_solver_settings["dynamic_factor"].GetDouble() # 0,1
             #mechanical_scheme = KratosSolid.ResidualBasedRotationEMCScheme(dynamic_factor)
             self.linear_integration_method = KratosSolid.EmcStepMethod()
             self.angular_integration_method = KratosSolid.EmcStepRotationMethod()
-            mechanical_scheme = KratosSolid.ResidualBasedDisplacementRotationEmcScheme()
+            mechanical_scheme = KratosSolid.DisplacementRotationEmcScheme()
         else:
             raise Exception("Unsupported integration_method: " + integration_method)
 
@@ -148,49 +142,26 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
 
         # first: calculate parameters (only once permitted) (set is included)
         self.linear_integration_method.CalculateParameters(self.process_info) #calculate
-        self.linear_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.linear_integration_method, self.process_info)
-
+ 
         # second: for the same method the parameters (already calculated) 
         self.angular_integration_method.SetParameters(self.process_info) #set parameters
-        self.angular_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, self.angular_integration_method, self.process_info)
-
+ 
+        # add to integration methods container
+        self.integration_methods = KratosSolid.TimeIntegrationMethodsContainer()
+        dof = "DISPLACEMENT"
+        self.integration_methods.Set(dof,self.linear_integration_method)
+        dof = "ROTATION"
+        self.integration_methods.Set(dof,self.angular_integration_method)
+        self.integration_methods.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHODS, self.integration_methods, self.process_info)
+        
     
     def _create_mechanical_solver(self):
-        if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
-            mechanical_solver = self._create_component_wise_strategy()
-        elif(self.solving_strategy_settings["line_search"].GetBool() == True):
-            if(self.solving_strategy_settings["implex"].GetBool() == True):
-                mechanical_solver = self._create_line_search_implex_strategy()
-            else:
-                mechanical_solver = self._create_line_search_strategy()
+        if(self.solving_strategy_settings["line_search"].GetBool() == True):
+            mechanical_solver = self._create_line_search_strategy()
         else:
             mechanical_solver = self._create_newton_raphson_strategy()
         return mechanical_solver
 
-
-    def _create_component_wise_strategy(self):
-        mechanical_scheme = self._get_solution_scheme()
-        #linear_solver = self._get_linear_solver()
-        convergence_criterion = self._get_convergence_criterion()
-        builder_and_solver = self._get_builder_and_solver()
-
-        options = KratosMultiphysics.Flags()
-        options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
-        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
-        options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
-        
-        return KratosSolid.ComponentWiseNewtonRaphsonStrategy(self.model_part, mechanical_scheme, builder_and_solver, convergence_criterion,
-                                                              options, self.solving_strategy_settings["max_iteration"].GetInt())
-        
-        #return KratosSolid.ComponentWiseNewtonRaphsonStrategy(self.model_part,
-        #                                                      mechanical_scheme,
-        #                                                      linear_solver,
-        #                                                      convergence_criterion,
-        #                                                      builder_and_solver,
-        #                                                      self.solving_strategy_settings["max_iteration"].GetInt(),
-        #                                                      self.solving_strategy_settings["compute_reactions"].GetBool(),
-        #                                                      self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool(),
-        #                                                      self.solving_strategy_settings["move_mesh_flag"].GetBool())
 
     def _create_line_search_strategy(self):
         mechanical_scheme = self._get_solution_scheme()
@@ -216,33 +187,6 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         #                                                                self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool(),
         #                                                                self.solving_strategy_settings["move_mesh_flag"].GetBool())
 
-    def _create_line_search_implex_strategy(self):
-
-        mechanical_solver = _create_line_search_strategy()
-        mechanical_scheme = self._get_solution_scheme()
-        #linear_solver = self._get_linear_solver()
-        convergence_criterion = self._get_convergence_criterion()
-        builder_and_solver = self._get_builder_and_solver()
-
-        options = KratosMultiphysics.Flags()
-        options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
-        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
-        options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
-        options.Set(KratosSolid.SolverLocalFlags.IMPLEX, self.solving_strategy_settings["implex"].GetBool())
-
-        return KratosSolid.LineSearchStrategy(self.model_part, mechanical_scheme, builder_and_solver, convergence_criterion,
-                                              options, self.solving_strategy_settings["max_iteration"].GetInt())
-
-        #return KratosSolid.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.model_part,
-        #                                                                      mechanical_scheme,
-        #                                                                      linear_solver,
-        #                                                                      convergence_criterion,
-        #                                                                      builder_and_solver,
-        #                                                                      self.solving_strategy_settings["max_iteration"].GetInt(),
-        #                                                                      self.solving_strategy_settings["compute_reactions"].GetBool(),
-        #                                                                      self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool(),
-        #                                                                      self.solving_strategy_settings["move_mesh_flag"].GetBool())
-
     def _create_newton_raphson_strategy(self):
         mechanical_scheme = self._get_solution_scheme()
         #linear_solver = self._get_linear_solver()
@@ -252,8 +196,8 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         options = KratosMultiphysics.Flags()
         options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
         options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
-        options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
-        
+        options.Set(KratosSolid.SolverLocalFlags.IMPLEX, self.solving_strategy_settings["implex"].GetBool())
+                
         return KratosSolid.NewtonRaphsonStrategy(self.model_part, mechanical_scheme, builder_and_solver, convergence_criterion,
                                                  options, self.solving_strategy_settings["max_iteration"].GetInt())
 

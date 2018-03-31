@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SHELLQ4_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED )
+#if !defined(KRATOS_SHELLQ4_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED)
 #define  KRATOS_SHELLQ4_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED
 
 #include "EICR.hpp"
@@ -41,7 +41,7 @@ namespace Kratos
  *   Chapter 5 of B.Haugen's Thesis.
  *   link: http://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/
  */
-class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTransformation
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTransformation
 {
 
  public:

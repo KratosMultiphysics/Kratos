@@ -23,7 +23,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 
 //default builder and solver
-#include "custom_solvers/builders_and_solvers/explicit_hamilton_builder_and_solver.hpp"
+#include "custom_solvers/solution_builders_and_solvers/explicit_hamilton_builder_and_solver.hpp"
 
 
 namespace Kratos
@@ -33,7 +33,7 @@ template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class ExplicitHamiltonStrategy
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitHamiltonStrategy
     : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:

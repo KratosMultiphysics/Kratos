@@ -75,11 +75,14 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
 
         integration_method   = self.time_integration_settings["integration_method"].GetString()
 
+        options = KratosMultiphysics.Flags()
+        options.Set(KratosSolid.SolverLocalFlags.RAYLEIGH_DAMPING, self.solving_strategy_settings["rayleigh_damping"].GetBool())
+        
         if(integration_method == "CentralDifferences"):
-            mechanical_scheme = KratosSolid.ExplicitCentralDifferencesScheme(self.explicit_solver_settings["max_delta_time"].GetDouble(),
+            mechanical_scheme = KratosSolid.ExplicitCentralDifferencesScheme(options
+                                                                             self.explicit_solver_settings["max_delta_time"].GetDouble(),
                                                                              self.explicit_solver_settings["fraction_delta_time"].GetDouble(),
-                                                                             self.explicit_solver_settings["time_step_prediction_level"].GetDouble(),
-                                                                             self.explicit_solver_settings["rayleigh_damping"].GetBool())
+                                                                             self.explicit_solver_settings["time_step_prediction_level"].GetDouble())
         else:
             raise Exception("Unsupported integration_method: " + integration_method)
 
@@ -102,7 +105,6 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         options = KratosMultiphysics.Flags()
         options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
         options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
-        options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
 
         return KratosSolid.ExplicitStrategy(self.model_part, mechanical_scheme, options)
 

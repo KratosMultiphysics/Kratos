@@ -8,8 +8,8 @@
 //
 
 
-#if !defined(KRATOS_EIGENSOLVER_DYNAMIC_SCHEME )
-#define  KRATOS_EIGENSOLVER_DYNAMIC_SCHEME
+#if !defined(KRATOS_EIGENSOLVER_DYNAMIC_SCHEME_H_INCLUDED)
+#define  KRATOS_EIGENSOLVER_DYNAMIC_SCHEME_H_INCLUDED
 
 
 // System includes
@@ -54,216 +54,225 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace
          >
-class EigensolverDynamicScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) EigensolverDynamicScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
 {
-public:
-    ///@name Type Definitions
-    ///@{
+ public:
+  ///@name Type Definitions
+  ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION( EigensolverDynamicScheme );
+  KRATOS_CLASS_POINTER_DEFINITION( EigensolverDynamicScheme );
 
-    typedef SolutionScheme<TSparseSpace,TDenseSpace>              BaseType;
+  typedef SolutionScheme<TSparseSpace,TDenseSpace>                                    BaseType;
+  typedef typename BaseType::SolutionSchemePointerType                         BasePointerType;
+  
+  typedef typename BaseType::LocalSystemVectorType                       LocalSystemVectorType;
+  typedef typename BaseType::LocalSystemMatrixType                       LocalSystemMatrixType;
 
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+  ///@}
+  ///@name Life Cycle
+  ///@{
 
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+  /// Default Constructor.
+  EigensolverDynamicScheme()
+      :BaseType()
+  {
+  }
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+  /// Constructor.
+  EigensolverDynamicScheme(Flags& rOptions)
+      :BaseType(rOptions)
+  {
+  }
+  
+  /// Destructor.
+  ~EigensolverDynamicScheme() override {}
 
-    /// Constructor.
-    EigensolverDynamicScheme() : SolutionScheme<TSparseSpace,TDenseSpace>() {}
+  ///@}
+  ///@name Operators
+  ///@{
 
-    /// Destructor.
-    ~EigensolverDynamicScheme() override {}
+  ///@}
+  ///@name Operations
+  ///@{
 
-    ///@}
-    ///@name Operators
-    ///@{
+  void CalculateSystemContributions(
+      Element::Pointer pCurrentElement,
+      LocalSystemMatrixType& rLHS_Contribution,
+      LocalSystemVectorType& rRHS_Contribution,
+      Element::EquationIdVectorType& rEquationId,
+      ProcessInfo& rCurrentProcessInfo
+                                    ) override
+  {
+    KRATOS_TRY
 
-    ///@}
-    ///@name Operations
-    ///@{
-
-    void CalculateSystemContributions(
-        Element::Pointer pCurrentElement,
-        LocalSystemMatrixType& rLHS_Contribution,
-        LocalSystemVectorType& rRHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-    ) override
+    if (rCurrentProcessInfo[BUILD_LEVEL] == 1)
+    { // mass matrix
+      pCurrentElement->CalculateMassMatrix(rLHS_Contribution,rCurrentProcessInfo);
+      std::size_t LocalSize = rLHS_Contribution.size1();
+      if (rRHS_Contribution.size() != LocalSize)
+        rRHS_Contribution.resize(LocalSize,false);
+      noalias(rRHS_Contribution) = ZeroVector(LocalSize);
+    }
+    else if (rCurrentProcessInfo[BUILD_LEVEL] == 2) // stiffness matrix
     {
-        KRATOS_TRY
-
-        if (rCurrentProcessInfo[BUILD_LEVEL] == 1)
-        { // mass matrix
-            pCurrentElement->CalculateMassMatrix(rLHS_Contribution,rCurrentProcessInfo);
-            std::size_t LocalSize = LHS_Contribution.size1();
-            if (rRHS_Contribution.size() != LocalSize)
-                rRHS_Contribution.resize(LocalSize,false);
-            noalias(rRHS_Contribution) = ZeroVector(LocalSize);
-        }
-        else if (rCurrentProcessInfo[BUILD_LEVEL] == 2) // stiffness matrix
-        {
-            pCurrentElement->CalculateLocalSystem(rLHS_Contribution,rRHS_Contribution,rCurrentProcessInfo);
-        }
-        else
-        {
-            KRATOS_ERROR <<"Invalid BUILD_LEVEL" << std::endl;
-        }
-
-        pCurrentElement->EquationIdVector(rEquationId,rCurrentProcessInfo);
-
-        KRATOS_CATCH("")
+      pCurrentElement->CalculateLocalSystem(rLHS_Contribution,rRHS_Contribution,rCurrentProcessInfo);
+    }
+    else
+    {
+      KRATOS_ERROR <<"Invalid BUILD_LEVEL" << std::endl;
     }
 
-    void Calculate_LHS_Contribution(
-        Element::Pointer pCurrentElement,
-        LocalSystemMatrixType& rLHS_Contribution,
-        Element::EquationIdVectorType& rEquationId,
-        ProcessInfo& rCurrentProcessInfo) override
+    pCurrentElement->EquationIdVector(rEquationId,rCurrentProcessInfo);
+
+    KRATOS_CATCH("")
+  }
+
+  void Calculate_LHS_Contribution(
+      Element::Pointer pCurrentElement,
+      LocalSystemMatrixType& rLHS_Contribution,
+      Element::EquationIdVectorType& rEquationId,
+      ProcessInfo& rCurrentProcessInfo) override
+  {
+    KRATOS_TRY
+
+    LocalSystemVectorType RHS_Contribution;
+    RHS_Contribution.resize(rLHS_Contribution.size1(), false);
+    CalculateSystemContributions(
+        pCurrentElement,
+        rLHS_Contribution,
+        RHS_Contribution,
+        rEquationId,
+        rCurrentProcessInfo);
+
+    KRATOS_CATCH("")
+  }
+
+  void Condition_CalculateSystemContributions(
+      Condition::Pointer pCurrentCondition,
+      LocalSystemMatrixType& rLHS_Contribution,
+      LocalSystemVectorType& rRHS_Contribution,
+      Condition::EquationIdVectorType& rEquationId,
+      ProcessInfo& rCurrentProcessInfo) override
+  {
+    KRATOS_TRY
+
+    if (rCurrentProcessInfo[BUILD_LEVEL] == 1)
+    { // mass matrix
+      pCurrentCondition->CalculateMassMatrix(rLHS_Contribution,rCurrentProcessInfo);
+      std::size_t LocalSize = rLHS_Contribution.size1();
+      if (rRHS_Contribution.size() != LocalSize)
+      {
+        rRHS_Contribution.resize(LocalSize,false);
+      }
+      noalias(rRHS_Contribution) = ZeroVector(LocalSize);
+    }
+    else if (rCurrentProcessInfo[BUILD_LEVEL] == 2) // stiffness matrix
     {
-        KRATOS_TRY
-
-        LocalSystemVectorType RHS_Contribution;
-        RHS_Contribution.resize(rLHS_Contribution.size1(), false);
-        CalculateSystemContributions(
-                pCurrentElement,
-                rLHS_Contribution,
-                RHS_Contribution,
-                rEquationId,
-                rCurrentProcessInfo);
-
-        KRATOS_CATCH("")
+      pCurrentCondition->CalculateLocalSystem(rLHS_Contribution,rRHS_Contribution,rCurrentProcessInfo);
+    }
+    else
+    {
+      KRATOS_ERROR <<"Invalid BUILD_LEVEL" << std::endl;
     }
 
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer pCurrentCondition,
-        LocalSystemMatrixType& rLHS_Contribution,
-        LocalSystemVectorType& rRHS_Contribution,
-        Condition::EquationIdVectorType& rEquationId,
-        ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
+    pCurrentCondition->EquationIdVector(rEquationId,rCurrentProcessInfo);
 
-        if (rCurrentProcessInfo[BUILD_LEVEL] == 1)
-        { // mass matrix
-            pCurrentCondition->CalculateMassMatrix(rLHS_Contribution,rCurrentProcessInfo);
-            std::size_t LocalSize = rLHS_Contribution.size1();
-            if (rRHS_Contribution.size() != LocalSize)
-            {
-                rRHS_Contribution.resize(LocalSize,false);
-            }
-            noalias(rRHS_Contribution) = ZeroVector(LocalSize);
-        }
-        else if (rCurrentProcessInfo[BUILD_LEVEL] == 2) // stiffness matrix
-        {
-            pCurrentCondition->CalculateLocalSystem(rLHS_Contribution,rRHS_Contribution,rCurrentProcessInfo);
-        }
-        else
-        {
-            KRATOS_ERROR <<"Invalid BUILD_LEVEL" << std::endl;
-        }
+    KRATOS_CATCH("")
+  }
 
-        pCurrentCondition->EquationIdVector(rEquationId,rCurrentProcessInfo);
+  void Condition_Calculate_LHS_Contribution(
+      Condition::Pointer pCurrentCondition,
+      LocalSystemMatrixType& rLHS_Contribution,
+      Condition::EquationIdVectorType& rEquationId,
+      ProcessInfo& rCurrentProcessInfo) override
+  {
+    KRATOS_TRY
 
-        KRATOS_CATCH("")
-    }
+    LocalSystemVectorType RHS_Contribution;
+    RHS_Contribution.resize(rLHS_Contribution.size1(), false);
+    Condition_CalculateSystemContributions(
+        pCurrentCondition,
+        rLHS_Contribution,
+        RHS_Contribution,
+        rEquationId,
+        rCurrentProcessInfo);
 
-    void Condition_Calculate_LHS_Contribution(
-            Condition::Pointer pCurrentCondition,
-            LocalSystemMatrixType& rLHS_Contribution,
-            Condition::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
+    KRATOS_CATCH("")
+  }
 
-        LocalSystemVectorType RHS_Contribution;
-        RHS_Contribution.resize(rLHS_Contribution.size1(), false);
-        Condition_CalculateSystemContributions(
-                pCurrentCondition,
-                rLHS_Contribution,
-                RHS_Contribution,
-                rEquationId,
-                rCurrentProcessInfo);
+  ///@}
+  ///@name Access
+  ///@{
 
-        KRATOS_CATCH("")
-    }
+  ///@}
+  ///@name Inquiry
+  ///@{
 
-    ///@}
-    ///@name Access
-    ///@{
+  ///@}
+  ///@name Friends
+  ///@{
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+  ///@}
 
-    ///@}
-    ///@name Friends
-    ///@{
+ protected:
+  ///@name Protected static Member Variables
+  ///@{
 
-    ///@}
+  ///@}
+  ///@name Protected member Variables
+  ///@{
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
+  ///@}
+  ///@name Protected Operators
+  ///@{
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
+  ///@}
+  ///@name Protected Operations
+  ///@{
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
+  ///@}
+  ///@name Protected  Access
+  ///@{
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
+  ///@}
+  ///@name Protected Inquiry
+  ///@{
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
+  ///@}
+  ///@name Protected LifeCycle
+  ///@{
 
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
+  ///@}
 
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
+ private:
+  ///@name Static Member Variables
+  ///@{
 
-    ///@}
+  ///@}
+  ///@name Member Variables
+  ///@{
 
-private:
-    ///@name Static Member Variables
-    ///@{
+  ///@}
+  ///@name Private Operators
+  ///@{
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+  ///@}
+  ///@name Private Operations
+  ///@{
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+  ///@}
+  ///@name Private  Access
+  ///@{
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+  ///@}
+  ///@name Private Inquiry
+  ///@{
 
-    ///@}
-    ///@name Private  Access
-    ///@{
+  ///@}
+  ///@name Un accessible methods
+  ///@{
 
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
+  ///@}
 
 }; // Class Eigen Solver Scheme
 
@@ -276,5 +285,5 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EIGENSOLVER_DYNAMIC_SCHEME  defined 
+#endif // KRATOS_EIGENSOLVER_DYNAMIC_SCHEME_H_INCLUDED  defined 
 

@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_BUILD_STRING_SKIN_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_BUILD_STRING_SKIN_PROCESS_H_INCLUDED)
 #define  KRATOS_BUILD_STRING_SKIN_PROCESS_H_INCLUDED
 
 
@@ -36,7 +36,7 @@ namespace Kratos
      radius: define the walls of the tube respect to the generatrix
 */
   
-class BuildStringSkinProcess : public Process
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) BuildStringSkinProcess : public Process
 {
 public:
     ///@name Type Definitions

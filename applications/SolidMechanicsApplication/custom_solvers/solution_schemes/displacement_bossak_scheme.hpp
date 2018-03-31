@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_DISPLACEMENT_BOSSAK_SCHEME )
-#define  KRATOS_DISPLACEMENT_BOSSAK_SCHEME
+#if !defined(KRATOS_DISPLACEMENT_BOSSAK_SCHEME_H_INCLUDED)
+#define  KRATOS_DISPLACEMENT_BOSSAK_SCHEME_H_INCLUDED
 
 // System includes
 
@@ -38,7 +38,7 @@ namespace Kratos
   /** @brief Bossak integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class DisplacementBossakScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) DisplacementBossakScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
   {   
   public:
     
@@ -47,11 +47,9 @@ namespace Kratos
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementBossakScheme );
 
     typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
+    typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
     
-    typedef typename BaseType::Pointer                                    BasePointerType;
-
     typedef typename BaseType::LocalSystemVectorType                LocalSystemVectorType;
-
     typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType;
 
     typedef DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>               DerivedType;
@@ -70,6 +68,12 @@ namespace Kratos
     {
     }
 
+    /// Constructor.
+    DisplacementBossakScheme(Flags& rOptions)
+      :DerivedType(rOptions)
+    {
+    }
+    
     /// Copy Constructor.
     DisplacementBossakScheme(DisplacementBossakScheme& rOther)
       :DerivedType(rOther)
@@ -210,7 +214,7 @@ namespace Kratos
 
 	  noalias(this->mVector.a[thread]) += parameter * this->mVector.ap[thread];
 
-	  noalias(rRHS_Contribution) -= prod(M, this->mVector.a[thread]);
+	  noalias(rRHS_Contribution) -= prod(rM, this->mVector.a[thread]);
         }
 
       // Adding damping contribution
@@ -333,4 +337,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_DISPLACEMENT_BOSSAK_SCHEME defined
+#endif // KRATOS_DISPLACEMENT_BOSSAK_SCHEME_H_INCLUDED defined

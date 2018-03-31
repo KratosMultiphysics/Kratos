@@ -377,14 +377,11 @@ class MechanicalSolver(object):
 
     def _create_builder_and_solver(self):
         linear_solver = self._get_linear_solver()
-        if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
-            builder_and_solver = KratosSolid.ComponentWiseBuilderAndSolver(linear_solver)
+        if(self.solving_strategy_settings["builder_type"].GetString() == "block_builder"):
+            # To keep matrix blocks in builder
+            builder_and_solver = KratosSolid.BlockBuilderAndSolver(linear_solver)
         else:
-            if(self.solving_strategy_settings["builder_type"].GetString() == "block_builder"):
-                # To keep matrix blocks in builder
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-            else:
-                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+            builder_and_solver = KratosSolid.ReductionBuilderAndSolver(linear_solver)
 
         return builder_and_solver
 

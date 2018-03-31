@@ -7,16 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_DISPLACEMENT_STATIC_SCHEME )
-#define  KRATOS_DISPLACEMENT_STATIC_SCHEME
+#if !defined(KRATOS_DISPLACEMENT_STATIC_SCHEME_H_INCLUDED)
+#define  KRATOS_DISPLACEMENT_STATIC_SCHEME_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_sovers/solution_schemes/solution_scheme.hpp"
-#include "includes/checks.h"
+#include "custom_solvers/solution_schemes/solution_scheme.hpp"
 
 #include "custom_solvers/time_integration_methods/static_method.hpp"
 
@@ -37,10 +36,10 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /** @brief Newmark integration scheme (for dynamic problems)
+  /** @brief Static integration scheme (for static problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class DisplacementStaticScheme: public SolutionScheme<TSparseSpace,TDenseSpace>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) DisplacementStaticScheme: public SolutionScheme<TSparseSpace,TDenseSpace>
   {   
   public:
     
@@ -48,35 +47,23 @@ namespace Kratos
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementStaticScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
+    typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
+    typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
 
-    typedef Node<3>                                               NodeType;
-    
-    typedef typename BaseType::TDataType                         TDataType;
+    typedef typename BaseType::NodeType                                          NodeType;
+    typedef typename BaseType::DofsArrayType                                DofsArrayType;
+    typedef typename Element::DofsVectorType                               DofsVectorType;
+    typedef typename BaseType::SystemMatrixType                          SystemMatrixType;
+    typedef typename BaseType::SystemVectorType                          SystemVectorType;
+    typedef typename BaseType::LocalSystemVectorType                LocalSystemVectorType;
+    typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType;
 
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
+    typedef ModelPart::NodesContainerType                              NodesContainerType;
+    typedef ModelPart::ElementsContainerType                        ElementsContainerType;  
+    typedef ModelPart::ConditionsContainerType                    ConditionsContainerType;
 
-    typedef typename Element::DofsVectorType                DofsVectorType;
-
-    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
-
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-    typedef ModelPart::NodesContainerType                   NodesArrayType;
-
-    typedef ModelPart::ElementsContainerType             ElementsArrayType;
-
-    typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
-
-    typedef typename BaseType::Pointer                     BasePointerType;
-   
-    typedef BaseType::IntegrationType                      IntegrationType;
-
-    typedef BaseType::IntegrationPointerType        IntegrationPointerType;
+    typedef typename BaseType::IntegrationType                            IntegrationType;
+    typedef typename BaseType::IntegrationPointerType              IntegrationPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -88,6 +75,12 @@ namespace Kratos
     {
     }
 
+    /// Default Constructor.
+    DisplacementStaticScheme(Flags& rOptions)
+      :BaseType(rOptions)
+    {
+    }
+    
     /// Copy Constructor.
     DisplacementStaticScheme(DisplacementStaticScheme& rOther)
       :BaseType(rOther)
@@ -139,7 +132,7 @@ namespace Kratos
 
     void Update(ModelPart& rModelPart,
 		DofsArrayType& rDofSet,
-		TSystemVectorType& rDx) override
+		SystemVectorType& rDx) override
     {
       KRATOS_TRY;
 
@@ -168,17 +161,17 @@ namespace Kratos
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
       const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-      NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+      NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
 
 #pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
-	  NodesArrayType::iterator itNode = NodeBegin + i;
+	  NodesContainerType::iterator itNode = NodeBegin + i;
 
 	  this->IntegrationMethodUpdate(*itNode);
         }
 
-      this->MoveMesh();
+      this->MoveMesh(rModelPart);
       
       KRATOS_CATCH( "" );
     }
@@ -193,7 +186,7 @@ namespace Kratos
 
     void Predict(ModelPart& rModelPart,
 		 DofsArrayType& rDofSet,
-		 TSystemVectorType& rDx) override
+		 SystemVectorType& rDx) override
     {
       KRATOS_TRY;
 
@@ -203,17 +196,17 @@ namespace Kratos
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
       const int nnodes = static_cast<int>( rModelPart.Nodes().size() );
-      NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+      NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
 
 #pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i< nnodes; i++)
         {
-	  NodesArrayType::iterator itNode = NodeBegin + i;
+	  NodesContainerType::iterator itNode = NodeBegin + i;
 
 	  this->IntegrationMethodPredict(*itNode);
         }
 
-      this->MoveMesh();
+      this->MoveMesh(rModelPart);
       
       KRATOS_CATCH( "" );
     }
@@ -492,7 +485,7 @@ namespace Kratos
 
       // Perform base base checks
       int ErrorCode = 0;
-      ErrorCode  = Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
+      ErrorCode  = BaseType::Check(rModelPart);
 
       // Check that all required variables have been registered
       KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
@@ -543,7 +536,7 @@ namespace Kratos
     ///@{
     
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Displacement StaticScheme";
@@ -551,13 +544,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Displacement StaticScheme";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "Displacement StaticScheme Data";     
     }
@@ -678,4 +671,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_DISPLACEMENT_STATIC_SCHEME defined
+#endif // KRATOS_DISPLACEMENT_STATIC_SCHEME_H_INCLUDED defined

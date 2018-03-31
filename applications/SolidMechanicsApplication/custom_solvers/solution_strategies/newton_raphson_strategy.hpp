@@ -56,7 +56,7 @@ template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
           class TLinearSolver // = LinearSolver<TSparseSpace,TDenseSpace>
           >
-class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
  public:
   ///@name Type Definitions
@@ -138,7 +138,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
                         typename ConvergenceCriterionType::Pointer pConvergenceCriterion,
                         Flags& rOptions,
                         unsigned int MaxIterations = 30)
-      : NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, typename BuilderAndSolverType::Pointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pLinearSolver)), pConvergenceCriterion, rOptions, MaxIterations)
+      : NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, typename BuilderAndSolverType::Pointer(new BlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pLinearSolver)), pConvergenceCriterion, rOptions, MaxIterations)
   {}
     
 
@@ -188,7 +188,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
     //set implex calculation
     if(this->mOptions.Is(LocalFlagType::IMPLEX) && this->GetModelPart().GetProcessInfo().Has(IMPLEX)){
       this->GetModelPart().GetProcessInfo()[IMPLEX] = 0;
-      this->mpBuilderAndSolver->BuildRHS(this->mpScheme, this->GetModelPart() (*this->mpb));
+      this->mpBuilderAndSolver->BuildRHS(this->mpScheme, this->GetModelPart(), (*this->mpb));
     }
    
     BaseType::FinalizeSolutionStep();
@@ -253,7 +253,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
     is_converged = mpConvergenceCriteria->PreCriteria(this->GetModelPart(), this->mpBuilderAndSolver->GetDofSet(), (*this->mpA), (*this->mpDx), (*this->mpb));
 
     //function to perform the building and the solving phase.
-    if(this->mOptions.IsNot(LocalFlagType::CONSTANT_SYSTEM_LHS)){
+    if(this->mOptions.IsNot(LocalFlagType::CONSTANT_SYSTEM_MATRIX)){
 
       TSparseSpace::SetToZero((*this->mpA));
       TSparseSpace::SetToZero((*this->mpDx));
@@ -270,7 +270,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
     }
 
     // EchoInfo
-    this->EchoInfo(this->GetModelPart(), (*this->mpA), (*this->mpDx), (*this->mpb));
+    this->mpBuilderAndSolver->EchoInfo(this->GetModelPart(), (*this->mpA), (*this->mpDx), (*this->mpb));
     
     // Updating the results
     this->Update();

@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_BOSSAK_STEP_ROTATION_METHOD )
-#define  KRATOS_BOSSAK_STEP_ROTATION_METHOD
+#if !defined(KRATOS_BOSSAK_STEP_ROTATION_METHOD_H_INCLUDED)
+#define  KRATOS_BOSSAK_STEP_ROTATION_METHOD_H_INCLUDED
 
 // System includes
 
@@ -359,4 +359,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_BOSSAK_STEP_ROTATION_METHOD defined
+#endif // KRATOS_BOSSAK_STEP_ROTATION_METHOD_H_INCLUDED defined
