@@ -59,6 +59,9 @@ add_library(KratosContactStructuralMechanicsApplication SHARED ${KRATOS_CONTACT_
 target_link_libraries(KratosContactStructuralMechanicsApplication KratosCore KratosStructuralMechanicsApplication)
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "CONTACT_STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES PREFIX "")
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosContactStructuralMechanicsApplication)
+endif(USE_COTIRE MATCHES ON)
 install(TARGETS KratosContactStructuralMechanicsApplication DESTINATION libs )
 
 
