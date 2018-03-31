@@ -129,6 +129,9 @@ public:
     /// The definition of the size type
     typedef std::size_t SizeType;
 
+    /// The definition of zero tolerance
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(ExactMortarIntegrationUtility);
 
@@ -242,11 +245,11 @@ public:
      * @param SlaveCond The slave condition
      * @return The total area integrated
      */
-    double TestGetExactAreaIntegration(    
+    double TestGetExactAreaIntegration(
         ModelPart& rMainModelPart,
         Condition::Pointer& SlaveCond
         );
-    
+
     /**
     * @brief This method is used for debugging purposes
     * @param IndexSlave The index of the slave geometry
@@ -364,15 +367,19 @@ protected:
      * @param PointIntersection The intersection point if there is any
      * @return True if there is a intersection point, false otherwise
      */
-    static inline bool Clipping2D(PointType& PointIntersection,
-        const PointType& PointOrig1, const PointType& PointOrig2,
-        const PointType& PointDest1, const PointType& PointDest2) {
-        
+    static inline bool Clipping2D(
+        PointType& PointIntersection,
+        const PointType& PointOrig1,
+        const PointType& PointOrig2,
+        const PointType& PointDest1,
+        const PointType& PointDest2
+        )
+    {
         const array_1d<double, 3>& coord_point_orig1 = PointOrig1.Coordinates();
         const array_1d<double, 3>& coord_point_orig2 = PointOrig2.Coordinates();
         const array_1d<double, 3>& coord_point_dest1 = PointDest1.Coordinates();
         const array_1d<double, 3>& coord_point_dest2 = PointDest2.Coordinates();
-        
+
         const double s_orig1_orig2_x = coord_point_orig2[0] - coord_point_orig1[0];
         const double s_orig1_orig2_y = coord_point_orig2[1] - coord_point_orig1[1];
         const double s_dest1_dest2_x = coord_point_dest2[0] - coord_point_dest1[0];
@@ -382,21 +389,21 @@ protected:
                              s_dest1_dest2_x * s_orig1_orig2_y;
 
         const double tolerance = 1.0e-12;
-//         const double tolerance = std::numeric_limits<double>::epsilon();
+//         const double tolerance = ZeroTolerance;
 
         if (std::abs(denom) < tolerance) // NOTE: Collinear
             return false;
-        
+
         const double s_orig1_dest1_x = coord_point_orig1[0] - coord_point_dest1[0];
         const double s_orig1_dest1_y = coord_point_orig1[1] - coord_point_dest1[1];
-        
+
         const double s = (s_orig1_orig2_x * s_orig1_dest1_y - s_orig1_orig2_y * s_orig1_dest1_x)/denom;
-        
+
         const double t = (s_dest1_dest2_x * s_orig1_dest1_y - s_dest1_dest2_y * s_orig1_dest1_x)/denom;
-        
+
         if (s >= -tolerance && s <= (1.0 + tolerance) && t >= -tolerance && t <= (1.0 + tolerance)) {
-            PointIntersection.Coordinates()[0] = coord_point_orig1[0] + t * s_orig1_orig2_x; 
-            PointIntersection.Coordinates()[1] = coord_point_orig1[1] + t * s_orig1_orig2_y; 
+            PointIntersection.Coordinates()[0] = coord_point_orig1[0] + t * s_orig1_orig2_x;
+            PointIntersection.Coordinates()[1] = coord_point_orig1[1] + t * s_orig1_orig2_y;
 
             return true;
         } else
@@ -405,7 +412,7 @@ protected:
 
     /**
      * @brief This function calculates in 2D the normal vector to a given one
-     * @param v The vector to compute the normal 
+     * @param v The vector to compute the normal
      * @return n The normal vector
      */
     static inline array_1d<double, 3> GetNormalVector2D(const array_1d<double, 3>& v)
@@ -437,7 +444,7 @@ protected:
         array_1d<double, 3> local_edge = PointOrig2.Coordinates() - PointOrig1.Coordinates();
         if (norm_2(local_edge) > 0.0)
             local_edge /= norm_2(local_edge);
-        
+
         const double xi  = inner_prod(Axis1, local_edge);
         const double eta = inner_prod(Axis2, local_edge);
 
@@ -455,8 +462,7 @@ protected:
         const PointType& PointDest
         )
     {
-        const double tolerance = std::numeric_limits<double>::epsilon();
-        return (norm_2(PointDest.Coordinates() - PointOrig.Coordinates()) < tolerance) ? true : false;
+        return (norm_2(PointDest.Coordinates() - PointOrig.Coordinates()) < ZeroTolerance) ? true : false;
     }
 
     /**
@@ -591,7 +597,7 @@ private:
     const unsigned int mIntegrationOrder;    /// The integration order to consider
     const double mDistanceThreshold;         /// The distance where we directly  consider out of integration limits
     IntegrationMethod mAuxIntegrationMethod; /// The auxiliar list of Gauss Points taken from the geometry
-    
+
     ///@}
     ///@name Private Operators
     ///@{
