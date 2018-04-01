@@ -263,7 +263,7 @@ public:
         GeometryType& SlaveGeometry,
         const unsigned int IndexMaster,
         GeometryType& MasterGeometry,
-        std::vector<array_1d<PointBelong<TNumNodes>, 3>>& ConditionsPointSlave
+        ConditionArrayListType& ConditionsPointSlave
         )
     {
         typedef Triangle3D3<PointType> TriangleType;
