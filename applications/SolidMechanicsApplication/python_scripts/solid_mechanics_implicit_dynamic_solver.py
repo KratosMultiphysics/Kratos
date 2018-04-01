@@ -114,14 +114,19 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             mechanical_scheme = KratosSolid.DisplacementRotationEmcScheme()
         else:
             raise Exception("Unsupported integration_method: " + integration_method)
-
+        
         # set integration parameters
         self._set_time_integration_methods()
 
         return mechanical_scheme
 
     def _set_time_integration_methods(self):
-
+        
+        # assign an default integration method (static) for all not set dofs
+        for i in range(0, self.settings["dofs"].size() ):
+            if( not (self.settings["dofs"][i].GetString() in self.integration_methods.keys()) ):
+                self.integration_methods.update({self.settings["dofs"][i].GetString() : KratosSolid.StaticMethod()})
+        
         # first: calculate parameters (only once permitted) (set is included)
         #self.integration_methods['DISPLACEMENT'].CalculateParameters(self.process_info) #calculate
         # second: for the same method the parameters (already calculated)
