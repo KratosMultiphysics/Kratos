@@ -51,27 +51,20 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
 
     def _create_solution_scheme (self):
 
-        self.linear_integration_method = None
-        self.angular_integration_method = None
-        
-        integration_method   = self.time_integration_settings["integration_method"].GetString()
-
+        integration_method = self.time_integration_settings["integration_method"].GetString()
+        # set solution scheme and integration method dictionary
+        self.integration_methods = {}
         if(integration_method == "Linear"):
-            #mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-            self.linear_integration_method = KratosSolid.StaticMethod()
-            self.angular_integration_method = KratosSolid.StaticMethod() #shells
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticMethod(),
+                                             'ROTATION': KratosSolid.StaticMethod()}) #shells
             mechanical_scheme = KratosSolid.DisplacementStaticScheme()
         elif(integration_method == "Non-Linear" ):
-            #mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-            self.linear_integration_method = KratosSolid.StaticMethod()
-            self.angular_integration_method = KratosSolid.StaticMethod() #shells
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticMethod(),
+                                             'ROTATION': KratosSolid.StaticMethod()}) #shells
             mechanical_scheme = KratosSolid.DisplacementStaticScheme()
         elif(integration_method == "RotationStatic"):
-            #dynamic_factor = 0.0
-            #damp_factor_m  = 0.0
-            #mechanical_scheme = KratosSolid.ResidualBasedRotationNewmarkScheme(dynamic_factor, damp_factor_m)
-            self.linear_integration_method = KratosSolid.StaticStepMethod()
-            self.angular_integration_method = KratosSolid.StaticStepRotationMethod()
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticStepMethod(),
+                                             'ROTATION': KratosSolid.StaticStepRotationMethod()}) #beams
             mechanical_scheme = KratosSolid.DisplacementRotationStaticScheme()
         else:
             raise Exception("Unsupported integration_method: " + integration_method)
@@ -97,14 +90,14 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         mechanical_scheme = self._get_solution_scheme()
         linear_solver = self._get_linear_solver()
         builder_and_solver = self._get_builder_and_solver()
-        
+
         options = KratosMultiphysics.Flags()
         options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
         options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
 
         return KratosSolid.LinearStrategy(self.model_part, mechanical_scheme, builder_and_solver, options)
 
-        
+
         #return KratosMultiphysics.ResidualBasedLinearStrategy(self.model_part,
         #                                                      mechanical_scheme,
         #                                                      linear_solver,
@@ -113,5 +106,3 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         #                                                      self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool(),
         #                                                      False,
         #                                                      self.solving_strategy_settings["move_mesh_flag"].GetBool())
-
-

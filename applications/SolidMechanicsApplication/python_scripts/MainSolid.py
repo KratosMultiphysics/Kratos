@@ -35,7 +35,7 @@ class Solution(object):
 
         # Set logger severity level
         self._set_severity_level()
-            
+
         # Defining the number of threads
         num_threads =  self._get_parallel_size()
         if( self.ProjectParameters.Has("problem_data") ):
@@ -185,7 +185,7 @@ class Solution(object):
 
         # Step by step (3)
         #self.solver.FinalizeSolutionStep()
-        
+
         self.output.ExecuteFinalizeSolutionStep()
 
         # Processes to be executed at the end of the solution step
@@ -294,7 +294,7 @@ class Solution(object):
                 import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterials
 
                 domain_model = self.model.GetModel()
-                
+
                 assign_materials_processes = process_factory.KratosProcessFactory(domain_model).ConstructListOfProcesses( MaterialParameters["material_models_list"] )
 
                 for process in assign_materials_processes:
@@ -370,14 +370,14 @@ class Solution(object):
             self.severity = KratosMultiphysics.Logger.Severity.DEBUG
         elif( self.echo_level == 4 ):
             self.severity = KratosMultiphysics.Logger.Severity.TRACE
-                
+
         # Print solving time
         self.report = False
         if( self.echo_level > 0 ):
             self.report = True
 
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(self.severity)
-        
+
     def _set_parallel_size(self, num_threads):
         parallel = KratosMultiphysics.OpenMPUtils()
         parallel.SetNumThreads(int(num_threads))

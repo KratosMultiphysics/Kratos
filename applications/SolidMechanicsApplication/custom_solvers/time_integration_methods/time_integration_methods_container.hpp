@@ -63,7 +63,10 @@ public:
   ///@{
 
   /// Default constructor.
-  TimeIntegrationMethodsContainer() {}
+  TimeIntegrationMethodsContainer()
+      :mTimeIntegrationMethods()
+  {
+  }
 
   /// Copy constructor.
   TimeIntegrationMethodsContainer(TimeIntegrationMethodsContainer const& rOther)
@@ -95,9 +98,9 @@ public:
   }
 
   bool Has(LabelType const& rLabel)
-  {
+  {    
     typename std::map<LabelType,TimeIntegrationMethodPointerType>::iterator it_method = mTimeIntegrationMethods.find(rLabel);
-
+    
     if ( it_method != mTimeIntegrationMethods.end() )
       return true;
     else
@@ -116,14 +119,19 @@ public:
   virtual std::string Info() const
   {
     std::stringstream buffer;
-    buffer << "TimeIntegrationMethodsContainer";
+    buffer << "TimeIntegrationMethodsContainer\n";
+    for(typename std::map<LabelType,TimeIntegrationMethodPointerType>::const_iterator it=mTimeIntegrationMethods.begin(); it!=mTimeIntegrationMethods.end(); ++it)
+      buffer << "["<<it->first<<"] = "<<*(it->second)<< "\n";
     return buffer.str();
   }
   
   /// Print information about this object.
   virtual void PrintInfo(std::ostream& rOStream) const
   {
-    rOStream << "TimeIntegrationMethodsContainer";
+    rOStream << "TimeIntegrationMethodsContainer\n";
+    for(typename std::map<LabelType,TimeIntegrationMethodPointerType>::const_iterator it=mTimeIntegrationMethods.begin(); it!=mTimeIntegrationMethods.end(); ++it)
+      rOStream << "["<<it->first<<"] = "<<*(it->second)<<std::endl;
+
   }
   
   /// Print object's data.

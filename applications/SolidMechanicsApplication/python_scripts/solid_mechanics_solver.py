@@ -77,7 +77,8 @@ class MechanicalSolver(object):
                 "tolerance": 1e-9,
                 "scaling": false,
                 "verbosity": 1
-            }
+            },
+            "dofs": []
         }
         """)
 
@@ -110,7 +111,6 @@ class MechanicalSolver(object):
 
         # Echo level
         self.echo_level = 0
-
 
     def GetMinimumBufferSize(self):
         return 2;
@@ -145,6 +145,9 @@ class MechanicalSolver(object):
             if not self.solving_strategy_settings["stabilization_factor"].IsNull():
                 properties.SetValue(KratosMultiphysics.STABILIZATION_FACTOR, self.solving_strategy_settings["stabilization_factor"].GetDouble() )
 
+        # Add dofs
+        if( self._is_not_restarted() ):
+            self._add_dofs()
 
         # Create integration information (needed in other processes)
         self._get_solution_scheme()
@@ -165,7 +168,7 @@ class MechanicalSolver(object):
         mechanical_solver.SetEchoLevel(self.echo_level)
         #if( self._is_not_restarted() ):
         #    mechanical_solver.Initialize()
-        #    #self._get_solution_scheme().Initialize(self.main_model_part)            
+        #    #self._get_solution_scheme().Initialize(self.main_model_part)
         #else:
         #    # SetInitializePerformedFlag is not a member of SolvingStrategy but
         #    # is used by ResidualBasedNewtonRaphsonStrategy.
@@ -180,14 +183,17 @@ class MechanicalSolver(object):
                 mechanical_solver.SetInitializePerformedFlag(True)
             else:
                 mechanical_solver.Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
-        
+
         self.Check()
 
-        print("::[Mechanical_Solver]:: Solver Ready")
+        print("::[Solver]:: Ready")
 
     def GetVariables(self):
 
-        nodal_variables = []
+        self._set_variables_and_dofs()
+
+        nodal_variables = self.nodal_variables + self.dof_variables + self.dof_reactions
+
         return nodal_variables
 
     def GetOutputVariables(self):
@@ -387,3 +393,90 @@ class MechanicalSolver(object):
 
     def _create_mechanical_solver(self):
         raise Exception("please implement the Custom Choice of your Mechanical Solver (_create_mechanical_solver) in your solver")
+
+
+    # adding dofs: system solver is the one that knows the problem solution
+
+    def _add_dofs(self):
+
+        if not hasattr(self, '_dof_variables'):
+            self._set_variables_and_dofs()
+
+        AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
+        AddDofsProcess.Execute()
+
+        if( self.echo_level > 1 ):
+            print(self.dof_variables + self.dof_reactions)
+            print("::[Solver]:: DOF's ADDED")
+
+    def _set_variables_and_dofs(self):
+
+        # Variables and Dofs settings
+        self.nodal_variables = []
+        self.dof_variables   = []
+        self.dof_reactions   = []
+
+        # Add displacement variables
+        if self._check_input_dof("DISPLACEMENT"):
+            self.dof_variables = self.dof_variables + ['DISPLACEMENT']
+            self.dof_reactions = self.dof_reactions + ['REACTION']
+
+            # Add dynamic variables
+            self.nodal_variables = self.nodal_variables + ['VELOCITY','ACCELERATION']
+
+        if self._check_input_dof("VELOCITY"):
+            # Add specific variables for the problem (velocity dofs)
+            self.dof_variables = self.dof_variables + ['VELOCITY']
+            self.dof_reactions = self.dof_reactions + ['NOT_DEFINED']
+
+            # Add dynamic variables
+            self.nodal_variables = self.nodal_variables + ['DISPLACEMENT','ACCELERATION']
+
+
+        # Add rotational variables
+        if self._check_input_dof("ROTATION"):
+            # Add specific variables for the problem (rotation dofs)
+            self.dof_variables = self.dof_variables + ['ROTATION']
+            self.dof_reactions = self.dof_reactions + ['TORQUE']
+
+            self.nodal_variables = self.nodal_variables + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
+            # Add large rotation variables
+            self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT','STEP_ROTATION','DELTA_ROTATION']
+
+        # Add pressure variables
+        if self._check_input_dof("PRESSURE"):
+            # Add specific variables for the problem (pressure dofs)
+            self.dof_variables = self.dof_variables + ['PRESSURE']
+            self.dof_reactions = self.dof_reactions + ['PRESSURE_REACTION']
+
+        # Add contat variables
+        if self._check_input_dof("LAGRANGE_MULTIPLIER"):
+            # Add specific variables for the problem (contact dofs)
+            self.dof_variables = self.dof_variables + ['LAGRANGE_MULTIPLIER_NORMAL']
+            self.dof_reactions = self.dof_reactions + ['LAGRANGE_MULTIPLIER_NORMAL_REACTION']
+
+        # Add water displacement variables
+        if self._check_input_dof("WATER_DISPLACEMENT"):
+            self.dof_variables = self.dof_variables + ['WATER_DISPLACEMENT','WATER_VELOCITY','WATER_ACCELERATION']
+            self.dof_reactions = self.dof_reactions + ['WATER_DISPLACEMENT_REACTION','WATER_VELOCITY_REACTION','WATER_ACCELERATION_REACTION']
+
+        # Add water pressure variables
+        if self._check_input_dof("WATER_PRESSURE"):
+            self.dof_variables = self.dof_variables + ['WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATIONN']
+            self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY_REACTION', 'WATER_PRESSURE_ACCELERATION_REACTION']
+
+        # Add jacobian variables
+        if self._check_input_dof("JACOBIAN"):
+            self.dof_variables = self.dof_variables + ['JACOBIAN']
+            self.dof_reactions = self.dof_reactions + ['REACTION_JACOBIAN']
+
+    def _check_input_dof(self, variable):
+        #temporary default
+        if(variable == 'DISPLACEMENT'):
+          return True
+
+        dofs_list = self.settings["dofs"]
+        for i in range(0, dofs_list.size() ):
+            if dofs_list[i].GetString() == variable:
+                return True
+        return False

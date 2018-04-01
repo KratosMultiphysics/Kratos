@@ -151,7 +151,7 @@ public:
                 mInitialResidualNorm = TSparseSpace::TwoNorm(b);
                 mInitialResidualIsSet = true;
 
-                KRATOS_INFO(" Initial Residual ") << mInitialResidualNorm <<std::endl;
+                //KRATOS_INFO(" Initial Residual ") << mInitialResidualNorm <<std::endl;
             }
 
             TDataType ratio;
@@ -167,7 +167,7 @@ public:
                 ratio = mCurrentResidualNorm/mInitialResidualNorm;
             }
 
-            KRATOS_INFO(" Current Residual ") << mCurrentResidualNorm << " ratio: "<< ratio << std::endl;
+            //KRATOS_INFO(" Current Residual ") << mCurrentResidualNorm << " ratio: "<< ratio << std::endl;
             
 	    double b_size = TSparseSpace::Size(b);
 	    TDataType absolute_norm = (mCurrentResidualNorm/b_size);

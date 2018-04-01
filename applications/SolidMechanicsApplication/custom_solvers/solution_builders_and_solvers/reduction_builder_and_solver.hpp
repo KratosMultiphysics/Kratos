@@ -359,8 +359,8 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ReductionBuilderAndSolver
     }
 
     double stop_build = OpenMPUtils::GetCurrentTime();
-    if (this->mEchoLevel >= 1 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("system_build_time") << stop_build - start_build << std::endl;
+    if (this->mEchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0)
+      KRATOS_INFO("parallel_build_time") << stop_build - start_build << std::endl;
 
     if (this->mEchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0){
       KRATOS_INFO("parallel_build") << "finished" << std::endl;
@@ -419,8 +419,8 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ReductionBuilderAndSolver
     Build(pScheme, rModelPart, rA, rb);    
     double end_time = OpenMPUtils::GetCurrentTime();
 
-    if (this->mEchoLevel >=1 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("system_build_time") << begin_time - end_time << std::endl;
+    if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
+      KRATOS_INFO("system_build_time") << end_time - begin_time << std::endl;
 
     ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
@@ -436,8 +436,8 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ReductionBuilderAndSolver
     end_time = OpenMPUtils::GetCurrentTime();
 
     
-    if (this->mEchoLevel >=1 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("system_solve_time") << begin_time - end_time << std::endl;
+    if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
+      KRATOS_INFO("system_solve_time") << end_time - begin_time << std::endl;
 
     if (this->mEchoLevel == 3)
     {

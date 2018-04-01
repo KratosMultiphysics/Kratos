@@ -32,11 +32,14 @@ class ModelManager(object):
                 "name" : "unknown_name",
                 "label": 0
            },
-           "variables":[],
-           "dofs": []
+           "variables":[]
          }
         """)
 
+        # attention dofs mover to solid_solver
+        if(custom_settings.Has("dofs")):
+            custom_settings.RemoveValue("dofs")
+            print(" WARNING: [MODEL_MANAGER] dofs moved to SolidSolver")
 
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
@@ -50,10 +53,8 @@ class ModelManager(object):
         # Process Info
         self.process_info = self.main_model_part.ProcessInfo
 
-        # Variables and Dofs settings
+        # Variables settings
         self.nodal_variables = []
-        self.dof_variables   = []
-        self.dof_reactions   = []
 
 
     def ImportModel(self):
@@ -77,8 +78,6 @@ class ModelManager(object):
 
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
-
-            self._add_dofs()
 
             # Somewhere must ask if you want to clean previous files
             self._clean_previous_result_files()
@@ -180,9 +179,8 @@ class ModelManager(object):
 
     def _add_variables(self):
 
-        self._set_variables()
+        self._set_input_variables()
 
-        self.nodal_variables = self.nodal_variables + self.dof_variables + self.dof_reactions
         self.nodal_variables = list(set(self.nodal_variables))
 
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
@@ -196,86 +194,10 @@ class ModelManager(object):
         #print("::[Model_Manager]:: General Variables ADDED")
 
 
-    def _add_dofs(self):
-        AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
-        AddDofsProcess.Execute()
-
-        #print(self.dof_variables + self.dof_reactions)
-        #print("::[Model_Manager]:: DOF's ADDED")
-
-    def _set_variables(self):
-
-        # Add input variables supplied
-        self._set_input_variables()
-
-        # Add displacements
-        self.dof_variables = self.dof_variables + ['DISPLACEMENT']
-        self.dof_reactions = self.dof_reactions + ['REACTION']
-
-        # Add dynamic variables
-        self.nodal_variables = self.nodal_variables + ['VELOCITY','ACCELERATION']
-
-        # Add specific variables for the problem conditions
-        # self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION']
-        # they must be added by the process
-        # self.nodal_variables = self.nodal_variables + ['POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD','POINT_STIFFNESS','LINE_STIFFNESS','SURFACE_STIFFNESS','BALLAST_COEFFICIENT']
-
-        if self._check_input_dof("VELOCITY"):
-            # Add specific variables for the problem (velocity dofs)
-            self.dof_variables = self.dof_variables + ['VELOCITY']
-            self.dof_reactions = self.dof_reactions + ['NOT_DEFINED']
-            
-        # Add rotational variables
-        if self._check_input_dof("ROTATION"):
-            # Add specific variables for the problem (rotation dofs)
-            self.dof_variables = self.dof_variables + ['ROTATION']
-            self.dof_reactions = self.dof_reactions + ['TORQUE']
-
-            self.nodal_variables = self.nodal_variables + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
-            # Add large rotation variables
-            self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT','STEP_ROTATION','DELTA_ROTATION']
-            # Add specific variables for the problem conditions
-            # self.nodal_variables = self.nodal_variables + ['POINT_MOMENT','LINE_MOMENT','SURFACE_MOMENT','PLANE_POINT_MOMENT','PLANE_LINE_MOMENT']
-
-        # Add pressure variables
-        if self._check_input_dof("PRESSURE"):
-            # Add specific variables for the problem (pressure dofs)
-            self.dof_variables = self.dof_variables + ['PRESSURE']
-            self.dof_reactions = self.dof_reactions + ['PRESSURE_REACTION']
-
-        # Add contat variables
-        if self._check_input_dof("LAGRANGE_MULTIPLIER"):
-            # Add specific variables for the problem (contact dofs)
-            self.dof_variables = self.dof_variables + ['LAGRANGE_MULTIPLIER_NORMAL']
-            self.dof_reactions = self.dof_reactions + ['LAGRANGE_MULTIPLIER_NORMAL_REACTION']
-
-        # Add water displacement variables
-        if self._check_input_dof("WATER_DISPLACEMENT"):
-            self.dof_variables = self.dof_variables + ['WATER_DISPLACEMENT','WATER_VELOCITY','WATER_ACCELERATION']
-            self.dof_reactions = self.dof_reactions + ['WATER_DISPLACEMENT_REACTION','WATER_VELOCITY_REACTION','WATER_ACCELERATION_REACTION']
-
-        # Add water pressure variables
-        if self._check_input_dof("WATER_PRESSURE"):
-            self.dof_variables = self.dof_variables + ['WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATIONN']
-            self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY_REACTION', 'WATER_PRESSURE_ACCELERATION_REACTION']
-
-        # Add jacobian variables
-        if self._check_input_dof("JACOBIAN"):
-            self.dof_variables = self.dof_variables + ['JACOBIAN']
-            self.dof_reactions = self.dof_reactions + ['REACTION_JACOBIAN']
-
-
     def _set_input_variables(self):
         variables_list = self.settings["variables"]
         for i in range(0, variables_list.size() ):
             self.nodal_variables.append(variables_list[i].GetString())
-
-    def _check_input_dof(self, variable):
-        dofs_list = self.settings["dofs"]
-        for i in range(0, dofs_list.size() ):
-            if dofs_list[i].GetString() == variable:
-                return True
-        return False
 
     #
     def _execute_after_reading(self):
