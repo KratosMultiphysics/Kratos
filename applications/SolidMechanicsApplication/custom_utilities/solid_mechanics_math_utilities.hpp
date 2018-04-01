@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_SOLID_MECHANICS_MATH_UTILITIES)
-#define KRATOS_SOLID_MECHANICS_MATH_UTILITIES
+#if !defined(KRATOS_SOLID_MECHANICS_MATH_UTILITIES_H_INCLUDED)
+#define KRATOS_SOLID_MECHANICS_MATH_UTILITIES_H_INCLUDED
 
 
 #ifdef FIND_MAX
@@ -29,7 +29,8 @@
 
 namespace Kratos
 {
-template<class TDataType> class SolidMechanicsMathUtilities
+template<class TDataType>
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SolidMechanicsMathUtilities
 {
 public:
     /**
@@ -1711,4 +1712,4 @@ public:
 private:
 };// class SolidMechanicsMathUtilities
 }
-#endif /* KRATOS_SOLID_MECHANICS_MATH_UTILITIESS defined */
+#endif /* KRATOS_SOLID_MECHANICS_MATH_UTILITIESS_H_INCLUDED defined */

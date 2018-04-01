@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_ADD_DOFS_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_ADD_DOFS_PROCESS_H_INCLUDED)
 #define  KRATOS_ADD_DOFS_PROCESS_H_INCLUDED
 
 
@@ -30,7 +30,7 @@ namespace Kratos
 /// The base class for fixing scalar variable Dof or array_1d component Dof processes in Kratos.
 /** This function fix the variable dof belonging to all of the nodes in a given mesh
 */
-class AddDofsProcess : public Process
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) AddDofsProcess : public Process
 {
 public:
     ///@name Type Definitions

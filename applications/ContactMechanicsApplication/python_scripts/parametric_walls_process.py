@@ -19,8 +19,6 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
 
-        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
-
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -36,7 +34,6 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = 1
-        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         self.search_frequency  = self.settings["search_frequency"].GetDouble()
 
         self.search_control_is_time = False
@@ -46,20 +43,6 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         elif(search_control_type == "step"):
             self.search_control_is_time = False
 
-        #construct parametric wall domains
-        self.parametric_walls = []
-        walls_list = self.settings["parametric_walls"]
-        self.number_of_walls = walls_list.size()
-        for i in range(0,self.number_of_walls):
-            item = walls_list[i]
-            parametric_wall_module = __import__(item["python_module"].GetString())
-            wall = parametric_wall_module.CreateParametricWall( self.main_model_part, item)
-            self.parametric_walls.append(wall)
-
-        # mesh modeler initial values
-        self.search_contact_active = False
-        if( self.number_of_walls ):
-            self.search_contact_active = True
 
         self.step_count   = 1
         self.counter      = 1
@@ -68,6 +51,26 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
     #
     def ExecuteInitialize(self):
 
+
+        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
+        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
+
+        #construct parametric wall domains
+        self.parametric_walls = []
+        walls_list = self.settings["parametric_walls"]
+        self.number_of_walls = walls_list.size()
+        for i in range(0,self.number_of_walls):
+            item = walls_list[i]
+            parametric_wall_module = __import__(item["python_module"].GetString())
+            wall = parametric_wall_module.CreateParametricWall(self.main_model_part, item)
+            self.parametric_walls.append(wall)
+
+        # mesh modeler initial values
+        self.search_contact_active = False
+        if( self.number_of_walls ):
+            self.search_contact_active = True
+
+        # build parametric walls
         for i in range(0,self.number_of_walls):
             self.parametric_walls[i].BuildParametricWall()
 

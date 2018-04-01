@@ -222,6 +222,8 @@ public:
 
         mReshapeMatrixFlag = false; //by default the matrix is shaped just once
         //		mVectorsAreInitialized = false;
+
+        mEchoLevel = 0;
     }
 
     /** Destructor.

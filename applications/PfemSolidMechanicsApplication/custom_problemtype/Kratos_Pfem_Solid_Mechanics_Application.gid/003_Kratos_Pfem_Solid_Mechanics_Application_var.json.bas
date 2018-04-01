@@ -87,32 +87,7 @@
             "name"   : "*tcl(file tail [GiD_Info Project ModelName])",
 	    "label" : 0
 *endif
-        },
-        "dofs"                               : [
-*if(strcmp(GenData(DOFS),"ROTATIONS")==0)
-                                                "ROTATION",
-*endif
-*if(strcmp(GenData(DOFS),"U-P")==0)
-                                                "PRESSURE",
-*endif
-*if(strcmp(GenData(DOFS),"U-wP")==0 )
-                                                "WATER_PRESSURE",
-*endif
-*if( strcmp(GenData(DOFS),"U-J-wP")==0 )
-                                                "WATER_PRESSURE",
-						"JACOBIAN"
-*endif
-*if( strcmp(GenData(DOFS),"U-J")==0 )
-						"JACOBIAN"
-*endif
-*if(strcmp(GenData(DOFS),"U-W")==0)
-						"WATER_DISPLACEMENT"
-*endif
-*if(strcmp(GenData(DOFS),"U-W-wP")==0)
-						"WATER_DISPLACEMENT",
-                                                "WATER_PRESSURE"
-*endif
-					       ]
+        }
     },
     "solver_settings"          : {
 *if(strcmp(GenData(Solver_Type),"DynamicSolver")==0)
@@ -184,7 +159,32 @@
                    "tolerance"      : 1e-7,
                    "max_iteration"  : *GenData(Linear_Solver_Max_Iteration,INT),
                    "scaling"        : false
-              }
+              },
+              "dofs"                            : [
+*if(strcmp(GenData(DOFS),"ROTATIONS")==0)
+                                                "ROTATION",
+*endif
+*if(strcmp(GenData(DOFS),"U-P")==0)
+                                                "PRESSURE",
+*endif
+*if(strcmp(GenData(DOFS),"U-wP")==0 )
+                                                "WATER_PRESSURE",
+*endif
+*if( strcmp(GenData(DOFS),"U-J-wP")==0 )
+                                                "WATER_PRESSURE",
+						"JACOBIAN"
+*endif
+*if( strcmp(GenData(DOFS),"U-J")==0 )
+						"JACOBIAN"
+*endif
+*if(strcmp(GenData(DOFS),"U-W")==0)
+						"WATER_DISPLACEMENT"
+*endif
+*if(strcmp(GenData(DOFS),"U-W-wP")==0)
+						"WATER_DISPLACEMENT",
+                                                "WATER_PRESSURE"
+*endif
+					       ]
         }
     },
     "problem_process_list" : [{

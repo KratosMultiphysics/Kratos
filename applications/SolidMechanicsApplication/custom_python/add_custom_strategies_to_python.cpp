@@ -21,42 +21,42 @@
 #include "spaces/ublas_space.h"
 
 //strategies
-#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "custom_solvers/solution_strategies/newton_raphson_strategy.hpp"
+#include "custom_solvers/solution_strategies/line_search_strategy.hpp"
+#include "custom_solvers/solution_strategies/explicit_strategy.hpp" 
+#include "custom_solvers/solution_strategies/eigensolver_strategy.hpp"
+#include "custom_solvers/solution_strategies/segregated_strategy.hpp"
 
-#include "custom_strategies/strategies/component_wise_newton_raphson_strategy.hpp"
-#include "custom_strategies/strategies/residual_based_newton_raphson_line_search_strategy.hpp"
-#include "custom_strategies/strategies/residual_based_newton_raphson_line_search_implex_strategy.hpp"
-#include "custom_strategies/strategies/explicit_strategy.hpp" 
-#include "custom_strategies/strategies/eigensolver_strategy.hpp" 
-#include "custom_strategies/strategies/explicit_hamilton_strategy.hpp"
+// to update
+#include "custom_solvers/solution_strategies/explicit_hamilton_strategy.hpp"
 
 //builders and solvers
-#include "custom_strategies/builders_and_solvers/component_wise_builder_and_solver.hpp"
-#include "custom_strategies/builders_and_solvers/explicit_hamilton_builder_and_solver.hpp"
+#include "custom_solvers/solution_builders_and_solvers/block_builder_and_solver.hpp"
+#include "custom_solvers/solution_builders_and_solvers/reduction_builder_and_solver.hpp"
+#include "custom_solvers/solution_builders_and_solvers/explicit_builder_and_solver.hpp"
+
+// to update
+#include "custom_solvers/solution_builders_and_solvers/explicit_hamilton_builder_and_solver.hpp"
 
 //convergence criteria
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_strategies/convergence_criteria/displacement_convergence_criterion.hpp"
-#include "custom_strategies/convergence_criteria/component_wise_residual_convergence_criterion.hpp"
+#include "custom_solvers/convergence_criteria/displacement_convergence_criterion.hpp"
 
-//schemes
-#include "custom_strategies/schemes/residual_based_displacement_bossak_scheme.hpp"
-#include "custom_strategies/schemes/component_wise_bossak_scheme.hpp"
-#include "custom_strategies/schemes/eigensolver_dynamic_scheme.hpp" 
+//solution_schemes
+#include "custom_solvers/solution_schemes/displacement_bossak_scheme.hpp"
+#include "custom_solvers/solution_schemes/eigensolver_dynamic_scheme.hpp" 
  
-#include "custom_strategies/schemes/explicit_central_differences_scheme.hpp" 
-#include "custom_strategies/schemes/residual_based_rotation_newmark_scheme.hpp"
-#include "custom_strategies/schemes/residual_based_rotation_simo_scheme.hpp"
-#include "custom_strategies/schemes/residual_based_rotation_emc_scheme.hpp"
-#include "custom_strategies/schemes/explicit_hamilton_scheme.hpp"
+#include "custom_solvers/solution_schemes/explicit_central_differences_scheme.hpp" 
+#include "custom_solvers/solution_schemes/explicit_hamilton_scheme.hpp"
 
-#include "custom_strategies/schemes/residual_based_displacement_rotation_static_scheme.hpp"
-#include "custom_strategies/schemes/residual_based_displacement_rotation_emc_scheme.hpp"
-#include "custom_strategies/schemes/residual_based_displacement_simo_scheme.hpp"
+#include "custom_solvers/solution_schemes/displacement_rotation_static_scheme.hpp"
+#include "custom_solvers/solution_schemes/displacement_rotation_emc_scheme.hpp"
+#include "custom_solvers/solution_schemes/displacement_simo_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
+#include "custom_solvers/time_integration_methods/time_integration_methods_container.hpp"
 
 
 namespace Kratos
@@ -66,324 +66,351 @@ namespace Kratos
   {
     using namespace boost::python;
 
+    //base types
+    typedef UblasSpace<double, CompressedMatrix, Vector>                                               SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector>                                                          LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType >                                            LinearSolverType;
+    typedef SolutionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >                 SolutionStrategyType;
+    typedef SolutionBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > SolutionBuilderAndSolverType;
+    typedef SolutionScheme< SparseSpaceType, LocalSpaceType >                                       SolutionSchemeType;
+    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType >                             ConvergenceCriteriaType; 
+    typedef SolutionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >                 SolutionStrategyType;
+  
+    typedef SolutionStrategyType::Pointer                                                      SolutionStrategyPointer;
+    typedef std::vector<SolutionStrategyType::Pointer>                                     SolutionStrategiesContainer;
+  
+    void Push_Back_Solution_Strategies( SolutionStrategiesContainer& ThisSolutionStrategyContainer,
+                                        SolutionStrategyPointer ThisSolutionStrategy )
+    { 
+      ThisSolutionStrategyContainer.push_back( ThisSolutionStrategy );
+    } 
+
     void  AddCustomStrategiesToPython()
     {
-      //base types
-      typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-      typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-      typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-      typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-      typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-      typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-      typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
-      typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
 
-
-      //custom strategy types
-      typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
-      typedef ComponentWiseNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ComponentWiseNewtonRaphsonStrategyType;
-      typedef ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchStrategyType;
-      typedef ResidualBasedNewtonRaphsonLineSearchImplexStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchImplexStrategyType;
-      typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
+      //custom solution strategy types
+      typedef SegregatedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >             SegregatedStrategyType;
+      typedef LinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >                     LinearStrategyType;
+      typedef NewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >       NewtonRaphsonStrategyType;
+      typedef LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >             LineSearchStrategyType;
+      typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >                 ExplicitStrategyType;
       typedef ExplicitHamiltonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitHamiltonStrategyType;
-      typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
-
+      typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >           EigensolverStrategyType;
 
       //custom builder_and_solver types
-      typedef ComponentWiseBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ComponentWiseBuilderAndSolverType;
+      typedef ReductionBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >               ReductionBuilderAndSolverType;
+      typedef BlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >                       BlockBuilderAndSolverType;
+      typedef ExplicitBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >                 ExplicitBuilderAndSolverType;
       typedef ExplicitHamiltonBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitHamiltonBuilderAndSolverType;
 
-      //custom scheme types
-      typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;     
-      typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
-      typedef ResidualBasedRotationNewmarkScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationNewmarkSchemeType;
-      typedef ResidualBasedRotationSimoScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationSimoSchemeType;
-      typedef ResidualBasedRotationEMCScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationEMCSchemeType;
-      typedef ExplicitHamiltonScheme< SparseSpaceType, LocalSpaceType >  ExplicitHamiltonSchemeType;
-      typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
+      //custom solution scheme types
+      typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >    ExplicitCentralDifferencesSchemeType;
+      typedef ExplicitHamiltonScheme< SparseSpaceType, LocalSpaceType >                        ExplicitHamiltonSchemeType;
+      typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType >                    EigensolverDynamicSchemeType;
 
-      typedef ResidualBasedDisplacementStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementStaticSchemeType;     
-      typedef ResidualBasedDisplacementRotationStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationStaticSchemeType;
+      typedef DisplacementStaticScheme< SparseSpaceType, LocalSpaceType >                    DisplacementStaticSchemeType;     
+      typedef DisplacementRotationStaticScheme< SparseSpaceType, LocalSpaceType >    DisplacementRotationStaticSchemeType;
       
-      typedef ResidualBasedDisplacementNewmarkScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementNewmarkSchemeType;     
-      typedef ResidualBasedDisplacementRotationNewmarkScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationNewmarkSchemeType;
+      typedef DisplacementNewmarkScheme< SparseSpaceType, LocalSpaceType >                  DisplacementNewmarkSchemeType;     
+      typedef DisplacementRotationNewmarkScheme< SparseSpaceType, LocalSpaceType >  DisplacementRotationNewmarkSchemeType;
       
-      typedef ResidualBasedDisplacementBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementBossakSchemeType;
-      typedef ResidualBasedDisplacementRotationBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationBossakSchemeType;
+      typedef DisplacementBossakScheme< SparseSpaceType, LocalSpaceType >                    DisplacementBossakSchemeType;
+      typedef DisplacementRotationBossakScheme< SparseSpaceType, LocalSpaceType >    DisplacementRotationBossakSchemeType;
 
-      typedef ResidualBasedDisplacementSimoScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementSimoSchemeType;
+      typedef DisplacementSimoScheme< SparseSpaceType, LocalSpaceType >                        DisplacementSimoSchemeType;
 
-      typedef ResidualBasedDisplacementRotationSimoScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationSimoSchemeType;
-      typedef ResidualBasedDisplacementRotationEmcScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedDisplacementRotationEmcSchemeType;
+      typedef DisplacementRotationSimoScheme< SparseSpaceType, LocalSpaceType >        DisplacementRotationSimoSchemeType;
+      typedef DisplacementRotationEmcScheme< SparseSpaceType, LocalSpaceType >          DisplacementRotationEmcSchemeType;
       
       //custom convergence criterion types
-      typedef DisplacementConvergenceCriterion< SparseSpaceType,  LocalSpaceType > DisplacementConvergenceCriterionType;
-      typedef ComponentWiseResidualConvergenceCriterion< SparseSpaceType,  LocalSpaceType > ComponentWiseResidualConvergenceCriterionType;
+      typedef DisplacementConvergenceCriterion< SparseSpaceType,  LocalSpaceType >   DisplacementConvergenceCriterionType;
 
+      //custom integration methods by variables
+      typedef array_1d<double, 3>                                                            VectorType;
+      typedef Variable<VectorType >                                                        VariableType; 
+      typedef TimeIntegrationMethod<VariableType, VectorType>                 TimeIntegrationMethodType;
+      typedef typename TimeIntegrationMethodType::Pointer              TimeIntegrationMethodPointerType;
 
       //custom integration methods by components
-      typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >  ComponentType;
-      typedef TimeIntegrationMethod<ComponentType, double>  IntegrationMethodType;
-      typedef StaticMethod<ComponentType, double>  StaticMethodType;
-      typedef NewmarkMethod<ComponentType, double>  NewmarkMethodType;
-      typedef BossakMethod<ComponentType, double>  BossakMethodType;
-      typedef SimoMethod<ComponentType, double>  SimoMethodType;
-
-      typedef StaticStepMethod<ComponentType, double>  StaticStepMethodType;	    
-      typedef NewmarkStepMethod<ComponentType, double>  NewmarkStepMethodType;
-      typedef BossakStepMethod<ComponentType, double>  BossakStepMethodType;
-      typedef SimoStepMethod<ComponentType, double>  SimoStepMethodType;
-      typedef EmcStepMethod<ComponentType, double>  EmcStepMethodType;    
-
-      typedef StaticStepRotationMethod<ComponentType, double>  StaticStepRotationMethodType;
-      typedef NewmarkStepRotationMethod<ComponentType, double>  NewmarkStepRotationMethodType;
-      typedef BossakStepRotationMethod<ComponentType, double>  BossakStepRotationMethodType;
-      typedef SimoStepRotationMethod<ComponentType, double>  SimoStepRotationMethodType;
-      typedef EmcStepRotationMethod<ComponentType, double>  EmcStepRotationMethodType;
+      typedef TimeIntegrationMethodsContainer                              TimeIntegrationContainerType;      
+      typedef TimeIntegrationContainerType::Pointer                 TimeIntegrationContainerPointerType;
       
-      //********************************************************************
-      //*************************STRATEGY CLASSES***************************
-      //********************************************************************
+      typedef VariableComponent< VectorComponentAdaptor< VectorType > >           VariableComponentType;
+      typedef TimeIntegrationMethod<VariableComponentType, double>   TimeIntegrationComponentMethodType;      
+      typedef StaticMethod<VariableComponentType, double>                              StaticMethodType;
+      typedef NewmarkMethod<VariableComponentType, double>                            NewmarkMethodType;
+      typedef BossakMethod<VariableComponentType, double>                              BossakMethodType;
+      typedef SimoMethod<VariableComponentType, double>                                  SimoMethodType;
 
+      typedef StaticStepMethod<VariableComponentType, double>                      StaticStepMethodType;	    
+      typedef NewmarkStepMethod<VariableComponentType, double>                    NewmarkStepMethodType;
+      typedef BossakStepMethod<VariableComponentType, double>                      BossakStepMethodType;
+      typedef SimoStepMethod<VariableComponentType, double>                          SimoStepMethodType;
+      typedef EmcStepMethod<VariableComponentType, double>                            EmcStepMethodType;    
+
+      typedef StaticStepRotationMethod<VariableComponentType, double>      StaticStepRotationMethodType;
+      typedef NewmarkStepRotationMethod<VariableComponentType, double>    NewmarkStepRotationMethodType;
+      typedef BossakStepRotationMethod<VariableComponentType, double>      BossakStepRotationMethodType;
+      typedef SimoStepRotationMethod<VariableComponentType, double>          SimoStepRotationMethodType;
+      typedef EmcStepRotationMethod<VariableComponentType, double>            EmcStepRotationMethodType;
+
+     
+      //***************************SOLVER FLAGS******************************
+
+      // Solver Local Flags
+      class_<SolverLocalFlags, boost::noncopyable> ("SolverLocalFlags", init<>() )
+          .def_readonly("INITIALIZED", &SolverLocalFlags::INITIALIZED)
+          .def_readonly("CONVERGED", &SolverLocalFlags::CONVERGED)
+          .def_readonly("REFORM_DOFS", &SolverLocalFlags::REFORM_DOFS)
+          .def_readonly("COMPUTE_REACTIONS", &SolverLocalFlags::COMPUTE_REACTIONS)
+          .def_readonly("CONSTANT_SYSTEM_MATRIX", &SolverLocalFlags::CONSTANT_SYSTEM_MATRIX)
+          .def_readonly("RAYLEIGH_DAMPING", &SolverLocalFlags::RAYLEIGH_DAMPING)
+          .def_readonly("IMPLEX", &SolverLocalFlags::IMPLEX)
+          ;
+
+      
+      //*************************STRATEGY CLASSES***************************
+
+      // Solid Mechanics Solution Strategies Container
+      class_< SolutionStrategiesContainer >( "SolutionStragetiesContainer", init<>() )
+          .def( "PushBack", Push_Back_Solution_Strategies )
+          ;
+      
+      // Solid Mechanics Base Solution Strategy
+      class_< SolutionStrategyType, bases<Flags>, boost::noncopyable >("SolutionStrategy", init< ModelPart& >() )
+         .def(init < ModelPart&, Flags& >())
+         .def("InitializeSolutionStep", &SolutionStrategyType::InitializeSolutionStep)
+         .def("FinalizeSolutionStep", &SolutionStrategyType::FinalizeSolutionStep)
+         .def("SolveSolutionStep", &SolutionStrategyType::SolveSolutionStep )
+         .def("Solve", &SolutionStrategyType::Solve)
+         .def("Check", &SolutionStrategyType::Check)
+         .def("Clear", &SolutionStrategyType::Clear)
+         .def("SetOptions", &SolutionStrategyType::SetOptions)
+         .def("GetOptions", &SolutionStrategyType::GetOptions, return_internal_reference<>())
+         .def("SetEchoLevel", &SolutionStrategyType::SetEchoLevel)
+         .def("GetEchoLevel", &SolutionStrategyType::GetEchoLevel)
+         ;
+
+      // Solid Mechanics Segregated Strategy
+      class_< SegregatedStrategyType, 
+	      bases< SolutionStrategyType >, boost::noncopyable >
+          ("SegregatedStrategy",init < ModelPart&, Flags& >() )
+          .def(init< ModelPart&, Flags&,  SolutionStrategiesContainer& >())
+          .def("AddStrategy", &SegregatedStrategyType::AddStrategy)
+          .def("GetStrategy", &SegregatedStrategyType::GetStrategy)
+	;
+      
+      // Solid Mechanics Linear Strategy
+      class_< LinearStrategyType, 
+	      bases< SolutionStrategyType >, boost::noncopyable >
+          ("LinearStrategy",init < ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, Flags& >() )
+          .def(init < ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, Flags& >())
+	;
+      
+      // Solid Mechanics Newton Raphson Strategy
+      class_< NewtonRaphsonStrategyType, 
+	      bases< LinearStrategyType >, boost::noncopyable >
+          ("NewtonRaphsonStrategy",init < ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int >() )
+          .def(init < ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int >())
+          .def("SetMaxIterationNumber", &NewtonRaphsonStrategyType::SetMaxIterationNumber)
+          .def("GetMaxIterationNumber", &NewtonRaphsonStrategyType::GetMaxIterationNumber)  
+	;
+
+      // Solid Mechanics Newton Raphson Line Search Strategy
+      class_< LineSearchStrategyType, 
+	      bases< NewtonRaphsonStrategyType >, boost::noncopyable >
+          ("LineSearchStrategy",init < ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int >() )
+          .def(init < ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int >())
+	;
+      
       // Solid Mechanics Explicit Strategy
       class_< ExplicitStrategyType, 
-	      bases< BaseSolvingStrategyType >, boost::noncopyable >
+	      bases< SolutionStrategyType >, boost::noncopyable >
+          ("ExplicitStrategy",init < ModelPart&, SolutionSchemeType::Pointer, Flags& >() )
+	;
+         
+
+      // Eigensolver Strategy
+      class_< EigensolverStrategyType,
+	      bases< SolutionStrategyType >, boost::noncopyable >
 	(
-	 "ExplicitStrategy",
-	 init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool >())
-      
-	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
-	.def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
-	.def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
+            "EigensolverStrategy", init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, Flags&, bool>() )
 	;
 
-        
-      // Component Wise Newton-Raphson Strategy
-      class_< ComponentWiseNewtonRaphsonStrategyType, 
-	      bases< ResidualBasedNewtonRaphsonStrategyType >, boost::noncopyable >
-	(
-	 "ComponentWiseNewtonRaphsonStrategy",
-	 init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
       
-	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-	.def("SetMaxIterationNumber", &ComponentWiseNewtonRaphsonStrategyType::SetMaxIterationNumber)
-	.def("GetMaxIterationNumber", &ComponentWiseNewtonRaphsonStrategyType::GetMaxIterationNumber)
-	.def("SetKeepSystemConstantDuringIterations", &ComponentWiseNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
-	.def("GetKeepSystemConstantDuringIterations", &ComponentWiseNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
-
-	;
-  
-
-      // Residual Based Newton-Raphson Line Search Strategy
-      class_< ResidualBasedNewtonRaphsonLineSearchStrategyType, 
-	      bases< BaseSolvingStrategyType >, boost::noncopyable >
-	(
-	 "ResidualBasedNewtonRaphsonLineSearchStrategy",
-	 init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool>())
-      
-	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-	.def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetMaxIterationNumber)
-	.def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetMaxIterationNumber)
-	.def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetInitializePerformedFlag)
-	.def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetInitializePerformedFlag)
-	.def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetKeepSystemConstantDuringIterations)
-	.def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetKeepSystemConstantDuringIterations)
-	.def("SetFinalizeSolutionStepFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetFinalizeSolutionStepFlag)
-	.def("GetFinalizeSolutionStepFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetFinalizeSolutionStepFlag)
-	;
-     
-      
-      // Residual Based Newton-Raphson Line Search Implex Strategy
-      class_< ResidualBasedNewtonRaphsonLineSearchImplexStrategyType, 
-	      bases< BaseSolvingStrategyType >, boost::noncopyable >
-	(
-	 "ResidualBasedNewtonRaphsonLineSearchImplexStrategy",
-	 init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool>())
+      // // Explicit Hamilton Estrategy for Explicit Beam solution
+      // class_< ExplicitHamiltonStrategyType, 
+      //         bases< BaseSolvingStrategyType >, boost::noncopyable >
+      //   (
+      //    "ExplicitHamiltonStrategy",
+      //    init < ModelPart&, SolutionSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool>())
 	
-	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-	.def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetMaxIterationNumber)
-	.def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetMaxIterationNumber)
-	.def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetInitializePerformedFlag)
-	.def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetInitializePerformedFlag)
-	.def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetKeepSystemConstantDuringIterations)
-	.def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetKeepSystemConstantDuringIterations)
-	;
-
-      // Explicit Hamilton Estrategy for Explicit Beam solution
-      class_< ExplicitHamiltonStrategyType, 
-	      bases< BaseSolvingStrategyType >, boost::noncopyable >
-	(
-	 "ExplicitHamiltonStrategy",
-	 init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool>())
-	
-	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
-	.def("SetInitializePerformedFlag", &ExplicitHamiltonStrategyType::SetInitializePerformedFlag)
-	.def("GetInitializePerformedFlag", &ExplicitHamiltonStrategyType::GetInitializePerformedFlag)
-	;
-
-      // Eigensolver Scheme Type
-      class_< EigensolverDynamicSchemeType, EigensolverDynamicSchemeType::Pointer,
-	      bases< BaseSchemeType >, boost::noncopyable >
-	(
-	 "EigensolverDynamicScheme",
-	 init<>())
-	;
+      //   .def(init < ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
+      //   ;
 
       
-      //********************************************************************
       //*******************BUILDER AND SOLVER CLASSES***********************
-      //********************************************************************
 
+      // Solid Mechanics Base Builder and Solver
+      class_< SolutionBuilderAndSolverType, bases<Flags>, boost::noncopyable >
+          ("SolutionBuilderAndSolver", init<LinearSolverType::Pointer > ())
+          .def(init<>())
+          .def("BuildLHS", &SolutionBuilderAndSolverType::BuildLHS)
+          .def("BuildRHS", &SolutionBuilderAndSolverType::BuildRHS)
+          .def("Build", &SolutionBuilderAndSolverType::Build)
+          .def("SystemSolve", &SolutionBuilderAndSolverType::SystemSolve)
+          .def("BuildAndSolve", &SolutionBuilderAndSolverType::BuildAndSolve)
+          .def("BuildRHSAndSolve", &SolutionBuilderAndSolverType::BuildRHSAndSolve)
+          .def("SetUpDofSet", &SolutionBuilderAndSolverType::SetUpDofSet)
+          .def("GetDofSet", &SolutionBuilderAndSolverType::GetDofSet, return_internal_reference<>())
+          .def("SetUpSystem", &SolutionBuilderAndSolverType::SetUpSystem)
+          .def("SetUpSystemMatrices", &SolutionBuilderAndSolverType::SetUpSystemMatrices)
+          .def("InitializeSolutionStep", &SolutionBuilderAndSolverType::InitializeSolutionStep)
+          .def("FinalizeSolutionStep", &SolutionBuilderAndSolverType::FinalizeSolutionStep)
+          .def("CalculateReactions", &SolutionBuilderAndSolverType::CalculateReactions)
+          .def("GetEquationSystemSize", &SolutionBuilderAndSolverType::GetEquationSystemSize)
+          .def("Clear", &SolutionBuilderAndSolverType::Clear)
+          .def("Check", &SolutionBuilderAndSolverType::Check)
+          .def("SetEchoLevel", &SolutionBuilderAndSolverType::SetEchoLevel)
+          .def("GetEchoLevel", &SolutionBuilderAndSolverType::GetEchoLevel)
+          ;
 
-      // Component Wise Builder and Solver
-      class_< ComponentWiseBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
+      class_< ReductionBuilderAndSolverType, bases<SolutionBuilderAndSolverType>, boost::noncopyable >
+        (
+         "ReductionBuilderAndSolver", init< LinearSolverType::Pointer > ()
+         );
+            
+      class_< BlockBuilderAndSolverType, bases<SolutionBuilderAndSolverType>, boost::noncopyable >
+        (
+         "BlockBuilderAndSolver", init< LinearSolverType::Pointer > ()
+         );
+
+      class_< ExplicitBuilderAndSolverType, bases<SolutionBuilderAndSolverType>, boost::noncopyable > 
 	(
-	 "ComponentWiseBuilderAndSolver", init< LinearSolverType::Pointer > ()
+	 "ExplicitBuilderAndSolver", init<> ()
 	 );
-
-
-      // Residual Based Builder and Solver
-      class_< ExplicitHamiltonBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
-	(
-	 "ExplicitHamiltonBuilderAndSolver", init< LinearSolverType::Pointer > ()
-	 );
+      
+ 
+      // class_< ExplicitHamiltonBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
+      //   (
+      //    "ExplicitHamiltonBuilderAndSolver", init< LinearSolverType::Pointer > ()
+      //    );
 
       
-      //********************************************************************
       //*************************SHCHEME CLASSES****************************
-      //********************************************************************
 
-      // Component Wise Bossak Scheme Type
-      class_< ComponentWiseBossakSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
-	(
-	 "ComponentWiseBossakScheme", init< double >() )
-
-	.def("Initialize", &ComponentWiseBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
-
-
+      // Solid Mechanics Base Scheme      
+      class_< SolutionSchemeType, bases<Flags>, boost::noncopyable >
+          ("SolutionScheme", init< >())
+          .def(init < Flags& >())
+          .def(init < TimeIntegrationMethodPointerType, Flags& >())
+          .def("Initialize", &SolutionSchemeType::Initialize)
+          .def("InitializeSolutionStep", &SolutionSchemeType::InitializeSolutionStep)
+          .def("FinalizeSolutionStep", &SolutionSchemeType::FinalizeSolutionStep)
+          .def("Predict", &SolutionSchemeType::Predict)
+          .def("Update", &SolutionSchemeType::Update)
+          .def("MoveMesh", &SolutionSchemeType::MoveMesh)
+          .def("Check", &SolutionSchemeType::Check)
+          ;
+      
       // Explicit scheme: Central differences 
       class_< ExplicitCentralDifferencesSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
+	      bases< SolutionSchemeType >,  boost::noncopyable >
 	(
-	 "ExplicitCentralDifferencesScheme", init< const double, const double, const double, const bool >() )
-
-	.def("Initialize", &ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+          "ExplicitCentralDifferencesScheme", init< Flags& ,const double, const double, const double>() )
 	;
 
-      // Residual Based Rotational Newmark Scheme Type
-      class_< ResidualBasedRotationNewmarkSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
-	(
-	 "ResidualBasedRotationNewmarkScheme", init< double, double >() )
+      // // Explicit Hamilton Scheme Type
+      // class_< ExplicitHamiltonSchemeType,
+      //         bases< SolutionSchemeType >,  boost::noncopyable >
+      //   (
+      //    "ExplicitHamiltonScheme", init< double, double, double, bool >() )
 	
-	.def("Initialize", &ResidualBasedRotationNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
-
-      // Residual Based Rotational Simo Scheme Type
-      class_< ResidualBasedRotationSimoSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
-	(
-	 "ResidualBasedRotationSimoScheme", init< double, double >() )
-	
-	.def("Initialize", &ResidualBasedRotationSimoScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
-
-      // Residual Based Rotational EMC Scheme Type
-      class_< ResidualBasedRotationEMCSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
-	(
-	 "ResidualBasedRotationEMCScheme", init< double >() )
-	
-	.def("Initialize", &ResidualBasedRotationEMCScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
-
-      // Explicit Hamilton Scheme Type
-      class_< ExplicitHamiltonSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
-	(
-	 "ExplicitHamiltonScheme", init< double, double, double, bool >() )
-	
-	.def("Initialize", &ExplicitHamiltonScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
+      //   ;
 
 
-      // Residual Based Displacement Static Scheme Type
-      class_< ResidualBasedDisplacementStaticSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      // Displacement Static Scheme Type
+      class_< DisplacementStaticSchemeType,
+      	      bases< SolutionSchemeType >,  boost::noncopyable >
       	(
-      	 "ResidualBasedDisplacementStaticScheme", init<>() )
-      	.def("Initialize", &ResidualBasedDisplacementStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	 "DisplacementStaticScheme", init<>() )
+          .def(init < Flags& >())
       	;
 	    
-      // Residual Based Displacement Rotation Static Scheme Type
-      class_< ResidualBasedDisplacementRotationStaticSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      // Displacement Rotation Static Scheme Type
+      class_< DisplacementRotationStaticSchemeType,
+      	      bases< SolutionSchemeType >,  boost::noncopyable >
       	(
-      	 "ResidualBasedDisplacementRotationStaticScheme", init<>() )
-      	.def("Initialize", &ResidualBasedDisplacementRotationStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	 "DisplacementRotationStaticScheme", init<>() )
+          .def(init < Flags& >())
       	;
 
-      // Residual Based Displacement Newmark Scheme Type
-      class_< ResidualBasedDisplacementNewmarkSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      // Displacement Newmark Scheme Type
+      class_< DisplacementNewmarkSchemeType,
+      	      bases< SolutionSchemeType >,  boost::noncopyable >
       	(
-      	 "ResidualBasedDisplacementNewmarkScheme", init<>() )
-      	.def("Initialize", &ResidualBasedDisplacementNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	 "DisplacementNewmarkScheme", init<>() )
+          .def(init < Flags& >())
       	;
 	    
-      // Residual Based Displacement Rotation Newmark Scheme Type
-      class_< ResidualBasedDisplacementRotationNewmarkSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      // Displacement Rotation Newmark Scheme Type
+      class_< DisplacementRotationNewmarkSchemeType,
+      	      bases< SolutionSchemeType >,  boost::noncopyable >
       	(
-      	 "ResidualBasedDisplacementRotationNewmarkScheme", init<>() )
-      	.def("Initialize", &ResidualBasedDisplacementRotationNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	 "DisplacementRotationNewmarkScheme", init<>() )
+          .def(init < Flags& >())
       	;
       
-      // Residual Based Displacement Bossak Scheme Type
-      class_< ResidualBasedDisplacementBossakSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      // Displacement Bossak Scheme Type
+      class_< DisplacementBossakSchemeType,
+      	      bases< SolutionSchemeType >,  boost::noncopyable >
       	(
-      	 "ResidualBasedDisplacementBossakScheme", init<>() )
-      	.def("Initialize", &ResidualBasedDisplacementBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	 "DisplacementBossakScheme", init<>() )
+          .def(init < Flags& >())
       	;
       
-      // Residual Based Displacement Rotation Bossak Scheme Type
-      class_< ResidualBasedDisplacementRotationBossakSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      // Displacement Rotation Bossak Scheme Type
+      class_< DisplacementRotationBossakSchemeType,
+      	      bases< SolutionSchemeType >,  boost::noncopyable >
       	(
-      	 "ResidualBasedDisplacementRotationBossakScheme", init<>() )
-      	.def("Initialize", &ResidualBasedDisplacementRotationBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	 "DisplacementRotationBossakScheme", init<>() )
+          .def(init < Flags& >())
       	;
 
-      // Residual Based Displacement Simo Scheme Type
-      class_< ResidualBasedDisplacementSimoSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      // Displacement Simo Scheme Type
+      class_< DisplacementSimoSchemeType,
+      	      bases< SolutionSchemeType >,  boost::noncopyable >
       	(
-      	 "ResidualBasedDisplacementSimoScheme", init<>() )
-      	.def("Initialize", &ResidualBasedDisplacementSimoScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-      	;
+      	 "DisplacementSimoScheme", init<>() )
+          .def(init < Flags& >())
+       	;
 
-      // Residual Based Displacement Rotation Simo Scheme Type
-      class_< ResidualBasedDisplacementRotationSimoSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      // Displacement Rotation Simo Scheme Type
+      class_< DisplacementRotationSimoSchemeType,
+      	      bases< SolutionSchemeType >,  boost::noncopyable >
       	(
-      	 "ResidualBasedDisplacementRotationSimoScheme", init<>() )
-      	.def("Initialize", &ResidualBasedDisplacementRotationSimoScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	 "DisplacementRotationSimoScheme", init<>() )
+          .def(init < Flags& >())
       	;
       
-      // Residual Based Displacement Rotation Emc Scheme Type
-      class_< ResidualBasedDisplacementRotationEmcSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      // Displacement Rotation Emc Scheme Type
+      class_< DisplacementRotationEmcSchemeType,
+      	      bases< SolutionSchemeType >,  boost::noncopyable >
       	(
-      	 "ResidualBasedDisplacementRotationEmcScheme", init<>() )
-      	.def("Initialize", &ResidualBasedDisplacementRotationEmcScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	 "DisplacementRotationEmcScheme", init<>() )
+          .def(init < Flags& >())
       	;
 
-      //********************************************************************
+
+      // Eigensolver Scheme Type
+      class_< EigensolverDynamicSchemeType,
+	      bases< SolutionSchemeType >, boost::noncopyable >
+	(
+	 "EigensolverDynamicScheme", init<>() )
+          .def(init < Flags& >())
+	;
+
       //*******************CONVERGENCE CRITERIA CLASSES*********************
-      //********************************************************************
 
       // Displacement Convergence Criterion
       class_< DisplacementConvergenceCriterionType,
@@ -395,133 +422,144 @@ namespace Kratos
 	;
 
 
-      // Component Wise Residual Convergence Criterion
-      class_< ComponentWiseResidualConvergenceCriterionType,
-	      bases< ConvergenceCriteriaType >, boost::noncopyable >
-	(
-	 "ComponentWiseResidualConvergenceCriterion", 
-	 init<double, double >())
-	.def("SetEchoLevel", &ComponentWiseResidualConvergenceCriterionType::SetEchoLevel)
-	;
-
-      
-      // Eigensolver Strategy
-      class_< EigensolverStrategyType,
-	      bases< BaseSolvingStrategyType >, boost::noncopyable >
-	(
-	 "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
-	;
-
-
-
-      //********************************************************************
       //*******************TIME INTEGRATION METHODS*************************
-      //********************************************************************
 
-      //Time Integration Method   
-      class_< IntegrationMethodType, IntegrationMethodType::Pointer, boost::noncopyable >
+      // Variable type for schemes
+      
+      //Time Integration Method for schemes
+      class_< TimeIntegrationMethodType, TimeIntegrationMethodPointerType, boost::noncopyable >
       	(
       	 "TimeIntegrationMethod", init<>())
-	.def("Clone", &IntegrationMethodType::Clone)
-	.def("SetVariable", &IntegrationMethodType::SetVariable)
-	.def("SetFirstDerivative", &IntegrationMethodType::SetFirstDerivative)
-	.def("SetSecondDerivative", &IntegrationMethodType::SetSecondDerivative)
-      	.def("SetVariables", &IntegrationMethodType::SetVariables)
-      	.def("SetInputVariable", &IntegrationMethodType::SetInputVariable)
-	.def("HasStepVariable", &IntegrationMethodType::HasStepVariable)
-	.def("SetStepVariable", &IntegrationMethodType::SetStepVariable)
-      	.def("SetParameters", &IntegrationMethodType::SetParameters)
-      	.def("Predict", &IntegrationMethodType::Predict)
+	.def("Clone", &TimeIntegrationMethodType::Clone)
+	.def("SetVariable", &TimeIntegrationMethodType::SetVariable)
+	.def("SetFirstDerivative", &TimeIntegrationMethodType::SetFirstDerivative)
+	.def("SetSecondDerivative", &TimeIntegrationMethodType::SetSecondDerivative)
+      	.def("SetVariables", &TimeIntegrationMethodType::SetVariables)
+      	.def("SetInputVariable", &TimeIntegrationMethodType::SetInputVariable)
+	.def("HasStepVariable", &TimeIntegrationMethodType::HasStepVariable)
+	.def("SetStepVariable", &TimeIntegrationMethodType::SetStepVariable)
+        .def("CalculateParameters", &TimeIntegrationMethodType::CalculateParameters)
+      	.def("SetParameters", &TimeIntegrationMethodType::SetParameters)
+      	.def("Predict", &TimeIntegrationMethodType::Predict)
 	.def(self_ns::str(self))
-	DECLARE_HAS_THIS_TYPE_PROCESS_INFO_PYTHON_AS_POINTER(IntegrationMethodType)
-	DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO_PYTHON_AS_POINTER(IntegrationMethodType)
-	DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO_PYTHON_AS_POINTER(IntegrationMethodType)
       	;
+      
+      // Variable component type for variables integration
+      class_< TimeIntegrationContainerType, TimeIntegrationContainerPointerType, boost::noncopyable >
+      	(
+      	 "TimeIntegrationMethodsContainer", init<>())
+        .def("Set", &TimeIntegrationContainerType::Set)
+        .def("Get", &TimeIntegrationContainerType::Get)
+        .def("Has", &TimeIntegrationContainerType::Has)
+        .def(self_ns::str(self))
+        DECLARE_HAS_THIS_TYPE_PROCESS_INFO_PYTHON_AS_POINTER(TimeIntegrationContainerType)
+        DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO_PYTHON_AS_POINTER(TimeIntegrationContainerType)
+        DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO_PYTHON_AS_POINTER(TimeIntegrationContainerType)
+        ;
 
       //to define it as a variable 
-      class_<Variable<IntegrationMethodType::Pointer> , bases<VariableData>, boost::noncopyable >("TimeIntegrationMethodVariable", no_init)
+      class_<Variable<TimeIntegrationContainerPointerType> , bases<VariableData>, boost::noncopyable >("TimeIntegrationMethodsContainerVariable", no_init)
 	;
+      
+      //Time Integration Method for variables
+      class_< TimeIntegrationComponentMethodType, TimeIntegrationComponentMethodType::Pointer, boost::noncopyable >
+      	(
+      	 "TimeIntegrationComponentMethod", init<>())
+	.def("Clone", &TimeIntegrationComponentMethodType::Clone)
+	.def("SetVariable", &TimeIntegrationComponentMethodType::SetVariable)
+	.def("SetFirstDerivative", &TimeIntegrationComponentMethodType::SetFirstDerivative)
+	.def("SetSecondDerivative", &TimeIntegrationComponentMethodType::SetSecondDerivative)
+      	.def("SetVariables", &TimeIntegrationComponentMethodType::SetVariables)
+      	.def("SetInputVariable", &TimeIntegrationComponentMethodType::SetInputVariable)
+	.def("HasStepVariable", &TimeIntegrationComponentMethodType::HasStepVariable)
+	.def("SetStepVariable", &TimeIntegrationComponentMethodType::SetStepVariable)
+        .def("CalculateParameters", &TimeIntegrationComponentMethodType::CalculateParameters)
+      	.def("SetParameters", &TimeIntegrationComponentMethodType::SetParameters)
+      	.def("Predict", &TimeIntegrationComponentMethodType::Predict)
+	.def(self_ns::str(self))
+      	;
+
 
       class_< StaticMethodType, StaticMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "StaticMethod", init<>())
        	;
       
       class_< NewmarkMethodType, NewmarkMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "NewmarkMethod", init<>())
        	;
 
       class_< BossakMethodType, BossakMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "BossakMethod", init<>())
       	;
       
       class_< SimoMethodType, SimoMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "SimoMethod", init<>())
       	;
       
       class_< StaticStepMethodType, StaticStepMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "StaticStepMethod", init<>())
      	;
 
       class_< NewmarkStepMethodType, NewmarkStepMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "NewmarkStepMethod", init<>())
       	;
 
       class_< BossakStepMethodType, BossakStepMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "BossakStepMethod", init<>())
       	;
 
       class_< SimoStepMethodType, SimoStepMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "SimoStepMethod", init<>())
       	;
       
        class_< EmcStepMethodType, EmcStepMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "EmcStepMethod", init<>())
       	;
 
        class_< StaticStepRotationMethodType, StaticStepRotationMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "StaticStepRotationMethod", init<>())
       	;
 
        class_< NewmarkStepRotationMethodType, NewmarkStepRotationMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "NewmarkStepRotationMethod", init<>())
       	;
 
        class_< BossakStepRotationMethodType, BossakStepRotationMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "BossakStepRotationMethod", init<>())
       	;
 
        class_< SimoStepRotationMethodType, SimoStepRotationMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "SimoStepRotationMethod", init<>())
        	;
 
        class_< EmcStepRotationMethodType, EmcStepRotationMethodType::Pointer,
-      	      bases< IntegrationMethodType >, boost::noncopyable >
+      	      bases< TimeIntegrationComponentMethodType >, boost::noncopyable >
       	(
       	 "EmcStepRotationMethod", init<>())
       	;

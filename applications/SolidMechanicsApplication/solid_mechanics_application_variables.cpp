@@ -15,8 +15,8 @@ namespace Kratos
   ///@{
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
-  typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >   VariableComponentType;
-  typedef TimeIntegrationMethod<VariableComponentType, double>     TimeIntegrationMethodComponentType;
+  typedef TimeIntegrationMethodsContainer                                TimeIntegrationContainerType;      
+  typedef TimeIntegrationContainerType::Pointer                   TimeIntegrationContainerPointerType;
   ///@}
 
   ///@name Kratos Globals
@@ -28,10 +28,11 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( int, BUILD_LEVEL )
   KRATOS_CREATE_VARIABLE( Vector, EIGENVALUE_VECTOR)
   KRATOS_CREATE_VARIABLE( Matrix , EIGENVECTOR_MATRIX )
+  
+  //integration methods
+  KRATOS_CREATE_VARIABLE( TimeIntegrationContainerPointerType, TIME_INTEGRATION_METHODS )  
 
   //explicit schemes
-  KRATOS_CREATE_VARIABLE( TimeIntegrationMethodComponentType::Pointer, TIME_INTEGRATION_METHOD )
-  KRATOS_CREATE_VARIABLE( TimeIntegrationMethodComponentType::Pointer, ANGULAR_TIME_INTEGRATION_METHOD )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
   //solution

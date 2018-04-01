@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_YIELD_CRITERION_H_INCLUDED )
+#if !defined(KRATOS_YIELD_CRITERION_H_INCLUDED)
 #define  KRATOS_YIELD_CRITERION_H_INCLUDED
 
 // System includes

@@ -120,42 +120,8 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
-
-        self.fix_time_integration  = False
-        self.time_integration_type = None
-        angular_variables = self.AngularDynamicVariables[:]
-        angular_variables.append("ROTATION")
-        linear_variables = self.LinearDynamicVariables[:]
-        linear_variables.append("DISPLACEMENT")
-        variable = self.variable_name[:-2]
-        try:
-            index_value = angular_variables.index(variable)
-            self.time_integration_type ="Angular"
-        except ValueError:
-            self.time_integration_type = None
-
-        if( self.time_integration_type == None ):
-            try:
-                index_value = linear_variables.index(variable)
-                self.time_integration_type ="Linear"
-            except ValueError:
-                self.time_integration_type = None
-
-        self.TimeIntegrationMethod = None
-        time_integration_method = KratosSolid.TimeIntegrationMethod()
-        if( self.time_integration_type == "Angular" ):
-            if( time_integration_method.HasProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo) ):
-                self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo).Clone()
-            else:
-                print(variable+": No time integration ")
-
-        elif( self.time_integration_type == "Linear" ):
-            if( time_integration_method.HasProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo) ):
-                self.TimeIntegrationMethod = time_integration_method.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.model_part.ProcessInfo).Clone()
-            else:
-                print(variable+": No time integration ")
-        #else:
-            # print(variable+": No time integration ")
+        # set time integration method
+        self.SetTimeIntegration()
 
         # set processes
         self.FixDofsProcesses     = []
@@ -256,6 +222,51 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             self.FixDofsProcesses.append(fix_dof_process)
             free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
             self.FreeDofsProcesses.append(free_dof_process)
+
+
+    #
+    def SetTimeIntegration(self):
+        self.fix_time_integration  = False
+
+        angular_variables = self.AngularDynamicVariables[:]
+        angular_variables.append("ROTATION")
+
+        linear_variables = self.LinearDynamicVariables[:]
+        linear_variables.append("DISPLACEMENT")
+
+        self.variable_type = None
+        variables = []
+        variable = self.variable_name[:-2]
+        try:
+            index_value = angular_variables.index(variable)
+            variables = angular_variables[:]
+            self.variable_type = "Angular"
+        except ValueError:
+            self.variable_type = None
+
+        if( self.variable_type == None ):
+            try:
+                index_value = linear_variables.index(variable)
+                variables = linear_variables[:]
+                self.variable_type ="Linear"
+            except ValueError:
+                self.variable_type = None
+
+
+        self.TimeIntegrationMethod = None
+        time_integration_container = KratosSolid.TimeIntegrationMethodsContainer()
+        if( time_integration_container.HasProcessInfo(KratosSolid.TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo) ):
+            time_integration_methods = time_integration_container.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo)
+
+            for var in variables:
+                if( time_integration_methods.Has(var) ):
+                    self.TimeIntegrationMethod = time_integration_methods.Get(var).Clone()
+                    break
+
+        if( self.TimeIntegrationMethod == None ):
+            print(variable+": No time integration ")
+
+
 
     #
     def SetLinearTimeIntegration(self):
