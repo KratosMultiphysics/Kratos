@@ -47,32 +47,32 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   //**********MESH MODELLER PROCESS*********//
 
-  class_<ContactModelStartEndMeshingProcess, typename ContactModelStartEndMeshingProcess::Pointer, ModelStartEndMeshingProcess>
+  class_<ContactModelStartEndMeshingProcess, ModelStartEndMeshingProcess>
       (m, "ContactModelMeshing")
       .def(init<ModelPart&, Flags, int>())
       ;
 
-  class_<ParametricWallContactSearchProcess, typename ParametricWallContactSearchProcess::Pointer, Process>
+  class_<ParametricWallContactSearchProcess, Process>
       (m,"ParametricWallContactSearch")
       .def(init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
       ;
 
-  class_<BuildContactModelPartProcess, typename BuildContactModelPartProcess::Pointer, Process>
+  class_<BuildContactModelPartProcess, Process>
       (m,"BuildContactModelPart")
       .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, std::vector<std::string>&, int>())
       ;
 
-  class_<ClearPointContactConditionsProcess, typename ClearPointContactConditionsProcess::Pointer, Process>
+  class_<ClearPointContactConditionsProcess, Process>
       (m,"ClearPointContactConditions")
       .def(init<ModelPart&, int>())
       ;
 
-  class_<ClearContactConditionsProcess, typename ClearContactConditionsProcess::Pointer, Process>
+  class_<ClearContactConditionsProcess, Process>
       (m,"ClearContactConditions")
       .def(init<ModelPart&, int>())
       ;
 
-  class_<BuildContactConditionsProcess, typename BuildContactConditionsProcess::Pointer, Process>
+  class_<BuildContactConditionsProcess, Process>
       (m,"BuildContactConditions")
       .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
       ;
