@@ -20,10 +20,10 @@ class ImposeReservoirTemperatureConditionProcess(Process):
         
         self.components_process_list = []
 
-        if "BOFANG" in settings["model_part_name"].GetString():
+        if "BOFANGTEMPERATURE" in settings["model_part_name"].GetString():
             self.components_process_list.append(DamBofangConditionTemperatureProcess(model_part, settings))
 
-        if "RESERVOIR" in settings["model_part_name"].GetString():
+        if "CONSTANTRESERVOIRTEMPERATURE" in settings["model_part_name"].GetString():
             self.components_process_list.append(DamReservoirConstantTemperatureProcess(model_part, settings))
 
 
