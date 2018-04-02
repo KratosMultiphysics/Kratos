@@ -13,7 +13,6 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 // Constitutive laws
@@ -56,7 +55,7 @@ using namespace pybind11;
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
-  //Linear Elastic laws
+  // Linear Elastic laws
 
   class_< LinearElastic3DLaw, typename LinearElastic3DLaw::Pointer, ConstitutiveLaw >
       (m, "LinearElastic3DLaw").def(init<>() )
@@ -78,7 +77,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       (m, "LinearElasticOrthotropic3DLaw").def(init<>() )
       ;
 
-  //Hyperelastic laws
+  // Hyperelastic laws
 
   class_< HyperElastic3DLaw, typename HyperElastic3DLaw::Pointer, ConstitutiveLaw >
       (m, "HyperElastic3DLaw").def(init<>() )
@@ -93,7 +92,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       ;
 
 
-  //Hyperelastic laws U-P
+  // Hyperelastic laws U-P
 
   class_< HyperElasticUP3DLaw, typename HyperElasticUP3DLaw::Pointer, ConstitutiveLaw >
       (m, "HyperElasticUP3DLaw").def(init<>() )
@@ -109,7 +108,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       ;
 
 
-  //Hyperelastic Plastic J2 specilization laws 
+  // Hyperelastic Plastic J2 specilization laws 
 
   class_<HyperElasticPlasticJ23DLaw, typename HyperElasticPlasticJ23DLaw::Pointer, ConstitutiveLaw >
       (m, "HyperElasticPlasticJ23DLaw").def(init<>() )
@@ -123,7 +122,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       (m, "HyperElasticPlasticJ2Axisym2DLaw").def(init<>() )
       ;
 
-  //Hyperelastic Plastic J2 specilization laws U-P
+  // Hyperelastic Plastic J2 specilization laws U-P
 
   class_<HyperElasticPlasticUPJ23DLaw, typename HyperElasticPlasticUPJ23DLaw::Pointer, ConstitutiveLaw >
       (m, "HyperElasticPlasticUPJ23DLaw").def(init<>() )
@@ -138,7 +137,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       ;
 
 
-  //Isotropic Damage laws 
+  // Isotropic Damage laws 
 
   class_<IsotropicDamageSimoJu3DLaw, typename IsotropicDamageSimoJu3DLaw::Pointer, ConstitutiveLaw >
       (m, "IsotropicDamageSimoJu3DLaw").def(init<>() )
