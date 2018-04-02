@@ -261,11 +261,11 @@ void  AddProcessesToPython(pybind11::module& m)
             ;
 
 
-    class_<AssignScalarVariableToConditionsProcess, Process>(m,"AssignScalarVariableToConditionsProcess")
+    class_<AssignScalarValueToConditionsProcess, Process>(m,"AssignScalarVariableToConditionsProcess")
             .def(init<ModelPart&, Parameters >())
     ;
 
-    class_<AssignScalarFieldToConditionsProcess , Process>(m,"AssignScalarFieldToConditionsProcess")
+    class_<AssignValueFieldToConditionsProcess , Process>(m,"AssignScalarFieldToConditionsProcess")
             .def(init<ModelPart&, Parameters >())
     ;
 
