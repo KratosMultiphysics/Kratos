@@ -63,7 +63,6 @@
 
 // Core applications
 #include "pfem_application.h"
-
 #include "contact_mechanics_application_variables.h"
 
 namespace Kratos {
