@@ -848,14 +848,16 @@ inline std::vector<std::size_t> ExactMortarIntegrationUtility<TDim, TNumNodes, T
 
     // We reorder the nodes according with the angle they form with the first node
     std::vector<double> angles(list_size - 1);
-    array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
+    const array_1d<double, 3>& ref_point_coordinates = PointList[0].Coordinates();
+    array_1d<double, 3> v = PointList[1].Coordinates() - ref_point_coordinates;
+
     v /= norm_2(v);
     array_1d<double, 3> n = GetNormalVector2D(v);
 
     for (IndexType elem = 1; elem < list_size; ++elem) {
         angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
         if (angles[elem - 1] < 0.0) {
-            v = PointList[elem].Coordinates() - PointList[0].Coordinates();
+            v = PointList[elem].Coordinates() - ref_point_coordinates;
             v /= norm_2(v);
             n = GetNormalVector2D(v);
             for (IndexType aux_elem = 0; aux_elem <= (elem - 1); ++aux_elem)
@@ -933,13 +935,12 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TriangleInt
 {
     // We do the clipping
     if (IsAllInside == false)
-        ComputeClippingIntersections(
-            PointList, Geometry1, Geometry2, RefCenter);
+        ComputeClippingIntersections(PointList, Geometry1, Geometry2, RefCenter);
 
     // We compose the triangles
     const SizeType list_size = PointList.size();
     if (list_size >  2) { // Technically the minimum is three, just in case I consider 2
-        const std::vector<std::size_t> index_vector = ComputeAnglesIndexes(PointList);
+        const std::vector<IndexType> index_vector = ComputeAnglesIndexes(PointList);
 
         ConditionsPointsSlave.resize((list_size - 2));
 

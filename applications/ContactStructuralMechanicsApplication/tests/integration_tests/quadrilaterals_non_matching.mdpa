@@ -42,7 +42,7 @@ Begin Elements MembraneElement3D4N// GUI group identifier: Parts Auto2
     8    1    278    241    195    240
 End Elements
 
-Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto1 // Subtree Parts
+Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto1 // Subtree Parts
     Begin SubModelPartNodes
         371
         333
@@ -64,7 +64,7 @@ Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto1 // Subtree Parts
     End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto2 // Subtree Parts
+Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto2 // Subtree Parts
     Begin SubModelPartNodes
         297
         242

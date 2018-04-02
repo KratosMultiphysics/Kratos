@@ -462,7 +462,9 @@ protected:
         const PointType& PointDest
         )
     {
-        return (norm_2(PointDest.Coordinates() - PointOrig.Coordinates()) < ZeroTolerance) ? true : false;
+//         const double tolerance = ZeroTolerance; // NOTE: Giving some problems, too tight
+        const double tolerance = 1.0e-15;
+        return (norm_2(PointDest.Coordinates() - PointOrig.Coordinates()) < tolerance) ? true : false;
     }
 
     /**
