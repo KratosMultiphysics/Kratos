@@ -46,7 +46,7 @@ template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineSearchStrategy
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineSearchSolutionStrategy
     : public NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
  public:
@@ -54,7 +54,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineSearchStrategy
   ///@{
 
   // Counted pointer of ClassName
-  KRATOS_CLASS_POINTER_DEFINITION(LineSearchStrategy);
+  KRATOS_CLASS_POINTER_DEFINITION(LineSearchSolutionStrategy);
 
   typedef NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>       BaseType;
 
@@ -78,7 +78,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineSearchStrategy
    
   /// Constructor.
    
-  LineSearchStrategy(ModelPart& rModelPart,
+  LineSearchSolutionStrategy(ModelPart& rModelPart,
                      typename SchemeType::Pointer pScheme,
                      typename BuilderAndSolverType::Pointer pBuilderAndSolver,
                      typename ConvergenceCriterionType::Pointer pConvergenceCriterion,
@@ -88,7 +88,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineSearchStrategy
       : NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pBuilderAndSolver, pConvergenceCriterion, rOptions, MaxIterations), mType(LineSearchType)
   {}
 
-  LineSearchStrategy(ModelPart& rModelPart,
+  LineSearchSolutionStrategy(ModelPart& rModelPart,
                      typename SchemeType::Pointer pScheme,
                      typename LinearSolverType::Pointer pLinearSolver,
                      typename ConvergenceCriterionType::Pointer pConvergenceCriterion,
@@ -99,7 +99,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineSearchStrategy
   {}
 
   /// Destructor
-  ~LineSearchStrategy() override {}
+  ~LineSearchSolutionStrategy() override {}
 
   ///@}
   ///@name Operators
@@ -614,11 +614,11 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineSearchStrategy
   ///@{
 
   /// Copy constructor.
-  LineSearchStrategy(const LineSearchStrategy& Other) {};
+  LineSearchSolutionStrategy(const LineSearchSolutionStrategy& Other) {};
 
   ///@}
 
-}; /// Class LineSearchStrategy
+}; /// Class LineSearchSolutionStrategy
 
 ///@}
 

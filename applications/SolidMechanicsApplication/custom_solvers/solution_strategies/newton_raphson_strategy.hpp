@@ -408,7 +408,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) NewtonRaphsonStrategy : public Lin
     KRATOS_TRY
         
     //initialisation of the convergence criterion
-    if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
+    if (mpConvergenceCriteria->IsInitialized() == false)
       mpConvergenceCriteria->Initialize(this->GetModelPart());
         
     BaseType::Initialize();

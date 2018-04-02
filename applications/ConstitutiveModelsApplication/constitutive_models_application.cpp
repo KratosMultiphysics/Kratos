@@ -40,7 +40,7 @@ namespace Kratos {
     //Register Constitutive Laws
 
     //outfitted python laws
-    Serializer::Register( "PythonOutfittedConstitutiveLaw", mPythonOutfittedConstitutiveLaw );
+    //Serializer::Register( "PythonOutfittedConstitutiveLaw", mPythonOutfittedConstitutiveLaw );
     
     //general constitutive laws
     

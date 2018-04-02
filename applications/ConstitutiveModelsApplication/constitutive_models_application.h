@@ -43,7 +43,7 @@
 #include "containers/flags.h"
 
 //outfitted python laws
-#include "custom_python/python_outfitted_constitutive_law.hpp"
+//#include "custom_python/python_outfitted_constitutive_law.hpp"
 
 //general constitutive laws
 
@@ -128,12 +128,11 @@ namespace Kratos {
   /// Short class definition.
   /** Detail class definition.
    */
-  class KratosConstitutiveModelsApplication : public KratosApplication {
+  class KratosConstitutiveModelsApplication : public KratosApplication
+  {
   public:
     ///@name Type Definitions
     ///@{
-
-    typedef HardeningRule                                               HardeningRuleType; 
     
     /// Pointer definition of KratosConstitutiveModelsApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosConstitutiveModelsApplication);
@@ -252,7 +251,7 @@ namespace Kratos {
     ///@{
 
     //outfitted python laws
-    const PythonOutfittedConstitutiveLaw           mPythonOutfittedConstitutiveLaw;
+    //const PythonOutfittedConstitutiveLaw           mPythonOutfittedConstitutiveLaw;
     
     //general constitutive laws
     
@@ -298,11 +297,11 @@ namespace Kratos {
     const SimoJuExponentialDamageModel             mSimoJuModifiedExponentialDamageModel;
     
     //yield criteria
-    const MisesHuberYieldSurface<HardeningRuleType>         mMisesHuberYieldSurface;
-    const MisesHuberThermalYieldSurface<HardeningRuleType>  mMisesHuberThermalYieldSurface;
-    const SimoJuYieldSurface<HardeningRuleType>             mSimoJuYieldSurface;
-    const ModifiedMisesYieldSurface<HardeningRuleType>      mModifiedMisesYieldSurface;
-    const ModifiedCamClayYieldSurface<HardeningRuleType>    mModifiedCamClayYieldSurface;
+    const MisesHuberYieldSurface<HardeningRule>         mMisesHuberYieldSurface;
+    const MisesHuberThermalYieldSurface<HardeningRule>  mMisesHuberThermalYieldSurface;
+    const SimoJuYieldSurface<HardeningRule>             mSimoJuYieldSurface;
+    const ModifiedMisesYieldSurface<HardeningRule>      mModifiedMisesYieldSurface;
+    const ModifiedCamClayYieldSurface<HardeningRule>    mModifiedCamClayYieldSurface;
     
     //hardening rules
     const SimoExponentialHardeningRule              mSimoExponentialHardeningRule;

@@ -43,11 +43,11 @@ public:
     ///@name Life Cycle
     ///@{
     AssignVectorFieldToConditionsProcess(ModelPart& model_part,
-					 PyObject* pPyObject,
-					 const char* pPyMethodName,
+					 pybind11::object& rPyObject,
+					 const std::string& rPyMethodName,
 					 const bool SpatialFieldFunction,
 					 Parameters rParameters
-					 ) : Process(Flags()) , mr_model_part(model_part)
+					 ) : Process(Flags()), mrModelPart(model_part), mPyObject(rPyObject), mPyMethodName(rPyMethodName), mIsSpatialField(SpatialFieldFunction)
     {
         KRATOS_TRY
 			 
@@ -64,11 +64,6 @@ public:
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mvariable_name = rParameters["variable_name"].GetString();
-
-	mpPyObject      =  pPyObject;	
-	mpPyMethodName  =  pPyMethodName;
-	
-	mIsSpatialField = SpatialFieldFunction;
 
 	// Admissible values for local axes, are "empty" or 
         //"local_axes" :{
@@ -105,7 +100,6 @@ public:
         KRATOS_CATCH("");
     }
 
-
     /// Destructor.
     virtual ~AssignVectorFieldToConditionsProcess() {}
 
@@ -132,7 +126,7 @@ public:
 
         KRATOS_TRY
 
-	ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
+	ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 	const double& rCurrentTime = rCurrentProcessInfo[TIME];
 
@@ -275,13 +269,13 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-   
-    /// Copy constructor.
-    AssignVectorFieldToConditionsProcess(AssignVectorFieldToConditionsProcess const& rOther);
-
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /// Copy constructor.
+    AssignVectorFieldToConditionsProcess(AssignVectorFieldToConditionsProcess const& rOther);
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -301,13 +295,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     std::string mvariable_name;
 
     array_1d<double,3> mvector_value;
 
-    PyObject* mpPyObject;  
-    const char* mpPyMethodName;
+    pybind11::object mPyObject;
+    std::string mPyMethodName;
 
     Vector mLocalOrigin;
     Matrix mTransformationMatrix;
@@ -370,8 +364,9 @@ private:
 	for(unsigned int i=0; i<size; i++)
 	  {
 	    LocalAxesTransform(rConditionGeometry[i].X(), rConditionGeometry[i].Y(), rConditionGeometry[i].Z(), x, y, z);
-    	    value = boost::python::call_method<double>(mpPyObject, mpPyMethodName, x, y, z, time);
 
+            value = mPyObject.attr(mPyMethodName.c_str())(x,y,z,time).cast<double>();
+            
 	    for(unsigned int j=0; j<3; j++)
 	      {
 		rValue[counter] = value * mvector_value[j];
@@ -382,9 +377,7 @@ private:
       }
       else{
 
-
-	value = boost::python::call_method<double>(mpPyObject, mpPyMethodName, 0.0, 0.0, 0.0, time);
-	
+        value = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
 	for(unsigned int i=0; i<size; i++)
 	  {
 	    for(unsigned int j=0; j<3; j++)
@@ -403,11 +396,11 @@ private:
     template< class TVarType, class TDataType >
     void InternalAssignValue(TVarType& rVariable, TDataType& Value, const double& rTime )
     {
-        const int nconditions = mr_model_part.GetMesh().Conditions().size();
+        const int nconditions = mrModelPart.GetMesh().Conditions().size();
 	
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
 
             //#pragma omp parallel for  //it does not work in parallel
             for(int i = 0; i<nconditions; i++)
@@ -426,11 +419,11 @@ private:
     template< class TVarType, class TDataType >
     void InternalAssignValue(TVarType& rVar, const TDataType value)
     {
-      const int nconditions = mr_model_part.GetMesh().Conditions().size();
+      const int nconditions = mrModelPart.GetMesh().Conditions().size();
 
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
 
              #pragma omp parallel for
             for(int i = 0; i<nconditions; i++)
@@ -441,7 +434,44 @@ private:
             }
         }
     }
-			     
+
+    double CallPythonMethod(PyObject* pPyObject, const char* pPyMethodName,
+                           double rX, double rY, double rZ, const double& rTime)
+    {
+        KRATOS_TRY
+
+        if( PyObject_IsTrue(pPyObject) && PyCallable_Check(pPyObject) ){
+	    
+          KRATOS_INFO("pPyObject call") << " pPyObject exists and is callable " << std::endl;
+
+          PyObject* pArgs = PyTuple_Pack(4,PyFloat_FromDouble(rX),PyFloat_FromDouble(rY),PyFloat_FromDouble(rZ),
+                                           PyFloat_FromDouble(rTime));
+
+          PyObject* pResult = PyObject_CallObject(pPyObject, pArgs);
+	    
+          Py_DECREF(pArgs);
+
+          if(pResult == NULL){
+            if(PyErr_Occurred())
+              PyErr_Print();
+            KRATOS_ERROR <<" pResult DO NOT exists "<<std::endl;
+          }
+          else{
+            return PyFloat_AsDouble(pResult);
+          }
+	    
+        }
+        else{
+          if (PyErr_Occurred())
+            PyErr_Print();
+          KRATOS_ERROR <<" pPyObject DO NOT exists or is NOT callable "<<std::endl;
+        }
+	
+        Py_DECREF(pPyObject);
+
+        KRATOS_CATCH("")
+    }
+    
     ///@}
     ///@name Private Operations
     ///@{

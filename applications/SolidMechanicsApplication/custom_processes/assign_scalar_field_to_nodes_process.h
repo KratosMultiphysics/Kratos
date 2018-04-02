@@ -43,11 +43,11 @@ public:
     ///@name Life Cycle
     ///@{
     AssignScalarFieldToNodesProcess(ModelPart& model_part,
-					  PyObject* pPyObject,
-					  const char* pPyMethodName,
-					  const bool SpatialFieldFunction,
-					  Parameters rParameters
-					  ) : Process(Flags()) , mr_model_part(model_part)
+                                    pybind11::object& pPyObject,
+                                    const std::string& pPyMethodName,
+                                    const bool SpatialFieldFunction,
+                                    Parameters rParameters
+                                    ) : Process(Flags()) , mrModelPart(model_part)
     {
         KRATOS_TRY
 			 
@@ -64,8 +64,8 @@ public:
 
         mvariable_name = rParameters["variable_name"].GetString();
 
-	mpPyObject      =  pPyObject;	
-	mpPyMethodName  =  pPyMethodName;
+	mPyObject      =  pPyObject;	
+	mPyMethodName  =  pPyMethodName;
 
 	mIsSpatialField = SpatialFieldFunction;
 
@@ -148,7 +148,7 @@ public:
 
         KRATOS_TRY;
 
-        ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
+        ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 	const double& rCurrentTime = rCurrentProcessInfo[TIME];
 	
@@ -287,11 +287,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     std::string mvariable_name;
 
-    PyObject* mpPyObject;  
-    const char* mpPyMethodName;
+    pybind11::object mPyObject;  
+    std::string mPyMethodName;
 
     Vector mLocalOrigin;
     Matrix mTransformationMatrix;
@@ -345,14 +345,12 @@ private:
 	double x = 0.0, y = 0.0, z = 0.0;
 	
 	LocalAxesTransform(pNode->X(), pNode->Y(), pNode->Z(), x, y, z);
-    
-	rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, x, y, z, time);
-	
+ 	rValue = mPyObject.attr(mPyMethodName.c_str())(x,y,z,time).cast<double>();
+        
       }
       else{
 	
-	rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, 0.0, 0.0, 0.0, time);
-	
+       rValue = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
       }
       
     }
@@ -361,13 +359,13 @@ private:
     template< class TVarType>
     void InternalAssignValue(TVarType& rVariable, const double& rTime)
     {
-        const int nnodes = mr_model_part.GetMesh().Nodes().size();
+        const int nnodes = mrModelPart.GetMesh().Nodes().size();
 
 	double Value = 0;
 	
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh().NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh().NodesBegin();
 
             //#pragma omp parallel for  //it does not work in parallel
             for(int i = 0; i<nnodes; i++)

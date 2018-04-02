@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_ASSIGN_SCALAR_VARIABLE_TO_NODES_PROCESS_H_INCLUDED)
-#define  KRATOS_ASSIGN_SCALAR_VARIABLE_TO_NODES_PROCESS_H_INCLUDED
+#if !defined(KRATOS_ASSIGN_SCALAR_VARIABLETO_NODES_PROCESS_H_INCLUDED)
+#define  KRATOS_ASSIGN_SCALAR_VARIABLETO_NODES_PROCESS_H_INCLUDED
 
 
 
@@ -43,7 +43,7 @@ public:
     ///@name Life Cycle
     ///@{
     AssignScalarVariableToNodesProcess(ModelPart& model_part,
-				       Parameters rParameters) : Process(Flags()) , mr_model_part(model_part)
+				       Parameters rParameters) : Process(Flags()) , mrModelPart(model_part)
     {
         KRATOS_TRY
 			 
@@ -106,7 +106,7 @@ public:
 
     AssignScalarVariableToNodesProcess(ModelPart& model_part,
 				       const Variable<double>& rVariable,
-				       const double double_value) : Process() , mr_model_part(model_part),mdouble_value(double_value), mint_value(0), mbool_value(false)
+				       const double double_value) : Process() , mrModelPart(model_part),mdouble_value(double_value), mint_value(0), mbool_value(false)
     {
         KRATOS_TRY;
 
@@ -123,7 +123,7 @@ public:
 
     AssignScalarVariableToNodesProcess(ModelPart& model_part,
 				       const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable,
-				       const double double_value) : Process() , mr_model_part(model_part),mdouble_value(double_value), mint_value(0), mbool_value(false)
+				       const double double_value) : Process() , mrModelPart(model_part),mdouble_value(double_value), mint_value(0), mbool_value(false)
     {
         KRATOS_TRY;
 
@@ -139,7 +139,7 @@ public:
 
     AssignScalarVariableToNodesProcess(ModelPart& model_part,
 				       const Variable< int >& rVariable,
-				       const int int_value) : Process() , mr_model_part(model_part),mdouble_value(0.0), mint_value(int_value), mbool_value(false)
+				       const int int_value) : Process() , mrModelPart(model_part),mdouble_value(0.0), mint_value(int_value), mbool_value(false)
     {
         KRATOS_TRY;
 
@@ -155,7 +155,7 @@ public:
 
     AssignScalarVariableToNodesProcess(ModelPart& model_part,
 				       const Variable< bool >& rVariable,
-				       const bool bool_value) : Process() , mr_model_part(model_part),mdouble_value(0.0), mint_value(0), mbool_value(bool_value)
+				       const bool bool_value) : Process() , mrModelPart(model_part),mdouble_value(0.0), mint_value(0), mbool_value(bool_value)
     {
         KRATOS_TRY;
 
@@ -340,7 +340,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     std::string mvariable_name;
     double mdouble_value;
     int mint_value;
@@ -353,11 +353,11 @@ private:
     template< class TVarType, class TDataType >
     void InternalAssignValue(TVarType& rVar, const TDataType value)
     {
-        const int nnodes = mr_model_part.Nodes().size();
+        const int nnodes = mrModelPart.Nodes().size();
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh().NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh().NodesBegin();
 
              #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
@@ -423,4 +423,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ASSIGN_SCALAR_VARIABLE_TO_NODES_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_ASSIGN_SCALAR_VARIABLETO_NODES_PROCESS_H_INCLUDED  defined

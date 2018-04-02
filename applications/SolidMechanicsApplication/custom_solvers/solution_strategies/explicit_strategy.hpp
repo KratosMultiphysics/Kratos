@@ -48,7 +48,7 @@ template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
  public:
 
@@ -57,7 +57,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitStrategy : public Solution
 
   // Counted pointer of ClassName
   
-  KRATOS_CLASS_POINTER_DEFINITION(ExplicitStrategy);
+  KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolutionStrategy);
 
   typedef SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>            BaseType;
 
@@ -88,7 +88,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitStrategy : public Solution
 
   
   /// Constructor.  
-  ExplicitStrategy(ModelPart& rModelPart,
+  ExplicitSolutionStrategy(ModelPart& rModelPart,
                    typename SchemeType::Pointer pScheme,
                    Flags& rOptions)
       : SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, rOptions)
@@ -109,7 +109,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitStrategy : public Solution
   }
 
   /// Destructor.
-  ~ExplicitStrategy() override {}
+  ~ExplicitSolutionStrategy() override {}
 
   ///@}
   ///@name Operators
@@ -368,11 +368,11 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitStrategy : public Solution
   ///@{
 
   /// Copy constructor.
-  ExplicitStrategy(const ExplicitStrategy& Other){};
+  ExplicitSolutionStrategy(const ExplicitSolutionStrategy& Other){};
 
   ///@}
 
-}; /// Class ExplicitStrategy  
+}; /// Class ExplicitSolutionStrategy  
 
 ///@}
 

@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_ASSIGN_SCALAR_VARIABLE_TO_CONDITIONS_PROCESS_H_INCLUDED)
-#define  KRATOS_ASSIGN_SCALAR_VARIABLE_TO_CONDITIONS_PROCESS_H_INCLUDED
+#if !defined(KRATOS_ASSIGN_SCALAR_VARIABLETO_CONDITIONS_PROCESS_H_INCLUDED)
+#define  KRATOS_ASSIGN_SCALAR_VARIABLETO_CONDITIONS_PROCESS_H_INCLUDED
 
 
 
@@ -43,7 +43,7 @@ public:
     ///@name Life Cycle
     ///@{
     AssignScalarVariableToConditionsProcess(ModelPart& model_part,
-					    Parameters rParameters) : Process(Flags()) , mr_model_part(model_part)
+					    Parameters rParameters) : Process(Flags()) , mrModelPart(model_part)
     {
         KRATOS_TRY
 			 
@@ -81,7 +81,7 @@ public:
 
     AssignScalarVariableToConditionsProcess(ModelPart& model_part,
 					    const Variable<double>& rVariable,
-					    const double double_value) : Process() , mr_model_part(model_part), mdouble_value(double_value), mint_value(0), mbool_value(false)
+					    const double double_value) : Process() , mrModelPart(model_part), mdouble_value(double_value), mint_value(0), mbool_value(false)
     {
         KRATOS_TRY
 
@@ -96,7 +96,7 @@ public:
 
     AssignScalarVariableToConditionsProcess(ModelPart& model_part,
 					    const Variable< int >& rVariable,
-					    const int int_value) : Process() , mr_model_part(model_part), mdouble_value(0.0), mint_value(int_value), mbool_value(false)
+					    const int int_value) : Process() , mrModelPart(model_part), mdouble_value(0.0), mint_value(int_value), mbool_value(false)
     {
         KRATOS_TRY
 
@@ -112,7 +112,7 @@ public:
 
     AssignScalarVariableToConditionsProcess(ModelPart& model_part,
 					    const Variable< bool >& rVariable,
-					    const bool bool_value) : Process() , mr_model_part(model_part), mdouble_value(0.0), mint_value(0), mbool_value(bool_value)
+					    const bool bool_value) : Process() , mrModelPart(model_part), mdouble_value(0.0), mint_value(0), mbool_value(bool_value)
     {
         KRATOS_TRY
 
@@ -312,7 +312,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     std::string mvariable_name;
     double mdouble_value;
     int mint_value;
@@ -325,11 +325,11 @@ private:
     template< class TVarType, class TDataType >
     void InternalAssignValue(TVarType& rVar, const TDataType value)
     {
-      const int nconditions = mr_model_part.GetMesh().Conditions().size();
+      const int nconditions = mrModelPart.GetMesh().Conditions().size();
 
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
 
              #pragma omp parallel for
             for(int i = 0; i<nconditions; i++)
@@ -395,4 +395,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ASSIGN_SCALAR_VARIABLE_TO_CONDITIONS_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_ASSIGN_SCALAR_VARIABLETO_CONDITIONS_PROCESS_H_INCLUDED  defined

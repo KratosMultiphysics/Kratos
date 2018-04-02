@@ -43,11 +43,11 @@ public:
     ///@name Life Cycle
     ///@{
     AssignScalarFieldToConditionsProcess(ModelPart& model_part,
-					 PyObject* pPyObject,
-					 const char* pPyMethodName,
+					 pybind11::object& pPyObject,
+					 const std::string& pPyMethodName,
 					 const bool SpatialFieldFunction,
 					 Parameters rParameters
-					 ) : Process(Flags()) , mr_model_part(model_part)
+					 ) : Process(Flags()) , mrModelPart(model_part)
     {
         KRATOS_TRY
 			 
@@ -64,8 +64,8 @@ public:
 
         mvariable_name = rParameters["variable_name"].GetString();
 
-	mpPyObject      =  pPyObject;	
-	mpPyMethodName  =  pPyMethodName;
+	mPyObject      =  pPyObject;	
+	mPyMethodName  =  pPyMethodName;
 
 	mIsSpatialField = SpatialFieldFunction;
 
@@ -130,7 +130,7 @@ public:
 
         KRATOS_TRY
 
-	ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
+	ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 	const double& rCurrentTime = rCurrentProcessInfo[TIME];
 
@@ -278,11 +278,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     std::string mvariable_name;
 
-    PyObject* mpPyObject;  
-    const char* mpPyMethodName;
+    pybind11::object mPyObject;  
+    std::string mPyMethodName;
 
     Vector mLocalOrigin;
     Matrix mTransformationMatrix;
@@ -343,13 +343,13 @@ private:
 	for(unsigned int i=0; i<size; i++)
 	  {
 	    LocalAxesTransform(rConditionGeometry[i].X(), rConditionGeometry[i].Y(), rConditionGeometry[i].Z(), x, y, z);    
-	    rValue[i] = boost::python::call_method<double>(mpPyObject, mpPyMethodName, x, y, z, time);
+            rValue[i] = mPyObject.attr(mPyMethodName.c_str())(x,y,z,time).cast<double>();
 	  }
 	
       }
       else{
 
-	double value = boost::python::call_method<double>(mpPyObject, mpPyMethodName, 0.0, 0.0, 0.0, time);
+        double value = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
 	for(unsigned int i=0; i<size; i++)
 	  {
 	    rValue[i] = value;
@@ -363,13 +363,13 @@ private:
     template< class TVarType >
     void InternalAssignValue(TVarType& rVar, const double& rTime)
     {
-        const int nconditions = mr_model_part.GetMesh().Conditions().size();
+        const int nconditions = mrModelPart.GetMesh().Conditions().size();
 
 	Vector Value;
 	
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
 
             // #pragma omp parallel for //it does not work in parallel
             for(int i = 0; i<nconditions; i++)
@@ -386,11 +386,11 @@ private:
     template< class TVarType, class TDataType >
     void InternalAssignValue(TVarType& rVar, const TDataType value)
     {
-      const int nconditions = mr_model_part.GetMesh().Conditions().size();
+      const int nconditions = mrModelPart.GetMesh().Conditions().size();
 
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
 
              #pragma omp parallel for
             for(int i = 0; i<nconditions; i++)
@@ -402,7 +402,7 @@ private:
         }
     }
 
-    
+        
     ///@}
     ///@name Private Operations
     ///@{
