@@ -152,26 +152,24 @@ void TreeContactSearch<TDim, TNumNodes>::SetOriginDestinationModelParts(ModelPar
     std::vector<IndexType> master_nodes_ids;
     std::vector<IndexType> slave_conditions_ids;
     std::vector<IndexType> master_conditions_ids;
-    // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<std::vector<IndexType>> slave_nodes_ids_buffer(num_threads);
-    std::vector<std::vector<IndexType>> master_nodes_ids_buffer(num_threads);
-    std::vector<std::vector<IndexType>> slave_conditions_ids_buffer(num_threads);
-    std::vector<std::vector<IndexType>> master_conditions_ids_buffer(num_threads);
 
     #pragma omp parallel
     {
-        const int id = OpenMPUtils::ThisThread();
+        // Creating a buffer for parallel vector fill
+        std::vector<IndexType> slave_nodes_ids_buffer;
+        std::vector<IndexType> master_nodes_ids_buffer;
+        std::vector<IndexType> slave_conditions_ids_buffer;
+        std::vector<IndexType> master_conditions_ids_buffer;
 
         #pragma omp for
         for(int i=0; i<static_cast<int>(rModelPart.Nodes().size()); ++i) {
             auto it_node = rModelPart.NodesBegin() + i;
 
             if (it_node->Is(SLAVE) == !mInvertedSearch) {
-                slave_nodes_ids_buffer[id].push_back(it_node->Id());
+                slave_nodes_ids_buffer.push_back(it_node->Id());
             }
             if (it_node->Is(MASTER) == !mInvertedSearch) {
-                master_nodes_ids_buffer[id].push_back(it_node->Id());
+                master_nodes_ids_buffer.push_back(it_node->Id());
             }
         }
 
@@ -180,24 +178,20 @@ void TreeContactSearch<TDim, TNumNodes>::SetOriginDestinationModelParts(ModelPar
             auto it_cond = rModelPart.ConditionsBegin() + i;
 
             if (it_cond->Is(SLAVE) == !mInvertedSearch) {
-                slave_conditions_ids_buffer[id].push_back(it_cond->Id());
+                slave_conditions_ids_buffer.push_back(it_cond->Id());
             }
             if (it_cond->Is(MASTER) == !mInvertedSearch) {
-                master_conditions_ids_buffer[id].push_back(it_cond->Id());
+                master_conditions_ids_buffer.push_back(it_cond->Id());
             }
         }
 
         // Combine buffers together
-        #pragma omp single
+        #pragma omp critical
         {
-            for( auto& partial_slave_nodes_ids : slave_nodes_ids_buffer)
-                std::move(partial_slave_nodes_ids.begin(),partial_slave_nodes_ids.end(),back_inserter(slave_nodes_ids));
-            for( auto& partial_master_nodes_ids : master_nodes_ids_buffer)
-                std::move(partial_master_nodes_ids.begin(),partial_master_nodes_ids.end(),back_inserter(master_nodes_ids));
-            for( auto& partial_slave_conditions_ids : slave_conditions_ids_buffer)
-                std::move(partial_slave_conditions_ids.begin(),partial_slave_conditions_ids.end(),back_inserter(slave_conditions_ids));
-            for( auto& partial_master_conditions_ids : master_conditions_ids_buffer)
-                std::move(partial_master_conditions_ids.begin(),partial_master_conditions_ids.end(),back_inserter(master_conditions_ids));
+            std::move(slave_nodes_ids_buffer.begin(),slave_nodes_ids_buffer.end(),back_inserter(slave_nodes_ids));
+            std::move(master_nodes_ids_buffer.begin(),master_nodes_ids_buffer.end(),back_inserter(master_nodes_ids));
+            std::move(slave_conditions_ids_buffer.begin(),slave_conditions_ids_buffer.end(),back_inserter(slave_conditions_ids));
+            std::move(master_conditions_ids_buffer.begin(),master_conditions_ids_buffer.end(),back_inserter(master_conditions_ids));
         }
     }
 
@@ -246,13 +240,10 @@ void TreeContactSearch<TDim, TNumNodes>::CreatePointListMortar()
     // Iterate in the conditions
     ConditionsArrayType& conditions_array = mrMainModelPart.GetSubModelPart("Contact").Conditions();
 
-    // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<PointVector> points_buffer(num_threads);
-
     #pragma omp parallel
     {
-        const int thread_id = OpenMPUtils::ThisThread();
+        // Creating a buffer for parallel vector fill
+        PointVector points_buffer;
 
         #pragma omp for
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
@@ -260,15 +251,14 @@ void TreeContactSearch<TDim, TNumNodes>::CreatePointListMortar()
 
             if (it_cond->Is(MASTER) == !mInvertedSearch || !mPredefinedMasterSlave) {
                 const PointTypePointer& p_point = Kratos::make_shared<PointItem>((*it_cond.base()));
-                (points_buffer[thread_id]).push_back(p_point);
+                (points_buffer).push_back(p_point);
             }
         }
 
         // Combine buffers together
-        #pragma omp single
+        #pragma omp critical
         {
-            for( auto& point_buffer : points_buffer)
-                std::move(point_buffer.begin(),point_buffer.end(),back_inserter(mPointListDestination));
+            std::move(points_buffer.begin(),points_buffer.end(),back_inserter(mPointListDestination));
         }
     }
 
@@ -728,13 +718,11 @@ inline void TreeContactSearch<TDim, TNumNodes>::NotPredefinedMasterSlave(ModelPa
     const int num_conditions = static_cast<int>(conditions_array.size());
 
     std::vector<IndexType> master_conditions_ids;
-    // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<std::vector<IndexType>> master_conditions_ids_buffer(num_threads);
 
     #pragma omp parallel
     {
-        const int id = OpenMPUtils::ThisThread();
+        // Creating a buffer for parallel vector fill
+        std::vector<IndexType> master_conditions_ids_buffer;
 
         #pragma omp for
         for(int i = 0; i < num_conditions; ++i) {
@@ -743,16 +731,15 @@ inline void TreeContactSearch<TDim, TNumNodes>::NotPredefinedMasterSlave(ModelPa
             if (indexes_set->size() > 0) {
                 it_cond->Set(SLAVE, true);
                 for (auto& i_pair : *indexes_set) {
-                    master_conditions_ids_buffer[id].push_back(i_pair);
+                    master_conditions_ids_buffer.push_back(i_pair);
                 }
             }
         }
 
         // Combine buffers together
-        #pragma omp single
+        #pragma omp critical
         {
-            for( auto& partial_master_conditions_ids : master_conditions_ids_buffer)
-                std::move(partial_master_conditions_ids.begin(),partial_master_conditions_ids.end(),back_inserter(master_conditions_ids));
+            std::move(master_conditions_ids_buffer.begin(),master_conditions_ids_buffer.end(),back_inserter(master_conditions_ids));
         }
     }
 
