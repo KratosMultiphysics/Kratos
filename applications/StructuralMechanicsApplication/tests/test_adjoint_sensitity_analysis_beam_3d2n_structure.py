@@ -16,6 +16,11 @@ class TestCase(KratosUnittest.TestCase):
         if os.path.isfile(file_path):
             os.remove(file_path)
 
+    def _remove_h5_files(self, model_part_name):
+        for name in os.listdir():
+            if name.find(model_part_name) == 0:
+                self._remove_file(name)
+
     def _solve_primal_problem(self):
         with open("./adjoint_sensitivity_test_martin/adjoint_beam_structure_3d2n/beam_test_parameters.json",'r') as parameter_file:
             ProjectParametersPrimal = Parameters( parameter_file.read())
@@ -84,7 +89,7 @@ class TestCase(KratosUnittest.TestCase):
 
 
         # Delete *.h5 only after last test case because primal solution is used in each test case
-        self._remove_file("./adjoint_sensitivity_test_martin/adjoint_beam_structure_3d2n/beam_test_0.h5")
+        self._remove_h5_files("Structure")
         self._remove_file("./adjoint_sensitivity_test_martin/adjoint_beam_structure_3d2n/Beam_structure.time")
 
     def tearDown(self):
