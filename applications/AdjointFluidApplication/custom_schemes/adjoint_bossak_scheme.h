@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/checks.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
@@ -439,17 +440,12 @@ public:
         if (domain_size != working_space_dimension)
             KRATOS_ERROR << "DOMAIN_SIZE != WorkingSpaceDimension()" << std::endl;
 
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_FLUID_VECTOR_1) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_FLUID_VECTOR_1 << std::endl;
-
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_FLUID_SCALAR_1) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_FLUID_SCALAR_1 << std::endl;
-
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_FLUID_VECTOR_3) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_FLUID_VECTOR_3 << std::endl;
-
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(AUX_ADJOINT_FLUID_VECTOR_1) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << AUX_ADJOINT_FLUID_VECTOR_1 << std::endl;
+        const Node<3>& r_node = *(rModelPart.NodesBegin());
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_1,r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_SCALAR_1,r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_2,r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_3,r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(AUX_ADJOINT_FLUID_VECTOR_1,r_node);
 
         return BaseType::Check(rModelPart); // Check elements and conditions.
         KRATOS_CATCH("");
