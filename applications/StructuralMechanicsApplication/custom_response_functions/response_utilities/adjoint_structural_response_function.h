@@ -772,7 +772,7 @@ protected:
 	    ModelPart& r_model_part = this->GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         //double delta_time = -r_process_info[DELTA_TIME];
-        const int num_threads = OpenMPUtils::GetNumThreads();
+        const int num_threads = 1; //OpenMPUtils::GetNumThreads();
         std::vector<Vector> sensitivity_vector(num_threads);
         std::vector<Vector> response_gradient(num_threads);
         std::vector<Vector> adjoint_vector(num_threads);
@@ -795,15 +795,18 @@ protected:
             }
         }
         // Assemble element contributions.
-#pragma omp parallel
+/*#pragma omp parallel
         {
             ModelPart::ElementIterator elements_begin;
             ModelPart::ElementIterator elements_end;
             OpenMPUtils::PartitionedIterators(r_model_part.Elements(),
                                               elements_begin, elements_end);
-            int k = OpenMPUtils::ThisThread();
+            int k = OpenMPUtils::ThisThread();*/
 
-            for (auto it = elements_begin; it != elements_end; ++it)
+            int k = 0;
+
+            //for (auto it = elements_begin; it != elements_end; ++it)
+            for (ModelPart::ElementIterator it = r_model_part.ElementsBegin(); it != r_model_part.ElementsEnd(); ++it)
             {
                 //std::cout << ("I compute now sensitivities of element #") << it->Id() << std::endl;
                 Element::GeometryType& r_geom = it->GetGeometry();
@@ -845,18 +848,18 @@ protected:
                         rSensitivityVariable, sensitivity_vector[k], r_geom);  //----> check for correct output
                 }
             }
-        }
+        //}
 
 //         Assemble condition contributions.
- #pragma omp parallel
+/*#pragma omp parallel
         {
             ModelPart::ConditionIterator conditions_begin;
             ModelPart::ConditionIterator conditions_end;
             OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),
                                                conditions_begin, conditions_end);
-            int k = OpenMPUtils::ThisThread();
+            int k = OpenMPUtils::ThisThread();*/
 
-            for (auto it = conditions_begin; it != conditions_end; ++it)
+            for (ModelPart::ConditionIterator it = r_model_part.ConditionsBegin(); it != r_model_part.ConditionsEnd(); ++it)
             {
                 Condition::GeometryType& r_geom = it->GetGeometry();
                 bool update_sensitivities = false;
@@ -904,7 +907,7 @@ protected:
                         rSensitivityVariable, sensitivity_vector[k], r_geom);	//----> check for correct output
                 }
             }
-        }
+        //}
 
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
