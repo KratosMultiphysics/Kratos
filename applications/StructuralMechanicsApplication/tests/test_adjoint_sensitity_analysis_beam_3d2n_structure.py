@@ -7,7 +7,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import structural_mechanics_analysis
 
-class TestCase(KratosUnittest.TestCase):
+class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
