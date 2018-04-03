@@ -33,23 +33,21 @@ void MasterSlaveProcess::Execute()
     ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
     const int num_conditions = static_cast<int>(conditions_array.size());
     
-    // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
     std::vector<IndexType> index_node;
-    std::vector<std::vector<IndexType>> index_node_buffer(num_threads);
     std::vector<IndexType> index_cond;
-    std::vector<std::vector<IndexType>> index_cond_buffer(num_threads);
     
     #pragma omp parallel
     {
-        const int thread_id = OpenMPUtils::ThisThread();
+        // Creating a buffer for parallel vector fill
+        std::vector<IndexType> index_node_buffer;
+        std::vector<IndexType> index_cond_buffer;
         
         #pragma omp for
         for(int i = 0; i < num_nodes; ++i) {
             auto it_node = nodes_array.begin() + i;
             if (it_node->IsDefined(INTERFACE)) {
                 if (it_node->Is(INTERFACE))
-                    (index_node_buffer[thread_id]).push_back(it_node->Id());
+                    (index_node_buffer).push_back(it_node->Id());
             }
         }
         
@@ -69,19 +67,17 @@ void MasterSlaveProcess::Execute()
                 }
             }
             if (is_interface) {
-                (index_cond_buffer[thread_id]).push_back(it_cond->Id());
+                (index_cond_buffer).push_back(it_cond->Id());
                 if (is_slave)  it_cond->Set(SLAVE, true);
                 else it_cond->Set(MASTER, true);
             }
         }
         
         // Combine buffers together
-        #pragma omp single
+        #pragma omp critical
         {
-            for( auto& node_buffer : index_node_buffer)
-                std::move(node_buffer.begin(),node_buffer.end(),back_inserter(index_node));
-            for( auto& cond_buffer : index_cond_buffer)
-                std::move(cond_buffer.begin(),cond_buffer.end(),back_inserter(index_cond));
+            std::move(index_node_buffer.begin(),index_node_buffer.end(),back_inserter(index_node));
+            std::move(index_cond_buffer.begin(),index_cond_buffer.end(),back_inserter(index_cond));
         }
     }
     
