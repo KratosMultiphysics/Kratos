@@ -58,9 +58,9 @@ if( USE_EIGEN_MKL MATCHES ON )
     if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
         find_library(MKL_RT_LIB mkl_rt)
         message( "mkl_rt.lib found at: ${MKL_RT_LIB}")
-        target_link_libraries( KratosEigenSolversApplication ${MKL_RT_LIB} )
+        target_link_libraries( KratosEigenSolversApplication PRIVATE ${MKL_RT_LIB} )
     else( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
-        target_link_libraries( KratosEigenSolversApplication mkl_rt )
+        target_link_libraries( KratosEigenSolversApplication PRIVATE mkl_rt )
     endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 endif()
 
@@ -76,6 +76,10 @@ if( ${INSTALL_PYTHON_FILES} MATCHES ON )
 	get_filename_component ( CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME )
 	install( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE )
 endif( ${INSTALL_PYTHON_FILES} MATCHES ON )
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosEigenSolversApplication)
+endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/EigenSolversApplication.py" DESTINATION KratosMultiphysics )
