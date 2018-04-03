@@ -103,11 +103,21 @@ void NestedRefinementUtility::Refine()
     // Loop the origin elements. Get the middle node on each edge and create the nodes
     for (const int id : elements_id)
     {
-        // Get the element
+        // Get the element and its geometry
         Element::Pointer p_element = mrModelPart.Elements()(id);
+        Geometry<Node<3>>& geom = p_element->GetGeometry();
         // Initialize the vector containing the middle nodes
         array_1d<Node<3>::Pointer, 3> p_middle_nodes;
 
+        // Triangle edges
+        p_middle_nodes[0] = GetNodeBetween(geom.pGetPoint(0), geom.pGetPoint(1));
+        p_middle_nodes[1] = GetNodeBetween(geom.pGetPoint(1), geom.pGetPoint(2));
+        p_middle_nodes[2] = GetNodeBetween(geom.pGetPoint(0), geom.pGetPoint(2));
+
+        // And now, create the sub triangles
+        //mrModelPart.CreateNewElement("Element2D3N", mLastElemId++, ...nodes..., ...properties);
+
+        // Encontrar el lugar para setear NodalDataBase, ElementDataBase and SubModelParts
     }
 
 }
