@@ -154,7 +154,7 @@ class ALMContactProcess(python_process.PythonProcess):
         self.find_nodal_h.Execute()
 
         # Assigning master and slave sides
-        self._assign_slave_nodes()
+        self._assign_slave_flags()
 
         # Appending the conditions created to the self.main_model_part
         if (computing_model_part.HasSubModelPart("Contact")):
@@ -189,6 +189,10 @@ class ALMContactProcess(python_process.PythonProcess):
 
         # We set the interface flag
         KM.VariableUtils().SetFlag(KM.INTERFACE, True, self.contact_model_part.Nodes)
+        if (len(self.contact_model_part.Conditions) == 0):
+            KM.Logger.PrintInfo("Contact Process", "Using nodes for interface. We recommend to use conditions instead")
+        else:
+            KM.VariableUtils().SetFlag(KM.INTERFACE, True, self.contact_model_part.Conditions)
 
         #If the conditions doesn't exist we create them
         if (preprocess is True):
@@ -300,19 +304,25 @@ class ALMContactProcess(python_process.PythonProcess):
         """
         pass
 
-    def _assign_slave_nodes(self):
-        """ This method initializes assigment of the slave nodes
+    def _assign_slave_flags(self):
+        """ This method initializes assigment of the slave nodes and conditions
 
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
 
         if (self.predefined_master_slave is True):
+            model_part_slave = self.main_model_part.GetSubModelPart(self.settings["assume_master_slave"].GetString())
             KM.VariableUtils().SetFlag(KM.SLAVE, False, self.contact_model_part.Nodes)
             KM.VariableUtils().SetFlag(KM.MASTER, True, self.contact_model_part.Nodes)
-            model_part_slave = self.main_model_part.GetSubModelPart(self.settings["assume_master_slave"].GetString())
             KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Nodes)
             KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Nodes)
+
+            if (len(self.contact_model_part.Conditions) > 0):
+                KM.VariableUtils().SetFlag(KM.SLAVE, False, self.contact_model_part.Conditions)
+                KM.VariableUtils().SetFlag(KM.MASTER, True, self.contact_model_part.Conditions)
+                KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Conditions)
+                KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Conditions)
 
     def _interface_preprocess(self, computing_model_part):
         """ This method creates the process used to compute the contact interface
@@ -328,9 +338,9 @@ class ALMContactProcess(python_process.PythonProcess):
         # It should create the conditions automatically
         interface_parameters = KM.Parameters("""{"simplify_geometry": false}""")
         if (self.dimension == 2):
-            self.interface_preprocess.GenerateInterfacePart2D(computing_model_part, self.contact_model_part, interface_parameters)
+            self.interface_preprocess.GenerateInterfacePart2D(self.contact_model_part, interface_parameters)
         else:
-            self.interface_preprocess.GenerateInterfacePart3D(computing_model_part, self.contact_model_part, interface_parameters)
+            self.interface_preprocess.GenerateInterfacePart3D(self.contact_model_part, interface_parameters)
 
     def _initialize_contact_values(self, computing_model_part):
         """ This method initializes some values and variables used during contact computations
