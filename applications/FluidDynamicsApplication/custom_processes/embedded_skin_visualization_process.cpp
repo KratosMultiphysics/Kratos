@@ -101,6 +101,10 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
 void EmbeddedSkinVisualizationProcess::ExecuteInitialize() {
     KRATOS_TRY;
 
+    // Check that model part is not empty
+    KRATOS_ERROR_IF(mrModelPart.Nodes().size() == 0) << "There are no nodes in the origin model part.";
+    KRATOS_ERROR_IF(mrModelPart.Elements().size() == 0) << "There are no elements in the origin model part.";
+
     // Required variables check
     const auto &r_orig_node = *mrModelPart.NodesBegin();
 
