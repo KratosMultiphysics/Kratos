@@ -1,4 +1,3 @@
-
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
@@ -50,12 +49,16 @@ class MeshTyingProcess(python_process.PythonProcess):
             "assume_master_slave"         : "",
             "type_variable"               : "Components",
             "geometry_element"            : "Quadrilateral",
-            "search_factor"               : 1.5,
-            "active_check_factor"         : 0.01,
-            "max_number_results"          : 1000,
-            "bucket_size"                 : 4,
-            "type_search"                 : "InRadius",
-            "check_gap"                   : "CheckMapping",
+            "search_parameters" : {
+                "type_search"                 : "in_radius",
+                "search_factor"               : 3.5,
+                "active_check_factor"         : 0.01,
+                "max_number_results"          : 1000,
+                "bucket_size"                 : 4,
+                "dynamic_search"              : false,
+                "debug_mode"                  : false,
+                "check_gap"                   : "check_mapping"
+            },
             "integration_order"           : 2
         }
         """)
@@ -105,7 +108,7 @@ class MeshTyingProcess(python_process.PythonProcess):
         for prop in computing_model_part.GetProperties():
             prop[CSMA.INTEGRATION_ORDER_CONTACT] = self.settings["integration_order"].GetInt()
 
-        self.main_model_part.ProcessInfo[CSMA.ACTIVE_CHECK_FACTOR] = self.settings["active_check_factor"].GetDouble()
+        self.main_model_part.ProcessInfo[CSMA.ACTIVE_CHECK_FACTOR] = self.settings["search_parameters"]["active_check_factor"].GetDouble()
 
         # We set the interface flag
         KM.VariableUtils().SetFlag(KM.INTERFACE, True, self.mesh_tying_model_part.Nodes)
@@ -134,11 +137,11 @@ class MeshTyingProcess(python_process.PythonProcess):
         # Creating the search
         condition_name = "MeshTyingMortar"
         search_parameters = KM.Parameters("""{"condition_name": "", "final_string": ""}""")
-        search_parameters.AddValue("type_search",self.settings["type_search"])
-        search_parameters.AddValue("check_gap",self.settings["check_gap"])
-        search_parameters.AddValue("allocation_size",self.settings["max_number_results"])
-        search_parameters.AddValue("bucket_size",self.settings["bucket_size"])
-        search_parameters.AddValue("search_factor",self.settings["search_factor"])
+        search_parameters.AddValue("type_search",self.settings["search_parameters"]["type_search"])
+        search_parameters.AddValue("check_gap",self.settings["search_parameters"]["check_gap"])
+        search_parameters.AddValue("allocation_size",self.settings["search_parameters"]["max_number_results"])
+        search_parameters.AddValue("bucket_size",self.settings["search_parameters"]["bucket_size"])
+        search_parameters.AddValue("search_factor",self.settings["search_parameters"]["search_factor"])
         search_parameters["condition_name"].SetString(condition_name)
         search_parameters["final_string"].SetString(self.geometry_element + self.type_variable)
 

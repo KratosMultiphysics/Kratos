@@ -135,13 +135,15 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeMaterialParameters(double& Density,
 									       double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
-									       double timeStep,
+									       ProcessInfo &currentProcessInfo,
 									       ElementalVariables& rElementalVariables)
   {
 
     Density=this->GetProperties()[DENSITY];
     double YoungModulus=this->GetProperties()[YOUNG_MODULUS];
     double PoissonRatio=this->GetProperties()[POISSON_RATIO];
+    double timeStep=currentProcessInfo[DELTA_TIME];
+
 
     // this->EvaluateInPoint(YoungModulus,YOUNG_MODULUS,N);
     // this->EvaluateInPoint(PoissonRatio,POISSON_RATIO,N);

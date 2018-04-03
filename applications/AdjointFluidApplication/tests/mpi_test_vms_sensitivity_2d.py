@@ -24,6 +24,11 @@ class TestCase(KratosUnittest.TestCase):
         if os.path.isfile(file_path):
             os.remove(file_path)
 
+    def _remove_h5_files(self, model_part_name):
+        for name in os.listdir():
+            if name.find(model_part_name) == 0:
+                self._remove_file(name)
+
     def _create_test(self, parameter_file_name):
         with open(parameter_file_name + '_parameters.json', 'r') as parameter_file:
             project_parameters = Parameters(parameter_file.read())
@@ -52,9 +57,9 @@ class TestCase(KratosUnittest.TestCase):
                 self._remove_file("./test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe2.dat")
                 self._remove_file("./test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe3.dat")
                 self._remove_file("./test_vms_sensitivity_2d/cylinder_test.time")
+                self._remove_h5_files("MainModelPart")
             self._remove_file("./test_vms_sensitivity_2d/cylinder_test_" + str(rank) + ".time")
             self._remove_file("./test_vms_sensitivity_2d/cylinder_test_" + str(rank) + ".mdpa")
-            self._remove_file("./test_vms_sensitivity_2d/cylinder_test_" + str(rank) + ".h5")
 
     def tearDown(self):
         pass
