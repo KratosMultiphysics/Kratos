@@ -12,7 +12,6 @@
 
 #include "shell_thin_element_3D4N.hpp"
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
-#include "structural_mechanics_application_variables.h"
 
 #include "custom_utilities/shell_utilities.h"
 #include "geometries/quadrilateral_3d_4.h"
@@ -68,7 +67,7 @@ namespace Kratos
 // 			N(2) = 0.25 * (1.0 + xi) * (1.0 + eta); // node 3
 // 			N(3) = 0.25 * (1.0 - xi) * (1.0 + eta); // node 4
 // 		}
-// 
+//
 // 		template<class TMat>
 // 		inline void ShapeFunc_NaturalDerivatives(double xi, double eta,
 // 			TMat & dN)
@@ -77,18 +76,18 @@ namespace Kratos
 // 			dN(1, 0) = (1.0 - eta) * 0.25;
 // 			dN(2, 0) = (1.0 + eta) * 0.25;
 // 			dN(3, 0) = -(1.0 + eta) * 0.25;
-// 
+//
 // 			dN(0, 1) = -(1.0 - xi)  * 0.25;
 // 			dN(1, 1) = -(1.0 + xi)  * 0.25;
 // 			dN(2, 1) = (1.0 + xi)  * 0.25;
 // 			dN(3, 1) = (1.0 - xi)  * 0.25;
 // 		}
-// 
+//
 // 		inline double dN_seren_dxi(const int actualNodeNumber,const double xi,
 // 			const double eta)
 // 		{
 // 			// Natural derivatives of 8-node serendipity shape functions
-// 
+//
 // 			double returnValue;
 // 			switch (actualNodeNumber)
 // 			{
@@ -125,15 +124,15 @@ namespace Kratos
 // 					"Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
 // 					<< std::endl;
 // 			}
-// 
+//
 // 			return returnValue;
 // 		}
-// 
+//
 // 		inline double dN_seren_deta(const int actualNodeNumber,const double xi,
 // 			const double eta)
 // 		{
 // 			// Natural derivatives of 8-node serendipity shape functions
-// 
+//
 // 			double returnValue;
 // 			switch (actualNodeNumber)
 // 			{
@@ -170,7 +169,7 @@ namespace Kratos
 // 					"Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
 // 					<< std::endl;
 // 			}
-// 
+//
 // 			return returnValue;
 // 		}
 // 	}
@@ -180,11 +179,6 @@ namespace Kratos
 	// Definitions
 	//
 	// =========================================================================
-
-	#define OPT_NUM_NODES 4
-	#define OPT_STRAIN_SIZE 6
-	#define OPT_NUM_DOFS 24
-	#define OPT_NUM_GP 4
 
 	// =========================================================================
 	//
@@ -232,34 +226,31 @@ namespace Kratos
 	ShellThinElement3D4N::ShellThinElement3D4N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
 		bool NLGeom)
-		: Element(NewId, pGeometry)
+		: BaseShellElement(NewId, pGeometry)
 		, mpCoordinateTransformation(NLGeom ?
 			new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
 			new ShellQ4_CoordinateTransformation(pGeometry))
 	{
-		mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 	}
 
 	ShellThinElement3D4N::ShellThinElement3D4N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
 		PropertiesType::Pointer pProperties,
 		bool NLGeom)
-		: Element(NewId, pGeometry, pProperties)
+		: BaseShellElement(NewId, pGeometry, pProperties)
 		, mpCoordinateTransformation(NLGeom ?
 			new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
 			new ShellQ4_CoordinateTransformation(pGeometry))
 	{
-		mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 	}
 
 	ShellThinElement3D4N::ShellThinElement3D4N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
 		PropertiesType::Pointer pProperties,
 		CoordinateTransformationBasePointerType pCoordinateTransformation)
-		: Element(NewId, pGeometry, pProperties)
+		: BaseShellElement(NewId, pGeometry, pProperties)
 		, mpCoordinateTransformation(pCoordinateTransformation)
 	{
-		mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 	}
 
 	ShellThinElement3D4N::~ShellThinElement3D4N()
@@ -277,12 +268,6 @@ namespace Kratos
 			pProperties, mpCoordinateTransformation->Create(newGeom));
 	}
 
-	ShellThinElement3D4N::IntegrationMethod
-		ShellThinElement3D4N::GetIntegrationMethod() const
-	{
-		return mThisIntegrationMethod;
-	}
-
 	void ShellThinElement3D4N::Initialize()
 	{
 		KRATOS_TRY
@@ -290,19 +275,14 @@ namespace Kratos
 		const GeometryType & geom = GetGeometry();
 		const PropertiesType & props = GetProperties();
 
-		if (geom.PointsNumber() != OPT_NUM_NODES)
+		if (geom.PointsNumber() != 4)
 			KRATOS_THROW_ERROR(std::logic_error,
 				"ShellThinElement3D4N Element - Wrong number of nodes",
 				geom.PointsNumber());
 
-		const GeometryType::IntegrationPointsArrayType & integrationPoints =
-			geom.IntegrationPoints(GetIntegrationMethod());
-		if (integrationPoints.size() != OPT_NUM_GP)
-			KRATOS_THROW_ERROR(std::logic_error,
-				"ShellThinElement3D4N Element - Wrong integration scheme",
-				integrationPoints.size());
+        const SizeType num_gps = GetNumberOfGPs();
 
-		if (mSections.size() != OPT_NUM_GP)
+		if (mSections.size() != num_gps)
 		{
 			const Matrix & shapeFunctionsValues =
 				geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -333,10 +313,10 @@ namespace Kratos
 			}
 
 			mSections.clear();
-			for (int i = 0; i < OPT_NUM_GP; i++)
+			for (SizeType i = 0; i < num_gps; ++i)
 			{
 				ShellCrossSection::Pointer sectionClone = theSection->Clone();
-				sectionClone->SetSectionBehavior(ShellCrossSection::Thin);
+				sectionClone->SetSectionBehavior(GetSectionBehavior());
 				sectionClone->InitializeCrossSection(props, geom,
 					row(shapeFunctionsValues, i));
 				mSections.push_back(sectionClone);
@@ -350,200 +330,36 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	void ShellThinElement3D4N::EquationIdVector(EquationIdVectorType& rResult,
-		ProcessInfo& rCurrentProcessInfo)
-	{
-		if (rResult.size() != OPT_NUM_DOFS)
-			rResult.resize(OPT_NUM_DOFS, false);
-
-		GeometryType & geom = this->GetGeometry();
-
-		for (SizeType i = 0; i < geom.size(); i++)
-		{
-			const int index = i * 6;
-			NodeType & iNode = geom[i];
-
-			rResult[index] = iNode.GetDof(DISPLACEMENT_X).EquationId();
-			rResult[index + 1] = iNode.GetDof(DISPLACEMENT_Y).EquationId();
-			rResult[index + 2] = iNode.GetDof(DISPLACEMENT_Z).EquationId();
-
-			rResult[index + 3] = iNode.GetDof(ROTATION_X).EquationId();
-			rResult[index + 4] = iNode.GetDof(ROTATION_Y).EquationId();
-			rResult[index + 5] = iNode.GetDof(ROTATION_Z).EquationId();
-		}
-	}
-
-	void ShellThinElement3D4N::GetDofList(DofsVectorType& ElementalDofList,
-		ProcessInfo& CurrentProcessInfo)
-	{
-		ElementalDofList.resize(0);
-		ElementalDofList.reserve(OPT_NUM_DOFS);
-
-		GeometryType & geom = this->GetGeometry();
-
-		for (SizeType i = 0; i < geom.size(); i++)
-		{
-			NodeType & iNode = geom[i];
-
-			ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_X));
-			ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_Y));
-			ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_Z));
-
-			ElementalDofList.push_back(iNode.pGetDof(ROTATION_X));
-			ElementalDofList.push_back(iNode.pGetDof(ROTATION_Y));
-			ElementalDofList.push_back(iNode.pGetDof(ROTATION_Z));
-		}
-	}
-
-	int ShellThinElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
-	{
-        KRATOS_TRY
-    
-        GeometryType& r_geom = GetGeometry();
-    
-        ShellUtilities::CheckVariables();
-        ShellUtilities::CheckDofs(r_geom);
-        ShellUtilities::CheckProperties(this, rCurrentProcessInfo);
-    
-        return 0;
-    
-        KRATOS_CATCH("")
-	}
-
-	void ShellThinElement3D4N::CleanMemory()
-	{
-	}
-
-	void ShellThinElement3D4N::GetFirstDerivativesVector(Vector& values,
-		int Step)
-	{
-		if (values.size() != 24)
-			values.resize(24, false);
-
-		const GeometryType & geom = GetGeometry();
-
-		for (int i = 0; i < 4; i++)
-		{
-			const NodeType & iNode = geom[i];
-			const array_1d<double, 3>& vel =
-				iNode.FastGetSolutionStepValue(VELOCITY, Step);
-
-			int index = i * 6;
-			values[index] = vel[0];
-			values[index + 1] = vel[1];
-			values[index + 2] = vel[2];
-			values[index + 3] = 0.0;
-			values[index + 4] = 0.0;
-			values[index + 5] = 0.0;
-		}
-	}
-
-	void ShellThinElement3D4N::GetSecondDerivativesVector(Vector& values,
-		int Step)
-	{
-		if (values.size() != 24)
-			values.resize(24, false);
-
-		const GeometryType & geom = GetGeometry();
-
-		for (int i = 0; i < 4; i++)
-		{
-			const NodeType & iNode = geom[i];
-			const array_1d<double, 3>& acc =
-				iNode.FastGetSolutionStepValue(ACCELERATION, Step);
-
-			int index = i * 6;
-			values[index] = acc[0];
-			values[index + 1] = acc[1];
-			values[index + 2] = acc[2];
-			values[index + 3] = 0.0;
-			values[index + 4] = 0.0;
-			values[index + 5] = 0.0;
-		}
-	}
-
-	void ShellThinElement3D4N::GetValuesVector(Vector& values, int Step)
-	{
-		if (values.size() != 24)
-			values.resize(24, false);
-
-		const GeometryType & geom = GetGeometry();
-
-		for (int i = 0; i < 4; i++)
-		{
-			const NodeType & iNode = geom[i];
-			const array_1d<double, 3>& disp =
-				iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
-			const array_1d<double, 3>& rot =
-				iNode.FastGetSolutionStepValue(ROTATION, Step);
-
-			int index = i * 6;
-			values[index] = disp[0];
-			values[index + 1] = disp[1];
-			values[index + 2] = disp[2];
-
-			values[index + 3] = rot[0];
-			values[index + 4] = rot[1];
-			values[index + 5] = rot[2];
-		}
-	}
-
 	void ShellThinElement3D4N::InitializeNonLinearIteration
-	(ProcessInfo& CurrentProcessInfo)
+	(ProcessInfo& rCurrentProcessInfo)
 	{
-		mpCoordinateTransformation->
-			InitializeNonLinearIteration(CurrentProcessInfo);
+		mpCoordinateTransformation->InitializeNonLinearIteration(rCurrentProcessInfo);
 
-		const GeometryType & geom = this->GetGeometry();
-		const Matrix & shapeFunctionsValues =
-			geom.ShapeFunctionsValues(GetIntegrationMethod());
-		for (int i = 0; i < 4; i++)
-			mSections[i]->InitializeNonLinearIteration(GetProperties(), geom,
-				row(shapeFunctionsValues, i), CurrentProcessInfo);
+		BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 	}
 
 	void ShellThinElement3D4N::FinalizeNonLinearIteration
-	(ProcessInfo& CurrentProcessInfo)
+	(ProcessInfo& rCurrentProcessInfo)
 	{
-		mpCoordinateTransformation->
-			FinalizeNonLinearIteration(CurrentProcessInfo);
+		mpCoordinateTransformation->FinalizeNonLinearIteration(rCurrentProcessInfo);
 
-		const GeometryType & geom = this->GetGeometry();
-		const Matrix & shapeFunctionsValues =
-			geom.ShapeFunctionsValues(GetIntegrationMethod());
-		for (int i = 0; i < 4; i++)
-			mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom,
-				row(shapeFunctionsValues, i), CurrentProcessInfo);
+		BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 	}
 
 	void ShellThinElement3D4N::InitializeSolutionStep
-	(ProcessInfo& CurrentProcessInfo)
+	(ProcessInfo& rCurrentProcessInfo)
 	{
-		const PropertiesType& props = GetProperties();
-		const GeometryType & geom = GetGeometry();
-		const Matrix & shapeFunctionsValues =
-			geom.ShapeFunctionsValues(GetIntegrationMethod());
+		BaseInitializeSolutionStep(rCurrentProcessInfo);
 
-		for (int i = 0; i < 4; i++)
-			mSections[i]->InitializeSolutionStep(props, geom,
-				row(shapeFunctionsValues, i), CurrentProcessInfo);
-
-		mpCoordinateTransformation->InitializeSolutionStep(CurrentProcessInfo);
+		mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
 	}
 
 	void ShellThinElement3D4N::FinalizeSolutionStep
-	(ProcessInfo& CurrentProcessInfo)
+	(ProcessInfo& rCurrentProcessInfo)
 	{
-		const PropertiesType& props = GetProperties();
-		const GeometryType& geom = GetGeometry();
-		const Matrix & shapeFunctionsValues =
-			geom.ShapeFunctionsValues(GetIntegrationMethod());
+		BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
-		for (int i = 0; i < 4; i++)
-			mSections[i]->FinalizeSolutionStep(props, geom,
-				row(shapeFunctionsValues, i), CurrentProcessInfo);
-
-		mpCoordinateTransformation->FinalizeSolutionStep(CurrentProcessInfo);
+		mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
 	}
 
 	void ShellThinElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix,
@@ -573,7 +389,7 @@ namespace Kratos
 
 			// Get integration points
 			const GeometryType::IntegrationPointsArrayType& integration_points =
-				GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+				GetGeometry().IntegrationPoints(mIntegrationMethod);
 
 			// Setup matrix of shape functions
 			Matrix N = Matrix(6, 24, 0.0);
@@ -581,7 +397,7 @@ namespace Kratos
 			// Other variables
 			double dA = 0.0;
 			double thickness = 0.0;
-			double drilling_factor = 1.0;	// sqrt of the actual factor applied, 
+			double drilling_factor = 1.0;	// sqrt of the actual factor applied,
 											// 1.0 is no reduction.
 
 			// Gauss loop
@@ -657,15 +473,6 @@ namespace Kratos
 		}// Lumped mass matrix
 	}
 
-	void ShellThinElement3D4N::CalculateDampingMatrix
-	(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
-	{
-		if ((rDampingMatrix.size1() != 24) || (rDampingMatrix.size2() != 24))
-			rDampingMatrix.resize(24, 24, false);
-
-		noalias(rDampingMatrix) = ZeroMatrix(24, 24);
-	}
-
 	void ShellThinElement3D4N::AddBodyForces(CalculationData& data,
 		VectorType& rRightHandSideVector)
 	{
@@ -706,29 +513,6 @@ namespace Kratos
 				rRightHandSideVector[index + 2] += iN * bf[2];
 			}
 		}
-	}
-
-	void ShellThinElement3D4N::CalculateLocalSystem
-	(MatrixType& rLeftHandSideMatrix,
-		VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo)
-	{
-		CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
-			rCurrentProcessInfo, true, true);
-	}
-
-	void ShellThinElement3D4N::CalculateRightHandSide
-	(VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo)
-	{
-		Matrix dummy;
-		CalculateAll(dummy, rRightHandSideVector, rCurrentProcessInfo, true,
-			true);
-	}
-
-	void ShellThinElement3D4N::CalculateGeometricStiffnessMatrix(MatrixType & rGeometricStiffnessMatrix, ProcessInfo & rCurrentProcessInfo)
-	{
-		// Placeholders for extension into stability analysis
 	}
 
 	// =========================================================================
@@ -788,7 +572,7 @@ namespace Kratos
 			data.CalculateRHS = true;
 			InitializeCalculationData(data);
 
-			// Get the current displacements in global coordinate system and 
+			// Get the current displacements in global coordinate system and
 			// transform to reference local system
 			MatrixType Rdisp(24, 24);
 			referenceCoordinateSystem.ComputeTotalRotationMatrix(Rdisp);
@@ -799,7 +583,7 @@ namespace Kratos
 			}
 			data.localDisplacements = prod(Rdisp, data.globalDisplacements);
 
-			
+
 			// loop over gauss points
 			for (unsigned int gauss_point = 0; gauss_point < size; ++gauss_point)
 			{
@@ -873,7 +657,7 @@ namespace Kratos
 			data.CalculateRHS = true;
 			InitializeCalculationData(data);
 
-			// Get the current displacements in global coordinate system and 
+			// Get the current displacements in global coordinate system and
 			// transform to reference local system
 			MatrixType Rdisp(24, 24);
 			referenceCoordinateSystem.ComputeTotalRotationMatrix(Rdisp);
@@ -888,7 +672,7 @@ namespace Kratos
 			// Get all laminae strengths
 			const PropertiesType & props = GetProperties();
 			ShellCrossSection::Pointer & section = mSections[0];
-			std::vector<Matrix> Laminae_Strengths = 
+			std::vector<Matrix> Laminae_Strengths =
 								std::vector<Matrix>(section->NumberOfPlies());
 			for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
 			{
@@ -915,11 +699,11 @@ namespace Kratos
 				section = mSections[gauss_point];
 				Vector ply_orientation(section->NumberOfPlies());
 				section->GetLaminaeOrientation(ply_orientation);
-				
+
 				//Calculate lamina stresses
 				CalculateLaminaStrains(data);
 				CalculateLaminaStresses(data);
-				
+
 				// Rotate lamina stress from element CS to section CS, and then
 				// to lamina angle to lamina material principal directions
 				for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
@@ -927,9 +711,9 @@ namespace Kratos
 					total_rotation = -ply_orientation[ply] - (section->GetOrientationAngle());
 					section->GetRotationMatrixForGeneralizedStresses(total_rotation, R);
 					//top surface of current ply
-					data.rlaminateStresses[2*ply] = prod(R, data.rlaminateStresses[2*ply]);	
+					data.rlaminateStresses[2*ply] = prod(R, data.rlaminateStresses[2*ply]);
 					//bottom surface of current ply
-					data.rlaminateStresses[2 * ply +1] = prod(R, data.rlaminateStresses[2 * ply +1]);	
+					data.rlaminateStresses[2 * ply +1] = prod(R, data.rlaminateStresses[2 * ply +1]);
 				}
 
 				// Calculate Tsai-Wu criterion for each ply, take min of all plies
@@ -1001,7 +785,7 @@ namespace Kratos
 			// Compute the local coordinate system.
 			ShellQ4_LocalCoordinateSystem localCoordinateSystem(
 				mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-			
+
 			for (std::size_t GP = 0; GP < 4; GP++)
 			{
 				rValues[GP] = localCoordinateSystem.Vx();
@@ -1009,8 +793,8 @@ namespace Kratos
 		}
 		else if (rVariable == LOCAL_MATERIAL_ORIENTATION_VECTOR_1)
 		{
-			// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of 
-			// section orientation, which rotates the entrire element section 
+			// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of
+			// section orientation, which rotates the entrire element section
 			// in-plane and is used in element stiffness calculation.
 
 			// Resize output
@@ -1261,7 +1045,7 @@ namespace Kratos
 		//
 
 		// Should be FALSE unless testing against other programs that ignore it.
-		bool disable_in_plane_interaction = false;	
+		bool disable_in_plane_interaction = false;
 
 		// First, F_i
 		Vector F_i = Vector(3, 0.0);
@@ -1276,12 +1060,12 @@ namespace Kratos
 		F_ij(1,1) = 1.0 / rLamina_Strengths(0, 2) / rLamina_Strengths(1, 0);	// 22
 		F_ij(2, 2) = 1.0 / rLamina_Strengths(1, 1) / rLamina_Strengths(1, 1);	// 12
 		F_ij(0, 1) = F_ij(1, 0) = -0.5 / std::sqrt(rLamina_Strengths(0, 0)*rLamina_Strengths(0, 1)*rLamina_Strengths(0, 2)*rLamina_Strengths(1, 0));
-		
+
 		if (disable_in_plane_interaction)
 		{
 			F_ij(0, 1) = F_ij(1, 0) = 0.0;
 		}
-		
+
 
 		// Evaluate Tsai-Wu @ top surface of current layer
 		double var_a = 0.0;
@@ -1516,12 +1300,12 @@ namespace Kratos
 
 	void ShellThinElement3D4N::SetupOrientationAngles()
 	{
-        if (this->Has(MATERIAL_ORIENTATION_ANGLE)) 
-        { 
-            for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) 
-            (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE)); 
-        } 
-        else 
+        if (this->Has(MATERIAL_ORIENTATION_ANGLE))
+        {
+            for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+            (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
+        }
+        else
         {
             ShellQ4_LocalCoordinateSystem lcs(mpCoordinateTransformation->
                 CreateReferenceCoordinateSystem());
@@ -1628,7 +1412,7 @@ namespace Kratos
 		//Precalculate dA to be multiplied with material matrix
 		const GeometryType & geom = GetGeometry();
 		const GeometryType::IntegrationPointsArrayType& integration_points =
-			geom.IntegrationPoints(mThisIntegrationMethod);
+			geom.IntegrationPoints(mIntegrationMethod);
 		data.dA.clear();
 		for (int gp = 0; gp < 4; gp++)
 		{
@@ -1845,7 +1629,7 @@ namespace Kratos
 			r_eta /= 2.0;
 			double l_xi = std::sqrt(inner_prod(r_xi, r_xi));
 			double l_eta = std::sqrt(inner_prod(r_eta, r_eta));
-                        
+
 			for (int i = 0; i < 4; i++)
 			{
 				//eqn 5.2.29
@@ -1865,7 +1649,7 @@ namespace Kratos
 
 			Vector e_24 = Vector(r_24 / l_24);
             const Vector vec1 = Vector(MathUtils<double>::CrossProduct(r_13, e_24));
-            
+
 			const double d_24 = std::sqrt(inner_prod(vec1, vec1));
 			const double d_13 = d_24;
 			const double chi_24 = d_24 / 2.0 / l_24;
@@ -2065,7 +1849,7 @@ namespace Kratos
 			}
 		}
 
-		
+
 
 		// ---------------------------------------------------------------------
 		//
@@ -2229,7 +2013,7 @@ namespace Kratos
 		Matrix B_mem = Matrix(3, 12, 0.0);
 
 		// --------------------------------------------
-		//	 ANDES MEMBRANE FORMULATION 
+		//	 ANDES MEMBRANE FORMULATION
 		//---------------------------------------------
 
 		if (data.basicQuad == true)
@@ -2288,17 +2072,17 @@ namespace Kratos
 			//---------------------------------------------
 			// combine membrane entries by transforming
 			// B_h
-			
+
 			Matrix B_hH_mem = Matrix(prod(B_h, data.H_mem_mod));
 			B_mem += data.L_mem + B_hH_mem;
 		}
 
-		
 
-		
+
+
 
 		// --------------------------------------------
-		//	 DKQ BENDING FORMULATION 
+		//	 DKQ BENDING FORMULATION
 		//---------------------------------------------
 		Matrix B_bend_total = Matrix(3, 12, 0.0);
 
@@ -2493,25 +2277,25 @@ namespace Kratos
 	}
 
 	void ShellThinElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
-		VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo,
-		const bool LHSrequired,
-		const bool RHSrequired)
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag)
 	{
 		// Resize the Left Hand Side if necessary,
 		// and initialize it to Zero
 
-		if ((rLeftHandSideMatrix.size1() != OPT_NUM_DOFS) ||
-			(rLeftHandSideMatrix.size2() != OPT_NUM_DOFS))
-			rLeftHandSideMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
-		noalias(rLeftHandSideMatrix) = ZeroMatrix(OPT_NUM_DOFS, OPT_NUM_DOFS);
+		if ((rLeftHandSideMatrix.size1() != 24) ||
+			(rLeftHandSideMatrix.size2() != 24))
+			rLeftHandSideMatrix.resize(24, 24, false);
+		noalias(rLeftHandSideMatrix) = ZeroMatrix(24, 24);
 
 		// Resize the Right Hand Side if necessary,
 		// and initialize it to Zero
 
-		if (rRightHandSideVector.size() != OPT_NUM_DOFS)
-			rRightHandSideVector.resize(OPT_NUM_DOFS, false);
-		noalias(rRightHandSideVector) = ZeroVector(OPT_NUM_DOFS);
+		if (rRightHandSideVector.size() != 24)
+			rRightHandSideVector.resize(24, false);
+		noalias(rRightHandSideVector) = ZeroVector(24);
 
 		// Compute the local coordinate system.
 		ShellQ4_LocalCoordinateSystem localCoordinateSystem(
@@ -2523,12 +2307,12 @@ namespace Kratos
 		// Initialize common calculation variables
 		CalculationData data(localCoordinateSystem, referenceCoordinateSystem,
 			rCurrentProcessInfo);
-		data.CalculateLHS = LHSrequired;
-		data.CalculateRHS = RHSrequired;
+		data.CalculateLHS = CalculateStiffnessMatrixFlag;
+		data.CalculateRHS = CalculateResidualVectorFlag;
 		InitializeCalculationData(data);
 
 		// Gauss Loop.
-		for (std::size_t i = 0; i < OPT_NUM_GP; i++)
+		for (std::size_t i = 0; i < GetNumberOfGPs(); i++)
 		{
 			data.gpIndex = i;
 			CalculateGaussPointContribution(data, rLeftHandSideMatrix,
@@ -2570,8 +2354,8 @@ namespace Kratos
 			data.localDisplacements,
 			rLeftHandSideMatrix,
 			rRightHandSideVector,
-			RHSrequired,
-			LHSrequired);
+			CalculateResidualVectorFlag,
+			CalculateStiffnessMatrixFlag);
 
 		// Add body forces contributions. This doesn't depend on the coordinate
 		// system
@@ -2686,7 +2470,7 @@ namespace Kratos
 		data.CalculateRHS = true;
 		InitializeCalculationData(data);
 
-		// Get the current displacements in global coordinate system and 
+		// Get the current displacements in global coordinate system and
 		// transform to reference local system
 		MatrixType Rdisp(24, 24);
 		referenceCoordinateSystem.ComputeTotalRotationMatrix(Rdisp);
@@ -2705,7 +2489,7 @@ namespace Kratos
 			CalculateBMatrix(data);
 
 			// Calculate strain vectors in local coordinate system
-			noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements); 
+			noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
 
 			// Calculate the response of the Cross Section
 			ShellCrossSection::Pointer & section = mSections[i];
@@ -2720,7 +2504,7 @@ namespace Kratos
 				else
 				{
 					// calculate force resultants
-					CalculateSectionResponse(data);	
+					CalculateSectionResponse(data);
 
 					if (ijob > 4)
 					{
@@ -2864,7 +2648,7 @@ namespace Kratos
 			{
 				// Testing variable to get lamina stress/strain values
 				// on the 8 surfaces of a 4 ply laminate
-							
+
 				int surface = 0; // start from top ply top surface
 				// Output global results sequentially
 				for (std::size_t row = 0; row < 3; row++)
@@ -2899,7 +2683,7 @@ namespace Kratos
 					Vector ply_orientation(section->NumberOfPlies());
 					section->GetLaminaeOrientation(ply_orientation);
 
-					// Rotate lamina stress from section CS 
+					// Rotate lamina stress from section CS
 					// to lamina angle to lamina material principal directions
 					for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
 					{
@@ -2968,62 +2752,6 @@ namespace Kratos
 		return true;
 	}
 
-	void ShellThinElement3D4N::printMatrix(Matrix& matrixIn,
-		std::string stringIn)
-	{
-		std::cout << "\n" << stringIn << std::endl;
-		for (unsigned i = 0; i < matrixIn.size1(); ++i)
-		{
-			std::cout << "| ";
-			for (unsigned j = 0; j < matrixIn.size2(); ++j)
-			{
-				std::cout << std::fixed << std::setprecision(4) << std::setw(10)
-					<< matrixIn(i, j) << " | ";
-			}
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
-	}
-
-	void ShellThinElement3D4N::printVector(Vector& matrixIn,
-		std::string stringIn)
-	{
-		std::cout << "\n" << stringIn << std::endl;
-		for (unsigned i = 0; i < matrixIn.size(); ++i)
-		{
-			std::cout << "| ";
-
-			std::cout << std::fixed << std::setprecision(6) << std::setw(12)
-				<< matrixIn(i) << " | ";
-
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
-	}
-
-	void ShellThinElement3D4N::printMatrix(const Matrix& matrixIn,
-		std::string stringIn)
-	{
-		std::cout << "\n" << stringIn << std::endl;
-		for (unsigned i = 0; i < matrixIn.size1(); ++i)
-		{
-			std::cout << "| ";
-			for (unsigned j = 0; j < matrixIn.size2(); ++j)
-			{
-				std::cout << std::setprecision(2) << std::setw(10) <<
-					matrixIn(i, j) << " | ";
-			}
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
-	}
-
-	void ShellThinElement3D4N::printDouble(std::string stringIn,
-		double doubleIn)
-	{
-		std::cout << stringIn << doubleIn << std::endl;
-	}
-
 	// =========================================================================
 	//
 	// CalculationData
@@ -3040,6 +2768,11 @@ namespace Kratos
 	{
 	}
 
+    ShellCrossSection::SectionBehaviorType ShellThinElement3D4N::GetSectionBehavior()
+    {
+        return ShellCrossSection::Thin;
+    }
+
 	// =========================================================================
 	//
 	// Class ShellThinElement3D4N - Serialization
@@ -3048,19 +2781,13 @@ namespace Kratos
 
 	void ShellThinElement3D4N::save(Serializer& rSerializer) const
 	{
-		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
 		rSerializer.save("CTr", mpCoordinateTransformation);
-		rSerializer.save("Sec", mSections);
-        rSerializer.save("IntM", (int)mThisIntegrationMethod);
 	}
 
 	void ShellThinElement3D4N::load(Serializer& rSerializer)
 	{
-		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
 		rSerializer.load("CTr", mpCoordinateTransformation);
-		rSerializer.load("Sec", mSections);
-		int temp;
-		rSerializer.load("IntM", temp);
-        mThisIntegrationMethod = (IntegrationMethod)temp;
 	}
 }

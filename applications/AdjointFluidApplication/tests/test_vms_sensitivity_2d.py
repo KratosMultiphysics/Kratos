@@ -23,6 +23,11 @@ class TestCase(KratosUnittest.TestCase):
         if os.path.isfile(file_path):
             os.remove(file_path)
 
+    def _remove_h5_files(self, model_part_name):
+        for name in os.listdir():
+            if name.find(model_part_name) == 0:
+                self._remove_file(name)
+
     def _read_nodal_coordinates(self,node_id,model_part_file_name):
         with open(model_part_file_name + '.mdpa', 'r') as model_part_file:
             lines = model_part_file.readlines()
@@ -123,7 +128,7 @@ class TestCase(KratosUnittest.TestCase):
             FDSensitivity = self._compute_finite_difference_drag_sensitivity([1],step_size,'./test_vms_sensitivity_2d/one_element_test',[1.0,0.0,0.0],'./test_vms_sensitivity_2d/one_element_test.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
-            self._remove_file("./test_vms_sensitivity_2d/one_element_test_0.h5")
+            self._remove_h5_files("MainModelPart")
             self._remove_file("./test_vms_sensitivity_2d/one_element_test.dat")
             self._remove_file("./test_vms_sensitivity_2d/one_element_test.time")
 
@@ -143,7 +148,7 @@ class TestCase(KratosUnittest.TestCase):
             FDSensitivity = self._compute_finite_difference_drag_sensitivity([1968],step_size,'./test_vms_sensitivity_2d/cylinder_test',[1.0,0.0,0.0],'./test_vms_sensitivity_2d/cylinder_test.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 5)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 5)
-            self._remove_file("./test_vms_sensitivity_2d/cylinder_test_0.h5")
+            self._remove_h5_files("MainModelPart")
             self._remove_file("./test_vms_sensitivity_2d/cylinder_test.dat")
             self._remove_file("./test_vms_sensitivity_2d/cylinder_test.time")
             self._remove_file("./test_vms_sensitivity_2d/cylinder_test_probe1.dat")
@@ -168,7 +173,7 @@ class TestCase(KratosUnittest.TestCase):
             FDSensitivity = self._compute_finite_difference_drag_sensitivity([1968],step_size,'./test_vms_sensitivity_2d/steady_cylinder_test',[1.0,0.0,0.0],'./test_vms_sensitivity_2d/steady_cylinder_test.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 2)
-            self._remove_file("./test_vms_sensitivity_2d/steady_cylinder_test_0.h5")
+            self._remove_h5_files("MainModelPart")
             self._remove_file("./test_vms_sensitivity_2d/steady_cylinder_test.dat")
             self._remove_file("./test_vms_sensitivity_2d/steady_cylinder_test.time")
 

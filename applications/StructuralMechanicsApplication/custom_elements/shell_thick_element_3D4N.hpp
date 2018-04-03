@@ -19,9 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/element.h"
-#include "custom_utilities/shell_cross_section.hpp"
-#include "utilities/quaternion.h"
+#include "custom_elements/base_shell_element.h"
 
 namespace Kratos
 {
@@ -62,7 +60,8 @@ class ShellQ4_LocalCoordinateSystem;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class ShellThickElement3D4N : public Element
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N
+    : public BaseShellElement
 {
 public:
 
@@ -70,8 +69,6 @@ public:
     ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION(ShellThickElement3D4N);
-
-    typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
@@ -308,22 +305,6 @@ public:
 
     void Initialize() override;
 
-    void ResetConstitutiveLaw() override;
-
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CleanMemory() override;
-
-    void GetValuesVector(Vector& values, int Step = 0) override;
-
-    void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
-
-    void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
-
     void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
     void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
@@ -333,15 +314,6 @@ public:
     void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
 
     // Results calculation on integration points
 
@@ -372,19 +344,17 @@ public:
 	void CalculateOnIntegrationPoints(const Variable<array_1d<double,
 		6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
-        
+
     // Calculate functions
     void Calculate(const Variable<Matrix >& rVariable,
         Matrix& Output,
         const ProcessInfo& rCurrentProcessInfo) override;
-    
+
 
     ///@}
 
     ///@name Public specialized Access - Temporary
     ///@{
-
-    void SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections);
 
     ///@}
 
@@ -396,7 +366,7 @@ protected:
     /**
      * Protected empty constructor
      */
-    ShellThickElement3D4N() : Element()
+    ShellThickElement3D4N() : BaseShellElement()
     {
     }
 
@@ -416,17 +386,17 @@ private:
 
 	double CalculateTsaiWuPlaneStress(const std::vector<VectorType> & rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
-	void CalculateVonMisesStress(const Vector& generalizedStresses, 
+	void CalculateVonMisesStress(const Vector& generalizedStresses,
 		const Variable<double>& rVariable, double& rVon_Mises_Result);
 
-	void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, 
+	void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable,
 		int& iJob, bool& bGlobal);
 
 	double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
 
     void DecimalCorrection(Vector& a);
 
-    void SetupOrientationAngles();
+    void SetupOrientationAngles() override;
 
     void CalculateBMatrix(double xi, double eta,
                           const JacobianOperator& Jac, const MITC4Params& params,
@@ -434,10 +404,10 @@ private:
                           Matrix& B, Vector& Bdrill);
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
-                      ProcessInfo& rCurrentProcessInfo,
-                      const bool LHSrequired,
-                      const bool RHSrequired);
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag) override;
 
     void AddBodyForces(const array_1d<double,4> & dA, VectorType& rRightHandSideVector);
 
@@ -449,6 +419,12 @@ private:
             std::vector<Matrix>& rValues,
             const ProcessInfo& rCurrentProcessInfo);
 
+    /**
+    * Returns the behavior of this shell (thin/thick)
+    * @return the shell behavior
+    */
+    ShellCrossSection::SectionBehaviorType GetSectionBehavior() override;
+
     ///@}
 
     ///@name Static Member Variables
@@ -459,8 +435,6 @@ private:
     ///@{
 
     CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
-
-    CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
     EASOperatorStorage mEASStorage; /*!< The storage instance for the EAS Operator */
 
