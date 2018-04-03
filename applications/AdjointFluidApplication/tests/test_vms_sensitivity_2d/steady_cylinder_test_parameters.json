@@ -50,14 +50,13 @@
         "echo_level"                   : 0,
         "consider_periodic_conditions" : false,
         "compute_reactions"            : true,
-        "divergence_clearance_steps"   : 0,
         "reform_dofs_at_each_step"     : false,
         "relative_velocity_tolerance"  : 1e-5,
         "absolute_velocity_tolerance"  : 1e-7,
         "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type"         : "AMGCL",
+            "solver_type"         : "AMGCL_NS_Solver",
             "verbosity"           : 0,
             "coarse_enough"       : 500
         },

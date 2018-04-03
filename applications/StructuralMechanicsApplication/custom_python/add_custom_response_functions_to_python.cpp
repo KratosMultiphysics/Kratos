@@ -21,8 +21,8 @@
 //Utilities
 #include "custom_response_functions/custom_utilities/finite_differences_utilities.h" //M.Fusseder TODO: maybe remove this (used only for controlling results)
 
-#include "custom_response_functions/adjoint_processes/output_primal_solution_process.h"
-#include "custom_response_functions/adjoint_processes/input_primal_solution_process.h"
+//#include "custom_response_functions/adjoint_processes/output_primal_solution_process.h"
+//#include "custom_response_functions/adjoint_processes/input_primal_solution_process.h"
 #include "custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.h"
 
 //Response Functions
@@ -48,11 +48,11 @@ void  AddCustomResponseFunctionsToPython()
     using namespace boost::python;
 
     /// Processes
-    class_< OutputPrimalSolutionProcess, bases<Process> >
+    /*class_< OutputPrimalSolutionProcess, bases<Process> >
     ("OutputPrimalSolutionProcess", init<ModelPart&, Parameters&>());
 
     class_< InputPrimalSolutionProcess, bases<Process> >
-    ("InputPrimalSolutionProcess", init<ModelPart&, Parameters&>());
+    ("InputPrimalSolutionProcess", init<ModelPart&, Parameters&>());*/
 
     class_<ReplaceElementsAndConditionsForAdjointProblemProcess , bases<Process>, boost::noncopyable >("ReplaceElementsAndConditionsForAdjointProblemProcess",
             init<ModelPart&, Parameters>());

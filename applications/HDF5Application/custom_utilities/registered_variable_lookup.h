@@ -48,7 +48,7 @@ namespace Kratos
 template <typename ...TVariables> 
 class RegisteredVariableLookup
 {
-    template <template<typename T> typename TFunctor, typename ...Targs>
+    template <template<typename T> class TFunctor, typename ...Targs>
     struct FunctorWrapper
     {
         template <typename TVariable>
@@ -67,7 +67,7 @@ public:
     explicit RegisteredVariableLookup(std::string const& rName) : mName(rName)
     {}
 
-  template <template<typename T> typename TFunctor, typename ...Targs>
+  template <template<typename T> class TFunctor, typename ...Targs>
   void Execute(Targs&... args)
   {
       bool found = false;
