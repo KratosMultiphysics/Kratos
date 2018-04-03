@@ -7,11 +7,11 @@
 //  License:		 BSD License
 //					 license: HDF5Application/license.txt
 //
-//  Main author:    Michael Andre, https://github.com/msandre
+//  Main author:    https://github.com/msandre
 //
 
-#if !defined(KRATOS_HDF5_NODAL_SOLUTION_STEP_DATA_IO_H_INCLUDED)
-#define KRATOS_HDF5_NODAL_SOLUTION_STEP_DATA_IO_H_INCLUDED
+#if !defined(KRATOS_HDF5_NON_HISTORICAL_NODAL_VALUE_IO_H_INCLUDED)
+#define KRATOS_HDF5_NON_HISTORICAL_NODAL_VALUE_IO_H_INCLUDED
 
 // System includes
 #include <string>
@@ -40,71 +40,52 @@ namespace HDF5
 ///@name Kratos Classes
 ///@{
 
-/// A class for IO of nodal solution step data in HDF5.
-class NodalSolutionStepDataIO
+/// A class for IO of non-historical nodal values in HDF5.
+class NonHistoricalNodalValueIO
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(NodalSolutionStepDataIO);
+    KRATOS_CLASS_POINTER_DEFINITION(NonHistoricalNodalValueIO);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    NodalSolutionStepDataIO(Parameters Settings, File::Pointer pFile);
+    NonHistoricalNodalValueIO(Parameters Settings, File::Pointer pFile);
 
     ///@}
     ///@name Operations
     ///@{
 
-    void WriteNodalResults(NodesContainerType const& rNodes, unsigned Step=0);
+    void WriteNodalResults(NodesContainerType const& rNodes);
 
-    void ReadNodalResults(NodesContainerType& rNodes, Communicator& rComm, unsigned Step=0);
+    void ReadNodalResults(NodesContainerType& rNodes, Communicator& rComm);
     
-    ///@}
-
-protected:
-    ///@name Protected Operations
-    ///@{
-
-    std::string const& GetPrefix() const noexcept
-    {
-        return mPrefix;
-    }
-
-    std::vector<std::string> const& VariableNames() const noexcept
-    {
-        return mVariableNames;
-    }
-
-    File& GetFile()
-    {
-        return *mpFile;
-    }
-
     ///@}
 
 private:
     ///@name Member Variables
     ///@{
+
     File::Pointer mpFile;
     std::string mPrefix;
     std::vector<std::string> mVariableNames;
+
     ///@}
     ///@name Private Operations
     ///@{
 
     ///@}
 
-}; // class NodalSolutionStepDataIO.
+}; // class NonHistoricalNodalValueIO.
 
 ///@} // Kratos Classes
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.
 
-#endif // KRATOS_HDF5_NODAL_SOLUTION_STEP_DATA_IO_H_INCLUDED defined
+#endif // KRATOS_HDF5_NON_HISTORICAL_NODAL_VALUE_IO_H_INCLUDED defined
