@@ -163,8 +163,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    double ComputeDiscontinuousDistanceElementTolerance(const ModelPart::ElementIterator itElem);
-
     void ModifyDistance();
 
     void ModifyDiscontinuousDistance();

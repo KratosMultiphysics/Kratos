@@ -184,8 +184,8 @@ void DistanceModificationProcess::ModifyDistance() {
                 if(std::abs(d) < tol_d){
 
                     // Store the original distance to be recovered at the end of the step
-                    LocalModifiedDistancesIDs.push_back(d);
-                    LocalModifiedDistancesValues.push_back(itNode->Id());
+                    LocalModifiedDistancesIDs.push_back(itNode->Id());
+                    LocalModifiedDistancesValues.push_back(d);
 
                     if (d <= 0.0){
                         d = -tol_d;
@@ -224,7 +224,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
             auto it_elem = elems_begin + i_elem;
 
             // Compute the distance tolerance
-            const double tol_d = this->ComputeDiscontinuousDistanceElementTolerance(it_elem);
+            const double tol_d = mDistanceThreshold*(it_elem->GetGeometry()).Length();
 
             // Check if the distance values are close to zero
             Vector &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
@@ -251,17 +251,17 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
                 auto it_elem = elems_begin + i_elem;
 
                 // Compute the distance tolerance
-                const double tol_d = this->ComputeDiscontinuousDistanceElementTolerance(it_elem);
+                const double tol_d = mDistanceThreshold*(it_elem->GetGeometry()).Length();
 
                 bool is_saved = false;
                 Vector &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
                 for (unsigned int i_node = 0; i_node < r_elem_dist.size(); ++i_node){
                     if (std::abs(r_elem_dist(i_node)) < tol_d){
-                        r_elem_dist(i_node) = -tol_d;
                         if (!is_saved){
                             local_mod_dist_elems_ids.push_back(it_elem->Id());
                             local_orig_dist_values.push_back(r_elem_dist);
                         }
+                        r_elem_dist(i_node) = -tol_d;
                     }
                 }
 
@@ -276,24 +276,16 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
     }
 }
 
-double DistanceModificationProcess::ComputeDiscontinuousDistanceElementTolerance(ModelPart::ElementIterator itElem){
-    auto &r_geometry = itElem->GetGeometry();
-    const std::size_t work_dim = r_geometry.WorkingSpaceDimension();
-    const double elem_size = r_geometry.Area(); // Area (2D) or volume (3D)
-    const double tol_d = work_dim == 2 ? mDistanceThreshold*std::sqrt(elem_size) : mDistanceThreshold*std::cbrt(elem_size);
-    return tol_d;
-}
-
 void DistanceModificationProcess::RecoverOriginalDistance() {
     #pragma omp parallel
     {
-        const int ThreadId = OpenMPUtils::ThisThread();
-        const std::vector<unsigned int> LocalModifiedDistancesIDs = mModifiedDistancesIDs[ThreadId];
-        const std::vector<double> LocalModifiedDistancesValues = mModifiedDistancesValues[ThreadId];
+        const int i_thread = OpenMPUtils::ThisThread();
+        const std::vector<unsigned int> local_mod_dist_ids = mModifiedDistancesIDs[i_thread];
+        const std::vector<double> loc_mod_dist_values = mModifiedDistancesValues[i_thread];
 
-        for(unsigned int i=0; i<LocalModifiedDistancesIDs.size(); ++i) {
-            const unsigned int nodeId = LocalModifiedDistancesIDs[i];
-            mrModelPart.GetNode(nodeId).FastGetSolutionStepValue(DISTANCE) = LocalModifiedDistancesValues[i];
+        for(unsigned int i = 0; i < local_mod_dist_ids.size(); ++i) {
+            const unsigned int node_id = local_mod_dist_ids[i];
+            mrModelPart.GetNode(node_id).FastGetSolutionStepValue(DISTANCE) = loc_mod_dist_values[i];
         }
     }
 
