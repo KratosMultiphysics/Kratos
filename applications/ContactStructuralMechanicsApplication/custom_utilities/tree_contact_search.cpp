@@ -1279,7 +1279,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::CreateAuxiliarConditions(
             IndexSet::Pointer indexes_set = it_cond->GetValue(INDEX_SET);
             for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
                 Condition::Pointer p_cond_master = mrMainModelPart.pGetCondition(*it_pair); // MASTER
-                AddPairing(rComputingModelPart, rConditionId, (*it_cond.base()), p_cond_master, indexes_set);
+                AddPairing(rComputingModelPart, rConditionId, (*it_cond.base()), p_cond_master);
             }
         }
     }
