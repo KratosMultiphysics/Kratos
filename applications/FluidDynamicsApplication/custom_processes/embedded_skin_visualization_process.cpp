@@ -102,8 +102,7 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitialize() {
     KRATOS_TRY;
 
     // Required variables check
-    const Node<3> &r_orig_node = *mrModelPart.NodesBegin();
-    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_orig_node);
+    const auto &r_orig_node = *mrModelPart.NodesBegin();
 
     // Check visualization scalar variables
     for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
@@ -181,13 +180,12 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation(){
     // For all the new elements, compute the interpolation with the proper shape functions
     // Note that this can be done in parallel since the intersection nodes are duplicated
     const int n_new_elems = mNewElementsPointers.size();
-    ModelPart::ElementIterator new_elems_begin = mNewElementsPointers.begin();
 
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int i_elem = 0; i_elem < n_new_elems; ++i_elem){
         // Get element geometry
-        auto it_elem = new_elems_begin + i_elem;
-        Geometry<Node<3> > &r_geometry = it_elem->GetGeometry();
+        auto it_elem = mNewElementsPointers.begin() + i_elem;
+        const auto &r_geometry = it_elem->GetGeometry();
         const unsigned int n_points = r_geometry.PointsNumber();
 
         // For the generated elements, set the new interpolation values
@@ -195,8 +193,8 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation(){
         // values, since they have been built using the origin model part nodes.
         for (unsigned int i_node = 0; i_node < n_points; ++i_node){
             // Search for the current node in the cut nodes hash map
-            Node<3>::Pointer p_node = r_geometry(i_node);
-            CutNodesMapType::iterator cut_node_info = mCutNodesMap.find(p_node);
+            auto p_node = r_geometry(i_node);
+            const CutNodesMapType::iterator cut_node_info = mCutNodesMap.find(p_node);
 
             // If it is not find, keep the origin value
             // Otherwise, the nodal values are computed with the modified shape functions values
@@ -210,26 +208,26 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation(){
 
                 // Interpolate the scalar variables
                 for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
-                    Variable<double> scalar_var = mVisualizationScalarVariables[i_var];
-                    const double &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(scalar_var);
-                    const double &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(scalar_var);
-                    p_node->FastGetSolutionStepValue(scalar_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
+                    const Variable<double> &r_scalar_var = mVisualizationScalarVariables[i_var];
+                    const double &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(r_scalar_var);
+                    const double &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(r_scalar_var);
+                    p_node->FastGetSolutionStepValue(r_scalar_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
                 }
 
                 // Interpolate the vector variables
                 for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
-                    Variable<array_1d<double, 3> > vector_var = mVisualizationVectorVariables[i_var];
-                    const array_1d<double, 3> &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(vector_var);
-                    const array_1d<double, 3> &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(vector_var);
-                    p_node->FastGetSolutionStepValue(vector_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
+                    const Variable<array_1d<double, 3> > &r_vector_var = mVisualizationVectorVariables[i_var];
+                    const array_1d<double, 3> &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(r_vector_var);
+                    const array_1d<double, 3> &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(r_vector_var);
+                    p_node->FastGetSolutionStepValue(r_vector_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
                 }
 
                 // Interpolate the component variables
                 for (unsigned int i_var = 0; i_var < mVisualizationComponentVariables.size(); ++i_var){
-                    VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > comp_var = mVisualizationComponentVariables[i_var];
-                    const double &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(comp_var);
-                    const double &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(comp_var);
-                    p_node->FastGetSolutionStepValue(comp_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
+                    const VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > &r_comp_var = mVisualizationComponentVariables[i_var];
+                    const double &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(r_comp_var);
+                    const double &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(r_comp_var);
+                    p_node->FastGetSolutionStepValue(r_comp_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
                 }
             }
         }
@@ -249,13 +247,11 @@ void EmbeddedSkinVisualizationProcess::CopyOriginNodes(){
 
 void EmbeddedSkinVisualizationProcess::CopyOriginNodalValues(){
     const unsigned int n_old_nodes = mrModelPart.NumberOfNodes();
-    ModelPart::NodeConstantIterator old_nodes_begin = mrModelPart.NodesBegin();
-    ModelPart::NodeIterator new_nodes_begin = mrVisualizationModelPart.NodesBegin();
 
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>(n_old_nodes); ++i_node){
-        auto it_new_node = new_nodes_begin + i_node;
-        const auto it_old_node = old_nodes_begin + i_node;
+        const auto it_old_node = mrModelPart.NodesBegin() + i_node;
+        auto it_new_node = mrVisualizationModelPart.NodesBegin() + i_node;
 
         for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
             it_new_node->FastGetSolutionStepValue(mVisualizationScalarVariables[i_var]) = 
@@ -296,9 +292,8 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
     std::tie(p_pos_prop, p_neg_prop) = this->SetVisualizationProperties();
 
     // Add the elements to the visualization model part
-    ModelPart::ElementIterator elems_begin = mrModelPart.ElementsBegin();
     for (int i_elem = 0; i_elem < n_elems; ++i_elem){
-        ModelPart::ElementIterator it_elem = elems_begin + i_elem;
+        ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i_elem;
 
         // Get element geometry
         const Geometry<Node<3>>::Pointer p_geometry = it_elem->pGetGeometry();
@@ -328,7 +323,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
             // Create the split geometries in the visualization model part
             for (unsigned int i_geom = 0; i_geom < split_geometries.size(); ++i_geom){
                 const bool pos_side = i_geom < n_pos_split_geom ? true : false;
-                DivideGeometry::IndexedPointGeometryPointerType p_sub_geom = split_geometries[i_geom];
+                const DivideGeometry::IndexedPointGeometryPointerType p_sub_geom = split_geometries[i_geom];
                 const unsigned int sub_geom_n_nodes = p_sub_geom->PointsNumber();
 
                 // Fill the new element nodes array
