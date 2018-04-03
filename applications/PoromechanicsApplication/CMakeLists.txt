@@ -131,6 +131,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 ###############################################################################
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosPoromechanicsCore)
+    cotire(KratosPoromechanicsApplication)
+endif(USE_COTIRE MATCHES ON)
+
+###############################################################################
 ## installing the resulting libraries
 
 install(TARGETS KratosPoromechanicsCore DESTINATION libs )

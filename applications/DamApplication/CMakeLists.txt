@@ -122,6 +122,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 ###############################################################################
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosDamCore)
+    cotire(KratosDamApplication)
+endif(USE_COTIRE MATCHES ON)
+
+###############################################################################
 ## installing the resulting libraries
 
 install(TARGETS KratosDamCore DESTINATION libs )
