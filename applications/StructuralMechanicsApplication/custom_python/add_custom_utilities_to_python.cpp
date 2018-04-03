@@ -20,7 +20,6 @@
 
 
 //Utilities
-#include "custom_utilities/sprism_neighbours.hpp"
 #include "custom_utilities/formfinding_IO_utility.h"
 
 
