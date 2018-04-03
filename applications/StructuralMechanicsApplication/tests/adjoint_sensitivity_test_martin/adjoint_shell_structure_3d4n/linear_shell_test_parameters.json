@@ -51,14 +51,21 @@
         }
     }],
     "list_other_processes" :[{
-        "kratos_module"    : "KratosMultiphysics.StructuralMechanicsApplication",
-        "python_module"    : "output_primal_solution_process",
-        "help"             : "",
-        "process_name"     : "OutputPrimalSolutionProcess",
-        "Parameters"          : {
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_primal_output_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
             "model_part_name" : "Structure",
-            "file_name"       : "./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d4n/rectangular_plate",
-            "variable_list"   : ["DISPLACEMENT","ROTATION","POINT_LOAD"]
+            "file_settings" : {
+                "file_access_mode" : "truncate"
+            },
+            "model_part_output_settings" : {
+                "prefix" : "/ModelData"
+            },
+            "nodal_results_settings" : {
+                "list_of_variables": ["DISPLACEMENT", "ROTATION", "POINT_LOAD"]
+            }
         }
     }],
     "loads_process_list"       : [{
