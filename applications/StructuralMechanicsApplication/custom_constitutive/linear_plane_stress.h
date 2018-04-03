@@ -46,7 +46,8 @@ public:
     ///@{
 
     typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw         BaseType;
+    typedef ConstitutiveLaw       CLBaseType;
+    typedef ElasticIsotropic3D      BaseType;
     typedef std::size_t             SizeType;
     /**
      * Counted pointer of LinearPlaneStress
@@ -148,6 +149,25 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+    * It calculates the constitutive matrix C
+    * @param C: The constitutive matrix
+    * @param E: The Young Modulus
+    * @param NU: The poisson coefficient
+    */
+    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+    * It calculates the strain vector
+    * @param rValues The internal values of the law
+    * @param rStrainVector The strain vector in Voigt notation
+    */
+    void CalculateCauchyGreenStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
+    ) override;
+
     ///@}
 
 private:
@@ -162,14 +182,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
-    /**
-    * It calculates the constitutive matrix C
-    * @param C: The constitutive matrix
-    * @param E: The Young Modulus
-    * @param NU: The poisson coefficient
-    */
-    void CalculateElasticMatrix(Matrix& C, Parameters& rValues) override;
 
     ///@}
     ///@name Private Operations
@@ -189,12 +201,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticIsotropic3D)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticIsotropic3D)
     }
 
 

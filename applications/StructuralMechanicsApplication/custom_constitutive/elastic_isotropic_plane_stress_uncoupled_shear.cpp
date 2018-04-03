@@ -61,12 +61,33 @@ int ElasticIsotropicPlaneStressUncoupledShear::Check(
     const ProcessInfo& rCurrentProcessInfo
 )
 {
-    ElasticIsotropic3D::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+    LinearPlaneStress::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
     if (SHEAR_MODULUS.Key() == 0 || rMaterialProperties[SHEAR_MODULUS] <= 0.0)
     {
         KRATOS_ERROR << "SHEAR_MODULUS has Key zero or invalid value " << std::endl;
     }
+
+    if (SHEAR_MODULUS_GAMMA12.Key() == 0)
+    {
+        KRATOS_ERROR << "SHEAR_MODULUS_GAMMA12 has Key zero " << std::endl;
+    }
+
+    if (SHEAR_MODULUS_GAMMA12_2.Key() == 0)
+    {
+        KRATOS_ERROR << "SHEAR_MODULUS_GAMMA12_2 has Key zero " << std::endl;
+    }
+
+    if (SHEAR_MODULUS_GAMMA12_3.Key() == 0)
+    {
+        KRATOS_ERROR << "SHEAR_MODULUS_GAMMA12_3 has Key zero " << std::endl;
+    }
+
+    if (SHEAR_MODULUS_GAMMA12_4.Key() == 0)
+    {
+        KRATOS_ERROR << "SHEAR_MODULUS_GAMMA12_4 has Key zero " << std::endl;
+    }
+
 
     return 0;
 }
@@ -74,25 +95,25 @@ int ElasticIsotropicPlaneStressUncoupledShear::Check(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticIsotropicPlaneStressUncoupledShear::CalculateElasticMatrix(Matrix& C, Parameters& rValues)
+void ElasticIsotropicPlaneStressUncoupledShear::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& MaterialProperties = rValues.GetMaterialProperties();
-    const double& E = MaterialProperties[YOUNG_MODULUS];
-    const double& NU = MaterialProperties[POISSON_RATIO];
-    const double& G = MaterialProperties[SHEAR_MODULUS];
-    const double& G1 = MaterialProperties[SHEAR_MODULUS_GAMMA12];
-    const double& G2 = MaterialProperties[SHEAR_MODULUS_GAMMA12_2];
-    const double& G3 = MaterialProperties[SHEAR_MODULUS_GAMMA12_3];
-    const double& G4 = MaterialProperties[SHEAR_MODULUS_GAMMA12_4];
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double& E = r_material_properties[YOUNG_MODULUS];
+    const double& NU = r_material_properties[POISSON_RATIO];
+    const double& G = r_material_properties[SHEAR_MODULUS];
+    const double& G1 = r_material_properties[SHEAR_MODULUS_GAMMA12];
+    const double& G2 = r_material_properties[SHEAR_MODULUS_GAMMA12_2];
+    const double& G3 = r_material_properties[SHEAR_MODULUS_GAMMA12_3];
+    const double& G4 = r_material_properties[SHEAR_MODULUS_GAMMA12_4];
 
-    const Vector& StrainVector = rValues.GetStrainVector();
-    double absGamma12 = abs(StrainVector(2));
+    const Vector& r_strain_vector = rValues.GetStrainVector();
+    double abs_gamma12 = std::abs(r_strain_vector(2));
 
-    C.clear();
+    this->CheckClearElasticMatrix(C);
 
     const double c1 = E / (1.00 - NU*NU);
     const double c2 = c1 * NU;
-    const double c3 = G + G1 * absGamma12 + G2 * pow(absGamma12,2) + G3 * pow(absGamma12, 3) + G4 * pow(absGamma12, 4);
+    const double c3 = G + G1 * abs_gamma12 + G2 * std::pow(abs_gamma12,2) + G3 * std::pow(abs_gamma12, 3) + G4 * std::pow(abs_gamma12, 4);
 
     C(0,0) = c1;
     C(0,1) = c2;

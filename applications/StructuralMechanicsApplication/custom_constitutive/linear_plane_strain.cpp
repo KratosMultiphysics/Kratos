@@ -54,7 +54,7 @@ LinearPlaneStrain::~LinearPlaneStrain()
 {
 }
 
-void  LinearPlaneStrain::CalculateMaterialResponsePK2 (Parameters& rValues)
+void  LinearPlaneStrain::CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues)
 {
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
@@ -101,7 +101,7 @@ void  LinearPlaneStrain::CalculateMaterialResponsePK2 (Parameters& rValues)
 
 //NOTE: Note that since we are in the hypothesis of small strains we can use the same function for everything
 
-void LinearPlaneStrain::CalculateMaterialResponseKirchhoff (Parameters& rValues)
+void LinearPlaneStrain::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
@@ -109,7 +109,7 @@ void LinearPlaneStrain::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::CalculateMaterialResponsePK1 (Parameters& rValues)
+void LinearPlaneStrain::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
@@ -117,7 +117,7 @@ void LinearPlaneStrain::CalculateMaterialResponsePK1 (Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
+void LinearPlaneStrain::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
@@ -125,7 +125,7 @@ void LinearPlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::FinalizeMaterialResponsePK2 (Parameters& rValues)
+void LinearPlaneStrain::FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -133,7 +133,7 @@ void LinearPlaneStrain::FinalizeMaterialResponsePK2 (Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
+void LinearPlaneStrain::FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -141,7 +141,7 @@ void LinearPlaneStrain::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::FinalizeMaterialResponsePK1 (Parameters& rValues)
+void LinearPlaneStrain::FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -149,7 +149,7 @@ void LinearPlaneStrain::FinalizeMaterialResponsePK1 (Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStrain::FinalizeMaterialResponseCauchy (Parameters& rValues)
+void LinearPlaneStrain::FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -169,7 +169,7 @@ bool& LinearPlaneStrain::GetValue(const Variable<bool>& rThisVariable, bool& rVa
 //************************************************************************************
 //************************************************************************************
 
-double& LinearPlaneStrain::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
+double& LinearPlaneStrain::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
 {
     const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
     Vector& StrainVector                  = rParameterValues.GetStrainVector();

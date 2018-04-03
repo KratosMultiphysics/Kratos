@@ -40,7 +40,21 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElasticIsotropicPlaneStressUncoupledShear : public LinearPlaneStress
+/**
+* @class ElasticIsotropicPlaneStressUncoupledShear
+* @ingroup StructuralMechanicsApplication
+* @brief Defines a elastic constitutive law in 2D under plane stress in addition the shear modulus is independent from the Young modulus as well as the poisson ratio.
+* @details This material law is defined by the parameters:
+* - YOUNG_MODULUS
+* - POISSON_RATIO
+* - SHEAR_MODULUS
+* - SHEAR_MODULUS_GAMMA12
+* - SHEAR_MODULUS_GAMMA12_2
+* - SHEAR_MODULUS_GAMMA12_3
+* - SHEAR_MODULUS_GAMMA12_4
+* @note Reference: Chen, S., Harper, L. T., Endruweit, A., & Warrior, N. A. (2015). Formability optimisation of fabric preforms by controlling material draw-in through in-plane constraints. Composites Part A: Applied Science and Manufacturing, 76, 10–19. https://doi.org/10.1016/j.compositesa.2015.05.006
+* @author Philippe Bussetta
+*/class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElasticIsotropicPlaneStressUncoupledShear : public LinearPlaneStress
 {
 public:
 
@@ -48,7 +62,7 @@ public:
     ///@{
 
     typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw         BaseType;
+    typedef LinearPlaneStress       BaseType;
     typedef std::size_t             SizeType;
 
     /**
@@ -134,6 +148,14 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+    * It calculates the constitutive matrix C
+    * @param C: The constitutive matrix
+    * @param E: The Young Modulus
+    * @param NU: The poisson coefficient
+    */
+    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+
     ///@}
 
 private:
@@ -149,19 +171,10 @@ private:
     ///@name Private Operators
     ///@{
 
-    /**
-    * It calculates the constitutive matrix C
-    * @param C: The constitutive matrix
-    * @param E: The Young Modulus
-    * @param NU: The poisson coefficient
-    */
-    void CalculateElasticMatrix(Matrix& C, Parameters& rValues) override;
-
     ///@}
     ///@name Private Operations
     ///@{
     ///@}
-
 
     ///@}
     ///@name Private  Access
@@ -175,14 +188,14 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearPlaneStress)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearPlaneStress)
     }
-
+    ///@}
 
 }; // Class ElasticIsotropicPlaneStressUncoupledShear
 }  // namespace Kratos.

@@ -58,34 +58,38 @@ ElasticIsotropic3D::~ElasticIsotropic3D()
 void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     //b.- Get Values to compute the constitutive law:
-    Flags &Options=rValues.GetOptions();
+    Flags & r_options=rValues.GetOptions();
 
-    Vector& StrainVector                  = rValues.GetStrainVector();
-    Vector& StressVector                  = rValues.GetStressVector();
+    Vector& r_strain_vector                  = rValues.GetStrainVector();
+    Vector& r_stress_vector                  = rValues.GetStressVector();
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if(Options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
+    if( r_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(rValues.IsSetDeformationGradientF()) << "Element does not provide strain, hence F has to be provide. This is not the case" << std::endl;
-        CalculateCauchyGreenStrain(rValues, StrainVector);
+        CalculateCauchyGreenStrain( rValues, r_strain_vector);
     }
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+    if( r_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-        Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-        CalculateElasticMatrix( ConstitutiveMatrix, rValues);
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        CalculateElasticMatrix( r_constitutive_matrix, rValues);
     }
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
+    if( r_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
-        if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+        if (rValues.IsSetDeformationGradientF() == true)
         {
-            Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-            noalias(StressVector) = prod(ConstitutiveMatrix, StrainVector);
+            CalculateCauchyGreenStrain(rValues, r_strain_vector);
+        }
+
+        if( r_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+        {
+            Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+            noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
         }
         else
         {
-            CalculatePK2Stress( StrainVector, StressVector, rValues);
+            CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
         }
     }
 }
@@ -95,7 +99,7 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
 
 // NOTE: Since we are in the hypothesis of small strains we can use the same function for everything
 
-void ElasticIsotropic3D::CalculateMaterialResponsePK1 (Parameters& rValues)
+void ElasticIsotropic3D::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
@@ -103,7 +107,7 @@ void ElasticIsotropic3D::CalculateMaterialResponsePK1 (Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void ElasticIsotropic3D::CalculateMaterialResponseKirchhoff (Parameters& rValues)
+void ElasticIsotropic3D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
@@ -111,7 +115,7 @@ void ElasticIsotropic3D::CalculateMaterialResponseKirchhoff (Parameters& rValues
 //************************************************************************************
 //************************************************************************************
 
-void ElasticIsotropic3D::CalculateMaterialResponseCauchy (Parameters& rValues)
+void ElasticIsotropic3D::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
@@ -119,7 +123,7 @@ void ElasticIsotropic3D::CalculateMaterialResponseCauchy (Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void ElasticIsotropic3D::FinalizeMaterialResponsePK1(Parameters& rValues)
+void ElasticIsotropic3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -127,7 +131,7 @@ void ElasticIsotropic3D::FinalizeMaterialResponsePK1(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void ElasticIsotropic3D::FinalizeMaterialResponsePK2(Parameters& rValues)
+void ElasticIsotropic3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -135,7 +139,7 @@ void ElasticIsotropic3D::FinalizeMaterialResponsePK2(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void ElasticIsotropic3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void ElasticIsotropic3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -143,7 +147,7 @@ void ElasticIsotropic3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -151,17 +155,17 @@ void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-double& ElasticIsotropic3D::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
+double& ElasticIsotropic3D::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
 {
-    Vector& StrainVector                  = rParameterValues.GetStrainVector();
-    Vector& StressVector                  = rParameterValues.GetStressVector();
+    Vector& r_strain_vector                  = rParameterValues.GetStrainVector();
+    Vector& r_stress_vector                  = rParameterValues.GetStressVector();
     
     if (rThisVariable == STRAIN_ENERGY)
     {
-        CalculateCauchyGreenStrain(rParameterValues, StrainVector);
-        CalculatePK2Stress( StrainVector, StressVector, rParameterValues);
+        this->CalculateCauchyGreenStrain(rParameterValues, r_strain_vector);
+        this->CalculatePK2Stress( r_strain_vector, r_stress_vector, rParameterValues);
 
-        rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
+        rValue = 0.5 * inner_prod( r_strain_vector, r_stress_vector); // Strain energy = 0.5*E:C:E
     }
 
     return( rValue );
@@ -197,7 +201,6 @@ int ElasticIsotropic3D::Check(
     const ProcessInfo& rCurrentProcessInfo
 )
 {
-
     if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.0)
     {
         KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
@@ -208,7 +211,7 @@ int ElasticIsotropic3D::Check(
 
     if(POISSON_RATIO.Key() == 0 || check==true)
     {
-        KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value " << std::endl;
+        KRATOS_ERROR << "POISSON_RATIO has Key zero or invalid value " << std::endl;
     }
 
     if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.0)
@@ -222,11 +225,26 @@ int ElasticIsotropic3D::Check(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticIsotropic3D::CalculateElasticMatrix(Matrix& C, Parameters& rValues)
+void ElasticIsotropic3D::CheckClearElasticMatrix(
+    Matrix& C
+)
 {
-    const Properties& MaterialProperties = rValues.GetMaterialProperties();
-    const double& E = MaterialProperties[YOUNG_MODULUS];
-    const double& NU = MaterialProperties[POISSON_RATIO];
+    const SizeType size_system = this->GetStrainSize();
+    if (C.size1() != size_system || C.size2() != size_system)
+        C.resize(size_system, size_system, false);
+    C.clear();
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ElasticIsotropic3D::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double& E = r_material_properties[YOUNG_MODULUS];
+    const double& NU = r_material_properties[POISSON_RATIO];
+
+    this->CheckClearElasticMatrix(C);
 
     const double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
     const double c2 = c1 * ( 1 - NU );
@@ -277,11 +295,11 @@ void ElasticIsotropic3D::CalculateElasticMatrix(Matrix& C, Parameters& rValues)
 void ElasticIsotropic3D::CalculatePK2Stress(
     const Vector& rStrainVector,
     Vector& rStressVector,
-    Parameters& rValues
+    ConstitutiveLaw::Parameters& rValues
 )
 {
-    SizeType SizeSystem = GetStrainSize();
-    Matrix C(SizeSystem,SizeSystem);
+    const SizeType size_system = GetStrainSize();
+    Matrix C( size_system, size_system);
     CalculateElasticMatrix(C, rValues);
     noalias(rStressVector) = prod(C,rStrainVector);
 }
@@ -290,19 +308,21 @@ void ElasticIsotropic3D::CalculatePK2Stress(
 //************************************************************************************
 
 void ElasticIsotropic3D::CalculateCauchyGreenStrain(
-    Parameters& rValues,
+    ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
 )
 {
+    const SizeType space_dimension = this->WorkingSpaceDimension();
+
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
+    KRATOS_DEBUG_ERROR_IF(F.size1()!= space_dimension || F.size2() != space_dimension) << "the size of DeformationGradientF is not equal to the space dimension" << std::endl;
 
-    Matrix Etensor = prod(trans(F),F);
-    SizeType SizeSystem = F.size1();
-    Etensor -= IdentityMatrix(SizeSystem, SizeSystem);
-    Etensor *= 0.5;
+    Matrix E_tensor = prod(trans(F),F);
+    E_tensor -= IdentityMatrix(space_dimension, space_dimension);
+    E_tensor *= 0.5;
 
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);
+    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
 }
 
 } // Namespace Kratos

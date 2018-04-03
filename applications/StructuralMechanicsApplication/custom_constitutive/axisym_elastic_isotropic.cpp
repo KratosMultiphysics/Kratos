@@ -76,7 +76,7 @@ void AxisymElasticIsotropic::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-void AxisymElasticIsotropic::CalculateElasticMatrix(Matrix& C, Parameters& rValues)
+void AxisymElasticIsotropic::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
     const double& E = MaterialProperties[YOUNG_MODULUS];
@@ -105,7 +105,7 @@ void AxisymElasticIsotropic::CalculateElasticMatrix(Matrix& C, Parameters& rValu
 //************************************************************************************
 
 void AxisymElasticIsotropic::CalculateCauchyGreenStrain(
-    Parameters& rValues,
+    ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
 )
 {

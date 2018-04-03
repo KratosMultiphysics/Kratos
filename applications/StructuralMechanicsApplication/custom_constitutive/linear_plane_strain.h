@@ -88,7 +88,7 @@ public:
      * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
+    void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -96,7 +96,7 @@ public:
      * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
+    void CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -104,7 +104,7 @@ public:
      * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK1 (Parameters & rValues) override;
+    void CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -112,7 +112,7 @@ public:
      * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
+    void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Finalizes the material response:
@@ -120,7 +120,7 @@ public:
      * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
+    void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Finalizes the material response:
@@ -128,7 +128,7 @@ public:
      * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void FinalizeMaterialResponseKirchhoff (Parameters & rValues) override;
+    void FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Finalizes the material response:
@@ -136,7 +136,7 @@ public:
      * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void FinalizeMaterialResponsePK1 (Parameters & rValues) override;
+    void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Finalizes the material response:
@@ -144,7 +144,7 @@ public:
      * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
+    void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * returns the value of a specified variable
@@ -161,7 +161,7 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
+    double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -243,7 +243,7 @@ private:
     }
 
     void CalculateCauchyGreenStrain(
-        Parameters& rValues,
+        ConstitutiveLaw::Parameters& rValues,
         Vector& StrainVector
     )
     {
