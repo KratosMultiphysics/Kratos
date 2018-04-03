@@ -72,12 +72,9 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
         mCreateAuxiliarConditions = false;
     else {
         mCreateAuxiliarConditions = true;
-        mConditionName.append("Condition");
-        mConditionName.append(std::to_string(TDim));
-        mConditionName.append("D");
-        mConditionName.append(std::to_string(TNumNodes));
-        mConditionName.append("N");
-        mConditionName.append(mThisParameters["final_string"].GetString());
+        std::ostringstream condition_name;
+        condition_name << mConditionName << "Condition" << TDim << "D" << TNumNodes << "N" << mThisParameters["final_string"].GetString();
+        mConditionName = condition_name.str();
     }
 
     // We get the contact model part
