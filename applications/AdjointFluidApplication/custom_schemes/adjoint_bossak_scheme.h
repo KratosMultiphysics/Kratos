@@ -432,13 +432,15 @@ public:
         const unsigned int working_space_dimension =
             rModelPart.Elements().begin()->WorkingSpaceDimension();
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const unsigned int domain_size =
             static_cast<unsigned int>(r_current_process_info[DOMAIN_SIZE]);
-        if (domain_size != 2 && domain_size != 3)
-            KRATOS_ERROR << "invalid DOMAIN_SIZE: " << domain_size << std::endl;
-        if (domain_size != working_space_dimension)
-            KRATOS_ERROR << "DOMAIN_SIZE != WorkingSpaceDimension()" << std::endl;
+
+        KRATOS_ERROR_IF(domain_size != 2 && domain_size != 3) <<
+            "invalid DOMAIN_SIZE: " << domain_size << "." << std::endl;
+        KRATOS_ERROR_IF(domain_size != working_space_dimension) <<
+            "DOMAIN_SIZE " << domain_size << " not equal to the element's Working Space Dimension " <<
+            working_space_dimension << "." << std::endl;
 
         const Node<3>& r_node = *(rModelPart.NodesBegin());
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_1,r_node);
