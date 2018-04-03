@@ -23,8 +23,6 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 
-// TODO: Add parallellization!!!
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -33,12 +31,7 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
-    typedef Point                                     PointType;
-    typedef Node<3>                                    NodeType;
-    typedef Geometry<NodeType>                     GeometryType;
-    typedef Geometry<PointType>               GeometryPointType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -51,8 +44,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
   
-/** \brief InterfacePreprocessCondition 
- * Creates Model Parts containing the interface
+/**
+ * @ingroup ContactStructuralMechanicsApplication
+ * @class InterfacePreprocessCondition
+ * @brief Creates Model Parts containing the interface
+ * @todo Add parallelization
+ * @author Vicente Mataix Ferrandiz
  */
 class InterfacePreprocessCondition
 {
@@ -60,9 +57,22 @@ public:
     ///@name Type Definitions
     ///@{
     
-    typedef ModelPart::NodesContainerType                   NodesArrayType;
-    typedef ModelPart::ElementsContainerType             ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
+    /// Geometric definitions
+    typedef Point                                              PointType;
+    typedef Node<3>                                             NodeType;
+    typedef Geometry<NodeType>                              GeometryType;
+    typedef Geometry<PointType>                        GeometryPointType;
+
+    /// The index type
+    typedef std::size_t                                        IndexType;
+
+    /// The size type
+    typedef std::size_t                                         SizeType;
+
+    /// Definition of the entities container
+    typedef ModelPart::NodesContainerType                 NodesArrayType;
+    typedef ModelPart::ElementsContainerType           ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType       ConditionsArrayType;
     
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(InterfacePreprocessCondition);
@@ -74,7 +84,7 @@ public:
     /// Constructor
     
     /**
-     * This is the default constructor
+     * @brief This is the default constructor
      * @param rMainModelPrt The model part to consider
      */
     
@@ -95,18 +105,18 @@ public:
     ///@{
 
     /**
-     * Generate a new ModelPart containing only the interface. It will contain the conditions addressed in the call 
+     * @brief Generate a new ModelPart containing only the interface. It will contain the conditions addressed in the call
      * @param rOriginPart The original model part
      * @param rInterfacePart The interface model part
      * @param ThisParameters The configuration parameters
      */
     
-    template<const unsigned int TDim>
+    template<const IndexType TDim>
     void GenerateInterfacePart(
-            ModelPart& rOriginPart,
-            ModelPart& rInterfacePart,
-            Parameters ThisParameters =  Parameters(R"({})")
-            );
+        ModelPart& rOriginPart,
+        ModelPart& rInterfacePart,
+        Parameters ThisParameters =  Parameters(R"({})")
+        );
     
 protected:
     ///@name Protected static Member Variables
@@ -144,7 +154,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart&  mrMainModelPart;
+    ModelPart&  mrMainModelPart; /// The main model part storing all the information
     
     ///@}
     ///@name Private Operators
@@ -155,7 +165,39 @@ private:
     ///@{
 
     /**
-     * Creates a new condition with a giving name
+     * @brief Creates a new properties (contaning just values related with contact)
+     * @details These values are removed from the original property (in order to reduce overload of properties on the original elements)
+     * @param rOriginPart The original model part
+     * @return A map containing new properties
+     */
+
+    std::unordered_map<IndexType, Properties::Pointer> CreateNewProperties(ModelPart& rOriginPart);
+
+    /**
+     * @brief Copies a value from the original property to the new one
+     * @param pOriginalProperty The original property
+     * @param pNewProperty The new property
+     * @param rVariable The variable to copy an erase
+     */
+    template<class TClass>
+    void CopyProperties(
+        Properties::Pointer pOriginalProperty,
+        Properties::Pointer pNewProperty,
+        const Variable<TClass>& rVariable,
+        const bool AssignZero = true
+        )
+    {
+        if(pOriginalProperty->Has(rVariable)) {
+            const TClass& value = pOriginalProperty->GetValue(rVariable);
+            pNewProperty->SetValue(rVariable, value);
+        } else if (AssignZero) {
+            KRATOS_INFO("InterfacePreprocessCondition") << "Property " << rVariable.Name() << " not available. Assigning zero value" << std::endl;
+            pNewProperty->SetValue(rVariable, rVariable.Zero());
+        }
+    }
+
+    /**
+     * @brief Creates a new condition with a giving name
      * @param prThisProperties The pointer to the element
      * @param rGeometry The  geometry considered
      * @param CondId The Id of the condition
@@ -163,32 +205,32 @@ private:
      */
 
     void CreateNewCondition(
-            Properties::Pointer prThisProperties,
-            GeometryType& rGeometry,
-            const unsigned int CondId,
-            Condition const& rCondition
-            );
+        Properties::Pointer prThisProperties,
+        GeometryType& rGeometry,
+        const IndexType CondId,
+        Condition const& rCondition
+        );
     
     /**
-     * It prints the nodes and conditions in the interface, gives an error otherwise there are not
+     * @brief It prints the nodes and conditions in the interface, gives an error otherwise there are not
      * @param NodesCounter Number of nodes in the interface
      * @param CondCounter Number of conditions in the interface
      */
 
     void PrintNodesAndConditions(
-            const int NodesCounter,
-            const int CondCounter
-            );
+        const IndexType NodesCounter,
+        const IndexType CondCounter
+        );
     
     /**
-     * It reorders the Ids of the conditions
+     * @brief It reorders the Ids of the conditions
      * @return cond_id: The Id from the last condition
      */
 
-    unsigned int ReorderConditions();
+    IndexType ReorderConditions();
     
     /**
-     * This method creates the conditions for the edges
+     * @brief This method creates the conditions for the edges
      * @param rInterfacePart The model part of the interface
      * @param prThisProperties The properties of the base element
      * @param EdgeGeometry Geometry considered
@@ -202,12 +244,12 @@ private:
         Properties::Pointer prThisProperties,
         GeometryType& EdgeGeometry,
         const bool SimplestGeometry,
-        unsigned int& CondCounter,
-        unsigned int& CondId
+        IndexType& CondCounter,
+        IndexType& CondId
         );
     
     /**
-     * This method creates the conditions for the faces
+     * @brief This method creates the conditions for the faces
      * @param rInterfacePart The model part of the interface
      * @param prThisProperties The properties of the base element
      * @param FaceGeometry Geometry considered
@@ -221,8 +263,8 @@ private:
         Properties::Pointer prThisProperties,
         GeometryType& FaceGeometry,
         const bool SimplestGeometry,
-        unsigned int& CondCounter,
-        unsigned int& CondId
+        IndexType& CondCounter,
+        IndexType& CondId
         );
     
     ///@}
