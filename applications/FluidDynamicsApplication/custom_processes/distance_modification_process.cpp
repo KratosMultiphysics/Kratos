@@ -30,14 +30,13 @@ namespace Kratos
 /* Public functions *******************************************************/
 DistanceModificationProcess::DistanceModificationProcess(
     ModelPart& rModelPart,
-    const double FactorCoeff,
+    const double FactorCoeff, //TODO: Remove it (here for legacy reasons)
     const double DistanceThreshold,
     const bool CheckAtEachStep,
     const bool NegElemDeactivation,
     const bool RecoverOriginalDistance)
     : Process(), mrModelPart(rModelPart) {
 
-    mFactorCoeff = FactorCoeff;
     mDistanceThreshold = DistanceThreshold;
     mCheckAtEachStep = CheckAtEachStep;
     mNegElemDeactivation = NegElemDeactivation;
@@ -52,8 +51,9 @@ DistanceModificationProcess::DistanceModificationProcess(
     Parameters default_parameters( R"(
     {
         "model_part_name"                        : "default_model_part_name",
-        "distance_factor"                        : 2.0,
+        "distance_factor"                        : 2.0, 
         "distance_threshold"                     : 0.001,
+        "continuous_distance"                    : true,
         "check_at_each_time_step"                : false,
         "avoid_almost_empty_elements"            : true,
         "deactivate_full_negative_elements"      : true,
@@ -62,8 +62,8 @@ DistanceModificationProcess::DistanceModificationProcess(
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mFactorCoeff = rParameters["distance_factor"].GetDouble();
     mDistanceThreshold = rParameters["distance_threshold"].GetDouble();
+    mContinuousDistance = rParameters["continuous_distance"].GetBool();
     mCheckAtEachStep = rParameters["check_at_each_time_step"].GetBool();
     mAvoidAlmostEmptyElements = rParameters["avoid_almost_empty_elements"].GetBool();
     mNegElemDeactivation = rParameters["deactivate_full_negative_elements"].GetBool();
@@ -74,10 +74,12 @@ void DistanceModificationProcess::ExecuteInitialize() {
 
     KRATOS_TRY;
 
-    // Required variables check
-    const auto& r_node = *mrModelPart.NodesBegin();
-    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_H, r_node);
-    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+    // Continuous distance field required variables check 
+    if (mContinuousDistance){
+        const auto& r_node = *mrModelPart.NodesBegin();
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_H, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+    }
 
     KRATOS_CATCH("");
 }
@@ -86,24 +88,20 @@ void DistanceModificationProcess::ExecuteBeforeSolutionLoop() {
 
     KRATOS_TRY;
 
-    // Initialize the number of bad cuts to a non-zero value
-    unsigned int bad_cuts = 1;
-
-    // Compute NODAL_H values
-    FindNodalHProcess NodalHCalculator(mrModelPart);
-    NodalHCalculator.Execute();
-
-    // Modify the nodal distance values until there is no bad intersections
-    while (bad_cuts > 0) {
-        bad_cuts = this->ModifyDistance();
-        mDistanceThreshold /= mFactorCoeff;
+    // Modify the nodal distance values to avoid bad intersections
+    if (mContinuousDistance) {
+        // Compute NODAL_H (used for computing the distance tolerance)
+        FindNodalHProcess nodal_h_calculator(mrModelPart);
+        nodal_h_calculator.Execute();
+        // Modify the continuous distance field
+        this->ModifyDistance();
+    } else {
+        // Modify the discontinuous distance field
+        this->ModifyDiscontinuousDistance();
     }
 
-    // Set the ELEMENTAL_DISTANCE values considering the modified distance values
-    this->SetElementalDistances();
-
     // If proceeds (depending on the formulation), perform the deactivation
-    // Deactivates the full negative elements and sets values in the full negative elements
+    // Deactivates the full negative elements and sets the inner values to 0
     if (mNegElemDeactivation) {
         this->DeactivateFullNegativeElements();
     }
@@ -121,14 +119,17 @@ void DistanceModificationProcess::ExecuteInitializeSolutionStep() {
 void DistanceModificationProcess::ExecuteFinalizeSolutionStep() {
 
     if(mRecoverOriginalDistance == true) {
-        this->RecoverOriginalDistance();
-        this->SetElementalDistances();
+        if (mContinuousDistance){
+            this->RecoverOriginalDistance();
+        } else {
+            this->RecoverOriginalDiscontinuousDistance();
+        }
     }
 }
 
 /* Protected functions ****************************************************/
 
-unsigned int DistanceModificationProcess::ModifyDistance() {
+void DistanceModificationProcess::ModifyDistance() {
 
     ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
     ModelPart::ElementsContainerType& rElements = mrModelPart.Elements();
@@ -157,10 +158,6 @@ unsigned int DistanceModificationProcess::ModifyDistance() {
                     }
                 }
             }
-
-            // Modify the distance to avoid almost empty fluid elements
-            // if((d >= 0.0) && (d < tol_d))
-            //     d = -0.001*tol_d;
         }
     }
     // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
@@ -180,7 +177,7 @@ unsigned int DistanceModificationProcess::ModifyDistance() {
                 ModelPart::NodesContainerType::iterator itNode = rNodes.begin() + k;
                 const double h = itNode->FastGetSolutionStepValue(NODAL_H);
                 const double tol_d = mDistanceThreshold*h;
-                double& d = itNode->FastGetSolutionStepValue(DISTANCE);
+                double &d = itNode->FastGetSolutionStepValue(DISTANCE);
 
                 // Check if the distance values are close to zero
                 // If proceeds, set the tolerance as distance value
@@ -201,16 +198,6 @@ unsigned int DistanceModificationProcess::ModifyDistance() {
                         }
                     }
                 }
-
-                // if((d >= 0.0) && (d < tol_d)) {
-
-                //     // Store the original distance to be recovered at the end of the step
-                //     LocalModifiedDistancesIDs.push_back(d);
-                //     LocalModifiedDistancesValues.push_back(itNode->Id());
-
-                //     // Modify the distance to avoid almost empty fluid elements
-                //     d = -0.001*tol_d;
-                // }
             }
 
             AuxModifiedDistancesIDs[ThreadId] = LocalModifiedDistancesIDs;
@@ -223,68 +210,78 @@ unsigned int DistanceModificationProcess::ModifyDistance() {
 
     // Syncronize data between partitions (the modified distance has always a lower value)
     mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
-
-    // Check if there still exist bad cuts
-    int num_bad_cuts = 0;
-    /* Note: I'm defining a temporary variable because 'num_bad_cuts'
-    *  instead of writing directly into input argument 'bad_cuts'
-    *  because using a reference variable in a reduction pragma does
-    *  not compile in MSVC 2015 nor in clang-3.8 (Is it even allowed by omp?)
-    */
-    #pragma omp parallel for reduction(+ : num_bad_cuts)
-    for (int k = 0; k < static_cast<int>(rElements.size()); ++k) {
-        unsigned int n_pos = 0;
-        unsigned int n_neg = 0;
-
-        ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
-        GeometryType& rGeometry = itElement->GetGeometry();
-
-        for (unsigned int iNode=0; iNode<rGeometry.size(); iNode++) {
-            const double d = rGeometry[iNode].FastGetSolutionStepValue(DISTANCE);
-            (d > 0.0) ? n_pos++ : n_neg++;
-        }
-
-        // The element is cut
-        if((n_neg > 0) && (n_pos > 0)) {
-            for(unsigned int iNode=0; iNode<rGeometry.size(); iNode++) {
-                const Node<3> &rConstNode = rGeometry[iNode];
-                const double h = rConstNode.GetValue(NODAL_H);
-                const double tol_d = (mDistanceThreshold*mFactorCoeff)*h;
-                const double d = rConstNode.FastGetSolutionStepValue(DISTANCE);
-
-                if(std::abs(d) < tol_d){
-                    num_bad_cuts++;
-                    break;
-                }
-
-                // if((d >= 0.0) && (d < tol_d)) {
-                //     num_bad_cuts++;
-                //     break;
-                // }
-            }
-        }
-    }
-
-    // Synchronize the number of bad cuts
-    mrModelPart.GetCommunicator().SumAll(num_bad_cuts);
-
-    return num_bad_cuts;
 }
 
-void DistanceModificationProcess::SetElementalDistances(){
+void DistanceModificationProcess::ModifyDiscontinuousDistance(){
 
-    unsigned int n_nodes = ((mrModelPart.ElementsBegin())->GetGeometry()).PointsNumber();
-    Vector elem_distances = ZeroVector(n_nodes);
+    auto elems_begin = mrModelPart.ElementsBegin();
+    const std::size_t n_elems = mrModelPart.NumberOfElements();
 
-    #pragma omp parallel for firstprivate(n_nodes, elem_distances)
-    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
-        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
-        const auto& r_geom = it_elem->GetGeometry();
-        for (unsigned int i_node = 0; i_node < n_nodes; ++ i_node){
-            elem_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+    // Distance modification
+    if (mRecoverOriginalDistance == false) {
+        // Case in where the original distance does not need to be preserved (e.g. CFD)
+        for (unsigned int i_elem = 0; i_elem < n_elems; ++i_elem){
+            auto it_elem = elems_begin + i_elem;
+
+            // Compute the distance tolerance
+            const double tol_d = this->ComputeDiscontinuousDistanceElementTolerance(it_elem);
+
+            // Check if the distance values are close to zero
+            Vector &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+            for (unsigned int i_node = 0; i_node < r_elem_dist.size(); ++i_node){
+                if (std::abs(r_elem_dist(i_node)) < tol_d){
+                    r_elem_dist(i_node) = -tol_d;
+                }
+            }
         }
-        it_elem->SetValue(ELEMENTAL_DISTANCES, elem_distances);
+    } else {
+        // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
+        const unsigned int n_threads = OpenMPUtils::GetNumThreads();
+        std::vector<std::vector<unsigned int>> mod_dist_elems_ids(n_threads);
+        std::vector<std::vector<Vector>> orig_dist_values(n_threads);
+
+        #pragma omp parallel shared(mod_dist_elems_ids, orig_dist_values)
+        {
+            const int i_thread = OpenMPUtils::ThisThread();         // Get the thread id
+            std::vector<unsigned int> local_mod_dist_elems_ids;     // Local modified distances elemental id vector
+            std::vector<Vector> local_orig_dist_values;             // Local modified distances original values vector
+
+            #pragma omp for
+            for (unsigned int i_elem = 0; i_elem < n_elems; ++i_elem){
+                auto it_elem = elems_begin + i_elem;
+
+                // Compute the distance tolerance
+                const double tol_d = this->ComputeDiscontinuousDistanceElementTolerance(it_elem);
+
+                bool is_saved = false;
+                Vector &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+                for (unsigned int i_node = 0; i_node < r_elem_dist.size(); ++i_node){
+                    if (std::abs(r_elem_dist(i_node)) < tol_d){
+                        r_elem_dist(i_node) = -tol_d;
+                        if (!is_saved){
+                            local_mod_dist_elems_ids.push_back(it_elem->Id());
+                            local_orig_dist_values.push_back(r_elem_dist);
+                        }
+                    }
+                }
+
+            }
+
+            mod_dist_elems_ids[i_thread] = local_mod_dist_elems_ids;
+            orig_dist_values[i_thread] = local_orig_dist_values;
+        }
+
+        mModifiedDistancesIDs = mod_dist_elems_ids;
+        mModifiedElementalDistancesValues = orig_dist_values;
     }
+}
+
+double DistanceModificationProcess::ComputeDiscontinuousDistanceElementTolerance(ModelPart::ElementIterator itElem){
+    auto &r_geometry = itElem->GetGeometry();
+    const std::size_t work_dim = r_geometry.WorkingSpaceDimension();
+    const double elem_size = r_geometry.Area(); // Area (2D) or volume (3D)
+    const double tol_d = work_dim == 2 ? mDistanceThreshold*std::sqrt(elem_size) : mDistanceThreshold*std::cbrt(elem_size);
+    return tol_d;
 }
 
 void DistanceModificationProcess::RecoverOriginalDistance() {
@@ -310,6 +307,26 @@ void DistanceModificationProcess::RecoverOriginalDistance() {
     mModifiedDistancesValues.shrink_to_fit();
 }
 
+void DistanceModificationProcess::RecoverOriginalDiscontinuousDistance() {
+    #pragma omp parallel
+    {
+        const int i_thread = OpenMPUtils::ThisThread();
+        const std::vector<unsigned int> local_mod_dist_elems_ids = mModifiedDistancesIDs[i_thread];
+        const std::vector<Vector> local_orig_dist_values = mModifiedElementalDistancesValues[i_thread];
+
+        for(unsigned int i = 0; i < local_mod_dist_elems_ids.size(); ++i) {
+            const unsigned int i_elem = local_mod_dist_elems_ids[i];
+            mrModelPart.GetElement(i_elem).SetValue(ELEMENTAL_DISTANCES,local_orig_dist_values[i]);
+        }
+    }
+
+    // Empty the modified distance vectors
+    mModifiedDistancesIDs.resize(0);
+    mModifiedElementalDistancesValues.resize(0);
+    mModifiedDistancesIDs.shrink_to_fit();
+    mModifiedElementalDistancesValues.shrink_to_fit();
+}
+
 void DistanceModificationProcess::DeactivateFullNegativeElements() {
 
     ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
@@ -327,7 +344,7 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
     for (int k = 0; k < static_cast<int>(rElements.size()); ++k){
         unsigned int n_neg = 0;
         ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
-        GeometryType& rGeometry = itElement->GetGeometry();
+        auto& rGeometry = itElement->GetGeometry();
 
         // Check the distance function sign at the element nodes
         for (unsigned int i_node=0; i_node<rGeometry.size(); i_node++){
