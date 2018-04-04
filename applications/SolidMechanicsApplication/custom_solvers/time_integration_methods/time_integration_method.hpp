@@ -99,7 +99,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    ~TimeIntegrationMethod(){}
+    virtual ~TimeIntegrationMethod(){}
 
     ///@}
     ///@name Operators

@@ -97,7 +97,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    ~NewmarkStepMethod(){}
+    virtual ~NewmarkStepMethod(){}
 
     ///@}
     ///@name Operators

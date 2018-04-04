@@ -86,7 +86,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    ~StaticMethod(){}
+    virtual ~StaticMethod(){}
 
     ///@}
     ///@name Operators

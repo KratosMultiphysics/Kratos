@@ -61,7 +61,7 @@ namespace Kratos
 
 
     /// Destructor.
-    ~EnergyUtilities(){};
+    virtual ~EnergyUtilities(){};
 
 
     ///@}

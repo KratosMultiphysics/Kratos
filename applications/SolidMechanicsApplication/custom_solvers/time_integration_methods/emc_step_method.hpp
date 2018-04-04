@@ -139,7 +139,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    ~EmcStepMethod(){}
+    virtual ~EmcStepMethod(){}
 
     ///@}
     ///@name Operators
