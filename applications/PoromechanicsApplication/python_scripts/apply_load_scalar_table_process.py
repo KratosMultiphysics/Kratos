@@ -16,7 +16,6 @@ class ApplyLoadScalarTableProcess(KratosMultiphysics.Process):
 
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name",settings["model_part_name"])
-        params.AddValue("mesh_id",settings["mesh_id"])
         params.AddValue("variable_name",settings["variable_name"])
         params.AddValue("value",settings["value"])
         

@@ -4,7 +4,7 @@
         "model_part_name" : "Structure",
         "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.25,
+        "time_step"       : 0.20,
         "start_time"      : 0.0,
         "end_time"        : 17.99,
         "echo_level"      : 0
@@ -15,8 +15,7 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test",
-            "input_file_label" : 0
+            "input_filename"   : "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test"
         },
         "material_import_settings" :{
             "materials_filename": "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test_materials.json"
@@ -35,7 +34,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
+        "max_iteration"                      : 30,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","Parts_Parts_Auto2","CUSTOM","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","CONTACT_Contact_Auto1"],
         "linear_solver_settings"             : {
@@ -147,21 +146,9 @@
         "process_name"  : "ALMContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_Parts_Auto1",
+            "assume_master_slave"         : "Parts_Parts_Auto2",
             "contact_model_part"          : "CONTACT_Contact_Auto1",
-            "contact_type"                : "Frictionless",
-            "search_factor"               : 2.0,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2,
-            "active_check_factor"         : 1.0e-1,
-            "normal_variation"            : "NO_DERIVATIVES_COMPUTATION",
-            "stiffness_factor"            : 10.0,
-            "penalty_scale_factor"        : 1.0,
-            "manual_ALM"                  : false,
-            "penalty"                     : 1.0e6,
-            "scale_factor"                : 1.0e6,
-            "debug_mode"                  : false
+            "contact_type"                : "Frictionless"
         }
     }],
     "_output_configuration"     : {

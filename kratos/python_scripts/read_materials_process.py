@@ -153,7 +153,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         # Set the CONSTITUTIVE_LAW for the current properties.
         constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
 
-        prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law)
+        prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law.Clone())
 
         # Add / override the values of material parameters in the properties
         for key, value in mat["Variables"].items():

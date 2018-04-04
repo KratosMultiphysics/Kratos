@@ -31,6 +31,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
     #${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/fast_transfer_between_model_parts_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_local_smoothing_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_worst_element_smoothing_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_quality_weighted_smoothing_process.cpp;
@@ -54,6 +55,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_sensitivity_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_utils.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/sub_model_parts_list_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;

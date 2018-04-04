@@ -298,7 +298,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     double integration_area;
     integration_utility.GetTotalArea(slave_geometry, conditions_points_slave, integration_area);
     
-    if ((is_inside == true) && ((integration_area/slave_geometry.Area()) > 1.0e-3 * slave_geometry.Area())) {            
+    const double geometry_area = slave_geometry.Area(); 
+    if (is_inside && ((integration_area/geometry_area) > 1.0e-3 * geometry_area)) {             
         IntegrationMethod this_integration_method = GetIntegrationMethod();
         
         // Initialize general variables for the current master element
@@ -450,7 +451,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     double integration_area;
     integration_utility.GetTotalArea(slave_geometry, conditions_points_slave, integration_area);
     
-    if ((is_inside == true) && ((integration_area/slave_geometry.Area()) > 1.0e-3 * slave_geometry.Area())) {            
+    const double geometry_area = slave_geometry.Area(); 
+    if (is_inside && ((integration_area/geometry_area) > 1.0e-3 * geometry_area)) {           
         IntegrationMethod this_integration_method = GetIntegrationMethod();
         
         // Initialize general variables for the current master element
@@ -468,7 +470,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
         
     #ifdef KRATOS_DEBUG
         if (dual_LM == false)
-            KRATOS_WARNING("No dual LM") << "NOT USING DUAL LM. Integration area: " << integration_area << "\tOriginal area: " << slave_geometry.Area() << "\tRatio: " << integration_area/slave_geometry.Area() << std::endl;
+            KRATOS_WARNING("No dual LM") << "NOT USING DUAL LM. Integration area: " << integration_area << "\tOriginal area: " << geometry_area << "\tRatio: " << integration_area/geometry_area << std::endl;
     #endif
         
         for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {

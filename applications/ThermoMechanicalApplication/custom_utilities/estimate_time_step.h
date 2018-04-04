@@ -394,7 +394,7 @@ namespace Kratos
 		  KRATOS_CATCH("")	
 	  }
 	  //************************************************************************************************
-	  //*************** FIND AN ESTIMATION FOR SOLIDIFICATION TIME. NO VIRTUAL MOULD *******************
+	  //*************** FIND AN ESTIMATION FOR SOLIDIFICATION TIME. NO VIRTUAL MOLD *******************
 	  //************************************************************************************************
 	   double EstimateSolidificationTimeNoVirtualMould(ModelPart& ThisModelPart)
 	  {			
@@ -404,7 +404,7 @@ namespace Kratos
 	    const double density = ThisModelPart.GetProcessInfo()[DENSITY];
 	    const double cc= ThisModelPart.GetProcessInfo()[SPECIFIC_HEAT];
 	    const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
-		const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	   
+		const double mould_temperature=ThisModelPart.GetProcessInfo()[MOLD_AVERAGE_TEMPERATURE];	   
     	    
 	    const double TT_solid = ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
 	    const double TT_liquid = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];		  
@@ -432,7 +432,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	   }
 	  //************************************************************************************************
-	  //**************** FIND AN ESTIMATION FOR SOLIDIFICATION TIME. VIRTUAL MOULD *********************
+	  //**************** FIND AN ESTIMATION FOR SOLIDIFICATION TIME. VIRTUAL MOLD *********************
 	  //************************************************************************************************
 		/* For solving this we are going to suppose that we dissipate all the energy through the mould outer surface. 
 		 We Estimate the inner Energy of the System as the SUM of 3 contributions. The energy loss needed to cool the 
@@ -497,15 +497,15 @@ namespace Kratos
         {
 			// Generate the Geometry of the condition
 			Condition::GeometryType& rGeom = itCond->GetGeometry();
-			const double mould_density= itCond->GetProperties()[MOULD_DENSITY]; 
-			const double mould_specific_heat= itCond->GetProperties()[MOULD_SPECIFIC_HEAT]; 
-			const double mould_thickness = itCond->GetProperties()[MOULD_THICKNESS]; 
-			const double mould_vfact= itCond->GetProperties()[MOULD_VFACT];
-			const double mould_sfact= itCond->GetProperties()[MOULD_SFACT];
-			const double mould_htc_env= itCond->GetProperties()[MOULD_HTC_ENVIRONMENT];
-			const double mould_cond=itCond->GetProperties()[MOULD_CONDUCTIVITY];
-			//const double mould_conductivity = itCond->GetProperties()[MOULD_CONDUCTIVITY];
-			const double mould_temperature = itCond->GetProperties()[MOULD_TEMPERATURE];
+			const double mould_density= itCond->GetProperties()[MOLD_DENSITY]; 
+			const double mould_specific_heat= itCond->GetProperties()[MOLD_SPECIFIC_HEAT]; 
+			const double mould_thickness = itCond->GetProperties()[MOLD_THICKNESS]; 
+			const double mould_vfact= itCond->GetProperties()[MOLD_VFACT];
+			const double mould_sfact= itCond->GetProperties()[MOLD_SFACT];
+			const double mould_htc_env= itCond->GetProperties()[MOLD_HTC_ENVIRONMENT];
+			const double mould_cond=itCond->GetProperties()[MOLD_CONDUCTIVITY];
+			//const double mould_conductivity = itCond->GetProperties()[MOLD_CONDUCTIVITY];
+			const double mould_temperature = itCond->GetProperties()[MOLD_TEMPERATURE];
 			double tarea=rGeom.DomainSize();
 			const double condition_area=pow(tarea,1.0);
 			tot_area+=tarea;
@@ -533,7 +533,7 @@ namespace Kratos
 	
 		double solidification_time_chorinov=0.0;
 		//const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
-		//const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	
+		//const double mould_temperature=ThisModelPart.GetProcessInfo()[MOLD_AVERAGE_TEMPERATURE];	
 		solidification_time_chorinov=pow(density*LL/fabs(initial_temperature-stop_temperature),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
 		solidification_time_chorinov*=1+(cc*pow((initial_temperature-stop_temperature)/LL,2));
 		solidification_time_chorinov*=pow(tot_vol/tot_area,1.5);
@@ -684,14 +684,14 @@ namespace Kratos
         {
 			// Generate the Geometry of the condition
 			Condition::GeometryType& rGeom = itCond->GetGeometry();
-			const double mould_density= itCond->GetProperties()[MOULD_DENSITY]; 
-			const double mould_specific_heat= itCond->GetProperties()[MOULD_SPECIFIC_HEAT]; 
-			const double mould_thickness = itCond->GetProperties()[MOULD_THICKNESS]; 
-			const double mould_vfact= itCond->GetProperties()[MOULD_VFACT];
-			const double mould_sfact= itCond->GetProperties()[MOULD_SFACT];
-			const double mould_htc_env= itCond->GetProperties()[MOULD_HTC_ENVIRONMENT]; 
-			const double mould_conductivity = itCond->GetProperties()[MOULD_CONDUCTIVITY];
-			const double mould_temperature = itCond->GetProperties()[MOULD_TEMPERATURE];
+			const double mould_density= itCond->GetProperties()[MOLD_DENSITY]; 
+			const double mould_specific_heat= itCond->GetProperties()[MOLD_SPECIFIC_HEAT]; 
+			const double mould_thickness = itCond->GetProperties()[MOLD_THICKNESS]; 
+			const double mould_vfact= itCond->GetProperties()[MOLD_VFACT];
+			const double mould_sfact= itCond->GetProperties()[MOLD_SFACT];
+			const double mould_htc_env= itCond->GetProperties()[MOLD_HTC_ENVIRONMENT]; 
+			const double mould_conductivity = itCond->GetProperties()[MOLD_CONDUCTIVITY];
+			const double mould_temperature = itCond->GetProperties()[MOLD_TEMPERATURE];
 			
 			double tarea=rGeom.DomainSize();
 			tot_area+=tarea;
@@ -723,7 +723,7 @@ namespace Kratos
 		double cooling_time_chorinov=0.0;
 		//const double htc= ThisModelPart.GetProcessInfo()[HTC];
 		const double solid_temp= ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
-		//const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	
+		//const double mould_temperature=ThisModelPart.GetProcessInfo()[MOLD_AVERAGE_TEMPERATURE];	
 		cooling_time_chorinov=pow(density*LL/fabs(initial_temperature-solid_temp),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
 		cooling_time_chorinov*=1+(cc*pow((initial_temperature-solid_temp)/LL,2));
 		cooling_time_chorinov*=pow(tot_vol/tot_area,2);

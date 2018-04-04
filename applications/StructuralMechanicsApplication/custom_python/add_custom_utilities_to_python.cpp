@@ -19,7 +19,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 //Utilities
-#include "custom_utilities/sprism_neighbours.hpp"
+
 
 namespace Kratos
 {
@@ -33,11 +33,6 @@ void  AddCustomUtilitiesToPython()
 //     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 //     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 //     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    
-    class_<SprismNeighbours>("SprismNeighbours", init<ModelPart&>())
-    .def("Execute",&SprismNeighbours::Execute)
-    .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
-    ;
 
 }
 
