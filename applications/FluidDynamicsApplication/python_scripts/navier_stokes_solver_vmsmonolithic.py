@@ -21,7 +21,6 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
 
         self.element_name = "VMS"
         self.condition_name = "MonolithicWallCondition"
-        self.min_buffer_size = 2
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
@@ -60,6 +59,7 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
             },
+            "time_scheme":"bossak",
             "alpha":-0.3,
             "move_mesh_strategy": 0,
             "periodic": "periodic",
@@ -71,6 +71,17 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
         ## Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
+
+        scheme_type = self.settings["time_scheme"].GetString()
+        if scheme_type == "bossak":
+            self.min_buffer_size = 2
+        elif scheme_type == "bdf2":
+            self.min_buffer_size = 3
+        else:
+            msg  = "Unknown time_scheme option found in project parameters:\n"
+            msg += "\"" + scheme_type + "\"\n"
+            msg += "Accepted values are \"bossak\" or \"bdf2\"\n"
+            raise Exception(msg)
 
         ## Construct the linear solver
         import linear_solver_factory
@@ -130,15 +141,20 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         if (self.settings["turbulence_model"].GetString() == "None"):
-            if self.settings["consider_periodic_conditions"].GetBool() == True:
-                self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
-                                                                                                          self.settings["move_mesh_strategy"].GetInt(),
-                                                                                                          self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                                                          KratosCFD.PATCH_INDEX)
-            else:
-                self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
-                                                                                                          self.settings["move_mesh_strategy"].GetInt(),
-                                                                                                          self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+            if self.settings["time_scheme"].GetString() == "bossak":
+                if self.settings["consider_periodic_conditions"].GetBool() == True:
+                    self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                                        self.settings["alpha"].GetDouble(),
+                                        self.settings["move_mesh_strategy"].GetInt(),
+                                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                        KratosCFD.PATCH_INDEX)
+                else:
+                    self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                                        self.settings["alpha"].GetDouble(),
+                                        self.settings["move_mesh_strategy"].GetInt(),
+                                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+            elif self.settings["time_scheme"].GetString() == "bdf2":
+                self.time_scheme = KratosCFD.GearScheme()
         else:
             raise Exception("Turbulence models are not added yet.")
 
