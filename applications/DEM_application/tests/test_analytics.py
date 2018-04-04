@@ -13,10 +13,11 @@ class AnalyticsTestSolution(main_script.Solution):
             "problem_name":"analytics_test_1",
             "PostNormalImpactVelocity"         : true,
             "PostTangentialImpactVelocity"     : false,
-            "FinalTime" : 0.1
+            "FinalTime" : 2.0, 
+            "OutputTimeStep"                   : 2e-4
         }
         """))
-
+        # perque segueix parant el cas a 0.15?
         return input_parameters
 
     def GetMainPath(self):
@@ -29,22 +30,32 @@ class AnalyticsTestSolution(main_script.Solution):
         tolerance = 1e-3
                     
         for node in self.spheres_model_part.Nodes:
-            normal_impact_vel = node.GetSolutionStepValue(NORMAL_IMPACT_VELOCITY)
-            if node.Id ==1:
+            normal_impact_vel = node.GetSolutionStepValue(NORMAL_IMPACT_VELOCITY) # perque no puc vere el print de velocitat
+            face_normal_impact_vel = node.GetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY)
+            #normal_impact_vel = 0.0
+            print(time)
+            print(node)
+            print(normal_impact_vel)
+            if node.Id ==1:   
                 if time < 0.03:
                     expected_value = 0.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.4:
+                elif time > 0.4 # ???
                     expected_value = 3.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
+                '''
+                elif time > 0.4: # condition for face_normal_impact despres de impactar contra la placa
+                    expected_value = 3.0
+                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)  
+                '''      
             if node.Id ==2:
                 if time < 0.03:
                     expected_value = 0.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.4 and time < 0.13:
+                elif time > 0.4 and time < 0.13: # ???
                     expected_value = 3.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.15:
+                elif time > 0.15:  # ???
                     expected_value = 3.9602
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
             if node.Id ==3:
@@ -59,6 +70,10 @@ class AnalyticsTestSolution(main_script.Solution):
     def CheckValueOfNormalImpactVelocity(self, normal_impact_vel, expected_value, tolerance):
         if normal_impact_vel > expected_value + tolerance or normal_impact_vel < expected_value - tolerance:                    
             raise ValueError('Incorrect value for NORMAL_IMPACT_VELOCITY')
+
+    def CheckValueOfFaceNormalImpactVelocity(self, face_normal_impact_vel, expected_value, tolerance):
+        if normal_impact_vel > expected_value + tolerance or normal_impact_vel < expected_value - tolerance:                    
+            raise ValueError('Incorrect value for FACE_NORMAL_IMPACT_VELOCITY')
 
     def Finalize(self):
         super(AnalyticsTestSolution, self).Finalize()
