@@ -87,7 +87,6 @@ public:
      * @brief This is the default constructor
      * @param rMainModelPrt The model part to consider
      */
-    
     InterfacePreprocessCondition(ModelPart& rMainModelPrt)
     :mrMainModelPart(rMainModelPrt)
     {
@@ -106,14 +105,11 @@ public:
 
     /**
      * @brief Generate a new ModelPart containing only the interface. It will contain the conditions addressed in the call
-     * @param rOriginPart The original model part
      * @param rInterfacePart The interface model part
      * @param ThisParameters The configuration parameters
      */
-    
     template<const IndexType TDim>
     void GenerateInterfacePart(
-        ModelPart& rOriginPart,
         ModelPart& rInterfacePart,
         Parameters ThisParameters =  Parameters(R"({})")
         );
@@ -154,7 +150,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart&  mrMainModelPart; /// The main model part storing all the information
+    ModelPart& mrMainModelPart; /// The main model part storing all the information
     
     ///@}
     ///@name Private Operators
@@ -167,11 +163,9 @@ private:
     /**
      * @brief Creates a new properties (contaning just values related with contact)
      * @details These values are removed from the original property (in order to reduce overload of properties on the original elements)
-     * @param rOriginPart The original model part
      * @return A map containing new properties
      */
-
-    std::unordered_map<IndexType, Properties::Pointer> CreateNewProperties(ModelPart& rOriginPart);
+    std::unordered_map<IndexType, Properties::Pointer> CreateNewProperties();
 
     /**
      * @brief Copies a value from the original property to the new one
@@ -212,11 +206,16 @@ private:
         );
     
     /**
+     * @brief This method assign the corresponding master/slave flag to the condition in function of its nodes
+     * @param pCond The pointer to the condition
+     */
+    void AssignMasterSlaveCondition(Condition::Pointer pCond);
+
+    /**
      * @brief It prints the nodes and conditions in the interface, gives an error otherwise there are not
      * @param NodesCounter Number of nodes in the interface
      * @param CondCounter Number of conditions in the interface
      */
-
     void PrintNodesAndConditions(
         const IndexType NodesCounter,
         const IndexType CondCounter
@@ -226,7 +225,6 @@ private:
      * @brief It reorders the Ids of the conditions
      * @return cond_id: The Id from the last condition
      */
-
     IndexType ReorderConditions();
     
     /**
@@ -238,7 +236,6 @@ private:
      * @param CondCounter The counter of conditions
      * @param CondId The condition id
      */
-
     inline void GenerateEdgeCondition(
         ModelPart& rInterfacePart,
         Properties::Pointer prThisProperties,
@@ -257,7 +254,6 @@ private:
      * @param CondCounter The counter of conditions
      * @param CondId The condition id
      */
-
     inline void GenerateFaceCondition(
         ModelPart& rInterfacePart,
         Properties::Pointer prThisProperties,

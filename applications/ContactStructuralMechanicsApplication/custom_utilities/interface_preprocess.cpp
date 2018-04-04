@@ -32,7 +32,6 @@ namespace Kratos
 {
 template<>
 void InterfacePreprocessCondition::GenerateInterfacePart<2>(
-    ModelPart& rOriginPart,
     ModelPart& rInterfacePart,
     Parameters ThisParameters
     )
@@ -49,21 +48,28 @@ void InterfacePreprocessCondition::GenerateInterfacePart<2>(
     const bool simplest_geometry = ThisParameters["simplify_geometry"].GetBool();
     
     IndexType cond_counter = 0;
-    
-    // We reorder the conditions
-    IndexType cond_id = ReorderConditions();
-    
-    // Store new properties in a map
-    std::unordered_map<IndexType, Properties::Pointer> new_properties = CreateNewProperties(rOriginPart);
 
     // Generate Conditions from original the edges that can be considered interface
-    for (auto it_elem = rOriginPart.ElementsBegin(); it_elem != rOriginPart.ElementsEnd(); ++it_elem) {
-        GeometryType& this_geometry = it_elem->GetGeometry();
-        Properties::Pointer p_prop = new_properties[it_elem->pGetProperties()->Id()];
-        KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
-        
-        for (IndexType i_edge = 0; i_edge < this_geometry.EdgesNumber(); ++i_edge)
-            GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry.Edges()[i_edge], simplest_geometry, cond_counter, cond_id);
+    if (rInterfacePart.Conditions().size() > 0) { // We use the already existant conditions geometry (recommended)
+        cond_counter = rInterfacePart.Conditions().size();
+    } else if (rInterfacePart.Nodes().size() > 0) { // Only in case we have assigned the flag directly to nodes (no conditions)
+        // We reorder the conditions
+        IndexType cond_id = ReorderConditions();
+
+        // Store new properties in a map
+        std::unordered_map<IndexType, Properties::Pointer> new_properties = CreateNewProperties();
+
+        // We iterate over the elements and check the nodes on the interface
+        for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
+            GeometryType& this_geometry = it_elem->GetGeometry();
+            Properties::Pointer p_prop = new_properties[it_elem->pGetProperties()->Id()];
+            KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
+
+            for (IndexType i_edge = 0; i_edge < this_geometry.EdgesNumber(); ++i_edge)
+                GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry.Edges()[i_edge], simplest_geometry, cond_counter, cond_id);
+        }
+    } else {
+        KRATOS_ERROR << "ERROR:: Nor conditions or nodes on the interface. Check your flags" << std::endl;
     }
     
     // NOTE: Reorder ID if parallellization
@@ -79,7 +85,6 @@ void InterfacePreprocessCondition::GenerateInterfacePart<2>(
 
 template<>
 void InterfacePreprocessCondition::GenerateInterfacePart<3>(
-    ModelPart& rOriginPart,
     ModelPart& rInterfacePart,
     Parameters ThisParameters
     )
@@ -97,23 +102,30 @@ void InterfacePreprocessCondition::GenerateInterfacePart<3>(
     
     IndexType cond_counter = 0;
     
-    // We reorder the conditions
-    IndexType cond_id = ReorderConditions();
-    
-    // Store new properties in a map
-    std::unordered_map<IndexType, Properties::Pointer> new_properties = CreateNewProperties(rOriginPart);
+    // Generate Conditions from original the edges that can be considered interface
+    if (rInterfacePart.Conditions().size() > 0) { // We use the already existant conditions geometry (recommended)
+        cond_counter = rInterfacePart.Conditions().size();
+    } else if (rInterfacePart.Nodes().size() > 0) { // Only in case we have assigned the flag directly to nodes (no conditions)
+        // We reorder the conditions
+        IndexType cond_id = ReorderConditions();
 
-    // Generate Conditions from original the faces that can be considered interface
-    for (auto it_elem = rOriginPart.ElementsBegin(); it_elem != rOriginPart.ElementsEnd(); ++it_elem) {          
-        GeometryType& this_geometry = it_elem->GetGeometry();
-        Properties::Pointer p_prop = new_properties[it_elem->pGetProperties()->Id()];
-        KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
-        
-        if (this_geometry.LocalSpaceDimension() == 3) {
-            for (IndexType i_face = 0; i_face < this_geometry.FacesNumber(); ++i_face)
-                GenerateFaceCondition(rInterfacePart, p_prop, this_geometry.Faces()[i_face], simplest_geometry, cond_counter, cond_id);
-        } else
-            GenerateFaceCondition(rInterfacePart, p_prop, this_geometry, simplest_geometry, cond_counter, cond_id);
+        // Store new properties in a map
+        std::unordered_map<IndexType, Properties::Pointer> new_properties = CreateNewProperties();
+
+        // Generate Conditions from original the faces that can be considered interface
+        for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
+            GeometryType& this_geometry = it_elem->GetGeometry();
+            Properties::Pointer p_prop = new_properties[it_elem->pGetProperties()->Id()];
+            KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
+
+            if (this_geometry.LocalSpaceDimension() == 3) {
+                for (IndexType i_face = 0; i_face < this_geometry.FacesNumber(); ++i_face)
+                    GenerateFaceCondition(rInterfacePart, p_prop, this_geometry.Faces()[i_face], simplest_geometry, cond_counter, cond_id);
+            } else
+                GenerateFaceCondition(rInterfacePart, p_prop, this_geometry, simplest_geometry, cond_counter, cond_id);
+        }
+    } else {
+        KRATOS_ERROR << "ERROR:: Nor conditions or nodes on the interface. Check your flags" << std::endl;
     }
     
     // NOTE: Reorder ID if parallellization
@@ -127,7 +139,7 @@ void InterfacePreprocessCondition::GenerateInterfacePart<3>(
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::unordered_map<IndexType, Properties::Pointer> InterfacePreprocessCondition::CreateNewProperties(ModelPart& rOriginPart)
+std::unordered_map<IndexType, Properties::Pointer> InterfacePreprocessCondition::CreateNewProperties()
 {
     const SizeType number_properties = mrMainModelPart.NumberOfProperties();
 
@@ -140,10 +152,10 @@ std::unordered_map<IndexType, Properties::Pointer> InterfacePreprocessCondition:
     }
 
     // Create a vector with the ids of the old properties
-    const SizeType number_properties_origin = rOriginPart.NumberOfProperties();
+    const SizeType number_properties_origin = mrMainModelPart.NumberOfProperties();
     std::vector<IndexType> index_vector(number_properties_origin);
     count = 0;
-    for (auto it_prop = rOriginPart.PropertiesBegin(); it_prop < rOriginPart.PropertiesEnd(); ++it_prop) {
+    for (auto it_prop = mrMainModelPart.PropertiesBegin(); it_prop < mrMainModelPart.PropertiesEnd(); ++it_prop) {
         index_vector[count] = it_prop->Id();
         ++count;
     }
@@ -179,9 +191,18 @@ void InterfacePreprocessCondition::CreateNewCondition(
 
     Condition::Pointer p_cond = Condition::Pointer(rCondition.Create(CondId, rGeometry, pThisProperties));
     mrMainModelPart.AddCondition(p_cond);
+    AssignMasterSlaveCondition(p_cond);
 
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void InterfacePreprocessCondition::AssignMasterSlaveCondition(Condition::Pointer pCond)
+{
     // We set the condition as master or slave (master by default)
-    GeometryType& this_geometry = p_cond->GetGeometry();
+    GeometryType& this_geometry = pCond->GetGeometry();
     bool is_slave = true;
     for (IndexType i_node = 0; i_node < this_geometry.size(); ++i_node) {
         if (this_geometry[i_node].Is(SLAVE) == false) {
@@ -189,10 +210,8 @@ void InterfacePreprocessCondition::CreateNewCondition(
             break;
         }
     }
-    if (is_slave == true)  p_cond->Set(SLAVE, true);
-    else  p_cond->Set(MASTER, true);
-
-    KRATOS_CATCH("");
+    if (is_slave == true) pCond->Set(SLAVE, true);
+    else pCond->Set(MASTER, true);
 }
 
 /***********************************************************************************/

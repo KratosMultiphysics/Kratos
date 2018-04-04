@@ -30,20 +30,6 @@ class MeshTyingProcess(python_process.PythonProcess):
     settings -- Kratos parameters containing solver settings.
     """
 
-    __type_search = {
-        # JSON input
-        "KdtreeInRadius": CSMA.SearchTreeType.KdtreeInRadius,
-        "KdtreeInBox":  CSMA.SearchTreeType.KdtreeInBox,
-        "Kdop": CSMA.SearchTreeType.Kdop
-        }
-
-    __check_gap = {
-        # JSON input
-        "NoCheck": CSMA.CheckGap.NoCheck,
-        "DirectCheck":  CSMA.CheckGap.DirectCheck,
-        "MappingCheck": CSMA.CheckGap.MappingCheck
-        }
-
     def __init__(self, model_part, settings):
         """ The default constructor of the class
 
@@ -132,9 +118,9 @@ class MeshTyingProcess(python_process.PythonProcess):
         # It should create the conditions automatically
         interface_parameters = KM.Parameters("""{"simplify_geometry": false}""")
         if (self.dimension == 2):
-            self.interface_preprocess.GenerateInterfacePart2D(computing_model_part, self.mesh_tying_model_part, interface_parameters)
+            self.interface_preprocess.GenerateInterfacePart2D(self.mesh_tying_model_part, interface_parameters)
         else:
-            self.interface_preprocess.GenerateInterfacePart3D(computing_model_part, self.mesh_tying_model_part, interface_parameters)
+            self.interface_preprocess.GenerateInterfacePart3D(self.mesh_tying_model_part, interface_parameters)
 
         # When all conditions are simultaneously master and slave
         if (self.settings["assume_master_slave"].GetString() == ""):
