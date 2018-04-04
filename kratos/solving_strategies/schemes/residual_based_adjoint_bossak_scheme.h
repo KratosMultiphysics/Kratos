@@ -85,6 +85,61 @@ public:
     ///@name Operations
     ///@{
 
+     void Initialize(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY;
+
+        BaseType::Initialize(rModelPart);
+
+        // Allocate auxiliary memory.
+        int num_threads = OpenMPUtils::GetNumThreads();
+        mLeftHandSide.resize(num_threads);
+        mResponseGradient.resize(num_threads);
+        mFirstDerivsLHS.resize(num_threads);
+        mFirstDerivsResponseGradient.resize(num_threads);
+        mSecondDerivsLHS.resize(num_threads);
+        mSecondDerivsResponseGradient.resize(num_threads);
+        mAdjointValuesVector.resize(num_threads);
+        mAdjointFirstDerivsVector.resize(num_threads);
+        mAdjointSecondDerivsVector.resize(num_threads);
+        mAdjointAuxiliaryVector.resize(num_threads);
+
+        this->mpResponseFunction->Initialize(rModelPart);
+
+        InitializeNodeNeighbourCount(rModelPart.Nodes());
+
+        KRATOS_CATCH("");
+    }
+
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        SystemMatrixType& rA,
+        SystemVectorType& rDx,
+        SystemVectorType& rb) override
+    {
+        KRATOS_TRY;
+
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        // Get current time step.
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_last_process_info = r_current_process_info.GetPreviousSolutionStepInfo(1);
+
+        // Note: solution is backwards in time, but we still want a positive time step
+        // (it is the time step in the "forward" Bossak scheme).
+        mTimeStep = r_last_process_info.GetValue(TIME) - r_current_process_info.GetValue(TIME);
+        KRATOS_ERROR_IF(mTimeStep <= 0.0) << "Backwards in time solution is not decreasing time from last step." << std::endl;
+
+        mInverseDt = 1.0 / mTimeStep;
+
+        CalculateNodeNeighbourCount(rModelPart);
+
+        this->mpResponseFunction->InitializeSolutionStep(rModelPart);
+
+        KRATOS_CATCH("");
+    }
+
+
     void Update(ModelPart& rModelPart,
                 DofsArrayType& rDofSet,
                 SystemMatrixType& rA,
@@ -207,6 +262,39 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    virtual void InitializeNodeNeighbourCount(ModelPart::NodesContainerType& rNodes)
+    {
+        // This loop should not be omp parallel
+        // The operation is not threadsafe if the value is uninitialized
+        for (auto& r_node : rNodes)
+            r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS,0.0);
+    }
+
+    virtual void CalculateNodeNeighbourCount(ModelPart& rModelPart)
+    {
+        // Calculate number of neighbour elements for each node.
+        const int num_nodes = rModelPart.NumberOfNodes();
+        #pragma omp parallel for
+        for (int i = 0; i < num_nodes; i++) {
+            Node<3>& r_node = *(rModelPart.Nodes().begin()+i);
+            r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS,0.0);
+        }
+
+        const int num_elements = rModelPart.NumberOfElements();
+        #pragma omp parallel for
+        for (int i = 0; i < num_elements; i++) {
+            Element& r_element = *(rModelPart.Elements().begin()+i);
+            Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
+            for (unsigned int j = 0; j < r_geometry.PointsNumber(); j++) {
+                double& r_num_neighbour = r_geometry[j].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+                #pragma omp atomic
+                r_num_neighbour += 1.0;
+            }
+        }
+
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+    }
+
     virtual void UpdateDegreesOfFreedom(
         DofsArrayType& rDofSet,
         SystemVectorType& rDx)
@@ -243,9 +331,10 @@ protected:
             array_1d<double,3>& r_lambda3 = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
             const array_1d<double,3>& r_lambda2_old = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2,1);
             const array_1d<double,3>& r_lambda3_old = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3,1);
+            const array_1d<double, 3>& r_old_aux_adjoint_fluid_vector_1 = r_node.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1,1);
 
             noalias(r_lambda2) = a22 * r_lambda2_old + a23 * r_lambda3_old;
-            noalias(r_lambda3) = a32 * r_lambda2_old + a33 * r_lambda3_old;
+            noalias(r_lambda3) = a32 * r_lambda2_old + a33 * r_lambda3_old + r_old_aux_adjoint_fluid_vector_1;
         }
 
         const int number_of_ghost_nodes = r_communicator.GhostMesh().NumberOfNodes();
@@ -299,13 +388,12 @@ protected:
                 array_1d<double, 3>& r_adjoint_fluid_vector_2 = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2);
                 array_1d<double, 3>& r_adjoint_fluid_vector_3 = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
                 array_1d<double, 3>& r_aux_adjoint_fluid_vector_1 = r_node.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1);
-                const array_1d<double, 3>& r_old_aux_adjoint_fluid_vector_1 = r_node.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1,1);
 
                 r_node.SetLock();
                 for (unsigned int d = 0; d < r_geometry.WorkingSpaceDimension(); ++d) {
 
                     r_adjoint_fluid_vector_2[d] += r_velocity_adjoint[local_index];
-                    r_adjoint_fluid_vector_3[d] += r_acceleration_adjoint[local_index] + r_old_aux_adjoint_fluid_vector_1[d];
+                    r_adjoint_fluid_vector_3[d] += r_acceleration_adjoint[local_index];
                     r_aux_adjoint_fluid_vector_1[d] += r_adjoint_auxiliary[local_index];
                     ++local_index;
                 }
@@ -347,6 +435,8 @@ private:
     double mAlphaBossak;
     double mBetaNewmark;
     double mGammaNewmark;
+    double mTimeStep;
+    double mInverseDt;
 
     std::vector< LocalSystemMatrixType > mLeftHandSide;
     std::vector< LocalSystemVectorType > mResponseGradient;
