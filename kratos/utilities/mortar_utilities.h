@@ -85,6 +85,12 @@ public:
     /// A map for integers
     typedef std::unordered_map<int, int>                           IntMap;
 
+    /// Index type definition
+    typedef std::size_t                                         IndexType;
+
+    /// Size type definition
+    typedef std::size_t                                          SizeType;
+    
     /// The definition of zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
     
