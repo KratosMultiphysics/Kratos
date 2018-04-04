@@ -254,38 +254,14 @@ void ElasticIsotropic3D::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Para
     C( 0, 0 ) = c2;
     C( 0, 1 ) = c3;
     C( 0, 2 ) = c3;
-    C( 0, 3 ) = 0.0;
-    C( 0, 4 ) = 0.0;
-    C( 0, 5 ) = 0.0;
     C( 1, 0 ) = c3;
     C( 1, 1 ) = c2;
     C( 1, 2 ) = c3;
-    C( 1, 3 ) = 0.0;
-    C( 1, 4 ) = 0.0;
-    C( 1, 5 ) = 0.0;
     C( 2, 0 ) = c3;
     C( 2, 1 ) = c3;
     C( 2, 2 ) = c2;
-    C( 2, 3 ) = 0.0;
-    C( 2, 4 ) = 0.0;
-    C( 2, 5 ) = 0.0;
-    C( 3, 0 ) = 0.0;
-    C( 3, 1 ) = 0.0;
-    C( 3, 2 ) = 0.0;
     C( 3, 3 ) = c4;
-    C( 3, 4 ) = 0.0;
-    C( 3, 5 ) = 0.0;
-    C( 4, 0 ) = 0.0;
-    C( 4, 1 ) = 0.0;
-    C( 4, 2 ) = 0.0;
-    C( 4, 3 ) = 0.0;
     C( 4, 4 ) = c4;
-    C( 4, 5 ) = 0.0;
-    C( 5, 0 ) = 0.0;
-    C( 5, 1 ) = 0.0;
-    C( 5, 2 ) = 0.0;
-    C( 5, 3 ) = 0.0;
-    C( 5, 4 ) = 0.0;
     C( 5, 5 ) = c4;
 }
 
@@ -298,10 +274,21 @@ void ElasticIsotropic3D::CalculatePK2Stress(
     ConstitutiveLaw::Parameters& rValues
 )
 {
-    const SizeType size_system = GetStrainSize();
-    Matrix C( size_system, size_system);
-    CalculateElasticMatrix(C, rValues);
-    noalias(rStressVector) = prod(C,rStrainVector);
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double& E = r_material_properties[YOUNG_MODULUS];
+    const double& NU = r_material_properties[POISSON_RATIO];
+
+    const double c1 = E / ((1.00 + NU) * (1 - 2 * NU));
+    const double c2 = c1 * (1 - NU);
+    const double c3 = c1 * NU;
+    const double c4 = c1 * 0.5 * (1 - 2 * NU);
+
+    rStressVector[0] = c2 * rStrainVector[0] + c3 * rStrainVector[1] + c3 * rStrainVector[2];
+    rStressVector[1] = c3 * rStrainVector[0] + c2 * rStrainVector[1] + c3 * rStrainVector[2];
+    rStressVector[2] = c3 * rStrainVector[0] + c3 * rStrainVector[1] + c2 * rStrainVector[2];
+    rStressVector[3] = c4 * rStrainVector[3];
+    rStressVector[4] = c4 * rStrainVector[4];
+    rStressVector[5] = c4 * rStrainVector[5];
 }
 
 //************************************************************************************

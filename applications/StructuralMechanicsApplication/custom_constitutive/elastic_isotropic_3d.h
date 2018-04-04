@@ -232,8 +232,7 @@ protected:
     * It calculates the stress vector
     * @param rStrainVector The strain vector in Voigt notation
     * @param rStressVector The stress vector in Voigt notation
-    * @param E The Young Modulus
-    * @param NU The poisson coefficient
+    * @param rValues Parameters of the constitutive law
     */
     virtual void CalculatePK2Stress(
         const Vector& rStrainVector,

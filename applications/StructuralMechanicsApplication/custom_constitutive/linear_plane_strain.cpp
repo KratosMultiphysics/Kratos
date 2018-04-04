@@ -104,13 +104,32 @@ void LinearPlaneStrain::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Param
 
     C(0, 0) = c1;
     C(0, 1) = c2;
-    C(0, 2) = 0.0;
     C(1, 0) = c2;
     C(1, 1) = c1;
-    C(1, 2) = 0.0;
-    C(2, 0) = 0.0;
-    C(2, 1) = 0.0;
     C(2, 2) = c3;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearPlaneStrain::CalculatePK2Stress(
+    const Vector& rStrainVector,
+    Vector& rStressVector,
+    ConstitutiveLaw::Parameters& rValues
+)
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double& E = r_material_properties[YOUNG_MODULUS];
+    const double& NU = r_material_properties[POISSON_RATIO];
+
+    const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
+    const double c1 = (1.00 - NU)*c0;
+    const double c2 = c0 * NU;
+    const double c3 = (0.5 - NU)*c0;
+
+    rStressVector[0] = c1 * rStrainVector[0] + c2 * rStrainVector[1];
+    rStressVector[1] = c2 * rStrainVector[0] + c1 * rStrainVector[1];
+    rStressVector[2] = c3 * rStrainVector[2];
 }
 
 //************************************************************************************

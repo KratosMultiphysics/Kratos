@@ -152,10 +152,21 @@ protected:
     /**
     * It calculates the constitutive matrix C
     * @param C: The constitutive matrix
-    * @param E: The Young Modulus
-    * @param NU: The poisson coefficient
+    * @param rValues Parameters of the constitutive law
     */
     void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+    * It calculates the stress vector
+    * @param rStrainVector The strain vector in Voigt notation
+    * @param rStressVector The stress vector in Voigt notation
+    * @param rValues Parameters of the constitutive law
+    */
+    virtual void CalculatePK2Stress(
+        const Vector& rStrainVector,
+        Vector& rStressVector,
+        ConstitutiveLaw::Parameters& rValues
+    );
 
     /**
     * It calculates the strain vector
