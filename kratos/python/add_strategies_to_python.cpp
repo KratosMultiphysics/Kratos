@@ -42,6 +42,7 @@
 #include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
 #include "solving_strategies/schemes/residual_based_bdf_displacement_scheme.h"
 
 // Convergence criterias
@@ -350,6 +351,7 @@ namespace Kratos
 
         typedef ResidualBasedAdjointStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointStaticSchemeType;
         typedef ResidualBasedAdjointSteadyScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointSteadySchemeType;
+        typedef ResidualBasedAdjointBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointBossakSchemeType;
 
         class_<ResidualBasedAdjointStaticSchemeType, bases<BaseSchemeType>, boost::noncopyable>(
             "ResidualBasedAdjointStaticScheme", init<ResponseFunction::Pointer>())
@@ -357,6 +359,10 @@ namespace Kratos
 
         class_<ResidualBasedAdjointSteadySchemeType, bases<ResidualBasedAdjointStaticSchemeType>, boost::noncopyable>(
             "ResidualBasedAdjointSteadyScheme", init<ResponseFunction::Pointer>())
+            ;
+
+        class_<ResidualBasedAdjointBossakSchemeType, bases<ResidualBasedAdjointStaticSchemeType>, boost::noncopyable>(
+            "ResidualBasedAdjointBossakScheme", init<Kratos::Parameters&, ResponseFunction::Pointer>())
             ;
 
             //********************************************************************
