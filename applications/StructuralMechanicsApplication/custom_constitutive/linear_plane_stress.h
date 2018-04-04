@@ -91,8 +91,8 @@ public:
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-    * Dimension of the law:
-    */
+     * Dimension of the law:
+     */
     SizeType WorkingSpaceDimension() override
     {
         return 2;
@@ -104,7 +104,6 @@ public:
     SizeType GetStrainSize() override
     {
         return 3;
-
     }
 
     ///@}
@@ -187,7 +186,6 @@ private:
     ///@name Private Operations
     ///@{
     ///@}
-
 
     ///@}
     ///@name Private  Access

@@ -18,7 +18,6 @@
 
 #include "structural_mechanics_application_variables.h"
 
-
 namespace Kratos
 {
 
