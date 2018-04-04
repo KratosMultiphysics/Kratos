@@ -62,6 +62,7 @@ DistanceModificationProcess::DistanceModificationProcess(
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
+    mIsModified = false;
     mDistanceThreshold = rParameters["distance_threshold"].GetDouble();
     mContinuousDistance = rParameters["continuous_distance"].GetBool();
     mCheckAtEachStep = rParameters["check_at_each_time_step"].GetBool();
@@ -84,41 +85,43 @@ void DistanceModificationProcess::ExecuteInitialize() {
     KRATOS_CATCH("");
 }
 
-void DistanceModificationProcess::ExecuteBeforeSolutionLoop() {
-
-    KRATOS_TRY;
-
-    // Modify the nodal distance values to avoid bad intersections
-    if (mContinuousDistance) {
-        // Compute NODAL_H (used for computing the distance tolerance)
-        FindNodalHProcess nodal_h_calculator(mrModelPart);
-        nodal_h_calculator.Execute();
-        // Modify the continuous distance field
-        this->ModifyDistance();
-    } else {
-        // Modify the discontinuous distance field
-        this->ModifyDiscontinuousDistance();
-    }
-
-    // If proceeds (depending on the formulation), perform the deactivation
-    // Deactivates the full negative elements and sets the inner values to 0
-    if (mNegElemDeactivation) {
-        this->DeactivateFullNegativeElements();
-    }
-
-    KRATOS_CATCH("");
-}
-
 void DistanceModificationProcess::ExecuteInitializeSolutionStep() {
 
-    if(mCheckAtEachStep == true) {
-        DistanceModificationProcess::ExecuteBeforeSolutionLoop();
+    if(!mIsModified){
+        // Modify the nodal distance values to avoid bad intersections
+        if (mContinuousDistance) {
+            // Compute NODAL_H (used for computing the distance tolerance)
+            FindNodalHProcess nodal_h_calculator(mrModelPart);
+            nodal_h_calculator.Execute();
+            // Modify the continuous distance field
+            this->ModifyDistance();
+        } else {
+            // Modify the discontinuous distance field
+            this->ModifyDiscontinuousDistance();
+        }
+
+        // If proceeds (depending on the formulation), perform the deactivation
+        // Deactivates the full negative elements and sets the inner values to 0
+        if (mNegElemDeactivation) {
+            this->DeactivateFullNegativeElements();
+        }
     }
 }
 
 void DistanceModificationProcess::ExecuteFinalizeSolutionStep() {
 
-    if(mRecoverOriginalDistance == true) {
+    // Restore the initial state if the distance is checked at each time step
+    if (mCheckAtEachStep){
+        // Restore the is modified flag to false
+        mIsModified = false;
+        if (mNegElemDeactivation){
+            // Recover the state previous to the element deactivation
+            this->RecoverDeactivationPreviousState();
+        }
+    }
+
+    // Recover the original distance values
+    if(mRecoverOriginalDistance) {
         if (mContinuousDistance){
             this->RecoverOriginalDistance();
         } else {
@@ -247,7 +250,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
             std::vector<Vector> local_orig_dist_values;             // Local modified distances original values vector
 
             #pragma omp for
-            for (unsigned int i_elem = 0; i_elem < n_elems; ++i_elem){
+            for (int i_elem = 0; i_elem < static_cast<int>(n_elems); ++i_elem){
                 auto it_elem = elems_begin + i_elem;
 
                 // Compute the distance tolerance
@@ -273,6 +276,28 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
 
         mModifiedDistancesIDs = mod_dist_elems_ids;
         mModifiedElementalDistancesValues = orig_dist_values;
+    }
+}
+
+void DistanceModificationProcess::RecoverDeactivationPreviousState(){
+    // Activate again all the elements
+    #pragma omp parallel for
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        it_elem->Set(ACTIVE,true);
+    }
+
+    // Free the negative DOFs that were fixed
+    #pragma omp parallel for
+    for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
+        auto it_node = mrModelPart.NodesBegin() + i_node;
+        if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
+            // Fix the nodal DOFs
+            it_node->Free(PRESSURE);
+            it_node->Free(VELOCITY_X);
+            it_node->Free(VELOCITY_Y);
+            it_node->Free(VELOCITY_Z);
+        }
     }
 }
 

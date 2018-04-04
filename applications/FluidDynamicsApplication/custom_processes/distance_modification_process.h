@@ -99,9 +99,6 @@ public:
     void ExecuteInitialize() override;
 
 
-    void ExecuteBeforeSolutionLoop() override;
-
-
     void ExecuteInitializeSolutionStep() override;
 
 
@@ -146,6 +143,7 @@ private:
 
     ModelPart&                                                    mrModelPart;
     double                                                 mDistanceThreshold;
+    bool                                                          mIsModified;
     bool                                                  mContinuousDistance;
     bool                                                     mCheckAtEachStep;
     bool                                                 mNegElemDeactivation;
@@ -166,6 +164,8 @@ private:
     void ModifyDistance();
 
     void ModifyDiscontinuousDistance();
+
+    void RecoverDeactivationPreviousState();
 
     void RecoverOriginalDistance();
     
