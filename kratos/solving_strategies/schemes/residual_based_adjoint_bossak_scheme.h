@@ -415,12 +415,14 @@ protected:
             Node<3>& r_node = *(r_communicator.LocalMesh().NodesBegin() + i);
             array_1d<double,3>& r_lambda2 = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2);
             array_1d<double,3>& r_lambda3 = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
+            array_1d<double,3>& r_aux_adjoint_vector = r_node.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1);
             const array_1d<double,3>& r_lambda2_old = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2,1);
             const array_1d<double,3>& r_lambda3_old = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3,1);
-            const array_1d<double, 3>& r_old_aux_adjoint_fluid_vector_1 = r_node.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1,1);
+            const array_1d<double, 3>& r_old_aux_adjoint_vector = r_node.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1,1);
 
             noalias(r_lambda2) = a22 * r_lambda2_old + a23 * r_lambda3_old;
-            noalias(r_lambda3) = a32 * r_lambda2_old + a33 * r_lambda3_old + r_old_aux_adjoint_fluid_vector_1;
+            noalias(r_lambda3) = a32 * r_lambda2_old + a33 * r_lambda3_old + r_old_aux_adjoint_vector;
+            noalias(r_aux_adjoint_vector) = AUX_ADJOINT_FLUID_VECTOR_1.Zero();
         }
 
         const int number_of_ghost_nodes = r_communicator.GhostMesh().NumberOfNodes();
@@ -429,6 +431,7 @@ protected:
             Node<3>& r_node = *(r_communicator.GhostMesh().NodesBegin() + i);
             noalias(r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2)) = ADJOINT_FLUID_VECTOR_2.Zero();
             noalias(r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3)) = ADJOINT_FLUID_VECTOR_3.Zero();
+            noalias(r_node.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1)) = AUX_ADJOINT_FLUID_VECTOR_1.Zero();
         }
 
         // Loop over elements to assemble the remaining terms
