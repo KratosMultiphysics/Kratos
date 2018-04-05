@@ -114,6 +114,33 @@ class SimpleResponseFunctionWrapper(ResponseFunctionBase):
     def Finalize(self):
         self.primal_analysis.Finalize()
 
+class MassResponseFunctionWrapper(ResponseFunctionBase):
+    def __init__(self, identifier, project_parameters, response_function_utility, model_part):
+        super(MassResponseFunctionWrapper, self).__init__(identifier, project_parameters)
+        self.response_function_utility = response_function_utility
+        self.model_part = model_part
+        self.model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
+    def Initialize(self):
+        import read_materials_process
+        # Create a dictionary of model parts.
+        model = Model()
+        model.AddModelPart(self.model_part)
+        # Add constitutive laws and material properties from json file to model parts.
+        read_materials_process.ReadMaterialsProcess(model, self.project_parameters["material_import_settings"])
+        self.response_function_utility.Initialize()
+    def CalculateValue(self):
+        value = self.response_function_utility.CalculateValue()
+        return value
+    def CalculateGradient(self):
+        self.response_function_utility.CalculateGradient()
+    def GetShapeGradient(self):
+        gradient = {}
+        for node in self.model_part.Nodes:
+            gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
+        return gradient
+    def Finalize(self):
+        pass
+
 class AdjointStrainEnergyResponse(ResponseFunctionBase):
     def __init__(self, identifier, project_parameters, response_function_utility, model_part = None):
         super(AdjointStrainEnergyResponse, self).__init__(identifier, project_parameters)
