@@ -22,7 +22,6 @@ namespace Kratos
   // --------------------------------------------------------------------------
   std::vector<BrepFace>& BrepModel::GetFaceVector()
   {
-    //std::cout << "m_faces.size(): " << m_faces.size() << std::endl;
     return m_brep_faces;
   }
 
@@ -38,7 +37,6 @@ namespace Kratos
       IndexedObject(brep_id),
       Flags()
   {
-    //std::cout << "m_faces.size(): " << m_faces.size() << std::endl;
   }
 
   ///Destructor

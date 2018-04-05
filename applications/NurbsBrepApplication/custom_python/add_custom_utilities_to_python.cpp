@@ -61,6 +61,7 @@ namespace Python
 		class_<BrepModelGeometryReader, boost::noncopyable>("BrepModelGeometryReader", init<Parameters&>())
 			.def("ReadGeometry", &BrepModelGeometryReader::ReadGeometry)
 			.def("WriteGaussPoints", &BrepModelGeometryReader::WriteGaussPoints)
+			.def("WriteGaussPointsJson", &BrepModelGeometryReader::WriteGaussPointsJson)
 			;
 	}
 

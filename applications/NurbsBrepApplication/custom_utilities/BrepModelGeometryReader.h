@@ -60,24 +60,6 @@ namespace Kratos
   public:
     ///@name Type Definitions
     ///@{
-    //typedef std::vector<BrepModel> BrepModelVector;
-
-    //typedef std::vector<int> IntVector;
-
-    //typedef std::vector<Vector> ParameterVector;
-
-    //Edge:
-    //typedef std::vector<BrepFaceTrim> BrepFaceTrimVector;
-
-    //Face:
-    //typedef std::vector<BrepTrimmingCurve> BrepTrimmingCurveVector;
-    //typedef std::vector<BrepBoundaryLoop> BrepTrimmingLoopVector;
-
-    //BrepModel:
-    //typedef std::vector<BrepFace> BrepFacesVector;
-    //typedef std::vector<BrepEdge> BrepEdgesVector;
-
-
     
     /// Pointer definition of KratosNurbsTestcaseApplication
     KRATOS_CLASS_POINTER_DEFINITION(BrepModelGeometryReader);
@@ -85,9 +67,12 @@ namespace Kratos
     ///@}
     ///@name Life Cycle 
     ///@{ 
+	//Parameters WriteGeometry(ModelPart& model_part);
     std::vector<BrepModel> ReadGeometry(ModelPart& model_part);
 	double ReadModelTolerance();
+
     void WriteGaussPoints(ModelPart& model_part);
+	void WriteGaussPointsJson(ModelPart& rModelPart, const std::string& rOutputFileName);
 
     /// Constructor.
     BrepModelGeometryReader(Parameters& cad_geometry_in_json);

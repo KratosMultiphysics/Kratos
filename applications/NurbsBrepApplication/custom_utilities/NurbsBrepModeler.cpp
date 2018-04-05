@@ -159,6 +159,7 @@ namespace Kratos
 		const double accuracy = rIntegrationDomainParameter["accuracy"].GetDouble();
 		const int shapefunction_order = rIntegrationDomainParameter["shape_function_derivatives_order"].GetInt();
 		const int number_projection_iterations = rIntegrationDomainParameter["number_projection_iterations"].GetInt();
+		const int polygon_discretization = rIntegrationDomainParameter["polygon_discretization"].GetInt();
 
 		const bool faces = rIntegrationDomainParameter["integration_domains"]["faces"].GetBool();
 		const bool faces_embedded = rIntegrationDomainParameter["integration_domains"]["faces_embedded"].GetBool();
@@ -181,7 +182,7 @@ namespace Kratos
 				{
 					ModelPart::Pointer model_part_face_id = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()));
 
-					std::vector<Node<3>::Pointer> NodeVectorElement = face.GetIntegrationNodesSurface(shapefunction_order);
+					std::vector<Node<3>::Pointer> NodeVectorElement = face.GetIntegrationNodesSurface(shapefunction_order, polygon_discretization);
 					for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
 					{
 						NodeVectorElement[k]->SetId(id_itr);
@@ -192,7 +193,7 @@ namespace Kratos
 				if (faces_embedded)
 				{
 					ModelPart::Pointer model_part_face_id_embedded = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()) + "_EMBEDDED");
-					std::vector<Node<3>::Pointer> NodeVectorEmbeddedElement = face.GetIntegrationNodesEmbedded(shapefunction_order);
+					std::vector<Node<3>::Pointer> NodeVectorEmbeddedElement = face.GetIntegrationNodesEmbedded(shapefunction_order, polygon_discretization);
 					for (unsigned int k = 0; k < NodeVectorEmbeddedElement.size(); k++)
 					{
 						NodeVectorEmbeddedElement[k]->SetId(id_itr);
@@ -203,7 +204,7 @@ namespace Kratos
 				if (faces_reversed)
 				{
 					ModelPart::Pointer model_part_face_id_reversed = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()) + "_REVERSE");
-					std::vector<Node<3>::Pointer> NodeVectorReversedElement = face.GetIntegrationNodesSurfaceReversed(shapefunction_order);
+					std::vector<Node<3>::Pointer> NodeVectorReversedElement = face.GetIntegrationNodesSurfaceReversed(shapefunction_order, polygon_discretization);
 					for (unsigned int k = 0; k < NodeVectorReversedElement.size(); k++)
 					{
 						NodeVectorReversedElement[k]->SetId(id_itr);
@@ -264,208 +265,8 @@ namespace Kratos
 				}
 			}
 		}
-		std::cout << "> Finished create tntegration domain" << std::endl;
+		std::cout << "> Finished create integration domain" << std::endl;
 	}
-
-
-  //void NurbsBrepModeler::CreateIntegrationDomain(const int& shapefunction_order, ModelPart& model_part)
-  //{
-	 // const double model_tolerance = 0.01;
-	 // const double accuracy = 1e-7;
-	 //
-	 // int id_itr = 1;
-	 // ModelPart::Pointer model_part_faces = model_part.CreateSubModelPart("FACES");
-	 // ModelPart::Pointer model_part_coupling_edges = model_part.CreateSubModelPart("COUPLING_EDGES");
-	 // ModelPart::Pointer model_part_edges = model_part.CreateSubModelPart("EDGES");
-	 //
-	 // for (unsigned int brep_itr = 0; brep_itr < m_brep_model_vector.size(); brep_itr++)
-	 // {
-		//  for (unsigned int face_itr = 0; face_itr < m_brep_model_vector[brep_itr].GetFaceVector().size(); face_itr++)
-		//  {
-		//	  BrepFace& face = m_brep_model_vector[brep_itr].GetFaceVector()[face_itr];
-		//
-		//	  ModelPart::Pointer model_part_face_id = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()));
-		//
-		//	  std::vector<Node<3>::Pointer> NodeVectorElement = face.GetIntegrationNodesSurface(shapefunction_order);
-		//	  for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
-		//	  {
-		//		  NodeVectorElement[k]->SetId(id_itr);
-		//		  id_itr++;
-		//		  model_part_face_id->AddNode(NodeVectorElement[k]);
-		//	  }
-		//	  ModelPart::Pointer model_part_face_id_embedded = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()) + "_EMBEDDED");
-		//	  std::vector<Node<3>::Pointer> NodeVectorEmbeddedElement = face.GetIntegrationNodesEmbedded(shapefunction_order);
-		//	  for (unsigned int k = 0; k < NodeVectorEmbeddedElement.size(); k++)
-		//	  {
-		//		  NodeVectorEmbeddedElement[k]->SetId(id_itr);
-		//		  id_itr++;
-		//		  model_part_face_id_embedded->AddNode(NodeVectorEmbeddedElement[k]);
-		//	  }
-		//
-		//	  ModelPart::Pointer model_part_face_id_reversed = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()) + "_REVERSE");
-		//	  std::vector<Node<3>::Pointer> NodeVectorReversedElement = face.GetIntegrationNodesSurfaceReversed(shapefunction_order);
-		//	  for (unsigned int k = 0; k < NodeVectorReversedElement.size(); k++)
-		//	  {
-		//		  NodeVectorReversedElement[k]->SetId(id_itr);
-		//		  id_itr++;
-		//		  model_part_face_id_reversed->AddNode(NodeVectorReversedElement[k]);
-		//	  }
-		//  }
-		//
-		//  for (unsigned int edge_itr = 0; edge_itr < m_brep_model_vector[brep_itr].GetEdgeVector().size(); edge_itr++)
-		//  {
-		//	  BrepEdge& edge = m_brep_model_vector[brep_itr].GetEdgeVector()[edge_itr];
-		//
-		//	  if (edge.isCouplingEdge())
-		//	  {
-		//		  ModelPart::Pointer model_part_coupling_edge_id = model_part_coupling_edges->CreateSubModelPart("COUPLING_EDGE_" + std::to_string(edge.Id()));
-		//		  int face_id_slave;
-		//		  int trim_index_slave;
-		//		  edge.GetEdgeInformation(1, face_id_slave, trim_index_slave);
-		//		  BrepFace& face_slave = GetFace(face_id_slave);
-		//		  std::vector<Point> points = face_slave.GetKnotIntersections(trim_index_slave);
-		//
-		//		  int slave_p_q = face_slave.GetP() + face_slave.GetQ() + 1;
-		//
-		//		  int face_id_master;
-		//		  int trim_index_master;
-		//		  edge.GetEdgeInformation(0, face_id_master, trim_index_master);
-		//		  BrepFace& face_master = GetFace(face_id_master);
-		//
-		//
-		//		  std::vector<Node<3>::Pointer> NodeVectorElement = face_master.GetIntegrationNodesTrimmingCurveMaster(
-		//			  points, shapefunction_order, trim_index_master, slave_p_q, accuracy, model_tolerance, 20);
-		//
-		//		  face_slave.EvaluateIntegrationNodesTrimmingCurveSlave(NodeVectorElement, 2, trim_index_slave, accuracy, m_model_tolerance, 20);
-		//		  for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
-		//		  {
-		//			  NodeVectorElement[k]->SetId(id_itr);
-		//			  id_itr++;
-		//			  model_part_coupling_edge_id->AddNode(NodeVectorElement[k]);
-		//		  }
-		//	  }
-		//	  else
-		//	  {
-		//		  ModelPart::Pointer model_part_edge_id = model_part_edges->CreateSubModelPart("EDGE_" + std::to_string(edge.Id()));
-		//		  int face_id;
-		//		  int trim_index;
-		//		  edge.GetEdgeInformation(0, face_id, trim_index);
-		//
-		//		  BrepFace& face = GetFace(face_id);
-		//
-		//		  std::vector<Node<3>::Pointer> NodeVectorElement = face.GetIntegrationNodesTrimmingCurve(shapefunction_order, trim_index, accuracy);
-		//		  for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
-		//		  {
-		//			  NodeVectorElement[k]->SetId(id_itr);
-		//			  id_itr++;
-		//			  model_part_edge_id->AddNode(NodeVectorElement[k]);
-		//		  }
-		//	  }
-		//  }
-	 // }
-  //}
-
-	//void NurbsBrepModeler::CreateIntegrationDomain2(const int& shapefunction_order, ModelPart& model_part)
-	//{
-	//	int id_itr = 1;
-	//	ModelPart::Pointer model_part_faces = model_part.CreateSubModelPart("FACES");
-	//	ModelPart::Pointer model_part_coupling_edges = model_part.CreateSubModelPart("COUPLING_EDGES");
-	//	ModelPart::Pointer model_part_edges = model_part.CreateSubModelPart("EDGES");
-	//
-	//	for (unsigned int brep_itr = 0; brep_itr < m_brep_model_vector.size(); brep_itr++)
-	//	{
-	//		for (unsigned int face_itr = 0; face_itr < m_brep_model_vector[brep_itr].GetFaceVector().size(); face_itr++)
-	//		{
-	//			BrepFace& face = m_brep_model_vector[brep_itr].GetFaceVector()[face_itr];
-	//
-	//			//model_part_faces.CreateSubModelPart("FACE_" + std::to_string(face.Id()));
-	//			ModelPart::Pointer model_part_face_id = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()));
-	//			std::vector<Node<3>::Pointer> NodeVectorElement = face.GetQuadraturePointsTrimmed(shapefunction_order);
-	//			for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
-	//			{
-	//				NodeVectorElement[k]->SetId(id_itr);
-	//				id_itr++;
-	//				model_part_face_id->AddNode(NodeVectorElement[k]);
-	//			}
-	//			//model_part_faces.CreateSubModelPart("FACE_" + std::to_string(face.Id()) + "_EMBEDDED");
-	//			ModelPart::Pointer model_part_face_id_embedded = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()) + "_EMBEDDED");
-	//			std::vector<Node<3>::Pointer> NodeVectorEmbeddedElement = face.GetQuadraturePointsEmbedded(shapefunction_order);
-	//			for (unsigned int k = 0; k < NodeVectorEmbeddedElement.size(); k++)
-	//			{
-	//				NodeVectorEmbeddedElement[k]->SetId(id_itr);
-	//				id_itr++;
-	//				model_part_face_id_embedded->AddNode(NodeVectorEmbeddedElement[k]);
-	//			}	
-	//			ModelPart::Pointer model_part_face_id_reversed = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()) + "_REVERSE");
-	//			std::vector<Node<3>::Pointer> NodeVectorReversedElement = face.GetQuadraturePointsReversed(shapefunction_order);
-	//			for (unsigned int k = 0; k < NodeVectorReversedElement.size(); k++)
-	//			{
-	//				NodeVectorReversedElement[k]->SetId(id_itr);
-	//				id_itr++;
-	//				model_part_face_id_reversed->AddNode(NodeVectorReversedElement[k]);
-	//			}
-	//		}
-    //
-	//		for (unsigned int edge_itr = 0; edge_itr < m_brep_model_vector[brep_itr].GetEdgeVector().size(); edge_itr++)
-	//		{
-	//			BrepEdge& edge = m_brep_model_vector[brep_itr].GetEdgeVector()[edge_itr];
-    //
-	//			if (edge.isCouplingEdge())
-	//			{
-	//				//model_part_coupling_edges.CreateSubModelPart("COUPLING_EDGE_" + std::to_string(edge.Id()));
-	//				ModelPart::Pointer model_part_coupling_edge_id = model_part_coupling_edges->CreateSubModelPart("COUPLING_EDGE_" + std::to_string(edge.Id()));
-	//				int face_id_slave;
-	//				int trim_index_slave;
-	//				edge.GetEdgeInformation(1, face_id_slave, trim_index_slave);
-	//				BrepFace& face_slave = GetFace(face_id_slave);
-	//				std::vector<Point> points = face_slave.GetKnotIntersections(trim_index_slave);
-    //
-	//				int face_id_master;
-	//				int trim_index_master;
-	//				edge.GetEdgeInformation(0, face_id_master, trim_index_master);
-	//				BrepFace& face_master = GetFace(face_id_master);
-    //
-    //
-	//				std::vector<Node<3>::Pointer> NodeVectorElement = face_master.GetQuadraturePointsOfTrimmingCurveWithPoints(
-	//					shapefunction_order, trim_index_master, points);
-    //
-	//				//for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
-	//				//{
-	//				//  KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_VALUES))
-	//				//  KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
-	//				//}
-    //
-	//				face_slave.EnhanceShapeFunctionsSlave(NodeVectorElement, trim_index_slave, 2);
-	//				for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
-	//				{
-	//					//KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_VALUES))
-	//					//KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
-	//					NodeVectorElement[k]->SetId(id_itr);
-	//					id_itr++;
-	//					model_part_coupling_edge_id->AddNode(NodeVectorElement[k]);
-	//				}
-	//			}
-	//			else
-	//			{
-	//				//model_part_edges.CreateSubModelPart("EDGE_" + std::to_string(edge.Id()));
-	//				ModelPart::Pointer model_part_edge_id = model_part_edges->CreateSubModelPart("EDGE_" + std::to_string(edge.Id()));
-	//				int face_id;
-	//				int trim_index;
-	//				edge.GetEdgeInformation(0, face_id, trim_index);
-    //
-	//				BrepFace& face = GetFace(face_id);
-    //
-	//				std::vector<Node<3>::Pointer> NodeVectorElement = face.GetQuadraturePointsOfTrimmingCurve(shapefunction_order, trim_index);
-	//				for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
-	//				{
-	//					NodeVectorElement[k]->SetId(id_itr);
-	//					id_itr++;
-	//					model_part_edge_id->AddNode(NodeVectorElement[k]);
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
 
 	BrepFace& NurbsBrepModeler::GetFace(const unsigned int face_id)
 	{

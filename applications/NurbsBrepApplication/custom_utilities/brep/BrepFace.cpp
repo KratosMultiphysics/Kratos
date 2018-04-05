@@ -294,9 +294,9 @@ namespace Kratos
   //}
 
 	/* Compues the surface integration points. Consideres the possibility of untrimmed surfaces. */
-	std::vector<Node<3>::Pointer> BrepFace::GetIntegrationNodesSurface(const int& rShapefunctionOrder)
+	std::vector<Node<3>::Pointer> BrepFace::GetIntegrationNodesSurface(const int& rShapefunctionOrder, const int& rPolygonDiscretization)
 	{
-		Polygon boundaries(m_trimming_loops);
+		Polygon boundaries(m_trimming_loops, rPolygonDiscretization);
 
 		std::vector<Node<3>::Pointer> NodeVector;
 
@@ -416,19 +416,19 @@ namespace Kratos
 
 
 	/* Compues the surface integration points which lay inside the embedded loop. */
-	std::vector<Node<3>::Pointer> BrepFace::GetIntegrationNodesEmbedded(const int& rShapefunctionOrder)
+	std::vector<Node<3>::Pointer> BrepFace::GetIntegrationNodesEmbedded(const int& rShapefunctionOrder, const int& rPolygonDiscretization)
 	{
-		Polygon boundaries(m_embedded_loops);
+		Polygon boundaries(m_embedded_loops, rPolygonDiscretization);
 
 		return GetIntegrationNodesSurface(boundaries, rShapefunctionOrder);
 	}
 
 	/* Compues the surface integration points which lays outside of the the trimmed domain
 	*  but still inside the domain of the patch. */
-	std::vector<Node<3>::Pointer> BrepFace::GetIntegrationNodesSurfaceReversed(const int& rShapefunctionOrder)
+	std::vector<Node<3>::Pointer> BrepFace::GetIntegrationNodesSurfaceReversed(const int& rShapefunctionOrder, const int& rPolygonDiscretization)
 	{
-		Polygon boundaries(m_embedded_loops);
-		Polygon full_boundaries(m_trimming_loops);
+		Polygon boundaries(m_embedded_loops, rPolygonDiscretization);
+		Polygon full_boundaries(m_trimming_loops, rPolygonDiscretization);
 		Polygon difference = full_boundaries.GetDifference(boundaries);
 
 		return GetIntegrationNodesSurface(difference, rShapefunctionOrder);
@@ -1228,7 +1228,7 @@ namespace Kratos
 	*/
 	bool BrepFace::CheckIfPointIsInside(const Vector& rNodeParameters)
 	{
-		Polygon polygon(m_trimming_loops);
+		Polygon polygon(m_trimming_loops, 10);
 		return polygon.IsInside(rNodeParameters[0], rNodeParameters[1]);
 	}
 
@@ -1330,6 +1330,8 @@ namespace Kratos
 				control_point[1] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).Y();
 				control_point[2] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).Z();
 				control_point[3] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
+
+				mp_model_part->RemoveNodeFromAllLevels(control_point_index);
 
 				Pw(i,j) = control_point;
 			}
@@ -1441,6 +1443,23 @@ namespace Kratos
 			knot_vector_v[index_k] = Rv[j];
 			index_k = index_k - 1;
 		}
+
+		for (int i = 0; i < Qw.size1(); i++)
+		{
+			for (int j = 0; j < Qw.size2(); j++)
+			{
+				//ModelPart& root = mp_model_part->GetRootModelPart;
+				int new_id = mp_model_part->GetRootModelPart().Nodes().end()->Id() + 1;
+					//.Nodes.NodesEnd().Id() + 1;
+				int control_point_index = j*Qw.size1() + i;
+				m_control_points_ids[control_point_index] = new_id;
+
+				mp_model_part->CreateNewNode(new_id, Qw(i, j)[0], Qw(i, j)[1], Qw(i, j)[2])->SetValue(CONTROL_POINT_WEIGHT, Qw(i, j)[3]);
+				KRATOS_WATCH(new_id)
+				KRATOS_WATCH(Qw(i, j))
+				KRATOS_WATCH(control_point_index)
+			}
+		}
   }
 
 	/* elevates polinomial degrees p and q by tp and tq
@@ -1470,6 +1489,8 @@ namespace Kratos
 				control_point[1] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).Y();
 				control_point[2] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).Z();
 				control_point[3] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
+
+				mp_model_part->RemoveNodeFromAllLevels(control_point_index);
 
 				Pw(i, j) = control_point;
 			}
@@ -1881,6 +1902,21 @@ namespace Kratos
 		//V_Vec = v_ele;
 		//S_Knot = M_Ctrl + Q_Deg + 1;
 		//R_Knot = N_Ctrl + P_Deg + 1;
+		}
+
+		for (int i = 0; i < Qw.size1(); i++)
+		{
+			for (int j = 0; j < Qw.size2(); j++)
+			{
+				int new_id = mp_model_part->GetRootModelPart().Nodes().end()->Id() + 1;
+				int control_point_index = j*Qw.size1() + i;
+				m_control_points_ids[control_point_index] = new_id;
+
+				mp_model_part->CreateNewNode(new_id, Qw(i, j)[0], Qw(i, j)[1], Qw(i, j)[2])->SetValue(CONTROL_POINT_WEIGHT, Qw(i, j)[3]);
+				KRATOS_WATCH(new_id)
+				KRATOS_WATCH(Qw(i, j))
+				KRATOS_WATCH(control_point_index)
+			}
 		}
 	}
 

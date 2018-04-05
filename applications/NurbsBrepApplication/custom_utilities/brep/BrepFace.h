@@ -163,14 +163,14 @@ namespace Kratos
 
 	// Integration domain surfaces
 	std::vector<Node<3>::Pointer> GetIntegrationNodesSurface(
-		const int& rShapefunctionOrder);
+		const int& rShapefunctionOrder, const int& rPolygonDiscretization);
 	std::vector<Node<3>::Pointer> GetIntegrationNodesSurface(
 		Polygon& rBoundaryPolygon, 
 		const int& rShapefunctionOrder);
 	std::vector<Node<3>::Pointer> GetIntegrationNodesEmbedded(
-		const int& rShapefunctionOrder);
+		const int& rShapefunctionOrder, const int& rPolygonDiscretization);
 	std::vector<Node<3>::Pointer> GetIntegrationNodesSurfaceReversed(
-		const int& rShapefunctionOrder);
+		const int& rShapefunctionOrder, const int& rPolygonDiscretization);
 
 	// Integration domain trimming curves
 	std::vector<Node<3>::Pointer> GetIntegrationNodesTrimmingCurve(

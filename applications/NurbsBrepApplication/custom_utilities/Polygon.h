@@ -98,7 +98,7 @@ namespace Kratos
     Polygon(PolygonType polygon);
     Polygon(PolygonVectorType polygon);
     Polygon(std::vector<array_1d<double, 2>> polygon);
-    Polygon(std::vector<BrepBoundaryLoop>& boundary_loops);
+    Polygon(std::vector<BrepBoundaryLoop>& rBoundaryLoops, const int& rPolygonDiscretization);
 
 
     /// Destructor.

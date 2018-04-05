@@ -84,11 +84,35 @@ namespace Kratos
     }
     file_c_edges.close();
   }
+
+  void BrepModelGeometryReader::WriteGaussPointsJson(ModelPart& rModelPart, const std::string& rOutputFileName)
+  {
+	  ModelPart& faces = rModelPart.GetSubModelPart("FACES");
+	  std::ofstream file;
+	  file.open(rOutputFileName);
+	  std::string separator = "";
+	  file << "{\"gauss_points\" :[";
+	  for (auto node = faces.NodesBegin(); node != faces.NodesEnd(); ++node)
+	  {
+		  const Vector& local_parameters = node->GetValue(LOCAL_PARAMETERS);
+		  file << separator << "[" << node->Id() << ", " <<  node->GetValue(FACE_BREP_ID) << ",[" << local_parameters[0] << ", " << local_parameters[1] << "]]";
+		  separator = ",";
+	  }
+	  file << "]}";
+	  file.close();
+  }
+
+
   double BrepModelGeometryReader::ReadModelTolerance()
   {
 	  return m_cad_geometry_in_json["tolerances"]["model_tolerance"].GetDouble();
   }
-
+  //Parameters BrepModelGeometryReader::WriteGeometry(ModelPart& model_part)
+  //{
+	 // std::cout << "\n> Start write CAD geometry..." << std::endl;
+	 // Paramaters geometry;
+	 // geometry.
+  //}
   std::vector<BrepModel> BrepModelGeometryReader::ReadGeometry(ModelPart& model_part)
   {
     std::cout << "\n> Start reading CAD geometry..." << std::endl;
