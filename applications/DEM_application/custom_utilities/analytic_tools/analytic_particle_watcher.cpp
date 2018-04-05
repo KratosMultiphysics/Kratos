@@ -101,7 +101,6 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 
 void AnalyticParticleWatcher::SetNodalMaxImpactVelocities(ModelPart& analytic_model_part)
 {
-
     #pragma omp parallel for if(analytic_model_part.NumberOfElements(0)>100)
     for (int k=0; k<(int)analytic_model_part.NumberOfElements(0); k++) {
         ElementsIteratorType i_elem = analytic_model_part.ElementsBegin() + k;
@@ -131,18 +130,14 @@ void AnalyticParticleWatcher::SetNodalMaxFaceImpactVelocities(ModelPart& analyti
         double& current_max_normal_velocity = particle.GetGeometry()[0].FastGetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY);
         double& current_max_tangential_velocity = particle.GetGeometry()[0].FastGetSolutionStepValue(FACE_TANGENTIAL_IMPACT_VELOCITY);
 
-        const int n_collisions = particle.GetNumberOfCollisionsWithFaces();
-        if (n_collisions){
-            const int id = int(i_elem->Id());
-            FaceParticleImpactDataOfAllTimeStepsSingleParticle& particle_database = GetParticleFaceDataBase(id, mFaceParticleImpactDataOfAllTimeSteps);
-            double db_normal_impact_velocity = 0.0;
-            double db_tangential_impact_velocity = 0.0;
-            particle_database.GetMaxCollidingSpeedFromDatabase(db_normal_impact_velocity, db_tangential_impact_velocity);
-
-            // choose max between current and database
-            current_max_normal_velocity = std::max(current_max_normal_velocity, db_normal_impact_velocity);
-            current_max_tangential_velocity = std::max(current_max_tangential_velocity, db_tangential_impact_velocity);
-        } 
+        const int id = int(i_elem->Id());
+        FaceParticleImpactDataOfAllTimeStepsSingleParticle& particle_database = GetParticleFaceDataBase(id, mFaceParticleImpactDataOfAllTimeSteps);
+        double db_normal_impact_velocity = 0.0;
+        double db_tangential_impact_velocity = 0.0;
+        particle_database.GetMaxCollidingSpeedFromDatabase(db_normal_impact_velocity, db_tangential_impact_velocity);
+        // choose max between current and database
+        current_max_normal_velocity = std::max(current_max_normal_velocity, db_normal_impact_velocity);
+        current_max_tangential_velocity = std::max(current_max_tangential_velocity, db_tangential_impact_velocity);
     }
 }
 

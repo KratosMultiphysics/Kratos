@@ -30,23 +30,19 @@ class AnalyticsTestSolution(main_script.Solution):
 
     def FinalizeTimeStep(self, time):        
         tolerance = 1e-3
-                    
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(NORMAL_IMPACT_VELOCITY)
             face_normal_impact_vel = node.GetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY)
-            print(face_normal_impact_vel)
             if node.Id ==1:   
                 if time < 0.03:
                     expected_value = 0.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.04:
+                elif time > 0.04 and time < 0.28:
                     expected_value = 3.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                '''
-                elif time > 0.4: # condition for face_normal_impact despres de impactar contra la placa
-                    expected_value = 3.0
-                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)  
-                '''      
+                elif time > 0.29:
+                    expected_value = 2.81939
+                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)     
             if node.Id ==2:
                 if time < 0.03:
                     expected_value = 0.0
