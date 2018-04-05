@@ -85,7 +85,7 @@ namespace Kratos
  *  Finally, the values in the visualization model part are computed using the corresponding 
  *  modify shape functions utility. 
  */
-class EmbeddedSkinVisualizationProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) EmbeddedSkinVisualizationProcess : public Process
 {
 public:
     ///@name Type Definitions
