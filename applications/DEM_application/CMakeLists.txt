@@ -2,10 +2,12 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosDEMApplication ****")
 
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## generate variables with the sources
-set(KRATOS_DEM_APPLICATION_SOURCES
+set(KRATOS_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/DEM_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/explicit_solver_strategy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/explicit_solver_continuum.cpp
@@ -79,15 +81,28 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_model_part_filler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_particle_watcher.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_face_watcher.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/particles_history_watcher.cpp    
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/particles_history_watcher.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/bins_dynamic_objects_periodic.cpp
 )
 
-include(pybind11Tools)
+## define python interface sources
+set( KRATOS_DEM_PYTHON_INTERFACE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/DEM_python_application.cpp
+)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosDEMApplication MODULE ${KRATOS_DEM_APPLICATION_SOURCES})
+add_library( KratosDEMCore SHARED ${KRATOS_DEM_APPLICATION_CORE_SOURCES})
+target_link_libraries( KratosDEMCore PRIVATE KratosCore)
+set_target_properties( KratosDEMCore PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
+
+pybind11_add_module(KratosDEMApplication MODULE ${KRATOS_DEM_PYTHON_INTERFACE_SOURCES})
+target_link_libraries(KratosDEMApplication PRIVATE KratosDEMCore )
+set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
+
 #if(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
 #GENERATE_EXPORT_HEADER( KratosDEMApplication
 #             BASE_NAME KratosDEMApplication
@@ -98,11 +113,6 @@ pybind11_add_module(KratosDEMApplication MODULE ${KRATOS_DEM_APPLICATION_SOURCES
 #endif(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
 ADD_COMPILER_EXPORT_FLAGS()
 
-
-
-target_link_libraries(KratosDEMApplication KratosCore )
-set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
-set_target_properties(KratosDEMApplication PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
 
 if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
     add_definitions(-DDEBUG_MACRO)
@@ -126,10 +136,19 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosDEMApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-if(${INSTALL_TESTING_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_TESTING_FILES} MATCHES ON)
+# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
+# message("KratosDEMApplication subdir inc_dirs = ${inc_dirs}")
+# Add Cotire
+if(USE_COTIRE MATCHES ON)
+  cotire(KratosDEMCore)
+  cotire(KratosDEMApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosDEMCore DESTINATION libs )
+install(TARGETS KratosDEMApplication DESTINATION libs )
+
+# Add to the KratosMultiphysics Python module
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DEMApplication.py" DESTINATION KratosMultiphysics )
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -137,15 +156,7 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("KratosDEMApplication subdir inc_dirs = ${inc_dirs}")
-# Add Cotire
-if(USE_COTIRE MATCHES ON)
-  cotire(KratosDEMApplication)
-endif(USE_COTIRE MATCHES ON)
-
-install(TARGETS KratosDEMApplication DESTINATION libs )
-
-
-# Add to the KratosMultiphysics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DEMApplication.py" DESTINATION KratosMultiphysics )
+if(${INSTALL_TESTING_FILES} MATCHES ON)
+  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+endif(${INSTALL_TESTING_FILES} MATCHES ON)

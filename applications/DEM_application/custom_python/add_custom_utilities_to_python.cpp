@@ -3,13 +3,10 @@
 //
 
 // External includes 
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 
 // Project includes
-
-#include "includes/model_part.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "includes/model_part.h"
 #include "custom_utilities/analytic_tools/analytic_model_part_filler.h"
 #include "custom_utilities/analytic_tools/analytic_particle_watcher.h"
 #include "custom_utilities/analytic_tools/analytic_face_watcher.h"
