@@ -211,16 +211,8 @@ void MmgProcess<TDim>::InitializeMeshData()
         num_array_conditions[0] = conditions_array.size();
         num_array_elements[0]   = elements_array.size();
     } else {
-        // We initialize the values
-        num_array_elements[0] = 0; // Tetrahedron
-        num_array_elements[1] = 0; // Prisms
-        
-        num_array_conditions[0] = 0; // Triangles
-        num_array_conditions[1] = 0; // Quadrilaterals
-        
         /* Elements */
-        std::size_t& num_tetra = num_array_elements[0];
-        std::size_t& num_prisms = num_array_elements[1];
+        std::size_t num_tetra = 0, num_prisms = 0;
         #pragma omp parallel for reduction(+:num_tetra,num_prisms)
         for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
             auto it_elem = elements_array.begin() + i;
@@ -233,13 +225,15 @@ void MmgProcess<TDim>::InitializeMeshData()
                 KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
         }
         
+        num_array_elements[0] = num_tetra;  // Tetrahedron
+        num_array_elements[1] = num_prisms; // Prisms
+
         if (((num_tetra + num_tetra) < elements_array.size()) && mEchoLevel > 0)
             KRATOS_INFO("MmgProcess") << "Number of Elements: " << elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_tetra << std::endl;
         
         /* Conditions */
-        std::size_t& num_tri = num_array_conditions[0];
-        std::size_t& num_quad = num_array_conditions[1];
-        #pragma omp parallel for
+        std::size_t num_tri = 0, num_quad = 0;
+        #pragma omp parallel for reduction(+:num_tetra,num_prisms)
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
             auto it_cond = conditions_array.begin() + i;
             
@@ -251,6 +245,9 @@ void MmgProcess<TDim>::InitializeMeshData()
                 KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS CERTAIN TYPE THAT CAN NOT BE REMESHED" << std::endl;
         }
         
+        num_array_conditions[0] = num_tri;  // Triangles
+        num_array_conditions[1] = num_quad; // Quadrilaterals
+
         if (((num_tri + num_quad) < conditions_array.size()) && mEchoLevel > 0)
             KRATOS_INFO("MmgProcess") << "Number of Conditions: " << conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
     }
