@@ -7,12 +7,9 @@ import KratosMultiphysics.ShallowWaterApplication as Shallow
 # Importing the solvers (if available)
 try:
     import Kratos.ExternalSolversApplication
-    Kratos.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
+    Kratos.Logger.PrintInfo("ExternalSolversApplication", "successfully imported")
 except ImportError:
     Kratos.Logger.PrintInfo("ExternalSolversApplication", "not imported")
-
-# Other imports
-import sys
 
 class ShallowWaterAnalysis(object): # TODO in the future this could derive from a BaseClass in the Core
     """
