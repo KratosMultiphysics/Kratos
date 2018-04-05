@@ -87,7 +87,7 @@ Southern California, 2012.
 
 
 
-	class ShellThinElement3D4N : public Element
+	class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public Element
 	{
 	public:
 
