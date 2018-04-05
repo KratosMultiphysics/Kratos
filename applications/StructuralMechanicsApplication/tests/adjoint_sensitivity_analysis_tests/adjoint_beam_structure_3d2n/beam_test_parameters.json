@@ -3,7 +3,7 @@
         "execute_solve" : true
     },
     "problem_data"             : {
-        "problem_name"    : "rectangular_plate",
+        "problem_name"    : "Beam_structure",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_step"       : 1.0,
@@ -17,25 +17,28 @@
         "echo_level"                         : 0,
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
-            "input_type"       : "mdpa",
-            "input_filename"   : "./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d4n/rectangular_plate"
+            "input_type"     : "mdpa",
+            "input_filename" : "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/Beam_structure"
         },
-        "material_import_settings"           : {
-            "materials_filename" : "./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d4n/StructuralMaterials.json"
+
+        "material_import_settings" :{
+            "materials_filename": "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/materials_beam.json"
         },
-        "line_search"                        : false,
+		"line_search"                        : false,
+        "compute_reactions"					 : true,
         "convergence_criterion"              : "Residual_criterion",
-        "displacement_relative_tolerance"    : 0.0001,
-        "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 0.0001,
-        "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC","PointLoad3D_NODES"],
-        "linear_solver_settings"       : {
-            "solver_type"         : "Super_LU"
+        "displacement_relative_tolerance"    : 1e-12,
+        "displacement_absolute_tolerance"    : 1e-12,
+        "residual_relative_tolerance"        : 1e-12,
+        "residual_absolute_tolerance"        : 1e-12,
+        "max_iteration"                      : 100,
+        "linear_solver_settings"             : {
+            "solver_type" : "Super_LU"
         },
+        "problem_domain_sub_model_part_list" : ["Parts_Beam"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support", "ROTATION_support","PointLoad3D_load"],
         "rotation_dofs"                      : true
+
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
@@ -44,12 +47,28 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_DIR_BC",
+            "model_part_name" : "DISPLACEMENT_support",
             "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
-    }],
+    },
+        {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "ROTATION_support",
+            "variable_name"   : "ROTATION",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }
+    ],
     "list_other_processes" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
         "python_module" : "single_mesh_primal_output_process",
@@ -69,18 +88,17 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "python_module"   : "process_factory",
         "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process sets a vector variable value over a condition",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
-        "Parameters"    : {
+        "check"                 : "DirectorVectorNonZero direction",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_NODES",
+            "model_part_name" : "PointLoad3D_load",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : 1.0,
-            "direction"       : [0.0,0.0,1],
-            "interval"        : [0.0,"End"]
+            "modulus"          :40,
+            "direction"       : [0.0,0.0,1.0]
         }
     }],
     "restart_options"          : {
@@ -92,8 +110,12 @@
     "constraints_data"         : {
         "incremental_load"         : false,
         "incremental_displacement" : false
-    },
-    "material_import_settings" : {
-        "materials_filename" : "StructuralMaterials.json"
     }
+
+
+
+
 }
+
+
+

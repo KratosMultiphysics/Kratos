@@ -310,12 +310,17 @@ def AssambleTestSuites():
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisBeamStructure]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D3NStructure]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D4NStructure]))
+    try:
+        import KratosMultiphysics.HDF5Application as tmp
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisBeamStructure]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D3NStructure]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D4NStructure]))
+    except ImportError:
+        print("HDF5Application is not compiled, some adjoint tests are skipped!")
+
     nightSuite.addTest(TTestMassResponseFunction('test_execution'))
-    nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
+    nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
 
     nightSuite.addTests(smallSuite)
 

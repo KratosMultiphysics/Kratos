@@ -66,7 +66,7 @@ class TestAdjointStrainEnergyResponseFunction(StructuralResponseFunctionTestFact
     path = "response_function_tests"
     file_name = "adjoint_strain_energy_response"
 
-    def testValue(self):
+    def test_execution(self):
         self._calculate_response_and_gradient()
         self.assertAlmostEqual(self.value, 0.02093537934221532)
 
@@ -79,7 +79,7 @@ class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     path = "response_function_tests"
     file_name = "mass_response"
 
-    def testValue(self):
+    def test_execution(self):
         self._calculate_response_and_gradient()
         self.assertAlmostEqual(self.value, 25120.00000000014)
 
@@ -90,7 +90,7 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
     path = "response_function_tests"
     file_name = "strain_energy_response"
 
-    def testValue(self):
+    def test_execution(self):
         self._calculate_response_and_gradient()
         self.assertAlmostEqual(self.value, 0.02093537934221532)
 

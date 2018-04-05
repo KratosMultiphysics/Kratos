@@ -22,19 +22,19 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
                 self._remove_file(name)
 
     def _solve_primal_problem(self):
-        with open("./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d3n/linear_shell_test_parameters.json",'r') as parameter_file:
+        with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_parameters.json",'r') as parameter_file:
             ProjectParametersPrimal = Parameters( parameter_file.read())
         parameter_file.close()
         primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal)
 
         primal_analysis.Run()
 
-    def test_local_stress_response(self): 
+    def test_local_stress_response(self):
         # Solve primal problem (only here necessary. The other tests corresponding to the same primal problem.)
-        self._solve_primal_problem() 
+        self._solve_primal_problem()
         # Create the adjoint solver
         self._solve_primal_problem()
-        with open("./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d3n/linear_shell_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
+        with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
         adjoint_analysis.Run()
@@ -45,14 +45,14 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         element_list = [1,2,8]
         for element_id in element_list:
             sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.THICKNESS_SENSITIVITY))
-    
+
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
         self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 5)
 
-    def test_nodal_displacement_response(self):           
+    def test_nodal_displacement_response(self):
         # Create the adjoint solver
-        with open("./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d3n/linear_shell_test_nodal_disp_adjoint_parameters.json",'r') as parameter_file:
+        with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_nodal_disp_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
         adjoint_analysis.Run()
@@ -63,14 +63,14 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         element_list = [1,2,8]
         for element_id in element_list:
             sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.THICKNESS_SENSITIVITY))
-    
+
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
         self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 5)
 
-    def test_strain_energy_response(self):           
+    def test_strain_energy_response(self):
         # Create the adjoint solver
-        with open("./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d3n/linear_shell_test_strain_energy_adjoint_parameters.json",'r') as parameter_file:
+        with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_strain_energy_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
         adjoint_analysis.Run()
@@ -81,14 +81,14 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         element_list = [1,2,8]
         for element_id in element_list:
             sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.THICKNESS_SENSITIVITY))
-    
+
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
         self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 5)
 
         # Delete *.h5 only after last test case because primal solution is used in each test case
         self._remove_h5_files("Structure")
-        self._remove_file("./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d3n/rectangular_plate.time")
+        self._remove_file("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/rectangular_plate.time")
 
     def tearDown(self):
         pass

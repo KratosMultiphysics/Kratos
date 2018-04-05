@@ -41,10 +41,10 @@
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename"   : "./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d3n/rectangular_plate"
+            "input_filename"   : "./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/rectangular_plate"
         },
         "material_import_settings" :{
-            "materials_filename" : "./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d3n/StructuralMaterials.json"
+            "materials_filename" : "./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/StructuralMaterials.json"
         }
     },
     "constraints_process_list" : [{
@@ -82,7 +82,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"  : ["ADJOINT_DISPLACEMENT_Z", "SHAPE_SENSITIVITY_Y"],
-            "input_file_name"  : "adjoint_sensitivity_test_martin/adjoint_shell_structure_3d3n/linear_shell_test_local_stress_results.json",
+            "input_file_name"  : "adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_local_stress_results.json",
             "model_part_name"  : "Structure",
             "sub_model_part_name"  : "test_model_part",
             "tolerance"            : 1e-5,
