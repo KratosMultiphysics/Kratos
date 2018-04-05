@@ -464,7 +464,7 @@ protected:
 
             noalias(r_velocity_adjoint) = - r_first_response_gradient - prod(r_first_lhs,r_residual_adjoint);
             noalias(r_acceleration_adjoint) = - r_second_response_gradient - prod(r_second_lhs,r_residual_adjoint);
-            noalias(r_adjoint_auxiliary) = (mAlphaBossak/(1.0-mAlphaBossak)) * prod(r_second_lhs,r_residual_adjoint) - r_second_response_gradient;
+            noalias(r_adjoint_auxiliary) = -(mAlphaBossak/(1.0-mAlphaBossak)) * prod(r_second_lhs,r_residual_adjoint) - r_second_response_gradient;
 
             // Assemble the contributions to the corresponing nodal unkowns.
             unsigned int local_index = 0;
