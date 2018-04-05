@@ -1476,7 +1476,7 @@ private:
     ///@{
 
     /**
-     * Returns the local coordinates of a given arbitrary point 
+     * @brief Returns the local coordinates of a given arbitrary point 
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @param IsInside The flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
@@ -1488,13 +1488,12 @@ private:
         const bool IsInside = false
         )
     {
-        boost::numeric::ublas::bounded_matrix<double,3,4> X;
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
-        for(unsigned int i=0; i<this->size();i++)
-        {
-            X(0,i ) = this->GetPoint( i ).X();
-            X(1,i ) = this->GetPoint( i ).Y();
-            X(2,i ) = this->GetPoint( i ).Z();
+        bounded_matrix<double,3,4> X;
+        bounded_matrix<double,3,2> DN;
+        for(IndexType i=0; i<this->size();i++) {
+            X(0, i) = this->GetPoint( i ).X();
+            X(1, i) = this->GetPoint( i ).Y();
+            X(2, i) = this->GetPoint( i ).Z();
         }
 
         static constexpr double MaxNormPointLocalCoordinates = 300.0;
@@ -1506,13 +1505,13 @@ private:
 
         // Starting with xi = 0
         rResult = ZeroVector( 3 );
-        Vector DeltaXi = ZeroVector( 2 );
-        array_1d<double,3> CurrentGlobalCoords;
+        array_1d<double, 2> DeltaXi( 2, 0.0 );
+	const array_1d<double, 3> zero_array(3, 0.0);
+        array_1d<double, 3> CurrentGlobalCoords;
 
         //Newton iteration:
-        for ( std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++ )
-        {
-            noalias(CurrentGlobalCoords) = ZeroVector( 3 );
+        for ( IndexType k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++ ) {
+            noalias(CurrentGlobalCoords) = zero_array;
             this->GlobalCoordinates( CurrentGlobalCoords, rResult );
 
             noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
@@ -1523,7 +1522,7 @@ private:
             noalias(DN) = prod(X,shape_functions_gradients);
 
             noalias(J) = prod(trans(DN),DN);
-            Vector res = prod(trans(DN),CurrentGlobalCoords);
+            const array_1d<double, 2> res = prod(trans(DN), CurrentGlobalCoords);
 
             // Deteminant of Jacobian
             const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
@@ -1546,12 +1545,10 @@ private:
             }
 
             if ( norm_2( DeltaXi ) < MaxTolerancePointLocalCoordinates )
-            {
                 break;
-            }
         }
 
-        return( rResult );
+        return rResult;
     }
     
     /**

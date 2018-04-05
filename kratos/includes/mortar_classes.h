@@ -603,15 +603,16 @@ public:
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
 
         // We initialize the derivatives
-        for (unsigned int i = 0; i < TNumNodes * TDim; ++i) {
+        const array_1d<double, TNumNodes> zerovector(TNumNodes, 0.0); 
+        for (IndexType i = 0; i < TNumNodes * TDim; ++i) { 
             DeltaDetjSlave[i] = 0.0;
             if (TDim == 3) DeltaDetjSlave[i + TNumNodes * TDim] = 0.0;
-            DeltaPhi[i] = ZeroVector(TNumNodes);
-            if (TDim == 3) DeltaPhi[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-            DeltaN1[i] = ZeroVector(TNumNodes);
-            if (TDim == 3) DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-            DeltaN2[i] = ZeroVector(TNumNodes);
-            if (TDim == 3) DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
+            noalias(DeltaPhi[i]) = zerovector; 
+            if (TDim == 3) noalias(DeltaPhi[i + TNumNodes * TDim]) = zerovector; 
+            noalias(DeltaN1[i]) = zerovector; 
+            if (TDim == 3) noalias(DeltaN1[i + TNumNodes * TDim]) = zerovector; 
+            noalias(DeltaN2[i]) = zerovector; 
+            if (TDim == 3) noalias(DeltaN2[i + TNumNodes * TDim]) = zerovector;
         }
     }
 
@@ -1182,17 +1183,17 @@ public:
         const array_1d<array_1d<double, TNumNodes >, DoFSizeDerivativesDependence>& delta_n1  = rDerivativeData.DeltaN1;
         const array_1d<array_1d<double, TNumNodes >, DoFSizeDerivativesDependence>& delta_n2  = rDerivativeData.DeltaN2;
 
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const double phi = vector_phi[i_node];
 
-            for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node) {
+            for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
                 const double n1 = vector_n1[j_node];
                 const double n2 = vector_n2[j_node];
 
                 BaseClassType::DOperator(i_node, j_node) += det_j_slave * rIntegrationWeight * phi * n1;
                 BaseClassType::MOperator(i_node, j_node) += det_j_slave * rIntegrationWeight * phi * n2;
 
-                for (unsigned int i = 0; i < TDim * TNumNodes; ++i) {
+                for (IndexType i = 0; i < TDim * TNumNodes; ++i) {
                     DeltaDOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi* n1
                                                        + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n1
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n1[i][j_node];
@@ -1202,7 +1203,7 @@ public:
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n2[i][j_node];
                 }
                 if (TDim == 3) {
-                    for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; ++i) {
+                    for (IndexType i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; ++i) {
                         DeltaDOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n1[i][j_node];
                         DeltaMOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n2[i][j_node];
                         DeltaDOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi * n1;
@@ -1421,15 +1422,16 @@ public:
      * @param N1 The shape function
      * @param detJ The jacobian of the geometry
      */
+    template<class TArray>
     GeometryMatrixType ComputeDe(
-        const Vector& N1,
+        const TArray& N1,
         const double detJ
         ) const
     {
         GeometryMatrixType De;
 
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            for (unsigned int j = 0; j < TNumNodes; ++j) {
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            for (IndexType j = 0; j < TNumNodes; ++j) {
                 if (i == j) De(i,i) = detJ * N1[i];
                 else De(i,j) = 0.0;
             }
@@ -1592,9 +1594,10 @@ public:
         BaseClassType::Initialize();
 
         // Derivatives matrices
-        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i) {
-            DeltaMe[i] = ZeroMatrix(TNumNodes, TNumNodes);
-            DeltaDe[i] = ZeroMatrix(TNumNodes, TNumNodes);
+	const bounded_matrix<double, TNumNodes, TNumNodes> zeromatrix = ZeroMatrix(TNumNodes, TNumNodes);
+        for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i) {
+            noalias(DeltaMe[i]) = zeromatrix;
+            noalias(DeltaDe[i]) = zeromatrix;
         }
     }
 
@@ -1617,9 +1620,9 @@ public:
 
         BaseClassType::CalculateAeComponents(rKinematicVariables, rIntegrationWeight);
 
-        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i) {
+        for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i) {
             const double delta_det_j = rDerivativeData.DeltaDetjSlave[i];
-            const Vector& delta_n1 = rDerivativeData.DeltaN1[i];
+            const array_1d<double, TNumNodes>& delta_n1 = rDerivativeData.DeltaN1[i];
 
             DeltaDe[i] += rIntegrationWeight * this->ComputeDe( n1, delta_det_j )
                        +  rIntegrationWeight * this->ComputeDe( delta_n1, det_j_slave );
@@ -1658,7 +1661,7 @@ public:
 
         array_1d<GeometryMatrixType , DoFSizeDerivativesDependence>& delta_Ae = rDerivativeData.DeltaAe;
 
-        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i) {
+        for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i) {
             const GeometryMatrixType aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
             noalias(delta_Ae[i]) = prod(aux_matrix, inv_Me);
         }
