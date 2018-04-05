@@ -1,7 +1,6 @@
 # output files of test examples
 *post.*
-*history.csv
-*response_log.csv
+*.csv
 *.h5
 
 # ignore all folders ending with "_tmpTest"
