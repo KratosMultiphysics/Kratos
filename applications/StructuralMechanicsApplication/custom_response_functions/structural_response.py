@@ -114,27 +114,6 @@ class SimpleResponseFunctionWrapper(ResponseFunctionBase):
     def Finalize(self):
         self.primal_analysis.Finalize()
 
-class MassResponseFunctionWrapper(ResponseFunctionBase):
-    def __init__(self, identifier, project_parameters, response_function_utility, model_part):
-        super(MassResponseFunctionWrapper, self).__init__(identifier, project_parameters)
-        self.response_function_utility = response_function_utility
-        self.model_part = model_part
-        self.model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
-    def Initialize(self):
-        self.response_function_utility.Initialize()
-    def CalculateValue(self):
-        value = self.response_function_utility.CalculateValue()
-        return value
-    def CalculateGradient(self):
-        self.response_function_utility.CalculateGradient()
-    def GetShapeGradient(self):
-        gradient = {}
-        for node in self.model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
-        return gradient
-    def Finalize(self):
-        pass
-
 class AdjointStrainEnergyResponse(ResponseFunctionBase):
     def __init__(self, identifier, project_parameters, response_function_utility, model_part = None):
         super(AdjointStrainEnergyResponse, self).__init__(identifier, project_parameters)
@@ -149,11 +128,11 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(ADJOINT_DISPLACEMENT)
         if self.ProjectParametersPrimal["solver_settings"]["rotation_dofs"].GetBool():
             self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(ADJOINT_ROTATION)
-        #self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)    
+        #self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)
         # TODO: Is it necessary to add other variables (e.g. POINT_LOAD_SENSITIVITY)?
 
         self.primal_analysis.GetModelPart().ProcessInfo[StructuralMechanicsApplication.IS_ADJOINT] = False
-  
+
         self.response_function_utility = response_function_utility
     def Initialize(self):
         self.primal_analysis.Initialize()
@@ -171,7 +150,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
     def CalculateGradient(self):
         # Replace elements and conditions by its adjoint equivalents
         self.__performReplacementProcess(True)
-        self.response_function_utility.Initialize() 
+        self.response_function_utility.Initialize()
         self.primal_analysis.GetModelPart().ProcessInfo[StructuralMechanicsApplication.IS_ADJOINT] = True
         # 'Solve' the adjoint problem
         for node in self.primal_analysis.GetModelPart().Nodes:
@@ -188,7 +167,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
                 node.SetSolutionStepValue(ADJOINT_ROTATION_X,0,rot_x * 0.5)
                 node.SetSolutionStepValue(ADJOINT_ROTATION_Y,0,rot_y * 0.5)
                 node.SetSolutionStepValue(ADJOINT_ROTATION_Z,0,rot_z * 0.5)
-        # Compute Sensitivities in a post-processing step          
+        # Compute Sensitivities in a post-processing step
         self.response_function_utility.FinalizeSolutionStep()
         # Replace elements and conditions back to its origins
         self.__performReplacementProcess(False)
@@ -201,7 +180,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         return gradient
     #TODO: Is it necessary to reset some variables (DISPLACEMENT, ROTATION, ADJOINT_DISPLACEMENT and ADJOINT_ROTATION)
     def Finalize(self):
-        self.primal_analysis.Finalize() 
+        self.primal_analysis.Finalize()
 
     def __performReplacementProcess(self, from_primal_to_adjoint=True):
         self.ProjectParametersPrimal.AddEmptyValue("element_replace_settings")
@@ -230,16 +209,16 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         elif(self.primal_analysis.GetModelPart().ProcessInfo[DOMAIN_SIZE] == 2):
             raise Exception("there is currently no 2D adjoint element")
         else:
-            raise Exception("domain size is not 2 or 3")    
+            raise Exception("domain size is not 2 or 3")
         StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
-            self.primal_analysis.GetModelPart(), self.ProjectParametersPrimal["element_replace_settings"]).Execute()   
+            self.primal_analysis.GetModelPart(), self.ProjectParametersPrimal["element_replace_settings"]).Execute()
 
-    def __initializeAfterReplacement(self, model_part):  
-        for element in model_part.Elements:       
+    def __initializeAfterReplacement(self, model_part):
+        for element in model_part.Elements:
             element.Initialize()
-        for condition in model_part.Conditions:       
+        for condition in model_part.Conditions:
             condition.Initialize()
-      
 
 
-     
+
+
