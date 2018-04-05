@@ -34,6 +34,7 @@ class AnalyticsTestSolution(main_script.Solution):
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(NORMAL_IMPACT_VELOCITY)
             face_normal_impact_vel = node.GetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY)
+            print(face_normal_impact_vel)
             if node.Id ==1:   
                 if time < 0.03:
                     expected_value = 0.0
@@ -70,7 +71,7 @@ class AnalyticsTestSolution(main_script.Solution):
             raise ValueError('Incorrect value for NORMAL_IMPACT_VELOCITY')
 
     def CheckValueOfFaceNormalImpactVelocity(self, face_normal_impact_vel, expected_value, tolerance):
-        if normal_impact_vel > expected_value + tolerance or normal_impact_vel < expected_value - tolerance:                    
+        if face_normal_impact_vel > expected_value + tolerance or face_normal_impact_vel < expected_value - tolerance:                    
             raise ValueError('Incorrect value for FACE_NORMAL_IMPACT_VELOCITY')
 
     def Finalize(self):
