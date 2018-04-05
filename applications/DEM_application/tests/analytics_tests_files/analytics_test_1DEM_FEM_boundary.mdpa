@@ -15,10 +15,10 @@ End Properties
 
 
 Begin Nodes // GUI DEM-FEM-Wall group identifier: disc
-10 -2 1  1
-11 -2 1 -1
-12  0 1  1
-13  0 1 -1
+10 -2 1  -0.5
+11 -2 -1 -0.5
+12  2 1  -0.5
+13  2 -1 -0.5
 End Nodes
 
 
