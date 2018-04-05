@@ -125,28 +125,25 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions3, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_Properties, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
-    ModelPart read_model_part("test_read");
     HDF5::PropertiesContainerType& r_write_properties = write_model_part.rProperties();
-    HDF5::PropertiesContainerType& r_read_properties = read_model_part.rProperties();
+    TestModelPartFactory::AssignDataValueContainer(r_write_properties[1].Data(),
+                                                   {{"DOMAIN_SIZE"}});
+    TestModelPartFactory::AssignDataValueContainer(r_write_properties[3].Data(),
+                                                   {{"TIME"}, {"STRAIN"}});
+    TestModelPartFactory::AssignDataValueContainer(r_write_properties[4].Data(),
+                                                   {{"LOCAL_AXES_MATRIX"}});
     HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
-
-    r_write_properties[1][DOMAIN_SIZE] = 2;
-    r_write_properties[3][TIME] = 1.2345;
-    r_write_properties[3][STRAIN] = HDF5::Vector<double>(3, 1.234567);
-    r_write_properties[4][LOCAL_AXES_MATRIX] = HDF5::Matrix<double>(3, 3, 1.23);
     model_part_io.WriteProperties(r_write_properties);
+    ModelPart read_model_part("test_read");
+    HDF5::PropertiesContainerType& r_read_properties = read_model_part.rProperties();
     model_part_io.ReadProperties(r_read_properties);
     KRATOS_CHECK(read_model_part.NumberOfProperties() == write_model_part.NumberOfProperties());
-    KRATOS_CHECK(r_read_properties[1][DOMAIN_SIZE] == r_write_properties[1][DOMAIN_SIZE]);
-    KRATOS_CHECK(r_read_properties[3][TIME] == r_write_properties[3][TIME]);
-    KRATOS_CHECK(r_read_properties[3][STRAIN].size() == r_write_properties[3][STRAIN].size());
-    for (unsigned i = 0; i < r_read_properties[3][STRAIN].size(); ++i)
-        KRATOS_CHECK(r_read_properties[3][STRAIN](i) == r_write_properties[3][STRAIN](i));
-    KRATOS_CHECK(r_read_properties[4][LOCAL_AXES_MATRIX].size1() == r_write_properties[4][LOCAL_AXES_MATRIX].size1());
-    KRATOS_CHECK(r_read_properties[4][LOCAL_AXES_MATRIX].size2() == r_write_properties[4][LOCAL_AXES_MATRIX].size2());
-    for (unsigned i = 0; i < r_read_properties[4][LOCAL_AXES_MATRIX].size1(); ++i)
-        for (unsigned j = 0; j < r_read_properties[4][LOCAL_AXES_MATRIX].size2(); ++j)
-            KRATOS_CHECK(r_read_properties[4][LOCAL_AXES_MATRIX](i, j) == r_write_properties[4][LOCAL_AXES_MATRIX](i, j));
+    CompareDataValueContainers(r_read_properties[1].Data(),
+                               r_write_properties[1].Data());
+    CompareDataValueContainers(r_read_properties[3].Data(),
+                               r_write_properties[3].Data());
+    CompareDataValueContainers(r_read_properties[4].Data(),
+                               r_write_properties[4].Data());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadModelPart1, KratosHDF5TestSuite)

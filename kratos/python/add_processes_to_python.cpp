@@ -83,10 +83,6 @@ void  AddProcessesToPython()
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
     .def(self_ns::str(self))
     ;
-
-    class_<FastTransferBetweenModelPartsProcess, bases<Process> >("FastTransferBetweenModelPartsProcess",init<ModelPart&, ModelPart&, const std::string>())
-    .def("Execute",&FastTransferBetweenModelPartsProcess::Execute)
-    ;
     
     class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
     .def("Execute",&FindNodalHProcess::Execute)
@@ -498,6 +494,20 @@ void  AddProcessesToPython()
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
     .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical, Historical>::Execute)
+    ;
+
+    scope fast_transfer_scope = class_<FastTransferBetweenModelPartsProcess, typename FastTransferBetweenModelPartsProcess::Pointer, boost::noncopyable, bases<Process> >("FastTransferBetweenModelPartsProcess",init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>())
+    .def(init< ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags >())
+    .def("Execute",&FastTransferBetweenModelPartsProcess::Execute)
+    ;
+
+    // Adding FastTransferBetweenModelPartsProcess related enums
+    enum_<FastTransferBetweenModelPartsProcess::EntityTransfered>("EntityTransfered")
+    .value("NODES", FastTransferBetweenModelPartsProcess::EntityTransfered::NODES)
+    .value("ELEMENTS", FastTransferBetweenModelPartsProcess::EntityTransfered::ELEMENTS)
+    .value("NODESANDELEMENTS", FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS)
+    .value("CONDITIONS", FastTransferBetweenModelPartsProcess::EntityTransfered::CONDITIONS)
+    .value("ALL", FastTransferBetweenModelPartsProcess::EntityTransfered::ALL)
     ;
 
 }

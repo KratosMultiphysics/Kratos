@@ -64,11 +64,11 @@ public:
         const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
         double reference_coordinate = mpTable->GetValue(Time);
         
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
 
             array_1d<double,3> Coordinates;
 

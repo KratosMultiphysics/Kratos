@@ -114,17 +114,27 @@
         }
     }],
     "list_other_processes" :[{
-        "kratos_module"    : "KratosMultiphysics.AdjointFluidApplication",
-        "python_module"    : "output_primal_solution_process",
-        "help"             : "",
-        "process_name"     : "OutputPrimalSolutionProcess",
-        "Parameters"          : {
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "partitioned_single_mesh_primal_output_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
             "model_part_name" : "MainModelPart",
-            "file_name"       : "test_vms_sensitivity_2d/cylinder_test",
-            "variable_list"   : ["VELOCITY", "ACCELERATION", "PRESSURE"],
-            "alpha_bossak"    :-0.3
+            "file_settings" : {
+                "file_access_mode" : "truncate",
+                "file_driver" : "mpio"
+            },
+            "model_part_output_settings" : {
+                "prefix" : "/ModelData"
+            },
+            "nodal_results_settings" : {
+                "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+            },
+            "output_time_settings" : {
+                "output_step_frequency": 1
+            }
         }
-     },{
+    },{
         "kratos_module"   : "KratosMultiphysics",
         "python_module"   : "point_output_process",
         "help"            : "",

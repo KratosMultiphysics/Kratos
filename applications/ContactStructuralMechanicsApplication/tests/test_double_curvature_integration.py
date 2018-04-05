@@ -60,7 +60,7 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         Preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
 
         interface_parameters = KratosMultiphysics.Parameters("""{"simplify_geometry": false}""")
-        Preprocess.GenerateInterfacePart3D(self.main_model_part, self.contact_model_part, interface_parameters)
+        Preprocess.GenerateInterfacePart3D(self.contact_model_part, interface_parameters)
 
         # We copy the conditions to the ContactSubModelPart
         for cond in self.contact_model_part.Conditions:
@@ -172,6 +172,12 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/quadrilaterals_moving_nodes"
 
         self._moving_nodes_tests(input_filename, 4)
+
+    def test_integration_quad_non_matching(self):
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/quadrilaterals_non_matching"
+
+        list_of_border_cond = []
+        self._double_curvature_tests(input_filename, 4, list_of_border_cond)
 
     def __post_process(self):
         from gid_output_process import GiDOutputProcess

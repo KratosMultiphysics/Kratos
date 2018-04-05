@@ -49,11 +49,11 @@ public:
                 
         Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
         
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
@@ -82,11 +82,11 @@ public:
         const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
         double value = mpTable->GetValue(Time);
         
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)

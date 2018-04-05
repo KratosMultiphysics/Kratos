@@ -23,6 +23,7 @@
 
 // Project includes
 #include "custom_processes/mmg_process.h"
+#include "utilities/sub_model_parts_list_utility.h"
 // We indlude the internal variable interpolation process
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
@@ -192,7 +193,8 @@ void MmgProcess<TDim>::InitializeMeshData()
 {                
     // First we compute the colors
     std::unordered_map<int,int> nodes_colors, cond_colors, elem_colors;
-    ComputeColors(nodes_colors, cond_colors, elem_colors);
+    SubModelPartsListUtility sub_model_parts_list(mrThisModelPart);
+    sub_model_parts_list.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, mColors);
     
     /////////* MESH FILE */////////
     // Build mesh in MMG5 format //
@@ -209,16 +211,8 @@ void MmgProcess<TDim>::InitializeMeshData()
         num_array_conditions[0] = conditions_array.size();
         num_array_elements[0]   = elements_array.size();
     } else {
-        // We initialize the values
-        num_array_elements[0] = 0; // Tetrahedron
-        num_array_elements[1] = 0; // Prisms
-        
-        num_array_conditions[0] = 0; // Triangles
-        num_array_conditions[1] = 0; // Quadrilaterals
-        
         /* Elements */
-        std::size_t& num_tetra = num_array_elements[0];
-        std::size_t& num_prisms = num_array_elements[1];
+        std::size_t num_tetra = 0, num_prisms = 0;
         #pragma omp parallel for reduction(+:num_tetra,num_prisms)
         for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
             auto it_elem = elements_array.begin() + i;
@@ -231,13 +225,15 @@ void MmgProcess<TDim>::InitializeMeshData()
                 KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
         }
         
+        num_array_elements[0] = num_tetra;  // Tetrahedron
+        num_array_elements[1] = num_prisms; // Prisms
+
         if (((num_tetra + num_tetra) < elements_array.size()) && mEchoLevel > 0)
             KRATOS_INFO("MmgProcess") << "Number of Elements: " << elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_tetra << std::endl;
         
         /* Conditions */
-        std::size_t& num_tri = num_array_conditions[0];
-        std::size_t& num_quad = num_array_conditions[1];
-        #pragma omp parallel for
+        std::size_t num_tri = 0, num_quad = 0;
+        #pragma omp parallel for reduction(+:num_tetra,num_prisms)
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
             auto it_cond = conditions_array.begin() + i;
             
@@ -249,6 +245,9 @@ void MmgProcess<TDim>::InitializeMeshData()
                 KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS CERTAIN TYPE THAT CAN NOT BE REMESHED" << std::endl;
         }
         
+        num_array_conditions[0] = num_tri;  // Triangles
+        num_array_conditions[1] = num_quad; // Quadrilaterals
+
         if (((num_tri + num_quad) < conditions_array.size()) && mEchoLevel > 0)
             KRATOS_INFO("MmgProcess") << "Number of Conditions: " << conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
     }
@@ -258,7 +257,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     /* Nodes */
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
     mDofs = nodes_array.begin()->GetDofs();
-    for (typename Node<3>::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         it_dof->FreeDof();
     
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN){ // NOTE: The code is repeated due to performance reasons
@@ -334,7 +333,7 @@ void MmgProcess<TDim>::InitializeMeshData()
             bool cond_added = false, elem_added = false;
             
             for (auto sub_model_part_name : color_list.second) {      
-                ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name); 
+                ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
                 
                 if (to_check_cond == true) {
                     ConditionsArrayType& conditions_array_sub_model_part = r_sub_model_part.Conditions();
@@ -593,7 +592,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         
         if (key != 0) {// NOTE: key == 0 is the MainModelPart
             for (auto sub_model_part_name : color_list.second) {      
-                ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
+                ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
                 
                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
                 if (color_cond_0.find(key) != color_cond_0.end()) r_sub_model_part.AddConditions(color_cond_0[key]);
@@ -606,10 +605,10 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     
     // TODO: Add OMP
     // NOTE: We add the nodes from the elements and conditions to the respective submodelparts
-    const std::vector<std::string> sub_model_part_names = mrThisModelPart.GetSubModelPartNames();
+    const std::vector<std::string> sub_model_part_names = SubModelPartsListUtility::GetRecursiveSubModelPartNames(mrThisModelPart);
 
     for (auto sub_model_part_name : sub_model_part_names) {
-        ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
+        ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
         
         std::unordered_set<IndexType> node_ids;
         
@@ -1827,7 +1826,7 @@ void MmgProcess<3>::SetNodes(
 
 template<>  
 void MmgProcess<2>::SetConditions(
-    Geometry<Node<3> > & Geom,
+    GeometryType & Geom,
     const int Color,
     const int Index
     )
@@ -1863,7 +1862,7 @@ void MmgProcess<2>::SetConditions(
 
 template<>  
 void MmgProcess<3>::SetConditions(
-    Geometry<Node<3> > & Geom,
+    GeometryType & Geom,
     const int Color,
     const int Index
     )
@@ -1930,7 +1929,7 @@ void MmgProcess<3>::SetConditions(
 
 template<>  
 void MmgProcess<2>::SetElements(
-    Geometry<Node<3> > & Geom,
+    GeometryType & Geom,
     const int Color,
     const int Index
     )
@@ -1948,7 +1947,7 @@ void MmgProcess<2>::SetElements(
 
 template<>  
 void MmgProcess<3>::SetElements(
-    Geometry<Node<3> > & Geom,
+    GeometryType & Geom,
     const int Color,
     const int Index
     )
@@ -1978,123 +1977,6 @@ void MmgProcess<3>::SetElements(
     } else {
         const unsigned int size_geometry = Geom.size();
         KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << std::endl;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-    
-template<unsigned int TDim>
-void MmgProcess<TDim>::ComputeColors(
-    std::unordered_map<int,int>& NodesColors,
-    std::unordered_map<int,int>& CondColors,
-    std::unordered_map<int,int>& ElemColors
-    )
-{        
-    // Initialize and create the auxiliar maps
-    const std::vector<std::string> sub_model_part_names = mrThisModelPart.GetSubModelPartNames();
-    std::unordered_map<int,std::set<int>> aux_nodes_colors, aux_cond_colors, aux_elem_colors;
-    
-    std::vector<std::string> model_part_names;
-    model_part_names.push_back(mrThisModelPart.Name());
-    for (const auto & sub_model_part_name : sub_model_part_names)
-        model_part_names.push_back(sub_model_part_name);
-    
-    // Initialize Colors
-    int color = 0;
-    for (SizeType i_sub_model_part = 0; i_sub_model_part < model_part_names.size(); ++i_sub_model_part) {
-        mColors[i_sub_model_part].push_back(model_part_names[i_sub_model_part]);
-        
-        if (color > 0) {            
-            ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(model_part_names[i_sub_model_part]);
-
-            /* Nodes */
-            NodesArrayType& nodes_array = r_sub_model_part.Nodes();
-            for(SizeType i = 0; i < nodes_array.size(); ++i) 
-                aux_nodes_colors[(nodes_array.begin() + i)->Id()].insert(color);
-            
-            /* Conditions */
-            ConditionsArrayType& conditions_array = r_sub_model_part.Conditions();
-            for(SizeType i = 0; i < conditions_array.size(); ++i) 
-                aux_cond_colors[(conditions_array.begin() + i)->Id()].insert(color);
-            
-            /* Elements */
-            ElementsArrayType& elements_array = r_sub_model_part.Elements();
-            for(SizeType i = 0; i < elements_array.size(); ++i) 
-                aux_elem_colors[(elements_array.begin() + i)->Id()].insert(color);
-        }
-        
-        color += 1;
-    }
-    
-    // Now detect all the cases in which a node or a cond belongs to more than one part simultaneously 
-    std::unordered_map<std::set<int>, int, KeyHasherRange<std::set<int>>, KeyComparorRange<std::set<int>> > combinations;
-    
-    /* Nodes */
-    for(auto & aux_nodes_color : aux_nodes_colors) {
-        const std::set<int>& value = aux_nodes_color.second;
-        if (value.size() > 1) combinations[value] = -1;
-    }
-    
-    /* Conditions */
-    for(auto & aux_cond_color : aux_cond_colors) {
-        const std::set<int>& value = aux_cond_color.second;
-        if (value.size() > 1) combinations[value] = -1;
-    }
-
-    /* Elements */
-    for(auto & aux_elem_color : aux_elem_colors) {
-        const std::set<int>& value = aux_elem_color.second;
-        if (value.size() > 1) combinations[value] = -1;
-    }
-    
-    /* Combinations */
-    for(auto & combination : combinations) {
-        const std::set<int>& key = combination.first;
-        for(int it : key) 
-            mColors[color].push_back(mColors[it][0]);
-        combinations[key] = color;
-        color += 1;
-    }
-    
-    // The final maps are created
-    /* Nodes */
-    for(auto & aux_nodes_color : aux_nodes_colors) {
-        const int key = aux_nodes_color.first;
-        const std::set<int>& value = aux_nodes_color.second;
-        
-        if (value.size() == 0)
-            NodesColors[key] = 0; // Main Model Part
-        else if (value.size() == 1) // Another Model Part
-            NodesColors[key] = *value.begin();
-        else // There is a combination
-            NodesColors[key] = combinations[value];
-    }
-    
-    /* Conditions */
-    for(auto & aux_cond_color : aux_cond_colors) {
-        const int key = aux_cond_color.first;
-        const std::set<int>& value = aux_cond_color.second;
-        
-        if (value.size() == 0)
-            CondColors[key] = 0; // Main Model Part
-        else if (value.size() == 1) // Another Model Part
-            CondColors[key] = *value.begin();
-        else // There is a combination
-            CondColors[key] = combinations[value];
-    }
-    
-    /* Elements */
-    for(auto & aux_elem_color : aux_elem_colors) {
-        const int key = aux_elem_color.first;
-        const std::set<int>& value = aux_elem_color.second;
-        
-        if (value.size() == 0)
-            ElemColors[key] = 0; // Main Model Part
-        else if (value.size() == 1) // Another Model Part
-            ElemColors[key] = *value.begin();
-        else // There is a combination
-            ElemColors[key] = combinations[value];
     }
 }
 
