@@ -423,14 +423,14 @@ class Solution(object):
             self.BeforePrintingOperations(self.time)
 
             #### GiD IO ##########################################
-            time_to_print = self.time - self.time_old_print
-
-            if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt:
-
+            if self.IsTimeToPrintPostProcess():
                 self.PrintResultsForGid(self.time)
                 self.time_old_print = self.time
 
             self.FinalizeTimeStep(self.time)
+
+    def IsTimeToPrintPostProcess(self):
+        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self.dt
 
     def SolverSolve(self):
         self.solver.Solve()
@@ -460,8 +460,7 @@ class Solution(object):
     def AfterSolveOperations(self):
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)            
-            time_to_print = self.time - self.time_old_print
-            if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt:
+            if self.IsTimeToPrintPostProcess():
                 self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
                 self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
 

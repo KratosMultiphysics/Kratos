@@ -730,7 +730,7 @@ class Procedures(object):
         return properties_list
 
     @classmethod
-    def RemoveFoldersFromOldRun(self, main_path, problem_name, run_code=''):
+    def RemoveFoldersWithResults(self, main_path, problem_name, run_code=''):
         shutil.rmtree(os.path.join(main_path, problem_name + '_Post_Files' + run_code), ignore_errors=True)
         shutil.rmtree(os.path.join(main_path, problem_name + '_Graphs'), ignore_errors=True)
         shutil.rmtree(os.path.join(main_path, problem_name + '_Results_and_Data'), ignore_errors=True)
@@ -752,7 +752,7 @@ class Procedures(object):
         graphs_path = root + '_Graphs'
         MPI_results = root + '_MPI_results'
 
-        self.RemoveFoldersFromOldRun(main_path, problem_name, run_code)        
+        self.RemoveFoldersWithResults(main_path, problem_name, run_code)        
 
         for directory in [post_path, data_and_results, graphs_path, MPI_results]:
             if not os.path.isdir(directory):

@@ -13,8 +13,8 @@ class AnalyticsTestSolution(main_script.Solution):
             "problem_name":"analytics_test_1",
             "PostNormalImpactVelocity"         : true,
             "PostTangentialImpactVelocity"     : false,
-            "FinalTime" : 2.0, 
-            "OutputTimeStep"                   : 2e-4
+            "FinalTime" : 1.0, 
+            "OutputTimeStep"                   : 5e-3
         }
         """))
         # perque segueix parant el cas a 0.15?
@@ -24,23 +24,21 @@ class AnalyticsTestSolution(main_script.Solution):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)),"analytics_tests_files")
         
     def GetProblemNameWithPath(self):
-        return os.path.join(self.GetMainPath(), self.DEM_parameters["problem_name"].GetString()) 
+        return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString()) 
 
     def FinalizeTimeStep(self, time):        
         tolerance = 1e-3
                     
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(NORMAL_IMPACT_VELOCITY) # perque no puc vere el print de velocitat
-            face_normal_impact_vel = node.GetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY)
+            #face_normal_impact_vel = node.GetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY)
             #normal_impact_vel = 0.0
-            print(time)
-            print(node)
-            print(normal_impact_vel)
+
             if node.Id ==1:   
                 if time < 0.03:
                     expected_value = 0.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.4 # ???
+                elif time > 0.04:
                     expected_value = 3.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
                 '''
@@ -52,10 +50,13 @@ class AnalyticsTestSolution(main_script.Solution):
                 if time < 0.03:
                     expected_value = 0.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.4 and time < 0.13: # ???
+                elif time > 0.04 and time < 0.13:
                     expected_value = 3.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.15:  # ???
+                elif time > 0.15:  
+                    print(time)
+                    print(node)
+                    print(normal_impact_vel)
                     expected_value = 3.9602
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
             if node.Id ==3:
@@ -77,7 +78,7 @@ class AnalyticsTestSolution(main_script.Solution):
 
     def Finalize(self):
         super(AnalyticsTestSolution, self).Finalize()
-        self.procedures.RemoveFoldersFromOldRun(self.main_path, self.problem_name)
+        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
 
 class TestAnalytics(KratosUnittest.TestCase):    
 
@@ -91,4 +92,4 @@ class TestAnalytics(KratosUnittest.TestCase):
         pass
 
 if __name__ == '__main__':
-    KratosUnittest.main()
+    AnalyticsTestSolution().Run()
