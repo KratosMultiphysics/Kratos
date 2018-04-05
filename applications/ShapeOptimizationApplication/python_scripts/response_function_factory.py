@@ -16,7 +16,6 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 import structural_response_function_factory
-import time as timer
 
 # ==============================================================================
 def CreateListOfResponseFunctions( optimization_settings, optimization_model_part ):
@@ -70,6 +69,6 @@ class ResponseFunctionCreator:
         if response_type in ["strain_energy", "mass", "eigenfrequency", "adjoint_nodal_displacement", "adjoint_strain_energy", "adjoint_local_stress"]:
             self.listOfResponseFunctions[response_id] = structural_response_function_factory.CreateResponseFunction(response_id, response_settings, self.optimization_model_part)
         else:
-            raise NameError("The following response function is available for optimization: " + response_id)
+            raise NameError("The following response function is not available for optimization: " + response_id)
 
 # ==============================================================================
