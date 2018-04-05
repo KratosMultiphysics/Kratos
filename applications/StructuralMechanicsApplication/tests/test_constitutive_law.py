@@ -10,7 +10,8 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def _create_geometry(self, model_part, dim):
+    @staticmethod
+    def _create_geometry(model_part, dim):
         # Create new nodes
         node1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         node2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
@@ -427,7 +428,6 @@ class SimpleShearHyperElastic3D(SimpleShearDeformation):
         self.cl = HyperElastic3D()
 
     def get_reference_stress(self, i):
-        lame_lambda = (self.cl.young_modulus * self.cl.poisson_ratio) / ((1.0 + self.cl.poisson_ratio) * (1.0 - 2.0 * self.cl.poisson_ratio))
         lame_mu = self.cl.young_modulus / (2.0 * (1.0 + self.cl.poisson_ratio))
 
         self.reference_stress[0] = lame_mu * (self.deltaDef * i)**2.0
@@ -547,7 +547,6 @@ class ShearPlusStrechLinearElastic3D(ShearPlusStrechDeformation):
         c1 = self.cl.young_modulus / (2.0 * (1.0 + self.cl.poisson_ratio))
         x1beta = self.x1beta
         x2beta = self.x2beta
-        x3beta = self.x3beta
 
         self.reference_stress[0] = c0 * self.cl.poisson_ratio * (x1beta**2.0 + x2beta**2.0) / 2.0
         self.reference_stress[1] = self.reference_stress[0]
@@ -645,7 +644,8 @@ class KirchhoffSaintVenant3D(LinearElastic):
         LinearElastic.__init__(self)
         self.dim = 3
 
-    def create_constitutive_Law(self):
+    @staticmethod
+    def create_constitutive_Law():
         return StructuralMechanicsApplication.KirchhoffSaintVenant3DLaw()
 
 class HyperElastic3D(LinearElastic):
@@ -653,7 +653,8 @@ class HyperElastic3D(LinearElastic):
         LinearElastic.__init__(self)
         self.dim = 3
 
-    def create_constitutive_Law(self):
+    @staticmethod
+    def create_constitutive_Law():
         return StructuralMechanicsApplication.HyperElastic3DLaw()
 
 class LinearElastic3D(LinearElastic):
@@ -661,7 +662,8 @@ class LinearElastic3D(LinearElastic):
         LinearElastic.__init__(self)
         self.dim = 3
 
-    def create_constitutive_Law(self):
+    @staticmethod
+    def create_constitutive_Law():
         return StructuralMechanicsApplication.LinearElastic3DLaw()
 
 class LinearElasticPlaneStress2D(LinearElastic):
@@ -669,7 +671,8 @@ class LinearElasticPlaneStress2D(LinearElastic):
         LinearElastic.__init__(self)
         self.dim = 2
 
-    def create_constitutive_Law(self):
+    @staticmethod
+    def create_constitutive_Law():
         return StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
 
 class ElasticPlaneStressUncoupledShear2D(LinearElasticPlaneStress2D):
@@ -690,7 +693,8 @@ class ElasticPlaneStressUncoupledShear2D(LinearElasticPlaneStress2D):
         properties.SetValue(KratosMultiphysics.SHEAR_MODULUS_GAMMA12_4, self.shear_modulus_gamma12_4)
         return properties
 
-    def create_constitutive_Law(self):
+    @staticmethod
+    def create_constitutive_Law():
         return StructuralMechanicsApplication.ElasticPlaneStressUncoupledShear2DLaw()
 
 class LinearJ2Plasticity(LinearElastic):
@@ -717,7 +721,8 @@ class LinearJ2Plasticity3D(LinearJ2Plasticity):
         LinearJ2Plasticity.__init__(self)
         self.dim = 3
 
-    def create_constitutive_Law(self):
+    @staticmethod
+    def create_constitutive_Law():
         return StructuralMechanicsApplication.LinearJ2Plasticity3DLaw()
 
 class LinearJ2PlasticityPlaneStrain2D(LinearJ2Plasticity):
@@ -725,7 +730,8 @@ class LinearJ2PlasticityPlaneStrain2D(LinearJ2Plasticity):
         LinearJ2Plasticity.__init__(self)
         self.dim = 2
 
-    def create_constitutive_Law(self):
+    @staticmethod
+    def create_constitutive_Law():
         return StructuralMechanicsApplication.LinearJ2PlasticityPlaneStrain2DLaw()
 
 if __name__ == '__main__':
