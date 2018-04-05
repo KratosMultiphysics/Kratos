@@ -185,8 +185,8 @@ void ShellThinElement3D3N::Initialize()
     {
         const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
-       ShellCrossSection::Pointer theSection;
-       if(props.Has(SHELL_CROSS_SECTION))   
+        ShellCrossSection::Pointer theSection;
+        if(props.Has(SHELL_CROSS_SECTION))
         {
             theSection = props[SHELL_CROSS_SECTION];
         }
@@ -1469,7 +1469,7 @@ void ShellThinElement3D3N::CalculateGaussPointContribution(CalculationData& data
 {
     // calculate beta0
     CalculateBeta0( data );
-    
+
     // calculate the total strain displ. matrix
     CalculateBMatrix( data );
 
@@ -1620,7 +1620,7 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     noalias(rRightHandSideVector) = ZeroVector(18);
 
     // Initialize common calculation variables
-    
+
     CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
     data.CalculateLHS = CalculateStiffnessMatrixFlag;
     data.CalculateRHS = CalculateResidualVectorFlag;
