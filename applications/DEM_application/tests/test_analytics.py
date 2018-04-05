@@ -19,7 +19,6 @@ class AnalyticsTestSolution(main_script.Solution):
             "OutputTimeStep"                        : 1e-2
         }
         """))
-        # perque segueix parant el cas a 0.15?
         return input_parameters
 
     def GetMainPath(self):
@@ -72,7 +71,7 @@ class AnalyticsTestSolution(main_script.Solution):
 
     def Finalize(self):
         super(AnalyticsTestSolution, self).Finalize()
-        #self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
+        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
 
 class TestAnalytics(KratosUnittest.TestCase):    
 

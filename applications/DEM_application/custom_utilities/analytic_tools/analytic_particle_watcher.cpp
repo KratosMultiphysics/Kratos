@@ -150,17 +150,12 @@ void AnalyticParticleWatcher::SetNodalMaxLinearImpulse(ModelPart& analytic_model
         AnalyticParticle& particle = dynamic_cast<Kratos::AnalyticSphericParticle&>(*(*(i_elem.base())));
         
         double& current_max_linear_impulse = particle.GetGeometry()[0].FastGetSolutionStepValue(LINEAR_IMPULSE);
-
-        const int n_collisions = particle.GetNumberOfCollisions();
-        if (n_collisions){
-            const int id = int(i_elem->Id());
-            InterParticleImpactDataOfAllTimeStepsSingleParticle& particle_database = GetParticleDataBase(id, mInterParticleImpactDataOfAllTimeSteps);
-            double db_linear_impulse = 0.0;
-            particle_database.GetMaxLinearImpulseFromDatabase(db_linear_impulse);            
-
-            // choose max between current and database
-            current_max_linear_impulse = std::max(current_max_linear_impulse, db_linear_impulse);
-        } 
+        const int id = int(i_elem->Id());
+        InterParticleImpactDataOfAllTimeStepsSingleParticle& particle_database = GetParticleDataBase(id, mInterParticleImpactDataOfAllTimeSteps);
+        double db_linear_impulse = 0.0;
+        particle_database.GetMaxLinearImpulseFromDatabase(db_linear_impulse);            
+        // choose max between current and database
+        current_max_linear_impulse = std::max(current_max_linear_impulse, db_linear_impulse);
     }
 }
 
