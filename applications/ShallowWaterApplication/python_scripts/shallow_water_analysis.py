@@ -1,15 +1,15 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing Kratos
-import KratosMultiphysics
-import KratosMultiphysics.ShallowWaterApplication as KratosShallow
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.ShallowWaterApplication as Shallow
 
 # Importing the solvers (if available)
 try:
-    import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
+    import Kratos.ExternalSolversApplication
+    Kratos.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
 except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
+    Kratos.Logger.PrintInfo("ExternalSolversApplication", "not imported")
 
 # Other imports
 import sys
@@ -23,11 +23,12 @@ class ShallowWaterAnalysis(object): # TODO in the future this could derive from 
     def __init__(self, project_parameters):
         if (type(project_parameters) == str): # a file name is provided
             with open(project_parameters,'r') as parameter_file:
-                self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
-        elif (type(project_parameters) == KratosMultiphysics.Parameters): # a Parameters object is provided
+                self.ProjectParameters = Kratos.Parameters(parameter_file.read())
+        elif (type(project_parameters) == Kratos.Parameters): # a Parameters object is provided
             self.ProjectParameters = project_parameters
         else:
             raise Exception("Input is expected to be provided as a Kratos Parameters object or a file name")
+        self.is_printing_rank = True
 
     #### Public functions to run the Analysis ####
     def Run(self):
@@ -71,56 +72,57 @@ class ShallowWaterAnalysis(object): # TODO in the future this could derive from 
         '''Initialize the model part for the problem and other general model data.'''
         
         ## Defining variables ----------------------------------------------------------------------------------------
-        self.problem_name   = ProjectParameters["problem_data"]["problem_name"].GetString()
-        self.echo_level     = ProjectParameters["solver_settings"]["echo_level"].GetInt()
-        self.end_time       = ProjectParameters["problem_data"]["end_time"].GetDouble()
-        self.time           = ProjectParameters["problem_data"]["start_time"].GetDouble()
+        self.problem_name   = self.ProjectParameters["problem_data"]["problem_name"].GetString()
+        self.parallel_type  = self.ProjectParameters["problem_data"]["parallel_type"].GetString()
+        self.echo_level     = self.ProjectParameters["solver_settings"]["echo_level"].GetInt()
+        self.end_time       = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
+        self.time           = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
         self.step           = 0
-        domain_size         = ProjectParameters["problem_data"]["domain_size"].GetInt()
-        gravity             = ProjectParameters["problem_data"]["gravity"].GetDouble()
-        time_scale          = ProjectParameters["problem_data"]["time_scale"].GetString()
-        water_height_scale  = ProjectParameters["problem_data"]["water_height_scale"].GetString()
+        domain_size         = self.ProjectParameters["problem_data"]["domain_size"].GetInt()
+        gravity             = self.ProjectParameters["problem_data"]["gravity"].GetDouble()
+        time_scale          = self.ProjectParameters["problem_data"]["time_scale"].GetString()
+        water_height_scale  = self.ProjectParameters["problem_data"]["water_height_scale"].GetString()
 
         # Time unit converter
         if   time_scale == "seconds":
-            self.time_unit_converter =     1
+            time_unit_converter =     1
         elif time_scale == "minutes":
-            self.time_unit_converter =    60
+            time_unit_converter =    60
         elif time_scale == "hours":
-            self.time_unit_converter =  3600
+            time_unit_converter =  3600
         elif time_scale == "days":
-            self.time_unit_converter = 86400
+            time_unit_converter = 86400
         else:
             raise Exception("unknown time scale")
 
         # Water height unit converter
         if   water_height_scale == "meters":
-            self.water_height_unit_converter = 1.0
+            water_height_unit_converter = 1.0
         elif water_height_scale == "millimeters":
-            self.water_height_unit_converter = 0.001
+            water_height_unit_converter = 0.001
         else:
             raise Exception("unknown water height scale")
 
         ## Model part ------------------------------------------------------------------------------------------------
 
         # Defining the model part
-        self.main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, gravity * time_unit_converter**2)
-        self.main_model_part.ProcessInfo.SetValue(KratosShallow.TIME_UNIT_CONVERTER, time_unit_converter)
-        self.main_model_part.ProcessInfo.SetValue(KratosShallow.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
+        self.main_model_part = Kratos.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
+        self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, domain_size)
+        self.main_model_part.ProcessInfo.SetValue(Kratos.TIME, self.time)
+        self.main_model_part.ProcessInfo.SetValue(Kratos.GRAVITY_Z, gravity * time_unit_converter**2)
+        self.main_model_part.ProcessInfo.SetValue(Shallow.TIME_UNIT_CONVERTER, time_unit_converter)
+        self.main_model_part.ProcessInfo.SetValue(Shallow.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
 
         # Solver construction (main settings methods are located in the solver_module)
-        solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-        self.solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
+        solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
+        self.solver = solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
 
         self.solver.AddVariables()
         self.solver.ImportModelPart()
         self.solver.AddDofs()
 
         # Fill a Model instance using input
-        self.model = KratosMultiphysics.Model()
+        self.model = Kratos.Model()
         self.model.AddModelPart(self.main_model_part)
 
     def SetUpProcesses(self):
@@ -147,7 +149,7 @@ class ShallowWaterAnalysis(object): # TODO in the future this could derive from 
         for process in self.list_of_processes:
             process.ExecuteInitialize()
 
-        solver.Initialize()
+        self.solver.Initialize()
 
         self._SetUpGiDOutput()
 
@@ -193,7 +195,7 @@ class ShallowWaterAnalysis(object): # TODO in the future this could derive from 
 
     def _SetUpGiDOutput(self):
         '''Initialize self.output as a GiD output instance.'''
-        self.have_output = self.project_parameters.Has("output_configuration")
+        self.have_output = self.ProjectParameters.Has("output_configuration")
         if self.have_output:
             if self.parallel_type == "OpenMP":
                 from gid_output_process import GiDOutputProcess as OutputProcess
@@ -201,8 +203,8 @@ class ShallowWaterAnalysis(object): # TODO in the future this could derive from 
                 from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
             self.output = OutputProcess(self.main_model_part,
-                                        self.project_parameters["problem_data"]["problem_name"].GetString() ,
-                                        self.project_parameters["output_configuration"])
+                                        self.ProjectParameters["problem_data"]["problem_name"].GetString() ,
+                                        self.ProjectParameters["output_configuration"])
 
             self.output.ExecuteInitialize()
 
