@@ -11,10 +11,12 @@ class AnalyticsTestSolution(main_script.Solution):
         input_parameters = Kratos.Parameters(("""
         {    
             "problem_name":"analytics_test_1",
-            "PostNormalImpactVelocity"         : true,
-            "PostTangentialImpactVelocity"     : false,
-            "FinalTime" : 1.0, 
-            "OutputTimeStep"                   : 5e-3
+            "PostNormalImpactVelocity"              : true,
+            "PostTangentialImpactVelocity"          : true,
+            "PostFaceNormalImpactVelocity"          : true,
+            "PostFaceTangentialImpactVelocity"      : true,
+            "FinalTime"                             : 1.0, 
+            "OutputTimeStep"                        : 1e-2
         }
         """))
         # perque segueix parant el cas a 0.15?
@@ -30,10 +32,8 @@ class AnalyticsTestSolution(main_script.Solution):
         tolerance = 1e-3
                     
         for node in self.spheres_model_part.Nodes:
-            normal_impact_vel = node.GetSolutionStepValue(NORMAL_IMPACT_VELOCITY) # perque no puc vere el print de velocitat
-            #face_normal_impact_vel = node.GetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY)
-            #normal_impact_vel = 0.0
-
+            normal_impact_vel = node.GetSolutionStepValue(NORMAL_IMPACT_VELOCITY)
+            face_normal_impact_vel = node.GetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY)
             if node.Id ==1:   
                 if time < 0.03:
                     expected_value = 0.0
@@ -54,9 +54,6 @@ class AnalyticsTestSolution(main_script.Solution):
                     expected_value = 3.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
                 elif time > 0.15:  
-                    print(time)
-                    print(node)
-                    print(normal_impact_vel)
                     expected_value = 3.9602
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
             if node.Id ==3:
@@ -78,7 +75,7 @@ class AnalyticsTestSolution(main_script.Solution):
 
     def Finalize(self):
         super(AnalyticsTestSolution, self).Finalize()
-        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
+        #self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
 
 class TestAnalytics(KratosUnittest.TestCase):    
 
