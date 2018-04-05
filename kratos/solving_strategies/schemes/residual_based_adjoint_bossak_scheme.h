@@ -198,6 +198,85 @@ public:
     {
         KRATOS_TRY;
 
+        int k = OpenMPUtils::ThisThread();
+        auto& r_residual_adjoint = mAdjointValuesVector[k];
+        pCurrentElement->GetValuesVector(r_residual_adjoint);
+
+        if (rRHS_Contribution.size() != r_residual_adjoint.size()) {
+            rRHS_Contribution.resize(r_residual_adjoint.size(),false);
+        }
+
+        if (rLHS_Contribution.size1() != r_residual_adjoint.size()) {
+            rLHS_Contribution.resize(r_residual_adjoint.size(),r_residual_adjoint.size(),false);
+        }
+
+        auto& r_response_function = *(this->mpResponseFunction);
+
+        // Contribution from variable gradients
+        auto& r_lhs = mLeftHandSide[k];
+        auto& r_response_gradient = mResponseGradient[k];
+        pCurrentElement->CalculateLeftHandSide(r_lhs,rCurrentProcessInfo);
+        r_response_function.CalculateGradient(*pCurrentElement, r_lhs, r_response_gradient, rCurrentProcessInfo);
+
+        noalias(rLHS_Contribution) = r_lhs;
+        noalias(rRHS_Contribution) = -1. * r_response_gradient;
+
+        // Contribution from first derivative gradients
+        const double first_deriv_coeff = mGammaNewmark / (mBetaNewmark*mTimeStep);
+        auto& r_first_lhs = mFirstDerivsLHS[k];
+        auto& r_first_response_gradient = mFirstDerivsResponseGradient[k];
+        pCurrentElement->CalculateFirstDerivativesLHS(r_first_lhs,rCurrentProcessInfo);
+        r_response_function.CalculateFirstDerivativesGradient(*pCurrentElement,r_first_lhs, r_first_response_gradient, rCurrentProcessInfo);
+
+        noalias(rLHS_Contribution) += first_deriv_coeff * r_first_lhs;
+        noalias(rRHS_Contribution) -= first_deriv_coeff * r_first_response_gradient;
+
+        // Contribution from second derivative gradients
+        const double second_deriv_coeff = mInverseDt * mInverseDt / mBetaNewmark;
+        auto& r_second_lhs = mSecondDerivsLHS[k];
+        auto& r_second_response_gradient = mSecondDerivsResponseGradient[k];
+        pCurrentElement->CalculateSecondDerivativesLHS(r_second_lhs,rCurrentProcessInfo);
+        r_response_function.CalculateSecondDerivativesGradient(*pCurrentElement,r_second_lhs, r_second_response_gradient, rCurrentProcessInfo);
+
+        noalias(rLHS_Contribution) += second_deriv_coeff * (1.0 - mAlphaBossak) * r_second_lhs;
+        noalias(rRHS_Contribution) -= second_deriv_coeff * r_second_response_gradient;
+
+        // Contribution from previous adjoint results (added nodally)
+        //auto& r_velocity_adjoint = mAdjointFirstDerivsVector[k];
+        //auto& r_acceleration_adjoint = mAdjointSecondDerivsVector[k];
+        //pCurrentElement->GetFirstDerivativesVector(r_velocity_adjoint); //Warning! coupling the element (residual adjoint) with update adjoints (l2, l3)
+        //pCurrentElement->GetSecondDerivativesVector(r_acceleration_adjoint);
+
+        const double old_adjoint_velocity_coeff = mInverseDt * (mBetaNewmark - mGammaNewmark * (mGammaNewmark + 0.5)) / (mBetaNewmark*mBetaNewmark);
+        const double old_adjoint_acceleration_coeff = -1.0 * (mInverseDt*mInverseDt) * (mGammaNewmark + 0.5) / (mBetaNewmark*mBetaNewmark);
+        const double aux_adjoint_vector_coeff = (mInverseDt*mInverseDt) / mBetaNewmark;
+
+        const Geometry< Node<3> >& r_geometry = pCurrentElement->GetGeometry();
+        const unsigned int domain_size = r_geometry.WorkingSpaceDimension();
+        const unsigned int num_nodes = r_geometry.PointsNumber();
+
+        unsigned int local_index = 0;
+        for (unsigned int i_node = 0; i_node < num_nodes; ++i_node) {
+            auto& r_node = r_geometry[i_node];
+            const array_1d<double, 3>& r_aux_adjoint_vector = r_node.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1,1);
+            const array_1d<double, 3>& r_velocity_adjoint = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2);
+            const array_1d<double, 3>& r_acceleration_adjoint = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
+            const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+
+            for (unsigned int d = 0; d < domain_size; d++) {
+                rRHS_Contribution[local_index] += weight * aux_adjoint_vector_coeff * r_aux_adjoint_vector[d];
+                rRHS_Contribution[local_index] += weight * old_adjoint_velocity_coeff * r_velocity_adjoint[d];
+                rRHS_Contribution[local_index] += weight * old_adjoint_acceleration_coeff * r_acceleration_adjoint[d];
+                ++local_index;
+            }
+            ++local_index; // skip continuity equation adjoint rows.
+        }
+
+        // Make the local contribution residual
+        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, r_residual_adjoint);
+
+        pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
+
         KRATOS_CATCH("");
     }
 
@@ -208,10 +287,15 @@ public:
     {
         KRATOS_TRY;
 
+        LocalSystemVectorType RHS_Contribution;
+
+        CalculateSystemContributions(
+            pCurrentElement, rLHS_Contribution, RHS_Contribution, rEquationId, rCurrentProcessInfo);
+
         KRATOS_CATCH("");
     }
 
-    void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
+/*    void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
                                                 LocalSystemMatrixType& rLHS_Contribution,
                                                 LocalSystemVectorType& rRHS_Contribution,
                                                 Condition::EquationIdVectorType& rEquationId,
@@ -230,7 +314,7 @@ public:
         KRATOS_TRY;
 
         KRATOS_CATCH("");
-    }
+    }*/
 
     ///@}
     ///@name Access
