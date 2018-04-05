@@ -27,7 +27,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.shell_element.Initialize()
         self.adjoint_shell_element.Initialize()
 
-    def _create_shape_disturbed_elements(self,mp,delta): 
+    def _create_shape_disturbed_elements(self,mp,delta):
         dim=3
         self.model_part_1 = KratosMultiphysics.ModelPart("Shape_Disturbed_Elements")
         self._add_variables(self.model_part_1)
@@ -43,46 +43,46 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         z3 = mp.Nodes[3].Z
         self.model_part_1.CreateNewNode(1, x1, y1, z1)
         self.model_part_1.CreateNewNode(2, x1+delta, y1, z1)
-        self.model_part_1.CreateNewNode(3, x1, y1+delta, z1)      
-        self.model_part_1.CreateNewNode(4, x1, y1, z1+delta) 
-        self.model_part_1.CreateNewNode(5, x2, y2, z2)     
-        self.model_part_1.CreateNewNode(6, x2+delta, y2, z2)      
-        self.model_part_1.CreateNewNode(7, x2, y2+delta, z2)      
-        self.model_part_1.CreateNewNode(8, x2, y2, z2+delta)  
-        self.model_part_1.CreateNewNode(9, x3, y3, z3) 
-        self.model_part_1.CreateNewNode(10, x3+delta, y3, z3)      
-        self.model_part_1.CreateNewNode(11, x3, y3+delta, z3)      
-        self.model_part_1.CreateNewNode(12, x3, y3, z3+delta)  
+        self.model_part_1.CreateNewNode(3, x1, y1+delta, z1)
+        self.model_part_1.CreateNewNode(4, x1, y1, z1+delta)
+        self.model_part_1.CreateNewNode(5, x2, y2, z2)
+        self.model_part_1.CreateNewNode(6, x2+delta, y2, z2)
+        self.model_part_1.CreateNewNode(7, x2, y2+delta, z2)
+        self.model_part_1.CreateNewNode(8, x2, y2, z2+delta)
+        self.model_part_1.CreateNewNode(9, x3, y3, z3)
+        self.model_part_1.CreateNewNode(10, x3+delta, y3, z3)
+        self.model_part_1.CreateNewNode(11, x3, y3+delta, z3)
+        self.model_part_1.CreateNewNode(12, x3, y3, z3+delta)
 
         self._apply_material_properties(self.model_part_1,dim)
         prop = self.model_part_1.GetProperties()[0]
 
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 1, [2, 5, 9], prop)     
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 2, [3, 5, 9], prop) 
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 3, [4, 5, 9], prop) 
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 4, [1, 6, 9], prop) 
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 5, [1, 7, 9], prop) 
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 6, [1, 8, 9], prop) 
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 7, [1, 5, 10], prop) 
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 8, [1, 5, 11], prop) 
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 9, [1, 5, 12], prop) 
+        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 1, [2, 5, 9], prop)
+        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 2, [3, 5, 9], prop)
+        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 3, [4, 5, 9], prop)
+        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 4, [1, 6, 9], prop)
+        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 5, [1, 7, 9], prop)
+        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 6, [1, 8, 9], prop)
+        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 7, [1, 5, 10], prop)
+        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 8, [1, 5, 11], prop)
+        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 9, [1, 5, 12], prop)
 
         for element in self.model_part_1.Elements:
             element.Initialize()
-        
+
         index = 1
         for i in range(3):
-            for j in range(4):   
+            for j in range(4):
                 self._copy_solution_step_data_of_node(self.model_part_1.Nodes[index], self.model_part, i + 1, 0)
                 index += 1
 
-    def _create_property_disturbed_elements(self,mp,delta): 
-        dim = 3   
+    def _create_property_disturbed_elements(self,mp,delta):
+        dim = 3
         self.model_part_2 = KratosMultiphysics.ModelPart("Property_Disturbed_Elements")
-        self._add_variables(self.model_part_2)   
-        self.model_part_2.CreateNewNode(1, mp.Nodes[1].X, mp.Nodes[1].Y, mp.Nodes[1].Z) 
-        self.model_part_2.CreateNewNode(2, mp.Nodes[2].X, mp.Nodes[2].Y, mp.Nodes[2].Z) 
-        self.model_part_2.CreateNewNode(3, mp.Nodes[3].X, mp.Nodes[3].Y, mp.Nodes[3].Z) 
+        self._add_variables(self.model_part_2)
+        self.model_part_2.CreateNewNode(1, mp.Nodes[1].X, mp.Nodes[1].Y, mp.Nodes[1].Z)
+        self.model_part_2.CreateNewNode(2, mp.Nodes[2].X, mp.Nodes[2].Y, mp.Nodes[2].Z)
+        self.model_part_2.CreateNewNode(3, mp.Nodes[3].X, mp.Nodes[3].Y, mp.Nodes[3].Z)
         self._apply_material_properties(self.model_part_2,dim)
 
         THICKNESS_initial = mp.GetProperties()[0][KratosMultiphysics.THICKNESS]
@@ -102,7 +102,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)   
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
 
     def _apply_material_properties(self,mp,dim):
         #define properties
@@ -110,13 +110,13 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.THICKNESS,1.0)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,1.0)
-        
+
         g = [0,0,0]
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
-        
+
         cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
 
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
     def _assign_solution_step_data(self, mp, step=0):
         # generate nodal solution step test data
@@ -127,7 +127,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,step,random.random())
             node.SetSolutionStepValue(KratosMultiphysics.ROTATION_X,step,random.random())
             node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Y,step,random.random())
-            node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,random.random())     
+            node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,random.random())
 
     def _copy_solution_step_data_of_node(self, node, mp_old, node_id, step=0):
 
@@ -149,8 +149,8 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,
         mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.ROTATION_Z,0))
 
-                    
-    def _zero_vector(self,size): 
+
+    def _zero_vector(self,size):
         v = KratosMultiphysics.Vector(size)
         for i in range(size):
             v[i] = 0.0
@@ -162,8 +162,8 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
                 self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
-         
-    def CalculateSensitivityMatrix_Shape(self): 
+
+    def CalculateSensitivityMatrix_Shape(self):
         # unperturbed residual
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
         RHSUndisturbed = self._zero_vector(18)
@@ -176,17 +176,17 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
         RHSDisturbed = self._zero_vector(18)
 
-        self._create_shape_disturbed_elements(self.model_part,h) 
+        self._create_shape_disturbed_elements(self.model_part,h)
         row_index = 0
         for element in self.model_part_1.Elements:
             element.CalculateLocalSystem(dummy_LHS, RHSDisturbed, self.model_part_1.ProcessInfo)
             for j in range(18):
                 FDPseudoLoadMatrix[row_index,j] = (RHSDisturbed[j] - RHSUndisturbed[j]) / h
             row_index = row_index + 1
-      
+
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(9,18)
-        self.adjoint_shell_element.SetValue(KratosMultiphysics.DISTURBANCE_MEASURE, h)
+        self.adjoint_shell_element.SetValue(StructuralMechanicsApplication.DISTURBANCE_MEASURE, h)
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY,PseudoLoadMatrix,self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 7)
 
@@ -197,23 +197,23 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
 
         self.shell_element.CalculateLocalSystem(dummy_LHS, RHSUndisturbed, self.model_part.ProcessInfo)
 
-        # pseudo-load by finite difference approximation 
+        # pseudo-load by finite difference approximation
         h = 0.00001
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(1,18)
         RHSDisturbed = self._zero_vector(18)
 
         inital_property_value = self.model_part.GetProperties()[0][KratosMultiphysics.THICKNESS]
         delta = h * inital_property_value
-        self._create_property_disturbed_elements(self.model_part,delta) 
-     
+        self._create_property_disturbed_elements(self.model_part,delta)
+
         self.property_disturbed_shell_element.CalculateLocalSystem(dummy_LHS, RHSDisturbed, self.model_part_2.ProcessInfo)
 
         for j in range(18):
             FDPseudoLoadMatrix[0,j] = (RHSDisturbed[j] - RHSUndisturbed[j]) / delta
-             
+
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(1,18)
-        self.adjoint_shell_element.SetValue(KratosMultiphysics.DISTURBANCE_MEASURE, h)
+        self.adjoint_shell_element.SetValue(StructuralMechanicsApplication.DISTURBANCE_MEASURE, h)
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.THICKNESS, PseudoLoadMatrix, self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 7)
 

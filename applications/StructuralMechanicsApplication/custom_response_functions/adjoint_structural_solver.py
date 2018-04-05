@@ -33,9 +33,9 @@ class AdjointStructuralSolver(structural_mechanics_solver.MechanicalSolver):
 
     def AddVariables(self):
         super(AdjointStructuralSolver, self).AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
         if self.settings["rotation_dofs"].GetBool():
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_ROTATION)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
         # TODO evaluate if these variables should be historical
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)
@@ -59,7 +59,7 @@ class AdjointStructuralSolver(structural_mechanics_solver.MechanicalSolver):
             raise Exception("there is currently no 2D adjoint element")
         else:
             raise Exception("domain size is not 2 or 3")
-            
+
         StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
         super(AdjointStructuralSolver, self).PrepareModelPartForSolver()
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
@@ -67,13 +67,13 @@ class AdjointStructuralSolver(structural_mechanics_solver.MechanicalSolver):
     def AddDofs(self):
         for node in self.main_model_part.Nodes:
             # adding dofs
-            node.AddDof(KratosMultiphysics.ADJOINT_DISPLACEMENT_X)
-            node.AddDof(KratosMultiphysics.ADJOINT_DISPLACEMENT_Y)
-            node.AddDof(KratosMultiphysics.ADJOINT_DISPLACEMENT_Z)
+            node.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X)
+            node.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y)
+            node.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z)
             if self.settings["rotation_dofs"].GetBool():
-                node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_X)
-                node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Y)
-                node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Z)
+                node.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X)
+                node.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y)
+                node.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z)
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "DOF's ADDED.")
 
     def Initialize(self):
@@ -125,16 +125,16 @@ class AdjointStructuralSolver(structural_mechanics_solver.MechanicalSolver):
             disp_x = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0)
             disp_y = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0)
             disp_z = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0)
-            node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_DISPLACEMENT_X,0,disp_x * 0.5)
-            node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_DISPLACEMENT_Y,0,disp_y * 0.5)
-            node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_DISPLACEMENT_Z,0,disp_z * 0.5)
+            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X,0,disp_x * 0.5)
+            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y,0,disp_y * 0.5)
+            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z,0,disp_z * 0.5)
             if self.settings["rotation_dofs"].GetBool():
                 rot_x = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_X,0)
                 rot_y = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Y,0)
                 rot_z = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Z,0)
-                node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_ROTATION_X,0,rot_x * 0.5)
-                node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_ROTATION_Y,0,rot_y * 0.5)
-                node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_ROTATION_Z,0,rot_z * 0.5)
+                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_X,0,rot_x * 0.5)
+                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_Y,0,rot_y * 0.5)
+                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_Z,0,rot_z * 0.5)
 
         self.response_function.FinalizeSolutionStep()
 

@@ -152,9 +152,9 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
         # Add variables to save the solution of the adjoint problem
-        self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(ADJOINT_DISPLACEMENT)
+        self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
         if self.ProjectParametersPrimal["solver_settings"]["rotation_dofs"].GetBool():
-            self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(ADJOINT_ROTATION)
+            self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
         #self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)
         # TODO: Is it necessary to add other variables (e.g. POINT_LOAD_SENSITIVITY)?
 
@@ -184,16 +184,16 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
             disp_x = node.GetSolutionStepValue(DISPLACEMENT_X,0)
             disp_y = node.GetSolutionStepValue(DISPLACEMENT_Y,0)
             disp_z = node.GetSolutionStepValue(DISPLACEMENT_Z,0)
-            node.SetSolutionStepValue(ADJOINT_DISPLACEMENT_X,0,disp_x * 0.5)
-            node.SetSolutionStepValue(ADJOINT_DISPLACEMENT_Y,0,disp_y * 0.5)
-            node.SetSolutionStepValue(ADJOINT_DISPLACEMENT_Z,0,disp_z * 0.5)
+            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X,0,disp_x * 0.5)
+            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y,0,disp_y * 0.5)
+            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z,0,disp_z * 0.5)
             if self.ProjectParametersPrimal["solver_settings"]["rotation_dofs"].GetBool():
                 rot_x = node.GetSolutionStepValue(ROTATION_X,0)
                 rot_y = node.GetSolutionStepValue(ROTATION_Y,0)
                 rot_z = node.GetSolutionStepValue(ROTATION_Z,0)
-                node.SetSolutionStepValue(ADJOINT_ROTATION_X,0,rot_x * 0.5)
-                node.SetSolutionStepValue(ADJOINT_ROTATION_Y,0,rot_y * 0.5)
-                node.SetSolutionStepValue(ADJOINT_ROTATION_Z,0,rot_z * 0.5)
+                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_X,0,rot_x * 0.5)
+                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_Y,0,rot_y * 0.5)
+                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_Z,0,rot_z * 0.5)
         # Compute Sensitivities in a post-processing step
         self.response_function_utility.FinalizeSolutionStep()
         # Replace elements and conditions back to its origins
