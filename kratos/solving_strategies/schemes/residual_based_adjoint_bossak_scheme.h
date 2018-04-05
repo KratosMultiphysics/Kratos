@@ -295,7 +295,7 @@ public:
         KRATOS_CATCH("");
     }
 
-/*    void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
+    void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
                                                 LocalSystemMatrixType& rLHS_Contribution,
                                                 LocalSystemVectorType& rRHS_Contribution,
                                                 Condition::EquationIdVectorType& rEquationId,
@@ -314,7 +314,7 @@ public:
         KRATOS_TRY;
 
         KRATOS_CATCH("");
-    }*/
+    }
 
     ///@}
     ///@name Access
