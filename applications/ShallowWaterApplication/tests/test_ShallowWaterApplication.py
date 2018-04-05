@@ -7,7 +7,7 @@ from KratosMultiphysics.ExternalSolversApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 ## SMALL TESTS
-#from SmallTests import 
+from SmallTests import Pfem2PrimitiveVariables as TPfem2PrimitiveVariables
 
 ## NIGHTLY TESTS
 
@@ -29,7 +29,7 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    #smallSuite.addTest()
+    smallSuite.addTest(TPfem2PrimitiveVariables('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
