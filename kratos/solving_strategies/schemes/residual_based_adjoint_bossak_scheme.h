@@ -139,6 +139,22 @@ public:
         KRATOS_CATCH("");
     }
 
+    void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        SystemMatrixType& rA,
+        SystemVectorType& rDx,
+        SystemVectorType& rb) override
+    {
+        KRATOS_TRY;
+
+        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+
+        //this->UpdateAdditionalVariables(rModelPart);
+
+        this->mpResponseFunction->FinalizeSolutionStep(rModelPart);
+
+        KRATOS_CATCH("");
+    }
 
     void Update(ModelPart& rModelPart,
                 DofsArrayType& rDofSet,
@@ -249,9 +265,9 @@ public:
         //pCurrentElement->GetFirstDerivativesVector(r_velocity_adjoint); //Warning! coupling the element (residual adjoint) with update adjoints (l2, l3)
         //pCurrentElement->GetSecondDerivativesVector(r_acceleration_adjoint);
 
+        const double aux_adjoint_vector_coeff = (mInverseDt*mInverseDt) / mBetaNewmark;
         const double old_adjoint_velocity_coeff = mInverseDt * (mBetaNewmark - mGammaNewmark * (mGammaNewmark + 0.5)) / (mBetaNewmark*mBetaNewmark);
         const double old_adjoint_acceleration_coeff = -1.0 * (mInverseDt*mInverseDt) * (mGammaNewmark + 0.5) / (mBetaNewmark*mBetaNewmark);
-        const double aux_adjoint_vector_coeff = (mInverseDt*mInverseDt) / mBetaNewmark;
 
         const Geometry< Node<3> >& r_geometry = pCurrentElement->GetGeometry();
         const unsigned int domain_size = r_geometry.WorkingSpaceDimension();
@@ -398,14 +414,12 @@ protected:
 
     virtual void UpdateAdditionalVariables(ModelPart& rModelPart)
     {
-        const ProcessInfo& r_const_process_info = rModelPart.GetProcessInfo();
         Communicator& r_communicator = rModelPart.GetCommunicator();
         ResponseFunction& r_response_function = *(this->mpResponseFunction);
 
-        const double delta_time = r_const_process_info.GetValue(DELTA_TIME);
         const double a22 = 1.0 - mGammaNewmark/mBetaNewmark;
-        const double a23 = -1.0 / (mBetaNewmark*delta_time);
-        const double a32 = (1.0 - 0.5*mGammaNewmark/mBetaNewmark)*delta_time;
+        const double a23 = -1.0 / (mBetaNewmark*mTimeStep);
+        const double a32 = (1.0 - 0.5*mGammaNewmark/mBetaNewmark)*mTimeStep;
         const double a33 = (1.0 - 0.5/mBetaNewmark);
 
         // Process the part that does not require assembly first
