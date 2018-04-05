@@ -7,7 +7,6 @@ import os
 class AnalyticsTestSolution(main_script.Solution):
 
     def GetInputParameters(self):
-
         input_parameters = Kratos.Parameters(("""
         {    
             "problem_name":"analytics_test_1",
@@ -15,7 +14,7 @@ class AnalyticsTestSolution(main_script.Solution):
             "PostTangentialImpactVelocity"          : true,
             "PostFaceNormalImpactVelocity"          : true,
             "PostFaceTangentialImpactVelocity"      : true,
-            "FinalTime"                             : 1.0, 
+            "FinalTime"                             : 0.6, 
             "OutputTimeStep"                        : 1e-2
         }
         """))
@@ -39,9 +38,16 @@ class AnalyticsTestSolution(main_script.Solution):
                 elif time > 0.04 and time < 0.28:
                     expected_value = 3.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.29:
+                    expected_value = 0.0
+                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
+                elif time > 0.29 and time < 0.41:
                     expected_value = 2.81939
-                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)     
+                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
+                elif time > 0.43:
+                    expected_value = 10.268
+                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
+                    expected_value = 7.1603
+                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)        
             if node.Id ==2:
                 if time < 0.03:
                     expected_value = 0.0
@@ -49,14 +55,17 @@ class AnalyticsTestSolution(main_script.Solution):
                 elif time > 0.04 and time < 0.13:
                     expected_value = 3.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.15:  
+                elif time > 0.15 and time < 0.42:  
                     expected_value = 3.9602
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
+                elif time > 0.43:  
+                    expected_value = 10.268
+                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)                  
             if node.Id ==3:
                 if time < 0.13:
                     expected_value = 0.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.15:
+                elif time > 0.15 and time < 0.32:
                     expected_value = 3.9602
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)                
                     

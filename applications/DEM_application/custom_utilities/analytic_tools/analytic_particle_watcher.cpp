@@ -129,15 +129,14 @@ void AnalyticParticleWatcher::SetNodalMaxFaceImpactVelocities(ModelPart& analyti
 
         double& current_max_normal_velocity = particle.GetGeometry()[0].FastGetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY);
         double& current_max_tangential_velocity = particle.GetGeometry()[0].FastGetSolutionStepValue(FACE_TANGENTIAL_IMPACT_VELOCITY);
-
         const int id = int(i_elem->Id());
         FaceParticleImpactDataOfAllTimeStepsSingleParticle& particle_database = GetParticleFaceDataBase(id, mFaceParticleImpactDataOfAllTimeSteps);
         double db_normal_impact_velocity = 0.0;
         double db_tangential_impact_velocity = 0.0;
         particle_database.GetMaxCollidingSpeedFromDatabase(db_normal_impact_velocity, db_tangential_impact_velocity);
         // choose max between current and database
-        current_max_normal_velocity = std::max(current_max_normal_velocity, db_normal_impact_velocity);
-        current_max_tangential_velocity = std::max(current_max_tangential_velocity, db_tangential_impact_velocity);
+        current_max_normal_velocity = db_normal_impact_velocity;
+        current_max_tangential_velocity = db_tangential_impact_velocity;
     }
 }
 

@@ -280,8 +280,12 @@ class FaceParticleImpactDataOfAllTimeStepsSingleParticle // It holds the histori
 
         void GetMaxCollidingSpeedFromDatabase(double& db_normal_impact_velocity, double& db_tangential_impact_velocity){
             if(mRelVelNormal.size()){
-                db_normal_impact_velocity = std::abs(*(std::max_element(mRelVelNormal.begin(), mRelVelNormal.end())));
-                db_tangential_impact_velocity = std::abs(*(std::max_element(mRelVelTangential.begin(), mRelVelTangential.end())));
+                for(int i=0; i<(int)mRelVelNormal.size(); i++){
+                    const double abs_normal_value = std::abs(mRelVelNormal[i]);
+                    db_normal_impact_velocity = std::max(db_normal_impact_velocity, abs_normal_value);
+                    const double abs_tg_value = std::abs(mRelVelTangential[i]);
+                    db_tangential_impact_velocity = std::max(db_tangential_impact_velocity, abs_tg_value);
+                }
             }
             else {
                 db_normal_impact_velocity = 0.0;
