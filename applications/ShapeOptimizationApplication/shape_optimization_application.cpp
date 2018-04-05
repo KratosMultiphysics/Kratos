@@ -72,7 +72,7 @@ namespace Kratos
         mShapeOptimizationCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         mShapeOptimizationCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
         mShapeOptimizationCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-        mShapeOptimizationCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ) //fusseder
+        mShapeOptimizationCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) )
     {}
 
  	void KratosShapeOptimizationApplication::Register()
@@ -113,7 +113,7 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D3N", mShapeOptimizationCondition3D3N );
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D4N", mShapeOptimizationCondition3D4N );
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition2D2N", mShapeOptimizationCondition2D2N );
-        KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D2N", mShapeOptimizationCondition3D2N ); //fusseder
+        KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D2N", mShapeOptimizationCondition3D2N );
  	}
 
 }  // namespace Kratos.

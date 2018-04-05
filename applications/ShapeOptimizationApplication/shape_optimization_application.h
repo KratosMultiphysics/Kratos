@@ -223,7 +223,7 @@ namespace Kratos
         const ShapeOptimizationCondition mShapeOptimizationCondition3D3N;
 		const ShapeOptimizationCondition mShapeOptimizationCondition3D4N;
         const ShapeOptimizationCondition mShapeOptimizationCondition2D2N;
-		const ShapeOptimizationCondition mShapeOptimizationCondition3D2N; //fusseder
+		const ShapeOptimizationCondition mShapeOptimizationCondition3D2N;
 
 
 		///@}
