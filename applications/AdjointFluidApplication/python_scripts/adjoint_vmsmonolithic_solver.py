@@ -155,6 +155,8 @@ class AdjointVMSMonolithicSolver:
             self.time_scheme = AdjointFluidApplication.AdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
         elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
             self.time_scheme = KratosMultiphysics.ResidualBasedAdjointSteadyScheme(self.response_function)
+        elif self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak_alternate":
+            self.time_scheme = KratosMultiphysics.ResidualBasedAdjointBossakScheme(self.settings["scheme_settings"],self.response_function)
         else:
             raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 
