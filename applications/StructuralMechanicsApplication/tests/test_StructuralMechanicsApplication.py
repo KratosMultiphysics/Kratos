@@ -170,6 +170,11 @@ from RestartTests import TestSmallDisplacement2D4N  as TTestSmallDisplacement2D4
 from RestartTests import TestTotalLagrangian2D3N    as TTestTotalLagrangian2D3N
 from RestartTests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D8N
 
+##### RESPONSE_FUNCTION #####
+from structural_response_function_test_factory import TestAdjointStrainEnergyResponseFunction as TTestAdjointStrainEnergyResponseFunction
+from structural_response_function_test_factory import TestMassResponseFunction as TTestMassResponseFunction
+from structural_response_function_test_factory import TestStrainEnergyResponseFunction as TTestStrainEnergyResponseFunction
+
 def AssambleTestSuites():
     ''' Populates the test suites to run.
 
@@ -227,9 +232,6 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeamAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D4N]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisBeamStructure]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D3NStructure]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D4NStructure]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -307,6 +309,13 @@ def AssambleTestSuites():
             nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests])) # TODO should be in smallSuite but is too slow
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisBeamStructure]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D3NStructure]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D4NStructure]))
+    nightSuite.addTest(TTestMassResponseFunction('test_execution'))
+    nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
+    nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
 
     nightSuite.addTests(smallSuite)
 

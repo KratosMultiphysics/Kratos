@@ -20,7 +20,7 @@
         "response_function_settings" : {
                 "response_type"     : "adjoint_strain_energy",
                 "use_kratos"        : true,
-                "gradient_mode"     : "semi_analytic", 
+                "gradient_mode"     : "semi_analytic",
                 "sensitivity_model_part_name" : "Parts_Beam",
                 "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
                 "element_sensitivity_variables"  : ["I22"],
@@ -38,10 +38,10 @@
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "adjoint_sensitivity_test_martin/adjoint_beam_structure_3d2n/Beam_structure"
-        },   
+        },
         "material_import_settings" :{
             "materials_filename": "adjoint_sensitivity_test_martin/adjoint_beam_structure_3d2n/materials_beam.json"
-        }   
+        }
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
@@ -127,5 +127,5 @@
             "time_frequency"   : -2.0
         }
     }
-    ]  
+    ]
 }
