@@ -173,11 +173,11 @@ protected:
 
         BuildNodalSolutionStepElementContributions(
             rVariable, ScalingFactor, rModelPart.Elements(), rModelPart.GetProcessInfo());
-
+/*
         BuildNodalSolutionStepConditionContributions(rVariable, ScalingFactor,
                                                      rModelPart.Conditions(),
                                                      rModelPart.GetProcessInfo());
-
+*/
         r_comm.AssembleCurrentData(rVariable);
 
         KRATOS_CATCH("");
