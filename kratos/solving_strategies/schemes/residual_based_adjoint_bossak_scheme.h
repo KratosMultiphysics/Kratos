@@ -212,6 +212,8 @@ public:
 
         auto& r_response_function = *(this->mpResponseFunction);
 
+        this->CheckAndResizeThreadStorage(r_residual_adjoint.size());
+
         // Contribution from variable gradients
         auto& r_lhs = mLeftHandSide[k];
         auto& r_response_gradient = mResponseGradient[k];
@@ -447,6 +449,9 @@ protected:
             auto& r_acceleration_adjoint = mAdjointSecondDerivsVector[k];
             auto& r_adjoint_auxiliary = mAdjointAuxiliaryVector[k];
 
+            r_element.GetValuesVector(r_residual_adjoint);
+            this->CheckAndResizeThreadStorage(r_residual_adjoint.size());
+
             r_element.CalculateLeftHandSide(r_lhs,r_process_info);
             r_response_function.CalculateGradient(r_element,r_lhs,r_response_gradient,r_process_info);
 
@@ -456,8 +461,6 @@ protected:
             r_element.CalculateSecondDerivativesLHS(r_second_lhs,r_process_info);
             r_second_lhs *= (1.0 - mAlphaBossak);
             r_response_function.CalculateSecondDerivativesGradient(r_element,r_second_lhs,r_second_response_gradient,r_process_info);
-
-            r_element.GetValuesVector(r_residual_adjoint);
 
             noalias(r_velocity_adjoint) = - r_first_response_gradient - prod(r_first_lhs,r_residual_adjoint);
             noalias(r_acceleration_adjoint) = - r_second_response_gradient - prod(r_second_lhs,r_residual_adjoint);
@@ -532,6 +535,46 @@ private:
     std::vector< LocalSystemVectorType > mAdjointFirstDerivsVector;
     std::vector< LocalSystemVectorType > mAdjointSecondDerivsVector;
     std::vector< LocalSystemVectorType > mAdjointAuxiliaryVector;
+
+    void CheckAndResizeThreadStorage(unsigned int SystemSize) {
+        const int k = OpenMPUtils::ThisThread();
+
+        if (mLeftHandSide[k].size1() != SystemSize || mLeftHandSide[k].size2() != SystemSize) {
+            mLeftHandSide[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mFirstDerivsLHS[k].size1() != SystemSize || mFirstDerivsLHS[k].size2() != SystemSize) {
+            mFirstDerivsLHS[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mSecondDerivsLHS[k].size1() != SystemSize || mSecondDerivsLHS[k].size2() != SystemSize) {
+            mSecondDerivsLHS[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mResponseGradient[k].size() != SystemSize) {
+            mResponseGradient[k].resize(SystemSize,false);
+        }
+
+        if (mFirstDerivsResponseGradient[k].size() != SystemSize) {
+            mFirstDerivsResponseGradient[k].resize(SystemSize,false);
+        }
+
+        if (mSecondDerivsResponseGradient[k].size() != SystemSize) {
+            mSecondDerivsResponseGradient[k].resize(SystemSize,false);
+        }
+
+        if (mAdjointFirstDerivsVector[k].size() != SystemSize) {
+            mAdjointFirstDerivsVector[k].resize(SystemSize,false);
+        }
+
+        if (mAdjointSecondDerivsVector[k].size() != SystemSize) {
+            mAdjointSecondDerivsVector[k].resize(SystemSize,false);
+        }
+
+        if (mAdjointAuxiliaryVector[k].size() != SystemSize) {
+            mAdjointAuxiliaryVector[k].resize(SystemSize,false);
+        }
+    }
 
     ///@}
     ///@name Private Operators
