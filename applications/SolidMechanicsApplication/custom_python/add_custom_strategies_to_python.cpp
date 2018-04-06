@@ -12,8 +12,8 @@
 // External includes
 
 // Project includes
-#include "utilities/openmp_utils.h"
 #include "spaces/ublas_space.h"
+#include "utilities/openmp_utils.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
 // Solution strategies
