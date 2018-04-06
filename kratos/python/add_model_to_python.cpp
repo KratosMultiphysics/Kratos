@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -35,6 +35,7 @@ void  AddModelToPython()
     class_<Model, Model::Pointer, boost::noncopyable >("Model", init<>())
     .def("AddModelPart", &Model::AddModelPart)
     .def("GetModelPart", &Model::GetModelPart, return_internal_reference<>())
+    .def("HasModelPart", &Model::HasModelPart)
 //     .def("__setitem__", &Model::AddModelPart)
     .def("__getitem__", &Model::GetModelPart, return_internal_reference<>())
     .def(self_ns::str(self))

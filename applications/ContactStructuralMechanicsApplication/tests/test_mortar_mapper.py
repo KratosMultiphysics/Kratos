@@ -66,7 +66,7 @@ class TestMortarMapping(KratosUnittest.TestCase):
         Preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
 
         interface_parameters = KratosMultiphysics.Parameters("""{"simplify_geometry": false}""")
-        Preprocess.GenerateInterfacePart3D(self.main_model_part, self.mapping_model_part, interface_parameters)
+        Preprocess.GenerateInterfacePart3D(self.mapping_model_part, interface_parameters)
 
         # We compute NODAL_H that can be used in the search and some values computation
         find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.mapping_model_part)

@@ -5,6 +5,7 @@ from KratosMultiphysics.mpi import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.AdjointFluidApplication import *
 from KratosMultiphysics.MetisApplication import *
 from KratosMultiphysics.TrilinosApplication import *
 
