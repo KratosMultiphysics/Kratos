@@ -20,8 +20,8 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -35,16 +35,6 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-
-    /**
-     * @brief This enum helps us to identify the elements to transfer between the modelparts
-     */
-    enum class EntityTransfered {
-        NODES = 0,
-        ELEMENTS = 1,
-        NODESANDELEMENTS = 2,
-        CONDITIONS = 3,
-        ALL = 4};
 
 ///@}
 ///@name  Functions
@@ -60,12 +50,25 @@ namespace Kratos
  * @details This function assigns a value to a variable belonging to all of the nodes in a given mesh
  * @author Vicente Mataix Ferrandiz
 */
-class FastTransferBetweenModelPartsProcess
+class KRATOS_API(KRATOS_CORE) FastTransferBetweenModelPartsProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    /// The type used for the node
+    typedef Node<3> NodeType;
+
+    // General containers type definitions
+    typedef ModelPart::NodesContainerType              NodesArrayType;
+    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+    typedef ModelPart::ElementsContainerType        ElementsArrayType;
+
+    // General containers iterators type definitions
+    typedef NodesArrayType::iterator            IteratorNodesArrayType;
+    typedef ConditionsArrayType::iterator  IteratorConditionsArrayType;
+    typedef ElementsArrayType::iterator      IteratorElementsArrayType;
 
     /// The type used to identify the size
     typedef std::size_t SizeType;
@@ -74,22 +77,37 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(FastTransferBetweenModelPartsProcess);
 
     ///@}
+    ///@name  Enum's
+    ///@{
+
+    /**
+     * @brief This enum helps us to identify the elements to transfer between the modelparts
+     */
+    enum class EntityTransfered {
+        NODES = 0,
+        ELEMENTS = 1,
+        NODESANDELEMENTS = 2,
+        CONDITIONS = 3,
+        ALL = 4
+    };
+
+    ///@}
     ///@name Life Cycle
     ///@{
     
+    /**
+     * @brief Default constructor. Without flag
+     * @param rDestinationModelPart The destination model part
+     * @param rOriginModelPart The origin model part
+     * @param Entity The elements to transfer
+     * @param Flag The flag used to differentiate between elements to transfer
+     */
     FastTransferBetweenModelPartsProcess(
         ModelPart& rDestinationModelPart,
         ModelPart& rOriginModelPart,
-        const std::string EntityString
-        ) : Process(),
-            mrDestinationModelPart(rDestinationModelPart), 
-            mrOriginModelPart(rOriginModelPart),
-            mEntity(ConvertEntity(EntityString))
-    {
-        KRATOS_TRY
-                
-        KRATOS_CATCH("")
-    }
+        const EntityTransfered Entity = EntityTransfered::ALL,
+        const Flags Flag = Flags()
+        );
 
     /// Destructor.
     ~FastTransferBetweenModelPartsProcess() override {}
@@ -99,39 +117,15 @@ public:
     ///@{
 
     /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
+    void operator()();
 
 
     ///@}
     ///@name Operations
     ///@{
 
-
     /// Execute method is used to execute the FastTransferBetweenModelPartsProcess algorithms.
-    void Execute() override
-    {
-        KRATOS_TRY;
-        
-        const SizeType num_nodes = mrOriginModelPart.Nodes().size();
-
-        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS))
-            mrDestinationModelPart.AddNodes(mrOriginModelPart.NodesBegin(),mrOriginModelPart.NodesEnd());
-
-        const SizeType num_elements = mrOriginModelPart.Elements().size();
-
-        if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
-            mrDestinationModelPart.AddElements(mrOriginModelPart.ElementsBegin(),mrOriginModelPart.ElementsEnd());
-
-        const SizeType num_conditions = mrOriginModelPart.Conditions().size();
-
-        if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS))
-             mrDestinationModelPart.AddConditions(mrOriginModelPart.ConditionsBegin(),mrOriginModelPart.ConditionsEnd());
-
-        KRATOS_CATCH("");
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -210,6 +204,8 @@ private:
     ModelPart& mrOriginModelPart;      /// The origin model part
     
     const EntityTransfered mEntity;    /// The entity to transfer
+
+    const Flags mFlag;                 /// A flag in order to tranfer only components with that flag
     
     ///@}
     ///@name Private Operators
@@ -218,28 +214,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
-    /**
-     * This converts the entity string to an enum
-     * @param str The string that you want to convert in the equivalent enum
-     * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
-     */
-
-    EntityTransfered ConvertEntity(const std::string& str)
-    {
-        if(str == "Nodes")
-            return EntityTransfered::NODES;
-        else if(str == "Elements")
-            return EntityTransfered::ELEMENTS;
-        else if(str == "NodesAndElements")
-            return EntityTransfered::NODESANDELEMENTS;
-        else if(str == "Conditions")
-            return EntityTransfered::CONDITIONS;
-        else if(str == "All")
-            return EntityTransfered::ALL;
-        else
-            return EntityTransfered::ALL;
-    }
     
     ///@}
     ///@name Private  Access

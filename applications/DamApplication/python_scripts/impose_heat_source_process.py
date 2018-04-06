@@ -17,10 +17,10 @@ class ImposeHeatSourceProcess(Process):
         
         self.components_process_list = []
         
-        if "Noorzai" in settings["model_part_name"].GetString():
+        if ("NoorzaiHeatFlux2D" in settings["model_part_name"].GetString()) or ("NoorzaiHeatFlux3D" in settings["model_part_name"].GetString()):
             self.components_process_list.append(DamNoorzaiHeatFluxProcess(model_part, settings))
                        
-        if "Azenha" in settings["model_part_name"].GetString(): 
+        if ("AzenhaHeatFlux2D" in settings["model_part_name"].GetString()) or ("AzenhaHeatFlux3D" in settings["model_part_name"].GetString()): 
             self.components_process_list.append(DamAzenhaHeatFluxProcess(model_part, settings))
           
     def ExecuteInitialize(self):

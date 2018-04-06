@@ -8,6 +8,7 @@
 #include "includes/kratos_components.h"
 #include "testing/testing.h"
 #include "custom_io/hdf5_file_serial.h"
+#include "custom_utilities/registered_variable_lookup.h"
 
 namespace Kratos
 {
@@ -57,6 +58,30 @@ TestModelPartFactory::TestModelPartFactory(ModelPart& rTestModelPart)
 {
 }
 
+namespace {
+template <typename TVariable>
+class AddNodalVariableFunctor;
+}
+
+void TestModelPartFactory::AddNodalVariables(std::vector<std::string> const& rNodalVariables)
+{
+    for (const auto& r_name : rNodalVariables)
+        RegisteredVariableLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>>(r_name)
+            .Execute<AddNodalVariableFunctor>(mrTestModelPart);
+}
+
+namespace{
+template <typename TVariable>
+class AddNodalVariableFunctor
+{
+public:
+    void operator()(TVariable const& rVariable, ModelPart& rModelPart)
+    {
+        rModelPart.AddNodalSolutionStepVariable(rVariable);
+    }
+};
+}
+
 std::size_t TestModelPartFactory::AddNodes(std::size_t NumNodes)
 {
     std::size_t start_index{0};
@@ -67,35 +92,14 @@ std::size_t TestModelPartFactory::AddNodes(std::size_t NumNodes)
     return mrTestModelPart.NumberOfNodes();
 }
 
-void TestModelPartFactory::AddNodalVariables(std::vector<std::string> const& rNodalVariables)
-{
-    for (const auto& r_variable_name : rNodalVariables)
-    {
-        if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name))
-        {
-            mrTestModelPart.AddNodalSolutionStepVariable(
-                KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name));
-        }
-        else if (KratosComponents<Variable<double>>::Has(r_variable_name))
-        {
-            mrTestModelPart.AddNodalSolutionStepVariable(
-                KratosComponents<Variable<double>>::Get(r_variable_name));
-        }
-        else if (KratosComponents<Variable<int>>::Has(r_variable_name))
-        {
-            mrTestModelPart.AddNodalSolutionStepVariable(
-                KratosComponents<Variable<int>>::Get(r_variable_name));
-        }
-        else
-        {
-            KRATOS_ERROR << "Unsupported variable type: " << r_variable_name << std::endl;
-        }
-    }
-}
-
 void TestModelPartFactory::SetBufferSize(std::size_t BufferSize)
 {
     mrTestModelPart.SetBufferSize(BufferSize);
+}
+
+namespace {
+template <typename TVariable>
+class AssignNodalSolutionStepValueFunctor;
 }
 
 void TestModelPartFactory::AssignNodalTestData(std::vector<std::string> const& rNodalVariables)
@@ -103,33 +107,98 @@ void TestModelPartFactory::AssignNodalTestData(std::vector<std::string> const& r
     if (rNodalVariables.size() == 0)
         return;
 
-    for (auto& r_node : mrTestModelPart.Nodes())
+    for (auto& r_name : rNodalVariables)
     {
-        for (VariableData const& r_variable_data : *r_node.pGetVariablesList())
-        {
-            if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_data.Name()))
-            {
-                r_node.FastGetSolutionStepValue(
-                    KratosComponents<Variable<array_1d<double, 3>>>::Get(
-                        r_variable_data.Name())) = array_1d<double, 3>(3, 1.23);
-            }
-            else if (KratosComponents<Variable<double>>::Has(r_variable_data.Name()))
-            {
-                r_node.FastGetSolutionStepValue(
-                    KratosComponents<Variable<double>>::Get(r_variable_data.Name())) = 1.23;
-            }
-            else if (KratosComponents<Variable<int>>::Has(r_variable_data.Name()))
-            {
-                r_node.FastGetSolutionStepValue(
-                    KratosComponents<Variable<int>>::Get(r_variable_data.Name())) = 123;
-            }
-            else
-            {
-                KRATOS_ERROR << "Unsupported variable type: " << r_variable_data.Name()
-                             << std::endl;
-            }
-        }
+        RegisteredVariableLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>>(r_name)
+            .Execute<AssignNodalSolutionStepValueFunctor>(mrTestModelPart.Nodes());
     }
+}
+
+namespace {
+void AssignValue(double&);
+void AssignValue(int&);
+void AssignValue(array_1d<double, 3>&);
+
+template <typename TVariable>
+class AssignNodalSolutionStepValueFunctor
+{
+public:
+    void operator()(TVariable const& rVariable,
+                    HDF5::NodesContainerType& rNodes)
+    {
+        for (auto& r_node : rNodes)
+            AssignValue(r_node.FastGetSolutionStepValue(rVariable));
+    }
+};
+
+
+void AssignValue(double& d)
+{
+    d = 1.2345;
+}
+
+void AssignValue(int& i)
+{
+    i = 12345;
+}
+
+void AssignValue(array_1d<double, 3>& v)
+{
+    v = array_1d<double, 3>(3, 1.2345);
+}
+}
+
+void TestModelPartFactory::AssignNonHistoricalNodalTestData(ModelPart& rTestModelPart,
+                                                            std::vector<std::string> const& rNodalVariables)
+{
+    if (rNodalVariables.size() == 0)
+        return;
+
+    for (auto& r_node : rTestModelPart.Nodes())
+        AssignDataValueContainer(r_node.Data(), rNodalVariables);
+}
+
+namespace {
+template <typename TVariable>
+class AssignDataValueContainerFunctor;
+}
+
+void TestModelPartFactory::AssignDataValueContainer(DataValueContainer& rData, std::vector<std::string> const& rVariables)
+{
+    for (auto& r_name : rVariables)
+        RegisteredVariableLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
+                                 Variable<HDF5::Vector<double>>, Variable<HDF5::Matrix<double>>>(r_name)
+            .Execute<AssignDataValueContainerFunctor>(rData);
+}
+
+namespace {
+void AssignValue(HDF5::Vector<double>&);
+void AssignValue(HDF5::Matrix<double>&);
+
+template <typename TVariable>
+class AssignDataValueContainerFunctor
+{
+public:
+    void operator()(TVariable const& rVariable,
+                    DataValueContainer& rData)
+    {
+        AssignValue(rData[rVariable]);
+    }
+};
+
+void AssignValue(HDF5::Vector<double>& v)
+{
+    const std::size_t dim = 2;
+    v.resize(dim);
+    std::fill(v.begin(), v.end(), 1.2345);
+}
+
+void AssignValue(HDF5::Matrix<double>& m)
+{
+    const std::size_t dim = 2;
+    m.resize(dim, dim, false);
+    std::fill(m.data().begin(), m.data().end(), 1.2345);
+}
 }
 
 std::size_t TestModelPartFactory::AddElements(std::string const& rElement, std::size_t NumElems)
@@ -162,44 +231,61 @@ std::size_t TestModelPartFactory::AddConditions(std::string const& rCondition, s
 
 void TestModelPartFactory::AddSubModelParts()
 {
-    mrTestModelPart.CreateSubModelPart("SubModelPart0"); // Empty sub model part.
-    ModelPart& sub_model_part1 =
-        *mrTestModelPart.CreateSubModelPart("SubModelPart1");
+    AddEmptySubModelPart();
+    AddElementsSubModelPart();
+    AddConditionsSubModelPart();
+    AddElementsAndConditionsSubModelPart();
+}
+
+void TestModelPartFactory::AddEmptySubModelPart()
+{
+    mrTestModelPart.CreateSubModelPart("EmptySubModelPart");
+}
+
+void TestModelPartFactory::AddElementsSubModelPart()
+{
+    ModelPart& sub_model_part =
+        *mrTestModelPart.CreateSubModelPart("ElementsSubModelPart");
     if (mrTestModelPart.NumberOfElements() > 0)
     {
-        // Sub model part 1 contains elements but not conditions.
         auto p_elem = *mrTestModelPart.Elements().ptr_begin();
-        sub_model_part1.AddElement(p_elem);
+        sub_model_part.AddElement(p_elem);
         for (auto it = p_elem->GetGeometry().ptr_begin();
              it != p_elem->GetGeometry().ptr_end(); ++it)
-            sub_model_part1.AddNode(*it);
+            sub_model_part.AddNode(*it);
     }
-    ModelPart& sub_model_part2 =
-        *mrTestModelPart.CreateSubModelPart("SubModelPart2");
+}
+
+void TestModelPartFactory::AddConditionsSubModelPart()
+{
+    ModelPart& sub_model_part =
+        *mrTestModelPart.CreateSubModelPart("ConditionsSubModelPart");
     if (mrTestModelPart.NumberOfConditions() > 0)
     {
-        // Sub model part 2 contains conditions but not elements.
         auto p_cond = *mrTestModelPart.Conditions().ptr_begin();
-        sub_model_part2.AddCondition(p_cond);
+        sub_model_part.AddCondition(p_cond);
         for (auto it = p_cond->GetGeometry().ptr_begin();
              it != p_cond->GetGeometry().ptr_end(); ++it)
-            sub_model_part2.AddNode(*it);
+            sub_model_part.AddNode(*it);
     }
-    ModelPart& sub_model_part3 =
-        *mrTestModelPart.CreateSubModelPart("SubModelPart3");
+}
+
+void TestModelPartFactory::AddElementsAndConditionsSubModelPart()
+{
+    ModelPart& sub_model_part =
+        *mrTestModelPart.CreateSubModelPart("ElementsAndConditionsSubModelPart");
     if (mrTestModelPart.NumberOfElements() > 0 && mrTestModelPart.NumberOfConditions() > 0)
     {
-        // Sub model part 3 contains elements and conditions.
         auto p_elem = *mrTestModelPart.Elements().ptr_begin();
-        sub_model_part3.AddElement(p_elem);
+        sub_model_part.AddElement(p_elem);
         for (auto it = p_elem->GetGeometry().ptr_begin();
              it != p_elem->GetGeometry().ptr_end(); ++it)
-            sub_model_part3.AddNode(*it);
+            sub_model_part.AddNode(*it);
         auto p_cond = *mrTestModelPart.Conditions().ptr_begin();
-        sub_model_part3.AddCondition(p_cond);
+        sub_model_part.AddCondition(p_cond);
         for (auto it = p_cond->GetGeometry().ptr_begin();
              it != p_cond->GetGeometry().ptr_end(); ++it)
-            sub_model_part3.AddNode(*it);
+            sub_model_part.AddNode(*it);
     }
 }
 
@@ -264,6 +350,77 @@ void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2)
         ModelPart& sub_model_part_2 = rModelPart2.GetSubModelPart(sub_model_part_1.Name());
         CompareModelParts(sub_model_part_1, sub_model_part_2);
     }
+}
+
+void CompareNonHistoricalNodalData(HDF5::NodesContainerType& rNodes1,
+                                   HDF5::NodesContainerType& rNodes2)
+{
+    KRATOS_CHECK(rNodes1.size() == rNodes2.size());
+    for (auto& r_node1 : rNodes1)
+    {
+        auto& r_node2 = rNodes2[r_node1.Id()];
+        CompareDataValueContainers(r_node1.Data(), r_node2.Data());
+    }
+}
+
+namespace {
+template <typename TVariable>
+class CompareVariableFunctor;
+}
+
+void CompareDataValueContainers(DataValueContainer const& rData1, DataValueContainer const& rData2)
+{
+    for (const auto& r_value1 : rData1)
+        RegisteredVariableLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
+                                 Variable<HDF5::Vector<double>>, Variable<HDF5::Matrix<double>>>(
+            r_value1.first->Name())
+            .Execute<CompareVariableFunctor>(rData1, rData2);
+}
+
+namespace {
+void CompareValues(int, int);
+void CompareValues(double, double);
+void CompareValues(HDF5::Vector<double> const&, HDF5::Vector<double> const&);
+void CompareValues(HDF5::Matrix<double> const&, HDF5::Matrix<double> const&);
+
+template <typename TVariable>
+class CompareVariableFunctor
+{
+public:
+    void operator()(TVariable const& rVariable,
+                    DataValueContainer const& rData1,
+                    DataValueContainer const& rData2)
+    {
+        KRATOS_CHECK(rData1.Has(rVariable) && rData2.Has(rVariable));
+        CompareValues(rData1[rVariable], rData2[rVariable]);
+    }
+};
+
+void CompareValues(int i1, int i2)
+{
+    KRATOS_CHECK(i1 == i2);
+}
+
+void CompareValues(double d1, double d2)
+{
+    KRATOS_CHECK(d1 == d2);
+}
+
+void CompareValues(HDF5::Vector<double> const& v1, HDF5::Vector<double> const& v2)
+{
+    KRATOS_CHECK(v1.size() == v2.size());
+    for (std::size_t i = 0; i < v1.size(); ++i)
+        KRATOS_CHECK(v1(i) == v2(i));
+}
+
+void CompareValues(HDF5::Matrix<double> const& m1, HDF5::Matrix<double> const& m2)
+{
+    KRATOS_CHECK(m1.size1() == m2.size1());
+    KRATOS_CHECK(m1.size2() == m2.size2());
+    for (std::size_t i = 0; i < m1.size1(); ++i)
+        for (std::size_t j = 0; j < m1.size2(); ++j)
+            KRATOS_CHECK(m1(i,j) == m2(i,j));
+}
 }
 
 HDF5::File::Pointer pGetTestSerialFile()
