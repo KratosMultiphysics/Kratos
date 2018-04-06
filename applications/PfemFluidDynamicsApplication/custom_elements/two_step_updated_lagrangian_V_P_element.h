@@ -464,6 +464,13 @@ namespace Kratos
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
+      void CalculateMassMatrix(Matrix& rMassMatrix,
+			       ProcessInfo& rCurrentProcessInfo);
+
+      /* void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix, */
+      /* 				    VectorType& rRightHandSideVector, */
+      /* 				    Flags& rCalculationFlags); */
+
       void ComputeMassMatrix(Matrix& rMassMatrix,
 			     const ShapeFunctionsType& rN,
 			     const double Weight,

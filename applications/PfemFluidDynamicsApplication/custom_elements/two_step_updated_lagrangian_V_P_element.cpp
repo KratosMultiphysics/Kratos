@@ -1953,6 +1953,117 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
 
 
   template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateMassMatrix(Matrix& rMassMatrix,
+								    ProcessInfo& rCurrentProcessInfo)
+  {
+
+    KRATOS_TRY
+      double Weight=1;
+    double MeanValue=1;
+
+    std::cout<<"Calculate Mass Matrix for explicit PFEM"<<std::endl;
+      
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    double Count=0;
+    std::cout<<"ProcessInfo "<<rCurrentProcessInfo<<std::endl;
+    
+    std::cout<<"NumNodes "<<NumNodes<<std::endl;
+
+          //lumped
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int MatSize = dimension * number_of_nodes;
+    
+    if ( rMassMatrix.size1() != MatSize )
+      rMassMatrix.resize( MatSize, MatSize, false );
+    
+    noalias(rMassMatrix) = ZeroMatrix( MatSize, MatSize );
+    
+    if((NumNodes==3 && TDim==2) || (NumNodes==4 && TDim==3)){
+      double Coeff=1.0+TDim;
+      std::cout<<"Coeff "<<Coeff<<std::endl;
+
+      for (SizeType i = 0; i < NumNodes; ++i)
+	{
+	  double Mij = Weight/Coeff;
+
+	  for ( unsigned int j = 0; j <  TDim; j++ )
+	    {
+	      unsigned int index = i * TDim + j;
+	      std::cout<<"index "<<index<<std::endl;
+	      rMassMatrix( index, index ) += Mij;
+	      Count+=1.0;
+	      MeanValue+=Mij;
+	    }
+
+	}
+    }
+    else if(NumNodes==6 && TDim==2){
+      double Mij = Weight/57.0;
+      double consistent=1.0;
+      for (SizeType i = 0; i < NumNodes; ++i)
+	{
+	  if(i<3){
+	    consistent=3.0;
+	  }else{
+	    consistent=16.0;
+	  }
+	  for ( unsigned int j = 0; j <  TDim; j++ )
+	    {
+	      unsigned int index = i * TDim + j;
+	      rMassMatrix( index, index ) += Mij*consistent;
+	      Count+=1.0;
+	      MeanValue+=Mij;
+	    }
+
+	}
+
+    }else{
+      std::cout<<"ComputeLumpedMassMatrix 3D quadratic not yet implemented!"<<std::endl;
+    }
+    MeanValue*=1.0/Count;
+
+    std::cout<<"count "<<Count<<std::endl;
+
+    KRATOS_CATCH( "" ) 
+
+      }
+
+  // template< unsigned int TDim >
+  // void TwoStepUpdatedLagrangianVPElement<TDim>::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+  // 									 VectorType& rRightHandSideVector,
+  // 									 Flags& rCalculationFlags)
+
+  // {
+
+  //   const unsigned int number_of_nodes = GetGeometry().size();
+  //   const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+  //   //resizing as needed the LHS
+  //   unsigned int MatSize = number_of_nodes * dimension;
+
+  //   if ( rCalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+  //     {
+  //       if ( rLeftHandSideMatrix.size1() != MatSize )
+  // 	  rLeftHandSideMatrix.resize( MatSize, MatSize, false );
+
+  //       noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
+  //     }
+
+
+  //   //resizing as needed the RHS
+  //   if ( rCalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
+  //     {
+  //       if ( rRightHandSideVector.size() != MatSize )
+  // 	  rRightHandSideVector.resize( MatSize, false );
+      
+  // 	noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
+	  
+  //     }
+  // }
+
+  
+  template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPElement<TDim>::ComputeLumpedMassMatrix(Matrix& rMassMatrix,
 									const double Weight,
 									double & MeanValue)

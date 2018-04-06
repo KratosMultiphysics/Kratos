@@ -3,6 +3,7 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -62,6 +63,14 @@ class PfemFluidSolver:
                 "preconditioner_type"            : "None",
                 "scaling"                        : false
             },
+            "solving_strategy_settings":{
+               "time_step_prediction_level": 0,
+               "max_delta_time": 1.0e-5,
+               "fraction_delta_time": 0.9,
+               "rayleigh_damping": false,
+               "rayleigh_alpha": 0.0,
+               "rayleigh_beta" : 0.0
+            },
             "bodies_list": [
                 {"body_name":"body1",
                 "parts_list":["Part1"]
@@ -116,7 +125,8 @@ class PfemFluidSolver:
         # Set initialize flag
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
             self.mechanical_solver.SetInitializePerformedFlag(True)
-        
+
+    
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
 
@@ -139,7 +149,12 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
-        
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.MIDDLE_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+
+
         #VARIABLES FOR PAPANASTASIOU MODEL
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)

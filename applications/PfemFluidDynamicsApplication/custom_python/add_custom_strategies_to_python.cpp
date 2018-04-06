@@ -26,6 +26,7 @@
 
 #include "custom_strategies/strategies/two_step_v_p_strategy.h"
 #include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
+#include "custom_strategies/strategies/explicit_two_step_v_p_strategy.hpp"
 
 // builder_and_solvers
 
@@ -57,6 +58,9 @@ namespace Kratos
       typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
       //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
+      //custom strategy types
+      typedef ExplicitTwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
+
 
       //********************************************************************
       //*************************SHCHEME CLASSES****************************
@@ -74,6 +78,18 @@ namespace Kratos
 	.def("GetResidualNorm", &GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
 	.def("SetBuilderAndSolver", &GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
 	;
+
+      class_< ExplicitStrategyType, 
+	      bases< BaseSolvingStrategyType >, boost::noncopyable >
+	(
+	 "ExplicitStrategy",
+	 init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool >())
+      
+	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
+	.def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
+	.def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
+	;
+
 
     }
 
