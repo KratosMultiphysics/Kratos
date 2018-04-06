@@ -178,9 +178,11 @@ private:
     ModelPart& mrModelPart;
     std::map<std::pair<int, int>, int> mNodesMap;
     //std::unordered_map<std::pair<int, int>, int, KeyHasherRange<std::pair<int, int>>, KeyComparorRange<std::pair<int, int>> > mNodesMap;
-    unsigned int mLastNodeId;
-    unsigned int mLastElemId;
-    unsigned int mLastCondId;
+    unsigned int mLastNodeId;               /// The node Id
+    unsigned int mLastElemId;               /// The element Id
+    unsigned int mLastCondId;               /// The condition Id
+    unsigned int mStepDataSize;             /// The size of the database
+    unsigned int mBufferSize;               /// The size of the buffer
 
 
     ///@}
@@ -199,6 +201,13 @@ private:
      * If the middle node does not exist, create a new one and returns a pointer to it
      */
     Node<3>::Pointer GetNodeBetween(const Node<3>::Pointer pNode0, const Node<3>::Pointer pNode1);
+
+    /**
+     * Calculate the nodal data
+     * The destination node is assumed to be at the mid point between 
+     * the origin nodes
+     */
+    void CalculateNodalData(Node<3>::Pointer pNewNode, const Node<3>::Pointer pNode0, const  Node<3>::Pointer pNode1);
 
 
     ///@}

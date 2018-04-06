@@ -56,11 +56,16 @@ NestedRefinementUtility<TDim>::NestedRefinementUtility(ModelPart& rModelPart) :
         if (icondition->Id() > mLastCondId)
             mLastCondId = icondition->Id();
     }
+
+    mStepDataSize = mrModelPart.GetNodalSolutionStepDataSize();
+    mBufferSize = mrModelPart.GetBufferSize();
 }
+
 
 /// Destructor
 template< unsigned int TDim>
 NestedRefinementUtility<TDim>::~NestedRefinementUtility() {}
+
 
 /// Turn back information as a string.
 template< unsigned int TDim>
@@ -68,11 +73,13 @@ std::string NestedRefinementUtility<TDim>::Info() const {
     return "Nested refinement utility.";
 }
 
+
 /// Print information about this object.
 template< unsigned int TDim>
 void NestedRefinementUtility<TDim>::PrintInfo(std::ostream& rOStream) const {
     rOStream << "Nested refinement utility.";
 }
+
 
 /// Print object's data.
 template< unsigned int TDim>
@@ -80,6 +87,7 @@ void NestedRefinementUtility<TDim>::PrintData(std::ostream& rOStream) const {
     rOStream << "Nested refinement utility constructed with:\n";
     rOStream << "   Model part: " << mrModelPart.Info() << "\n";
 }
+
 
 /// Execute the refinement
 template< unsigned int TDim>
@@ -128,11 +136,20 @@ void NestedRefinementUtility<TDim>::Refine()
         sub_element_nodes[2] = p_middle_nodes[2];
         sub_element = p_element->Create(mLastElemId++, sub_element_nodes, p_element->pGetProperties());
         
+        if (p_element != nullptr) 
+        {
+            mrModelPart.AddElement(sub_element);
+
+        }
 
         // Encontrar el lugar para setear NodalDataBase, ElementDataBase and SubModelParts
+
+        // Once we have created all the sub elements
+        p_element->Set(TO_ERASE, true);
     }
 
 }
+
 
 /// Get the middle node on an edge defined by two nodes
 template< unsigned int TDim>
@@ -162,12 +179,36 @@ Node<3>::Pointer NestedRefinementUtility<TDim>::GetNodeBetween(
         double new_z = pNode0->Z() - pNode1->Z();
         middle_node = mrModelPart.CreateNewNode(mLastNodeId++, new_x, new_y, new_z);
 
+        // interpolate the variables
+        CalculateNodalData(middle_node, pNode0, pNode1);
+
         // Store the node in the map
         //std::pair< std::pair<int, int>, int > node_map = (node_key, middle_node->Id());
         mNodesMap.insert( std::pair< std::pair<int, int>, int > (node_key, middle_node->Id()) );
     }
 
     return middle_node;
+}
+
+
+/// Compute the nodal data of a node
+template< unsigned int TDim >
+void NestedRefinementUtility<TDim>::CalculateNodalData(
+    Node<3>::Pointer pNewNode, 
+    const Node<3>::Pointer pNode0, 
+    const Node<3>::Pointer pNode1
+    )
+{
+    for (unsigned int step = 0; step < mBufferSize; step++)
+    {
+        double* new_node_data = pNewNode->SolutionStepData().Data(step);
+
+        const double* node_data_0 = pNode0->SolutionStepData().Data(step);
+        const double* node_data_1 = pNode1->SolutionStepData().Data(step);
+
+        for (unsigned int variable = 0; variable < mStepDataSize; variable++)
+            new_node_data[variable] = .5 * node_data_0[variable] + .5 * node_data_1[variable];
+    }
 }
 
 template class NestedRefinementUtility<2>;
