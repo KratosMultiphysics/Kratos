@@ -828,9 +828,9 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
@@ -839,7 +839,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
-        PointLocalCoordinates( rResult, rPoint );
+        PointLocalCoordinatesImplementation( rResult, rPoint, true );
 
         if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) )
         {
@@ -857,8 +857,8 @@ public:
 
     /**
      * Returns the local coordinates of a given arbitrary point
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
     CoordinatesArrayType& PointLocalCoordinates(
@@ -866,73 +866,7 @@ public:
         const CoordinatesArrayType& rPoint
         ) override
     {
-        boost::numeric::ublas::bounded_matrix<double,3,3> X;
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
-        for(unsigned int i=0; i<this->size();i++)
-        {
-            X(0,i ) = this->GetPoint( i ).X();
-            X(1,i ) = this->GetPoint( i ).Y();
-            X(2,i ) = this->GetPoint( i ).Z();
-        }
-
-        double tol = 1.0e-8;
-        int maxiter = 1000;
-
-        Matrix J = ZeroMatrix( 2, 2 );
-        Matrix invJ = ZeroMatrix( 2, 2 );
-
-        //starting with xi = 0
-        rResult = ZeroVector( 3 );
-        Vector DeltaXi = ZeroVector( 2 );
-        array_1d<double,3> CurrentGlobalCoords;
-
-
-        //Newton iteration:
-        for ( int k = 0; k < maxiter; k++ )
-        {
-            noalias(CurrentGlobalCoords) = ZeroVector( 3 );
-            this->GlobalCoordinates( CurrentGlobalCoords, rResult );
-
-            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
-
-
-            //derivatives of shape functions
-            Matrix shape_functions_gradients;
-            shape_functions_gradients = ShapeFunctionsLocalGradients(shape_functions_gradients, rResult );
-            noalias(DN) = prod(X,shape_functions_gradients);
-
-            noalias(J) = prod(trans(DN),DN);
-            Vector res = prod(trans(DN),CurrentGlobalCoords);
-
-            //deteminant of Jacobian
-            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
-
-            //filling matrix
-            invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
-            invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
-            invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
-            invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
-
-
-            DeltaXi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
-            DeltaXi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
-
-            rResult[0] += DeltaXi[0];
-            rResult[1] += DeltaXi[1];
-            rResult[2] = 0.0;
-
-            if ( k>0 && norm_2( DeltaXi ) > 30 )
-            {
-                KRATOS_ERROR << "Computation of local coordinates failed at iteration " << k << std::endl;
-            }
-
-            if ( norm_2( DeltaXi ) < tol )
-            {
-                break;
-            }
-        }
-
-        return( rResult );
+        return PointLocalCoordinatesImplementation(rResult, rPoint);
     }
 
     ///@}
@@ -1715,6 +1649,85 @@ private:
     ///@{
 
     /**
+     * Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @param IsInside The flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinatesImplementation(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint,
+        const bool IsInside = false
+        )
+    {
+        bounded_matrix<double, 3, 3> X;
+        bounded_matrix<double, 3, 2> DN;
+        for(unsigned int i=0; i<this->size();i++)
+        {
+            X(0,i ) = this->GetPoint( i ).X();
+            X(1,i ) = this->GetPoint( i ).Y();
+            X(2,i ) = this->GetPoint( i ).Z();
+        }
+
+        static constexpr double MaxNormPointLocalCoordinates = 30.0;
+        static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
+        static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
+
+        bounded_matrix<double, 2, 2> J = ZeroMatrix( 2, 2 );
+        bounded_matrix<double, 2, 2> invJ = ZeroMatrix( 2, 2 );
+
+        //starting with xi = 0
+        noalias(rResult) = ZeroVector( 3 );
+        Vector delta_xi = ZeroVector( 2 );
+        array_1d<double,3> current_global_coords;
+
+        //Newton iteration:
+        for ( std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++ )
+        {
+            noalias(current_global_coords) = ZeroVector( 3 );
+            this->GlobalCoordinates( current_global_coords, rResult );
+
+            noalias( current_global_coords ) = rPoint - current_global_coords;
+
+            //derivatives of shape functions
+            Matrix shape_functions_gradients;
+            shape_functions_gradients = ShapeFunctionsLocalGradients(shape_functions_gradients, rResult );
+            noalias(DN) = prod(X,shape_functions_gradients);
+
+            noalias(J) = prod(trans(DN),DN);
+            Vector res = prod(trans(DN),current_global_coords);
+
+            //deteminant of Jacobian
+            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
+
+            //filling matrix
+            invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
+            invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
+            invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
+            invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
+
+            delta_xi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
+            delta_xi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
+
+            rResult[0] += delta_xi[0];
+            rResult[1] += delta_xi[1];
+            rResult[2] = 0.0;
+
+            if ( k>0 && norm_2( delta_xi ) > MaxNormPointLocalCoordinates ) {
+                KRATOS_WARNING_IF("Triangle3D3", IsInside == false) << "detJ =\t" << det_j << " DeltaX =\t" << delta_xi << " stopping calculation. Iteration:\t" << k << std::endl;
+                break;
+            }
+
+            if ( norm_2( delta_xi ) < MaxTolerancePointLocalCoordinates ) {
+                break;
+            }
+        }
+
+        return( rResult );
+    }
+
+    /**
      * TODO: implemented but not yet tested
      */
     /**
@@ -2245,7 +2258,7 @@ private:
 
     /** AxisTestX
      * This method returns true if there is a separating axis
-     * 
+     *
      * @param rEdgeY, rEdgeZ: i-edge corrdinates
      * @param rAbsEdgeY, rAbsEdgeZ: i-edge abs coordinates
      * @param rVertA: i   vertex
@@ -2272,7 +2285,7 @@ private:
 
     /** AxisTestY
      * This method returns true if there is a separating axis
-     * 
+     *
      * @param rEdgeX, rEdgeZ: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeZ: i-edge fabs coordinates
      * @param rVertA: i   vertex
@@ -2299,7 +2312,7 @@ private:
 
     /** AxisTestZ
      * This method returns true if there is a separating axis
-     * 
+     *
      * @param rEdgeX, rEdgeY: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeY: i-edge fabs coordinates
      * @param rVertA: i   vertex

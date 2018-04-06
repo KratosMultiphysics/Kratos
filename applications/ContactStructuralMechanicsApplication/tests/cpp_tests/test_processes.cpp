@@ -33,7 +33,7 @@ namespace Kratos
         * Checks the correct work of the AALM  dynamic penalty process
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestAALMProcess1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(AALMProcess1, ContactStructuralApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(3);

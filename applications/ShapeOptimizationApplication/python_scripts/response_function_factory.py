@@ -16,23 +16,19 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 # ==============================================================================
-def CreateListOfResponseFunctions( optimization_model_part, optimization_settings ):
+def CreateListOfResponseFunctions( optimization_settings, optimization_model_part ):
     listOfResponseFunctions = {}
-    responseCreator = ResponseFunctionCreator( optimization_model_part, optimization_settings )
+    responseCreator = ResponseFunctionCreator( optimization_settings, optimization_model_part )
     responseCreator.AddSpecifiedKratosResponseFunctionsToList( listOfResponseFunctions )
     return listOfResponseFunctions
 
 # ==============================================================================
 class ResponseFunctionCreator:
-
     # --------------------------------------------------------------------------
-    def __init__( self, optimization_model_part, optimization_settings ):
-        self.optimization_model_part = optimization_model_part
+    def __init__( self, optimization_settings,optimization_model_part ):
         self.optimization_settings = optimization_settings
+        self.optimization_model_part = optimization_model_part
 
      # --------------------------------------------------------------------------
     def AddSpecifiedKratosResponseFunctionsToList( self, listOfResponseFunctions ):

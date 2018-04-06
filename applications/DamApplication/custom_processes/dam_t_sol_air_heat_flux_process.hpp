@@ -47,7 +47,6 @@ class DamTSolAirHeatFluxProcess : public Process
         Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "h_0"                             : 0.0,
                 "ambient_temperature"             : 0.0,
@@ -67,7 +66,6 @@ class DamTSolAirHeatFluxProcess : public Process
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mH0 = rParameters["h_0"].GetDouble();
         mAmbientTemperature = rParameters["ambient_temperature"].GetDouble();
@@ -97,7 +95,7 @@ class DamTSolAirHeatFluxProcess : public Process
 
         KRATOS_TRY;
 
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         // Computing the t_soil_air according to t_sol_air criteria
@@ -105,7 +103,7 @@ class DamTSolAirHeatFluxProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
             #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
@@ -128,7 +126,7 @@ class DamTSolAirHeatFluxProcess : public Process
 
         KRATOS_TRY;
 
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         // Getting the values of table in case that it exist
@@ -144,7 +142,7 @@ class DamTSolAirHeatFluxProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
             #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
@@ -184,7 +182,6 @@ class DamTSolAirHeatFluxProcess : public Process
   protected:
     /// Member Variables
     ModelPart &mrModelPart;
-    std::size_t mMeshId;
     std::string mVariableName;
     double mH0;
     double mAmbientTemperature;

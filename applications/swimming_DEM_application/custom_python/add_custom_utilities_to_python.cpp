@@ -72,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/constant_velocity_field.h"
 #include "custom_utilities/fields/cellular_flow_field.h"
 #include "custom_utilities/fields/ethier_flow_field.h"
+#include "custom_utilities/fields/product_of_sines_field.h"
 #include "custom_utilities/fields/pouliot_flow_field.h"
 #include "custom_utilities/fields/pouliot_flow_field_2D.h"
 #include "custom_utilities/fields/shear_flow_1D_with_exponential_viscosity_field.h"
@@ -173,6 +174,14 @@ using namespace boost::python;
     typedef void (VelocityField::*CalculateTimeDerivative)(const double, const vector<double>&, vector<double>&, const int);
     CalculateTimeDerivative CalculateTimeDerivativeVector = &VelocityField::CalculateTimeDerivative;
 
+    typedef void (VelocityField::*CalculateGradient)(const double,
+                                                     const array_1d<double, 3>&,
+                                                     vector< double>&,
+                                                     vector< double>&,
+                                                     vector< double>&,
+                                                     const int);
+    CalculateGradient CalculateGradientVector = &VelocityField::CalculateGradient;
+
     typedef double (VelocityField::*CalculateDivergence)(const double, const vector<double>&, const int);
     CalculateDivergence CalculateDivergenceVector = &VelocityField::CalculateDivergence;
 
@@ -185,14 +194,18 @@ using namespace boost::python;
     typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const vector<double>&, vector<double>&, const int);
     CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
 
+    typedef void (VelocityField::*CalculateConvectiveDerivative)(const double, const vector<double>&, vector<double>&, const int);
+    CalculateConvectiveDerivative CalculateConvectiveDerivativeVector = &VelocityField::CalculateConvectiveDerivative;
+
     class_<VelocityField, bases<VectorField<3> > > ("VelocityField", boost::python::no_init)
         .def("Evaluate", EvaluateVector)
         .def("CalculateTimeDerivative", CalculateTimeDerivativeVector)
-        .def("CalculateGradient", &VelocityField::CalculateGradient)
+        .def("CalculateGradient", CalculateGradientVector)
         .def("CalculateDivergence", CalculateDivergenceVector)
         .def("CalculateRotational", CalculateRotationalVector)
         .def("CalculateLaplacian", CalculateLaplacianVector)
         .def("CalculateMaterialAcceleration", CalculateMaterialAccelerationVector)
+        .def("CalculateConvectiveDerivative", CalculateConvectiveDerivativeVector)
         ;
 
     class_<ConstantVelocityField, bases<VelocityField> > ("ConstantVelocityField", init<const double, const double, const double>())
@@ -206,6 +219,9 @@ using namespace boost::python;
         ;
 
     class_<EthierFlowField, bases<VelocityField> > ("EthierFlowField",  init<const double, const double>())
+        ;
+
+    class_<ProductOfSines, bases<VelocityField> > ("ProductOfSines",  init<const double>())
         ;
 
     class_<PouliotFlowField, bases<VelocityField> > ("PouliotFlowField", init<>())
@@ -340,7 +356,7 @@ using namespace boost::python;
 //    RecoverGradientScalar RecoverSuperconvergentGradientScalar = &DerivativeRecovery<3>::RecoverSuperconvergentGradient<std::size_t TDim, class TScalarVariable>;
 //    RecoverGradientComponent RecoverSuperconvergentGradientComponent = &DerivativeRecovery<3>::RecoverSuperconvergentGradient<std::size_t TDim, class TScalarVariable>;
 
-    class_<DerivativeRecovery <3> > ("DerivativeRecoveryTool3D", init<ModelPart&>())
+    class_<DerivativeRecovery <3> > ("DerivativeRecoveryTool3D", init<ModelPart&, Parameters&>())
         .def("AddTimeDerivativeComponent", &DerivativeRecovery <3>::AddTimeDerivativeComponent)
         .def("RecoverSuperconvergentGradient", &DerivativeRecovery <3>::RecoverSuperconvergentGradient< Variable<double> >)
         .def("RecoverSuperconvergentGradient", &DerivativeRecovery <3>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >)
@@ -353,6 +369,7 @@ using namespace boost::python;
         .def("CalculateVorticityContributionOfTheGradientOfAComponent", &DerivativeRecovery <3>::CalculateVorticityContributionOfTheGradientOfAComponent)
         .def("RecoverSuperconvergentMatDerivAndLaplacian", &DerivativeRecovery <3>::RecoverSuperconvergentMatDerivAndLaplacian)
         .def("CalculateGradient", &DerivativeRecovery <3>::CalculateGradient< Variable<double> >)
+        .def("SmoothVectorField", &DerivativeRecovery <3>::SmoothVectorField)
         .def("CalculateVectorMaterialDerivative", &DerivativeRecovery <3>::CalculateVectorMaterialDerivative)
         .def("CalculateVectorLaplacian", &DerivativeRecovery <3>::CalculateVectorLaplacian)
         .def("CalculateVelocityLaplacianRate", &DerivativeRecovery <3>::CalculateVelocityLaplacianRate)
