@@ -208,11 +208,9 @@ public:
 
         // Check that the required variables are defined
         const Node<3>& r_node = *(rModelPart.NodesBegin());
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_1,r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_SCALAR_1,r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_2,r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_3,r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(AUX_ADJOINT_FLUID_VECTOR_1,r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVelocityUpdateAdjointVariable,r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mAccelerationUpdateAdjointVariable,r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mAuxiliaryVariable,r_node);
 
         return BaseType::Check(rModelPart); // Check elements and conditions.
 
@@ -272,12 +270,6 @@ public:
         noalias(rLHS_Contribution) += second_deriv_coeff * (1.0 - mAlphaBossak) * r_second_lhs;
         noalias(rRHS_Contribution) -= second_deriv_coeff * r_second_response_gradient;
 
-        // Contribution from previous adjoint results (added nodally)
-        //auto& r_velocity_adjoint = mAdjointFirstDerivsVector[k];
-        //auto& r_acceleration_adjoint = mAdjointSecondDerivsVector[k];
-        //pCurrentElement->GetFirstDerivativesVector(r_velocity_adjoint); //Warning! coupling the element (residual adjoint) with update adjoints (l2, l3)
-        //pCurrentElement->GetSecondDerivativesVector(r_acceleration_adjoint);
-
         const double aux_adjoint_vector_coeff = (mInverseDt*mInverseDt) / mBetaNewmark;
         const double old_adjoint_velocity_coeff = mInverseDt * (mBetaNewmark - mGammaNewmark * (mGammaNewmark + 0.5)) / (mBetaNewmark*mBetaNewmark);
         const double old_adjoint_acceleration_coeff = -1.0 * (mInverseDt*mInverseDt) * (mGammaNewmark + 0.5) / (mBetaNewmark*mBetaNewmark);
@@ -289,9 +281,9 @@ public:
         unsigned int local_index = 0;
         for (unsigned int i_node = 0; i_node < num_nodes; ++i_node) {
             auto& r_node = r_geometry[i_node];
-            const array_1d<double, 3>& r_aux_adjoint_vector = r_node.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1,1);
-            const array_1d<double, 3>& r_velocity_adjoint = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2);
-            const array_1d<double, 3>& r_acceleration_adjoint = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
+            const array_1d<double, 3>& r_aux_adjoint_vector = r_node.FastGetSolutionStepValue(mAuxiliaryVariable,1);
+            const array_1d<double, 3>& r_velocity_adjoint = r_node.FastGetSolutionStepValue(mVelocityUpdateAdjointVariable);
+            const array_1d<double, 3>& r_acceleration_adjoint = r_node.FastGetSolutionStepValue(mAccelerationUpdateAdjointVariable);
             const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
             for (unsigned int d = 0; d < domain_size; d++) {
@@ -440,11 +432,11 @@ protected:
         #pragma omp parallel for
         for (int i = 0; i < number_of_local_nodes; i++) {
             Node<3>& r_node = *(r_communicator.LocalMesh().NodesBegin() + i);
-            array_1d<double,3>& r_lambda2 = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2);
-            array_1d<double,3>& r_lambda3 = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
-            const array_1d<double,3>& r_lambda2_old = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2,1);
-            const array_1d<double,3>& r_lambda3_old = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3,1);
-            const array_1d<double, 3>& r_old_aux_adjoint_vector = r_node.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1,1);
+            array_1d<double,3>& r_lambda2 = r_node.FastGetSolutionStepValue(mVelocityUpdateAdjointVariable);
+            array_1d<double,3>& r_lambda3 = r_node.FastGetSolutionStepValue(mAccelerationUpdateAdjointVariable);
+            const array_1d<double,3>& r_lambda2_old = r_node.FastGetSolutionStepValue(mVelocityUpdateAdjointVariable,1);
+            const array_1d<double,3>& r_lambda3_old = r_node.FastGetSolutionStepValue(mAccelerationUpdateAdjointVariable,1);
+            const array_1d<double, 3>& r_old_aux_adjoint_vector = r_node.FastGetSolutionStepValue(mAuxiliaryVariable,1);
 
             noalias(r_lambda2) = a22 * r_lambda2_old + a23 * r_lambda3_old;
             noalias(r_lambda3) = a32 * r_lambda2_old + a33 * r_lambda3_old + r_old_aux_adjoint_vector;
@@ -454,8 +446,8 @@ protected:
         #pragma omp parallel for
         for (int i = 0; i < number_of_ghost_nodes; i++) {
             Node<3>& r_node = *(r_communicator.GhostMesh().NodesBegin() + i);
-            noalias(r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2)) = ADJOINT_FLUID_VECTOR_2.Zero();
-            noalias(r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3)) = ADJOINT_FLUID_VECTOR_3.Zero();
+            noalias(r_node.FastGetSolutionStepValue(mVelocityUpdateAdjointVariable)) = mVelocityUpdateAdjointVariable.Zero();
+            noalias(r_node.FastGetSolutionStepValue(mAccelerationUpdateAdjointVariable)) = mAccelerationUpdateAdjointVariable.Zero();
         }
 
         // Loop over elements to assemble the remaining terms
@@ -497,8 +489,8 @@ protected:
             for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
 
                 Node<3>& r_node = r_geometry[i_node];
-                array_1d<double, 3>& r_adjoint_fluid_vector_2 = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2);
-                array_1d<double, 3>& r_adjoint_fluid_vector_3 = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
+                array_1d<double, 3>& r_adjoint_fluid_vector_2 = r_node.FastGetSolutionStepValue(mVelocityUpdateAdjointVariable);
+                array_1d<double, 3>& r_adjoint_fluid_vector_3 = r_node.FastGetSolutionStepValue(mAccelerationUpdateAdjointVariable);
 
                 r_node.SetLock();
                 for (unsigned int d = 0; d < r_geometry.WorkingSpaceDimension(); ++d) {
@@ -513,8 +505,8 @@ protected:
         }
 
         // Finalize calculation
-        r_communicator.AssembleCurrentData(ADJOINT_FLUID_VECTOR_2);
-        r_communicator.AssembleCurrentData(ADJOINT_FLUID_VECTOR_3);
+        r_communicator.AssembleCurrentData(mVelocityUpdateAdjointVariable);
+        r_communicator.AssembleCurrentData(mAccelerationUpdateAdjointVariable);
     }
 
 
@@ -527,7 +519,7 @@ protected:
         #pragma omp parallel for
         for (int i = 0; i < number_of_local_nodes; i++) {
             Node<3>& r_node = *(rModelPart.NodesBegin() + i);
-            noalias(r_node.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1)) = AUX_ADJOINT_FLUID_VECTOR_1.Zero();
+            noalias(r_node.FastGetSolutionStepValue(mAuxiliaryVariable)) = mAuxiliaryVariable.Zero();
         }
 
         // Loop over elements to assemble the remaining terms
@@ -557,7 +549,7 @@ protected:
             for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
 
                 Node<3>& r_node = r_geometry[i_node];
-                array_1d<double, 3>& r_aux_adjoint_fluid_vector_1 = r_node.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1);
+                array_1d<double, 3>& r_aux_adjoint_fluid_vector_1 = r_node.FastGetSolutionStepValue(mAuxiliaryVariable);
 
                 r_node.SetLock();
                 for (unsigned int d = 0; d < r_geometry.WorkingSpaceDimension(); ++d) {
@@ -571,7 +563,7 @@ protected:
         }
 
         // Finalize calculation
-        rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_FLUID_VECTOR_1);
+        rModelPart.GetCommunicator().AssembleCurrentData(mAuxiliaryVariable);
     }
 
     ///@}
