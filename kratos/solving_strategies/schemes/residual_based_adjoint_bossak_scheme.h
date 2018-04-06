@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/checks.h"
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
 
@@ -57,12 +58,18 @@ public:
 
     /// Constructor.
     ResidualBasedAdjointBossakScheme(Parameters& rParameters, ResponseFunction::Pointer pResponseFunction):
-        ResidualBasedAdjointStaticScheme<TSparseSpace, TDenseSpace>(pResponseFunction)
+        ResidualBasedAdjointStaticScheme<TSparseSpace, TDenseSpace>(pResponseFunction),
+        mVelocityUpdateAdjointVariable(VELOCITY),
+        mAccelerationUpdateAdjointVariable(VELOCITY),
+        mAuxiliaryVariable(VELOCITY)
     {
 
         Parameters default_parameters(R"({
             "scheme_type": "bossak",
-            "alpha_bossak": -0.3
+            "alpha_bossak": -0.3,
+            "velocity_update_adjoint_variable": "ADJOINT_FLUID_VECTOR_2",
+            "acceleration_update_adjoint_variable": "ADJOINT_FLUID_VECTOR_3",
+            "auxiliary_variable": "AUX_ADJOINT_FLUID_VECTOR_1"
         })");
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -70,6 +77,10 @@ public:
         mAlphaBossak = rParameters["alpha_bossak"].GetDouble();
         mBetaNewmark = 0.25 * (1.0 - mAlphaBossak) * (1.0 - mAlphaBossak);
         mGammaNewmark = 0.5 - mAlphaBossak;
+
+        mVelocityUpdateAdjointVariable = GetVariableFromParameters(rParameters, "velocity_update_adjoint_variable");
+        mAccelerationUpdateAdjointVariable = GetVariableFromParameters(rParameters, "acceleration_update_adjoint_variable");
+        mAuxiliaryVariable = GetVariableFromParameters(rParameters, "auxiliary_variable");
     }
 
     /// Destructor.
@@ -602,6 +613,18 @@ private:
     std::vector< LocalSystemVectorType > mAdjointSecondDerivsVector;
     std::vector< LocalSystemVectorType > mAdjointAuxiliaryVector;
 
+    Variable< array_1d<double,3> > mVelocityUpdateAdjointVariable;
+    Variable< array_1d<double,3> > mAccelerationUpdateAdjointVariable;
+    Variable< array_1d<double,3> > mAuxiliaryVariable;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
     void CheckAndResizeThreadStorage(unsigned int SystemSize) {
         const int k = OpenMPUtils::ThisThread();
 
@@ -642,13 +665,22 @@ private:
         }
     }
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+    Variable< array_1d<double,3> > GetVariableFromParameters(
+        Parameters& rParameters,
+        const std::string& rLabel) {
+        KRATOS_TRY;
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+        std::string variable_name = rParameters[rLabel].GetString();
+        bool have_variable = KratosComponents< Variable< array_1d<double,3> > >::Has(variable_name);
+
+        KRATOS_ERROR_IF_NOT( have_variable ) << "Variable " << variable_name <<
+        " passed as Parameters argument \"" << rLabel << "\" is not an array_1d<double,3> Variable defined in Kratos." << std::endl <<
+        "If it is an application variable, you may need to imoirt the application that defines it." << std::endl;
+
+        return KratosComponents< Variable< array_1d<double,3> > >::Get(variable_name);
+
+        KRATOS_CATCH("");
+    }
 
     ///@}
     ///@name Private  Access
