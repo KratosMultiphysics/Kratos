@@ -9,9 +9,7 @@ def Factory(settings, Model):
 class OutputPrimalSolutionProcess(StructuralMechanicsApplication.OutputPrimalSolutionProcess):
     def __init__(self, Model, settings):
         KratosMultiphysics.Process.__init__(self)
-        
-        model_part = Model[settings["model_part_name"].GetString()]  
-        
-        StructuralMechanicsApplication.OutputPrimalSolutionProcess.__init__(self, model_part, settings)
 
-# fusseder TODO: file copied, maybe things have to be renamed
+        model_part = Model[settings["model_part_name"].GetString()]
+
+        StructuralMechanicsApplication.OutputPrimalSolutionProcess.__init__(self, model_part, settings)
