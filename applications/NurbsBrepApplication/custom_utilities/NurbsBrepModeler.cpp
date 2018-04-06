@@ -97,9 +97,9 @@ namespace Kratos
 	void NurbsBrepModeler::ApplyGeometryRefinement(Parameters& rRefinementParameters)
 	{
 		for (auto refinement = rRefinementParameters.begin(); refinement != rRefinementParameters.end(); ++refinement)
+		for (int refinement_i = 0; refinement_i < rRefinementParameters.size(); refinement_i++)
 		{
-			Parameters refinement_parameters = (*refinement)["parameters"];
-
+			Parameters refinement_parameters = rRefinementParameters[refinement_i]["parameters"];
 			// Parameter description
 			BrepFace::GeometryRefinementParameters geometrical_refinement_parameter;
 			if (refinement_parameters.Has("knot_insertions_u"))
@@ -138,7 +138,7 @@ namespace Kratos
 			if (refinement_parameters.Has("order_elevation_q"))
 				geometrical_refinement_parameter.order_elevation_q = refinement_parameters["order_elevation_q"].GetInt();
 
-			if (rRefinementParameters["selection"].GetString() == "ALL")
+			if (rRefinementParameters[refinement_i]["selection"].GetString() == "ALL")
 			{
 				for (unsigned int brep_itr = 0; brep_itr < m_brep_model_vector.size(); brep_itr++)
 				{
@@ -224,12 +224,14 @@ namespace Kratos
 					{
 						ModelPart::Pointer model_part_coupling_edge_id = model_part_coupling_edges->CreateSubModelPart("COUPLING_EDGE_" + std::to_string(edge.Id()));
 						BrepEdge::Topology slave_topology = edge.GetEdgeInformation(1);
+						std::cout << "coupling edge call: slave: " << slave_topology.face_id << std::endl;
 						BrepFace& face_slave = GetFace(slave_topology.face_id);
 						std::vector<Point> points = face_slave.GetKnotIntersections(slave_topology.trim_index);
 
 						int slave_p_q = face_slave.GetP() + face_slave.GetQ() + 1;
 
 						BrepEdge::Topology master_topology = edge.GetEdgeInformation(0);
+						std::cout << "coupling edge call: master: " << master_topology.face_id << std::endl;
 						BrepFace& face_master = GetFace(master_topology.face_id);
 
 
@@ -252,6 +254,7 @@ namespace Kratos
 						ModelPart::Pointer model_part_edge_id = model_part_edges->CreateSubModelPart("EDGE_" + std::to_string(edge.Id()));
 						BrepEdge::Topology edge_topology = edge.GetEdgeInformation(0);
 
+						std::cout << "edge call: master: " << edge_topology.face_id << std::endl;
 						BrepFace& face = GetFace(edge_topology.face_id);
 
 						std::vector<Node<3>::Pointer> NodeVectorElement = face.GetIntegrationNodesTrimmingCurve(shapefunction_order, edge_topology.trim_index, accuracy);

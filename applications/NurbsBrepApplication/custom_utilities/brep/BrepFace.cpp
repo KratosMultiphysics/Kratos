@@ -1244,6 +1244,7 @@ namespace Kratos
 		/// Knot insertions
 		//check whether increasing/decreasing
 
+		std::cout << "check here!!" << std::endl;
 		// 1. insert defined knots
 		Vector this_knot_insertions_u = ZeroVector(0);
 		if (rGeometryRefinementParameters.knot_insertions_u.size() > 0)
@@ -1270,7 +1271,7 @@ namespace Kratos
 				KRATOS_ERROR << "Multiply knots not implemented yet." << std::endl;
 			}
 		}
-
+		std::cout << "check here degree elevation!!" << std::endl;
 
 		/// Degree elevation
 		// newDegree = Max(minP or P+deltaP)
@@ -1284,6 +1285,7 @@ namespace Kratos
 			this_order_elevation_q = std::max((int)(rGeometryRefinementParameters.order_elevation_q - m_q),
 				this_order_elevation_q);
 
+		std::cout << "check here degree elevation this_order_elevation_p: " << this_order_elevation_p << ", this_order_elevation_q: " << this_order_elevation_q << std::endl;
 		DegreeElevate(this_order_elevation_p, this_order_elevation_q);
 	}
 
@@ -1331,7 +1333,7 @@ namespace Kratos
 				control_point[2] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).Z();
 				control_point[3] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
 
-				mp_model_part->RemoveNodeFromAllLevels(control_point_index);
+				mp_model_part->RemoveNodeFromAllLevels(m_control_points_ids[control_point_index]);
 
 				Pw(i,j) = control_point;
 			}
@@ -1444,20 +1446,21 @@ namespace Kratos
 			index_k = index_k - 1;
 		}
 
+		m_knot_vector_u = knot_vector_u;
+		m_knot_vector_v = knot_vector_v;
+
+		m_control_points_ids.resize(Qw.size1()*Qw.size2());
 		for (int i = 0; i < Qw.size1(); i++)
 		{
 			for (int j = 0; j < Qw.size2(); j++)
 			{
-				//ModelPart& root = mp_model_part->GetRootModelPart;
-				int new_id = mp_model_part->GetRootModelPart().Nodes().end()->Id() + 1;
-					//.Nodes.NodesEnd().Id() + 1;
+				int new_id = 1;
+				if (mp_model_part->Nodes().size() > 0)
+					new_id = mp_model_part->GetRootModelPart().Nodes().back().Id() + 1;
 				int control_point_index = j*Qw.size1() + i;
 				m_control_points_ids[control_point_index] = new_id;
 
 				mp_model_part->CreateNewNode(new_id, Qw(i, j)[0], Qw(i, j)[1], Qw(i, j)[2])->SetValue(CONTROL_POINT_WEIGHT, Qw(i, j)[3]);
-				KRATOS_WATCH(new_id)
-				KRATOS_WATCH(Qw(i, j))
-				KRATOS_WATCH(control_point_index)
 			}
 		}
   }
@@ -1475,9 +1478,9 @@ namespace Kratos
 
 		matrix<array_1d<double, 4>> Pw(number_control_points_u, number_control_points_v); // Reference control points
 		/*---------*
-		*|  v-->   |
-		*|u|       |
-		*| v       |
+		 |  v-->   |
+		 |u|       |
+		 | v       |
 		**---------**/
 		for (int i = 0; i < number_control_points_v; i++)
 		{
@@ -1485,12 +1488,13 @@ namespace Kratos
 			{
 				array_1d<double, 4> control_point;
 				int control_point_index = j*number_control_points_v + i;
+
 				control_point[0] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).X();
 				control_point[1] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).Y();
 				control_point[2] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).Z();
 				control_point[3] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
 
-				mp_model_part->RemoveNodeFromAllLevels(control_point_index);
+				mp_model_part->RemoveNodeFromAllLevels(m_control_points_ids[control_point_index]);
 
 				Pw(i, j) = control_point;
 			}
@@ -1684,6 +1688,8 @@ namespace Kratos
 					}
 				}
 			}
+			m_p = ph;
+			m_knot_vector_u = u_ele;
 		} // end of big loop through knot vector
 		number_control_points_u = number_control_points_u + tp;
 
@@ -1889,33 +1895,22 @@ namespace Kratos
 				}
 			}// end of big loop through knot vector
 
-		//else if (tq == 0)
-		//{
-			// v_ele = V_Vec;
-			// qr = Q_Deg;
-		//}
-
-		//M_Ctrl = Qw_x.size2() - 1;
-		//P_Deg = pr;
-		//Q_Deg = qr;
-		//U_Vec = u_ele;
-		//V_Vec = v_ele;
-		//S_Knot = M_Ctrl + Q_Deg + 1;
-		//R_Knot = N_Ctrl + P_Deg + 1;
+			m_q = qh;
+			m_knot_vector_v = v_ele;
 		}
 
+		m_control_points_ids.resize(Qw.size1()*Qw.size2());
 		for (int i = 0; i < Qw.size1(); i++)
 		{
 			for (int j = 0; j < Qw.size2(); j++)
 			{
-				int new_id = mp_model_part->GetRootModelPart().Nodes().end()->Id() + 1;
+				int new_id = 1;
+				if (mp_model_part->Nodes().size() > 0)
+					new_id = mp_model_part->GetRootModelPart().Nodes().back().Id() + 1;
 				int control_point_index = j*Qw.size1() + i;
 				m_control_points_ids[control_point_index] = new_id;
 
 				mp_model_part->CreateNewNode(new_id, Qw(i, j)[0], Qw(i, j)[1], Qw(i, j)[2])->SetValue(CONTROL_POINT_WEIGHT, Qw(i, j)[3]);
-				KRATOS_WATCH(new_id)
-				KRATOS_WATCH(Qw(i, j))
-				KRATOS_WATCH(control_point_index)
 			}
 		}
 	}
