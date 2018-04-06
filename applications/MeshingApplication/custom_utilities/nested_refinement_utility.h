@@ -62,6 +62,7 @@ namespace Kratos
  *  and tetrahedrons) to split the elements.
  *  If a higher refinement is needed, the utility can be called recursively.
  */
+template<unsigned int TDim>
 class NestedRefinementUtility
 {
 public:
@@ -237,12 +238,14 @@ private:
 
 
 /// input stream function
+template<unsigned int TDim>
 inline std::istream& operator >> (std::istream& rIStream,
-                NestedRefinementUtility& rThis);
+                NestedRefinementUtility<TDim>& rThis);
 
 /// output stream function
+template<unsigned int TDim>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const NestedRefinementUtility& rThis)
+                const NestedRefinementUtility<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

@@ -25,7 +25,8 @@
 namespace Kratos
 {
 /// Default constructor
-NestedRefinementUtility::NestedRefinementUtility(ModelPart& rModelPart) :
+template< unsigned int TDim>
+NestedRefinementUtility<TDim>::NestedRefinementUtility(ModelPart& rModelPart) :
     mrModelPart(rModelPart) 
 {
     // Initialize the member variables storing the Id
@@ -58,26 +59,31 @@ NestedRefinementUtility::NestedRefinementUtility(ModelPart& rModelPart) :
 }
 
 /// Destructor
-NestedRefinementUtility::~NestedRefinementUtility() {}
+template< unsigned int TDim>
+NestedRefinementUtility<TDim>::~NestedRefinementUtility() {}
 
 /// Turn back information as a string.
-std::string NestedRefinementUtility::Info() const {
+template< unsigned int TDim>
+std::string NestedRefinementUtility<TDim>::Info() const {
     return "Nested refinement utility.";
 }
 
 /// Print information about this object.
-void NestedRefinementUtility::PrintInfo(std::ostream& rOStream) const {
+template< unsigned int TDim>
+void NestedRefinementUtility<TDim>::PrintInfo(std::ostream& rOStream) const {
     rOStream << "Nested refinement utility.";
 }
 
 /// Print object's data.
-void NestedRefinementUtility::PrintData(std::ostream& rOStream) const {
+template< unsigned int TDim>
+void NestedRefinementUtility<TDim>::PrintData(std::ostream& rOStream) const {
     rOStream << "Nested refinement utility constructed with:\n";
     rOStream << "   Model part: " << mrModelPart.Info() << "\n";
 }
 
 /// Execute the refinement
-void NestedRefinementUtility::Refine() 
+template< unsigned int TDim>
+void NestedRefinementUtility<TDim>::Refine() 
 {
     // Initialize the entities Id lists
     std::vector<int> elements_id;
@@ -129,7 +135,8 @@ void NestedRefinementUtility::Refine()
 }
 
 /// Get the middle node on an edge defined by two nodes
-Node<3>::Pointer NestedRefinementUtility::GetNodeBetween(Node<3>::Pointer node_a, Node<3>::Pointer node_b)
+template< unsigned int TDim>
+Node<3>::Pointer NestedRefinementUtility<TDim>::GetNodeBetween(Node<3>::Pointer node_a, Node<3>::Pointer node_b)
 {
     // Initialize the output
     Node<3>::Pointer middle_node;
@@ -160,6 +167,7 @@ Node<3>::Pointer NestedRefinementUtility::GetNodeBetween(Node<3>::Pointer node_a
     return middle_node;
 }
 
+template class NestedRefinementUtility<2>;
 
 }  // namespace Kratos.
 
