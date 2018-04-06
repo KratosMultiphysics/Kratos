@@ -501,7 +501,7 @@ private:
 
 	  double EllipsoidalCorrection = 1;
 
-	  for(int k=0; k<mSides; k++)
+	  for(unsigned int k=0; k<mSides; k++)
 	    {		  
               alpha = (2.0 * Globals::Pi * k)/double(mSides) + 0.25 * Globals::Pi;
 	      
@@ -798,9 +798,9 @@ private:
     {
       KRATOS_TRY
   
-      int number_of_angles = mSides; //number of lines in radius x 2
+      unsigned int number_of_angles = mSides; //number of lines in radius x 2
 
-      int wall_nodes_number_id = mMaxId; //used in the creation of the tube surface conditions
+      unsigned int wall_nodes_number_id = mMaxId; //used in the creation of the tube surface conditions
      
       //Triangles:
 
@@ -949,9 +949,9 @@ private:
     {
       KRATOS_TRY
   
-      int number_of_angles = mSides; //number of lines in radius x 2
+      unsigned int number_of_angles = mSides; //number of lines in radius x 2
 
-      int wall_nodes_number_id = mMaxId; //used in the creation of the tube surface conditions
+      unsigned int wall_nodes_number_id = mMaxId; //used in the creation of the tube surface conditions
      
       //Quadrilaterals:
 
