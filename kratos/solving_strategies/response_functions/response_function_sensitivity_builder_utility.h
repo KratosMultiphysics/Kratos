@@ -173,11 +173,11 @@ protected:
 
         BuildNodalSolutionStepElementContributions(
             rVariable, ScalingFactor, rModelPart.Elements(), rModelPart.GetProcessInfo());
-/*
+
         BuildNodalSolutionStepConditionContributions(rVariable, ScalingFactor,
                                                      rModelPart.Conditions(),
                                                      rModelPart.GetProcessInfo());
-*/
+
         r_comm.AssembleCurrentData(rVariable);
 
         KRATOS_CATCH("");
@@ -264,10 +264,10 @@ private:
             {
                 Condition::GeometryType& r_geom = it->GetGeometry();
 
-                if (HasActiveNodes(r_geom) == false)
-                    continue;
-
                 it->CalculateSensitivityMatrix(rVariable, sensitivity_matrix[k], rProcessInfo);
+
+                if (sensitivity_matrix[k].size1() == 0 || HasActiveNodes(r_geom) == false)
+                    continue;
 
                 CalculatePartialSensitivity(rVariable, *it, sensitivity_matrix[k],
                                             partial_sensitivity[k], rProcessInfo);

@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -936,6 +936,9 @@ public:
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
+        if (rOutput.size1() != 0) {
+            rOutput.resize(0, 0, false);
+        }
     }
 
     /**
@@ -945,6 +948,9 @@ public:
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
+        if (rOutput.size1() != 0) {
+            rOutput.resize(0, 0, false);
+        }
     }
 
     ///@}
@@ -1004,12 +1010,12 @@ public:
     {
       return mData;
     }
-    
+
     void SetData(DataValueContainer const& rThisData)
     {
       mData = rThisData;
     }
-    
+
     /**
      * Check if the Data exists with Has(..) methods:
      */
@@ -1051,22 +1057,22 @@ public:
     ///@}
     ///@name Flags
     ///@{
-    
+
     Flags& GetFlags()
       {
 	return *this;
       }
-    
+
     Flags const& GetFlags() const
     {
       return *this;
     }
-    
+
     void SetFlags(Flags const& rThisFlags)
     {
       Flags::operator=(rThisFlags);
     }
-    
+
     ///@}
     ///@name Inquiry
     ///@{
