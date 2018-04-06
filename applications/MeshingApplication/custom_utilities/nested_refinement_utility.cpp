@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/variables.h"
 #include "nested_refinement_utility.h"
 
 
@@ -136,10 +137,11 @@ void NestedRefinementUtility<TDim>::Refine()
         sub_element_nodes[2] = p_middle_nodes[2];
         sub_element = p_element->Create(mLastElemId++, sub_element_nodes, p_element->pGetProperties());
         
-        if (p_element != nullptr) 
+        if (sub_element != nullptr) 
         {
             mrModelPart.AddElement(sub_element);
-
+            int& refinement_level = sub_element->GetValue(REFINEMENT_LEVEL);
+            refinement_level += 1;
         }
 
         // Encontrar el lugar para setear NodalDataBase, ElementDataBase and SubModelParts
@@ -209,6 +211,9 @@ void NestedRefinementUtility<TDim>::CalculateNodalData(
         for (unsigned int variable = 0; variable < mStepDataSize; variable++)
             new_node_data[variable] = .5 * node_data_0[variable] + .5 * node_data_1[variable];
     }
+
+    int& refinement_level = pNewNode->GetValue(REFINEMENT_LEVEL);
+    refinement_level += 1;
 }
 
 template class NestedRefinementUtility<2>;
