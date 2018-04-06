@@ -389,11 +389,13 @@ public:
 	  array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
 	  array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
-	  if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){
-
+	  /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
+	  if((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID)){
 	    UpdateAccelerations (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs);
-
-
+	  }else if((i)->Is(RIGID)){
+	    array_1d<double, 3>  Zeros(3,0.0);
+	    (i)->FastGetSolutionStepValue(ACCELERATION,0) = Zeros;
+	    (i)->FastGetSolutionStepValue(ACCELERATION,1) = Zeros;
 	  }else {
 	    (i)->FastGetSolutionStepValue(PRESSURE,0) = 0.0; 
 	    (i)->FastGetSolutionStepValue(PRESSURE,1) = 0.0; 
@@ -441,18 +443,19 @@ public:
 	  array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 	  array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 	  
-	  if( i->IsFixed(DISPLACEMENT_X) == false )
+	  /* if( i->IsFixed(DISPLACEMENT_X) == false ) */
 	    CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];	  
 
-	  if( i->IsFixed(DISPLACEMENT_Y) == false )
+	  /* if( i->IsFixed(DISPLACEMENT_Y) == false ) */
 	    CurrentDisplacement[1] = 0.5* TimeStep *(CurrentVelocity[1]+PreviousVelocity[1]) + PreviousDisplacement[1];
 
-	  if( i->IsFixed(DISPLACEMENT_Z) == false )
+	  /* if( i->IsFixed(DISPLACEMENT_Z) == false ) */
 	    CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
 
         }
     }
 
+  
        
 
    void UpdateStressStrain()
@@ -814,7 +817,7 @@ protected:
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      double minTolerance=0.005;
+      double minTolerance=0.01;
       bool fixedTimeStep=false;
       if(currentTime<10*timeInterval){
 	minTolerance=10;
