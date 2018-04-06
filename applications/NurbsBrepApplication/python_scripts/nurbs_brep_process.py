@@ -35,7 +35,23 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
                     "coupling_edges": true
                   }
               },
-              "geometry_refinement": false
+              "geometry_refinement": [
+                {
+                  "selection": "ALL",
+                  "parameters": {
+                    "knot_insertions_u": [ ],
+                    "knot_insertions_v": [ ],
+                    "min_elements_u": 0,
+                    "min_elements_v": 0,
+                    "max_element_size_u": 0,
+                    "max_element_size_v": 0,
+                    "min_order_p": 0,
+                    "min_order_q": 0,
+                    "order_elevation_p": 0,
+                    "order_elevation_q": 0
+                  }
+                }
+              ]
             },
             "compute_surface_area": true,
             "write_integration_domain_global": true,

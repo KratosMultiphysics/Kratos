@@ -1198,9 +1198,9 @@ void MeshlessShellElement::CalculateAll(
 	ForceVector_in_Q_coordinates = prod(trans(DMembrane), StrainVector_in_Q_coordinates);
 	MomentVector_in_Q_coordinates = prod(trans(DCurvature), CurvatureVector_in_Q_coordinates);
 
-	std::cout << "Id of element: " << Id() << std::endl;
-	KRATOS_WATCH(ForceVector_in_Q_coordinates)
-	KRATOS_WATCH(MomentVector_in_Q_coordinates)
+	//std::cout << "Id of element: " << Id() << std::endl;
+	//KRATOS_WATCH(ForceVector_in_Q_coordinates)
+	//KRATOS_WATCH(MomentVector_in_Q_coordinates)
 	//double damage_t = 0.0;
 	//mConstitutiveLawVector->GetValue(DAMAGE_T, damage_t);
 	////KRATOS_WATCH(damage_t)
@@ -1214,9 +1214,7 @@ void MeshlessShellElement::CalculateAll(
 	Matrix BMembrane = ZeroMatrix(3, MatSize);
 	Matrix BCurvature = ZeroMatrix(3, MatSize);
 	CalculateBMembrane(BMembrane, Q, DN_De, g1, g2);
-    KRATOS_WATCH(BMembrane)
 	CalculateBCurvature(BCurvature, Q, DN_De, DDN_DDe, g1, g2);
-    KRATOS_WATCH(BCurvature)
 
 	// integration on the REFERENCE CONFIGURATION
 	double DetJ0 = mDetJ0;
@@ -1238,10 +1236,10 @@ void MeshlessShellElement::CalculateAll(
 	{
 		//adding membrane contributions to the stiffness matrix
 		CalculateAndAddKm(rLeftHandSideMatrix, BMembrane, DMembrane, IntToReferenceWeight);
-		KRATOS_WATCH(DMembrane)
+		//KRATOS_WATCH(DMembrane)
 		//adding curvature contributions to the stiffness matrix
 		CalculateAndAddKm(rLeftHandSideMatrix, BCurvature, DCurvature, IntToReferenceWeight);
-		KRATOS_WATCH(DCurvature)
+		//KRATOS_WATCH(DCurvature)
 
 		// adding  non-linear-contribution to Stiffness-Matrix
 		CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
@@ -1254,7 +1252,7 @@ void MeshlessShellElement::CalculateAll(
 			MomentVector_in_Q_coordinates,
 			IntToReferenceWeight);
 	}
-	KRATOS_WATCH(rLeftHandSideMatrix)
+	//KRATOS_WATCH(rLeftHandSideMatrix)
 	//if(this->Id() == 30) //TODO: remove this! it is just for debugging purposes
 	//{
 	//	KRATOS_WATCH(StrainVector)
@@ -1268,7 +1266,7 @@ void MeshlessShellElement::CalculateAll(
 		noalias(rRightHandSideVector) -= IntToReferenceWeight * prod(trans(BMembrane), ForceVector_in_Q_coordinates);
 		noalias(rRightHandSideVector) += IntToReferenceWeight * prod(trans(BCurvature), MomentVector_in_Q_coordinates);
 	}
-	KRATOS_WATCH(rRightHandSideVector)
+	//KRATOS_WATCH(rRightHandSideVector)
 
   //if (this->Id() == 1) //TODO: remove this! it is just for debugging purposes
   //{

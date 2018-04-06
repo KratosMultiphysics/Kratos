@@ -46,6 +46,7 @@ Import_ContactStructuralMechanicsApplication = False
 Import_KratosMappingApplication = False
 Import_ConstitutiveModelsApplication = False
 Import_ShallowWaterApplication = False
+Import_IGA_DEM_Application = False
 
 print("Applications Available:")
 print("Import_ExternalSolversApplication: False")
@@ -91,6 +92,7 @@ print("Import_ContactStructuralMechanicsApplication: False")
 print("Import_KratosMappingApplication: False")
 print("Import_ConstitutiveModelsApplication: False")
 print("Import_ShallowWaterApplication: False")
+print("Import_IGA_DEM_Application: False")
 
 application_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -139,6 +141,7 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_KratosMappingApplication: " + str(Import_KratosMappingApplication))    
     print("Import_ConstitutiveModelsApplication: " + str(Import_ConstitutiveModelsApplication))
     print("Import_ShallowWaterApplication: " + str(Import_ShallowWaterApplication))
+    print("Import_IGA_DEM_Application: " + str(Import_IGA_DEM_Application))
 
     if(Import_ExternalSolversApplication):
         print("importing KratosExternalSolversApplication ...")
@@ -509,6 +512,15 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.AddApplication(shallow_water_application)
         print("KratosShallowWaterApplication Succesfully imported")
 
+    if(Import_IGA_DEM_Application):
+        print("importing KratosIGA_DEM_Application ...")
+        sys.path.append(applications_path + '/ConstitutiveModels/python_scripts')
+        sys.path.append(applications_path + '/ConstitutiveModels/Linux')
+        from KratosIGA_DEM_Application import *
+        iga_dem_application = KratosIGA_DEM_Application()
+        kernel.AddApplication(iga_dem_application)
+        print("KratosIGA_DEM_Application Succesfully imported")
+		
     # dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
     if(Import_SolidMechanicsApplication):
@@ -593,7 +605,9 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(constitutive_models_application)
     if(Import_ShallowWaterApplication):
         kernel.InitializeApplication(shallow_water_application)
-
+    if(Import_IGA_DEM_Application):
+        kernel.InitializeApplication(iga_dem_application)
+		
 # def ImportApplications(kernel  ):
     # import os.path
     # application_directory = os.path.dirname( os.path.realpath(__file__)  )

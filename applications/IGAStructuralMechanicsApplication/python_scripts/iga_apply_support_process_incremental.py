@@ -28,7 +28,7 @@ class IGAApplySupportIncremental(python_process.PythonProcess):
             #disp_y = condition.GetValue(KratosMultiphysics.DISPLACEMENT_Y)
             #disp_z = condition.GetValue(KratosMultiphysics.DISPLACEMENT_Z)
             #if (current_time<0.3):
-            displacements[2] = current_time
+            displacements[0] = current_time
             #displacements[1] = 0.1*current_time
 
             condition.SetValue(KratosMultiphysics.DISPLACEMENT, displacements)		
