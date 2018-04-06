@@ -139,26 +139,50 @@ namespace Kratos
 		std::vector<array_1d <double,3> > int_pts_vector;
 		ComputeEdgesIntersections(rElement1,rIntersectedObjects,cut_edges_vector,int_pts_vector);
 
-		// If the number of intersected edges is more than 2 (2D) or more than 3 (3D) do the plane optimization
-		if (DoPlaneApproximation(rElement1,cut_edges_vector)){
-			
-			// Call the plane optimization utility
-			array_1d<double,3> base_pt, normal;
-			ComputePlaneApproximation(rElement1,int_pts_vector,base_pt,normal);
-
-			// Compute the distance to that plane
-			for (int i = 0; i < number_of_tetrahedra_points; i++) {
-				array_1d<double,3> plane_to_point_vec = rElement1.GetGeometry()[i] - base_pt;
-				const double s_n = inner_prod(plane_to_point_vec, normal);
-				const double n_n = inner_prod(normal,normal);
-				double distance_to_plane = s_n/std::sqrt(n_n);
-				elemental_distances[i] = (std::abs(distance_to_plane) < epsilon) ? -epsilon : distance_to_plane;
+		unsigned int n_cut_edges = 0;
+		for (unsigned int i_edge = 0; i_edge < cut_edges_vector.size(); i_edge++){
+			if (cut_edges_vector[i_edge] != 0){
+				n_cut_edges++;
 			}
+		}
 
-		// Otherwise, compute the simpler distance
-		} else {
-			for (int i = 0; i < number_of_tetrahedra_points; i++) {
-				elemental_distances[i] = CalculateDistanceToNode(rElement1, i, rIntersectedObjects, epsilon);
+		std::cout << "Element: " << rElement1.Id() << " cut_edges_vector: " << cut_edges_vector[0] << " " << cut_edges_vector[1] << " " << cut_edges_vector[2] << " " << cut_edges_vector[3] << " " << cut_edges_vector[4] << " " << cut_edges_vector[5] << std::endl;
+
+		// if (n_cut_edges == 1){
+		// 	KRATOS_WATCH(rElement1.GetGeometry())
+		// 	for (unsigned int i = 0; i < rIntersectedObjects.size(); ++i){
+		// 		KRATOS_WATCH(rIntersectedObjects[i])
+		// 	}
+		// }
+
+		// KRATOS_ERROR_IF(n_cut_edges == 1) << "Element " << rElement1.Id() << " has 1 intersected edges" << std::endl;
+		// KRATOS_ERROR_IF(n_cut_edges == 2) << "Element " << rElement1.Id() << " has 2 intersected edges" << std::endl;
+
+		const bool is_intersection = (n_cut_edges < rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
+
+		if (is_intersection){
+
+			const bool do_plane_approx = (n_cut_edges == rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
+
+			if (do_plane_approx){
+				std::cout << "ComputePlaneApproximation for " << n_cut_edges << " intersected edges" << std::endl;
+				// Call the plane optimization utility
+				array_1d<double,3> base_pt, normal;
+				ComputePlaneApproximation(rElement1, int_pts_vector, base_pt, normal);
+
+				// Compute the distance to that plane
+				for (int i = 0; i < number_of_tetrahedra_points; i++) {
+					array_1d<double,3> plane_to_point_vec = rElement1.GetGeometry()[i] - base_pt;
+					const double s_n = inner_prod(plane_to_point_vec, normal);
+					const double n_n = inner_prod(normal,normal);
+					const double distance_to_plane = s_n/std::sqrt(n_n);
+					elemental_distances[i] = (std::abs(distance_to_plane) < epsilon) ? -epsilon : distance_to_plane;
+				}
+			} else {
+				std::cout << "CalculateDistanceToNode for " << n_cut_edges << " intersected edges" << std::endl;
+				for (int i = 0; i < number_of_tetrahedra_points; i++) {
+					elemental_distances[i] = CalculateDistanceToNode(rElement1, i, rIntersectedObjects, epsilon);
+				}
 			}
 		}
 
@@ -204,6 +228,7 @@ namespace Kratos
 		auto &r_geometry = rElement1.GetGeometry();
 		const auto r_edges_container = r_geometry.Edges();
 		const std::size_t n_edges = r_geometry.EdgesNumber();
+		const std::size_t n_nodes = r_geometry.PointsNumber();
 		const std::size_t n_int_obj = rIntersectedObjects.size();
 
 		// Initialize cut edges and intersection points arrays
@@ -212,28 +237,44 @@ namespace Kratos
 
 		// Check wich edges are intersected
 		for (auto i_edge = 0; i_edge < n_edges; ++i_edge){
-			// Check against all candidates to count the number of edge intersections
+			// Check against all candidates to count the number of current edge intersections
 			for (auto i_int_obj = 0; i_int_obj < n_int_obj; ++i_int_obj){
 				// Call the compute intersection method
 				Point int_pt;
 				auto &r_int_obj_geom = rIntersectedObjects[i_int_obj].GetGeometry();
-				const int int_id = ComputeEdgeIntersection(r_int_obj_geom,r_edges_container[i_edge][0],r_edges_container[i_edge][1],int_pt);
-				// If there is intersection, save the intersection point and increase the edge counter
-				// Besides, save the vertices of the intersection entities, they will be used later 
-				// on as complementary points if the plane approximation is required.
+				const int int_id = ComputeEdgeIntersection(r_int_obj_geom, r_edges_container[i_edge][0], r_edges_container[i_edge][1], int_pt);
+				// There is intersection
 				if (int_id == 1){
 					// Increase the edge intersections counter
 					rCutEdgesVector[i_edge] += 1;
+
 					// Save the intersection point
 					rIntersectionPointsArray.push_back(int_pt);
-					// Save the intersection geometry vertices as complementary points
-					const std::size_t n_pts = r_int_obj_geom.PointsNumber();
-					for (std::size_t i_pt = 0; i_pt < n_pts; ++i_pt){
-						rIntersectionPointsArray.push_back(r_int_obj_geom.GetPoint(i_pt).Coordinates());
-					}
 				}
 			}
 		}
+
+		// // Save the intersection of the baricenter lines with the intersecting geometries as extra points
+		// for (std::size_t i_node = 0; i_node < n_nodes; ++i_node){
+		// 	// Get the opposite i_node face center
+		// 	Element::NodeType face_center(3, 0.0);
+		// 	for (std::size_t j_node = 0; j_node < n_nodes; ++j_node){
+		// 		if (i_node != j_node){
+		// 			face_center += r_geometry[j_node];
+		// 		}
+		// 	}
+		// 	face_center /= (n_nodes-1);
+		// 	// Check if there is intersection with the skin
+		// 	for (auto i_int_obj = 0; i_int_obj < n_int_obj; ++i_int_obj){
+		// 		auto &r_int_obj_geom = rIntersectedObjects[i_int_obj].GetGeometry();
+		// 		Point aux_int_pt;
+		// 		const int aux_int_id = ComputeEdgeIntersection(r_int_obj_geom, r_geometry[i_node], face_center, aux_int_pt);
+		// 		// If there is intersection, add it as auxiliar pt.
+		// 		if (aux_int_id == 1){
+		// 			rIntersectionPointsArray.push_back(aux_int_pt);
+		// 		}
+		// 	}
+		// }
 	}
 
 	int CalculateDiscontinuousDistanceToSkinProcess::ComputeEdgeIntersection(
@@ -272,25 +313,4 @@ namespace Kratos
 			KRATOS_ERROR << "Working space dimension value equal to " << work_dim << ". Check your skin geometry implementation." << std::endl;
 		}
 	}
-
-	bool CalculateDiscontinuousDistanceToSkinProcess::DoPlaneApproximation(
-		const Element &rElement1,
-		const std::vector<unsigned int> &rCutEdgesVector){
-
-		// Check the total number of edge intersections
-		std::size_t n_int = 0;
-		const std::size_t n_edges = rCutEdgesVector.size();
-		for (unsigned int i_edge = 0; i_edge < n_edges; ++i_edge){
-			n_int += rCutEdgesVector[i_edge];
-		}
-
-		// Check if plane optimization is wether needed or not
-		const auto work_dim = rElement1.GetGeometry().WorkingSpaceDimension();
-		if (work_dim == 2){
-			return (n_int > 2) ? true : false; 
-		} else {
-			return (n_int > 3) ? true : false;
-		}
-	}
-
 }  // namespace Kratos.

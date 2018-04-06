@@ -532,5 +532,55 @@ namespace Testing {
         KRATOS_CHECK_NEAR(elem_dist[3], -0.5, 1e-10);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessOneEdgeIntersections, KratosCoreFastSuite)
+    {
+        // Generate the triangular element
+        ModelPart volume_part("Volume");
+        volume_part.AddNodalSolutionStepVariable(DISTANCE);
+        volume_part.CreateNewNode(1, 0.666963, 0.800762, 0.388769);
+        volume_part.CreateNewNode(2, 0.731067, 0.821936, 0.422077);
+        volume_part.CreateNewNode(3, 0.652002, 0.85453, 0.463652);
+        volume_part.CreateNewNode(4, 0.684484, 0.796908, 0.48275);
+        Properties::Pointer p_properties_0(new Properties(0));
+        volume_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
+
+        // Generate the skin such that it only intersects in one edge
+        ModelPart skin_part("Skin");
+        skin_part.CreateNewNode(1, 0.675, 0.803109, 0.5);
+        skin_part.CreateNewNode(2, 0.663088, 0.808771, 0.476277);
+        skin_part.CreateNewNode(3, 0.685008, 0.796367, 0.479053);
+        skin_part.CreateNewNode(4, 0.682845, 0.794215, 0.449949);
+        Properties::Pointer p_properties_1(new Properties(1));
+        skin_part.CreateNewElement("Element3D3N", 1, {1,2,3}, p_properties_1);
+        skin_part.CreateNewElement("Element3D3N", 2, {3,2,4}, p_properties_1);
+
+        // Compute the discontinuous distance function
+        CalculateDiscontinuousDistanceToSkinProcess(volume_part, skin_part).Execute();
+
+        // Call the visualization utility to see the resultant splitting pattern
+        ModelPart visualization_model_part("VolumeVisualization");
+        Parameters visualization_parameters(R"(
+        {
+            "shape_functions"                     : "ausas",
+            "reform_model_part_at_each_time_step" : false,
+            "visualization_variables"             : []
+        })");
+        EmbeddedSkinVisualizationProcess visualization_tool(volume_part, visualization_model_part, visualization_parameters);
+        visualization_tool.ExecuteInitialize();
+        visualization_tool.ExecuteInitialize();
+        visualization_tool.ExecuteBeforeSolutionLoop();
+        visualization_tool.ExecuteInitializeSolutionStep();
+        visualization_tool.ExecuteBeforeOutputStep();
+        visualization_tool.ExecuteFinalizeSolutionStep();
+
+        GidIO<> gid_io_fluid_visualization("/home/rzorrilla/Desktop/DiscontinuousDistanceProcessOneEdgeIntersections", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        gid_io_fluid_visualization.InitializeMesh(0.00);
+        gid_io_fluid_visualization.WriteMesh(visualization_model_part.GetMesh());
+        gid_io_fluid_visualization.FinalizeMesh();
+        gid_io_fluid_visualization.InitializeResults(0, visualization_model_part.GetMesh());
+        gid_io_fluid_visualization.FinalizeResults();
+
+    }
+
 }  // namespace Testing.
 }  // namespace Kratos.

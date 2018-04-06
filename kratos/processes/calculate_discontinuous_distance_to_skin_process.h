@@ -152,8 +152,6 @@ namespace Kratos
       array_1d<double,3>& rPlaneBasePointCoords,
       array_1d<double,3>& rPlaneNormal);
 
-    bool DoPlaneApproximation(const Element& rElement1, const std::vector<unsigned int> &rCutEdgesVector);
-
       ///@}
 
     }; // Class CalculateDiscontinuousDistanceToSkinProcess
