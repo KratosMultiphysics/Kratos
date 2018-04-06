@@ -265,12 +265,12 @@ public:
         auto& r_second_lhs = mSecondDerivsLHS[k];
         auto& r_second_response_gradient = mSecondDerivsResponseGradient[k];
         pCurrentElement->CalculateSecondDerivativesLHS(r_second_lhs,rCurrentProcessInfo);
+        r_second_lhs *= (1.0 - mAlphaBossak);
         r_response_function.CalculateSecondDerivativesGradient(*pCurrentElement,r_second_lhs, r_second_response_gradient, rCurrentProcessInfo);
 
-        noalias(rLHS_Contribution) += second_deriv_coeff * (1.0 - mAlphaBossak) * r_second_lhs;
+        noalias(rLHS_Contribution) += second_deriv_coeff * r_second_lhs;
         noalias(rRHS_Contribution) -= second_deriv_coeff * r_second_response_gradient;
 
-        const double aux_adjoint_vector_coeff = (mInverseDt*mInverseDt) / mBetaNewmark;
         const double old_adjoint_velocity_coeff = mInverseDt * (mBetaNewmark - mGammaNewmark * (mGammaNewmark + 0.5)) / (mBetaNewmark*mBetaNewmark);
         const double old_adjoint_acceleration_coeff = -1.0 * (mInverseDt*mInverseDt) * (mGammaNewmark + 0.5) / (mBetaNewmark*mBetaNewmark);
 
@@ -287,7 +287,7 @@ public:
             const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
             for (unsigned int d = 0; d < domain_size; d++) {
-                rRHS_Contribution[local_index] += weight * aux_adjoint_vector_coeff * r_aux_adjoint_vector[d];
+                rRHS_Contribution[local_index] += weight * second_deriv_coeff * r_aux_adjoint_vector[d];
                 rRHS_Contribution[local_index] += weight * old_adjoint_velocity_coeff * r_velocity_adjoint[d];
                 rRHS_Contribution[local_index] += weight * old_adjoint_acceleration_coeff * r_acceleration_adjoint[d];
                 ++local_index;
@@ -538,10 +538,10 @@ protected:
             this->CheckAndResizeThreadStorage(r_residual_adjoint.size());
 
             r_element.CalculateSecondDerivativesLHS(r_second_lhs,r_process_info);
-            r_second_lhs *= (1.0 - mAlphaBossak);
+            r_second_lhs *= mAlphaBossak;
             r_response_function.CalculateSecondDerivativesGradient(r_element,r_second_lhs,r_second_response_gradient,r_process_info);
 
-            noalias(r_adjoint_auxiliary) = -(mAlphaBossak/(1.0-mAlphaBossak)) * prod(r_second_lhs,r_residual_adjoint) - r_second_response_gradient;
+            noalias(r_adjoint_auxiliary) = - prod(r_second_lhs,r_residual_adjoint) - r_second_response_gradient;
 
             // Assemble the contributions to the corresponing nodal unkowns.
             unsigned int local_index = 0;
