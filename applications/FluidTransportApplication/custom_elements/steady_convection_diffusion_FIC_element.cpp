@@ -122,20 +122,24 @@ GeometryData::IntegrationMethod SteadyConvectionDiffusionFICElement<TDim,TNumNod
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
-        if (ElementalDofList.size() != TNumNodes)
-            ElementalDofList.resize(TNumNodes);
+        if (rElementalDofList.size() != TNumNodes)
+            rElementalDofList.resize(TNumNodes);
+            KRATOS_WATCH(rElementalDofList.size())
 
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            ElementalDofList[i] = GetGeometry()[i].pGetDof(rUnknownVar);
+            rElementalDofList[i] = GetGeometry()[i].pGetDof(rUnknownVar);
+            KRATOS_WATCH(rElementalDofList[i])
+
         }
+
 
         KRATOS_CATCH("")
     }
@@ -147,7 +151,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateLocalSystem( 
 {
     KRATOS_TRY
 
-    const unsigned int element_size = TNumNodes * (TDim + 1);
+    const unsigned int element_size = TNumNodes;
     
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != element_size )
@@ -182,7 +186,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateLeftHandSide(
 // {
 //     KRATOS_TRY
     
-//     const unsigned int element_size = TNumNodes * (TDim + 1);
+//     const unsigned int element_size = TNumNodes;
         
 //     //Resetting the RHS
 //     if ( rRightHandSideVector.size() != element_size )
@@ -206,10 +210,13 @@ void SteadyConvectionDiffusionFICElement<TDim, TNumNodes>::EquationIdVector(Equa
 
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
+        KRATOS_WATCH(rResult.size())
 
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         rResult[i] = GetGeometry()[i].GetDof(rUnknownVar).EquationId();
+        KRATOS_WATCH(rResult[i])
+
     }
 
     KRATOS_CATCH("")
@@ -222,7 +229,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
 {
     //const GeometryType& Geom = this->GetGeometry();
-    const unsigned int element_size = TNumNodes * (TDim + 1);
+    const unsigned int element_size = TNumNodes;
     //unsigned int index = 0;
 
     if ( rValues.size() != element_size )
@@ -294,6 +301,9 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
+
+    KRATOS_WATCH(rLeftHandSideMatrix)
+    KRATOS_WATCH(rRightHandSideVector)
     
     KRATOS_CATCH( "" )
 }
@@ -318,7 +328,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVaria
 
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
-
     // Compute alpha
     rVariables.alpha = conductivity / (FluidDensity*specific_heat);
 
@@ -334,8 +343,12 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVaria
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         rVariables.NodalPhi[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
-        
+                
+        rVariables.NodalVel[i]=ZeroVector(3);
         const Variable<array_1d<double, 3 > >& rVelocityVar = my_settings->GetVelocityVariable();
+
+        KRATOS_WATCH(rVelocityVar)
+
         rVariables.NodalVel[i] = GetGeometry()[i].FastGetSolutionStepValue(rVelocityVar);
 
         const Variable<double>& rVolumeSourceVar = my_settings->GetVolumeSourceVariable();

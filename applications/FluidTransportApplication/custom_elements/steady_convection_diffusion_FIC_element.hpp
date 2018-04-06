@@ -126,7 +126,7 @@ protected:
         ///Nodal variables
         array_1d<double,TNumNodes> NodalPhi;
         array_1d<double,TNumNodes> NodalQSource;
-        array_1d<array_1d<double,TDim>, TNumNodes> NodalVel;
+        array_1d<array_1d<double,3>, TNumNodes> NodalVel;
         
         ///Variables computed at each GP
         double IntegrationCoefficient;

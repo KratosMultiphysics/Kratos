@@ -79,9 +79,20 @@ class FluidTransportSteadySolver(object):
         print("Construction of FluidTransportSteadySolver finished")
     
     def AddVariables(self):
-        
-        ## Convection Variables
 
+        ## ConvectionDiffusionSettings
+        thermal_settings = KratosMultiphysics.ConvectionDiffusionSettings()
+        thermal_settings.SetDiffusionVariable(KratosMultiphysics.CONDUCTIVITY)
+        thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
+        thermal_settings.SetSpecificHeatVariable(KratosMultiphysics.SPECIFIC_HEAT)
+        thermal_settings.SetDensityVariable(KratosMultiphysics.DENSITY)
+        thermal_settings.SetVolumeSourceVariable(KratosMultiphysics.HEAT_FLUX)
+        thermal_settings.SetSurfaceSourceVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        thermal_settings.SetMeshVelocityVariable(KratosMultiphysics.MESH_VELOCITY)
+        thermal_settings.SetVelocityVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, thermal_settings)
+
+        ## Convection Variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
@@ -95,16 +106,7 @@ class FluidTransportSteadySolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
 
-        ## Thermal variables
-        thermal_settings = KratosMultiphysics.ConvectionDiffusionSettings()
-        thermal_settings.SetDiffusionVariable(KratosMultiphysics.CONDUCTIVITY)
-        thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
-        thermal_settings.SetSpecificHeatVariable(KratosMultiphysics.SPECIFIC_HEAT)
-        thermal_settings.SetDensityVariable(KratosMultiphysics.DENSITY)
-        thermal_settings.SetVolumeSourceVariable(KratosMultiphysics.HEAT_FLUX)
-        thermal_settings.SetSurfaceSourceVariable(KratosMultiphysics.FACE_HEAT_FLUX)
-        thermal_settings.SetMeshVelocityVariable(KratosMultiphysics.MESH_VELOCITY)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, thermal_settings)
+
 
         print("Variables correctly added")
 
