@@ -46,7 +46,6 @@ class ConstructionUtility
         KRATOS_TRY
 
         // Getting values
-        mMeshId = rParameters["mesh_id"].GetInt();
         mGravityDirection = rParameters["gravity_direction"].GetString();
         mReferenceCoordinate = rParameters["reservoir_bottom_coordinate_in_gravity_direction"].GetDouble();
         mHeight = rParameters["height_dam"].GetDouble();
@@ -78,11 +77,11 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
-        const int nnodes = mrMechanicalModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nelements = mrMechanicalModelPart.GetMesh(0).Elements().size();
+        const int nnodes = mrMechanicalModelPart.GetMesh(0).Nodes().size();
 
-        mMechanicalLastCondition = mrMechanicalModelPart.GetMesh(mMeshId).Conditions().size();
-        mThermalLastCondition = mrThermalModelPart.GetMesh(mMeshId).Conditions().size();
+        mMechanicalLastCondition = mrMechanicalModelPart.GetMesh(0).Conditions().size();
+        mThermalLastCondition = mrThermalModelPart.GetMesh(0).Conditions().size();
 
         if (nelements != 0)
         {
@@ -266,7 +265,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const int nelements = mrThermalModelPart.GetMesh(mMeshId).Elements().size();
+        const int nelements = mrThermalModelPart.GetMesh(0).Elements().size();
         const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
         std::vector<std::size_t> ConditionNodeIds(Dim);
         if (mNumNode == 8)
@@ -363,7 +362,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
+        const int nelements = mrMechanicalModelPart.GetMesh(0).Elements().size();
         const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
         std::vector<std::size_t> ConditionNodeIds(Dim);
         if (mNumNode == 8)
@@ -568,7 +567,6 @@ class ConstructionUtility
     ModelPart &mrMechanicalModelPart;
     ModelPart &mrThermalModelPart;
     int mNumNode;
-    std::size_t mMeshId;
     std::string mGravityDirection;
     std::string mMechanicalSoilPart;
     std::string mThermalSoilPart;
@@ -647,8 +645,8 @@ class ConstructionUtility
         KRATOS_TRY;
 
         const unsigned int size = ConditionNodeIds.size();
-        const unsigned int nnodes = mrThermalModelPart.GetMesh(mMeshId).Nodes().size();
-        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(mMeshId).NodesBegin();
+        const unsigned int nnodes = mrThermalModelPart.GetMesh(0).Nodes().size();
+        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(0).NodesBegin();
 
         double time = mrThermalModelPart.GetProcessInfo()[TIME];
         time = time / mTimeUnitConverter;
@@ -682,8 +680,8 @@ class ConstructionUtility
         KRATOS_TRY;
 
         const unsigned int size = ConditionNodeIds.size();
-        const unsigned int nnodes = mrThermalModelPart.GetMesh(mMeshId).Nodes().size();
-        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(mMeshId).NodesBegin();
+        const unsigned int nnodes = mrThermalModelPart.GetMesh(0).Nodes().size();
+        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(0).NodesBegin();
 
         if (size != 0)
         {

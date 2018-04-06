@@ -28,4 +28,4 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
             KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
     def runTest(self):
-        mesh_moving_analysis.MeshMeshMovingAnalysis(self.project_parameters).Run()
+        mesh_moving_analysis.MeshMovingAnalysis(self.project_parameters).Run()

@@ -132,13 +132,12 @@ def ConstructListsOfVariables(pp):
 
     if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt():
         pp.fluid_vars += [MATERIAL_ACCELERATION]
+        pp.fluid_vars += [VELOCITY_COMPONENT_GRADIENT]
 
         if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 5 or pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 6:
             if pp.CFD_DEM["store_full_gradient_option"].GetBool():
                 pp.fluid_vars += [VELOCITY_X_GRADIENT]
                 pp.fluid_vars += [VELOCITY_Y_GRADIENT]
-                pp.fluid_vars += [VELOCITY_Z_GRADIENT]
-            else:
                 pp.fluid_vars += [VELOCITY_Z_GRADIENT]
 
     if pp.CFD_DEM["vorticity_calculation_type"].GetInt() == 1 or pp.CFD_DEM["lift_force_type"].GetInt() == 1:
@@ -485,6 +484,10 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
 
     if pp.CFD_DEM["print_CONDUCTIVITY_option"].GetBool():
         pp.nodal_results += ["CONDUCTIVITY"]
+
+    if pp.CFD_DEM["print_VECTORIAL_ERROR_option"].GetBool():
+        pp.nodal_results += ["VECTORIAL_ERROR"]
+        pp.nodal_results += ["VECTORIAL_ERROR_1"]
 
 def ChangeInputDataForConsistency(pp):
     if pp.CFD_DEM["coupling_level_type"].GetInt() == 0:

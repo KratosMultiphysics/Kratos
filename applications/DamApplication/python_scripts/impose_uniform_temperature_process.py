@@ -19,7 +19,6 @@ class ImposeUniformTemperatureProcess(Process):
         if settings["table"].GetInt() == 0:
             param = Parameters("{}")
             param.AddValue("model_part_name",settings["model_part_name"])
-            param.AddValue("mesh_id",settings["mesh_id"])
             param.AddValue("is_fixed",settings["is_fixed"])
             param.AddValue("variable_name",settings["variable_name"])
             param.AddValue("value",settings["value"])
