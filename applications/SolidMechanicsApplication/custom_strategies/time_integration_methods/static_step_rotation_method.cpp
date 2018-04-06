@@ -27,14 +27,10 @@ namespace Kratos
 
       // predict step variable from previous and current values
       array_1d<double,3>& CurrentStepVariable      = rNode.FastGetSolutionStepValue(*this->mpStepVariable,    0);
-      array_1d<double,3>& PreviousStepVariable     = rNode.FastGetSolutionStepValue(*this->mpStepVariable,    1);
-     
+
       array_1d<double,3>& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,        0);
       array_1d<double,3>& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,        1);
 
-      // update step variable previous iteration instead of previous step
-      PreviousStepVariable = CurrentStepVariable;
-      
       // update delta variable      
       array_1d<double,3> DeltaVariable;
       noalias(DeltaVariable) = CurrentVariable - PreviousVariable;
@@ -61,13 +57,13 @@ namespace Kratos
 
       VariableQuaternion.ToRotationVector( CurrentVariable );
 
+      // update variable previous iteration instead of previous step
+      PreviousVariable     = CurrentVariable;   
 
       // update linear delta variable:
       VariableQuaternion  = StepVariableQuaternion.conjugate() * VariableQuaternion;
       LinearDeltaVariable = BeamMathUtils<double>::MapToCurrentLocalFrame( VariableQuaternion, LinearDeltaVariable );
-	
-      // update variable previous iteration instead of previous step
-      PreviousVariable     = CurrentVariable;         
+	      
        
       KRATOS_CATCH( "" )
     }

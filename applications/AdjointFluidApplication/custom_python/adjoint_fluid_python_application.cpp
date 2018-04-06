@@ -14,7 +14,6 @@
 // Application includes
 #include "adjoint_fluid_application.h"
 #include "custom_python/add_custom_schemes_to_python.h"
-#include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos
@@ -32,7 +31,6 @@ BOOST_PYTHON_MODULE(KratosAdjointFluidApplication)
 	 bases<KratosApplication>, boost::noncopyable >("KratosAdjointFluidApplication");
 
   AddCustomSchemesToPython();
-  AddCustomProcessesToPython();
   AddCustomResponseFunctionsToPython();
 
 }

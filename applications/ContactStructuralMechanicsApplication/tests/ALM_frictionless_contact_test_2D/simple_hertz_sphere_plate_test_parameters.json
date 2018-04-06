@@ -10,8 +10,9 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "Static",
-        "echo_level"                         : 0,        "analysis_type"                      : "non_linear",
+        "solver_type"                        : "Dynamic",
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "ALM_frictionless_contact_test_2D/simple_hertz_sphere_plate_test"
@@ -23,12 +24,8 @@
         {
             "mortar_type"                    : "ALMContactFrictionless"
         },
-        "block_builder"                      : true,
-        "line_search"                        : false,
-        "clear_storage"                      : true,
-        "reform_dofs_at_each_step"	     	 : true,
         "convergence_criterion"              : "contact_residual_criterion",
-        "displacement_relative_tolerance"	 : 0.0001,
+        "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
@@ -42,8 +39,7 @@
         										"LineLoad2D_bc_pressure",
         										"Parts_parts_hemisphere",
         										"Parts_parts_plate",
-        										"DISPLACEMENT_bc_rolling_x"],
-        "rotation_dofs"                      : false
+        										"DISPLACEMENT_bc_rolling_x"]
     },
     "constraints_process_list" : [{
         "python_module"   : "assign_vector_variable_process",
@@ -93,19 +89,7 @@
             "model_part_name"             : "Structure",
             "assume_master_slave"         : "Parts_parts_hemisphere",
             "contact_model_part"          : "Contact_Part",
-            "contact_type"                : "Frictionless",
-            "search_factor"               : 10.0,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2,
-            "active_check_factor"         : 4.0e-02,
-            "normal_variation"            : "NO_DERIVATIVES_COMPUTATION",
-            "stiffness_factor"            : 10.0,
-            "penalty_scale_factor"        : 1.0,
-            "manual_ALM"                  : true,
-            "penalty"                     : 1.0e6,
-            "scale_factor"                : 1.0e0,
-            "debug_mode"                  : false
+            "contact_type"                : "Frictionless"
         }
     }
     ],

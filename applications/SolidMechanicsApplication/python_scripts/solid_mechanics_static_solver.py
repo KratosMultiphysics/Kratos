@@ -58,6 +58,9 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
             time_integration_method = KratosSolid.StaticMethod()
             time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
             time_integration_method.SetParameters(self.process_info)
+            angular_time_integration_method = KratosSolid.StaticMethod() #shells
+            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
+            angular_time_integration_method.SetParameters(self.process_info)
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementStaticScheme()
         elif(integration_method == "Non-Linear" ):
             if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
@@ -65,11 +68,14 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
                 damp_factor_m  = 0.0
                 mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(damp_factor_m, dynamic_factor)
             else:
-                #mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+                mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
                 time_integration_method = KratosSolid.StaticMethod()
                 time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
                 time_integration_method.SetParameters(self.process_info)
-                mechanical_scheme = KratosSolid.ResidualBasedDisplacementStaticScheme()
+                angular_time_integration_method = KratosSolid.StaticMethod() #shells
+                angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
+                angular_time_integration_method.SetParameters(self.process_info)
+                #mechanical_scheme = KratosSolid.ResidualBasedDisplacementStaticScheme()
 
         elif(integration_method == "RotationStatic"):
             #dynamic_factor = 0.0

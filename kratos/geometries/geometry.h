@@ -29,7 +29,7 @@
 #include "containers/pointer_vector.h"
 
 #include "utilities/math_utils.h"
-
+#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -887,10 +887,7 @@ public:
             const CoordinatesArrayType& rPoint
             )
     {
-        #ifdef KRATOS_DEBUG
-           if(WorkingSpaceDimension() != LocalSpaceDimension())
-                KRATOS_ERROR << "attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
-        #endif
+        KRATOS_DEBUG_ERROR_IF(WorkingSpaceDimension() != LocalSpaceDimension()) << "ERROR:: Attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
         
         Matrix J = ZeroMatrix( WorkingSpaceDimension(), LocalSpaceDimension() );
 
@@ -900,11 +897,12 @@ public:
 
         CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
 
-        //Newton iteration:
-        const double tol = 1.0e-8;
-        unsigned int maxiter = 1000;
+        static constexpr double MaxNormPointLocalCoordinates = 30.0;
+        static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
+        static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
 
-        for(unsigned int k = 0; k < maxiter; k++) {
+        //Newton iteration:
+        for(std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++) {
             CurrentGlobalCoords.clear();
             DeltaXi.clear();
 
@@ -918,9 +916,14 @@ public:
                 rResult[i] += DeltaXi[i];
             }
 
-            auto norm2DXi = norm_2(DeltaXi);
+            const double norm2DXi = norm_2(DeltaXi);
 
-            if(norm2DXi > 30 || norm2DXi < tol) {
+            if(norm2DXi > MaxNormPointLocalCoordinates) {
+                KRATOS_WARNING("Geometry") << "Computation of local coordinates failed at iteration " << k << std::endl;
+                break;
+            }
+
+            if(norm2DXi < MaxTolerancePointLocalCoordinates) {
                 break;
             }
         }

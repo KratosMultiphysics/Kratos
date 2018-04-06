@@ -80,6 +80,9 @@ class ModelManager(object):
 
             self._add_dofs()
 
+            # Somewhere must ask if you want to clean previous files
+            self._clean_previous_result_files()
+
         elif(self.settings["input_file_settings"]["type"].GetString() == "rest"):
             # Import model part from restart file.
             restart_path = os.path.join(problem_path, self.settings["input_file_settings"]["name"].GetString() + "__" + str(self.settings["input_file_settings"]["label"].GetInt() ) )
@@ -249,7 +252,7 @@ class ModelManager(object):
 
         # Add water pressure variables
         if self._check_input_dof("WATER_PRESSURE"):
-            self.dof_variables = self.dof_variables + ['WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATIONN']
+            self.dof_variables = self.dof_variables + ['WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATION']
             self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY_REACTION', 'WATER_PRESSURE_ACCELERATION_REACTION']
 
         # Add jacobian variables
@@ -445,3 +448,17 @@ class ModelManager(object):
             if( self.settings["bodies_list"].size() > 0 ):
                 return True
         return False
+
+    #
+    def _clean_previous_result_files(self):
+
+        file_endings = [".post.bin",".post.msh",".post.res",".post.lst",".post.csv",".rest"]
+        problem_path = os.getcwd()
+        for file_end in file_endings:
+            filelist = [f for f in os.listdir(problem_path) if f.endswith(file_end)]
+
+            for f in filelist:
+                try:
+                    os.remove(f)
+                except WindowsError:
+                    pass

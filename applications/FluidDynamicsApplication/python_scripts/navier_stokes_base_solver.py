@@ -21,7 +21,8 @@ class NavierStokesBaseSolver(object):
         self.condition_name = None
         self.min_buffer_size = 3
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Construction of NavierStokesBaseSolver finished.")
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
 
     def AddVariables(self):
         raise Exception("Trying to add Navier-Stokes base solver variables. Implement the AddVariables() method in the specific derived solver.")
@@ -36,14 +37,16 @@ class NavierStokesBaseSolver(object):
         ## Set buffer size
         self._set_buffer_size()
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Model reading finished.")
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Model reading finished.")
 
     def ExportModelPart(self):
         ## Model part writing
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Model export finished.")
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Model export finished.")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
@@ -51,7 +54,8 @@ class NavierStokesBaseSolver(object):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Fluid solver DOFs added correctly.")
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Fluid solver DOFs added correctly.")
 
     def AdaptMesh(self):
         pass
@@ -72,6 +76,9 @@ class NavierStokesBaseSolver(object):
 
         return delta_time
 
+    def GetMinimumBufferSize(self):
+        return self.min_buffer_size
+
     def Initialize(self):
         raise Exception("Calling the Navier-Stokes base solver. Please implement the custom Initialize() method of your solver.")
 
@@ -88,22 +95,27 @@ class NavierStokesBaseSolver(object):
         (self.solver).SetEchoLevel(level)
 
     def InitializeSolutionStep(self):
-        (self.solver).InitializeSolutionStep()
+        self.solver.Initialize()
+        self.solver.InitializeSolutionStep()
+        self.solver.Predict()
 
     def Predict(self):
-        (self.solver).Predict()
+        self.solver.Predict()
 
     def SolveSolutionStep(self):
-        is_converged = (self.solver).SolveSolutionStep()
-        return is_converged
+        is_converged = self.solver.SolveSolutionStep()
+        if not is_converged and self._IsPrintingRank():
+            msg  = "Navier-Stokes solver did not converge for iteration " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+            KratosMultiphysics.Logger.PrintWarning("NavierStokesBaseSolver",msg)
 
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
 
     def Solve(self):
-        # We always have one extra old step (step 0, read from input)
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.min_buffer_size:
-            self.solver.Solve()
+        self.InitializeSolutionStep()
+        self.SolveSolutionStep()
+        self.FinalizeSolutionStep()
 
     def _model_part_reading(self):
         ## Model part reading
@@ -180,7 +192,7 @@ class NavierStokesBaseSolver(object):
         if self.main_model_part.NumberOfElements() != 0:
             if sys.version_info[0] >= 3: # python3 syntax
                 element_num_nodes = len(self.main_model_part.Elements.__iter__().__next__().GetNodes())
-            else: # python2 sytax
+            else: # python2 syntax
                 element_num_nodes = len(self.main_model_part.Elements.__iter__().next().GetNodes())
         else:
             element_num_nodes = 0
@@ -192,10 +204,13 @@ class NavierStokesBaseSolver(object):
         if self.main_model_part.NumberOfConditions() != 0:
             if sys.version_info[0] >= 3: # python3 syntax
                 condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes())
-            else: # python2 sytax
+            else: # python2 syntax
                 condition_num_nodes = len(self.main_model_part.Conditions.__iter__().next().GetNodes())
         else:
             condition_num_nodes = 0
 
         condition_num_nodes = self.main_model_part.GetCommunicator().MaxAll(condition_num_nodes)
         return condition_num_nodes
+
+    def _IsPrintingRank(self):
+        return self._is_printing_rank

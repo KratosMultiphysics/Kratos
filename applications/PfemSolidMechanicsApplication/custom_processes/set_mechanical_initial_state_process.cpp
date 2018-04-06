@@ -95,75 +95,6 @@ namespace Kratos
    }
 
 
-   // THIS IS NOT THE PLACE TO PROGRAM THIS. However..
-   // This function removes previous boundary conditions at nodes that are now in contact (that is, removes Dirichlet water pressure conditions from contacting nodes).
-
-   void SetMechanicalInitialStateProcess::ExecuteFinalizeSolutionStep()
-   {
-      std::cout << " [ Trying to remove boundary conditions " << std::endl;
-
-      const unsigned int NumberOfMeshes = mrModelPart.NumberOfMeshes();
-
-      if (NumberOfMeshes < 2) {
-         std::cout << " Nothing To Be Done ] " << std::endl;
-         return;
-      }
-
-      unsigned int arranged = 0, allPossible = 0;
-      array_1d<double, 3 > ContactForce, NeigContactForce;
-      double CFModul, CFModulNeig;
-      int ContactNeig;
-      for ( ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
-	{
-
-	  ContactForce = in->GetSolutionStepValue(CONTACT_FORCE);
-	  CFModul = fabs( ContactForce[0] ) + fabs( ContactForce[1] );
-	  if ( CFModul > 1e-5)
-            {
-	      ContactNeig = 0;
-	      WeakPointerVector<Node<3 > >  & rN = in->GetValue( NEIGHBOUR_NODES );
-	      for ( unsigned int neig = 0; neig < rN.size(); neig++)
-		{
-                  NeigContactForce = rN[neig].GetSolutionStepValue( CONTACT_FORCE);
-                  CFModulNeig = fabs( NeigContactForce[0]) + fabs( NeigContactForce[1]);
-                  if ( CFModulNeig > 1e-5)
-		    ContactNeig += 1;
-		}
-
-	      if (ContactNeig == 2)
-		{
-                  if ( in->SolutionStepsDataHas(LINE_LOAD) )
-		    {
-		      array_1d<double, 3 > & rLineLoad = in->GetSolutionStepValue( LINE_LOAD);
-		      if ( fabs( rLineLoad[0]) + fabs( rLineLoad[1]) > 1e-5)
-			{
-			  rLineLoad *= 0.0;
-			  //in->SetSolutionStepValue( LINE_LOAD, LineLoad); // ja està, no facis coses rares....
-			}
-		    }
-                  else
-		    {
-		      std::cout << " ES RARO PQ no HAY LINE LOAD " << std::endl;
-		    }
-
-                  if ( in->SolutionStepsDataHas( WATER_PRESSURE ) )
-		    {
-		      if ( in->IsFixed( WATER_PRESSURE ) )
-			{
-			  in->Free( WATER_PRESSURE);
-			  arranged++;
-			}
-		    }
-
-                  allPossible += 1;
-		}
-            }
-	}
-      
-
-      std::cout << " We have Done " << arranged << " from a possible bicontacting "<< allPossible << " in the BCCorrection ]"<< std::endl;
-
-   }
 
    // THE FUNCTION
    void SetMechanicalInitialStateProcess::SetInitialMechanicalState(ModelPart& rModelPart, int EchoLevel)
@@ -312,8 +243,7 @@ namespace Kratos
       VerticalStress = rS1 - Pressure;
       HorizontalStress = rS2 - Pressure;
 
-      unsigned int Properties = rModelPart.NumberOfProperties();
-      Properties -= 1;
+      unsigned int Properties = 1;
       const double Young = rModelPart.GetProperties(Properties)[ YOUNG_MODULUS ];
       const double Poisson = rModelPart.GetProperties(Properties)[ POISSON_RATIO ];
 
@@ -353,8 +283,7 @@ namespace Kratos
    void SetMechanicalInitialStateProcess::SetMechanicalStateUP(ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
 
-      unsigned int Properties = rModelPart.NumberOfProperties();
-      Properties -= 1;
+      unsigned int Properties = 1;
       double Density = rModelPart.GetProperties(Properties)[ DENSITY ];
       const double Knot = rModelPart.GetProperties(Properties)[ K0 ];
       const double Young = rModelPart.GetProperties(Properties)[ YOUNG_MODULUS ];
@@ -437,8 +366,7 @@ namespace Kratos
 
    void SetMechanicalInitialStateProcess::SetMechanicalStateU( ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
-      unsigned int Properties = rModelPart.NumberOfProperties();
-      Properties -= 1;
+      unsigned int Properties = 1;
       double MixtureDensity = rModelPart.GetProperties(Properties)[ DENSITY ];
       const double Knot = rModelPart.GetProperties(Properties)[ K0 ];
 
@@ -503,8 +431,7 @@ namespace Kratos
    void SetMechanicalInitialStateProcess::SetMechanicalStateUwP(ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
 
-      unsigned int Properties = rModelPart.NumberOfProperties();
-      Properties -= 1;
+      unsigned int Properties = 1;
       const double WaterDensity = rModelPart.GetProperties(Properties)[ DENSITY_WATER ];
       double MixtureDensity = rModelPart.GetProperties(Properties)[ DENSITY ];
       const double Knot = rModelPart.GetProperties(Properties)[ K0 ];
