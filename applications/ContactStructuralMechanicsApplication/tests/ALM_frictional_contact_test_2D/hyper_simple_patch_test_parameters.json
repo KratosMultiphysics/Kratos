@@ -10,8 +10,8 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "Static",
-        "echo_level"                         : 0,        
+        "solver_type"                        : "Dynamic",
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -24,10 +24,6 @@
         {
             "mortar_type"                    : "ALMContactFrictional"
         },
-        "block_builder"                      : true,
-        "clear_storage"                      : true,
-        "line_search"                        : false,
-        "compute_reactions"                  : false,
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.001,
         "displacement_absolute_tolerance"    : 1e-9,
