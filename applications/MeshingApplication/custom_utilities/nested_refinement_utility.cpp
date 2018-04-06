@@ -136,14 +136,17 @@ void NestedRefinementUtility<TDim>::Refine()
 
 /// Get the middle node on an edge defined by two nodes
 template< unsigned int TDim>
-Node<3>::Pointer NestedRefinementUtility<TDim>::GetNodeBetween(Node<3>::Pointer node_a, Node<3>::Pointer node_b)
+Node<3>::Pointer NestedRefinementUtility<TDim>::GetNodeBetween(
+    const Node<3>::Pointer pNode0,
+    const Node<3>::Pointer pNode1
+    )
 {
     // Initialize the output
     Node<3>::Pointer middle_node;
     
     // Get the middle node key
     std::pair<int, int> node_key;
-    node_key = std::minmax(node_a->Id(), node_b->Id());
+    node_key = std::minmax(pNode0->Id(), pNode1->Id());
 
     // Check if the node exist
     auto search = mNodesMap.find(node_key);
@@ -154,9 +157,9 @@ Node<3>::Pointer NestedRefinementUtility<TDim>::GetNodeBetween(Node<3>::Pointer 
     else
     {
         // Create the new node
-        double new_x = node_a->X() - node_b->X();
-        double new_y = node_a->Y() - node_b->Y();
-        double new_z = node_a->Z() - node_b->Z();
+        double new_x = pNode0->X() - pNode1->X();
+        double new_y = pNode0->Y() - pNode1->Y();
+        double new_z = pNode0->Z() - pNode1->Z();
         middle_node = mrModelPart.CreateNewNode(mLastNodeId++, new_x, new_y, new_z);
 
         // Store the node in the map

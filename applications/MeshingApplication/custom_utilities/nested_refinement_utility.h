@@ -198,7 +198,7 @@ private:
      * If the middle node exist, returns a pointer to the existing node
      * If the middle node does not exist, create a new one and returns a pointer to it
      */
-    Node<3>::Pointer GetNodeBetween(Node<3>::Pointer node_a, Node<3>::Pointer node_b);
+    Node<3>::Pointer GetNodeBetween(const Node<3>::Pointer pNode0, const Node<3>::Pointer pNode1);
 
 
     ///@}
