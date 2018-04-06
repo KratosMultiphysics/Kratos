@@ -539,7 +539,7 @@ public:
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-	for(WeakPointerVector< Element >::iterator ie = rE.begin(); ie!=rE.end(); ie++)
+	for(WeakPointerVector< Element >::iterator ie = rE.begin(); ie!=rE.end(); ++ie)
 	  {	    
             //calculate elemental contribution
             pScheme->CalculateSystemContributions(Element::Pointer( *(ie.base()) ), LHS_Contribution, RHS_Contribution, EquationId, rCurrentProcessInfo);

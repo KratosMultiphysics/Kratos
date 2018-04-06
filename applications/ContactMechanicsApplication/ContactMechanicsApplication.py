@@ -2,7 +2,7 @@
 from __future__ import print_function, absolute_import, division
 
 # Applications requiered
-from KratosPfemApplication import * 
+from KratosPfemApplication import *
 
 # Application dependent names and paths
 from KratosContactMechanicsApplication import *

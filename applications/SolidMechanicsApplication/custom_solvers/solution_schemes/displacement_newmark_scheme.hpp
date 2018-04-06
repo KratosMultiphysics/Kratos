@@ -588,7 +588,7 @@ namespace Kratos
       KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
 
       // Check that variables are correctly allocated
-      for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); it++)
+      for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); ++it)
         {
 	  // Nodal data
 	  KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,(*it));

@@ -200,11 +200,10 @@ namespace Kratos
     {
       int thread = OpenMPUtils::ThisThread();
 
-      double parameter = 0;
       // Adding inertia contribution
       if (rM.size1() != 0)
         {
-	  parameter = this->mpIntegrationMethod->GetMethodParameter(parameter);
+	  double parameter = this->mpIntegrationMethod->GetMethodParameter(parameter);
 	  
           rCurrentElement->GetSecondDerivativesVector(this->mVector.a[thread], 0);
 

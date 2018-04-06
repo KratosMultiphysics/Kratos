@@ -141,8 +141,6 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitBuilderAndSolver
 
     //Calculate and assemble Mass Matrix on nodes
 
-    unsigned int index = 0;
-
     bool CalculateLumpedMassMatrix = false;
     if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ){
       CalculateLumpedMassMatrix = rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX];	   
@@ -154,7 +152,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitBuilderAndSolver
       typename ElementsContainerType::iterator ElemBegin = pElements.begin() + element_partition[k];
       typename ElementsContainerType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
 
-      for (typename ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  //MSI: To be parallelized
+      for (typename ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)  //MSI: To be parallelized      
       {
         Matrix MassMatrix;
 
@@ -164,7 +162,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitBuilderAndSolver
 
         const unsigned int dimension   = geometry.WorkingSpaceDimension();
 
-        index = 0;
+        unsigned int index = 0;
         for (unsigned int i = 0; i <geometry.size(); i++)
         {
           index = i*dimension;

@@ -608,7 +608,6 @@ public:
         for(unsigned int i=0; i<Help.size1(); i++)
             lambda(i)= Help(i,i);
 
-        return;
     }
 
 
@@ -1219,7 +1218,7 @@ public:
             Tensor(1,0)= Stress(2);
             Tensor(1,1)= Stress(1);
         }
-        return;
+
     }
 
     /**
@@ -1248,7 +1247,7 @@ public:
             Vector(1)= Tensor(1,1);
             Vector(2)= Tensor(0,1);
         }
-        return;
+
     }
 
     static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor,Matrix& Matrix)
@@ -1321,7 +1320,7 @@ public:
             Matrix(2,2) = Tensor[0][1](0,1);
 
         }
-        return;
+
     }
 
     /**
@@ -1372,7 +1371,7 @@ public:
             }
         }
 
-        return;
+
     }
     /**
     * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
@@ -1417,7 +1416,7 @@ public:
             }
         }
 
-        return;
+
     }
     /**
     * Transforms a given 4th order tensor to a corresponing 6*6 Matrix
@@ -1491,7 +1490,6 @@ public:
                 Matrix(i,j)= Tensor[help1][help2](help3,help4)*coeff;
             }
 
-        return;
     }
 
     /**
@@ -1546,7 +1544,6 @@ public:
         Matrix(5,4) = 2.0*Tensor[59];
         Matrix(5,5) = 2.0*Tensor[60];
 
-        return;
     }
     /**
     * Generates the fourth order deviatoric unity tensor

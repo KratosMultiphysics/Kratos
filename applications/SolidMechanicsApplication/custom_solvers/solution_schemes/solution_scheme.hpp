@@ -354,19 +354,21 @@ class SolutionScheme : public Flags
     KRATOS_TRY
 
     for(ModelPart::ElementsContainerType::iterator it=rModelPart.ElementsBegin();
-        it!=rModelPart.ElementsEnd(); it++)
+        it!=rModelPart.ElementsEnd(); ++it) 
     {
       it->Check(rModelPart.GetProcessInfo());
     }
 
     for(ModelPart::ConditionsContainerType::iterator it=rModelPart.ConditionsBegin();
-        it!=rModelPart.ConditionsEnd(); it++)
+        it!=rModelPart.ConditionsEnd(); ++it)
     {
       it->Check(rModelPart.GetProcessInfo());
     }
 
+    
+    KRATOS_CATCH("")
+
     return 0;
-    KRATOS_CATCH("");
   }
 
   /** this function is designed to be called in the builder and solver to introduce

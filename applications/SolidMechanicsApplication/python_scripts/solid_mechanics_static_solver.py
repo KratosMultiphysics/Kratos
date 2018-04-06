@@ -30,7 +30,7 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         }
         """)
 
-         # Validate and transfer settings
+        # Validate and transfer settings
         self._validate_and_transfer_matching_settings(custom_settings, static_settings)
         time_integration_settings = custom_settings["time_integration_settings"]
 
@@ -43,6 +43,7 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
             time_integration_settings["integration_method"].SetString("Non-Linear") # Override defaults in the base class.
 
         # Construct the base solver.
+        # Calling base class of ImplicitMechanicalSolver it is ok.
         super(BaseSolver.ImplicitMechanicalSolver, self).__init__(custom_settings)
 
         print("::[Static_Scheme]:: "+self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")
@@ -88,7 +89,6 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
 
     def _create_linear_strategy(self):
         mechanical_scheme = self._get_solution_scheme()
-        linear_solver = self._get_linear_solver()
         builder_and_solver = self._get_builder_and_solver()
 
         options = KratosMultiphysics.Flags()
@@ -97,7 +97,7 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
 
         return KratosSolid.LinearStrategy(self.model_part, mechanical_scheme, builder_and_solver, options)
 
-
+        #linear_solver = self._get_linear_solver()
         #return KratosMultiphysics.ResidualBasedLinearStrategy(self.model_part,
         #                                                      mechanical_scheme,
         #                                                      linear_solver,

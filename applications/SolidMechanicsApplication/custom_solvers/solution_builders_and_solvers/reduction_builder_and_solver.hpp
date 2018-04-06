@@ -1219,7 +1219,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ReductionBuilderAndSolver
     std::vector<std::size_t>::iterator endit = v.end();
     while (i != endit && (*i) != candidate)
     {
-      i++;
+      ++i;
     }
     if (i == endit)
     {

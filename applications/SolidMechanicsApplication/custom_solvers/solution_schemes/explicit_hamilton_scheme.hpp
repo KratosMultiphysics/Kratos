@@ -146,8 +146,9 @@ namespace Kratos
 	  KRATOS_THROW_ERROR(std::logic_error, "Insufficient buffer size for Central Difference Scheme. It has to be 2", "")
 	    }
 
+      KRATOS_CATCH("")
+	  
       return 0;
-      KRATOS_CATCH("");
     }
 
 
@@ -307,7 +308,7 @@ namespace Kratos
             ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
             ElementsArrayType::iterator ElementsEnd = rElements.begin() + ElementPartition[k + 1];
 
-            for (ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
+            for (ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; ++itElem)
             {
                 itElem->FinalizeSolutionStep(CurrentProcessInfo);
             }
@@ -325,7 +326,7 @@ namespace Kratos
             ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
             ConditionsArrayType::iterator ConditionsEnd = rConditions.begin() + ConditionPartition[k + 1];
 
-            for (ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
+            for (ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; ++itCond)
             {
                 itCond->FinalizeSolutionStep(CurrentProcessInfo);
             }
@@ -368,7 +369,7 @@ namespace Kratos
         {
 	  typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
 	  typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
-	  for(ElementsArrayType::iterator it=it_begin; it!= it_end; it++)
+	  for(ElementsArrayType::iterator it=it_begin; it!= it_end; ++it)
             {
 
 	      //get geometric and material properties

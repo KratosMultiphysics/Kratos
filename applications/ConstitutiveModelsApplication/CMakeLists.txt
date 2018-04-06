@@ -68,8 +68,7 @@ set_target_properties(KratosConstitutiveModelsCore PROPERTIES COMPILE_DEFINITION
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosConstitutiveModelsApplication MODULE ${KRATOS_CONSTITUTIVE_MODELS_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosConstitutiveModelsApplication PUBLIC KratosConstitutiveModelsCore)
-#target_link_libraries(KratosConstitutiveModelsApplication PUBLIC KratosConstitutiveModelsCore KratosConstitutiveModelsApplication)
+target_link_libraries(KratosConstitutiveModelsApplication PRIVATE KratosConstitutiveModelsCore)
 set_target_properties(KratosConstitutiveModelsApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)
