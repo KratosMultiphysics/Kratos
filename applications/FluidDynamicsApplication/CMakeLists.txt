@@ -85,7 +85,7 @@ set_target_properties( KratosFluidDynamicsCore PROPERTIES COMPILE_DEFINITIONS "F
 
 ## FluidDynamicsApplication python module
 pybind11_add_module( KratosFluidDynamicsApplication MODULE ${KRATOS_FLUID_DYNAMICS_PYTHON_INTERFACE_SOURCES} )
-target_link_libraries( KratosFluidDynamicsApplication PUBLIC KratosFluidDynamicsCore)
+target_link_libraries( KratosFluidDynamicsApplication PRIVATE KratosFluidDynamicsCore)
 set_target_properties( KratosFluidDynamicsApplication PROPERTIES PREFIX "")
 
 ###############################################################################
