@@ -35,12 +35,16 @@ class AnalyticsTestSolution(main_script.Solution):
                 if time < 0.03:
                     expected_value = 0.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
+                    expected_value = 0.0
+                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
                 elif time > 0.04 and time < 0.28:
                     expected_value = 3.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
                 elif time > 0.29 and time < 0.41:
+                    expected_value = 3.0
+                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
                     expected_value = 2.81939
                     self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
                 elif time > 0.43:
