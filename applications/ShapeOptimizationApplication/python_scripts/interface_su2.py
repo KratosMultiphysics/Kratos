@@ -16,6 +16,8 @@ from KratosMultiphysics import *
 # Import additional apps
 import SU2
 from itertools import islice
+import shutil
+import os
 
 # ==============================================================================
 class InterfaceSU2():
@@ -27,6 +29,10 @@ class InterfaceSU2():
             "su2_related":
             {
                 "config_file"        : "None",
+                "number_of_cores"    : 1,
+                "number_of_zones"    : 1,
+                "gradient_method"    : "DISCRETE_ADJOINT",
+                "mesh_file"          : "None",
                 "mesh_motion_file"   : "mesh_motion.dat",
                 "design_surface_tag" : "None"
             },
@@ -38,7 +44,6 @@ class InterfaceSU2():
         }""")
         interface_parameters.RecursivelyValidateAndAssignDefaults(default_parameters)
         self.interface_parameters = interface_parameters
-        self.su2_config = SU2.io.Config(interface_parameters["su2_related"]["config_file"].GetString())
 
         self.su2_line_id = 3
         self.su2_tria_id = 5
@@ -59,58 +64,70 @@ class InterfaceSU2():
 
     # --------------------------------------------------------------------------
     def WriteSU2MeshAsMDPA(self):
-        print("> Start writing mdpa file...")
-
         self.new_file = open(self.interface_parameters["kratos_related"]["mdpa_file"].GetString(), 'w')
 
         self.__WriteHeader()
         self.__WriteNodes()
-
         if self.interface_parameters["kratos_related"]["write_elements"].GetBool():
             self.__WriteElements()
-
         if self.interface_parameters["su2_related"]["design_surface_tag"].GetString() != "None":
             self.__WriteShapeOptimizationConditions()
             self.__WriteDesignSurfaceAsSubModelPart()
-
         self.__WriteSubModelPartsWithoutDesignSurface()
 
         self.new_file.close()
 
-        print("> Finished writing mdpa file!\n")
-
     # --------------------------------------------------------------------------
-    def WriteNodesAsSU2MeshMotionFile(self,kratos_node_set):
-        print("> Start writing SU2 file for mesh motion...")
-
-        self.new_file = open(self.interface_parameters["su2_related"]["mesh_motion_file"].GetString(), 'w')
+    def WriteNodesAsSU2MeshMotionFile(self,kratos_node_set,target_directory = "."):
+        self.new_file = open(os.path.join(target_directory,self.interface_parameters["su2_related"]["mesh_motion_file"].GetString()), 'w')
 
         if self.su2_mesh_data["NDIME"] == 2:
             for kratos_node in kratos_node_set:
                 su2_point_id = self.node_id_kratos_to_su2[kratos_node.Id]
-                su2_point = self.su2_mesh_data["POIN"][su2_point_id]
                 self.new_file.write(str(su2_point_id))
                 self.new_file.write("\t")
-                self.new_file.write(str("%.12f"%(su2_point[0])))
+                self.new_file.write(str("%.12f"%(kratos_node.X0)))
                 self.new_file.write("\t")
-                self.new_file.write(str("%.12f"%(su2_point[1])))
+                self.new_file.write(str("%.12f"%(kratos_node.Y0)))
                 self.new_file.write("\n")
         else:
             for kratos_node in kratos_node_set:
                 su2_point_id = self.node_id_kratos_to_su2[kratos_node.Id]
-                su2_point = self.su2_mesh_data["POIN"][su2_point_id]
                 self.new_file.write(str(su2_point_id))
                 self.new_file.write("\t")
-                self.new_file.write(str("%.12f"%(su2_point[0])))
+                self.new_file.write(str("%.12f"%(kratos_node.X0)))
                 self.new_file.write("\t")
-                self.new_file.write(str("%.12f"%(su2_point[1])))
+                self.new_file.write(str("%.12f"%(kratos_node.Y0)))
                 self.new_file.write("\t")
-                self.new_file.write(str("%.12f"%(su2_point[1])))
+                self.new_file.write(str("%.12f"%(kratos_node.Z0)))
                 self.new_file.write("\n")
 
         self.new_file.close()
 
-        print("> Finished writing SU2 file for mesh motion!\n")
+    # --------------------------------------------------------------------------
+    def InitializeNewSU2Project(self):
+        if os.path.isdir("DESIGNS"):
+            shutil.rmtree("DESIGNS")
+
+        su2_config = SU2.io.Config(self.interface_parameters["su2_related"]["config_file"].GetString())
+        su2_config.NUMBER_PART = self.interface_parameters["su2_related"]["number_of_cores"].GetInt()
+        su2_config.NZONES = self.interface_parameters["su2_related"]["number_of_zones"].GetInt()
+        su2_config.GRADIENT_METHOD= self.interface_parameters["su2_related"]["gradient_method"].GetString()
+
+        state = SU2.io.State()
+        state.find_files(su2_config)
+
+        self.project = SU2.opt.Project(su2_config,state)
+        self.project.config["MOTION_FILENAME"] = self.interface_parameters["su2_related"]["mesh_motion_file"].GetString()
+        self.project.state.FILES["MOTION_FILE"] = self.interface_parameters["su2_related"]["mesh_motion_file"].GetString()
+
+    # --------------------------------------------------------------------------
+    def ComputeValues(self, list_of_response_ids, update_mesh):
+        return self.project.f (list_of_response_ids, update_mesh)
+
+    # --------------------------------------------------------------------------
+    def ComputeGradient(self, response_id, update_mesh):
+        return self.project.df(response_id, update_mesh)
 
     # --------------------------------------------------------------------------
     def __ReadSU2Mesh(self):
@@ -136,7 +153,7 @@ class InterfaceSU2():
         self.su2_mesh_data["MARKS"]  = {}
 
         # open meshfile
-        f_tb_read = open(self.su2_config["MESH_FILENAME"],'r')
+        f_tb_read = open(self.interface_parameters["su2_related"]["mesh_file"].GetString(),'r')
 
         # readline helper functin
         def mesh_readlines(n_lines=1):
