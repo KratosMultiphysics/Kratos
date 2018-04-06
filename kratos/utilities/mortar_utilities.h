@@ -513,10 +513,15 @@ public:
             const array_1d<double, 3>& lm = ThisNodes[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
             if (norm_2(lm) > ZeroTolerance) { // Non zero LM
                 const array_1d<double, 3>& normal = ThisNodes[i_node].FastGetSolutionStepValue(NORMAL);
-                const array_1d<double, 3> tangent_lm = lm - inner_prod(lm, normal) * lm;
-                const array_1d<double, 3> tangent = tangent_lm/norm_2(tangent_lm);
-                for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
-                    tangent_matrix(i_node, i_dof) = tangent[i_dof];
+                const array_1d<double, 3> tangent_lm = lm - inner_prod(lm, normal) * normal;
+                if (norm_2(tangent_lm) > ZeroTolerance) {
+                    const array_1d<double, 3> tangent = tangent_lm/norm_2(tangent_lm);
+                    for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
+                        tangent_matrix(i_node, i_dof) = tangent[i_dof];
+                } else {
+                    for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
+                        tangent_matrix(i_node, i_dof) = 0.0;
+                }
             } else { // In case of zero LM
                 for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
                     tangent_matrix(i_node, i_dof) = 0.0;
