@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 import KratosMultiphysics.KratosUnittest as UnitTest
@@ -91,9 +92,8 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
 
     def setUpProblem(self):
         with WorkFolderScope(self.work_folder):
-            parameter_file = open(self.settings, 'r')
-
-            self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
+            with open(self.settings, 'r') as parameter_file:
+                self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
@@ -184,9 +184,10 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
             while(time <= end_time):
 
                 Dt = self.solver.ComputeDeltaTime()
-                time = time + Dt
-                step = step + 1
+                step += 1
+                time += Dt
                 self.main_model_part.CloneTimeStep(time)
+                self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
 
                 for process in self.list_of_processes:
                     process.ExecuteInitializeSolutionStep()

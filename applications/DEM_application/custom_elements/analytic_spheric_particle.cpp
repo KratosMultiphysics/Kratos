@@ -49,6 +49,32 @@ AnalyticSphericParticle::AnalyticSphericParticle(Element::Pointer p_spheric_part
     AnalyticSphericParticle(p_spheric_particle->Id(), p_geom, pProperties);
 }
 
+AnalyticSphericParticle& AnalyticSphericParticle::operator=(const AnalyticSphericParticle& rOther) {
+
+    SphericParticle::operator=(rOther);
+
+    NeighboursContactStatus = rOther.NeighboursContactStatus;
+    mNumberOfCollidingSpheres = rOther.mNumberOfCollidingSpheres;
+    mNumberOfCollidingSpheresWithFaces = rOther.mNumberOfCollidingSpheresWithFaces;
+    mNumberOfCollidingSpheresWithEdges = rOther.mNumberOfCollidingSpheresWithEdges;
+    mCollidingIds = rOther.mCollidingIds;
+    mCollidingRadii = rOther.mCollidingRadii;
+    mCollidingNormalVelocities = rOther.mCollidingNormalVelocities;
+    mCollidingTangentialVelocities = rOther.mCollidingTangentialVelocities;
+    mCollidingLinearImpulse = rOther.mCollidingLinearImpulse;
+    mContactingNeighbourIds = rOther.mContactingNeighbourIds;
+    mCollidingFaceIds = rOther.mCollidingFaceIds;
+    mCollidingFaceNormalVelocities = rOther.mCollidingFaceNormalVelocities;
+    mCollidingFaceTangentialVelocities = rOther.mCollidingFaceTangentialVelocities;
+    mCollidingFaceSecondTangentialVelocities = rOther.mCollidingFaceSecondTangentialVelocities;
+    mCollidingFaceCollisionTypes = rOther.mCollidingFaceCollisionTypes;
+    mContactingFaceNeighbourIds = rOther.mContactingFaceNeighbourIds;
+
+    //Nothing done for std::unique_ptr<ParticleDataBuffer> mpDataBuffer;
+
+    return *this;
+}
+
 
 int AnalyticSphericParticle::GetNumberOfCollisions(){return mNumberOfCollidingSpheres;}
 int AnalyticSphericParticle::GetNumberOfCollisionsWithFaces(){return mNumberOfCollidingSpheresWithFaces;}
@@ -100,7 +126,7 @@ void AnalyticSphericParticle::ClearImpactMemberVariables()
     mNumberOfCollidingSpheresWithFaces = 0;
     mNumberOfCollidingSpheresWithEdges = 0;
 
-    for (unsigned int i = 0; i < 4; ++i){
+    for (unsigned int i = 0; i < mMaxCollidingSpheres; ++i){
         mCollidingIds[i] = 0;
         mCollidingRadii[i] = 0.0;
         mCollidingNormalVelocities[i] = 0.0;
@@ -173,7 +199,7 @@ void AnalyticSphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(S
 
     const auto id = data_buffer.mpOtherParticle->Id();
     
-    if (IsNewNeighbour(id)){
+    if (IsNewNeighbour(id) && mNumberOfCollidingSpheres < mMaxCollidingSpheres){
         RecordNewImpact(data_buffer);
     }
 
@@ -213,7 +239,7 @@ void AnalyticSphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle
         }    
         int p_wall_id;
         p_wall_id = p_wall->Id();    
-        if (IsNewFaceNeighbour(p_wall_id)){
+        if (IsNewFaceNeighbour(p_wall_id) && mNumberOfCollidingSpheresWithFaces < mMaxCollidingFaceSpheres){
            
             RecordNewFaceImpact(data_buffer);
         }

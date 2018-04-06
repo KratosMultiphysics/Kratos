@@ -80,7 +80,7 @@ namespace Kratos
     StaticMethod(StaticMethod& rOther) : BaseType(rOther) {}
 
     /// Clone.
-    BaseTypePointer Clone()
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new StaticMethod(*this) );
     }

@@ -137,19 +137,31 @@ public:
     /// Create a new element of this type.
     /**
      * Returns a pointer to a new element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Element::Pointer(new BinghamFluid<TBaseElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_shared< BinghamFluid<TBaseElement> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
-
+    /// Create a new element of this type.
+	/**
+	 @param NewId Index of the new element
+     @param pGeom A pointer to the geometry of the new element
+	 @param pProperties Pointer to the element's properties
+	 */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared< BinghamFluid<TBaseElement> >(NewId,pGeom,pProperties);
+    }
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override
     {

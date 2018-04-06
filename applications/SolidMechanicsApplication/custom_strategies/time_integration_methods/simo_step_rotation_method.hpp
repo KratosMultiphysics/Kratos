@@ -84,7 +84,7 @@ namespace Kratos
     SimoStepRotationMethod(SimoStepRotationMethod& rOther) : DerivedType(rOther) {}
 
     /// Clone.
-    BaseTypePointer Clone()
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new SimoStepRotationMethod(*this) );
     }

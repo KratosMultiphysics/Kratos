@@ -84,7 +84,7 @@ namespace Kratos
     SimoMethod(SimoMethod& rOther) : DerivedType(rOther) {}
 
     /// Clone.
-    BaseTypePointer Clone()
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new SimoMethod(*this) );
     }

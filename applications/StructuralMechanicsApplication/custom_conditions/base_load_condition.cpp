@@ -321,6 +321,38 @@ namespace Kratos
         return IntegrationPoints[PointNumber].Weight() * detJ;
     }
 
+    //***********************************************************************************
+    //***********************************************************************************
+
+    void BaseLoadCondition::AddExplicitContribution(const VectorType& rRHS, 
+        const Variable<VectorType>& rRHSVariable,
+        Variable<array_1d<double,3> >& rDestinationVariable, 
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+        if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
+        {
+
+            for(SizeType i=0; i< number_of_nodes; i++)
+            {
+                SizeType index = dimension * i;
+
+                array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+                for(SizeType j=0; j<dimension; j++)
+                {
+                    #pragma omp atomic
+                    ForceResidual[j] += rRHS[index + j];
+                }
+            }
+        }
+
+    KRATOS_CATCH( "" )
+    }
+
 } // Namespace Kratos
 
 

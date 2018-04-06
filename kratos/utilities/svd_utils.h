@@ -92,13 +92,13 @@ public:
      * This function gives the SVD of a given mxn matrix (m>=n), returns U,S; where A=U*S*V
      * U and V are unitary, and S is a diagonal matrix. 
      * Where s_i >= 0, and s_i >= s_i+1 (which means that the biggest number is the first one and the smallest the last one)
-     * TODO: This version is quite innefficient, look for a real and mathematical implementation (not the algorithm found in Wikipedia!!)
-     * @param InputMatrix: The matrix where perform the SVD 
-     * @param UMatrix: The unitary U matrix
-     * @param SMatrix: The diagonal S matrix
-     * @param VMatrix: The unitary V matrix
-     * @param Tolerance: The tolerance considered
-     * @param TypeSVD: The type of SVD algorithm (Jacobi by default) 
+     * @todo This version is quite innefficient, look for a real and mathematical implementation (not the algorithm found in Wikipedia!!)
+     * @param InputMatrix The matrix where perform the SVD 
+     * @param UMatrix The unitary U matrix
+     * @param SMatrix The diagonal S matrix
+     * @param VMatrix The unitary V matrix
+     * @param Tolerance The tolerance considered
+     * @param TypeSVD The type of SVD algorithm (Jacobi by default) 
      * @return iter: The number of iterations
      */
     
@@ -126,11 +126,11 @@ public:
      * U and V are unitary, and S is a diagonal matrix. 
      * Where s_i >= 0, and s_i >= s_i+1 (which means that the biggest number is the first one and the smallest the last one)
      * TODO: This version is quite innefficient, look for a real and mathematical implementation (not the algorithm found in Wikipedia!!)
-     * @param InputMatrix: The matrix where perform the SVD 
-     * @param UMatrix: The unitary U matrix
-     * @param SMatrix: The diagonal S matrix
-     * @param VMatrix: The unitary V matrix
-     * @param Tolerance: The tolerance considered
+     * @param InputMatrix The matrix where perform the SVD 
+     * @param UMatrix The unitary U matrix
+     * @param SMatrix The diagonal S matrix
+     * @param VMatrix The unitary V matrix
+     * @param Tolerance The tolerance considered
      * @return iter: The number of iterations
      */
      
@@ -205,10 +205,10 @@ public:
      * This function gives the Jacobi SVD of a given 2x2 matrix, returns U,S; where A=U*S*V
      * U and V are unitary, and S is a diagonal matrix. 
      * Where s_i >= 0, and s_i >= s_i+1
-     * @param InputMatrix: The matrix where perform the SVD 
-     * @param UMatrix: The unitary U matrix
-     * @param SMatrix: The diagonal S matrix
-     * @param VMatrix: The unitary V matrix
+     * @param InputMatrix The matrix where perform the SVD 
+     * @param UMatrix The unitary U matrix
+     * @param SMatrix The diagonal S matrix
+     * @param VMatrix The unitary V matrix
      */
      
     static inline void SingularValueDecomposition2x2(
@@ -238,10 +238,10 @@ public:
      * This function gives the Jacobi SVD of a given 2x2 matrix, returns U,S; where A=U*S*V
      * U and V are unitary, and S is a diagonal matrix. 
      * Where s_i >= 0, and s_i >= s_i+1
-     * @param InputMatrix: The matrix where perform the SVD 
-     * @param UMatrix: The unitary U matrix
-     * @param SMatrix: The diagonal S matrix
-     * @param VMatrix: The unitary V matrix
+     * @param InputMatrix The matrix where perform the SVD 
+     * @param UMatrix The unitary U matrix
+     * @param SMatrix The diagonal S matrix
+     * @param VMatrix The unitary V matrix
      */
      
     static inline void SingularValueDecomposition2x2Symmetric(
@@ -315,13 +315,13 @@ public:
     
     /**
      * This method computes the Jacobi rotation operation
-     * @param J1: First Jacobi matrix
-     * @param J2: Second Jacobi matrix
-     * @param InputMatrix: The matrix to compute the Jacobi tolerance
-     * @param Size1: The size of the matrix (number of rows) 
-     * @param Size2: The size of the matrix (number of columns) 
-     * @param Index1: The index to compute (row) 
-     * @param Index2: The index to compute (column) 
+     * @param J1 First Jacobi matrix
+     * @param J2 Second Jacobi matrix
+     * @param InputMatrix The matrix to compute the Jacobi tolerance
+     * @param Size1 The size of the matrix (number of rows) 
+     * @param Size2 The size of the matrix (number of columns) 
+     * @param Index1 The index to compute (row) 
+     * @param Index2 The index to compute (column) 
      */
     static inline void Jacobi(
         MatrixType& J1,
@@ -358,12 +358,12 @@ public:
     
     /**
      * This method computes the Jacobi rotation operation
-     * @param J1: First Jacobi matrix
-     * @param InputMatrix: The matrix to compute the Jacobi tolerance
-     * @param Size1: The size of the matrix (number of rows) 
-     * @param Size2: The size of the matrix (number of columns) 
-     * @param Index1: The index to compute (row) 
-     * @param Index2: The index to compute (column) 
+     * @param J1 First Jacobi matrix
+     * @param InputMatrix The matrix to compute the Jacobi tolerance
+     * @param Size1 The size of the matrix (number of rows) 
+     * @param Size2 The size of the matrix (number of columns) 
+     * @param Index1 The index to compute (row) 
+     * @param Index2 The index to compute (column) 
      */
     static inline void Jacobi(
         MatrixType& J1,
@@ -393,8 +393,8 @@ public:
     /**
      * This method computes the condition number using the SVD 
      * The condition number can be estimated as the ratio between the largest singular value and the smallest singular value
-     * @param InputMatrix: The matrix to be evaluated
-     * @param Tolerance: The tolerance considered
+     * @param InputMatrix The matrix to be evaluated
+     * @param Tolerance The tolerance considered
      * @return condition_number: The ratio between the largest SV and the smallest SV
      */
     static inline TDataType SVDConditionNumber(

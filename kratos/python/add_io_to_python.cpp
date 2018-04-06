@@ -113,10 +113,12 @@ void (GidIO<>::*pointer_to_int_write_nodal_results)( Variable<int> const& rVaria
 void (GidIO<>::*pointer_to_array1d_write_nodal_results)(
     Variable<array_1d<double, 3> > const& rVariable, GidIO<>::NodesContainerType& rNodes,
     double SolutionTag, std::size_t SolutionStepNumber) = &GidIO<>::WriteNodalResults;
-
-//         void (GidIO::*pointer_to_vector_write_nodal_results)(Variable<Vector > const& rVariable, GidIO::NodesContainerType& rNodes, double SolutionTag, std::size_t SolutionStepNumber) = &GidIO::WriteNodalResults;
-void (GidIO<>::*pointer_to_matrix_write_nodal_results)(Variable<Matrix > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag, std::size_t SolutionStepNumber) = &GidIO<>::WriteNodalResults;
-
+void (GidIO<>::*pointer_to_vector_write_nodal_results)(
+    Variable<Vector > const& rVariable, GidIO<>::NodesContainerType& rNodes, 
+    double SolutionTag, std::size_t SolutionStepNumber) = &GidIO<>::WriteNodalResults;
+void (GidIO<>::*pointer_to_matrix_write_nodal_results)(
+    Variable<Matrix > const& rVariable, GidIO<>::NodesContainerType& rNodes, 
+    double SolutionTag, std::size_t SolutionStepNumber) = &GidIO<>::WriteNodalResults;
 void (GidIO<>::*local_axes_write_nodal_results)( Variable<array_1d<double, 3> > const& rVariable,
         GidIO<>::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &GidIO<>::WriteLocalAxesOnNodes;
@@ -129,18 +131,15 @@ void (GidIO<>::*pointer_to_flags_write_nodal_results_NH)( Kratos::Flags rFlag, s
         
 void (GidIO<>::*pointer_to_bool_write_nodal_results_NH)( Variable<bool> const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
 	= &GidIO<>::WriteNodalResultsNonHistorical;
-
 void (GidIO<>::*pointer_to_double_write_nodal_results_NH)( Variable<double> const& rVariable,  GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
-	= &GidIO<>::WriteNodalResultsNonHistorical;
-void (GidIO<>::*pointer_to_array1d_write_nodal_results_NH)(Variable<array_1d<double, 3> > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
-	= &GidIO<>::WriteNodalResultsNonHistorical;
-
+        = &GidIO<>::WriteNodalResultsNonHistorical;
+void (GidIO<>::*pointer_to_array1d_write_nodal_results_NH)(Variable<array_1d<double, 3> > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) = &GidIO<>::WriteNodalResultsNonHistorical;
+void (GidIO<>::*pointer_to_vector_write_nodal_results_NH)(Variable<Vector > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
+        = &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_matrix_write_nodal_results_NH)(Variable<Matrix > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
 	= &GidIO<>::WriteNodalResultsNonHistorical;
-
 void (GidIO<>::*local_axes_write_nodal_results_NH)( Variable<array_1d<double, 3> > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
 	= &GidIO<>::WriteLocalAxesOnNodesNonHistorical;
-
 
 //         void (GidIO::*pointer_to_double_cond_print_on_gauss_points)(const Variable<double>& rVariable,
 //               ModelPart& r_model_part, double SolutionTag) = &GidIO::CondPrintOnGaussPoints;
@@ -231,8 +230,7 @@ void  AddIOToPython()
     .def("WriteNodalResults",pointer_to_double_write_nodal_results)
     .def("WriteNodalResults",pointer_to_int_write_nodal_results)
     .def("WriteNodalResults",pointer_to_array1d_write_nodal_results)
-
-//                    .def("WriteNodalResults",pointer_to_vector_write_nodal_results)
+    .def("WriteNodalResults",pointer_to_vector_write_nodal_results)
     .def("WriteNodalResults",pointer_to_matrix_write_nodal_results)
 
     .def("WriteLocalAxesOnNodes",local_axes_write_nodal_results)
@@ -241,6 +239,7 @@ void  AddIOToPython()
     .def("WriteNodalResultsNonHistorical",pointer_to_bool_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_double_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_array1d_write_nodal_results_NH)
+    .def("WriteNodalResultsNonHistorical",pointer_to_vector_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_matrix_write_nodal_results_NH)
     .def("WriteLocalAxesOnNodesNonHistorical",local_axes_write_nodal_results_NH)
 

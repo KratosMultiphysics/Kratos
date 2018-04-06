@@ -73,7 +73,7 @@ namespace Kratos {
         }
     }
     
-    void RungeKuttaScheme::CalculateNewRotationalVariablesOfClusters(
+    void RungeKuttaScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,

@@ -250,6 +250,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HYPERELASTIC_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_BORJA_MODEL_H_INCLUDED  defined 
 
 

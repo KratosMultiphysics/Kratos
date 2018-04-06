@@ -107,16 +107,16 @@ for process in list_of_processes_bf:
 mapper_settings_file = open("MapperSettings.json",'r')
 Projectparameters_Mapper = Parameters( mapper_settings_file.read())["mapper_settings"]
 
-inlet_mapper = KratosMapping.MapperFactory(main_model_part_bg, 
-                                            main_model_part_bf, 
+inlet_mapper = KratosMapping.MapperFactory.CreateMapper(main_model_part_bg,
+                                            main_model_part_bf,
                                             Projectparameters_Mapper[0])
 
-sides_mapper = KratosMapping.MapperFactory(main_model_part_bg, 
-                                            main_model_part_bf, 
+sides_mapper = KratosMapping.MapperFactory.CreateMapper(main_model_part_bg,
+                                            main_model_part_bf,
                                             Projectparameters_Mapper[1])
 
-outlet_mapper = KratosMapping.MapperFactory(main_model_part_bg, 
-                                            main_model_part_bf, 
+outlet_mapper = KratosMapping.MapperFactory.CreateMapper(main_model_part_bg,
+                                            main_model_part_bf,
                                             Projectparameters_Mapper[2])
 
 ## Stepping and time settings

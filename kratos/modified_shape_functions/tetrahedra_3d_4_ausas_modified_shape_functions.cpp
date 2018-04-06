@@ -24,7 +24,7 @@ namespace Kratos
 /// Default constructor
 Tetrahedra3D4AusasModifiedShapeFunctions::Tetrahedra3D4AusasModifiedShapeFunctions(const GeometryPointerType pInputGeometry, const Vector& rNodalDistances) :
     AusasModifiedShapeFunctions(pInputGeometry, rNodalDistances),
-    mpTetrahedraSplitter(boost::make_shared<DivideTetrahedra3D4>(*pInputGeometry, rNodalDistances)) {
+    mpTetrahedraSplitter(Kratos::make_shared<DivideTetrahedra3D4>(*pInputGeometry, rNodalDistances)) {
 
     // Perform the element splitting
     mpTetrahedraSplitter->GenerateDivision();
@@ -51,10 +51,18 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::PrintData(std::ostream& rOStream)
     rOStream << "Tetrahedra3D4N Ausas modified shape functions computation class:\n";
     rOStream << "\tGeometry type: " << (*p_geometry).Info() << "\n";
     std::stringstream distances_buffer;
+    std::stringstream stm;
     for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
-        distances_buffer << std::to_string(nodal_distances(i)) << " ";
+        stm << nodal_distances(i);
+        distances_buffer << stm.str() << " ";
     }
     rOStream << "\tDistance values: " << distances_buffer.str();
+};
+
+
+// Returns a pointer to the splitting utility
+const DivideGeometry::Pointer Tetrahedra3D4AusasModifiedShapeFunctions::pGetSplittingUtil() const {
+    return mpTetrahedraSplitter;
 };
 
 // Returns true if the element is splitting
@@ -343,6 +351,52 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceAreaNo
     else
     {
         KRATOS_ERROR << "Using the ComputeNegativeExteriorFaceAreaNormals method for a non divided geometry.";
+    }
+};
+
+// Computes the positive side shape function values in the edges intersections
+void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeShapeFunctionsOnPositiveEdgeIntersections(
+    Matrix &rPositiveEdgeIntersectionsShapeFunctionsValues){
+
+    if (this->IsSplit()) {
+        // Get the positive side condensation matrix
+         Matrix p_matrix_pos_side;
+        this->SetPositiveSideCondensationMatrix(
+            p_matrix_pos_side,
+            mpTetrahedraSplitter->mEdgeNodeI,
+            mpTetrahedraSplitter->mEdgeNodeJ,
+            mpTetrahedraSplitter->mSplitEdges);
+
+        // Compute the edge intersections shape function values
+        this->ComputeEdgeIntersectionValuesOnOneSide(
+            p_matrix_pos_side,
+            rPositiveEdgeIntersectionsShapeFunctionsValues);
+
+    } else {
+        KRATOS_ERROR << "Using the ComputeShapeFunctionsOnPositiveEdgeIntersections method for a non divided geometry.";
+    }
+};
+
+// Computes the negative side shape function values in the edges intersections
+void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeShapeFunctionsOnNegativeEdgeIntersections(
+    Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues){
+
+    if (this->IsSplit()) {
+        // Get the positive side condensation matrix
+        Matrix p_matrix_neg_side;
+        this->SetNegativeSideCondensationMatrix(
+            p_matrix_neg_side,
+            mpTetrahedraSplitter->mEdgeNodeI,
+            mpTetrahedraSplitter->mEdgeNodeJ,
+            mpTetrahedraSplitter->mSplitEdges);
+
+        // Compute the edge intersections shape function values
+        this->ComputeEdgeIntersectionValuesOnOneSide(
+            p_matrix_neg_side,
+            rNegativeEdgeIntersectionsShapeFunctionsValues);
+
+    } else {
+        KRATOS_ERROR << "Using the ComputeShapeFunctionsOnNegativeEdgeIntersections method for a non divided geometry.";
     }
 };
 

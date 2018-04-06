@@ -13,6 +13,7 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
+#include "utilities/geometry_utilities.h"
 #include "custom_utilities/metrics_math_utils.h"
 #include "processes/compute_nodal_gradient_process.h" 
 #include "custom_processes/metrics_hessian_process.h" 
@@ -27,15 +28,16 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
         ):mThisModelPart(rThisModelPart),
           mVariable(rVariable)
 {               
-    Parameters DefaultParameters = Parameters(R"(
+    Parameters default_parameters = Parameters(R"(
     {
         "minimal_size"                        : 0.1,
         "maximal_size"                        : 10.0, 
         "enforce_current"                     : true, 
         "hessian_strategy_parameters": 
-        { 
-            "interpolation_error"                  : 1.0e-6, 
-            "mesh_dependent_constant"              : 0.28125
+        {   
+            "estimate_interpolation_error"         : false,
+            "interpolation_error"                  : 1.0e-6,  
+            "mesh_dependent_constant"              : 0.28125 
         }, 
         "anisotropy_remeshing"                : true, 
         "anisotropy_parameters":
@@ -45,7 +47,7 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
             "interpolation"                        : "Linear"
         }
     })" );
-    ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+    ThisParameters.ValidateAndAssignDefaults(default_parameters);
         
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
@@ -53,12 +55,14 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
     
     // In case we have isotropic remeshing (default values)
     if (ThisParameters["anisotropy_remeshing"].GetBool() == false) {
-        mInterpError = DefaultParameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
-        mMeshConstant = DefaultParameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
-        mAnisotropicRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
-        mBoundLayer = DefaultParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
-        mInterpolation = ConvertInter(DefaultParameters["anisotropy_parameters"]["interpolation"].GetString());
+        mEstimateInterpError = default_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"].GetBool();
+        mInterpError = default_parameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
+        mMeshConstant = default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
+        mAnisotropicRatio = default_parameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+        mBoundLayer = default_parameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+        mInterpolation = ConvertInter(default_parameters["anisotropy_parameters"]["interpolation"].GetString());
     } else {
+        mEstimateInterpError = ThisParameters["hessian_strategy_parameters"]["estimate_interpolation_error"].GetBool();
         mInterpError = ThisParameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
         mMeshConstant = ThisParameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
         mAnisotropicRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
@@ -103,15 +107,11 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
         it_node->SetValue(ANISOTROPIC_RATIO, ratio); 
         
         // We compute the metric
-#ifdef KRATOS_DEBUG 
-        KRATOS_ERROR_IF_NOT(it_node->Has(MMG_METRIC)) <<  "ERROR:: MMG_METRIC not defined for node " << it_node->Id();
-#endif       
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(MMG_METRIC)) <<  "ERROR:: MMG_METRIC not defined for node " << it_node->Id();  
     
         Vector& metric = it_node->GetValue(MMG_METRIC);
         
-#ifdef KRATOS_DEBUG 
-        KRATOS_ERROR_IF(metric.size() != TDim * 3 - 3) << "Wrong size of vector MMG_METRIC found for node " << it_node->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
-#endif
+        KRATOS_DEBUG_ERROR_IF(metric.size() != TDim * 3 - 3) << "Wrong size of vector MMG_METRIC found for node " << it_node->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
         
         const double norm_metric = norm_2(metric);
         if (norm_metric > 0.0) {// NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
@@ -136,20 +136,23 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
     const double ElementMaxSize // This way we can impose as maximum as the previous size if we desire
     )
 {        
+    // We first transform the Hessian into a matrix
+    const bounded_matrix<double, TDim, TDim> hessian_matrix = MetricsMathUtils<TDim>::VectorToTensor(Hessian);
+    
     // Calculating Metric parameters
-    const double c_epslilon = mMeshConstant/mInterpError;
+    double interpolation_error = mInterpError;
+    if (mEstimateInterpError == true)
+            interpolation_error = 2.0/9.0 * MathUtils<double>::Max(ElementMaxSize, ElementMaxSize * norm_frobenius(hessian_matrix));
+    
+    KRATOS_ERROR_IF(interpolation_error < std::numeric_limits<double>::epsilon()) << "ERROR: YOUR INTERPOLATION ERROR IS NEAR ZERO: " << interpolation_error << std::endl;
+    const double c_epslilon = mMeshConstant/interpolation_error;
     const double min_ratio = 1.0/(ElementMinSize * ElementMinSize);
-//         const double min_ratio = 1.0/(mMinSize * mMinSize);
     const double max_ratio = 1.0/(ElementMaxSize * ElementMaxSize);
-//         const double max_ratio = 1.0/(mMaxSize * mMaxSize);
     
     typedef bounded_matrix<double, TDim, TDim> temp_type;
     
     // Declaring the eigen system
     bounded_matrix<double, TDim, TDim> eigen_vector_matrix, eigen_values_matrix;
-
-    // We first transform into a matrix
-    const bounded_matrix<double, TDim, TDim> hessian_matrix = MetricsMathUtils<TDim>::VectorToTensor(Hessian);
     
     MathUtils<double>::EigenSystem<TDim>(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
     
@@ -160,10 +163,10 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
     // Considering anisotropic
     if (AnisotropicRatio < 1.0) {
         double eigen_max = eigen_values_matrix(0, 0);
-        double eigen_min = eigen_values_matrix(1, 1);
-        for (unsigned int i = 1; i < TDim - 1; ++i) {
+        double eigen_min = eigen_values_matrix(0, 0);
+        for (unsigned int i = 1; i < TDim; ++i) {
             eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
-            eigen_min = MathUtils<double>::Min(eigen_max, eigen_values_matrix(i, i));
+            eigen_min = MathUtils<double>::Min(eigen_min, eigen_values_matrix(i, i));
         }
         
         const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - AnisotropicRatio);
@@ -173,7 +176,7 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
             eigen_values_matrix(i, i) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(i, i), eigen_max), relative_eigen_radius);
     } else { // NOTE: For isotropic we should consider the maximum of the eigenvalues
         double eigen_max = eigen_values_matrix(0, 0);
-        for (unsigned int i = 1; i < TDim - 1; ++i)
+        for (unsigned int i = 1; i < TDim; ++i)
             eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
         for (unsigned int i = 0; i < TDim; ++i)
             eigen_values_matrix(i, i) = eigen_max;
@@ -286,22 +289,6 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
 /***********************************************************************************/
 
 template<unsigned int TDim, class TVarType>  
-Interpolation ComputeHessianSolMetricProcess<TDim, TVarType>::ConvertInter(const std::string& str)
-{
-    if(str == "Constant") 
-        return Constant;
-    else if(str == "Linear") 
-        return Linear;
-    else if(str == "Exponential") 
-        return Exponential;
-    else
-        return Linear;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, class TVarType>  
 double ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAnisotropicRatio(
     const double Distance,
     const double AnisotropicRatio,
@@ -313,11 +300,11 @@ double ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAnisotropicRatio
     double ratio = 1.0; // NOTE: Isotropic mesh
     if (AnisotropicRatio < 1.0) {                           
         if (std::abs(Distance) <= BoundLayer) {
-            if (rInterpolation == Constant)
+            if (rInterpolation == Interpolation::CONSTANT)
                 ratio = AnisotropicRatio;
-            else if (rInterpolation == Linear)
+            else if (rInterpolation == Interpolation::LINEAR)
                 ratio = AnisotropicRatio + (std::abs(Distance)/BoundLayer) * (1.0 - AnisotropicRatio);
-            else if (rInterpolation == Exponential) {
+            else if (rInterpolation == Interpolation::EXPONENTIAL) {
                 ratio = - std::log(std::abs(Distance)/BoundLayer) * AnisotropicRatio + tolerance;
                 if (ratio > 1.0) ratio = 1.0;
             }

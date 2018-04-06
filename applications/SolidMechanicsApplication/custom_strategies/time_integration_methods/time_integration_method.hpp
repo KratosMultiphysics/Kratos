@@ -94,7 +94,7 @@ namespace Kratos
     }
 
     /// Clone
-    TimeIntegrationMethodPointer Clone()
+    virtual TimeIntegrationMethodPointer Clone()
     {
       return TimeIntegrationMethodPointer( new TimeIntegrationMethod(*this) );
     }

@@ -17,19 +17,19 @@ class ImposeWaterLoadsConditionProcess(Process):
         
         self.components_process_list = []
         
-        if "Hydrostatic" in settings["model_part_name"].GetString():
+        if ("HydroLinePressure2D" in settings["model_part_name"].GetString()) or ("HydroSurfacePressure3D" in settings["model_part_name"].GetString()):
 
             self.components_process_list.append(DamHydroConditionLoadProcess(model_part, settings))
             
-        if "Straight" in settings["model_part_name"].GetString():
+        if ("StraightUpliftLinePressure2D" in settings["model_part_name"].GetString()) or ("StraightUpliftSurfacePressure3D" in settings["model_part_name"].GetString()):
             
             self.components_process_list.append(DamUpliftConditionLoadProcess(model_part, settings))
             
-        if "Circular" in settings["model_part_name"].GetString():
+        if "CircularUpliftSurfacePressure3D" in settings["model_part_name"].GetString():
             
             self.components_process_list.append(DamUpliftCircularConditionLoadProcess(model_part, settings))
         
-        if "Hydrodynamic" in settings["model_part_name"].GetString():
+        if ("HydroDynamicLinePressure2D" in settings["model_part_name"].GetString()) or ("HydroDynamicSurfacePressure3D" in settings["model_part_name"].GetString()):
             
             self.components_process_list.append(DamWestergaardConditionLoadProcess(model_part, settings))   
         

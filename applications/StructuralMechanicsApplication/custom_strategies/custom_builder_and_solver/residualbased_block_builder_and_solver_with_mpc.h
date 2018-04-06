@@ -143,7 +143,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
     typedef Node<3> NodeType;
     typedef MpcData::Pointer MpcDataPointerType;
     //typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
-    typedef boost::shared_ptr<std::vector<MpcDataPointerType>> MpcDataPointerVectorType;
+    typedef Kratos::shared_ptr<std::vector<MpcDataPointerType>> MpcDataPointerVectorType;
 
     typedef ProcessInfo ProcessInfoType;
 

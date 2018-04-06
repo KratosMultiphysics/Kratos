@@ -16,86 +16,281 @@
 // System includes 
 
 
-// External includes 
-#include "boost/smart_ptr.hpp"
+// External includes
 
 
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/variables.h"
 #include "includes/ublas_interface.h"
-#include "includes/variables.h" 
-#include "includes/serializer.h"
+#include "custom_elements/primitive_var_element.hpp"
 
 namespace Kratos
 {
+///@addtogroup ShallowWaterApplication
+///@{
 
-  template< unsigned int TNumNodes >
-  class EulerPrimVarElement : public Element
-  {
-  public:
-     
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Implementation of a linear element for shallow water interpolating reduced variables
+template< unsigned int TNumNodes >
+class EulerPrimVarElement : public PrimitiveVarElement<TNumNodes>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
     /// Counted pointer of EulerPrimVarElement
     KRATOS_CLASS_POINTER_DEFINITION( EulerPrimVarElement );
 
-//----------------------------------------------------------------------
+    typedef PrimitiveVarElement<TNumNodes>                             BaseType;
+
+    typedef typename BaseType::IndexType                              IndexType;
+
+    typedef typename BaseType::GeometryType                        GeometryType;
+
+    typedef typename BaseType::GeometryType::Pointer        GeometryPointerType;
+
+    typedef typename BaseType::PropertiesType                    PropertiesType;
+
+    typedef typename BaseType::PropertiesType::Pointer    PropertiesPointerType;
+
+    typedef typename BaseType::NodesArrayType                    NodesArrayType;
+
+    typedef typename BaseType::ElementVariables                ElementVariables;
+
+    typedef typename BaseType::EquationIdVectorType        EquationIdVectorType;
+
+    typedef typename BaseType::DofsVectorType                    DofsVectorType;
+
+    typedef typename BaseType::VectorType                            VectorType;
+
+    typedef typename BaseType::MatrixType                            MatrixType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /// Default constructor.
-    EulerPrimVarElement()
-	: Element()
-	{}
-	
-    EulerPrimVarElement(IndexType NewId, GeometryType::Pointer pGeometry)
-	: Element(NewId, pGeometry)
-	{}
+    EulerPrimVarElement() :
+        BaseType()
+    {}
 
-	EulerPrimVarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-	: Element(NewId, pGeometry, pProperties)
-	{}
+    /// Constructor using a Geometry instance
+    EulerPrimVarElement(IndexType NewId, GeometryPointerType pGeometry) :
+        BaseType(NewId, pGeometry)
+    {}
+
+    /// Constructor using geometry and properties
+    EulerPrimVarElement(IndexType NewId, GeometryPointerType pGeometry, PropertiesPointerType pProperties) :
+        BaseType(NewId, pGeometry, pProperties)
+    {}
 
     /// Destructor.
-    virtual ~ EulerPrimVarElement() {};
+    virtual ~ EulerPrimVarElement() override {};
 
-//----------------------------------------------------------------------
-
-	Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
-	{
-		KRATOS_TRY
-		return Element::Pointer(new EulerPrimVarElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
-		KRATOS_CATCH("")
-	}
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    ///@}
+    ///@name Operations
+    ///@{
 
-    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo);
+    /// Create a new Euler Primitive element and return a pointer to it
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesPointerType pProperties) const
+    {
+        KRATOS_TRY
+        return Kratos::make_shared< EulerPrimVarElement < TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        KRATOS_CATCH("")
+    }
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    Element::Pointer Create(IndexType NewId, GeometryPointerType pGeom, PropertiesPointerType pProperties) const override
+    {
+        KRATOS_TRY
+        return Kratos::make_shared< EulerPrimVarElement < TNumNodes > >(NewId, pGeom, pProperties);
+        KRATOS_CATCH("")
+    }
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    /// Check that all required data containers are properly initialized and registered in Kratos
+    /** 
+     * @return 0 if no errors are detected.
+     */
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    /// Fill given vector with the linear system row index for the element's degrees of freedom
+    /**
+     * @param rResult
+     * @param rCurrentProcessInfo
+     */
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-//----------------------------------------------------------------------
+    /// Fill given array with containing the element's degrees of freedom
+    /**
+     * @param rElementalDofList
+     * @param rCurrentProcessInfo
+     */
+    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo) override;
 
-  protected:
+    /// Evaluate the elemental contribution to the problem for turbulent viscosity.
+    /**
+     * @param rLeftHandSideMatrix Elemental left hand side matrix
+     * @param rRightHandSideVector Elemental right hand side vector
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containg the element
+     */
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
-    
-    double ComputeElemSize(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX);
-    
-    void GetNodalValues(array_1d<double, TNumNodes*3>& rdepth, array_1d<double, TNumNodes*3>& runkn, array_1d<double, TNumNodes*3>& rprev);
-    
-    void GetElementValues(boost::numeric::ublas::bounded_matrix<double, TNumNodes, 2>& rDN_DX, array_1d<double, TNumNodes*3>& r_nodal_var, double& rheight, boost::numeric::ublas::bounded_matrix<double,1, 2>& rvel);
-    
-//----------------------------------------------------------------------
+    ///@}
+    ///@name Access
+    ///@{
 
-  private:
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    void GetNodalValues(ElementVariables& rVariables);
+
+    void GetElementValues(const bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
+
+    void ComputeAuxMatrices(
+            const bounded_matrix<double,TNumNodes, TNumNodes>& rNcontainer,
+            const bounded_matrix<double,TNumNodes,2>& rDN_DX,
+            const ElementVariables& rVariables,
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixScalar,
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixVector,
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarGrad,
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiv,
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarDiff,
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiff,
+            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rConvection );
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Serialization
+    ///@{
 
     friend class Serializer;
 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-  }; // Class EulerPrimVarElement
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
+
+
+}; // Class EulerPrimVarElement
+
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///@}
+
+///@} addtogroup block
 
 }  // namespace Kratos.
 

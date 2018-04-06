@@ -107,18 +107,11 @@ class TestCase(KratosUnittest.TestCase):
         return HDF5FileSerial(params)
 
     def _get_model_part_io(self, hdf5_file):
-        params = Parameters("""
-        {
-            "prefix" : "/ModelData",
-            "list_of_elements" : ["Element2D3N", "Element2D4N"],
-            "list_of_conditions" : ["SurfaceCondition3D3N", "SurfaceCondition3D4N"]
-        }""")
-        return HDF5ModelPartIO(params, hdf5_file)
+        return HDF5ModelPartIO(hdf5_file, "/ModelData")
 
     def _get_nodal_solution_step_data_io(self, hdf5_file):
         params = Parameters("""
         {
-            "partitioned" : false,
             "prefix" : "/ResultsData",
             "list_of_variables" : ["DISPLACEMENT", "VELOCITY", "ACCELERATION", "PRESSURE", "VISCOSITY", "DENSITY", "ACTIVATION_LEVEL"]
         }""")
