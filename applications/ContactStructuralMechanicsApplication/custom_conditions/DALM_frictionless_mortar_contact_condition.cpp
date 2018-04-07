@@ -71,7 +71,8 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     ) 
 {
     BaseType::CalculateLocalLHS(rLocalLHS, rMortarConditionMatrices, rDerivativeData, rActiveInactive);
@@ -101,7 +102,8 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
     Vector& rLocalRHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     ) 
 {
     BaseType::CalculateLocalRHS(rLocalRHS, rMortarConditionMatrices, rDerivativeData, rActiveInactive);
@@ -120,17 +122,14 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
 /***************************** BEGIN AD REPLACEMENT ********************************/
 /***********************************************************************************/
 
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<>
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, false>::CalculateLocalLHS(
-        Matrix& rLocalLHS,
-        const MortarConditionMatrices& rMortarConditionMatrices,
-        const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
-        )
+	Matrix& rLocalLHS,
+	const MortarConditionMatrices& rMortarConditionMatrices,
+	const DerivativeDataType& rDerivativeData,
+	const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+	)
 {
     // Initialize values
     // const bounded_matrix<double, 2, 2>& u1 = rDerivativeData.u1;
@@ -241,11 +240,12 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
 
 template<>
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, false>::CalculateLocalLHS(
-        Matrix& rLocalLHS,
-        const MortarConditionMatrices& rMortarConditionMatrices,
-        const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
-        )
+	Matrix& rLocalLHS,
+	const MortarConditionMatrices& rMortarConditionMatrices,
+	const DerivativeDataType& rDerivativeData,
+	const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+	)
 {
     // Initialize values
     // const bounded_matrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -668,11 +668,12 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
 
 template<>
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, false>::CalculateLocalLHS(
-        Matrix& rLocalLHS,
-        const MortarConditionMatrices& rMortarConditionMatrices,
-        const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
-        )
+	Matrix& rLocalLHS,
+	const MortarConditionMatrices& rMortarConditionMatrices,
+	const DerivativeDataType& rDerivativeData,
+	const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+	)
 {
     // Initialize values
     // const bounded_matrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -2047,11 +2048,12 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
 
 template<>
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true>::CalculateLocalLHS(
-        Matrix& rLocalLHS,
-        const MortarConditionMatrices& rMortarConditionMatrices,
-        const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
-        )
+	Matrix& rLocalLHS,
+	const MortarConditionMatrices& rMortarConditionMatrices,
+	const DerivativeDataType& rDerivativeData,
+	const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+	)
 {
     // Initialize values
     // const bounded_matrix<double, 2, 2>& u1 = rDerivativeData.u1;
@@ -2162,11 +2164,12 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
 
 template<>
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true>::CalculateLocalLHS(
-        Matrix& rLocalLHS,
-        const MortarConditionMatrices& rMortarConditionMatrices,
-        const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
-        )
+	Matrix& rLocalLHS,
+	const MortarConditionMatrices& rMortarConditionMatrices,
+	const DerivativeDataType& rDerivativeData,
+	const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+	)
 {
     // Initialize values
     // const bounded_matrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -2589,11 +2592,12 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
 
 template<>
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true>::CalculateLocalLHS(
-        Matrix& rLocalLHS,
-        const MortarConditionMatrices& rMortarConditionMatrices,
-        const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
-        )
+	Matrix& rLocalLHS,
+	const MortarConditionMatrices& rMortarConditionMatrices,
+	const DerivativeDataType& rDerivativeData,
+	const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+	)
 {
     // Initialize values
     // const bounded_matrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -3976,11 +3980,12 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
 
 template<>
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, false>::CalculateLocalRHS(
-        Vector& rLocalRHS,
-        const MortarConditionMatrices& rMortarConditionMatrices,
-        const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
-        )
+	Vector& rLocalRHS,
+	const MortarConditionMatrices& rMortarConditionMatrices,
+	const DerivativeDataType& rDerivativeData,
+	const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+	)
 {
     // Initialize values
     // const bounded_matrix<double, 2, 2>& u1 = rDerivativeData.u1;
@@ -4040,11 +4045,12 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
 
 template<>
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, false>::CalculateLocalRHS(
-        Vector& rLocalRHS,
-        const MortarConditionMatrices& rMortarConditionMatrices,
-        const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
-        )
+	Vector& rLocalRHS,
+	const MortarConditionMatrices& rMortarConditionMatrices,
+	const DerivativeDataType& rDerivativeData,
+	const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+	)
 {
     // Initialize values
     // const bounded_matrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -4176,11 +4182,12 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
 
 template<>
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, false>::CalculateLocalRHS(
-        Vector& rLocalRHS,
-        const MortarConditionMatrices& rMortarConditionMatrices,
-        const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
-        )
+	Vector& rLocalRHS,
+	const MortarConditionMatrices& rMortarConditionMatrices,
+	const DerivativeDataType& rDerivativeData,
+	const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+	)
 {
     // Initialize values
     // const bounded_matrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -4528,11 +4535,12 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
 
 template<>
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true>::CalculateLocalRHS(
-        Vector& rLocalRHS,
-        const MortarConditionMatrices& rMortarConditionMatrices,
-        const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
-        )
+	Vector& rLocalRHS,
+	const MortarConditionMatrices& rMortarConditionMatrices,
+	const DerivativeDataType& rDerivativeData,
+	const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+	)
 {
     // Initialize values
     // const bounded_matrix<double, 2, 2>& u1 = rDerivativeData.u1;
@@ -4592,11 +4600,12 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
 
 template<>
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true>::CalculateLocalRHS(
-        Vector& rLocalRHS,
-        const MortarConditionMatrices& rMortarConditionMatrices,
-        const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
-        )
+	Vector& rLocalRHS,
+	const MortarConditionMatrices& rMortarConditionMatrices,
+	const DerivativeDataType& rDerivativeData,
+	const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+	)
 {
     // Initialize values
     // const bounded_matrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -4728,11 +4737,12 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
 
 template<>
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true>::CalculateLocalRHS(
-        Vector& rLocalRHS,
-        const MortarConditionMatrices& rMortarConditionMatrices,
-        const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
-        )
+	Vector& rLocalRHS,
+	const MortarConditionMatrices& rMortarConditionMatrices,
+	const DerivativeDataType& rDerivativeData,
+	const unsigned int rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+	)
 {
     // Initialize values
     // const bounded_matrix<double, 4, 3>& u1 = rDerivativeData.u1;

@@ -289,7 +289,8 @@ protected:
         Matrix& rLocalLHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
+        const unsigned int rActiveInactive,
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -304,7 +305,8 @@ protected:
         Vector& rLocalRHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
+        const unsigned int rActiveInactive,
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /******************************************************************/
