@@ -29,11 +29,31 @@
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
 
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
 class ApplyMultipointConstraintsProcess
     : public Process
 {
-  public:
+public:
+    ///@name Type Definitions
+    ///@{
+
     /// Pointer definition of ApplyMultipointConstraintsProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyMultipointConstraintsProcess);
 
@@ -63,7 +83,18 @@ class ApplyMultipointConstraintsProcess
     typedef Node<3> NodeType;
     typedef ModelPart::NodeIterator NodeIterator;
 
-    /// Constructor.
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+    /**
+     * @brief Parameters constructor. In this constructor we pass the parameters
+     * @param rModelPart The model part to be computed
+     * @param rParameters The configuration parameters
+     */
     ApplyMultipointConstraintsProcess(
         ModelPart &rModelPart,
         Parameters rParameters
@@ -71,7 +102,7 @@ class ApplyMultipointConstraintsProcess
             mrModelPart(rModelPart),
             mParameters(rParameters)
     {
-
+        // We assign the default parameters if not defined
         Parameters default_parameters(R"(
         {
             "constraint_set_name":"default",
@@ -81,6 +112,9 @@ class ApplyMultipointConstraintsProcess
             "reform_every_step":false
         }  )");
 
+        mParameters.ValidateAndAssignDefaults(default_parameters);
+
+        // We create the MPC data container in case is not defined or replace it in case is a null pointer
         ProcessInfoPointerType info = mrModelPart.pGetProcessInfo();
         if (info->Has(MPC_DATA_CONTAINER) ) {
             if ( info->GetValue(MPC_DATA_CONTAINER) == nullptr)
@@ -89,13 +123,13 @@ class ApplyMultipointConstraintsProcess
             info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<std::vector<MpcDataPointerType>>()));
         }
 
-        mpMpc = MpcDataPointerType(new MpcData());
+        mpMpc = MpcDataPointerType(Kratos::make_shared<MpcData>());
         std::string name = rParameters["constraint_set_name"].GetString();
         mpMpc->SetName(name);
         mpMpc->SetActive(true);
 
         MpcDataSharedPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
-        (*mpcDataVector).push_back(mpMpc);
+        mpcDataVector->push_back(mpMpc);
 
         // Adding the master slave relation between the master and slave sub model parts
         if (!mParameters["reform_every_step"].GetBool()) {
@@ -103,14 +137,18 @@ class ApplyMultipointConstraintsProcess
         }
     }
 
+    /**
+     * @brief Name constructor. In this constructor we pass the name of the MPC
+     * @param rModelPart The model part to be computed
+     * @param Name The name of the MPC data container
+     */
     ApplyMultipointConstraintsProcess(
         ModelPart &rModelPart,
-        std::string name = "default"
+        std::string Name = "default"
         ) : Process(Flags()),
             mrModelPart(rModelPart),
             mParameters("{}")
     {
-
         // IMPORTANT : This constructor is not to be used when using this process in the normal KRATOS process_list of python script
         ProcessInfoPointerType info = mrModelPart.pGetProcessInfo();
         if (info->Has(MPC_DATA_CONTAINER)) {
@@ -121,13 +159,23 @@ class ApplyMultipointConstraintsProcess
         }
 
         mpMpc = MpcDataPointerType(Kratos::make_shared<MpcData>());
-        mpMpc->SetName(name);
+        mpMpc->SetName(Name);
         mpMpc->SetActive(true);
 
         MpcDataSharedPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
-        (*mpcDataVector).push_back(mpMpc);
+        mpcDataVector->push_back(mpMpc);
     }
 
+    /// Destructor.
+    ~ApplyMultipointConstraintsProcess() override = default;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
     /**
      * Applies the MPC condition using two model parts, one as master and other as slave.
      * Here a nearest element interpolation is used by default to get the relation between master and slave
@@ -281,8 +329,8 @@ class ApplyMultipointConstraintsProcess
     }
 
     /**
-    Activates the constraint set or deactivates
-    @param isActive true/false
+     * Activates the constraint set or deactivates
+     * @param isActive true/false
     */
     void SetActive(bool isActive = true)
     {
@@ -296,11 +344,6 @@ class ApplyMultipointConstraintsProcess
     void SetName(std::string name)
     {
         mpMpc->SetName(name);
-    }
-
-    /// Destructor.
-    ~ApplyMultipointConstraintsProcess() override
-    {
     }
 
     void ExecuteBeforeSolutionLoop() override
@@ -328,6 +371,10 @@ class ApplyMultipointConstraintsProcess
         Clear();
     }
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -352,11 +399,7 @@ class ApplyMultipointConstraintsProcess
         mpMpc->Clear();
     }
 
-  protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
+protected:
     ///@name Protected member Variables
     ///@{
 
@@ -364,11 +407,21 @@ class ApplyMultipointConstraintsProcess
     MpcDataPointerType mpMpc; /// The MPC data container
     Parameters mParameters;   /// The parameters of the problem
 
-  private:
+    ///@}
+
+private:
+    ///@name Private Operators
+    ///@{
+
     /// Assignment operator.
     ApplyMultipointConstraintsProcess &operator=(ApplyMultipointConstraintsProcess const &rOther) { return *this; }
 
+    ///@}
+
 }; // Class MoveRotorProcess
+///@}
+///@name Input and output
+///@{
 
 }; // namespace Kratos.
 
