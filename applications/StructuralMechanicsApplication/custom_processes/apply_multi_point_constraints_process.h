@@ -67,8 +67,9 @@ class ApplyMultipointConstraintsProcess : public Process
             }  )");
 
         ProcessInfoPointerType info = mr_model_part.pGetProcessInfo();
-        if (info->GetValue(MPC_DATA_CONTAINER) == nullptr)
-            info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(new std::vector<MpcDataPointerType>()));
+        if (info->GetValue(MPC_DATA_CONTAINER) == nullptr) {
+            info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<std::vector<MpcDataPointerType>>()));
+        }
 
         pMpc = MpcDataPointerType(new MpcData());
         std::string name = rParameters["constraint_set_name"].GetString();
@@ -88,8 +89,9 @@ class ApplyMultipointConstraintsProcess : public Process
 
         // IMPORTANT : This constructor is not to be used when using this process in the normal KRATOS process_list of python script
         ProcessInfoPointerType info = mr_model_part.pGetProcessInfo();
-        if (info->GetValue(MPC_DATA_CONTAINER) == nullptr)
-            info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(new std::vector<MpcDataPointerType>()));
+        if (info->GetValue(MPC_DATA_CONTAINER) == nullptr) {
+            info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<std::vector<MpcDataPointerType>>()));
+        }
 
         pMpc = MpcDataPointerType(new MpcData());
         pMpc->SetName(name);
