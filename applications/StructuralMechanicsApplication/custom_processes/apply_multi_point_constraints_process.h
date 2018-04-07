@@ -113,14 +113,14 @@ class ApplyMultipointConstraintsProcess
 
         // IMPORTANT : This constructor is not to be used when using this process in the normal KRATOS process_list of python script
         ProcessInfoPointerType info = mrModelPart.pGetProcessInfo();
-        if (info->Has(MPC_DATA_CONTAINER) ) {
+        if (info->Has(MPC_DATA_CONTAINER)) {
             if( info->GetValue(MPC_DATA_CONTAINER) == nullptr)
                 info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<std::vector<MpcDataPointerType>>()));
         } else {
             info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<std::vector<MpcDataPointerType>>()));
         }
 
-        mpMpc = MpcDataPointerType(new MpcData());
+        mpMpc = MpcDataPointerType(Kratos::make_shared<MpcData>());
         mpMpc->SetName(name);
         mpMpc->SetActive(true);
 
