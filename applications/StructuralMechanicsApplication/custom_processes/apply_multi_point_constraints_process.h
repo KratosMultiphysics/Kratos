@@ -62,8 +62,8 @@ public:
     typedef MpcData::VariableComponentType VariableComponentType;
     typedef MpcData::VariableType VariableType;
     typedef std::map<std::string, MpcDataPointerType> MpcDataMapType;
-    typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
-    typedef Kratos::shared_ptr<std::vector<MpcDataPointerType>> MpcDataSharedPointerVectorType;
+    typedef std::vector<MpcDataPointerType> MpcDataPointerVectorType;
+    typedef Kratos::shared_ptr<MpcDataPointerVectorType> MpcDataSharedPointerVectorType;
 
     /// Dof definitions
     typedef Dof<double> *DofPointerType;
@@ -118,9 +118,9 @@ public:
         ProcessInfoPointerType info = mrModelPart.pGetProcessInfo();
         if (info->Has(MPC_DATA_CONTAINER) ) {
             if ( info->GetValue(MPC_DATA_CONTAINER) == nullptr)
-                info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<std::vector<MpcDataPointerType>>()));
+                info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<MpcDataPointerVectorType>()));
         } else {
-            info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<std::vector<MpcDataPointerType>>()));
+            info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<MpcDataPointerVectorType>()));
         }
 
         mpMpc = MpcDataPointerType(Kratos::make_shared<MpcData>());
@@ -153,9 +153,9 @@ public:
         ProcessInfoPointerType info = mrModelPart.pGetProcessInfo();
         if (info->Has(MPC_DATA_CONTAINER)) {
             if( info->GetValue(MPC_DATA_CONTAINER) == nullptr)
-                info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<std::vector<MpcDataPointerType>>()));
+                info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<MpcDataPointerVectorType>()));
         } else {
-            info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<std::vector<MpcDataPointerType>>()));
+            info->SetValue(MPC_DATA_CONTAINER, MpcDataSharedPointerVectorType(Kratos::make_shared<MpcDataPointerVectorType>()));
         }
 
         mpMpc = MpcDataPointerType(Kratos::make_shared<MpcData>());
