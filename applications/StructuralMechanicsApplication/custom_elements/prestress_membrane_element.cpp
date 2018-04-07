@@ -144,9 +144,10 @@ void PrestressMembraneElement::Initialize()
 
     // determine if the prestress state is isotropic or anisotropic
     if(GetProperties().Has(MEMBRANE_PRESTRESS)){
-        if(GetProperties()[MEMBRANE_PRESTRESS](0,0)== GetProperties()[MEMBRANE_PRESTRESS](0,1) && GetProperties()[MEMBRANE_PRESTRESS](0,2) == 0)
+        const Matrix& membrane_prestress = GetProperties()[MEMBRANE_PRESTRESS];
+        const double tolerance = std::numeric_limits<double>::epsilon();
+        if(std::abs(membrane_prestress(0,0) - membrane_prestress(0,1)) < tolerance && std::abs(membrane_prestress(0,2)) < tolerance)
             mAnisotropicPrestress = false;
-
         else
             mAnisotropicPrestress = true;
     }
@@ -726,29 +727,26 @@ void PrestressMembraneElement::CalculateAll(
 
     J = GetGeometry().Jacobian(J);
 
-    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
-    {
+    for (std::size_t point_number = 0; point_number < integration_points.size(); point_number++) {
         // reading integration weight, shape function value and its gradients at this integration point
-        const double IntegrationWeight = integration_points[PointNumber].Weight();
+        const double IntegrationWeight = integration_points[point_number].Weight();
 
-        Vector ShapeFunctionN = row(Ncontainer, PointNumber);
-        Matrix DN_De = DN_DeContainer[PointNumber];
+        Vector ShapeFunctionN = row(Ncontainer, point_number);
+        Matrix DN_De = DN_DeContainer[point_number];
 
         // covariant metric in deformed system
         array_1d<double, 3> gab;
 
         // Transformation Matrix Q
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> Q = ZeroMatrix(3, 3);
+        bounded_matrix<double, 3, 3> Q = ZeroMatrix(3, 3);
         // basis vectors in deformed system
-        array_1d<double, 3> g1;
-        array_1d<double, 3> g2;
-        array_1d<double, 3> g3;
+        array_1d<double, 3> g1, g2, g3;
 
-        CalculateQ(Q, mGVector[PointNumber]);
-        CalculateMetricDeformed(PointNumber, DN_De, gab, g1, g2);
-        CalculateStrain(StrainVector, gab, mGab0[PointNumber]);
+        CalculateQ(Q, mGVector[point_number]);
+        CalculateMetricDeformed(point_number, DN_De, gab, g1, g2);
+        CalculateStrain(StrainVector, gab, mGab0[point_number]);
 
-        Vector CartesianStrainVector = prod(Q, StrainVector); //in refence configuration
+        Vector cartesian_strain_vector = prod(Q, StrainVector); //in refence configuration
 
         // Constitutive Matrices D
         Matrix D(3, 3);
@@ -756,55 +754,51 @@ void PrestressMembraneElement::CalculateAll(
         Values.SetConstitutiveMatrix(D); // this is an output parameter
 
         //Deformation Gradient
-        Values.SetDeformationGradientF(CalculateDeformationGradient(PointNumber));
+        const Matrix& deformation_gradient = CalculateDeformationGradient(point_number);
+        Values.SetDeformationGradientF(deformation_gradient);
 
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);     // Why is the curviliear strains are used here?
+        mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);     // Why is the curviliear strains are used here?
 
         // Deformations for Non-linear force vector
-        Vector StrainDeformation;
-
-        StrainDeformation = prod(trans(D), CartesianStrainVector);
+        Vector strain_deformation = prod(trans(D), cartesian_strain_vector);
 
         // Adding the pre-stress values as forces over length
-        for (int i = 0; i < 3; ++i)
-            StrainDeformation[i] += GetValue(MEMBRANE_PRESTRESS)(i,PointNumber);
+        const Matrix& membrane_prestress = GetValue(MEMBRANE_PRESTRESS);
+        for (std::size_t i = 0; i < 3; ++i)
+            strain_deformation[i] += membrane_prestress(i,point_number);
 
-
-        // calculate B matrices
-        // B matrices:
-        Matrix B = ZeroMatrix(3, mat_size);
-        //CalculateB(B, Q, DN_De, mG1[PointNumber], mG2[PointNumber]);
+        // Calculate B matrices
+        Matrix B(3, mat_size, 0.0);
+        //CalculateB(B, Q, DN_De, mG1[point_number], mG2[point_number]);
         CalculateB(B, Q, DN_De, g1, g2);
 
-        // integration on the REFERENCE CONFIGURATION
-        double DetJ0 = mDetJ0[PointNumber];
-        double IntToReferenceWeight = IntegrationWeight * DetJ0 * GetProperties()[THICKNESS];
+        // Integration on the REFERENCE CONFIGURATION
+        const double det_J0 = mDetJ0[point_number];
+        const double int_to_reference_weight = IntegrationWeight * det_J0 * GetProperties()[THICKNESS];
 
         // Nonlinear Deformation
-        Matrix Strain_locCartesian_11 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
-        Matrix Strain_locCartesian_22 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
-        Matrix Strain_locCartesian_12 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
+        Matrix strain_local_cartesian_11(number_of_nodes * 3, number_of_nodes * 3, 0.0);
+        Matrix strain_local_cartesian_22(number_of_nodes * 3, number_of_nodes * 3, 0.0);
+        Matrix strain_local_cartesian_12(number_of_nodes * 3, number_of_nodes * 3, 0.0);
 
-        CalculateSecondVariationStrain(DN_De, Strain_locCartesian_11, Strain_locCartesian_22, Strain_locCartesian_12, Q, g1, g2);
+        CalculateSecondVariationStrain(DN_De, strain_local_cartesian_11, strain_local_cartesian_22, strain_local_cartesian_12, Q, g1, g2);
 
         // LEFT HAND SIDE MATRIX
-        if (CalculateStiffnessMatrixFlag == true)
-        {
-            // adding membrane contribution to the stiffness matrix
-            CalculateAndAddKm(rLeftHandSideMatrix, B, D, IntToReferenceWeight);
+        if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
+            // Adding membrane contribution to the stiffness matrix
+            CalculateAndAddKm(rLeftHandSideMatrix, B, D, int_to_reference_weight);
 
-            // adding non-linear-contribution to stiffness matrix
+            // Adding non-linear-contribution to stiffness matrix
             CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
-                Strain_locCartesian_11, Strain_locCartesian_22, Strain_locCartesian_12,
-                StrainDeformation,
-                IntToReferenceWeight);
+                strain_local_cartesian_11, strain_local_cartesian_22, strain_local_cartesian_12,
+                strain_deformation,
+                int_to_reference_weight);
         }
 
         // RIGHT HAND SIDE VECTOR
-        if (CalculateResidualVectorFlag == true)         // calculation of the matrix is required
-        {
+        if (CalculateResidualVectorFlag) { // Calculation of the residual is required
             // operation performed: rRighthandSideVector -= Weight* IntForce
-            noalias(rRightHandSideVector) -= IntToReferenceWeight* prod(trans(B), StrainDeformation);
+            noalias(rRightHandSideVector) -= int_to_reference_weight* prod(trans(B), strain_deformation);
         }
     } // end loop over integration points
 
@@ -845,8 +839,6 @@ void PrestressMembraneElement::CalculateMetricDeformed(const unsigned int& Point
 
     GeometryType::JacobiansType J_act;
     J_act = GetGeometry().Jacobian(J_act);
-
-    //KRATOS_WATCH(J_act);
 
     //auxiliary terms
     //array_1d<double, 3> g1;
@@ -919,27 +911,6 @@ void PrestressMembraneElement::CalculateSecondVariationStrain(Matrix DN_De,
             }
         }
     }
-}
-//************************************************************************************
-//************************************************************************************
-void PrestressMembraneElement::CalculateMembraneElasticityTensor(
-    Matrix& D
-    )
-{
-    double NU = GetProperties()[POISSON_RATIO];
-    double E = GetProperties()[YOUNG_MODULUS];
-    double coeff = E / (1 - NU*NU);
-    D(0, 0) = coeff;
-    D(0, 1) = NU*coeff;
-    D(0, 2) = 0.0;
-
-    D(1, 0) = NU*coeff;
-    D(1, 1) = coeff;
-    D(1, 2) = 0.0;
-
-    D(2, 0) = 0.0;
-    D(2, 1) = 0.0;
-    D(2, 2) = 0.5*(1 - NU)*coeff;
 }
 
 //***********************************************************************************
@@ -1469,9 +1440,7 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
         double IntegrationWeight = rIntegrationPoints[PointNumber].Weight();
 
         // base vectors in reference configuration
-        array_1d<double, 3> G1;
-        array_1d<double, 3> G2;
-        array_1d<double, 3> G3;
+        array_1d<double, 3> G1, G2, G3;
 
         G1[0] = J0[PointNumber](0, 0);
         G2[0] = J0[PointNumber](0, 1);
@@ -1480,13 +1449,9 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
         G1[2] = J0[PointNumber](2, 0);
         G2[2] = J0[PointNumber](2, 1);
 
-
         // Store base vectors in reference configuration
         mG1[PointNumber] = G1;
         mG2[PointNumber] = G2;
-
-
-        //KRATOS_WATCH(J0);
 
         // base vector G3
         MathUtils<double>::CrossProduct(G3, G1, G2);
@@ -1536,17 +1501,19 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
 //***********************************************************************************
 
 void PrestressMembraneElement::ComputeContravariantBaseVectors(
-                        array_1d<double, 3>& rG1Contra, 
-                        array_1d<double, 3>& rG2Contra,
-                        const unsigned int& rPointNumber){
+    array_1d<double, 3>& rG1Contra,
+    array_1d<double, 3>& rG2Contra,
+    const unsigned int& rPointNumber
+    )
+{
     // determinant metric
-    double det_metric = mGab0[rPointNumber][0]*mGab0[rPointNumber][1]- mGab0[rPointNumber][2]*mGab0[rPointNumber][2];
+    const double inv_det_metric = 1.0/(mGab0[rPointNumber][0]*mGab0[rPointNumber][1]- mGab0[rPointNumber][2]*mGab0[rPointNumber][2]);
     
     // contravariant metric
     array_1d<double, 3> metric_contra;
-    metric_contra[0]= 1.0/det_metric * mGab0[rPointNumber][1];
-    metric_contra[1]= 1.0/det_metric * mGab0[rPointNumber][0];
-    metric_contra[2]= -1.0/det_metric * mGab0[rPointNumber][2];
+    metric_contra[0]=  inv_det_metric * mGab0[rPointNumber][1];
+    metric_contra[1]=  inv_det_metric * mGab0[rPointNumber][0];
+    metric_contra[2]= -inv_det_metric * mGab0[rPointNumber][2];
 
     // contravariant base vectors
     rG1Contra = metric_contra[0]*mG1[rPointNumber] + metric_contra[2]*mG2[rPointNumber];
@@ -1575,9 +1542,9 @@ const Matrix PrestressMembraneElement::CalculateDeformationGradient(const unsign
     MathUtils<double>::CrossProduct(g3,g1,g2);
     g3 /= norm_2(g3);
     
-    bounded_matrix<double,3,3> deformation_gradient;
-    for(unsigned int i=0; i<3; i++){
-        for(unsigned int j=0; j<3; j++){
+    Matrix deformation_gradient(3, 3);
+    for(std::size_t i=0; i<3; i++){
+        for(std::size_t j=0; j<3; j++){
             deformation_gradient(i,j) = G1_contra(j)*g1(i) + G2_contra(j)*g2(i) + G3(j)*g3(i);
         }
     }

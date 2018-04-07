@@ -240,7 +240,7 @@ private:
     void CalculateCauchyGreenStrain(
         Parameters& rValues,
         Vector& StrainVector
-    )
+        )
     {
         //1.-Compute total deformation gradient
         const Matrix& F = rValues.GetDeformationGradientF();
