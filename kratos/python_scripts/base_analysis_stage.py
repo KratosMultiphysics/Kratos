@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing Kratos
 import KratosMultiphysics
 
-class BaseKratosAnalysisStage(object):
+class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
     Changes to this BaseClass have to be discussed first!
     """
@@ -28,6 +28,9 @@ class BaseKratosAnalysisStage(object):
         self.model = model
         self.project_parameters = project_parameters
 
+        ##HERE WE SHOULD CONSTRUCT A SOLVER - stages should contain at least one solver
+        ##self.solver = ... HERE WE CONSTRUCT THE SOLVER 
+
     def Run(self):
         """This function executes the entire AnalysisStage
         It can be overridden by derived classes
@@ -41,51 +44,48 @@ class BaseKratosAnalysisStage(object):
         It can be overridden by derived classes
         """
         while self.time < self.end_time:
-            self.AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self.Predict()
-            self.SolveSolutionStep()
+            solver.AdvanceInTime(self.time)
+            self.InitializeSolutionStep()           
+            solver.Predict()
+            solver.SolveSolutionStep()          
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
+
+            
 
     def Initialize(self):
         """This function initializes the AnalysisStage
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-        raise NotImplementedError("This function has to be implemented by derived classes")
+        solver.ImportModelPart()
+        self.ModifyInitialProperties()
+        self.ModifyInitialGeometry()
+        
+        solver.Initialize()
+        
 
     def Finalize(self):
         """This function finalizes the AnalysisStage
         Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
-        This function has to be implemented in deriving classes!
-        """
-        raise NotImplementedError("This function has to be implemented by derived classes")
-
-    def AdvanceInTime(self, new_time):
-        """This function prepares the database for the new time-step
-        It is designed to be called once at the beginning of a time-step
-        It typically calles the CloneTimeStep function of a ModelPart
         """
         pass
-
+    
     def InitializeSolutionStep(self):
         """This function performs all the required operations that should be executed
         (for each step) BEFORE solving the solution step.
         """
-        pass
+        
+        self.ApplyBoundaryConditions() #here the processes are called
+        self.ChangeMaterialProperties() #this is normally empty
+        solver.InitializeSolutionStep()
+
 
     def Predict(self):
         """This function predicts the solution and should be executed
         (for each step) BEFORE solving the solution step.
         """
         pass
-
-    def SolveSolutionStep(self):
-        """This function solves the current step
-        It can be called multiple times during one time-step
-        """
-        raise NotImplementedError("This function has to be implemented by derived classes")
 
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed
@@ -101,4 +101,12 @@ class BaseKratosAnalysisStage(object):
     def Check(self):
         """This function checks the AnalysisStage
         """
+        pass
+    
+    def ModifyInitialProperties(self):
+        """this is the place to eventually modify material properties in the stage """
+        pass
+    
+    def ModifyInitialGeometry(self):
+        """this is the place to eventually modify geometry (for example moving nodes) in the stage """
         pass
