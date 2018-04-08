@@ -9,6 +9,7 @@
 // kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
+//                   Vicente Mataix Ferrandiz
 //
 //
 
@@ -25,6 +26,9 @@
 namespace Kratos {
 namespace Testing {
 
+/**
+ * This test checks the proper functioning of the DataValueContainer
+ */
 KRATOS_TEST_CASE_IN_SUITE(DataValueContainer, KratosCoreFastSuite) {
   DataValueContainer container;
   Vector original_distances(4);
@@ -37,6 +41,31 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainer, KratosCoreFastSuite) {
 
   for (std::size_t i = 0; i < distances.size(); i++)
     KRATOS_CHECK_EQUAL(distances[i], original_distances[i]);
+}
+
+/**
+ * This test checks recursively the proper functioning of the DataValueContainer
+ */
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerRecursive, KratosCoreFastSuiteTest) {
+  DataValueContainer container;
+  Vector original_distances(4);
+  original_distances[0] = 0.00;
+  original_distances[1] = 0.10;
+  original_distances[2] = 0.20;
+  original_distances[3] = 0.30;
+
+  const std::size_t number_recursions = 1000;
+  for (std::size_t i = 0; i < number_recursions; ++i) {
+    container.SetValue(NODAL_H, 0.5);
+    container.SetValue(ELEMENTAL_DISTANCES, original_distances);
+    const auto& nodal_h = container.GetValue(NODAL_H);
+    const auto& distances = container.GetValue(ELEMENTAL_DISTANCES);
+
+    for (std::size_t i = 0; i < distances.size(); i++) {
+        KRATOS_CHECK_EQUAL(nodal_h, 0.5);
+        KRATOS_CHECK_EQUAL(distances[i], original_distances[i]);
+    }
+  }
 }
 }
 } // namespace Kratos.
