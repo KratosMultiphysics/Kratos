@@ -328,7 +328,8 @@ protected:
         TSystemMatrixType &A,
         ElementsContainerType &rElements,
         ConditionsArrayType &rConditions,
-        ProcessInfo &CurrentProcessInfo) override
+        ProcessInfo &CurrentProcessInfo
+        ) override
     {
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
@@ -687,11 +688,11 @@ protected:
     }
 
     /**
-     * @brie fThis function Formulates the MPC data in equation ID terms
+     * @brief fThis function Formulates the MPC data in equation ID terms
+     * @param rModelPart Reference to the ModelPart containing the problem.
      */
     void FormulateEquationIdRelationMap(ModelPart &rModelPart)
     {
-
         ProcessInfoType info = rModelPart.GetProcessInfo();
 
         if (info.Has(MPC_DATA_CONTAINER)) {
@@ -703,22 +704,30 @@ protected:
                         const MasterDofWeightMapType &master_dof_map = slave_master_dof_map.second;
                         const IndexType slave_node_id = slave_dof_map.first;
                         const IndexType slave_dof_key = slave_dof_map.second;
-                        NodeType &node = rModelPart.Nodes()[slave_node_id];
-                        NodeType::DofsContainerType::iterator it = node.GetDofs().find(slave_dof_key);
-                        const IndexType slave_equation_id = it->EquationId();
+                        NodeType& slave_node = rModelPart.Nodes()[slave_node_id];
+                        NodeType::DofsContainerType::iterator it_slave = slave_node.GetDofs().find(slave_dof_key);
+                        if (it_slave != slave_node.GetDofs().end()) {
+                            const IndexType slave_equation_id = it_slave->EquationId();
 
-                        for (auto& master_dof_map_elem : master_dof_map) {
-                            IndexType master_nodeId;
-                            double constant;
-                            IndexType master_equation_id;
-                            IndexType master_dof_key;
-                            const double weight = master_dof_map_elem.second;
-                            std::tie(master_nodeId, master_dof_key, constant) = master_dof_map_elem.first;
-                            NodeType &master_node = rModelPart.Nodes()[master_nodeId];
-                            NodeType::DofsContainerType::iterator it_master = master_node.GetDofs().find(master_dof_key);
-                            master_equation_id = it_master->EquationId();
+                            for (auto& master_dof_map_elem : master_dof_map) {
+                                IndexType master_nodeId;
+                                double constant;
+                                IndexType master_equation_id;
+                                IndexType master_dof_key;
+                                const double weight = master_dof_map_elem.second;
+                                std::tie(master_nodeId, master_dof_key, constant) = master_dof_map_elem.first;
+                                NodeType &master_node = rModelPart.Nodes()[master_nodeId];
+                                NodeType::DofsContainerType::iterator it_master = master_node.GetDofs().find(master_dof_key);
+                                if (it_master != master_node.GetDofs().end()) {
+                                    master_equation_id = it_master->EquationId();
 
-                            p_mpc_data->AddConstraint(slave_equation_id, master_equation_id, weight, constant);
+                                    p_mpc_data->AddConstraint(slave_equation_id, master_equation_id, weight, constant);
+                                } else {
+                                    KRATOS_WARNING("ResidualBasedBlockBuilderAndSolverWithMpc") << "WARNING:: Could not find dof " << master_dof_key << " in node " << master_node.Id() << std::endl;
+                                }
+                            }
+                        } else {
+                            KRATOS_WARNING("ResidualBasedBlockBuilderAndSolverWithMpc") << "WARNING:: Could not find dof " << slave_dof_key << " in node " << slave_node.Id() << std::endl;
                         }
                     }
                 }
@@ -727,13 +736,18 @@ protected:
     }
 
     /**
-     * This method reconstructs the slave dof for iteration step
+     * @brief This method reconstructs the slave dof for iteration step
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param A System matrix
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
      */
     void ReconstructSlaveDofForIterationStep(
         ModelPart &rModelPart,
         TSystemMatrixType &A,
         TSystemVectorType &Dx,
-        TSystemVectorType &b)
+        TSystemVectorType &b
+        )
     {
         ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
         MpcDataSharedPointerVectorType p_mpc_data_vector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
@@ -745,28 +759,34 @@ protected:
                     const MasterDofWeightMapType &master_dof_map = slave_master_dof_map.second;
                     const IndexType slave_node_id = slave_dof_map.first;
                     const IndexType slave_dof_key = slave_dof_map.second;
-                    NodeType &node = rModelPart.Nodes()[slave_node_id];
-                    NodeType::DofsContainerType::iterator it = node.GetDofs().find(slave_dof_key);
-                    const IndexType slave_equation_id = it->EquationId();
-                    double slave_dx_value = 0.0;
+                    NodeType& slave_node = rModelPart.Nodes()[slave_node_id];
+                    NodeType::DofsContainerType::iterator it_slave = slave_node.GetDofs().find(slave_dof_key);
+                    if (it_slave != slave_node.GetDofs().end()) {
+                        const IndexType slave_equation_id = it_slave->EquationId();
+                        double slave_dx_value = 0.0;
 
-                    for (auto master_dof_map_elem : master_dof_map) {
-                        IndexType master_nodeId;
-                        double constant;
-                        IndexType master_equation_id;
-                        IndexType master_dof_key;
-                        const double weight = master_dof_map_elem.second;
-                        std::tie(master_nodeId, master_dof_key, constant) = master_dof_map_elem.first;
-                        NodeType &master_node = rModelPart.Nodes()[master_nodeId];
-                        NodeType::DofsContainerType::iterator it = master_node.GetDofs().find(master_dof_key);
-                        master_equation_id = it->EquationId();
+                        for (auto master_dof_map_elem : master_dof_map) {
+                            IndexType master_nodeId;
+                            double constant;
+                            IndexType master_dof_key;
+                            const double weight = master_dof_map_elem.second;
+                            std::tie(master_nodeId, master_dof_key, constant) = master_dof_map_elem.first;
+                            NodeType &master_node = rModelPart.Nodes()[master_nodeId];
+                            NodeType::DofsContainerType::iterator it_master = master_node.GetDofs().find(master_dof_key);
+                            if (it_master != master_node.GetDofs().end()) {
+                                const IndexType master_equation_id = it_master->EquationId();
+                                slave_dx_value = slave_dx_value + TSparseSpace::GetValue(Dx, master_equation_id) * weight;
+                            } else {
+                                KRATOS_WARNING("ResidualBasedBlockBuilderAndSolverWithMpc") << "WARNING:: Could not find dof " << master_dof_key << " in node " << master_node.Id() << std::endl;
+                            }
+                        }
+                        slave_dx_value = slave_dx_value + p_mpc_data->mSlaveEquationIdConstantsUpdate[slave_equation_id];
 
-                        slave_dx_value = slave_dx_value + TSparseSpace::GetValue(Dx, master_equation_id) * weight;
+                        Dx[slave_equation_id] = slave_dx_value;
+                        p_mpc_data->mSlaveEquationIdConstantsUpdate[slave_equation_id] = 0.0;
+                    } else {
+                        KRATOS_WARNING("ResidualBasedBlockBuilderAndSolverWithMpc") << "WARNING:: Could not find dof " << slave_dof_key << " in node " << slave_node.Id() << std::endl;
                     }
-                    slave_dx_value = slave_dx_value + p_mpc_data->mSlaveEquationIdConstantsUpdate[slave_equation_id];
-
-                    Dx[slave_equation_id] = slave_dx_value;
-                    p_mpc_data->mSlaveEquationIdConstantsUpdate[slave_equation_id] = 0.0;
                 }
             }
         }
@@ -774,14 +794,18 @@ protected:
 
     /**
      * @brief This method is used to update the constraint equation after each iteration
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param A System matrix
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
      */
     void UpdateConstraintEquationsAfterIteration(
         ModelPart &rModelPart,
         TSystemMatrixType &A,
         TSystemVectorType &Dx,
-        TSystemVectorType &b)
+        TSystemVectorType &b
+        )
     {
-
         ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
         MpcDataSharedPointerVectorType p_mpc_data_vector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
 
@@ -792,28 +816,35 @@ protected:
                     const MasterDofWeightMapType &master_dof_map = slave_master_dof_map.second;
                     const IndexType slave_node_id = slave_dof_map.first;
                     const IndexType slave_dof_key = slave_dof_map.second;
-                    NodeType& node = rModelPart.Nodes()[slave_node_id];
-                    NodeType::DofsContainerType::iterator it = node.GetDofs().find(slave_dof_key);
-                    const IndexType slave_equation_id = it->EquationId();
-                    const double slave_dof_value = it->GetSolutionStepValue();
-                    double slave_dof_value_calc = 0.0;
+                    NodeType& slave_node = rModelPart.Nodes()[slave_node_id];
+                    NodeType::DofsContainerType::iterator it_slave = slave_node.GetDofs().find(slave_dof_key);
+                    if (it_slave != slave_node.GetDofs().end()) {
+                        const IndexType slave_equation_id = it_slave->EquationId();
+                        const double slave_dof_value = it_slave->GetSolutionStepValue();
+                        double slave_dof_value_calc = 0.0;
 
-                    for (auto master_dof_map_elem : master_dof_map) {
-                        IndexType master_nodeId;
-                        double constant;
-                        IndexType master_dof_key;
-                        const double weight = master_dof_map_elem.second;
-                        std::tie(master_nodeId, master_dof_key, constant) = master_dof_map_elem.first;
-                        NodeType& master_node = rModelPart.Nodes()[master_nodeId];
-                        NodeType::DofsContainerType::iterator it_master = master_node.GetDofs().find(master_dof_key);
+                        for (auto master_dof_map_elem : master_dof_map) {
+                            IndexType master_nodeId;
+                            double constant;
+                            IndexType master_dof_key;
+                            const double weight = master_dof_map_elem.second;
+                            std::tie(master_nodeId, master_dof_key, constant) = master_dof_map_elem.first;
+                            NodeType& master_node = rModelPart.Nodes()[master_nodeId];
+                            NodeType::DofsContainerType::iterator it_master = master_node.GetDofs().find(master_dof_key);
+                            if (it_master != master_node.GetDofs().end()) {
+                                slave_dof_value_calc += it_master->GetSolutionStepValue() * weight;
+                            } else {
+                                KRATOS_WARNING("ResidualBasedBlockBuilderAndSolverWithMpc") << "WARNING:: Could not find dof " << master_dof_key << " in node " << master_node.Id() << std::endl;
+                            }
+                        }
 
-                        slave_dof_value_calc += it_master->GetSolutionStepValue() * weight;
+                        slave_dof_value_calc += p_mpc_data->mSlaveEquationIdConstantsMap[slave_equation_id];
+
+                        const double d_constant = slave_dof_value_calc - slave_dof_value;
+                        p_mpc_data->mSlaveEquationIdConstantsUpdate[slave_equation_id] = d_constant;
+                    } else {
+                        KRATOS_WARNING("ResidualBasedBlockBuilderAndSolverWithMpc") << "WARNING:: Could not find dof " << slave_dof_key << " in node " << slave_node.Id() << std::endl;
                     }
-
-                    slave_dof_value_calc += p_mpc_data->mSlaveEquationIdConstantsMap[slave_equation_id];
-
-                    const double d_constant = slave_dof_value_calc - slave_dof_value;
-                    p_mpc_data->mSlaveEquationIdConstantsUpdate[slave_equation_id] = d_constant;
                 }
             }
         }
