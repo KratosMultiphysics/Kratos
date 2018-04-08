@@ -105,13 +105,18 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE
 add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE})
 target_link_libraries(KratosStructuralMechanicsCore PUBLIC KratosCore)
 set_target_properties(KratosStructuralMechanicsCore PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosStructuralMechanicsCore)
+endif(USE_COTIRE MATCHES ON)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosStructuralMechanicsApplication MODULE ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosStructuralMechanicsApplication PUBLIC KratosStructuralMechanicsCore)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
-
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosStructuralMechanicsApplication)
+endif(USE_COTIRE MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
@@ -138,10 +143,6 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosStructuralMechanicsCore)
-    cotire(KratosStructuralMechanicsApplication)
-endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosStructuralMechanicsCore DESTINATION libs )
 install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
