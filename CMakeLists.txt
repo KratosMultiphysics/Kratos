@@ -1,8 +1,14 @@
 cmake_minimum_required (VERSION 2.8.6)
 
+# Setting some policies
 if(POLICY CMP0054)
   cmake_policy(SET CMP0054 OLD)
 endif(POLICY CMP0054)
+
+# Uses INTERFACE_LINK_LIBRARIES instead of LINK_INTERFACE_LIBRARIES
+if(POLICY CMP0022)
+  cmake_policy(SET CMP0022 NEW)
+endif(POLICY CMP0022)
 
 project (KratosMultiphysics)
 
@@ -10,10 +16,6 @@ project (KratosMultiphysics)
 set (KratosMultiphysics_MAJOR_VERSION 6)
 set (KratosMultiphysics_MINOR_VERSION 0)
 set (KratosMultiphysics_PATCH_VERSION 0)
-
-
-
-
 
 # Define custom compiler build types
 SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
