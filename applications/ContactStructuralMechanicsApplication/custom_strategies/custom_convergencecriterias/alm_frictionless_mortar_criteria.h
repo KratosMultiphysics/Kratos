@@ -174,7 +174,7 @@ public:
             
             const double epsilon = it_node->GetValue(INITIAL_PENALTY);
             
-            const double augmented_normal_pressure = scale_factor * it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);     
+            const double augmented_normal_pressure = scale_factor * it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 
             it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 

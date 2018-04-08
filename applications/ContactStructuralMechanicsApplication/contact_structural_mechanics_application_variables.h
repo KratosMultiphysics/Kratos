@@ -67,6 +67,7 @@ KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(CONTACT_STRUCTURAL_MECHANI
 /* For ALM mortar condition */
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, bool, ACTIVE_SET_CONVERGED )                                // To know if the active set has converged
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, DYNAMIC_FACTOR )                                    // The factor considered for dynamic problems (in order to take intro account the gap evolution)
+KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, LAGRANGE_MULTIPLIER_CONTACT_PRESSURE )              // The lagrange multiplier for normal contact pressure
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, AUGMENTED_NORMAL_CONTACT_PRESSURE )                 // The resultant augmented pressure in the normal direction
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, AUGMENTED_TANGENT_CONTACT_PRESSURE )                // The resultant augmented pressure in the tangent direction
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, TANGENT_FACTOR )                                    // The proportion between the tangent and normal penalty

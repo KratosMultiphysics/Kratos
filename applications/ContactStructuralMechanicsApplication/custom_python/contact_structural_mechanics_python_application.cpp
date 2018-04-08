@@ -75,6 +75,7 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVE_CHECK_FACTOR )                         // The factor employed to search an active/inactive node
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVE_SET_CONVERGED )                        // To know if the active set has converged
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DYNAMIC_FACTOR )                              // The factor considered for dynamic problems (in order to take intro account the gap evolution)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE )        // The lagrange multiplier for normal contact pressure
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUGMENTED_NORMAL_CONTACT_PRESSURE )           // The resultant augmented pressure in the normal direction
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUGMENTED_TANGENT_CONTACT_PRESSURE )          // The resultant augmented pressure in the tangent direction
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TANGENT_FACTOR )                              // The proportion between the tangent and normal penalty

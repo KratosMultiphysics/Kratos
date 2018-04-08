@@ -242,7 +242,7 @@ public:
 //             const double initial_penalty_parameter = r_process_info[INITIAL_PENALTY];
 //             
 //             // We iterate over the nodes
-//             bool is_components = nodes_array.begin()->SolutionStepsDataHas(NORMAL_CONTACT_STRESS) ? false : true;
+//             bool is_components = nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) ? false : true;
 // 
 //             #pragma omp parallel for 
 //             for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
@@ -255,7 +255,7 @@ public:
 //                 if (current_gap < 0.0) {
 //                     it_node->Set(ACTIVE, true);
 //                     if (is_components) {
-//                         it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = penalty * current_gap;
+//                         it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = penalty * current_gap;
 //                     } else {
 //                         const array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
 //                         it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = penalty * current_gap * normal;

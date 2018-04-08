@@ -168,13 +168,13 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
     // Slave Nodes  Lambda Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
         NodeType& slave_node = this->GetGeometry()[ i_slave ];
-        rResult[index++] = slave_node.GetDof( NORMAL_CONTACT_STRESS ).EquationId( );
+        rResult[index++] = slave_node.GetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE ).EquationId( );
     }
     
     // Master Nodes  Lambda Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodes; ++i_master ) {
         NodeType& master_node = current_master[i_master];
-        rResult[index++] = master_node.GetDof( NORMAL_CONTACT_STRESS ).EquationId( );
+        rResult[index++] = master_node.GetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE ).EquationId( );
     }
     
     KRATOS_CATCH( "" );
@@ -218,13 +218,13 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
     // Slave Nodes Lambda Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave )  {
         NodeType& slave_node = this->GetGeometry()[ i_slave ];
-        rConditionalDofList[index++] = slave_node.pGetDof( NORMAL_CONTACT_STRESS );
+        rConditionalDofList[index++] = slave_node.pGetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE );
     }
     
     // Master Nodes Lambda Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodes; ++i_master ) { 
         NodeType& master_node = current_master[i_master];
-        rConditionalDofList[index++] = master_node.pGetDof( NORMAL_CONTACT_STRESS );
+        rConditionalDofList[index++] = master_node.pGetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE );
     }
     
     KRATOS_CATCH( "" );
@@ -244,15 +244,15 @@ int DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumN
 
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(NORMAL)
-    KRATOS_CHECK_VARIABLE_KEY(NORMAL_CONTACT_STRESS)
+    KRATOS_CHECK_VARIABLE_KEY(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
         Node<3> &rnode = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL_CONTACT_STRESS,rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE,rnode)
 
-        KRATOS_CHECK_DOF_IN_NODE(NORMAL_CONTACT_STRESS, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rnode)
     }
 
     return ierr;

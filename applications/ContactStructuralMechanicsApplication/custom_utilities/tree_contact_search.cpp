@@ -97,7 +97,7 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
     // We identify the type of solution
     mTypeSolution =  TypeSolution::VectorLagrangeMultiplier;
     if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER) == false) {
-        if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(NORMAL_CONTACT_STRESS))
+        if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
             mTypeSolution = TypeSolution::NormalContactStress;
         else
             mTypeSolution = TypeSolution::ScalarLagrangeMultiplier;
@@ -569,7 +569,7 @@ void TreeContactSearch<TDim, TNumNodes>::ClearALMFrictionlessMortarConditions(No
     for(int i = 0; i < static_cast<int>(NodesArray.size()); ++i) {
         auto it_node = NodesArray.begin() + i;
         if (it_node->Is(ACTIVE) == false)
-            (NodesArray.begin() + i)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+            (NodesArray.begin() + i)->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = 0.0;
     }
 }
 
@@ -605,7 +605,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeLinearRegressionGapPressu
 
         if (it_node->Is(ACTIVE)) {
             xi = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-            yi = it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+            yi = it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
             sum_x += xi;
             sum_xsq += std::pow(xi, 2);
             sum_y += yi;
@@ -1123,7 +1123,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::SetInactiveNode(NodesArrayType::
                 ItNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
                 break;
             case TypeSolution::NormalContactStress :
-                ItNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+                ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = 0.0;
                 break;
         }
     }
@@ -1171,7 +1171,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionlessMortarLM(
 //     const double old_weighted_gap = ItNode->FastGetSolutionStepValue(WEIGHTED_GAP, 1);
     const double current_weighted_gap = ItNode->FastGetSolutionStepValue(WEIGHTED_GAP);
 
-    double& current_contact_stress = ItNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+    double& current_contact_stress = ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
 
     // Apply linear regression
     const double aux_press = a + current_weighted_gap * b;
@@ -1280,7 +1280,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionlessMortarLM(
 //     const double nodal_area = ItNode->GetValue(NODAL_AREA);
 //     const bool current_penetration = (current_weighted_gap < 0.0) ? true : false;
 //
-    double& current_contact_stress = ItNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+    double& current_contact_stress = ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
 
     // Apply linear regression
     const double aux_press = a + current_weighted_gap * b;

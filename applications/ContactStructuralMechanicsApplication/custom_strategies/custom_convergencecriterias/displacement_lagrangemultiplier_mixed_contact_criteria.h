@@ -184,7 +184,7 @@ public:
                     dof_id = it_dof->EquationId();
                     
                     const auto curr_var = it_dof->GetVariable();
-                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == NORMAL_CONTACT_STRESS)) {
+                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
                         dof_value = it_dof->GetSolutionStepValue(0);
                         dof_incr = Dx[dof_id];
                         lm_solution_norm += dof_value * dof_value;
