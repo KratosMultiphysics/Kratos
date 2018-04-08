@@ -435,42 +435,6 @@ private:
         }
     }
 
-    double CallPythonMethod(PyObject* pPyObject, const char* pPyMethodName,
-                           double rX, double rY, double rZ, const double& rTime)
-    {
-        KRATOS_TRY
-
-        if( PyObject_IsTrue(pPyObject) && PyCallable_Check(pPyObject) ){
-	    
-          KRATOS_INFO("pPyObject call") << " pPyObject exists and is callable " << std::endl;
-
-          PyObject* pArgs = PyTuple_Pack(4,PyFloat_FromDouble(rX),PyFloat_FromDouble(rY),PyFloat_FromDouble(rZ),
-                                           PyFloat_FromDouble(rTime));
-
-          PyObject* pResult = PyObject_CallObject(pPyObject, pArgs);
-	    
-          Py_DECREF(pArgs);
-
-          if(pResult == NULL){
-            if(PyErr_Occurred())
-              PyErr_Print();
-            KRATOS_ERROR <<" pResult DO NOT exists "<<std::endl;
-          }
-          else{
-            return PyFloat_AsDouble(pResult);
-          }
-	    
-        }
-        else{
-          if (PyErr_Occurred())
-            PyErr_Print();
-          KRATOS_ERROR <<" pPyObject DO NOT exists or is NOT callable "<<std::endl;
-        }
-	
-        Py_DECREF(pPyObject);
-
-        KRATOS_CATCH("")
-    }
     
     ///@}
     ///@name Private Operations
