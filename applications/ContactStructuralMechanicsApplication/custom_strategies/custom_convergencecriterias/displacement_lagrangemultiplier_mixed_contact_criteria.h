@@ -84,6 +84,8 @@ public:
     typedef std::size_t                                           KeyType;
     
     typedef TableStreamUtility::Pointer           TablePrinterPointerType;
+    
+    typedef std::size_t                                         IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -168,7 +170,7 @@ public:
         if (SparseSpaceType::Size(b) != 0) { //if we are solving for something
             // Initialize
             TDataType disp_residual_solution_norm = 0.0, lm_solution_norm = 0.0, lm_increase_norm = 0.0;
-            unsigned int disp_dof_num(0),lm_dof_num(0);
+            IndexType disp_dof_num(0),lm_dof_num(0);
 
             // Loop over Dofs
             #pragma omp parallel for reduction(+:disp_residual_solution_norm,lm_solution_norm,lm_increase_norm,disp_dof_num,lm_dof_num)

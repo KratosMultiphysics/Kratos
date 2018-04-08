@@ -107,6 +107,8 @@ public:
     
     typedef ModelPart::ConditionsContainerType                                  ConditionsArrayType;
     
+    typedef std::size_t                                                                   IndexType;
+    
     /**
      * Default constructor 
      * @param rModelPart: The model part of the problem
@@ -124,7 +126,7 @@ public:
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        unsigned int MaxIterations = 30,
+        IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
@@ -161,7 +163,7 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        unsigned int MaxIterations = 30,
+        IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,

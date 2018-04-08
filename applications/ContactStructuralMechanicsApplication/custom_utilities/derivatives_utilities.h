@@ -56,7 +56,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  * @author Gabriel Valdes Alonzo 
  */
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, bool TFrictional, bool TNormalVariation>
 class DerivativesUtilities
 {
 public:
@@ -412,14 +412,14 @@ public:
 
 //     #ifdef KRATOS_DEBUG
 //         for (unsigned i_triangle = 0; i_triangle < 3; ++i_triangle)
-//             KRATOS_WATCH(static_cast<unsigned int>(TheseBelongs[i_triangle]));
+//             KRATOS_WATCH(static_cast<IndexType>(TheseBelongs[i_triangle]));
 //     #endif
 
         for (IndexType i_triangle = 0; i_triangle < 3; ++i_triangle) {
             if (TheseBelongs[i_triangle] >= 2 * TNumNodes) { // It belongs to an intersection
                 // We compute the indexes
-                unsigned int belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end;
-                ConvertAuxHashIndex(static_cast<unsigned int>(TheseBelongs[i_triangle]), belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end);
+                IndexType belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end;
+                ConvertAuxHashIndex(static_cast<IndexType>(TheseBelongs[i_triangle]), belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end);
 
                 // The coordinates should be in the projected plane
                 double distance;
@@ -807,7 +807,7 @@ public:
         VectorType& DeltaPosition,
         const GeometryType& SlaveGeometry,
         const GeometryType& MasterGeometry,
-        const unsigned int IndexNode
+        const IndexType IndexNode
         )
     {
         KRATOS_TRY;
@@ -835,8 +835,8 @@ public:
         VectorType& DeltaPosition,
         const GeometryType& SlaveGeometry,
         const GeometryType& MasterGeometry,
-        const unsigned int IndexNode,
-        const unsigned int iDoF
+        const IndexType IndexNode,
+        const IndexType iDoF
         )
     {
         KRATOS_TRY;
@@ -866,8 +866,8 @@ public:
         double& DeltaPosition,
         const GeometryType& SlaveGeometry,
         const GeometryType& MasterGeometry,
-        const unsigned int IndexNode,
-        const unsigned int iDoF
+        const IndexType IndexNode,
+        const IndexType iDoF
         )
     {
         KRATOS_TRY;
@@ -1020,8 +1020,8 @@ private:
     static inline array_1d<double, 3> LocalDeltaVertex(
         const array_1d<double, 3>& Normal,
         const array_1d<double, 3>& DeltaNormal,
-        const unsigned int iDoF,
-        const unsigned int iBelong,
+        const IndexType iDoF,
+        const IndexType iBelong,
         const NormalDerivativesComputation ConsiderNormalVariation,
         const GeometryType& SlaveGeometry,
         const GeometryType& MasterGeometry,
@@ -1107,7 +1107,7 @@ private:
     static inline bounded_matrix<double, 3, 3> ComputeRenormalizerMatrix(
         const bounded_matrix<double, TNumNodes, TDim>& DiffMatrix,
         const bounded_matrix<double, TNumNodes, TDim>& DeltaNormal,
-        const unsigned int iGeometry
+        const IndexType iGeometry
         )
     {
         for (IndexType itry = 0; itry < 3; ++itry) {
@@ -1187,14 +1187,14 @@ private:
      * @param iBelongMasterEnd The index of the second/master segment and end node
      */
     static inline void ConvertAuxHashIndex(
-        const unsigned int AuxIndex,
-        unsigned int& iBelongSlaveStart,
-        unsigned int& iBelongSlaveEnd,
-        unsigned int& iBelongMasterStart,
-        unsigned int& iBelongMasterEnd
+        const IndexType AuxIndex,
+        IndexType& iBelongSlaveStart,
+        IndexType& iBelongSlaveEnd,
+        IndexType& iBelongMasterStart,
+        IndexType& iBelongMasterEnd
         )
     {
-        unsigned int index_to_decompose = AuxIndex - 2 * TNumNodes;
+        IndexType index_to_decompose = AuxIndex - 2 * TNumNodes;
 
         iBelongMasterEnd = index_to_decompose/10000;
         index_to_decompose = std::fmod(index_to_decompose, 10000);
@@ -1224,7 +1224,7 @@ private:
         const double tolerance = std::numeric_limits<double>::epsilon();
 
         bounded_matrix<double, 3, TNumNodes> X;
-        for(unsigned int i = 0; i < TNumNodes; ++i) {
+        for(IndexType i = 0; i < TNumNodes; ++i) {
             X(0, i) = ThisGeometry[i].X();
             X(1, i) = ThisGeometry[i].Y();
             X(2, i) = ThisGeometry[i].Z();
@@ -1245,9 +1245,9 @@ private:
         noalias(rResult) = prod(invJ, res);
 
 //         bounded_matrix<double, 3, 3> L;
-//         for(unsigned int i = 0; i < 3; ++i)
+//         for(IndexType i = 0; i < 3; ++i)
 //         {
-//             for(unsigned int j = 0; j < 2; ++j) L(i, j) = DN(i, j);
+//             for(IndexType j = 0; j < 2; ++j) L(i, j) = DN(i, j);
 //             L(i, 2) = ThisNormal[i];
 //         }
 //
@@ -1283,9 +1283,9 @@ private:
         const GeometryType& MasterGeometry,
         const VectorType& N1,
         const MatrixType& DNDe1,
-        const unsigned int MortarNode,
-        const unsigned int iNode,
-        const unsigned int iDoF,
+        const IndexType MortarNode,
+        const IndexType iNode,
+        const IndexType iDoF,
         const NormalDerivativesComputation ConsiderNormalVariation
         )
     {
@@ -1345,9 +1345,9 @@ private:
          const GeometryType& MasterGeometry,
          const VectorType& N2,
          const MatrixType& DNDe2,
-         const unsigned int MortarNode,
-         const unsigned int iNode,
-         const unsigned int iDoF,
+         const IndexType MortarNode,
+         const IndexType iNode,
+         const IndexType iDoF,
          const NormalDerivativesComputation ConsiderNormalVariation
          )
      {

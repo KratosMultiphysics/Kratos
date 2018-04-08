@@ -111,6 +111,8 @@ public:
     
     typedef ProcessFactoryUtility::Pointer                                      ProcessesListType;
     
+    typedef std::size_t                                                                 IndexType;
+    
     /**
      * @brief Default constructor 
      * @param rModelPart The model part of the problem
@@ -128,7 +130,7 @@ public:
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        unsigned int MaxIterations = 30,
+        IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
@@ -172,7 +174,7 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        unsigned int MaxIterations = 30,
+        IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
@@ -385,7 +387,7 @@ protected:
     double mSplitFactor;               /// Number by one the delta time is split
     ProcessesListType mpMyProcesses;   /// The processes list
     ProcessesListType mpPostProcesses; /// The post processes list
-    unsigned int mMaxNumberSplits;     /// Maximum number of splits
+    IndexType mMaxNumberSplits;     /// Maximum number of splits
     
     // OTHER PARAMETERS
     int mConvergenceCriteriaEchoLevel; /// The echo level of the convergence criteria
@@ -414,7 +416,7 @@ protected:
         TSystemVectorType& b = *BaseType::mpb;
 
         //initializing the parameters of the Newton-Raphson cicle
-        unsigned int iteration_number = 1;
+        IndexType iteration_number = 1;
         r_process_info[NL_ITERATION_NUMBER] = iteration_number;
 
         bool is_converged = false;
@@ -592,7 +594,7 @@ protected:
 
         const double original_delta_time = r_process_info[DELTA_TIME]; // We save the delta time to restore later
         
-        unsigned int split_number = 0;
+        IndexType split_number = 0;
         
         // We iterate until we reach the convergence or we split more than desired
         while (is_converged == false && split_number <= mMaxNumberSplits) {                   
@@ -603,7 +605,7 @@ protected:
             current_time += aux_delta_time;
             
             bool inside_the_split_is_converged = false;
-            unsigned int inner_iteration = 0;
+            IndexType inner_iteration = 0;
             while (current_time <= aux_time) {      
                 inner_iteration += 1;
                 r_process_info[STEP] += 1;
@@ -737,7 +739,7 @@ protected:
             std::vector<Matrix> deformation_gradient_matrices;
             it_elem->GetValueOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
             
-            for (unsigned int i_gp = 0; i_gp  < deformation_gradient_matrices.size(); ++i_gp) {
+            for (IndexType i_gp = 0; i_gp  < deformation_gradient_matrices.size(); ++i_gp) {
                 const double det_f = MathUtils<double>::DetMat(deformation_gradient_matrices[i_gp]);
                 if (det_f < 0.0) {
                     if (mConvergenceCriteriaEchoLevel > 0) {
