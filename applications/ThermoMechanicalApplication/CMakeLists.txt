@@ -47,6 +47,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosThermoMechanicalApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosThermoMechanicalApplication)
+endif(USE_COTIRE MATCHES ON)
+
 install(TARGETS KratosThermoMechanicalApplication DESTINATION libs )
 
 
