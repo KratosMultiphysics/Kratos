@@ -146,47 +146,37 @@ namespace Kratos
 			}
 		}
 
-		std::cout << "Element: " << rElement1.Id() << " cut_edges_vector: " << cut_edges_vector[0] << " " << cut_edges_vector[1] << " " << cut_edges_vector[2] << " " << cut_edges_vector[3] << " " << cut_edges_vector[4] << " " << cut_edges_vector[5] << std::endl;
-
-		// if (n_cut_edges == 1){
-		// 	KRATOS_WATCH(rElement1.GetGeometry())
-		// 	for (unsigned int i = 0; i < rIntersectedObjects.size(); ++i){
-		// 		KRATOS_WATCH(rIntersectedObjects[i])
-		// 	}
-		// }
-
-		// KRATOS_ERROR_IF(n_cut_edges == 1) << "Element " << rElement1.Id() << " has 1 intersected edges" << std::endl;
-		// KRATOS_ERROR_IF(n_cut_edges == 2) << "Element " << rElement1.Id() << " has 2 intersected edges" << std::endl;
-
+		// Check if there is intersection: 3 or more intersected edges for a tetrahedron
+		// If there is only 1 or 2 intersected edges, intersection is not considered
 		const bool is_intersection = (n_cut_edges < rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
 
 		if (is_intersection){
 
+			// If there are more than 3 intersected edges, compute the least squares plane approximation
+			// by using the ComputePlaneApproximation utility. Otherwise, the distance is computed using
+			// the plane defined by the 3 intersection points.
 			const bool do_plane_approx = (n_cut_edges == rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
 
 			if (do_plane_approx){
-				std::cout << "ComputePlaneApproximation for " << n_cut_edges << " intersected edges" << std::endl;
 				// Call the plane optimization utility
 				array_1d<double,3> base_pt, normal;
 				ComputePlaneApproximation(rElement1, int_pts_vector, base_pt, normal);
-
-				// Compute the distance to that plane
+				// Compute the distance to the approximation plane
+				Plane3D approximation_plane(normal, base_pt);
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
-					array_1d<double,3> plane_to_point_vec = rElement1.GetGeometry()[i] - base_pt;
-					const double s_n = inner_prod(plane_to_point_vec, normal);
-					const double n_n = inner_prod(normal,normal);
-					const double distance_to_plane = s_n/std::sqrt(n_n);
-					elemental_distances[i] = (std::abs(distance_to_plane) < epsilon) ? -epsilon : distance_to_plane;
+					elemental_distances[i] = approximation_plane.CalculateSignedDistance(rElement1.GetGeometry()[i]);
 				}
 			} else {
-				std::cout << "CalculateDistanceToNode for " << n_cut_edges << " intersected edges" << std::endl;
+				// Create a plane with the 3 intersection points
+				Plane3D plane(int_pts_vector[0], int_pts_vector[1], int_pts_vector[2]);
+				// Compute the distance to the intersection plane
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
-					elemental_distances[i] = CalculateDistanceToNode(rElement1, i, rIntersectedObjects, epsilon);
+					elemental_distances[i] = plane.CalculateSignedDistance(rElement1.GetGeometry()[i]);
 				}
 			}
 		}
 
-		// Check if the element is split
+		// Check if the element is split and set the TO_SPLIT flag accordingly
 		bool has_positive_distance = false;
 		bool has_negative_distance = false;
 		for (int i = 0; i < number_of_tetrahedra_points; i++)
@@ -203,7 +193,7 @@ namespace Kratos
 		double result_distance = std::numeric_limits<double>::max();
 		for (auto triangle : rIntersectedObjects.GetContainer()) {
 			auto distance = GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[NodeIndex]);
-			if (fabs(result_distance) > distance)
+			if (std::abs(result_distance) > distance)
 			{
 				if (distance < Epsilon) {
 					result_distance = -Epsilon;
@@ -228,7 +218,6 @@ namespace Kratos
 		auto &r_geometry = rElement1.GetGeometry();
 		const auto r_edges_container = r_geometry.Edges();
 		const std::size_t n_edges = r_geometry.EdgesNumber();
-		const std::size_t n_nodes = r_geometry.PointsNumber();
 		const std::size_t n_int_obj = rIntersectedObjects.size();
 
 		// Initialize cut edges and intersection points arrays
@@ -255,6 +244,7 @@ namespace Kratos
 		}
 
 		// // Save the intersection of the baricenter lines with the intersecting geometries as extra points
+		// const std::size_t n_nodes = r_geometry.PointsNumber();
 		// for (std::size_t i_node = 0; i_node < n_nodes; ++i_node){
 		// 	// Get the opposite i_node face center
 		// 	Element::NodeType face_center(3, 0.0);
