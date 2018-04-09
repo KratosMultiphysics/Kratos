@@ -70,7 +70,7 @@ namespace Kratos
 	*/
 
 
-	class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N : public Element
+	class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N : public BaseShellElement
 	{
 	public:
 
