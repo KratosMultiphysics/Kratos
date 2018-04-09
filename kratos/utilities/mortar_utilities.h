@@ -91,9 +91,6 @@ public:
     /// Size type definition
     typedef std::size_t                                          SizeType;
     
-    /// The definition of zero tolerance
-    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
-    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -136,18 +133,21 @@ public:
         const array_1d<double,3>& Vector
         )
     {
+        // Zero tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
         // We define the distance
         double distance = 0.0;
         
         const array_1d<double,3> vector_points = Geom[0].Coordinates() - PointDestiny.Coordinates();
 
-        if( norm_2( Vector ) < ZeroTolerance && norm_2( Normal ) > ZeroTolerance ) {
+        if( norm_2( Vector ) < zero_tolerance && norm_2( Normal ) > zero_tolerance ) {
             distance = inner_prod(vector_points, Normal)/norm_2(Normal);
 
             PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * distance;
             KRATOS_WARNING("Warning: Zero projection vector.") << " Projection using the condition vector instead." << std::endl;
         }
-        else if (std::abs(inner_prod(Vector, Normal) ) > ZeroTolerance) {
+        else if (std::abs(inner_prod(Vector, Normal) ) > zero_tolerance) {
             distance = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
 
             PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * distance;
@@ -384,7 +384,7 @@ public:
         
         const double this_norm = norm_2(normal);
         
-        KRATOS_DEBUG_ERROR_IF(this_norm < ZeroTolerance) << "Zero norm normal vector. Norm:" << this_norm << std::endl;
+        KRATOS_DEBUG_ERROR_IF(this_norm < std::numeric_limits<double>::epsilon()) << "Zero norm normal vector. Norm:" << this_norm << std::endl;
         
         normal /= this_norm;
         
@@ -457,7 +457,7 @@ public:
 
             array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
             const double norm_normal = norm_2(normal);
-            if (norm_normal > ZeroTolerance) normal /= norm_normal;
+            if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
             else KRATOS_ERROR << "WARNING:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
         }
     }
@@ -507,14 +507,17 @@ public:
     template< unsigned int TNumNodes, unsigned int TDim>
     static inline bounded_matrix<double, TNumNodes, TDim> ComputeTangentMatrix(const GeometryType& ThisNodes) {
         /* DEFINITIONS */
+        // Zero tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+        // Tangent matrix
         bounded_matrix<double, TNumNodes, TDim> tangent_matrix;
 
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3>& lm = ThisNodes[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-            if (norm_2(lm) > ZeroTolerance) { // Non zero LM
+            if (norm_2(lm) > zero_tolerance) { // Non zero LM
                 const array_1d<double, 3>& normal = ThisNodes[i_node].FastGetSolutionStepValue(NORMAL);
                 const array_1d<double, 3> tangent_lm = lm - inner_prod(lm, normal) * normal;
-                if (norm_2(tangent_lm) > ZeroTolerance) {
+                if (norm_2(tangent_lm) > zero_tolerance) {
                     const array_1d<double, 3> tangent = tangent_lm/norm_2(tangent_lm);
                     for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
                         tangent_matrix(i_node, i_dof) = tangent[i_dof];
