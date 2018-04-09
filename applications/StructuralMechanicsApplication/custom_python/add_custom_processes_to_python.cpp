@@ -20,6 +20,7 @@
 #include "structural_mechanics_application_variables.h"
 
 //Processes
+#include "custom_processes/prism_neighbours_process.h"
 #include "custom_processes/apply_multi_point_constraints_process.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
@@ -52,7 +53,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def("Execute", &TotalStructuralMassProcess::Execute)
     ;
     
-
+    class_<PrismNeighboursProcess, bases<ProcessBaseType>>("PrismNeighboursProcess", init<ModelPart&>())
+    .def(init< ModelPart&, const bool >())
+    .def("Execute",&PrismNeighboursProcess::Execute)
+    .def("ClearNeighbours",&PrismNeighboursProcess::ClearNeighbours)
+    ;
 }
 
 }  // namespace Python.  

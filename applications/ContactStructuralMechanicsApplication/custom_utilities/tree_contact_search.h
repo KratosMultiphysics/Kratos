@@ -43,14 +43,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
     
-    enum SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, Kdop = 2};
-    
-    enum CheckResult {Fail = 0, AlreadyInTheMap = 1, OK = 2};
-    
-    enum CheckGap {NoCheck = 0, DirectCheck = 1, MappingCheck = 2};
-    
-    enum TypeSolution {NormalContactStress = 0, ScalarLagrangeMultiplier = 1, VectorLagrangeMultiplier = 2};
-    
 ///@}
 ///@name  Functions
 ///@{
@@ -75,13 +67,19 @@ public:
     ///@name Type Definitions
     ///@{
     
-    // General type definitions
+    /// General type definitions
     typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
     typedef Node<3>                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
     
-    // Type definitions for the tree
+    /// Index type definition
+    typedef std::size_t                                           IndexType;
+
+    /// Size type definition
+    typedef std::size_t                                            SizeType;
+
+    /// Type definitions for the tree
     typedef PointItem                                             PointType;
     typedef PointType::Pointer                             PointTypePointer;
     typedef std::vector<PointTypePointer>                       PointVector;
@@ -89,13 +87,25 @@ public:
     typedef std::vector<double>                              DistanceVector;
     typedef DistanceVector::iterator                       DistanceIterator;
     
-    // KDtree definitions
+    /// KDtree definitions
     typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// Pointer definition of TreeContactSearch
     KRATOS_CLASS_POINTER_DEFINITION( TreeContactSearch );
       
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    enum class SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, Kdop = 2};
+
+    enum class CheckResult {Fail = 0, AlreadyInTheMap = 1, OK = 2};
+
+    enum class CheckGap {NoCheck = 0, DirectCheck = 1, MappingCheck = 2};
+
+    enum class TypeSolution {NormalContactStress = 0, ScalarLagrangeMultiplier = 1, VectorLagrangeMultiplier = 2};
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -117,7 +127,6 @@ public:
      *          -# InterfaceMapper = InterfacePreprocess()
      *          -# InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
      */
-    
     TreeContactSearch( 
         ModelPart& rMainModelPart, 
         Parameters ThisParameters =  Parameters(R"({})") 
@@ -136,49 +145,41 @@ public:
     /**
      * @brief This function initializes the ALM frictionless mortar conditions already created 
      */
-    
     void InitializeMortarConditions();
     
     /**
      * @brief This function clears the mortar conditions already created 
      */
-    
     void ClearMortarConditions();
       
     /**
      * @brief This function creates a lists  points ready for the Mortar method
      */
-    
     void CreatePointListMortar();
 
     /**
      * @brief This function updates a lists  points ready for the Mortar method
      */
-    
     void UpdatePointListMortar();
 
     /**
      * @brief This function has as pourpose to find potential contact conditions and fill the mortar conditions with the necessary pointers
      */
-    
     void UpdateMortarConditions();
     
     /**
      * @brief It checks the current mortar conditions
      */
-    
     void CheckMortarConditions();
     
     /**
      * @brief It sets if the search is inverted
      */
-    
     void InvertSearch();
     
     /**
      * @brief This resets the contact operators
      */
-        
     void ResetContactOperators();
     
     ///@}
@@ -262,6 +263,7 @@ private:
     std::string mConditionName;        /// The name of the condition to be created
     bool mCreateAuxiliarConditions;    /// If the auxiliar conditions are created or not
     PointVector mPointListDestination; /// A list that contents the all the points (from nodes) from the modelpart 
+    bool mPredefinedMasterSlave;       /// If the master/slave sides are predefined
 
     ///@}
     ///@name Private Operators
@@ -272,24 +274,28 @@ private:
     ///@{
        
     /**
+     * @brief This method sets the origin destination model maps when only one model part is provided
+     * @details The only model part should have MASTER/SLAVE flags in the nodes and conditions
+     * @param rModelPart The main model part, where the origin/destination model parts will be created
+     */
+    void SetOriginDestinationModelParts(ModelPart& rModelPart);
+
+    /**
      * @brief This function clears the mortar conditions already created 
      * @param NodesArray The array of nodes to clear
      */
-    
     void ClearScalarMortarConditions(NodesArrayType& NodesArray);
     
     /**
      * @brief This function clears the mortar conditions already created 
      * @param NodesArray The array of nodes to clear
      */
-    
     void ClearComponentsMortarConditions(NodesArrayType& NodesArray);
     
     /**
      * @brief This function clears the ALM frictionless mortar conditions already created 
      * @param NodesArray The array of nodes to clear
      */
-    
     void ClearALMFrictionlessMortarConditions(NodesArrayType& NodesArray);
        
     /**
@@ -319,8 +325,7 @@ private:
      * @param pCond2 The pointer to the condition in the destination model part  
      * @param InvertedSearch If the search is inverted
      */
-    
-    static inline CheckResult CheckCondition(
+    inline CheckResult CheckCondition(
         IndexSet::Pointer IndexesSet,
         const Condition::Pointer pCond1,
         const Condition::Pointer pCond2,
@@ -328,10 +333,15 @@ private:
         );
     
     /**
+     * @brief This method is used in case of not predefined master/slave we assign the master/slave nodes and conditions
+     * @param rModelPart The model part to assign the flags
+     */
+    static inline void NotPredefinedMasterSlave(ModelPart& rModelPart);
+
+    /**
      * @brief This method reorders the ID of the conditions
      */
-
-    inline std::size_t ReorderConditionsIds();
+    inline IndexType ReorderConditionsIds();
     
     /**
      * @brief This method checks the potential pairing between two conditions/geometries
@@ -344,7 +354,7 @@ private:
      */
     inline void AddPotentialPairing(
         ModelPart& rComputingModelPart,
-        std::size_t& rConditionId,
+        IndexType& rConditionId,
         Condition::Pointer pCondSlave,
         PointVector& rPointsFound,
         const unsigned int NumberOfPointsFound,
@@ -360,7 +370,7 @@ private:
      */
     inline void AddPairing(
         ModelPart& rComputingModelPart,
-        std::size_t& rConditionId,
+        IndexType& rConditionId,
         Condition::Pointer pCondSlave,
         Condition::Pointer pCondMaster
         );
@@ -375,7 +385,7 @@ private:
      */
     inline void AddPairing(
         ModelPart& rComputingModelPart,
-        std::size_t& rConditionId,
+        IndexType& rConditionId,
         Condition::Pointer pCondSlave,
         Condition::Pointer pCondMaster,
         IndexSet::Pointer IndexesSet
@@ -388,7 +398,7 @@ private:
      */
     inline void CheckPairing(
         ModelPart& rComputingModelPart,
-        std::size_t& rConditionId
+        IndexType& rConditionId
         );
     
     /**
@@ -426,7 +436,6 @@ private:
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
-    
     inline void CorrectScalarMortarLM(
         NodesArrayType::iterator ItNode,
         const double a,
@@ -439,7 +448,6 @@ private:
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
-    
     inline void CorrectComponentsMortarLM(
         NodesArrayType::iterator ItNode,
         const double a,
@@ -452,7 +460,6 @@ private:
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
-    
     inline void CorrectALMFrictionlessMortarLM(
         NodesArrayType::iterator ItNode,
         const double a,
@@ -465,7 +472,6 @@ private:
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
-    
     inline void CorrectALMFrictionlessComponentsMortarLM(
         NodesArrayType::iterator ItNode,
         const double a,
@@ -478,7 +484,6 @@ private:
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
-    
     inline void CorrectALMFrictionalMortarLM(
         NodesArrayType::iterator ItNode,
         const double a,
@@ -491,7 +496,6 @@ private:
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
-    
     inline void PredictScalarMortarLM(
         NodesArrayType::iterator ItNode,
         const double a,
@@ -504,7 +508,6 @@ private:
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
-    
     inline void PredictComponentsMortarLM(
         NodesArrayType::iterator ItNode,
         const double a,
@@ -517,7 +520,6 @@ private:
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
-    
     inline void PredictALMFrictionlessMortarLM(
         NodesArrayType::iterator ItNode,
         const double a,
@@ -530,7 +532,6 @@ private:
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
-    
     inline void PredictALMFrictionlessComponentsMortarLM(
         NodesArrayType::iterator ItNode,
         const double a,
@@ -543,7 +544,6 @@ private:
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
-    
     inline void PredictALMFrictionalMortarLM(
         NodesArrayType::iterator ItNode,
         const double a,
@@ -564,16 +564,8 @@ private:
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(rNodes.size()); ++i) {
             auto it_node = rNodes.begin() + i;
-        
-            if (it_node->Is(SLAVE) == true)
-                it_node->Set(SLAVE, false);
-            else
-                it_node->Set(SLAVE, true);
-            
-            if (it_node->Is(MASTER) == true)
-                it_node->Set(MASTER, false);
-            else
-                it_node->Set(MASTER, true);
+            it_node->Flip(SLAVE);
+            it_node->Flip(MASTER);
         }
     }
     
@@ -586,14 +578,13 @@ private:
     inline void CreateAuxiliarConditions(
         ModelPart& rContactModelPart,
         ModelPart& rComputingModelPart,
-        std::size_t& rConditionId
+        IndexType& rConditionId
         );
     
     /**  
      * @brief Calculates the minimal distance between one node and its center 
      * @return The radius of the geometry 
      */ 
-    
     static inline double Radius(GeometryType& ThisGeometry);
     
     /**
@@ -601,7 +592,6 @@ private:
      * @param str The string
      * @return SearchTreeType: The equivalent enum
      */
-    
     SearchTreeType ConvertSearchTree(const std::string& str);
     
     /**
@@ -609,7 +599,6 @@ private:
      * @param str The string
      * @return CheckGap: The equivalent enum
      */
-    
     CheckGap ConvertCheckGap(const std::string& str);
     
     ///@}

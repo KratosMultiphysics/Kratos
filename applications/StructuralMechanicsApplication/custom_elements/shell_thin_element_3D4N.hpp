@@ -18,9 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/element.h"
-#include "custom_utilities/shell_cross_section.hpp"
-#include "utilities/quaternion.h"
+#include "custom_elements/base_shell_element.h"
 #include "custom_utilities/shellq4_local_coordinate_system.hpp"
 
 namespace Kratos
@@ -51,7 +49,7 @@ namespace Kratos
 	*
 	* This element represents a 4-node Shell element.
 	* The membrane part is Felippa's assumed Natural DEviatoric Strain (ANDES)
-	* formulation, while the bending part is the Discrete Kirchhoff 
+	* formulation, while the bending part is the Discrete Kirchhoff
 	* Quadrilateral.
 	* This element is formulated for small strains,
 	* but can be used in Geometrically nonlinear problems
@@ -95,8 +93,6 @@ Southern California, 2012.
 		///@{
 		KRATOS_CLASS_POINTER_DEFINITION(ShellThinElement3D4N);
 
-		typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
-
 		typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
 		typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
@@ -117,7 +113,7 @@ Southern California, 2012.
 		* cartesian coordinate system.
 		*/
 
-		class JacobianOperator
+		class JacobianOperator // TODO cannot this be taken from the Geometry?
 		{
 		public:
 
@@ -181,59 +177,18 @@ Southern California, 2012.
 
 		Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-		IntegrationMethod GetIntegrationMethod() const override;
-
 		void Initialize() override;
 
-		//void ResetConstitutiveLaw();
-
-		void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
-
-		void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
-
-		int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-		void CleanMemory() override;
-
-		void GetValuesVector(Vector& values, int Step = 0) override;
-		// needed for dyn
-
-		void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
-		//needed for dyn
-
-		void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
-		//needed for dyn
-
 		void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
-		//needed for corotational
 
 		void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
-		//needed for corotational
 
 		void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-		//needed for corotational
 
 		void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-		//needed for corotational
 
 		void CalculateMassMatrix(MatrixType& rMassMatrix,
 			ProcessInfo& rCurrentProcessInfo) override;
-		// needed for dyn
-
-		void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-			ProcessInfo& rCurrentProcessInfo) override;
-		// needed for dyn
-
-		void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override;
-
-		void CalculateRightHandSide(VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override;
-
-		void CalculateGeometricStiffnessMatrix(MatrixType& rGeometricStiffnessMatrix,
-			ProcessInfo& rCurrentProcessInfo);
-		// needed for dyn
 
 		// Results calculation on integration points
 		void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
@@ -291,7 +246,7 @@ Southern California, 2012.
 		/**
 		* Protected empty constructor
 		*/
-		ShellThinElement3D4N() : Element()
+		ShellThinElement3D4N() : BaseShellElement()
 		{
 		}
 
@@ -317,7 +272,7 @@ Southern California, 2012.
 			// Unit vectors (in cartesian coords)
 			Vector s_xi = ZeroVector(3);	/*!< xi unit vector in cartesian coords */
 			Vector s_eta = ZeroVector(3);	/*!< xi unit vector in cartesian coords */
-			
+
 			// Geometry data
 			array_1d<Vector, 4> r_cartesian;	/*!< array of cartesian point positions */
 			array_1d<double, 4> dA;	/*!< array of integration areas (incl. weight) */
@@ -333,10 +288,10 @@ Southern California, 2012.
 			// ---------------------------------------
 			// Testing flags
 			// ---------------------------------------
-			// These should both be FALSE unless you are testing, or 
+			// These should both be FALSE unless you are testing, or
 			// investigating the effects of element enhancements!
 
-			const bool basicQuad = false;	/*!< flag for using basic membrane 
+			const bool basicQuad = false;	/*!< flag for using basic membrane
 											formulation - should be FALSE unless
 											you are testing */
 
@@ -369,7 +324,7 @@ Southern California, 2012.
 			MatrixType B_h_bar = ZeroMatrix(3, 7);	/*!< higher order membrane B_bar matrix */
 			MatrixType T_13 = ZeroMatrix(3, 3);
 			MatrixType T_24 = ZeroMatrix(3, 3);
-			
+
 			// DKQ bending data
 			array_1d<double, 4> DKQ_a;
 			array_1d<double, 4> DKQ_b;
@@ -428,7 +383,7 @@ Southern California, 2012.
 
 		void DecimalCorrection(Vector& a);
 
-		void SetupOrientationAngles();
+		void SetupOrientationAngles() override;
 
 		void InitializeCalculationData(CalculationData& data);
 
@@ -436,17 +391,17 @@ Southern California, 2012.
 
 		void CalculateSectionResponse(CalculationData& data);
 
-		void CalculateGaussPointContribution(CalculationData& data, 
+		void CalculateGaussPointContribution(CalculationData& data,
 			MatrixType& LHS, VectorType& RHS);
 
-		void AddBodyForces(CalculationData& data, 
+		void AddBodyForces(CalculationData& data,
 			VectorType& rRightHandSideVector); //not required for dyn
 
 		void CalculateAll(MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo,
-			const bool LHSrequired,
-			const bool RHSrequired);
+            VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo,
+            const bool CalculateStiffnessMatrixFlag,
+            const bool CalculateResidualVectorFlag) override;
 
 		bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double, 3> >& rVariable,
 			std::vector<array_1d<double, 3> >& rValues,
@@ -456,13 +411,11 @@ Southern California, 2012.
 			std::vector<Matrix>& rValues,
 			const ProcessInfo& rCurrentProcessInfo);
 
-		void printMatrix(Matrix& matrixIn, std::string stringIn);
-
-		void printVector(Vector& matrixIn, std::string stringIn);
-
-		void printMatrix(const Matrix& matrixIn, std::string stringIn);
-
-		void printDouble(std::string stringIn, double doubleIn);
+        /**
+        * Returns the behavior of this shell (thin/thick)
+        * @return the shell behavior
+        */
+        ShellCrossSection::SectionBehaviorType GetSectionBehavior() override;
 
 		///@}
 
@@ -473,10 +426,6 @@ Southern California, 2012.
 		///@name Member Variables
 		///@{
 		CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
-
-		CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
-
-		IntegrationMethod mThisIntegrationMethod; /*!< Currently selected integration method */
 
         ///@}
 

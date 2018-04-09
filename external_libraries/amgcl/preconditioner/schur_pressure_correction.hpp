@@ -470,7 +470,7 @@ class schur_pressure_correction {
             return os;
         }
 
-#if defined(AMGCL_DEBUG) || !defined(NDEBUG)
+#if defined(AMGCL_DEBUG)
         template <typename I, typename E>
         static void report(const std::string &name, const boost::tuple<I, E> &c) {
             std::cout << name << " (" << boost::get<0>(c) << ", " << boost::get<1>(c) << ")\n";

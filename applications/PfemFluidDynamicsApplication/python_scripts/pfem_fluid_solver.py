@@ -140,15 +140,25 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
         
-        #VARIABLES FOR NON-NEWTONIAN MODEL
+        #VARIABLES FOR PAPANASTASIOU MODEL
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)        
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
+
+        #VARIABLES FOR MU-I RHEOLOGY MODEL
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ZERO)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DIAMETER)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INFINITE_FRICTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ONE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-
 
         # PFEM fluid variables
         # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NORMVELOCITY)
@@ -279,11 +289,11 @@ class PfemFluidSolver:
     def InitializeSolutionStep(self):
         #self.fluid_solver.InitializeSolutionStep()
 
-        adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
-        adaptive_time_interval.Execute()
+        #adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+        #adaptive_time_interval.Execute()
 
         unactive_peak_elements = False
-        unactive_sliver_elements = True
+        unactive_sliver_elements = False
         set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
         set_active_flag.Execute()
 
@@ -303,7 +313,7 @@ class PfemFluidSolver:
         self.fluid_solver.FinalizeSolutionStep()  
 
         unactive_peak_elements = False
-        unactive_sliver_elements = True
+        unactive_sliver_elements = False
         set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
         set_active_flag.ExecuteFinalize()
 
@@ -336,6 +346,15 @@ class PfemFluidSolver:
             flow_index = el.Properties.GetValue(KratosPfemFluid.FLOW_INDEX)
             yield_shear = el.Properties.GetValue(KratosPfemFluid.YIELD_SHEAR)
             adaptive_exponent = el.Properties.GetValue(KratosPfemFluid.ADAPTIVE_EXPONENT)
+            static_friction = elem.Properties.GetValue(KratosPfemFluid.STATIC_FRICTION)
+            dynamic_friction = elem.Properties.GetValue(KratosPfemFluid.DYNAMIC_FRICTION)
+            inertial_number_zero = elem.Properties.GetValue(KratosPfemFluid.INERTIAL_NUMBER_ZERO)
+            grain_diameter = elem.Properties.GetValue(KratosPfemFluid.GRAIN_DIAMETER)
+            grain_density = elem.Properties.GetValue(KratosPfemFluid.GRAIN_DENSITY)
+            regularization_coefficient = elem.Properties.GetValue(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
+            inertial_number_one = elem.Properties.GetValue(KratosPfemFluid.INERTIAL_NUMBER_ONE)
+            infinite_friction = elem.Properties.GetValue(KratosPfemFluid.INFINITE_FRICTION)
+            alpha_parameter = elem.Properties.GetValue(KratosPfemFluid.ALPHA_PARAMETER)
             break
             
         print ("density: ",density)
@@ -346,6 +365,15 @@ class PfemFluidSolver:
         print ("flow_index: ",flow_index)
         print ("yield_shear: ",yield_shear)
         print ("adaptive_exponent: ",adaptive_exponent)
+        print ("static_friction: ",static_friction)
+        print ("dynamic_friction: ",dynamic_friction)
+        print ("inertial_number_zero: ",inertial_number_zero)
+        print ("grain_diameter: ",grain_diameter)
+        print ("grain_density: ",grain_density)
+        print ("regularization_coefficient: ",regularization_coefficient)
+        print ("inertial_number_one: ",inertial_number_one)
+        print ("infinite_friction: ",infinite_friction)
+        print ("alpha_parameter: ",alpha_parameter)
 
 #
 

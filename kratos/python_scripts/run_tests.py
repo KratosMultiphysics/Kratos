@@ -143,7 +143,7 @@ class Commander(object):
                     print('\t', p, file=sys.stderr)
         else:
             script = path+'/'+possiblePaths[0]['Found']+'/tests/'+'test_'+application+'.py'
-            print(script)
+            print(script, file=sys.stderr)
 
             if possiblePaths[0]['Found'] != possiblePaths[0]['Expected']:
                 print(
