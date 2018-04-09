@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-KratosMultiphysics.CheckForPreviousImport()
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -17,7 +16,7 @@ def Factory(settings, Model):
 
 class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
 
-    def __init__(self, Model, params):
+    def __init__(self, model, params):
 
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
@@ -26,7 +25,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             "output_file_name"      : "",
             "remove_output_file"    : true,
             "comparison_type"       : "deterministic",
-            "tolerance"             : 1.0e-6,
+            "decimal_places"        : 6,
             "dimension"             : 3
         }
         """)
@@ -38,7 +37,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         self.output_file_name = os.path.join(os.getcwd(), self.params["output_file_name"].GetString())
         self.remove_output_file = self.params["remove_output_file"].GetBool()
         self.comparison_type = self.params["comparison_type"].GetString()
-        self.tolerance = self.params["tolerance"].GetDouble()
+        self.decimal_places = self.params["decimal_places"].GetInt()
         self.dimension = self.params["dimension"].GetInt()
 
     def ExecuteInitialize(self):
@@ -65,10 +64,10 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             self.assertTrue(value)
         elif (self.comparison_type == "mesh_file"):
             error = _ReadVertices(self.reference_file_name, self.output_file_name, self.dimension)
-            self.assertTrue(error < self.tolerance)
+            self.assertTrue(error < GetTolerance(self.decimal_places))
         elif (self.comparison_type == "sol_file"):
-            error = _ReadMetric(self.reference_file_name, self.output_file_name, self.dimension)
-            self.assertTrue(error < self.tolerance)
+            error = ReadMetric(self.reference_file_name, self.output_file_name, self.dimension)
+            self.assertTrue(error < GetTolerance(self.decimal_places))
         elif (self.comparison_type == "post_res_file"):
             self.__ComparePostResFile()
         else:
@@ -76,7 +75,6 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
 
         if self.remove_output_file == True:
             kratos_utils.DeleteFileIfExisting(self.output_file_name)
-
 
     def __ComparePostResFile(self):
         with open(self.reference_file_name,'r') as ref_file, open(self.output_file_name,'r') as out_file:
@@ -112,7 +110,6 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 while results_start_index < num_lines_1:
                     results_start_index = self.__CompareResultsBlock(lines_ref, lines_out, results_start_index)
 
-
     def __CompareResultsBlock(self, lines1, lines2, current_index):
         # comparing result labels
         lines_1_splitted = lines1[current_index].split()
@@ -138,23 +135,17 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             for val_1, val_2 in zip(lines_1_splitted, lines_2_splitted):
                 self.assertAlmostEqual(float(val_1),
                                        float(val_2),
-                                       self.tolerance)
+                                       self.decimal_places)
 
         return current_index+2 # directly incrementing to get the new result label
 
-def _ConvertStringToListFloat(line, space = " ", endline = ""):
+
+def ConvertStringToListFloat(line, space = " ", endline = ""):
     list_values = []
     string_values = (line.replace(endline,"")).split(space)
     for string in string_values:
         list_values.append(float(string))
-    #value = ""
-    #for i in line:
-        #if ((i == " ") or (i == "  ")):
-            #num_value = float(value)
-            #list_values.append(num_value)
-            #value = ""
-        #else:
-            #value += i
+
     return list_values
 
 def _ReadVertices(input_file1, input_file2, dimension):
@@ -174,8 +165,8 @@ def _ReadVertices(input_file1, input_file2, dimension):
 
         error = 0.0
         for i in range(numline, nvertices + numline):
-            tmp1 = _ConvertStringToListFloat(lines1[i], "", "\n")
-            tmp2 = _ConvertStringToListFloat(lines2[i], "", "\n")
+            tmp1 = ConvertStringToListFloat(lines1[i], "", "\n")
+            tmp2 = ConvertStringToListFloat(lines2[i], "", "\n")
             if (dimension == 2):
                 error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0)**(0.5)
             else:
@@ -183,7 +174,7 @@ def _ReadVertices(input_file1, input_file2, dimension):
 
     return (error/nvertices)
 
-def _ReadMetric(input_file1, input_file2, dimension):
+def ReadMetric(input_file1, input_file2, dimension):
     with open(input_file1,'r') as f1, open(input_file2,'r') as f2:
         lines1 = f1.readlines()
         lines2 = f2.readlines()
@@ -212,8 +203,8 @@ def _ReadMetric(input_file1, input_file2, dimension):
                 lines1[i] = lines1[i][1:]
             if (lines2[i][0] == " "):
                 lines1[i][0] = lines2[i][1:]
-            tmp1 = _ConvertStringToListFloat(lines1[i], space, end_line)
-            tmp2 = _ConvertStringToListFloat(lines2[i], space, end_line)
+            tmp1 = ConvertStringToListFloat(lines1[i], space, end_line)
+            tmp2 = ConvertStringToListFloat(lines2[i], space, end_line)
 
             if (dimension == 2):
                 error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0 + (tmp1[2] - tmp2[2])**2.0)**(0.5)
@@ -221,3 +212,9 @@ def _ReadMetric(input_file1, input_file2, dimension):
                 error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0 + (tmp1[2] - tmp2[2])**2.0 + (tmp1[3] - tmp2[3])**2.0 + (tmp1[4] - tmp2[4])**2.0 + (tmp1[5] - tmp2[5])**2.0)**(0.5)
 
     return (error/nvertices)
+
+def GetTolerance(decimal_places):
+    # convert e.g. 5 to 1e-5
+    tolerance = 0.1**decimal_places
+    tolerance = round(tolerance, decimal_places) # to remove rounding errors
+    return(tolerance)
