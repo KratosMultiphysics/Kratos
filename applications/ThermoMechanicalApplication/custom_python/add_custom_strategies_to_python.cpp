@@ -56,11 +56,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
     //********************************************************************
     class_< ResidualBasedIncrementalUpdateStaticVariablePropertyScheme< SparseSpaceType, LocalSpaceType>,
+        typename ResidualBasedIncrementalUpdateStaticVariablePropertyScheme< SparseSpaceType, LocalSpaceType>::Pointer,
 	    ResidualBasedIncrementalUpdateStaticScheme <SparseSpaceType, LocalSpaceType> >
 	    (m, "ResidualBasedIncrementalUpdateStaticVariablePropertyScheme")
         .def( init< >() );
 
     class_< GeneralResidualBasedIncrementalUpdateStaticVariablePropertyScheme< SparseSpaceType, LocalSpaceType>,
+        typename GeneralResidualBasedIncrementalUpdateStaticVariablePropertyScheme< SparseSpaceType, LocalSpaceType>::Pointer,
 	    ResidualBasedIncrementalUpdateStaticScheme <SparseSpaceType, LocalSpaceType> >
 	    (m, "GeneralResidualBasedIncrementalUpdateStaticVariablePropertyScheme")
         .def( init< >() );
