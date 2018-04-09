@@ -27,11 +27,11 @@ class AnalysisStage(object):
 
         self.model = model
         self.project_parameters = project_parameters
-        
-        
+
+
 
         ##HERE WE SHOULD CONSTRUCT A SOLVER - stages should contain at least one solver
-        ##self.solver = ... HERE WE CONSTRUCT THE SOLVER 
+        ##self.solver = ... HERE WE CONSTRUCT THE SOLVER
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -47,16 +47,16 @@ class AnalysisStage(object):
         """
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
-            
+
         while self.time < self.end_time:
             solver.AdvanceInTime(self.time)
-            self.InitializeSolutionStep()           
+            self.InitializeSolutionStep()
             solver.Predict()
-            solver.SolveSolutionStep()          
+            solver.SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
-            
+
 
     def Initialize(self):
         """This function initializes the AnalysisStage
@@ -66,13 +66,13 @@ class AnalysisStage(object):
         solver.ImportModelPart()
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
-        
+
         ##here we initialize user-provided processes
         for process in self.list_of_processes:
             process.ExecuteInitialize()
-        
+
         solver.Initialize()
-        
+
 
     def Finalize(self):
         """This function finalizes the AnalysisStage
@@ -80,7 +80,7 @@ class AnalysisStage(object):
         """
         for process in self.list_of_processes:
             process.ExecuteFinalize()
-    
+
     def InitializeSolutionStep(self):
         """This function performs all the required operations that should be executed
         (for each step) BEFORE solving the solution step.
@@ -102,41 +102,41 @@ class AnalysisStage(object):
         """
         for process in self.list_of_processes:
             process.ExecuteFinalizeSolutionStep()
-            
+
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
         for process in self.list_of_processes:
             process.ExecuteBeforeOutputStep()
-            
+
         #here the output should be done when needed
 
         for process in self.list_of_processes:
-            process.ExecuteAfterOutputStep()        
-        
+            process.ExecuteAfterOutputStep()
+
 
     def Check(self):
         """This function checks the AnalysisStage
         """
         pass
-    
+
     def ModifyInitialProperties(self):
         """this is the place to eventually modify material properties in the stage """
         pass
-    
+
     def ModifyInitialGeometry(self):
         """this is the place to eventually modify geometry (for example moving nodes) in the stage """
         pass
-    
+
     def ApplyBoundaryConditions(self):
         """here the boundary conditions is applied, by calling the InitializeSolutionStep function of the processes"""
-        
+
         for process in self.list_of_processes:
             process.ExecuteInitializeSolutionStep()
-            
+
         #other operations as needed
-        
-    
+
+
     def ChangeMaterialProperties(self):
         """this function is where the user could change material parameters as a part of the solution step """
         pass
