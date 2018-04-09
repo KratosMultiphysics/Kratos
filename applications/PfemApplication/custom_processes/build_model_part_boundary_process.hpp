@@ -263,8 +263,8 @@ namespace Kratos
 			    WeakPointerVector< Element > MasterElements;
 			    MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
 			    if( mEchoLevel >= 1 ){
-			      if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
-				std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
+			      //if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id()) 
+				//std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
 			    }
 			    i_cond->SetValue(MASTER_ELEMENTS,MasterElements);
 			    
