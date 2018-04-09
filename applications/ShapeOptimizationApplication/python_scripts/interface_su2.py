@@ -17,7 +17,19 @@ from KratosMultiphysics import *
 import SU2
 from itertools import islice
 import shutil
-import os
+from contextlib import contextmanager
+import sys, os
+
+# Functions
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
 
 # ==============================================================================
 class InterfaceSU2():
@@ -40,7 +52,8 @@ class InterfaceSU2():
             {
                 "mdpa_file"      : "converted_su2_mesh.mdpa",
                 "write_elements" : false
-            }
+            },
+            "echo_level" : 1
         }""")
         interface_parameters.RecursivelyValidateAndAssignDefaults(default_parameters)
         self.interface_parameters = interface_parameters
@@ -64,6 +77,9 @@ class InterfaceSU2():
 
     # --------------------------------------------------------------------------
     def WriteSU2MeshAsMDPA(self):
+        if self.interface_parameters["echo_level"].GetInt()==1:
+            print("> Start writing mdpa file...")
+
         self.new_file = open(self.interface_parameters["kratos_related"]["mdpa_file"].GetString(), 'w')
 
         self.__WriteHeader()
@@ -76,6 +92,9 @@ class InterfaceSU2():
         self.__WriteSubModelPartsWithoutDesignSurface()
 
         self.new_file.close()
+
+        if self.interface_parameters["echo_level"].GetInt()==1:
+            print("> Finished writing mdpa file!\n")
 
     # --------------------------------------------------------------------------
     def WriteNodesAsSU2MeshMotionFile(self,kratos_node_set,target_directory = "."):
@@ -106,6 +125,9 @@ class InterfaceSU2():
 
     # --------------------------------------------------------------------------
     def InitializeNewSU2Project(self):
+        if self.interface_parameters["echo_level"].GetInt()==1:
+            print("\n> Initializing SU2 project...")
+
         if os.path.isdir("DESIGNS"):
             shutil.rmtree("DESIGNS")
 
@@ -114,25 +136,44 @@ class InterfaceSU2():
         su2_config.NZONES = self.interface_parameters["su2_related"]["number_of_zones"].GetInt()
         su2_config.GRADIENT_METHOD= self.interface_parameters["su2_related"]["gradient_method"].GetString()
 
-        state = SU2.io.State()
-        state.find_files(su2_config)
+        with suppress_stdout():
+            state = SU2.io.State()
+            state.find_files(su2_config)
 
-        self.project = SU2.opt.Project(su2_config,state)
-        self.project.config["MOTION_FILENAME"] = self.interface_parameters["su2_related"]["mesh_motion_file"].GetString()
-        self.project.state.FILES["MOTION_FILE"] = self.interface_parameters["su2_related"]["mesh_motion_file"].GetString()
+            self.project = SU2.opt.Project(su2_config,state)
+            self.project.config["MOTION_FILENAME"] = self.interface_parameters["su2_related"]["mesh_motion_file"].GetString()
+            self.project.state.FILES["MOTION_FILE"] = self.interface_parameters["su2_related"]["mesh_motion_file"].GetString()
+
+        if self.interface_parameters["echo_level"].GetInt()==1:
+            print("> Finished initializing SU2 project!\n")
 
     # --------------------------------------------------------------------------
     def ComputeValues(self, list_of_response_ids, update_mesh):
-        return self.project.f (list_of_response_ids, update_mesh)
+        if self.interface_parameters["echo_level"].GetInt()==2:
+            return self.project.f (list_of_response_ids, update_mesh)
+        else:
+            with suppress_stdout():
+                return self.project.f (list_of_response_ids, update_mesh)
 
     # --------------------------------------------------------------------------
     def ComputeGradient(self, response_id, update_mesh):
-        return self.project.df(response_id, update_mesh)
+        if self.interface_parameters["echo_level"].GetInt()==2:
+            su2_gradient = self.project.df(response_id, update_mesh)[0]
+        else:
+            with suppress_stdout():
+                su2_gradient = self.project.df(response_id, update_mesh)[0]
+
+        kratos_gradient = {}
+        for su2_node_id in su2_gradient.keys():
+            kratos_gradient[self.node_id_su2_to_kratos[su2_node_id]] = su2_gradient[su2_node_id]
+
+        return kratos_gradient
 
     # --------------------------------------------------------------------------
     def __ReadSU2Mesh(self):
 
-        print("\n> Start reading SU2 mesh file...")
+        if self.interface_parameters["echo_level"].GetInt()==1:
+            print("\n> Start reading SU2 mesh file...")
 
         ''' imports mesh and builds python dictionary structure
             su2_mesh_data                               mesh data dictionary
@@ -293,7 +334,8 @@ class InterfaceSU2():
         # Close read file
         f_tb_read.close()
 
-        print("> Finished reading SU2 mesh file!\n")
+        if self.interface_parameters["echo_level"].GetInt()==1:
+            print("> Finished reading SU2 mesh file!\n")
 
     # --------------------------------------------------------------------------
     def __TranslateSU2IdsToKratosIds(self):
@@ -574,7 +616,27 @@ class InterfaceSU2():
 
         # write quad elements on design surface as quad conditions
         if quad_entries:
-            raise Exception("ShapeOptimizationCondition2D4N not implemented yet!")
+            self.new_file.write("Begin Conditions ShapeOptimizationCondition3D4N\n")
+            for list_index in quad_entries:
+                entry = self.su2_mesh_data["MARKS"][design_surface_tag]["ELEM"][list_index]
+
+                condition_id = condition_id+1
+                self.list_of_optimization_conditions.append(condition_id)
+
+                self.new_file.write("\t")
+                self.new_file.write(str(condition_id))
+                self.new_file.write("\t")
+                self.new_file.write("1")
+                self.new_file.write("\t")
+                self.new_file.write(str(self.node_id_su2_to_kratos[entry[1]]))
+                self.new_file.write("\t")
+                self.new_file.write(str(self.node_id_su2_to_kratos[entry[2]]))
+                self.new_file.write("\t")
+                self.new_file.write(str(self.node_id_su2_to_kratos[entry[3]]))
+                self.new_file.write("\t")
+                self.new_file.write(str(self.node_id_su2_to_kratos[entry[4]]))
+                self.new_file.write("\n")
+            self.new_file.write("End Conditions\n\n")
 
     # --------------------------------------------------------------------------
     def __WriteSubModelPartsWithoutDesignSurface(self):
