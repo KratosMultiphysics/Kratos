@@ -532,7 +532,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(elem_dist[3], -0.5, 1e-10);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessOneEdgeIntersections, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessOneEdgeIntersection, KratosCoreFastSuite)
     {
         // Generate the triangular element
         ModelPart volume_part("Volume");
@@ -579,6 +579,120 @@ namespace Testing {
         gid_io_fluid_visualization.FinalizeMesh();
         gid_io_fluid_visualization.InitializeResults(0, visualization_model_part.GetMesh());
         gid_io_fluid_visualization.FinalizeResults();
+
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceMultipleIntersections, KratosCoreFastSuite)
+    {
+        // // Generate the triangular element
+        // ModelPart volume_part("Volume");
+        // volume_part.AddNodalSolutionStepVariable(DISTANCE);
+        // volume_part.CreateNewNode(100, 0.597905, 0.597905, 0.100929);
+        // volume_part.CreateNewNode(200, 0.608229, 0.490745, 0.204129);
+        // volume_part.CreateNewNode(300, 0.697865, 0.493815, 0.126859);
+        // volume_part.CreateNewNode(400, 0.65897, 0.571858, 0.175526);
+        // Properties::Pointer p_properties_0(new Properties(0));
+        // volume_part.CreateNewElement("Element3D4N", 1, {100, 200, 300, 400}, p_properties_0);
+
+        // // Generate the skin such that it only intersects in one edge
+        // ModelPart skin_part("Skin");
+        // volume_part.CreateNewNode(1, 0.633131, 0.539808, 0.178766);
+        // volume_part.CreateNewNode(2, 0.671961, 0.517362, 0.195651);
+        // volume_part.CreateNewNode(3, 0.66866, 0.566563, 0.200629);
+        // volume_part.CreateNewNode(4, 0.635672, 0.588229, 0.189664);
+        // volume_part.CreateNewNode(5, 0.631307, 0.501763, 0.175569);
+        // volume_part.CreateNewNode(6, 0.664311, 0.467496, 0.19268);
+        // volume_part.CreateNewNode(7, 0.595066, 0.567432, 0.169977);
+        // volume_part.CreateNewNode(8, 0.589401, 0.523455, 0.162424);
+        // volume_part.CreateNewNode(9, 0.629759, 0.452428, 0.178442);
+        // volume_part.CreateNewNode(10, 0.591444, 0.479469, 0.162781);
+        // Properties::Pointer p_properties_1(new Properties(1));
+        // volume_part.CreateNewElement("Element3D3N", 10, {1,2,3}, p_properties_1);
+        // volume_part.CreateNewElement("Element3D3N", 20, {1,3,4}, p_properties_1);
+        // volume_part.CreateNewElement("Element3D3N", 30, {1,5,2}, p_properties_1);
+        // volume_part.CreateNewElement("Element3D3N", 40, {2,5,6}, p_properties_1);
+        // volume_part.CreateNewElement("Element3D3N", 50, {7,1,4}, p_properties_1);
+        // volume_part.CreateNewElement("Element3D3N", 60, {7,8,1}, p_properties_1);
+        // volume_part.CreateNewElement("Element3D3N", 70, {8,5,1}, p_properties_1);
+        // volume_part.CreateNewElement("Element3D3N", 80, {9,6,5}, p_properties_1);
+        // volume_part.CreateNewElement("Element3D3N", 90, {9,10,5}, p_properties_1);
+        // volume_part.CreateNewElement("Element3D3N", 100, {5,10,9}, p_properties_1);
+
+        // // Visualization of the intersected geometries
+        // GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/DiscontinuousDistanceProcessPoorIntersection", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        // gid_io_fluid.InitializeMesh(0.00);
+        // gid_io_fluid.WriteMesh(volume_part.GetMesh());
+        // gid_io_fluid.FinalizeMesh();
+        // gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
+        // gid_io_fluid.FinalizeResults();
+
+        // Generate the triangular element
+        ModelPart volume_part("Volume");
+        volume_part.AddNodalSolutionStepVariable(DISTANCE);
+        volume_part.CreateNewNode(1, 0.597905, 0.597905, 0.100929);
+        volume_part.CreateNewNode(2, 0.608229, 0.490745, 0.204129);
+        volume_part.CreateNewNode(3, 0.697865, 0.493815, 0.126859);
+        volume_part.CreateNewNode(4, 0.65897, 0.571858, 0.175526);
+        Properties::Pointer p_properties_0(new Properties(0));
+        volume_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
+
+        // Generate the skin such that it only intersects in one edge
+        ModelPart skin_part("Skin");
+        skin_part.CreateNewNode(1, 0.633131, 0.539808, 0.178766);
+        skin_part.CreateNewNode(2, 0.671961, 0.517362, 0.195651);
+        skin_part.CreateNewNode(3, 0.66866, 0.566563, 0.200629);
+        skin_part.CreateNewNode(4, 0.635672, 0.588229, 0.189664);
+        skin_part.CreateNewNode(5, 0.631307, 0.501763, 0.175569);
+        skin_part.CreateNewNode(6, 0.664311, 0.467496, 0.19268);
+        skin_part.CreateNewNode(7, 0.595066, 0.567432, 0.169977);
+        skin_part.CreateNewNode(8, 0.589401, 0.523455, 0.162424);
+        skin_part.CreateNewNode(9, 0.629759, 0.452428, 0.178442);
+        skin_part.CreateNewNode(10, 0.591444, 0.479469, 0.162781);
+        Properties::Pointer p_properties_1(new Properties(1));
+        skin_part.CreateNewElement("Element3D3N", 1, {1,2,3}, p_properties_1);
+        skin_part.CreateNewElement("Element3D3N", 2, {1,3,4}, p_properties_1);
+        skin_part.CreateNewElement("Element3D3N", 3, {1,5,2}, p_properties_1);
+        skin_part.CreateNewElement("Element3D3N", 4, {2,5,6}, p_properties_1);
+        skin_part.CreateNewElement("Element3D3N", 5, {7,1,4}, p_properties_1);
+        skin_part.CreateNewElement("Element3D3N", 6, {7,8,1}, p_properties_1);
+        skin_part.CreateNewElement("Element3D3N", 7, {8,5,1}, p_properties_1);
+        skin_part.CreateNewElement("Element3D3N", 8, {9,6,5}, p_properties_1);
+        skin_part.CreateNewElement("Element3D3N", 9, {9,10,5}, p_properties_1);
+        skin_part.CreateNewElement("Element3D3N", 10, {5,10,9}, p_properties_1);
+
+        // Compute the discontinuous distance function
+        CalculateDiscontinuousDistanceToSkinProcess(volume_part, skin_part).Execute();
+
+        // Check elemental distance values
+        auto it_elem = volume_part.ElementsBegin();
+        const auto &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -0.0636738, 1e-7);
+        KRATOS_CHECK_NEAR(r_elem_dist[1],  0.0342287, 1e-7);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], -0.0709816, 1e-7);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], -0.0159295, 1e-7);
+        
+        // // Call the visualization utility to see the resultant splitting pattern
+        // ModelPart visualization_model_part("VolumeVisualization");
+        // Parameters visualization_parameters(R"(
+        // {
+        //     "shape_functions"                     : "ausas",
+        //     "reform_model_part_at_each_time_step" : false,
+        //     "visualization_variables"             : []
+        // })");
+        // EmbeddedSkinVisualizationProcess visualization_tool(volume_part, visualization_model_part, visualization_parameters);
+        // visualization_tool.ExecuteInitialize();
+        // visualization_tool.ExecuteInitialize();
+        // visualization_tool.ExecuteBeforeSolutionLoop();
+        // visualization_tool.ExecuteInitializeSolutionStep();
+        // visualization_tool.ExecuteBeforeOutputStep();
+        // visualization_tool.ExecuteFinalizeSolutionStep();
+
+        // GidIO<> gid_io_fluid_visualization("/home/rzorrilla/Desktop/DiscontinuousDistanceProcessPoorIntersectionVisualization", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        // gid_io_fluid_visualization.InitializeMesh(0.00);
+        // gid_io_fluid_visualization.WriteMesh(visualization_model_part.GetMesh());
+        // gid_io_fluid_visualization.FinalizeMesh();
+        // gid_io_fluid_visualization.InitializeResults(0, visualization_model_part.GetMesh());
+        // gid_io_fluid_visualization.FinalizeResults();
 
     }
 
