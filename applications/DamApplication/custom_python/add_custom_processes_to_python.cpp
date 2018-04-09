@@ -5,16 +5,12 @@
 //   Revision:            $Revision: $
 //
 
-// System includes 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+// External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
-#include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
 
 // Processes
@@ -40,66 +36,79 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
-
-void  AddCustomProcessesToPython()
+void  AddCustomProcessesToPython(pybind11::module& m)
 {
+    using namespace pybind11;
+
     // Fix Temperature
-    class_< DamFixTemperatureConditionProcess, bases< Process >, boost::noncopyable > ( "DamFixTemperatureConditionProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamFixTemperatureConditionProcess, Process >
+    (m, "DamFixTemperatureConditionProcess")
+    .def(init < ModelPart&, Parameters&>());
     
     // Bofang Process
-    class_< DamBofangConditionTemperatureProcess, bases< Process >, boost::noncopyable > ( "DamBofangConditionTemperatureProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamBofangConditionTemperatureProcess, Process >
+    (m, "DamBofangConditionTemperatureProcess")
+    .def(init < ModelPart&, Parameters&>());
 
     // Uniform Reservoir Temperature Process
-    class_< DamReservoirConstantTemperatureProcess, bases< Process >, boost::noncopyable > ( "DamReservoirConstantTemperatureProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamReservoirConstantTemperatureProcess, Process >
+    (m, "DamReservoirConstantTemperatureProcess")
+    .def(init < ModelPart&, Parameters&>());
         
     // Hydrostatic condition
-    class_< DamHydroConditionLoadProcess, bases< Process >, boost::noncopyable > ( "DamHydroConditionLoadProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamHydroConditionLoadProcess, Process >
+    (m, "DamHydroConditionLoadProcess")
+    .def(init < ModelPart&, Parameters&>());
         
     // Uplift Condition
-    class_< DamUpliftConditionLoadProcess, bases< Process >, boost::noncopyable > ( "DamUpliftConditionLoadProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamUpliftConditionLoadProcess, Process >
+    (m, "DamUpliftConditionLoadProcess")
+    .def(init < ModelPart&, Parameters&>());
     
     // Uplift Condition for arch dams   
-    class_< DamUpliftCircularConditionLoadProcess, bases< Process >, boost::noncopyable > ( "DamUpliftCircularConditionLoadProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamUpliftCircularConditionLoadProcess, Process >
+    (m, "DamUpliftCircularConditionLoadProcess")
+    .def(init < ModelPart&, Parameters&>());
    
    // Westergaard Condition (for hydrostatic + hydrodynamic pressure)     
-    class_< DamWestergaardConditionLoadProcess, bases< Process >, boost::noncopyable > ( "DamWestergaardConditionLoadProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamWestergaardConditionLoadProcess, Process >
+    (m, "DamWestergaardConditionLoadProcess")
+    .def(init < ModelPart&, Parameters&>());
 
     // Nodal Young Modulus Process     
-    class_< DamNodalYoungModulusProcess, bases< Process >, boost::noncopyable > ( "DamNodalYoungModulusProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamNodalYoungModulusProcess, Process >
+    (m, "DamNodalYoungModulusProcess")
+    .def(init < ModelPart&, Parameters&>());
 
     // Chemo Mechanical Aging Young Modulus Process     
-    class_< DamChemoMechanicalAgingYoungProcess, bases< Process >, boost::noncopyable > ( "DamChemoMechanicalAgingYoungProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamChemoMechanicalAgingYoungProcess, Process >
+    (m, "DamChemoMechanicalAgingYoungProcess")
+    .def(init < ModelPart&, Parameters&>());
 
     // Added Mass Distribution     
-    class_< DamAddedMassConditionProcess, bases< Process >, boost::noncopyable > ( "DamAddedMassConditionProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamAddedMassConditionProcess, Process >
+    (m, "DamAddedMassConditionProcess")
+    .def(init < ModelPart&, Parameters&>());
 
     //Temperature by device     
-    class_< DamTemperaturebyDeviceProcess, bases< Process >, boost::noncopyable > ( "DamTemperaturebyDeviceProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamTemperaturebyDeviceProcess, Process >
+    (m, "DamTemperaturebyDeviceProcess")
+    .def(init < ModelPart&, Parameters&>());
 
     // Heat Flux by t_sol_air      
-    class_< DamTSolAirHeatFluxProcess, bases< Process >, boost::noncopyable > ( "DamTSolAirHeatFluxProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamTSolAirHeatFluxProcess, Process >
+    (m, "DamTSolAirHeatFluxProcess")
+    .def(init < ModelPart&, Parameters&>());
 
     // Heat Source According Noorzai (Adiabatic Hidratation)      
-    class_< DamNoorzaiHeatFluxProcess, bases< Process >, boost::noncopyable > ( "DamNoorzaiHeatFluxProcess",
-        init < ModelPart&, Parameters&>());
+    class_< DamNoorzaiHeatFluxProcess, Process >
+    (m, "DamNoorzaiHeatFluxProcess")
+    .def(init < ModelPart&, Parameters&>());
     
     // Heat Source according Azenha (Arrhenius formulation NonAdiabatic Hidratation)
-    class_< DamAzenhaHeatFluxProcess, bases< Process >, boost::noncopyable > ( "DamAzenhaHeatFluxProcess",
-    init < ModelPart&, Parameters&>());
-
+    class_< DamAzenhaHeatFluxProcess, Process >
+    (m, "DamAzenhaHeatFluxProcess")
+    .def(init < ModelPart&, Parameters&>());
     }
 
 }  // namespace Python.
