@@ -82,11 +82,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
     .def("__repr__", &Process::Info)
     ;
-
-    class_<FastTransferBetweenModelPartsProcess, Process >(m,"FastTransferBetweenModelPartsProcess")
-    .def(init<ModelPart&, ModelPart&, const std::string>())
-    .def("Execute",&FastTransferBetweenModelPartsProcess::Execute)
-    ;
     
     class_<FindNodalHProcess, Process >(m,"FindNodalHProcess")
     .def(init<ModelPart&>())
@@ -525,8 +520,8 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical, Historical>::Execute)
     ;
 
-    class_<FastTransferBetweenModelPartsProcess, typename FastTransferBetweenModelPartsProcess::Pointer, Process> FastTransferBetweenModelPartsProcess_Scope(m, "FastTransferBetweenModelPartsProcess");
-
+    class_<FastTransferBetweenModelPartsProcess, Process> FastTransferBetweenModelPartsProcess_Scope(m, "FastTransferBetweenModelPartsProcess");
+    
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>());
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags >());
     FastTransferBetweenModelPartsProcess_Scope.def("Execute",&FastTransferBetweenModelPartsProcess::Execute);
@@ -539,6 +534,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .value("CONDITIONS", FastTransferBetweenModelPartsProcess::EntityTransfered::CONDITIONS)
     .value("ALL", FastTransferBetweenModelPartsProcess::EntityTransfered::ALL)
     ;
+
 
 }
 
