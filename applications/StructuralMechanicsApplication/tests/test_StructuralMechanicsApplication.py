@@ -223,11 +223,11 @@ def AssambleTestSuites():
     # Nodal Damping
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
     # Multipoint Constraint
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMultipointConstraints]))
+    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMultipointConstraints]))
     # Dynamic basic tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
     # Eigenvalues Postprocessing Process test
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
+    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
     # Adjoint Elements
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeamAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D4N]))
