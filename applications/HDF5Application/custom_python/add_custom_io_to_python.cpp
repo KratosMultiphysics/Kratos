@@ -64,7 +64,7 @@ void AddCustomIOToPython(pybind11::module& m)
     class_<HDF5::FileSerial, HDF5::FileSerial::Pointer, HDF5::File>(m,"HDF5FileSerial")
     .def(init<Parameters&>())
     ;
-    
+
     class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")
     .def(init<HDF5::File::Pointer, std::string const&>())
     ;
@@ -72,21 +72,21 @@ void AddCustomIOToPython(pybind11::module& m)
     class_<HDF5::NodalSolutionStepDataIO, HDF5::NodalSolutionStepDataIO::Pointer>(
         m,"HDF5NodalSolutionStepDataIO")
         .def(init<Parameters, HDF5::File::Pointer>())
-        .def("GetPrefix", &HDF5::NodalSolutionStepDataIO::GetPrefix)
-        .def("SetPrefix", &HDF5::NodalSolutionStepDataIO::SetPrefix)
         .def("WriteNodalResults", &HDF5::NodalSolutionStepDataIO::WriteNodalResults)
         .def("ReadNodalResults", &HDF5::NodalSolutionStepDataIO::ReadNodalResults)
     ;
 
-    class_<HDF5::NodalSolutionStepBossakIO, HDF5::NodalSolutionStepBossakIO::Pointer, boost::noncopyable>(
-        "HDF5NodalSolutionStepBossakIO", init<Parameters, HDF5::File::Pointer>())
+    class_<HDF5::NodalSolutionStepBossakIO, HDF5::NodalSolutionStepBossakIO::Pointer>(
+        m,"HDF5NodalSolutionStepBossakIO")
+        .def(init<Parameters, HDF5::File::Pointer>())
         .def("WriteNodalResults", &HDF5::NodalSolutionStepBossakIO::WriteNodalResults)
         .def("ReadNodalResults", &HDF5::NodalSolutionStepBossakIO::ReadNodalResults)
         .def("SetAlphaBossak", &HDF5::NodalSolutionStepBossakIO::SetAlphaBossak)
     ;
 
-    class_<HDF5::NonHistoricalNodalValueIO, HDF5::NonHistoricalNodalValueIO::Pointer, boost::noncopyable>(
-        "HDF5NonHistoricalNodalValueIO", init<Parameters, HDF5::File::Pointer>())
+    class_<HDF5::NonHistoricalNodalValueIO, HDF5::NonHistoricalNodalValueIO::Pointer>(
+        m,"HDF5NonHistoricalNodalValueIO")
+        .def(init<Parameters, HDF5::File::Pointer>())
         .def("WriteNodalResults", &HDF5::NonHistoricalNodalValueIO::WriteNodalResults)
         .def("ReadNodalResults", &HDF5::NonHistoricalNodalValueIO::ReadNodalResults)
     ;
@@ -101,7 +101,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .def(init<HDF5::File::Pointer, std::string const&>())
     ;
 #endif
-    
+
 }
 
 } // namespace Python.
