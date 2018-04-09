@@ -159,7 +159,7 @@ double& ElasticIsotropic3D::CalculateValue(ConstitutiveLaw::Parameters& rParamet
 {
     Vector& r_strain_vector                  = rParameterValues.GetStrainVector();
     Vector& r_stress_vector                  = rParameterValues.GetStressVector();
-    
+
     if (rThisVariable == STRAIN_ENERGY)
     {
         this->CalculateCauchyGreenStrain(rParameterValues, r_strain_vector);
@@ -303,7 +303,8 @@ void ElasticIsotropic3D::CalculateCauchyGreenStrain(
 
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
-    KRATOS_DEBUG_ERROR_IF(F.size1()!= space_dimension || F.size2() != space_dimension) << "the size of DeformationGradientF is not equal to the space dimension" << std::endl;
+    KRATOS_DEBUG_ERROR_IF(F.size1()!= space_dimension || F.size2() != space_dimension)
+        << "the size of DeformationGradientF is not equal to the space dimension" << std::endl;
 
     Matrix E_tensor = prod(trans(F),F);
     E_tensor -= IdentityMatrix(space_dimension, space_dimension);
