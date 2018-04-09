@@ -50,6 +50,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/prime_numbers.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/connectivity_preserve_modeler.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_geometry.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
@@ -64,6 +65,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.cpp;
+    
 )
 
 ## Kratos python interface code
@@ -103,9 +105,9 @@ set( KRATOS_PYTHON_SOURCES
 # 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_search_strategies_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_parameters_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_testing_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp;
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp 
 )
 
 ## Kratos testing engine soruces
