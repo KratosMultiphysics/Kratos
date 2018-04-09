@@ -460,13 +460,14 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical>::Execute)
     ;
 
-    scope fast_transfer_scope = class_<FastTransferBetweenModelPartsProcess, typename FastTransferBetweenModelPartsProcess::Pointer, boost::noncopyable, bases<Process> >("FastTransferBetweenModelPartsProcess",init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>())
-    .def(init< ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags >())
-    .def("Execute",&FastTransferBetweenModelPartsProcess::Execute)
-    ;
+    class_<FastTransferBetweenModelPartsProcess, typename FastTransferBetweenModelPartsProcess::Pointer, Process> FastTransferBetweenModelPartsProcess_Scope(m, "FastTransferBetweenModelPartsProcess");
+    
+    FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>());
+    FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags >());
+    FastTransferBetweenModelPartsProcess_Scope.def("Execute",&FastTransferBetweenModelPartsProcess::Execute);
 
     // Adding FastTransferBetweenModelPartsProcess related enums
-    enum_<FastTransferBetweenModelPartsProcess::EntityTransfered>("EntityTransfered")
+    enum_<FastTransferBetweenModelPartsProcess::EntityTransfered>(FastTransferBetweenModelPartsProcess_Scope, "EntityTransfered")
     .value("NODES", FastTransferBetweenModelPartsProcess::EntityTransfered::NODES)
     .value("ELEMENTS", FastTransferBetweenModelPartsProcess::EntityTransfered::ELEMENTS)
     .value("NODESANDELEMENTS", FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS)

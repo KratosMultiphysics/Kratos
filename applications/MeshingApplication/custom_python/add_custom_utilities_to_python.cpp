@@ -121,11 +121,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("LocalRefineMesh", &LocalRefinePrismMesh::LocalRefineMesh)
     ;
 
-    class_<LocalRefineSPrismMesh >
-    (m,"LocalRefineSPrismMesh")
-    .def(init<ModelPart&>())
-    .def("LocalRefineMesh", &LocalRefineSPrismMesh::LocalRefineMesh)
-    ;
+    // class_<LocalRefineSPrismMesh >
+    // (m,"LocalRefineSPrismMesh")
+    // .def(init<ModelPart&>())
+    // .def("LocalRefineMesh", &LocalRefineSPrismMesh::LocalRefineMesh)
+    // ;
 
     class_<LocalRefineTetrahedraMesh >
     (m,"LocalRefineTetrahedraMesh")
