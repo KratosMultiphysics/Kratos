@@ -82,14 +82,11 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
     .def("__repr__", &Process::Info)
     ;
-<<<<<<< HEAD
 
     class_<FastTransferBetweenModelPartsProcess, Process >(m,"FastTransferBetweenModelPartsProcess")
     .def(init<ModelPart&, ModelPart&, const std::string>())
     .def("Execute",&FastTransferBetweenModelPartsProcess::Execute)
     ;
-=======
->>>>>>> master
     
     class_<FindNodalHProcess, Process >(m,"FindNodalHProcess")
     .def(init<ModelPart&>())
