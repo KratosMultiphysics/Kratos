@@ -526,8 +526,8 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     class_<FastTransferBetweenModelPartsProcess, typename FastTransferBetweenModelPartsProcess::Pointer, Process> FastTransferBetweenModelPartsProcess_Scope(m, "FastTransferBetweenModelPartsProcess");
-    
-    FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>());
+
+    // FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>()); // Note: No initializer without flags
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags >());
     FastTransferBetweenModelPartsProcess_Scope.def("Execute",&FastTransferBetweenModelPartsProcess::Execute);
 
