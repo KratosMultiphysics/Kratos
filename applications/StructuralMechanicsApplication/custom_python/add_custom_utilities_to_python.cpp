@@ -30,11 +30,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     using namespace pybind11;
     
-    class_<SprismNeighbours>(m,"SprismNeighbours")
-    .def(init<ModelPart&>())
-    .def("Execute",&SprismNeighbours::Execute)
-    .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
-    ;
 
 }
 

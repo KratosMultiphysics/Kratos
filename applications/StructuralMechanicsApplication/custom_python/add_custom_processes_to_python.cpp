@@ -51,13 +51,16 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     class_<TotalStructuralMassProcess, Process >(m,"TotalStructuralMassProcess")
         .def(init<ModelPart&>())
         .def("Execute", &TotalStructuralMassProcess::Execute)
-    ;
+        ;
     
-    class_<PrismNeighboursProcess, bases<ProcessBaseType>>("PrismNeighboursProcess", init<ModelPart&>())
-    .def(init< ModelPart&, const bool >())
-    .def("Execute",&PrismNeighboursProcess::Execute)
-    .def("ClearNeighbours",&PrismNeighboursProcess::ClearNeighbours)
-    ;
+    class_<PrismNeighboursProcess, Process>(m, "PrismNeighboursProcess")
+        .def(init<ModelPart&>())
+        .def(init<ModelPart&, const bool >())
+        .def("Execute",&PrismNeighboursProcess::Execute)
+        .def("ClearNeighbours",&PrismNeighboursProcess::ClearNeighbours)
+        ;
+        
+
 }
 
 }  // namespace Python.  
