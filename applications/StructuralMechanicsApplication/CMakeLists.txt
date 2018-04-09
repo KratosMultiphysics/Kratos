@@ -112,7 +112,6 @@ pybind11_add_module(KratosStructuralMechanicsApplication MODULE ${KRATOS_STRUCTU
 target_link_libraries(KratosStructuralMechanicsApplication PUBLIC KratosStructuralMechanicsCore)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
 
-
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
@@ -138,6 +137,7 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
+
 if(USE_COTIRE MATCHES ON)
     cotire(KratosStructuralMechanicsCore)
     cotire(KratosStructuralMechanicsApplication)
@@ -145,7 +145,6 @@ endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosStructuralMechanicsCore DESTINATION libs )
 install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
-
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py" DESTINATION KratosMultiphysics )

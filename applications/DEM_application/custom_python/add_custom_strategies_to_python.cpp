@@ -104,7 +104,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     class_<ExplicitSolverStrategy, ExplicitSolverStrategy::Pointer>(m, "ExplicitSolverStrategy")
-        .def(init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, const bool>())
+        .def(init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, const bool>())
         .def("Solve", &ExplicitSolverStrategy::Solve)
         .def("Initialize", &ExplicitSolverStrategy::Initialize)
         .def("SetSearchRadiiOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiOnAllParticles)
@@ -117,7 +117,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     class_<ContinuumExplicitSolverStrategy, ContinuumExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ContinuumExplicitSolverStrategy")
-        .def(init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer,  SpatialSearch::Pointer>())
+        .def(init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer,  SpatialSearch::Pointer>())
         .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategy::PrepareContactElementsForPrinting)
         ;
 
