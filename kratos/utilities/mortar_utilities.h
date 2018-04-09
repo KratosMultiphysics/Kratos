@@ -82,14 +82,14 @@ public:
     typedef ModelPart::NodesContainerType                  NodesArrayType;
     typedef ModelPart::ConditionsContainerType        ConditionsArrayType;
 
-    /// A map for integers
-    typedef std::unordered_map<int, int>                           IntMap;
-
     /// Index type definition
     typedef std::size_t                                         IndexType;
 
     /// Size type definition
     typedef std::size_t                                          SizeType;
+
+    /// A map for integers
+    typedef std::unordered_map<IndexType, IndexType>               IntMap;
     
     ///@}
     ///@name Life Cycle
