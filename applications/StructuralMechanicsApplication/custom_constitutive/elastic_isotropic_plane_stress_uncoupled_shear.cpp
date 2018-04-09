@@ -15,6 +15,7 @@
 
 // Project includes
 #include "custom_constitutive/elastic_isotropic_plane_stress_uncoupled_shear.h"
+#include "includes/checks.h"
 
 #include "structural_mechanics_application_variables.h"
 
@@ -68,26 +69,10 @@ int ElasticIsotropicPlaneStressUncoupledShear::Check(
         KRATOS_ERROR << "SHEAR_MODULUS has Key zero or invalid value " << std::endl;
     }
 
-    if (SHEAR_MODULUS_GAMMA12.Key() == 0)
-    {
-        KRATOS_ERROR << "SHEAR_MODULUS_GAMMA12 has Key zero " << std::endl;
-    }
-
-    if (SHEAR_MODULUS_GAMMA12_2.Key() == 0)
-    {
-        KRATOS_ERROR << "SHEAR_MODULUS_GAMMA12_2 has Key zero " << std::endl;
-    }
-
-    if (SHEAR_MODULUS_GAMMA12_3.Key() == 0)
-    {
-        KRATOS_ERROR << "SHEAR_MODULUS_GAMMA12_3 has Key zero " << std::endl;
-    }
-
-    if (SHEAR_MODULUS_GAMMA12_4.Key() == 0)
-    {
-        KRATOS_ERROR << "SHEAR_MODULUS_GAMMA12_4 has Key zero " << std::endl;
-    }
-
+    KRATOS_CHECK_VARIABLE_KEY(SHEAR_MODULUS_GAMMA12);
+    KRATOS_CHECK_VARIABLE_KEY(SHEAR_MODULUS_GAMMA12_2);
+    KRATOS_CHECK_VARIABLE_KEY(SHEAR_MODULUS_GAMMA12_3);
+    KRATOS_CHECK_VARIABLE_KEY(SHEAR_MODULUS_GAMMA12_4);
 
     return 0;
 }
