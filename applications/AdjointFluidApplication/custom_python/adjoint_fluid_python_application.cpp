@@ -18,7 +18,7 @@
 
 namespace Kratos
 {
-  
+
 namespace Python
 {
 
@@ -33,7 +33,6 @@ PYBIND11_MODULE(KratosAdjointFluidApplication,m)
            ;
 
   AddCustomSchemesToPython(m);
-  AddCustomProcessesToPython(m);
   AddCustomResponseFunctionsToPython(m);
 
 }
