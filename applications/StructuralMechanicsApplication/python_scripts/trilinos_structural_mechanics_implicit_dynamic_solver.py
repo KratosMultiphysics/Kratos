@@ -33,7 +33,7 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
-            "scheme_type"   : "newmark",
+            "scheme_type"   : "bossak",
             "damp_factor_m" :-0.3,
             "rayleigh_alpha": 0.0,
             "rayleigh_beta" : 0.0

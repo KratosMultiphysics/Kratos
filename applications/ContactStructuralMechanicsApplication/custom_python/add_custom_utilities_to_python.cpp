@@ -72,19 +72,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("InvertSearch",&TreeContactSearch<3, 4>::InvertSearch)
     ;
 
-    // Adding search related enums
-    enum_<SearchTreeType>(m, "SearchTreeType")
-    .value("KdtreeInRadius", KdtreeInRadius)
-    .value("KdtreeInBox", KdtreeInBox)
-    .value("Kdop", Kdop)
-    ;
-
-    enum_<CheckGap>(m, "CheckGap")
-    .value("NoCheck", NoCheck)
-    .value("DirectCheck", DirectCheck)
-    .value("MappingCheck", MappingCheck)
-    ;
-
     // Process Factory utility
     class_<ProcessFactoryUtility, typename ProcessFactoryUtility::Pointer>(m, "ProcessFactoryUtility")
     .def(init< >())

@@ -49,10 +49,12 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         self.next_meshing = 0.0
         self.meshing_before_output = self.settings["meshing_before_output"].GetBool()
 
+        self.Model = Model
+
     #
     def ExecuteInitialize(self):
 
-        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
+        self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
 
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 

@@ -312,6 +312,8 @@ class Solution(object):
 
             problem_path = os.getcwd()
 
+            self.model.CleanModel()
+
             print("   Reading constitutive law from file :" + os.path.join(problem_path, "materials") + ".py ")
 
         else:

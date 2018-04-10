@@ -863,7 +863,6 @@
 *if(strcmp(GenData(Write_Contact_Forces),"True")==0)
 				      "NORMAL",
 				      "CONTACT_FORCE",
-				      "CONTACT_STRESS",
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
 				      "PRESSURE",

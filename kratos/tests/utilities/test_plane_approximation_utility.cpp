@@ -35,7 +35,7 @@ namespace Testing {
 
         // Compute the plane approximation
         array_1d<double,3> base_point_coords, normal;
-        PlaneApproximationUtility::ComputePlaneApproximation(points_coordinates, base_point_coords, normal);
+        PlaneApproximationUtility<2>::ComputePlaneApproximation(points_coordinates, base_point_coords, normal);
 
         // Compute and check the obtained plane distance values
         const double d_1 = inner_prod(normal , point_1.Coordinates() - base_point_coords);
@@ -64,7 +64,7 @@ namespace Testing {
 
         // Compute the plane approximation
         array_1d<double,3> base_point_coords, normal;
-        PlaneApproximationUtility::ComputePlaneApproximation(points_coordinates, base_point_coords, normal);
+        PlaneApproximationUtility<2>::ComputePlaneApproximation(points_coordinates, base_point_coords, normal);
 
         // Compute and check the obtained plane distance values
         const double d_1 = inner_prod(normal , point_1.Coordinates() - base_point_coords);
@@ -72,10 +72,10 @@ namespace Testing {
         const double d_3 = inner_prod(normal , point_3.Coordinates() - base_point_coords);
         const double d_4 = inner_prod(normal , point_4.Coordinates() - base_point_coords);
 
-        KRATOS_CHECK_NEAR(d_1, -0.89886, 1e-6);
-        KRATOS_CHECK_NEAR(d_2, -0.110655, 1e-6);
-        KRATOS_CHECK_NEAR(d_3, 0.110655, 1e-6);
-        KRATOS_CHECK_NEAR(d_4, 0.89886, 1e-6);
+        KRATOS_CHECK_NEAR(d_1, 0.0674564, 1e-6);
+        KRATOS_CHECK_NEAR(d_2, -0.547956, 1e-6);
+        KRATOS_CHECK_NEAR(d_3, 0.547956, 1e-6);
+        KRATOS_CHECK_NEAR(d_4, -0.0674564, 1e-6);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PlaneApproximationUtilityCircleTriangleIntersection, KratosCoreFastSuite)
@@ -95,7 +95,7 @@ namespace Testing {
 
         // Compute the plane approximation
         array_1d<double,3> base_point_coords, normal;
-        PlaneApproximationUtility::ComputePlaneApproximation(points_coordinates, base_point_coords, normal);
+        PlaneApproximationUtility<2>::ComputePlaneApproximation(points_coordinates, base_point_coords, normal);
 
         // Compute and check the obtained plane distance values
         const double d_1 = inner_prod(normal , point_1.Coordinates() - base_point_coords);
@@ -103,10 +103,37 @@ namespace Testing {
         const double d_3 = inner_prod(normal , point_3.Coordinates() - base_point_coords);
         const double d_4 = inner_prod(normal , point_4.Coordinates() - base_point_coords);
 
-        KRATOS_CHECK_NEAR(d_1, 0.636396, 1e-6);
-        KRATOS_CHECK_NEAR(d_2, -0.636396, 1e-6);
-        KRATOS_CHECK_NEAR(d_3, 0.556776, 1e-6);
-        KRATOS_CHECK_NEAR(d_4, -0.556776, 1e-6);
+        KRATOS_CHECK_NEAR(d_1, -0.0353553, 1e-6);
+        KRATOS_CHECK_NEAR(d_2, -0.0353553, 1e-6);
+        KRATOS_CHECK_NEAR(d_3, 0.0353553, 1e-6);
+        KRATOS_CHECK_NEAR(d_4, 0.0353553, 1e-6);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(PlaneApproximationUtilityAlignedIntersection, KratosCoreFastSuite)
+    {
+        // Set of points to be approximated by the plane
+        // Note that they are selected such that, a 2D case is solved in 3D
+        Point point_1(0.0, 0.0, 0.0);
+        Point point_2(1.0, 0.0, 0.0);
+        Point point_3(0.0, 1.0, 0.0);
+
+        // Fill the array of coordinates
+        std::vector< array_1d<double,3> > points_coordinates;
+        points_coordinates.push_back(point_1.Coordinates());
+        points_coordinates.push_back(point_2.Coordinates());
+        points_coordinates.push_back(point_3.Coordinates());
+
+        // Compute the plane approximation
+        array_1d<double,3> base_point_coords, normal;
+        PlaneApproximationUtility<3>::ComputePlaneApproximation(points_coordinates, base_point_coords, normal);
+
+        // Compute and check the obtained plane values
+        KRATOS_CHECK_NEAR(base_point_coords[0], 1.0/3.0, 1e-6);
+        KRATOS_CHECK_NEAR(base_point_coords[1], 1.0/3.0, 1e-6);
+        KRATOS_CHECK_NEAR(base_point_coords[2], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(normal[0], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(normal[1], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(normal[2], 1.0, 1e-6);
     }
 
 }  // namespace Testing.

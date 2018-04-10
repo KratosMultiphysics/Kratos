@@ -46,39 +46,97 @@ virtual ~VelocityField(){}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const int i_thread = 0) override;
+void Evaluate(const double time,
+              const array_1d<double, 3>& coor,
+              array_1d<double, 3>& vector,
+              const int i_thread = 0) override;
 
-void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv, const int i_thread = 0) override;
+void CalculateTimeDerivative(const double time,
+                             const array_1d<double, 3>& coor,
+                             array_1d<double, 3>& deriv,
+                             const int i_thread = 0) override;
 
-void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient, const int i_thread = 0) override;
+void CalculateGradient(const double time,
+                       const array_1d<double, 3>& coor,
+                       array_1d< array_1d<double, 3>, 3>& gradient,
+                       const int i_thread = 0) override;
 
-double CalculateDivergence(const double time, const array_1d<double, 3>& coor, const int i_thread = 0) override;
+void CalculateGradient(const double time,
+                       const array_1d<double, 3>& coor,
+                       vector< double>& gradient_x,
+                       vector< double>& gradient_y,
+                       vector< double>& gradient_z,
+                       const int i_thread);
 
-void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot, const int i_thread = 0) override;
+double CalculateDivergence(const double time,
+                           const array_1d<double, 3>& coor,
+                           const int i_thread = 0) override;
 
-void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl, const int i_thread = 0) override;
+void CalculateRotational(const double time,
+                         const array_1d<double, 3>& coor,
+                         array_1d<double, 3>& rot,
+                         const int i_thread = 0) override;
 
-virtual void CalculateMaterialAcceleration(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const int i_thread = 0);
+void CalculateLaplacian(const double time,
+                        const array_1d<double, 3>& coor,
+                        array_1d<double, 3>& lapl,
+                        const int i_thread = 0) override;
 
-virtual void CalculateAccelerationFollowingTheParticle(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const array_1d<double, 3>& particle_vel, const int i_thread);
+virtual void CalculateMaterialAcceleration(const double time,
+                                           const array_1d<double, 3>& coor,
+                                           array_1d<double, 3>& accel,
+                                           const int i_thread = 0);
 
-virtual void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const int i_thread = 0){}
+virtual void CalculateConvectiveDerivative(const double time,
+                                           const array_1d<double, 3>& coor,
+                                           array_1d<double, 3>& accel,
+                                           const int i_thread = 0);
+
+virtual void CalculateAccelerationFollowingTheParticle(const double time,
+                                                       const array_1d<double, 3>& coor,
+                                                       array_1d<double, 3>& accel,
+                                                       const array_1d<double, 3>& particle_vel,
+                                                       const int i_thread);
+
+virtual void UpdateCoordinates(const double time,
+                               const array_1d<double, 3>& coor,
+                               const int i_thread = 0){}
 
 virtual void LockCoordinates(const int i_thread = 0){(void)i_thread;}
 
 virtual void UnlockCoordinates(const int i_thread = 0){(void)i_thread;}
 
-void Evaluate(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0) override;
+void Evaluate(const double time,
+              const vector<double>& coor,
+              vector<double>& result,
+              const int i_thread = 0) override;
 
-void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0) override;
+void CalculateTimeDerivative(const double time,
+                             const vector<double>& coor,
+                             vector<double>& result,
+                             const int i_thread = 0) override;
 
 double CalculateDivergence(const double time, const vector<double>& coor, const int i_thread = 0) override;
 
-void CalculateRotational(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0) override;
+void CalculateRotational(const double time,
+                         const vector<double>& coor,
+                         vector<double>& result,
+                         const int i_thread = 0) override;
 
-void CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0) override;
+void CalculateLaplacian(const double time,
+                        const vector<double>& coor,
+                        vector<double>& result,
+                        const int i_thread = 0) override;
 
-virtual void CalculateMaterialAcceleration(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0);
+virtual void CalculateMaterialAcceleration(const double time,
+                                           const vector<double>& coor,
+                                           vector<double>& result,
+                                           const int i_thread = 0);
+
+virtual void CalculateConvectiveDerivative(const double time,
+                                           const vector<double>& coor,
+                                           vector<double>& result,
+                                           const int i_thread = 0);
 
 void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed) override;
 

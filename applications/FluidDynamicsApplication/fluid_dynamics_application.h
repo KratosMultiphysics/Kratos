@@ -105,7 +105,7 @@ namespace Kratos
 ///@{
 
 /// Main class of the Fluid Dynamics Application
-class KratosFluidDynamicsApplication : public KratosApplication
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) KratosFluidDynamicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions

@@ -59,6 +59,7 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
+        convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1
         compute_reactions = True
