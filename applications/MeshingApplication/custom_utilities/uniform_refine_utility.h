@@ -207,14 +207,31 @@ private:
      * If the middle node exist, returns a pointer to the existing node
      * If the middle node does not exist, create a new one and returns a pointer to it
      */
-    Node<3>::Pointer GetNodeBetween(const Node<3>::Pointer pNode0, const Node<3>::Pointer pNode1, const int& rRefinementLevel);
+    Node<3>::Pointer GetNodeBetween(
+        const Node<3>::Pointer pNode0,
+        const Node<3>::Pointer pNode1,
+        const int& rRefinementLevel
+        );
 
     /**
      * Calculate the nodal data
      * The destination node is assumed to be at the mid point between 
      * the origin nodes
      */
-    void CalculateNodalStepData(Node<3>::Pointer pNewNode, const Node<3>::Pointer pNode0, const Node<3>::Pointer pNode1);
+    void CalculateNodalStepData(
+        Node<3>::Pointer pNewNode,
+        const Node<3>::Pointer pNode0,
+        const Node<3>::Pointer pNode1
+        );
+
+    /**
+     * Create a triangle inside the origin element
+     */
+    void CreateElement(
+        Element::Pointer pOriginElement,
+        std::vector<Node<3>::Pointer> ThisNodes,
+        const int& rRefinementLevel
+        );
 
 
     ///@}

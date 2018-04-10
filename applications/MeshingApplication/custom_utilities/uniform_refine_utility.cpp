@@ -164,19 +164,30 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& ThisLevel)
 
                 // SECOND: create the sub elements
                 std::vector<Node<3>::Pointer> sub_element_nodes(3);
+
                 // First sub element
                 sub_element_nodes[0] = geom.pGetPoint(0);
                 sub_element_nodes[1] = p_middle_nodes[0];
                 sub_element_nodes[2] = p_middle_nodes[2];
-                Element::Pointer sub_element = p_element->Create(mLastElemId++, sub_element_nodes, p_element->pGetProperties());
-                
-                if (sub_element != nullptr) 
-                {
-                    mrModelPart.AddElement(sub_element);
-                    int& this_elem_level = sub_element->GetValue(REFINEMENT_LEVEL);
-                    this_elem_level = step_refine_level;
-                }
+                CreateElement(p_element, sub_element_nodes, step_refine_level);
 
+                // Second sub element
+                sub_element_nodes[0] = geom.pGetPoint(1);
+                sub_element_nodes[1] = p_middle_nodes[1];
+                sub_element_nodes[2] = p_middle_nodes[0];
+                CreateElement(p_element, sub_element_nodes, step_refine_level);
+
+                // Third sub element
+                sub_element_nodes[0] = geom.pGetPoint(2);
+                sub_element_nodes[1] = p_middle_nodes[2];
+                sub_element_nodes[2] = p_middle_nodes[1];
+                CreateElement(p_element, sub_element_nodes, step_refine_level);
+
+                // Fourth sub element
+                sub_element_nodes[0] = p_middle_nodes[0];
+                sub_element_nodes[1] = p_middle_nodes[1];
+                sub_element_nodes[2] = p_middle_nodes[2];
+                CreateElement(p_element, sub_element_nodes, step_refine_level);
             }
             else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
             {
@@ -314,6 +325,24 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
 
 
 /// Create a sub element
+template<unsigned int TDim>
+void UniformRefineUtility<TDim>::CreateElement(
+    Element::Pointer pOriginElement,
+    std::vector<Node<3>::Pointer> ThisNodes,
+    const int& rRefinementLevel
+    )
+{
+    Element::Pointer sub_element = pOriginElement->Create(mLastElemId++, ThisNodes, pOriginElement->pGetProperties());
+    
+    if (sub_element != nullptr) 
+    {
+        mrModelPart.AddElement(sub_element);
+        int& this_elem_level = sub_element->GetValue(REFINEMENT_LEVEL);
+        this_elem_level = rRefinementLevel;
+    }
+
+}
+
 
 template class UniformRefineUtility<2>;
 
