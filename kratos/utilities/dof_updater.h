@@ -70,7 +70,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual std::unique_ptr<DOFUpdater> Create()
+    virtual std::unique_ptr<DOFUpdater> Create() const
     {
         return std::unique_ptr<DOFUpdater>(new DOFUpdater());
     }
