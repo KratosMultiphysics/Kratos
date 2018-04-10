@@ -232,8 +232,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 			Matrix& Output,
 			const ProcessInfo& rCurrentProcessInfo) override;
 
-		std::string Info() const override; //added by M.Fusseder (needed for sensitivity analysis)		
-
 		///@}
 
 
@@ -252,12 +250,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 		ShellThinElement3D4N() : BaseShellElement()
 		{
 		}
-
-		// by M.Fusseder
-    	// Needed to reset the sections for semi analytical sensitivity analysis where the derivatives are calculated with finite differenes.
-    	// There it is necessary the reset the sections and re-initialize them again after the design variable is perturbed
-    	// in order have sections with the changed properties.
-    	void ResetSections();
 
 		///@}
 

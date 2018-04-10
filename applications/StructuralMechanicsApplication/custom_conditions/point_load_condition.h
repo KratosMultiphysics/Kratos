@@ -98,8 +98,6 @@ public:
         PropertiesType::Pointer pProperties 
         ) const override;
 
-    std::string Info() const override; //fusseder needed for sensitivity analysis    
-
     ///@}
     ///@name Access
     ///@{

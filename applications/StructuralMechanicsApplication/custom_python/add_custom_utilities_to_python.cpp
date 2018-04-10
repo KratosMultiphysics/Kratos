@@ -36,7 +36,7 @@ void  AddCustomUtilitiesToPython()
 
 }
 
-}  // namespace Python.
+}  // namespace Python.  
 
 } // Namespace Kratos
 

@@ -50,7 +50,7 @@ void CrBeamElementLinear3D2N::CalculateLocalSystem(
   this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
   Vector nodal_deformation = ZeroVector(msElementSize);
-  CrBeamElement3D2N::GetValuesVector(nodal_deformation); // modified by M.Fusseder
+  this->GetValuesVector(nodal_deformation);
   rRightHandSideVector = ZeroVector(msElementSize);
   rRightHandSideVector -= prod(rLeftHandSideMatrix, nodal_deformation);
 
@@ -68,7 +68,7 @@ void CrBeamElementLinear3D2N::CalculateRightHandSide(
   Matrix left_hand_side_matrix = ZeroMatrix(msElementSize, msElementSize);
   this->CalculateLeftHandSide(left_hand_side_matrix, rCurrentProcessInfo);
   Vector nodal_deformation = ZeroVector(msElementSize);
-  CrBeamElement3D2N::GetValuesVector(nodal_deformation); // modified by M.Fusseder
+  this->GetValuesVector(nodal_deformation);
   rRightHandSideVector = ZeroVector(msElementSize);
   noalias(rRightHandSideVector) -=
       prod(left_hand_side_matrix, nodal_deformation);
@@ -127,7 +127,7 @@ void CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
     this->CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
     bounded_matrix<double, msElementSize, msElementSize> rotation_matrix =
         this->CalculateInitialLocalCS();
-
+ 
     bounded_matrix<double, msElementSize, msElementSize> aux_matrix =
         prod(rotation_matrix, rMassMatrix);
     rMassMatrix = prod(aux_matrix, Matrix(trans(rotation_matrix)));
@@ -192,7 +192,7 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
   Matrix left_hand_side_matrix = CreateElementStiffnessMatrix_Material();
 
   Vector nodal_deformation = ZeroVector(msElementSize);
-  CrBeamElement3D2N::GetValuesVector(nodal_deformation); // modified by M.Fusseder
+  this->GetValuesVector(nodal_deformation);
 
   bounded_matrix<double, msElementSize, msElementSize> transformation_matrix =
       this->CalculateInitialLocalCS();
@@ -267,11 +267,6 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
   }
 
   KRATOS_CATCH("");
-}
-
-std::string CrBeamElementLinear3D2N::Info() const // added by M.Fusseder
-{
-  return "CrLinearBeamElement3D2N";
 }
 
 void CrBeamElementLinear3D2N::save(Serializer &rSerializer) const {

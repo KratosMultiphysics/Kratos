@@ -32,14 +32,13 @@
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
-#include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp"
+#include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp" 
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
-#include "custom_response_functions/adjoint_schemes/adjoint_structural_scheme.h"
 
 // Builder and solvers
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -78,7 +77,7 @@ void  AddCustomStrategiesToPython()
     typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
-
+    
     // Custom strategy types
     typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
@@ -91,7 +90,7 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
     typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
-
+    
 
     // Custom convergence criterion types
     typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
@@ -102,8 +101,8 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
-
-    // Residual Based Arc Length Strategy
+    
+    // Residual Based Arc Length Strategy      
     class_< ResidualBasedArcLengthStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable >
             (
                 "ResidualBasedArcLengthStrategy", init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
@@ -115,7 +114,7 @@ void  AddCustomStrategiesToPython()
             (
                 "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
             ;
-
+             
 
     class_< FormfindingUpdatedReferenceStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
         ("FormfindingUpdatedReferenceStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool >())
@@ -152,7 +151,7 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
     //********************************************************************
-
+    
     // Residual Based Relaxation Scheme Type
     class_< ResidualBasedRelaxationSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
@@ -167,40 +166,35 @@ void  AddCustomStrategiesToPython()
             (
                 "EigensolverDynamicScheme", init<>() )
             ;
-
+    
     // Explicit Central Differences Scheme Type
     class_< ExplicitCentralDifferencesSchemeType,
             bases< BaseSchemeType >, boost::noncopyable >
             (
             "ExplicitCentralDifferencesScheme", init< const double, const double, const double>() );
 
-    class_<AdjointStructuralScheme<SparseSpaceType, LocalSpaceType>, bases<BaseSchemeType>, boost::noncopyable>(
-            "AdjointStructuralScheme", init<Parameters&, AdjointStructuralResponseFunction::Pointer>())
-            ;
-
-
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
-
+            
     // Displacement and other DoF Convergence Criterion
     class_< DisplacementAndOtherDoFCriteriaType,
             bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
-            "DisplacementAndOtherDoFCriteria",
+            "DisplacementAndOtherDoFCriteria", 
             init< double, double, std::string >())
             .def(init< double, double>())
             ;
-
+            
     // Displacement and other DoF residual Convergence Criterion
     class_< ResidualDisplacementAndOtherDoFCriteriaType,
             bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
-            "ResidualDisplacementAndOtherDoFCriteria",
+            "ResidualDisplacementAndOtherDoFCriteria", 
             init< double, double, std::string >())
             .def(init< double, double>())
             ;
-
+            
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************

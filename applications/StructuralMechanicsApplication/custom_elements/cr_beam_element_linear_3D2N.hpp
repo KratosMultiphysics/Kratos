@@ -7,8 +7,8 @@
 //           license: structural_mechanics_application/license.txt
 //
 //  Main authors: Klaus B. Sautter
-//
-//
+//                   
+//                   
 //
 
 #if !defined(KRATOS_CR_BEAM_ELEMENT_LINEAR_3D2N_H_INCLUDED )
@@ -26,11 +26,11 @@
 
 namespace Kratos
 {
-	/**
+	/** 
      * @class CrBeamElementLinear3D2N
-     *
+     * 
      * @brief This is a linear 3D-2node beam element with 3 translational dofs and 3 rotational dof per node inheriting from CrBeamElement3D2N
-     *
+     * 
      * @author Klaus B Sautter
      */
 
@@ -86,10 +86,8 @@ namespace Kratos
 				std::vector< Vector >& rOutput,
 				const ProcessInfo& rCurrentProcessInfo) override;
 
-			std::string Info() const override; //fusseder needed for sensitivity analysis	
-
 		private:
-
+		
 			friend class Serializer;
 			void save(Serializer& rSerializer) const override;
 			void load(Serializer& rSerializer) override;

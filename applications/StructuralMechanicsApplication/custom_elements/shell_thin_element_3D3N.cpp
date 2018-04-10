@@ -610,17 +610,6 @@ void ShellThinElement3D3N::Calculate(const Variable<Matrix>& rVariable, Matrix &
 	}
 }
 
-void ShellThinElement3D3N::ResetSections()
-{
-    mSections.clear();
-}
-
-std::string ShellThinElement3D3N::Info() const
-{
-	return "ShellThinElement3D3N";
-	//fusseder TODO: seperate between linear and nonliner case!!!!
-}
-
 // =====================================================================================
 //
 // Class ShellThinElement3D3N - Private methods
@@ -1246,9 +1235,7 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // in global and local coordinate systems
 
     data.globalDisplacements.resize(18, false);
-    ShellThinElement3D3N::GetValuesVector( data.globalDisplacements );//changed by MFusseder in order to ensure
-    // that dofs of primal solution are used during computing sensitivities. (The GetValuesVector function is overwritten
-    // by corresponding adjoint element. There adjoint dofs are used)
+    GetValuesVector( data.globalDisplacements );
 
     data.localDisplacements =
         mpCoordinateTransformation->CalculateLocalDisplacements(
