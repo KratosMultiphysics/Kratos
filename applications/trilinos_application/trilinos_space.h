@@ -44,6 +44,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
+#include "custom_utilities/trilinos_dof_updater.h"
 
 
 namespace Kratos
@@ -94,6 +95,10 @@ public:
 
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
+
+    typedef DOFUpdater< TrilinosSpace<TMatrixType,TVectorType> > BaseDOFUpdaterType;
+    typedef TrilinosDOFUpdater< TrilinosSpace<TMatrixType,TVectorType> > DOFUpdaterType;
+    typedef std::unique_ptr< BaseDOFUpdaterType > DOFUpdaterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -634,6 +639,12 @@ public:
         KRATOS_CATCH("");
     }
 
+
+    static DOFUpdaterPointerType CreateDOFUpdater()
+    {
+        DOFUpdaterType tmp;
+        return tmp.Create();
+    }
 
     ///@}
     ///@name Friends
