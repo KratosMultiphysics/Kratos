@@ -639,7 +639,7 @@ public:
     }
 
 
-    static DofUpdaterPointerType CreateDOFUpdater()
+    static DofUpdaterPointerType CreateDofUpdater()
     {
         DofUpdaterType tmp;
         return tmp.Create();

@@ -134,7 +134,7 @@ namespace Kratos {
             macc.resize(NumThreads);
             maccold.resize(NumThreads);
 
-            mpDofUpdater = TSparseSpace::CreateDOFUpdater();
+            mpDofUpdater = TSparseSpace::CreateDofUpdater();
         }
 
 
@@ -165,7 +165,7 @@ namespace Kratos {
             macc.resize(NumThreads);
             maccold.resize(NumThreads);
 
-            mpDofUpdater = TSparseSpace::CreateDOFUpdater();
+            mpDofUpdater = TSparseSpace::CreateDofUpdater();
         }
 
 
@@ -196,7 +196,7 @@ namespace Kratos {
             macc.resize(NumThreads);
             maccold.resize(NumThreads);
 
-            mpDofUpdater = TSparseSpace::CreateDOFUpdater();
+            mpDofUpdater = TSparseSpace::CreateDofUpdater();
         }
 
         /** Constructor with a turbulence model
@@ -227,7 +227,7 @@ namespace Kratos {
             macc.resize(NumThreads);
             maccold.resize(NumThreads);
 
-            mpDofUpdater = TSparseSpace::CreateDOFUpdater();
+            mpDofUpdater = TSparseSpace::CreateDofUpdater();
         }
 
         /** Destructor.

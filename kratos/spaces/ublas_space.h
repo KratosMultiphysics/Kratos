@@ -749,7 +749,7 @@ public:
         return Kratos::WriteMatrixMarketVector(FileName,V);
     }
 
-    static DofUpdaterPointerType CreateDOFUpdater()
+    static DofUpdaterPointerType CreateDofUpdater()
     {
         DofUpdaterType tmp;
         return tmp.Create();
