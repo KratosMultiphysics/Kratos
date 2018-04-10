@@ -112,9 +112,9 @@ void  AddCustomMappersToPython()
             const Variable< array_1d<double, 3> > &,
             Kratos::Flags)
         = &Mapper::InverseMap;
-    
+
     // Exposing the base class of the Mappers to Python, but without constructor
-    class_< Mapper, Mapper::Pointer, boost::noncopyable > mapper 
+    class_< Mapper, Mapper::Pointer, boost::noncopyable > mapper
         = class_< Mapper, Mapper::Pointer, boost::noncopyable >("Mapper", no_init)
             .def("UpdateInterface",  UpdateInterfaceWithoutArgs)
             .def("UpdateInterface",  UpdateInterfaceWithOptions)
@@ -130,7 +130,7 @@ void  AddCustomMappersToPython()
             .def("InverseMap",       pInverseMapScalarOptions)
             .def("InverseMap",       pInverseMapVectorOptions)
             ;
-    
+
     // Adding the flags that can be used while mapping
     mapper.attr("SWAP_SIGN")        = MapperFlags::SWAP_SIGN;
     mapper.attr("ADD_VALUES")       = MapperFlags::ADD_VALUES;
@@ -141,10 +141,10 @@ void  AddCustomMappersToPython()
     // This would circumvent problems with the wrong space being selected
 
     // Exposing the Mappers
-    class_< NearestNeighborMapper, bases<Mapper>, boost::noncopyable>
-    ("NearestNeighborMapper", init<ModelPart&, ModelPart&, Parameters>());
-    class_< NearestElementMapper, bases<Mapper>, boost::noncopyable>
-    ("NearestElementMapper", init<ModelPart&, ModelPart&, Parameters>());
+    // class_< NearestNeighborMapper, bases<Mapper>, boost::noncopyable>
+    // ("NearestNeighborMapper", init<ModelPart&, ModelPart&, Parameters, bool>());
+    // class_< NearestElementMapper, bases<Mapper>, boost::noncopyable>
+    // ("NearestElementMapper", init<ModelPart&, ModelPart&, Parameters, bool>());
 
     // Exposing the MapperFactory
     class_< MapperFactory, boost::noncopyable>("MapperFactory", no_init)
