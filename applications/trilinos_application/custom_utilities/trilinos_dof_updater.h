@@ -39,44 +39,45 @@ namespace Kratos
 /** Detail class definition.
 */
 template< class TSparseSpace >
-class TrilinosDOFUpdater : public DOFUpdater<TSparseSpace>
+class TrilinosDofUpdater : public DofUpdater<TSparseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TrilinosDOFUpdater
-    KRATOS_CLASS_POINTER_DEFINITION(TrilinosDOFUpdater);
+    /// Pointer definition of TrilinosDofUpdater
+    KRATOS_CLASS_POINTER_DEFINITION(TrilinosDofUpdater);
 
-    using BaseType = DOFUpdater<TSparseSpace>;
+    using BaseType = DofUpdater<TSparseSpace>;
     using DofsArrayType = typename BaseType::DofsArrayType;
     using SystemVectorType = typename BaseType::SystemVectorType;
+    using UniquePointer = typename BaseType::UniquePointer;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    TrilinosDOFUpdater():
-        DOFUpdater<TSparseSpace>()
+    TrilinosDofUpdater():
+        DofUpdater<TSparseSpace>()
     {}
 
     /// Deleted copy constructor
-    TrilinosDOFUpdater(TrilinosDOFUpdater const& rOther) = delete;
+    TrilinosDofUpdater(TrilinosDofUpdater const& rOther) = delete;
 
     /// Destructor.
-    ~TrilinosDOFUpdater() override {}
+    ~TrilinosDofUpdater() override {}
 
     /// Deleted assignment operator
-    TrilinosDOFUpdater& operator=(TrilinosDOFUpdater const& rOther) = delete;
+    TrilinosDofUpdater& operator=(TrilinosDofUpdater const& rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
-    std::unique_ptr<BaseType> Create() const override
+    UniquePointer Create() const override
     {
-        return std::unique_ptr<BaseType>(new TrilinosDOFUpdater());
+        return UniquePointer(new TrilinosDofUpdater());
     }
 
     void Initialize(
@@ -148,9 +149,6 @@ public:
         int ierr = local_dx.Import(rDx,*mpDofImport,Insert) ;
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found while trying to import Dx." << std::endl;
 
-        double* local_dx_values;
-        local_dx.ExtractView( &local_dx_values );
-
         rDx.Comm().Barrier();
 
         // performing the update
@@ -176,7 +174,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "TrilinosDOFUpdater" ;
+        buffer << "TrilinosDofUpdater" ;
         return buffer.str();
     }
 
@@ -205,7 +203,7 @@ private:
 
     ///@}
 
-}; // Class TrilinosDOFUpdater
+}; // Class TrilinosDofUpdater
 
 ///@}
 ///@name Input and output
@@ -215,7 +213,7 @@ private:
 template< class TSparseSpace >
 inline std::istream& operator >> (
     std::istream& rIStream,
-    TrilinosDOFUpdater<TSparseSpace>& rThis)
+    TrilinosDofUpdater<TSparseSpace>& rThis)
 {
     return rIStream;
 }
@@ -224,7 +222,7 @@ inline std::istream& operator >> (
 template< class TSparseSpace >
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const TrilinosDOFUpdater<TSparseSpace>& rThis)
+    const TrilinosDofUpdater<TSparseSpace>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

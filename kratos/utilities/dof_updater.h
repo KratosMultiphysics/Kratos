@@ -38,41 +38,43 @@ namespace Kratos
 /** Detail class definition.
 */
 template< class TSparseSpace >
-class DOFUpdater
+class DofUpdater
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of DOFUpdater
-    KRATOS_CLASS_POINTER_DEFINITION(DOFUpdater);
+    /// Pointer definition of DofUpdater
+    KRATOS_CLASS_POINTER_DEFINITION(DofUpdater);
 
     using DofsArrayType = ModelPart::DofsArrayType;
     using SystemVectorType = typename TSparseSpace::VectorType;
+
+    using UniquePointer = std::unique_ptr<DofUpdater>;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    DOFUpdater(){}
+    DofUpdater(){}
 
     /// Deleted copy constructor
-    DOFUpdater(DOFUpdater const& rOther) = delete;
+    DofUpdater(DofUpdater const& rOther) = delete;
 
     /// Destructor.
-    virtual ~DOFUpdater(){}
+    virtual ~DofUpdater(){}
 
     /// Deleted assignment operator
-    DOFUpdater& operator=(DOFUpdater const& rOther) = delete;
+    DofUpdater& operator=(DofUpdater const& rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
-    virtual std::unique_ptr<DOFUpdater> Create() const
+    virtual UniquePointer Create() const
     {
-        return std::unique_ptr<DOFUpdater>(new DOFUpdater());
+        return UniquePointer(new DofUpdater());
     }
 
     virtual void Initialize(
@@ -105,7 +107,7 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "DOFUpdater" ;
+        buffer << "DofUpdater" ;
         return buffer.str();
     }
 
@@ -123,7 +125,7 @@ public:
 
     ///@}
 
-}; // Class DOFUpdater
+}; // Class DofUpdater
 
 ///@}
 ///@name Input and output
@@ -133,7 +135,7 @@ public:
 template< class TSparseSpace >
 inline std::istream& operator >> (
     std::istream& rIStream,
-    DOFUpdater<TSparseSpace>& rThis)
+    DofUpdater<TSparseSpace>& rThis)
 {
     return rIStream;
 }
@@ -142,7 +144,7 @@ inline std::istream& operator >> (
 template< class TSparseSpace >
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const DOFUpdater<TSparseSpace>& rThis)
+    const DofUpdater<TSparseSpace>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

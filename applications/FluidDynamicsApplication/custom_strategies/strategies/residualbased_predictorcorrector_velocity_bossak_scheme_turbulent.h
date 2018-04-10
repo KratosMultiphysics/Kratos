@@ -134,7 +134,7 @@ namespace Kratos {
             macc.resize(NumThreads);
             maccold.resize(NumThreads);
 
-            mpDOFUpdater = TSparseSpace::CreateDOFUpdater();
+            mpDofUpdater = TSparseSpace::CreateDOFUpdater();
         }
 
 
@@ -165,7 +165,7 @@ namespace Kratos {
             macc.resize(NumThreads);
             maccold.resize(NumThreads);
 
-            mpDOFUpdater = TSparseSpace::CreateDOFUpdater();
+            mpDofUpdater = TSparseSpace::CreateDOFUpdater();
         }
 
 
@@ -196,7 +196,7 @@ namespace Kratos {
             macc.resize(NumThreads);
             maccold.resize(NumThreads);
 
-            mpDOFUpdater = TSparseSpace::CreateDOFUpdater();
+            mpDofUpdater = TSparseSpace::CreateDOFUpdater();
         }
 
         /** Constructor with a turbulence model
@@ -227,7 +227,7 @@ namespace Kratos {
             macc.resize(NumThreads);
             maccold.resize(NumThreads);
 
-            mpDOFUpdater = TSparseSpace::CreateDOFUpdater();
+            mpDofUpdater = TSparseSpace::CreateDOFUpdater();
         }
 
         /** Destructor.
@@ -256,7 +256,7 @@ namespace Kratos {
 
             mRotationTool.RotateVelocities(r_model_part);
 
-            mpDOFUpdater->UpdateDOF(rDofSet,Dv);
+            mpDofUpdater->UpdateDOF(rDofSet,Dv);
 
             mRotationTool.RecoverVelocities(r_model_part);
 
@@ -732,13 +732,13 @@ namespace Kratos {
 
         void Clean() override
         {
-            this->mpDOFUpdater->Clear();
+            this->mpDofUpdater->Clear();
         }
 
 
         void Clear() override
         {
-            this->mpDOFUpdater->Clear();
+            this->mpDofUpdater->Clear();
         }
 
         /*@} */
@@ -1019,7 +1019,7 @@ namespace Kratos {
 
         Process::Pointer mpTurbulenceModel;
 
-        typename TSparseSpace::DOFUpdaterPointerType mpDOFUpdater;
+        typename TSparseSpace::DofUpdaterPointerType mpDofUpdater;
 
         /*@} */
         /**@name Private Operators*/

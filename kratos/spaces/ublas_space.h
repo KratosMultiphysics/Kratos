@@ -129,8 +129,8 @@ public:
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
 
-    typedef DOFUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DOFUpdaterType;
-    typedef std::unique_ptr< DOFUpdaterType > DOFUpdaterPointerType;
+    typedef DOFUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DofUpdaterType;
+    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -749,9 +749,9 @@ public:
         return Kratos::WriteMatrixMarketVector(FileName,V);
     }
 
-    static DOFUpdaterPointerType CreateDOFUpdater()
+    static DofUpdaterPointerType CreateDOFUpdater()
     {
-        DOFUpdaterType tmp;
+        DofUpdaterType tmp;
         return tmp.Create();
     }
 

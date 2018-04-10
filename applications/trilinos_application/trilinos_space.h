@@ -96,9 +96,8 @@ public:
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
 
-    typedef DOFUpdater< TrilinosSpace<TMatrixType,TVectorType> > BaseDOFUpdaterType;
-    typedef TrilinosDOFUpdater< TrilinosSpace<TMatrixType,TVectorType> > DOFUpdaterType;
-    typedef std::unique_ptr< BaseDOFUpdaterType > DOFUpdaterPointerType;
+    typedef TrilinosDOFUpdater< TrilinosSpace<TMatrixType,TVectorType> > DofUpdaterType;
+    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -640,9 +639,9 @@ public:
     }
 
 
-    static DOFUpdaterPointerType CreateDOFUpdater()
+    static DofUpdaterPointerType CreateDOFUpdater()
     {
-        DOFUpdaterType tmp;
+        DofUpdaterType tmp;
         return tmp.Create();
     }
 
