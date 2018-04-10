@@ -9,6 +9,9 @@
 //
 //  Main authors:    Aditya Ghantasala / Navaneeth K Narayanan
 //
+//  The modification of the element matrices follows the algorithm described in
+//  "AN ALGQRITHM FOR MULTIPOINT CONSTRAINTS IN FINITE ELEMENT ANALYSIS"
+//   by John F. Abel and Mark S. Shephard
 //
 
 #ifndef KRATOS_SOLVING_STRATEGIES_BUILDER_AND_SOLVERS_RESIDUALBASED_BLOCK_BUILDER_AND_SOLVER_WITH_MPC_H_
@@ -570,7 +573,9 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         {
             return;
         }
+
         MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
+
         for (auto mpcData : (*mpcDataVector))
         {
             if (mpcData->IsActive())
@@ -581,6 +586,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                 std::vector<std::size_t> localMasterEquationIds;
                 std::vector<double> WeightsCorrespondingToMasters;
                 std::vector<std::size_t> SlavesCorrespondingToMasters;
+
                 // Formulating the local slave equationId vector
                 for (unsigned int i = 0; i < EquationId.size(); ++i)
                 {
@@ -651,8 +657,8 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                             }
                             localNodalSlaveEquationIds.push_back(localSlaveEqId);
                         }
-
                         int currentNumberOfMastersProcessed = 0;
+
                         for (auto localSlaveEqId : localNodalSlaveEquationIds)
                         { // Loop over all the slaves for this node
                             it = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqId);
@@ -660,66 +666,77 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                             MasterIdWeightMapType &masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationIds[slaveIndex]];
                             for (auto masterI : masterWeightsMap)
                             { // Loop over all the masters the slave has
-
                                 int localMasterEqId = currentNumberOfMastersProcessed + currentSysSize;
                                 ++currentNumberOfMastersProcessed;
-                                double weight = masterI.second;
-                                double constant = mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndex]];
+                                // RHS(u) = RHS(u)-Kus*b
+                                double constant = mpcData->mSlaveEquationIdConstantsMap[slaveEquationIds[slaveIndex]];
                                 for (auto localInternEqId : localInternEquationIds)
                                 {
                                     RHS_Contribution(localInternEqId) += -LHS_Contribution(localInternEqId, localSlaveEqId) * constant;
                                 }
-
-                                // For K(m,u) and K(u,m)
+                                // Kum = Kum + Kus*A
                                 for (auto localInternEqId : localInternEquationIds)
                                 { // Loop over all the local equation ids
-                                    LHS_Contribution(localInternEqId, localMasterEqId) += LHS_Contribution(localInternEqId, localSlaveEqId) * weight;
-                                    LHS_Contribution(localMasterEqId, localInternEqId) += LHS_Contribution(localSlaveEqId, localInternEqId) * weight;
+                                    LHS_Contribution(localInternEqId, localMasterEqId) += LHS_Contribution(localInternEqId, localSlaveEqId) * masterI.second;
                                 } // Loop over all the local equation ids
-
-                                // For RHS(m) += A'*LHS(s,s)*B
-                                for (auto localSlaveEqIdOther : localNodalSlaveEquationIds)
+                                if (!(mpcData->IsWeak()))
                                 {
-                                    //std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
-                                    int slaveIndexOther = std::distance(localNodalSlaveEquationIds.begin(), it);
-                                    double constantOther = mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndexOther]];
-                                    RHS_Contribution(localMasterEqId) += LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) * weight * constantOther;
+                                    // Kmu = Kmu + A'*Ksu
+                                    for (auto localInternEqId : localInternEquationIds)
+                                    { // Loop over all the local equation ids
+                                        LHS_Contribution(localMasterEqId, localInternEqId) += LHS_Contribution(localSlaveEqId, localInternEqId) * masterI.second;
+                                    } // Loop over all the local equation ids
                                 }
-
+                                // Adding the master to the EFT
                                 EquationId.push_back(masterI.first);
-                                // Changing the RHS side of the equation
-                                RHS_Contribution(localMasterEqId) += weight * RHS_Contribution(localSlaveEqId);
-
-                                localMasterEquationIds.push_back(localMasterEqId);
-                                WeightsCorrespondingToMasters.push_back(weight);
-                                SlavesCorrespondingToMasters.push_back(localSlaveEqId);
-
+                                if (!(mpcData->IsWeak()))
+                                {
+                                    // RHSm = RHSm + A'*RHSs
+                                    RHS_Contribution(localMasterEqId) = RHS_Contribution(localMasterEqId) + masterI.second * RHS_Contribution(localSlaveEqId);
+                                    localMasterEquationIds.push_back(localMasterEqId);
+                                    WeightsCorrespondingToMasters.push_back(masterI.second);
+                                    SlavesCorrespondingToMasters.push_back(localSlaveEqId);
+                                }
                             } // Loop over all the masters the slave has
 
+                            // RHSs = 0
                             RHS_Contribution(localSlaveEqId) = 0.0;
                         } // Loop over all the slaves for this node
-
                         //Adding contribution from slave to Kmm
-                        for (unsigned int localMasterIndex = 0; localMasterIndex < localMasterEquationIds.size(); localMasterIndex++)
+                        if (!(mpcData->IsWeak()))
                         {
-                            for (unsigned int localMasterIndexOther = 0; localMasterIndexOther < localMasterEquationIds.size(); localMasterIndexOther++)
+                            for (unsigned int localMasterIndex = 0; localMasterIndex < localMasterEquationIds.size(); localMasterIndex++)
                             {
-                                LHS_Contribution(localMasterEquationIds[localMasterIndex], localMasterEquationIds[localMasterIndexOther]) += WeightsCorrespondingToMasters[localMasterIndex] *
-                                                                                                                                             LHS_Contribution(SlavesCorrespondingToMasters[localMasterIndex], SlavesCorrespondingToMasters[localMasterIndexOther]) * WeightsCorrespondingToMasters[localMasterIndexOther];
+                                for (unsigned int localMasterIndexOther = 0; localMasterIndexOther < localMasterEquationIds.size(); localMasterIndexOther++)
+                                {
+                                    // Kmm = Kmm + A*Kss*A'
+                                    LHS_Contribution(localMasterEquationIds[localMasterIndex], localMasterEquationIds[localMasterIndexOther]) += WeightsCorrespondingToMasters[localMasterIndex] * LHS_Contribution(SlavesCorrespondingToMasters[localMasterIndex], SlavesCorrespondingToMasters[localMasterIndexOther]) * WeightsCorrespondingToMasters[localMasterIndexOther];
+                                }
                             }
                         }
                     } // If the node has a slave DOF
-                }     // Loop over the nodes
+                }
 
-                // For K(u,s) and K(s,u)
                 for (auto localSlaveEqId : localSlaveEquationIds)
                 { // Loop over all the slaves for this node
                     for (auto localInternEqId : localInternEquationIds)
-                    { // Loop over all the local equation ids
+                    {
+                        // Ksu = 0; Kus = 0
                         LHS_Contribution(localSlaveEqId, localInternEqId) = 0.0;
                         LHS_Contribution(localInternEqId, localSlaveEqId) = 0.0;
                     }
-                } // Loop over all the slaves for this node
+                }
+
+                for (auto localSlaveEqId : localSlaveEquationIds)
+                { // Loop over all the slaves for this node
+                    for (auto localSlaveEqIdOther : localSlaveEquationIds)
+                    { // Loop over all the slaves for this node
+                        // Kss = I
+                        LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) = 0.0;
+                        if (localSlaveEqId == localSlaveEqIdOther)
+                            LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) = 1.0;
+                    }
+                }
             }
         }
         KRATOS_CATCH("Applying Multipoint constraints failed ..");
@@ -749,7 +766,9 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         {
             return;
         }
+
         MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
+
         for (auto mpcData : (*mpcDataVector))
         {
             if (mpcData->IsActive())
@@ -760,6 +779,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                 std::vector<std::size_t> localMasterEquationIds;
                 std::vector<double> WeightsCorrespondingToMasters;
                 std::vector<std::size_t> SlavesCorrespondingToMasters;
+
                 // Formulating the local slave equationId vector
                 for (unsigned int i = 0; i < EquationId.size(); ++i)
                 {
@@ -789,14 +809,13 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                         {
                             slaveEquationId = elementDofs[startPositionNodeDofs + i]->EquationId();
                             if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
-                                if (mpcData->mEquationIdToWeightsMap.count(slaveEquationId) > 0)
-                                {
-                                    totalNumberOfSlaves++;
-                                    slaveEquationIds.push_back(slaveEquationId);
-                                    MasterIdWeightMapType &masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationId];
+                            {
+                                totalNumberOfSlaves++;
+                                slaveEquationIds.push_back(slaveEquationId);
+                                MasterIdWeightMapType &masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationId];
 
-                                    totalNumberOfMasters += masterWeightsMap.size();
-                                }
+                                totalNumberOfMasters += masterWeightsMap.size();
+                            }
                         }
 
                         std::vector<std::size_t>::iterator it;
@@ -831,8 +850,8 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                             }
                             localNodalSlaveEquationIds.push_back(localSlaveEqId);
                         }
-
                         int currentNumberOfMastersProcessed = 0;
+
                         for (auto localSlaveEqId : localNodalSlaveEquationIds)
                         { // Loop over all the slaves for this node
                             it = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqId);
@@ -840,66 +859,77 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                             MasterIdWeightMapType &masterWeightsMap = mpcData->mEquationIdToWeightsMap[slaveEquationIds[slaveIndex]];
                             for (auto masterI : masterWeightsMap)
                             { // Loop over all the masters the slave has
-
                                 int localMasterEqId = currentNumberOfMastersProcessed + currentSysSize;
                                 ++currentNumberOfMastersProcessed;
-                                double weight = masterI.second;
-                                double constant = mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndex]];
+                                // RHS(u) = RHS(u)-Kus*b
+                                double constant = mpcData->mSlaveEquationIdConstantsMap[slaveEquationIds[slaveIndex]];
                                 for (auto localInternEqId : localInternEquationIds)
                                 {
                                     RHS_Contribution(localInternEqId) += -LHS_Contribution(localInternEqId, localSlaveEqId) * constant;
                                 }
-
-                                // For K(m,u) and K(u,m)
+                                // Kum = Kum + Kus*A
                                 for (auto localInternEqId : localInternEquationIds)
                                 { // Loop over all the local equation ids
-                                    LHS_Contribution(localInternEqId, localMasterEqId) += LHS_Contribution(localInternEqId, localSlaveEqId) * weight;
-                                    LHS_Contribution(localMasterEqId, localInternEqId) += LHS_Contribution(localSlaveEqId, localInternEqId) * weight;
+                                    LHS_Contribution(localInternEqId, localMasterEqId) += LHS_Contribution(localInternEqId, localSlaveEqId) * masterI.second;
                                 } // Loop over all the local equation ids
-
-                                // For RHS(m) += A'*LHS(s,s)*B
-                                for (auto localSlaveEqIdOther : localNodalSlaveEquationIds)
+                                if (!(mpcData->IsWeak()))
                                 {
-                                    //std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
-                                    int slaveIndexOther = std::distance(localNodalSlaveEquationIds.begin(), it);
-                                    double constantOther = mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndexOther]];
-                                    RHS_Contribution(localMasterEqId) += LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) * weight * constantOther;
+                                    // Kmu = Kmu + A'*Ksu
+                                    for (auto localInternEqId : localInternEquationIds)
+                                    { // Loop over all the local equation ids
+                                        LHS_Contribution(localMasterEqId, localInternEqId) += LHS_Contribution(localSlaveEqId, localInternEqId) * masterI.second;
+                                    } // Loop over all the local equation ids
                                 }
-
+                                // Adding the master to the EFT
                                 EquationId.push_back(masterI.first);
-                                // Changing the RHS side of the equation
-                                RHS_Contribution(localMasterEqId) = RHS_Contribution(localMasterEqId) + weight * RHS_Contribution(localSlaveEqId);
-
-                                localMasterEquationIds.push_back(localMasterEqId);
-                                WeightsCorrespondingToMasters.push_back(weight);
-                                SlavesCorrespondingToMasters.push_back(localSlaveEqId);
-
+                                if (!(mpcData->IsWeak()))
+                                {
+                                    // RHSm = RHSm + A'*RHSs
+                                    RHS_Contribution(localMasterEqId) = RHS_Contribution(localMasterEqId) + masterI.second * RHS_Contribution(localSlaveEqId);
+                                    localMasterEquationIds.push_back(localMasterEqId);
+                                    WeightsCorrespondingToMasters.push_back(masterI.second);
+                                    SlavesCorrespondingToMasters.push_back(localSlaveEqId);
+                                }
                             } // Loop over all the masters the slave has
 
+                            // RHSs = 0
                             RHS_Contribution(localSlaveEqId) = 0.0;
                         } // Loop over all the slaves for this node
-
                         //Adding contribution from slave to Kmm
-                        for (unsigned int localMasterIndex = 0; localMasterIndex < localMasterEquationIds.size(); localMasterIndex++)
+                        if (!(mpcData->IsWeak()))
                         {
-                            for (unsigned int localMasterIndexOther = 0; localMasterIndexOther < localMasterEquationIds.size(); localMasterIndexOther++)
+                            for (unsigned int localMasterIndex = 0; localMasterIndex < localMasterEquationIds.size(); localMasterIndex++)
                             {
-                                LHS_Contribution(localMasterEquationIds[localMasterIndex], localMasterEquationIds[localMasterIndexOther]) += WeightsCorrespondingToMasters[localMasterIndex] *
-                                                                                                                                             LHS_Contribution(SlavesCorrespondingToMasters[localMasterIndex], SlavesCorrespondingToMasters[localMasterIndexOther]) * WeightsCorrespondingToMasters[localMasterIndexOther];
+                                for (unsigned int localMasterIndexOther = 0; localMasterIndexOther < localMasterEquationIds.size(); localMasterIndexOther++)
+                                {
+                                    // Kmm = Kmm + A*Kss*A'
+                                    LHS_Contribution(localMasterEquationIds[localMasterIndex], localMasterEquationIds[localMasterIndexOther]) += WeightsCorrespondingToMasters[localMasterIndex] * LHS_Contribution(SlavesCorrespondingToMasters[localMasterIndex], SlavesCorrespondingToMasters[localMasterIndexOther]) * WeightsCorrespondingToMasters[localMasterIndexOther];
+                                }
                             }
                         }
                     } // If the node has a slave DOF
-                }     // Loop over the nodes
+                }
 
-                // For K(u,s) and K(s,u)
                 for (auto localSlaveEqId : localSlaveEquationIds)
                 { // Loop over all the slaves for this node
                     for (auto localInternEqId : localInternEquationIds)
-                    { // Loop over all the local equation ids
+                    {
+                        // Ksu = 0; Kus = 0
                         LHS_Contribution(localSlaveEqId, localInternEqId) = 0.0;
                         LHS_Contribution(localInternEqId, localSlaveEqId) = 0.0;
                     }
-                } // Loop over all the slaves for this node
+                }
+
+                for (auto localSlaveEqId : localSlaveEquationIds)
+                { // Loop over all the slaves for this node
+                    for (auto localSlaveEqIdOther : localSlaveEquationIds)
+                    { // Loop over all the slaves for this node
+                        // Kss = I
+                        LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) = 0.0;
+                        if (localSlaveEqId == localSlaveEqIdOther)
+                            LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) = 1.0;
+                    }
+                }                
             }
         }
         KRATOS_CATCH("Applying Multipoint constraints failed ..");
