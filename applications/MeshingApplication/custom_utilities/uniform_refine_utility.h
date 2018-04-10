@@ -93,7 +93,7 @@ public:
     ///@{
 
     /**
-     * Execute the refinement
+     * Execute the refinement until the final refinement is reached
      */
     void Refine();
 
@@ -196,19 +196,25 @@ private:
     ///@{
     
     /**
+     * Execute the refinement once
+     * Only the entities with level = ThisLevel are refined to ThisLevel+1
+     */
+    void RefineLevel(const int& ThisLevel);
+
+    /**
      * Get the node between node_a and node_b
      * The two input nodes define an element edge
      * If the middle node exist, returns a pointer to the existing node
      * If the middle node does not exist, create a new one and returns a pointer to it
      */
-    Node<3>::Pointer GetNodeBetween(const Node<3>::Pointer pNode0, const Node<3>::Pointer pNode1, const int ThisNodeLevel);
+    Node<3>::Pointer GetNodeBetween(const Node<3>::Pointer pNode0, const Node<3>::Pointer pNode1, const int& rRefinementLevel);
 
     /**
      * Calculate the nodal data
      * The destination node is assumed to be at the mid point between 
      * the origin nodes
      */
-    void CalculateNodalStepData(Node<3>::Pointer pNewNode, const Node<3>::Pointer pNode0, const  Node<3>::Pointer pNode1);
+    void CalculateNodalStepData(Node<3>::Pointer pNewNode, const Node<3>::Pointer pNode0, const Node<3>::Pointer pNode1);
 
 
     ///@}

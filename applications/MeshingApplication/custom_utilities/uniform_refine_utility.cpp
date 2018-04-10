@@ -92,9 +92,30 @@ void UniformRefineUtility<TDim>::PrintData(std::ostream& rOStream) const {
 }
 
 
-/// Execute the refinement
+/// Execute the refinement until the final refinement level is reached
 template< unsigned int TDim>
-void UniformRefineUtility<TDim>::Refine() 
+void UniformRefineUtility<TDim>::Refine()
+{
+    // Get the lowest refinement level
+    int minimum_refinement_level = 0;
+    const int n_elements = mrModelPart.Elements().size();
+    for (int i = 0; i < n_elements; i++)
+    {
+        ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
+        if (ielement->GetValue(REFINEMENT_LEVEL) < minimum_refinement_level)
+            minimum_refinement_level = ielement->GetValue(REFINEMENT_LEVEL);
+    }
+
+    for (int level = minimum_refinement_level; level < mFinalRefinementLevel; level++)
+    {
+        RefineLevel(level);
+    }
+}
+
+
+/// Execute the refinement once
+template< unsigned int TDim>
+void UniformRefineUtility<TDim>::RefineLevel(const int& ThisLevel)
 {
     // Initialize the entities Id lists
     std::vector<int> elements_id;
@@ -123,39 +144,76 @@ void UniformRefineUtility<TDim>::Refine()
         // Get the element
         Element::Pointer p_element = mrModelPart.Elements()(id);
 
-        // Check the refinement level of the element
-        int refinement_level = p_element->GetValue(REFINEMENT_LEVEL);
-        if (refinement_level < mFinalRefinementLevel)
+        // Check the refinement level of the origin element
+        int step_refine_level = p_element->GetValue(REFINEMENT_LEVEL);
+        if (step_refine_level == ThisLevel)
         {
-            refinement_level++;
+            step_refine_level++;
+            
             // Get the geometry
             Geometry<Node<3>>& geom = p_element->GetGeometry();
 
-            // Get the nodes on the edges of the father element
-            array_1d<Node<3>::Pointer, 3> p_middle_nodes;
-            p_middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), refinement_level );
-            p_middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), refinement_level );
-            p_middle_nodes[2] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(2), refinement_level );
-
-            // And now, create the sub triangles
-            std::vector<Node<3>::Pointer> sub_element_nodes (3);
-            // First sub element
-            sub_element_nodes[0] = geom.pGetPoint(0);
-            sub_element_nodes[1] = p_middle_nodes[0];
-            sub_element_nodes[2] = p_middle_nodes[2];
-            Element::Pointer sub_element = p_element->Create(mLastElemId++, sub_element_nodes, p_element->pGetProperties());
-            
-            if (sub_element != nullptr) 
+            if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
             {
-                mrModelPart.AddElement(sub_element);
-                int& refinement_level = sub_element->GetValue(REFINEMENT_LEVEL);
-                refinement_level += 1;
-            }
+                // FIRST: Create the nodes
+                // Loop the edges of the father element and get the nodes
+                std::vector<Node<3>::Pointer> p_middle_nodes(3);
+                p_middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
+                p_middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
+                p_middle_nodes[2] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(2), step_refine_level );
 
-            // Encontrar el lugar para setear ElementDataBase and SubModelParts
+                // SECOND: create the sub elements
+                std::vector<Node<3>::Pointer> sub_element_nodes(3);
+                // First sub element
+                sub_element_nodes[0] = geom.pGetPoint(0);
+                sub_element_nodes[1] = p_middle_nodes[0];
+                sub_element_nodes[2] = p_middle_nodes[2];
+                Element::Pointer sub_element = p_element->Create(mLastElemId++, sub_element_nodes, p_element->pGetProperties());
+                
+                if (sub_element != nullptr) 
+                {
+                    mrModelPart.AddElement(sub_element);
+                    int& this_elem_level = sub_element->GetValue(REFINEMENT_LEVEL);
+                    this_elem_level = step_refine_level;
+                }
+
+            }
+            else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
+            {
+                // FIRST: Create the nodes
+                // Loop the edges of the father element and get the nodes
+                std::vector<Node<3>::Pointer> p_middle_nodes(4);
+                p_middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
+                p_middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
+                p_middle_nodes[2] = GetNodeBetween( geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
+                p_middle_nodes[3] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(3), step_refine_level );
+
+            }
+            else
+            {
+                KRATOS_WARNING("UniformRefineUtility") << "WARNING: YOUR GEOMETRY CONTAINS " << geom.PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+            }
+            // Encontrar el lugar para ejecutar SubModelPartsColors
 
             // Once we have created all the sub elements
             p_element->Set(TO_ERASE, true);
+        }
+    }
+
+    // Loop the origin conditions
+    for (const int id : conditions_id)
+    {
+        // Get the condition
+        Condition::Pointer p_condition = mrModelPart.Conditions()(id);
+
+        // Check the refinement level of the origin condition
+        int step_refine_level = p_condition->GetValue(REFINEMENT_LEVEL);
+        if (step_refine_level == ThisLevel)
+        {
+            // THIRD: Create the conditions
+
+            /* Do some stuff here */
+
         }
     }
 
@@ -167,7 +225,7 @@ template< unsigned int TDim>
 Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeBetween(
     const Node<3>::Pointer pNode0,
     const Node<3>::Pointer pNode1,
-    const int ThisNodeLevel
+    const int& rRefinementLevel
     )
 {
     // Initialize the output
@@ -196,7 +254,7 @@ Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeBetween(
 
         // Set the refinement level
         int& this_node_level = middle_node->GetValue(REFINEMENT_LEVEL);
-        this_node_level = ThisNodeLevel;
+        this_node_level = rRefinementLevel;
 
         // Store the node in the map
         //std::pair< std::pair<int, int>, int > node_map = (node_key, middle_node->Id());
@@ -205,6 +263,33 @@ Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeBetween(
 
     return middle_node;
 }
+
+// /// Get the middle node on an edge defined by two nodes
+// template< unsigned int TDim>
+// Node<3>::Pointer UniformRefineUtility<TDim>::CreateNodeBetween(
+//     const Node<3>::Pointer pNode0,
+//     const Node<3>::Pointer pNode1,
+//     const int& rRefinementLevel
+//     )
+// {
+//     double new_x = pNode0->X() - pNode1->X();
+//     double new_y = pNode0->Y() - pNode1->Y();
+//     double new_z = pNode0->Z() - pNode1->Z();
+//     middle_node = mrModelPart.CreateNewNode(mLastNodeId++, new_x, new_y, new_z);
+
+//     // interpolate the variables
+//     CalculateNodalStepData(middle_node, pNode0, pNode1);
+
+//     // Set the refinement level
+//     int& this_node_level = p_middle_nodes[0]->GetValue(REFINEMENT_LEVEL);
+//     this_node_level = rRefinementLevel;
+
+//     // Store the node in the map
+//     //std::pair< std::pair<int, int>, int > node_map = (node_key, middle_node->Id());
+//     mNodesMap.insert( std::pair< std::pair<int, int>, int > (node_key, middle_node->Id()) );
+
+//     return middle_node;
+// }
 
 
 /// Compute the nodal data of a node
@@ -226,6 +311,9 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
             new_node_data[variable] = .5 * node_data_0[variable] + .5 * node_data_1[variable];
     }
 }
+
+
+/// Create a sub element
 
 template class UniformRefineUtility<2>;
 
