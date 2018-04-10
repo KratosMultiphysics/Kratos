@@ -193,7 +193,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             for i in self.value:
                 params["value"][counter].SetDouble(i)
                 counter+=1
-                
+
             params.AddEmptyValue("entity_type").SetString("CONDITIONS")
             self.AssignValueProcess = KratosSolid.AssignVectorFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
 
