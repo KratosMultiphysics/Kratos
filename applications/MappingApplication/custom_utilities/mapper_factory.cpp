@@ -40,6 +40,12 @@ namespace Kratos
         if (mapper_list.find(mapper_name) != mapper_list.end())
         {
             const bool is_mpi_execution = GetIsMPIExecution();
+
+            // Removing Parameters that are not needed by the Mapper
+            JsonParameters.RemoveValue("mapper_type");
+            JsonParameters.RemoveValue("interface_submodel_part_origin");
+            JsonParameters.RemoveValue("interface_submodel_part_destination");
+
             return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
                                                       r_interface_model_part_destination,
                                                       JsonParameters,
@@ -100,6 +106,63 @@ namespace Kratos
             return rModelPart;
         }
     }
+
+    // CommRank is used as input bcs the MyPID function of the non-MPI MapperCommunicator is used
+    // since this function is called before the MapperMPICommunicato is initialized
+    void CheckInterfaceModelParts(const int CommRank)
+    {
+        const int num_nodes_origin = MapperUtilities::ComputeNumberOfNodes(mrModelPartOrigin);
+        const int num_conditions_origin = MapperUtilities::ComputeNumberOfConditions(mrModelPartOrigin);
+        const int num_elements_origin = MapperUtilities::ComputeNumberOfElements(mrModelPartOrigin);
+
+        const int num_nodes_destination = MapperUtilities::ComputeNumberOfNodes(mrModelPartDestination);
+        const int num_conditions_destination = MapperUtilities::ComputeNumberOfConditions(mrModelPartDestination);
+        const int num_elements_destination = MapperUtilities::ComputeNumberOfElements(mrModelPartDestination);
+
+        // Check if the ModelPart contains entities
+        KRATOS_ERROR_IF(num_nodes_origin + num_conditions_origin + num_elements_origin < 1)
+            << "Neither Nodes nor Conditions nor Elements found "
+            << "in the Origin ModelPart" << std::endl;
+
+        KRATOS_ERROR_IF(num_nodes_destination + num_conditions_destination + num_elements_destination < 1)
+            << "Neither Nodes nor Conditions nor Elements found "
+            << "in the Destination ModelPart" << std::endl;
+
+        // Check if the inpt ModelParts contain both Elements and Conditions
+        // This is NOT possible, bcs the InterfaceObjects are constructed
+        // with whatever exists in the Modelpart (see the InterfaceObjectManagerBase,
+        // function "InitializeInterfaceGeometryObjectManager")
+        KRATOS_ERROR_IF(num_conditions_origin > 0 && num_elements_origin > 0)
+            << "Origin ModelPart contains both Conditions and Elements "
+            << "which is not permitted" << std::endl;
+
+        KRATOS_ERROR_IF(num_conditions_destination > 0 && num_elements_destination > 0)
+            << "Destination ModelPart contains both Conditions and Elements "
+            << "which is not permitted" << std::endl;
+
+        if (mEchoLevel >= 2) {
+            std::vector<double> model_part_origin_bbox = MapperUtilities::ComputeModelPartBoundingBox(mrModelPartOrigin);
+            std::vector<double> model_part_destination_bbox = MapperUtilities::ComputeModelPartBoundingBox(mrModelPartDestination);
+
+            bool bbox_overlapping = MapperUtilities::ComputeBoundingBoxIntersection(
+                                                        model_part_origin_bbox,
+                                                        model_part_destination_bbox);
+            if(CommRank == 0)
+            {
+                if (!bbox_overlapping) {
+                    std::cout << "MAPPER WARNING, the bounding boxes of the "
+                              << "Modelparts do not overlap! "
+                              << MapperUtilities::PrintModelPartBoundingBoxes(model_part_origin_bbox,
+                                                                              model_part_destination_bbox)
+                              << std::endl;
+                } else if (mEchoLevel >= 3)
+                {
+                    std::cout << MapperUtilities::PrintModelPartBoundingBoxes(model_part_origin_bbox,
+                                                                              model_part_destination_bbox)
+                              << std::endl;
+                }
+            }
+        }
 
     std::unordered_map<std::string, Mapper::Pointer>& MapperFactory::GetRegisteredMappersList()
     {

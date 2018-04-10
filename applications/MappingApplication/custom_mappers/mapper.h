@@ -181,7 +181,13 @@ protected:
     ModelPart& mModelPartOrigin;
     ModelPart& mModelPartDestination;
 
-    Parameters mJsonParameters;
+    Parameters mJsonParameters = Parameters( R"(
+    {
+        "search_radius"                         : -1.0,
+        "search_iterations"                     : 3,
+        "approximation_tolerance"               : -1.0,
+        "echo_level"                            : 0
+    }  )" );
 
     bool mIsMPIExecution = false;
 
