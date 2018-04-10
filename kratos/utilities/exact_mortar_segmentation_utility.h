@@ -129,9 +129,6 @@ public:
     /// The definition of the size type
     typedef std::size_t SizeType;
 
-    /// The definition of zero tolerance
-    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
-
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(ExactMortarIntegrationUtility);
 
@@ -389,7 +386,7 @@ protected:
                              s_dest1_dest2_x * s_orig1_orig2_y;
 
         const double tolerance = 1.0e-15;
-//         const double tolerance = ZeroTolerance;
+//         const double tolerance = std::numeric_limits<double>::epsilon();
 
         if (std::abs(denom) < tolerance) // NOTE: Collinear
             return false;
@@ -462,7 +459,7 @@ protected:
         const PointType& PointDest
         )
     {
-//         const double tolerance = ZeroTolerance; // NOTE: Giving some problems, too tight
+//         const double tolerance = std::numeric_limits<double>::epsilon(); // NOTE: Giving some problems, too tight
         const double tolerance = 1.0e-15;
         return (norm_2(PointDest.Coordinates() - PointOrig.Coordinates()) < tolerance) ? true : false;
     }
