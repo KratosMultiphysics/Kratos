@@ -83,7 +83,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
 
     static Mapper::Pointer CreateMapper(ModelPart& rModelPartOrigin,
                                         ModelPart& rModelPartDestination,
@@ -196,6 +196,8 @@ private:
                                              const std::string& InterfaceSide);
 
     static std::unordered_map<std::string, Mapper::Pointer>& GetRegisteredMappersList();
+
+    static bool GetIsMPIExecution();
 
     ///@}
     ///@name Private  Access

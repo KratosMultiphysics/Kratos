@@ -62,7 +62,7 @@ namespace Kratos
 *        Mapping Direction: Origin => Destionation
 * - InverseMap: This function does the opposite of the "Map" function
 *               Mapping Direction: Destination => Origin
-* - UpdateInterface: Called when the interface is changed. It recomputes the neighbors and 
+* - UpdateInterface: Called when the interface is changed. It recomputes the neighbors and
 *   other information related to the relations btw entities (node, elements,...) on the interfaces
 * It is also responsible for initializing the MapperCommunicator or the MapperMPICommuniator
 * For information abt the available echo_levels and the JSON default-parameters
@@ -87,7 +87,8 @@ public:
     Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination) :
         mModelPartOrigin(rModelPartOrigin),
         mModelPartDestination(rModelPartDestination),
-        mJsonParameters(Parameters(R"({})")) {}
+        mJsonParameters(Parameters(R"({})")),
+        mIsMPIExecution(false) {}
 
     /// Destructor.
     virtual ~Mapper()
@@ -124,9 +125,10 @@ public:
                             const Variable< array_1d<double, 3> >& rDestinationVariable,
                             Kratos::Flags MappingOptions) = 0;
 
-    virtual Mapper::Pointer Clone(ModelPart& rModelPartOrigin, 
+    virtual Mapper::Pointer Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
-                                  Parameters JsonParameters) = 0;
+                                  Parameters JsonParameters,
+                                  const bool IsMPIExecution) = 0;
 
     MapperCommunicator::Pointer pGetMapperCommunicator()
     {
@@ -181,6 +183,8 @@ protected:
 
     Parameters mJsonParameters;
 
+    bool mIsMPIExecution = false;
+
     MapperCommunicator::Pointer mpMapperCommunicator;
 
     // global, aka of the entire submodel-parts
@@ -201,12 +205,16 @@ protected:
     ///@{
 
     // Constructor, can only be called by derived classes (actual mappers)
-    Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-           Parameters JsonParameters) :
+    Mapper(ModelPart& rModelPartOrigin,
+           ModelPart& rModelPartDestination,
+           Parameters JsonParameters,
+           const bool IsMPIExecution = false) :
         mModelPartOrigin(rModelPartOrigin),
         mModelPartDestination(rModelPartDestination),
-        mJsonParameters(JsonParameters)
+        mJsonParameters(JsonParameters),
+        mIsMPIExecution(IsMPIExecution)
     {
+        Initialize();
         ComputeNumberOfNodesAndConditions();
 
         // Create the mapper communicator
@@ -240,6 +248,14 @@ protected:
         // Access the Parameters only after the communicator is constructed,
         // bcs they are checked and validated there!
         mEchoLevel = JsonParameters["echo_level"].GetInt();
+    }
+    /**
+     * This function can be overridden by derived Mappers to do sth different
+     * */
+    virtual void Initialize()
+    {
+        InitializeInterfaceCommunicator();
+        InitializeMappingOperationUtility();
     }
 
     void ComputeNumberOfNodesAndConditions()
@@ -298,6 +314,30 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void InitializeInterfaceCommunicator()
+    {
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+        int mpi_initialized;
+        MPI_Initialized(&mpi_initialized);
+        if (mpi_initialized) // parallel execution, i.e. mpi imported in python
+        {
+            int comm_size;
+            MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+            // if (comm_size > 1) return true;
+        }
+
+
+#else // serial compilation
+        KRATOS_ERROR_IF(mIsMPIExecution) << "Trying to construct an MPI-Mapper "
+            << "in a serial compilation!" << std::endl;
+#endif
+    }
+
+    void InitializeMappingOperationUtility()
+    {
+
+    }
 
     void InitializeSerialCommunicator()
     {

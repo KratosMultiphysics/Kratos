@@ -17,7 +17,7 @@
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -26,7 +26,7 @@
 
 namespace Kratos
 {
-    Mapper::Pointer MapperFactory::CreateMapper(ModelPart& rModelPartOrigin, 
+    Mapper::Pointer MapperFactory::CreateMapper(ModelPart& rModelPartOrigin,
                                                 ModelPart& rModelPartDestination,
                                                 Parameters JsonParameters)
     {
@@ -35,13 +35,15 @@ namespace Kratos
 
         const std::string mapper_name = JsonParameters["mapper_type"].GetString();
 
-        const auto& mapper_list = MapperFactory::GetRegisteredMappersList();
+        const auto& mapper_list = GetRegisteredMappersList();
 
         if (mapper_list.find(mapper_name) != mapper_list.end())
         {
+            const bool is_mpi_execution = GetIsMPIExecution();
             return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
                                                       r_interface_model_part_destination,
-                                                      JsonParameters);
+                                                      JsonParameters,
+                                                      is_mpi_execution);
         }
         else
         {
@@ -51,7 +53,7 @@ namespace Kratos
             {
                 err_msg << registered_mapper.first << ", ";
             }
-            KRATOS_ERROR << err_msg.str() << std::endl;  
+            KRATOS_ERROR << err_msg.str() << std::endl;
         }
     }
 
@@ -80,7 +82,7 @@ namespace Kratos
         if (InterfaceParameters.Has(key_sub_model_part))
         {
             const std::string name_interface_submodel_part = InterfaceParameters[key_sub_model_part].GetString();
-            
+
             if (echo_level >= 3 && comm_rank == 0)
             {
                 std::cout << "Mapper: SubModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
@@ -105,6 +107,24 @@ namespace Kratos
 
         return registered_mappers;
     }
-  
+
+    bool MapperFactory::GetIsMPIExecution()
+    {
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+        int mpi_initialized;
+        MPI_Initialized(&mpi_initialized);
+        if (mpi_initialized) // parallel execution, i.e. mpi imported in python
+        {
+            int comm_size;
+            MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+            if (comm_size > 1) return true;
+        }
+        return false;
+
+#else // serial compilation
+        return false;
+#endif
+    }
+
 }  // namespace Kratos.
 

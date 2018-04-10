@@ -45,7 +45,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /// Nearest Neighbor Mapper
 /** This class implements the Nearest Neighbor Mapping technique.
 * Each node on the destination side gets assigned is's closest neighbor on the other side of the interface.
@@ -70,12 +70,19 @@ public:
     ///@name Life Cycle
     ///@{
 
-    NearestNeighborMapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination) : Mapper(
-                         rModelPartOrigin, rModelPartDestination) {}
+    NearestNeighborMapper(ModelPart& rModelPartOrigin,
+                          ModelPart& rModelPartDestination)
+                          : Mapper(rModelPartOrigin,
+                                   rModelPartDestination) {}
 
-    NearestNeighborMapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-                          Parameters JsonParameters) : Mapper(
-                                  rModelPartOrigin, rModelPartDestination, JsonParameters)
+    NearestNeighborMapper(ModelPart& rModelPartOrigin,
+                          ModelPart& rModelPartDestination,
+                          Parameters JsonParameters,
+                          const bool IsMPIExecution)
+                          : Mapper(rModelPartOrigin,
+                                   rModelPartDestination,
+                                   JsonParameters,
+                                   IsMPIExecution)
     {
         mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node_Coords);
         mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
@@ -190,7 +197,8 @@ public:
         {
             mpInverseMapper = this->Clone(mModelPartDestination,
                                           mModelPartOrigin,
-                                          mJsonParameters);
+                                          mJsonParameters,
+                                          mIsMPIExecution);
         }
         mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
     }
@@ -206,18 +214,21 @@ public:
         {
             mpInverseMapper = this->Clone(mModelPartDestination,
                                           mModelPartOrigin,
-                                          mJsonParameters);
+                                          mJsonParameters,
+                                          mIsMPIExecution);
         }
         mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
     }
 
     Mapper::Pointer Clone(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
-                          Parameters JsonParameters) override
+                          Parameters JsonParameters,
+                          const bool IsMPIExecution) override
     {
         return Kratos::make_shared<NearestNeighborMapper>(rModelPartOrigin,
                                                           rModelPartDestination,
-                                                          JsonParameters);
+                                                          JsonParameters,
+                                                          IsMPIExecution);
     }
 
     ///@}
