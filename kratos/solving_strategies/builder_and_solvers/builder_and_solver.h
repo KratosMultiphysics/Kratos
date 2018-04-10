@@ -506,7 +506,7 @@ public:
     {
         this->mDofSet.clear();
         if (this->mpReactionsVector != nullptr) TSparseSpace::Clear(this->mpReactionsVector);
-        this->mpLinearSystemSolver->Clear();
+        if (this->mpLinearSystemSolver != nullptr) this->mpLinearSystemSolver->Clear();
 
         KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0)
             << "Clear Function called" << std::endl;
