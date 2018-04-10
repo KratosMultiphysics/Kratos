@@ -28,7 +28,7 @@ public:
 
     typedef double RealType;
 
-    typedef bounded_matrix<RealType, 3, 3> TransformationMatrixType;
+    typedef bounded_matrix<RealType, 3, 3> BoundedMatrixType3x3;
 
     typedef array_1d<RealType, 3> Vector3Type;
 
@@ -294,8 +294,8 @@ public:
 
         MatrixType H( IdentityMatrix(num_dofs, num_dofs) );
 
-        MatrixType omega(3, 3);
-        MatrixType Hi(3, 3);
+        BoundedMatrixType3x3 omega(3, 3);
+        BoundedMatrixType3x3 Hi(3, 3);
 
         for(SizeType i = 0; i < num_nodes; i++)
         {
@@ -353,11 +353,11 @@ public:
 
         Vector3Type rotation_vector;
         Vector3Type moment_vector;
-        MatrixType omega(3, 3);
-        MatrixType omega_2(3, 3);
-        MatrixType Li(3, 3);
-        MatrixType LiTemp1(3, 3);
-        MatrixType LiTemp2(3, 3);
+        BoundedMatrixType3x3 omega(3, 3);
+        BoundedMatrixType3x3 omega_2(3, 3);
+        BoundedMatrixType3x3 Li(3, 3);
+        BoundedMatrixType3x3 LiTemp1(3, 3);
+        BoundedMatrixType3x3 LiTemp2(3, 3);
 
         for(SizeType i = 0; i < num_nodes; i++)
         {
