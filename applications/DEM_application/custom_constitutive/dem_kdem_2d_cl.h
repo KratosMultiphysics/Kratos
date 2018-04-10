@@ -6,7 +6,7 @@
 
 namespace Kratos {
 
-    class DEM_KDEM2D : public DEM_KDEM {
+    class KRATOS_API(DEM_APPLICATION) DEM_KDEM2D : public DEM_KDEM {
 
     public:
 

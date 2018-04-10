@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-class DEMFEMUtilities {
+class KRATOS_API(DEM_APPLICATION) DEMFEMUtilities {
     
     
     

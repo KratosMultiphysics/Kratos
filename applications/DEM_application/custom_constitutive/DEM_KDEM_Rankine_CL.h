@@ -9,7 +9,7 @@
 
 namespace Kratos {
 
-    class DEM_KDEM_Rankine : public DEM_KDEM {
+    class KRATOS_API(DEM_APPLICATION) DEM_KDEM_Rankine : public DEM_KDEM {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_Rankine);
