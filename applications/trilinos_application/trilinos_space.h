@@ -96,7 +96,7 @@ public:
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
 
-    typedef TrilinosDOFUpdater< TrilinosSpace<TMatrixType,TVectorType> > DofUpdaterType;
+    typedef TrilinosDofUpdater< TrilinosSpace<TMatrixType,TVectorType> > DofUpdaterType;
     typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
 
     ///@}

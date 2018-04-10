@@ -129,7 +129,7 @@ public:
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
 
-    typedef DOFUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DofUpdaterType;
+    typedef DofUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DofUpdaterType;
     typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
 
     ///@}
