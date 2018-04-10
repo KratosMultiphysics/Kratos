@@ -1427,6 +1427,8 @@ class DEMIo(object):
             self.PostBoundingBox = 0
         else:
             self.PostBoundingBox = self.DEM_parameters["PostBoundingBox"].GetBool()
+        
+        self.PrintVirtualSeaSurface = False
 
         #self.automatic_bounding_box_option = Var_Translator(self.DEM_parameters["AutomaticBoundingBoxOption"].GetBool())
         #self.b_box_minX = self.DEM_parameters["BoundingBoxMinX"].GetDouble()
@@ -1465,6 +1467,7 @@ class DEMIo(object):
 
         # Ice
         if "PostVirtualSeaSurfaceX1" in self.DEM_parameters.keys():
+            self.PrintVirtualSeaSurface = True
             self.SeaSurfaceX1 = self.DEM_parameters["PostVirtualSeaSurfaceX1"].GetDouble()
             self.SeaSurfaceY1 = self.DEM_parameters["PostVirtualSeaSurfaceY1"].GetDouble()
             self.SeaSurfaceX2 = self.DEM_parameters["PostVirtualSeaSurfaceX2"].GetDouble()
@@ -1743,7 +1746,7 @@ class DEMIo(object):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, contact_model_part, creator_destructor)
 
             # Ice. Printing a virtual sea surface
-            if "PostVirtualSeaSurfaceX1" in self.DEM_parameters.keys():
+            if self.PrintVirtualSeaSurface:
                 self.ComputeAndPrintSeaSurface(spheres_model_part, rigid_face_model_part)
 
             #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)#MSIMSI
