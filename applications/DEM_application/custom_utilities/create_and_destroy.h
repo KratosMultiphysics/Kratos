@@ -28,7 +28,7 @@
 
 namespace Kratos {
         
-class ParticleCreatorDestructor {
+class KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor {
 friend class ExplicitSolverStrategy;
 
 public:
