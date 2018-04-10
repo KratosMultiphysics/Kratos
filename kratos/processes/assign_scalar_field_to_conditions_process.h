@@ -12,8 +12,8 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_ASSIGN_VALUE_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED )
-#define  KRATOS_ASSIGN_VALUE_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED
+#if !defined(KRATOS_ASSIGN_SCALAR_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED )
+#define  KRATOS_ASSIGN_SCALAR_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED
 
 
 
@@ -36,7 +36,7 @@ namespace Kratos
 /// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
 /** This function assigns a value to a variable belonging to all of the nodes in a given mesh
 */
-class AssignValueFieldToConditionsProcess : public Process
+class AssignScalarFieldToConditionsProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -44,13 +44,13 @@ public:
 
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;   
     
-    /// Pointer definition of AssignValueFieldToConditionsProcess
-    KRATOS_CLASS_POINTER_DEFINITION(AssignValueFieldToConditionsProcess);
+    /// Pointer definition of AssignScalarFieldToConditionsProcess
+    KRATOS_CLASS_POINTER_DEFINITION(AssignScalarFieldToConditionsProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
-    AssignValueFieldToConditionsProcess(
+    AssignScalarFieldToConditionsProcess(
         ModelPart& rModelPart,
         Parameters rParameters
         ) : Process() , 
@@ -84,7 +84,7 @@ public:
 
 
     /// Destructor.
-    ~AssignValueFieldToConditionsProcess() override {}
+    ~AssignScalarFieldToConditionsProcess() override {}
 
 
     ///@}
@@ -103,7 +103,7 @@ public:
     ///@{.
 
 
-    /// Execute method is used to execute the AssignValueFieldToConditionsProcess algorithms.
+    /// Execute method is used to execute the AssignScalarFieldToConditionsProcess algorithms.
     void Execute() override
     {
 
@@ -155,13 +155,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "AssignValueFieldToConditionsProcess";
+        return "AssignScalarFieldToConditionsProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "AssignValueFieldToConditionsProcess";
+        rOStream << "AssignScalarFieldToConditionsProcess";
     }
 
     /// Print object's data.
@@ -187,7 +187,7 @@ protected:
     ///@{
 
     /// Copy constructor.
-    AssignValueFieldToConditionsProcess(AssignValueFieldToConditionsProcess const& rOther);
+    AssignScalarFieldToConditionsProcess(AssignScalarFieldToConditionsProcess const& rOther);
 
     ///@}
     ///@name Protected Operations
@@ -438,7 +438,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    AssignValueFieldToConditionsProcess& operator=(AssignValueFieldToConditionsProcess const& rOther);
+    AssignScalarFieldToConditionsProcess& operator=(AssignScalarFieldToConditionsProcess const& rOther);
 
 
     ///@}
@@ -451,7 +451,7 @@ private:
     ///@{
     ///@}
 
-}; // Class AssignValueFieldToConditionsProcess
+}; // Class AssignScalarFieldToConditionsProcess
 
 
 ///@}
@@ -467,11 +467,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  AssignValueFieldToConditionsProcess& rThis);
+                                  AssignScalarFieldToConditionsProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const AssignValueFieldToConditionsProcess& rThis)
+                                  const AssignScalarFieldToConditionsProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -484,4 +484,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ASSIGN_VALUE_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_ASSIGN_SCALAR_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED  defined

@@ -10,8 +10,8 @@
 //
 //  Main authors:    Josep Maria Carbonell
 //
-#if !defined(KRATOS_ASSIGN_SCALAR_VALUE_TO_CONDITIONS_PROCESS_H_INCLUDED )
-#define  KRATOS_ASSIGN_SCALAR_VALUE_TO_CONDITIONS_PROCESS_H_INCLUDED
+#if !defined(KRATOS_ASSIGN_SCALAR_VARIABLE_TO_CONDITIONS_PROCESS_H_INCLUDED )
+#define  KRATOS_ASSIGN_SCALAR_VARIABLE_TO_CONDITIONS_PROCESS_H_INCLUDED
 
 
 
@@ -33,7 +33,7 @@ namespace Kratos
 /// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
 /** This function assigns a value to a variable belonging to all of the nodes in a given mesh
 */
-class AssignScalarValueToConditionsProcess : public Process
+class AssignScalarVariableToConditionsProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -41,13 +41,13 @@ public:
 
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
     
-    /// Pointer definition of AssignScalarValueToConditionsProcess
-    KRATOS_CLASS_POINTER_DEFINITION(AssignScalarValueToConditionsProcess);
+    /// Pointer definition of AssignScalarVariableToConditionsProcess
+    KRATOS_CLASS_POINTER_DEFINITION(AssignScalarVariableToConditionsProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
-    AssignScalarValueToConditionsProcess(
+    AssignScalarVariableToConditionsProcess(
         ModelPart& rModelPart,
         Parameters rParameters
         ) : Process(Flags()) , 
@@ -96,7 +96,7 @@ public:
 
 
     /// Destructor.
-    ~AssignScalarValueToConditionsProcess() override {}
+    ~AssignScalarVariableToConditionsProcess() override {}
 
 
     ///@}
@@ -115,7 +115,7 @@ public:
     ///@{
 
 
-    /// Execute method is used to execute the AssignScalarValueToConditionsProcess algorithms.
+    /// Execute method is used to execute the AssignScalarVariableToConditionsProcess algorithms.
     void Execute() override
     {
 
@@ -170,13 +170,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "AssignScalarValueToConditionsProcess";
+        return "AssignScalarVariableToConditionsProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "AssignScalarValueToConditionsProcess";
+        rOStream << "AssignScalarVariableToConditionsProcess";
     }
 
     /// Print object's data.
@@ -202,7 +202,7 @@ protected:
     ///@{
 
     /// Copy constructor.
-    AssignScalarValueToConditionsProcess(AssignScalarValueToConditionsProcess const& rOther);
+    AssignScalarVariableToConditionsProcess(AssignScalarVariableToConditionsProcess const& rOther);
 
     ///@}
     ///@name Protected Operations
@@ -283,7 +283,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    AssignScalarValueToConditionsProcess& operator=(AssignScalarValueToConditionsProcess const& rOther);
+    AssignScalarVariableToConditionsProcess& operator=(AssignScalarVariableToConditionsProcess const& rOther);
 
 
     ///@}
@@ -296,7 +296,7 @@ private:
     ///@{
     ///@}
 
-}; // Class AssignScalarValueToConditionsProcess
+}; // Class AssignScalarVariableToConditionsProcess
 
 
 ///@}
@@ -312,11 +312,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  AssignScalarValueToConditionsProcess& rThis);
+                                  AssignScalarVariableToConditionsProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const AssignScalarValueToConditionsProcess& rThis)
+                                  const AssignScalarVariableToConditionsProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -329,4 +329,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ASSIGN_SCALAR_VALUE_TO_CONDITIONS_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_ASSIGN_SCALAR_VARIABLE_TO_CONDITIONS_PROCESS_H_INCLUDED  defined
