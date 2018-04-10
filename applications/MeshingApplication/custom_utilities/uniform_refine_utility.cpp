@@ -20,14 +20,14 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "nested_refinement_utility.h"
+#include "uniform_refine_utility.h"
 
 
 namespace Kratos
 {
 /// Default constructor
 template< unsigned int TDim>
-NestedRefinementUtility<TDim>::NestedRefinementUtility(ModelPart& rModelPart, int RefinementLevel) :
+UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int RefinementLevel) :
     mrModelPart(rModelPart),
     mFinalRefinementLevel(RefinementLevel)
 {
@@ -66,34 +66,35 @@ NestedRefinementUtility<TDim>::NestedRefinementUtility(ModelPart& rModelPart, in
 
 /// Destructor
 template< unsigned int TDim>
-NestedRefinementUtility<TDim>::~NestedRefinementUtility() {}
+UniformRefineUtility<TDim>::~UniformRefineUtility() {}
 
 
 /// Turn back information as a string.
 template< unsigned int TDim>
-std::string NestedRefinementUtility<TDim>::Info() const {
-    return "Nested refinement utility.";
+std::string UniformRefineUtility<TDim>::Info() const {
+    return "Uniform refine utility.";
 }
 
 
 /// Print information about this object.
 template< unsigned int TDim>
-void NestedRefinementUtility<TDim>::PrintInfo(std::ostream& rOStream) const {
-    rOStream << "Nested refinement utility.";
+void UniformRefineUtility<TDim>::PrintInfo(std::ostream& rOStream) const {
+    rOStream << "Uniform refine utility.";
 }
 
 
 /// Print object's data.
 template< unsigned int TDim>
-void NestedRefinementUtility<TDim>::PrintData(std::ostream& rOStream) const {
-    rOStream << "Nested refinement utility constructed with:\n";
+void UniformRefineUtility<TDim>::PrintData(std::ostream& rOStream) const {
+    rOStream << "Uniform refine utility constructed with:\n";
     rOStream << "   Model part: " << mrModelPart.Info() << "\n";
+    rOStream << "   Final refinement level: " << mFinalRefinementLevel << "\n";
 }
 
 
 /// Execute the refinement
 template< unsigned int TDim>
-void NestedRefinementUtility<TDim>::Refine() 
+void UniformRefineUtility<TDim>::Refine() 
 {
     // Initialize the entities Id lists
     std::vector<int> elements_id;
@@ -163,7 +164,7 @@ void NestedRefinementUtility<TDim>::Refine()
 
 /// Get the middle node on an edge defined by two nodes
 template< unsigned int TDim>
-Node<3>::Pointer NestedRefinementUtility<TDim>::GetNodeBetween(
+Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeBetween(
     const Node<3>::Pointer pNode0,
     const Node<3>::Pointer pNode1,
     const int ThisNodeLevel
@@ -208,7 +209,7 @@ Node<3>::Pointer NestedRefinementUtility<TDim>::GetNodeBetween(
 
 /// Compute the nodal data of a node
 template< unsigned int TDim >
-void NestedRefinementUtility<TDim>::CalculateNodalStepData(
+void UniformRefineUtility<TDim>::CalculateNodalStepData(
     Node<3>::Pointer pNewNode, 
     const Node<3>::Pointer pNode0, 
     const Node<3>::Pointer pNode1
@@ -226,7 +227,7 @@ void NestedRefinementUtility<TDim>::CalculateNodalStepData(
     }
 }
 
-template class NestedRefinementUtility<2>;
+template class UniformRefineUtility<2>;
 
 }  // namespace Kratos.
 

@@ -11,8 +11,8 @@
 //
 
 
-#if !defined( KRATOS_NESTED_REFINEMENT_UTILITY_H_INCLUDED )
-#define KRATOS_NESTED_REFINEMENT_UTILITY_H_INCLUDED
+#if !defined( KRATOS_UNIFORM_REFINE_UTILITY_H_INCLUDED )
+#define KRATOS_UNIFORM_REFINE_UTILITY_H_INCLUDED
 
 
 // System includes
@@ -56,31 +56,31 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Refine a mesh by adding a nested mesh
-/** This class fully refine a model part by adding a nested mesh inside each element.
+/// Divide the elements to uniformly refine a mesh
+/**
  *  A node is added on each element edge (an additional node is added inside quadrilaterals
  *  and tetrahedrons) to split the elements.
  *  If a higher refinement is needed, the utility can be called recursively.
  */
 template<unsigned int TDim>
-class NestedRefinementUtility
+class UniformRefineUtility
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of NestedRefinementUtility
-    KRATOS_CLASS_POINTER_DEFINITION(NestedRefinementUtility);
+    /// Pointer definition of UniformRefineUtility
+    KRATOS_CLASS_POINTER_DEFINITION(UniformRefineUtility);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    NestedRefinementUtility(ModelPart& rModelPart, int RefinementLevel);
+    UniformRefineUtility(ModelPart& rModelPart, int RefinementLevel);
 
     /// Destructor.
-    virtual ~NestedRefinementUtility();
+    virtual ~UniformRefineUtility();
 
 
     ///@}
@@ -226,15 +226,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    NestedRefinementUtility& operator=(NestedRefinementUtility const& rOther);
+    UniformRefineUtility& operator=(UniformRefineUtility const& rOther);
 
     /// Copy constructor.
-    NestedRefinementUtility(NestedRefinementUtility const& rOther);
+    UniformRefineUtility(UniformRefineUtility const& rOther);
 
 
     ///@}
 
-}; // Class NestedRefinementUtility
+}; // Class UniformRefineUtility
 
 ///@}
 
@@ -250,12 +250,12 @@ private:
 /// input stream function
 template<unsigned int TDim>
 inline std::istream& operator >> (std::istream& rIStream,
-                NestedRefinementUtility<TDim>& rThis);
+                UniformRefineUtility<TDim>& rThis);
 
 /// output stream function
 template<unsigned int TDim>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const NestedRefinementUtility<TDim>& rThis)
+                const UniformRefineUtility<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -269,4 +269,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NESTED_REFINEMENT_UTILITY_H_INCLUDED  defined
+#endif // KRATOS_UNIFORM_REFINE_UTILITY_H_INCLUDED  defined

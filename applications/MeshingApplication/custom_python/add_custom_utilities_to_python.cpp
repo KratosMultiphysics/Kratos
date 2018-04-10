@@ -34,8 +34,6 @@
 
 #include "custom_utilities/cutting_iso_app.h"
 
-#include "custom_utilities/nested_refinement_utility.h"
-
 #include "utilities/split_tetrahedra.h"
 
 #ifdef PRAGMATIC_ACTIVATED
