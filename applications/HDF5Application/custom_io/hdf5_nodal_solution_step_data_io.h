@@ -16,7 +16,6 @@
 // System includes
 #include <string>
 #include <vector>
-#include <tuple>
 
 // External includes
 
@@ -62,34 +61,43 @@ public:
     ///@name Operations
     ///@{
 
-    std::string GetPrefix() const;
-
-    void SetPrefix(std::string const& rPrefix);
-
     void WriteNodalResults(NodesContainerType const& rNodes, unsigned Step=0);
 
     void ReadNodalResults(NodesContainerType& rNodes, Communicator& rComm, unsigned Step=0);
     
     ///@}
 
+protected:
+    ///@name Protected Operations
+    ///@{
+
+    std::string const& GetPrefix() const noexcept
+    {
+        return mPrefix;
+    }
+
+    std::vector<std::string> const& VariableNames() const noexcept
+    {
+        return mVariableNames;
+    }
+
+    File& GetFile()
+    {
+        return *mpFile;
+    }
+
+    ///@}
+
 private:
     ///@name Member Variables
     ///@{
     File::Pointer mpFile;
-    bool mDoPartitionedIO;
     std::string mPrefix;
     std::vector<std::string> mVariableNames;
     ///@}
     ///@name Private Operations
     ///@{
 
-    /// Divide nodes into local and ghost.
-    void DivideNodes(NodesContainerType const& rNodes,
-                     std::vector<NodeType*>& rLocalNodes,
-                     std::vector<NodeType*>& rGhostNodes);
-
-    void GetLocalNodes(NodesContainerType const& rNodes,
-                       std::vector<NodeType*>& rLocalNodes);
     ///@}
 
 }; // class NodalSolutionStepDataIO.

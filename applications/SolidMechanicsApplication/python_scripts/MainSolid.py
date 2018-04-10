@@ -81,12 +81,12 @@ class Solution(object):
 
         processes_variables = self.processes.GetVariables()
         self.model.SetVariables(processes_variables)
-        
+
         # Read model
         self.model.ImportModel()
 
         self.process_info = self.model.GetProcessInfo()
-        
+
         sys.stdout.flush()
 
         # Initialize Solver
@@ -96,7 +96,8 @@ class Solution(object):
 
         # Import materials
         self.main_model_part = self.model.GetMainModelPart()
-        self._import_materials()
+        if( self._is_not_restarted() ):
+            self._import_materials()
 
         # Initiliaze processes
         self.processes.ExecuteInitialize()
@@ -113,7 +114,6 @@ class Solution(object):
         output_model_part = self.model.GetOutputModelPart()
         self.output = self._get_graphical_output(output_model_part)
         self.output.ExecuteInitialize()
-
 
         # First execution before solution loop
         self.processes.ExecuteBeforeSolutionLoop()
@@ -163,7 +163,7 @@ class Solution(object):
 
         self.main_model_part.CloneTimeStep(self.time)
 
-        print(" [STEP:",self.step," TIME:","{0:1.{1}f}".format(self.time,6),"]")
+        print("  [STEP:",self.step," TIME:","{0:1.{1}f}".format(self.time,6),"]")
 
         # Processes to be executed at the begining of the solution step
         self.processes.ExecuteInitializeSolutionStep()
@@ -297,7 +297,6 @@ class Solution(object):
 
             MaterialParameters = self.input_manager.GetMaterialParameters()
 
-
             if(MaterialParameters.Has("material_models_list")):
 
                 import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterials
@@ -309,6 +308,8 @@ class Solution(object):
                 for process in assign_materials_processes:
                     process.Execute()
 
+                self.model.CleanModel()
+
         elif os.path.isfile("materials.py"): # legacy
 
             import constitutive_law_python_utility as constitutive_law_utils
@@ -318,6 +319,8 @@ class Solution(object):
             constitutive_law.Initialize();
 
             problem_path = os.getcwd()
+
+            self.model.CleanModel()
 
             print("   Reading constitutive law from file :" + os.path.join(problem_path, "materials") + ".py ")
 

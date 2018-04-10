@@ -149,7 +149,7 @@ namespace Kratos
       Matrix& msD,
       double weight);
 
-    void InitializeNonLinearIteration();
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateAndAddNonlinearKm(
         Matrix& K,
@@ -240,10 +240,6 @@ namespace Kratos
         boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
         array_1d<double, 3>& g1,
         array_1d<double, 3>& g2);
-
-    void CalculateMembraneElasticityTensor(
-        Matrix& D
-        );
 
     void TransformPrestress(const unsigned int PointNumber);
 

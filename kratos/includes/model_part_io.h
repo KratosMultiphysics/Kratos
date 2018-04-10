@@ -538,6 +538,7 @@ protected:
     template<class TValueType>
     TValueType& ExtractValue(std::string rWord, TValueType & rValue);
 
+    void ReadConstitutiveLawValue(ConstitutiveLaw::Pointer& rValue);
 
     ModelPartIO& ReadWord(std::string& Word);
 

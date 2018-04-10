@@ -28,20 +28,31 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
-/// Short class definition.
-// This process initializes the variables related with the ALM 
-/** Detail class definition.
+
+/**
+ * @class ALMFastInit
+ * @ingroup ContactStructuralMechanicsApplication
+ * @brief This process initializes the variables related with the ALM
+ * @details Initializes:
+ * - SLIP flag
+ * - Nodal INITIAL_PENALTY
+ * - Nodal WEIGHTED_GAP
+ * - Nodal WEIGHTED_SLIP
+ * - Nodal DYNAMIC_FACTOR
+ * - Nodal AUGMENTED_NORMAL_CONTACT_PRESSURE
+ * - Nodal AUGMENTED_TANGENT_CONTACT_PRESSURE
+ * - Condition NORMAL
+ * @author Vicente Mataix Ferrandiz
 */
-class ALMFastInit
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) ALMFastInit
     : public Process
 {
 public:
@@ -50,7 +61,7 @@ public:
 
     /// Pointer definition of ALMFastInit
     KRATOS_CLASS_POINTER_DEFINITION(ALMFastInit);
-    
+
     // General type definitions
     typedef Node<3>                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
@@ -65,8 +76,8 @@ public:
     ALMFastInit( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart)
     {
         KRATOS_TRY;
-        
-        KRATOS_CATCH(""); 
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -88,7 +99,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -97,13 +108,13 @@ public:
     {
         Execute();
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
-    void Execute();
-    
+
+    void Execute() override;
+
     ///@}
     ///@name Access
     ///@{
@@ -187,7 +198,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mrThisModelPart;
+
+    ModelPart& mrThisModelPart; /// The model part to initialize
 
     ///@}
     ///@name Private Operators
@@ -236,7 +248,7 @@ private:
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   ALMFastInit& rThis);
-// 
+//
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const ALMFastInit& rThis)
@@ -244,7 +256,7 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 // }
 

@@ -37,7 +37,8 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         self.material_name =  self.settings["material_name"].GetString()
         
         #material properties
-        self.properties = self.model_part.Properties[self.settings["properties_id"].GetInt()]
+        self.main_model_part = self.model_part.GetRootModelPart()
+        self.properties      = self.main_model_part.Properties[self.settings["properties_id"].GetInt()]
 
         #read variables
         self.variables = self.settings["variables"]
@@ -133,7 +134,8 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
                 if i != len(splitted)-2:
                     module_name += "."
             module = importlib.import_module(module_name)
-            return getattr(module,splitted[-1])
+            material_law = module_name+"."+splitted[-1]+"()"
+            return eval(material_law)
         elif(len(splitted) == 4):
             module_name = ""
             for i in range(len(splitted)-2):

@@ -326,8 +326,21 @@ namespace Kratos {
 
                         array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
 
-                        noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
-                        UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+    
+                        
+                        if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
+			{
+			    noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
+			    UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+			}
+			else
+			{
+			  itNode->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
+			  itNode->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
+			  itNode->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
+			  itNode->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
+			}
+			
                     }
                 }
             }
@@ -396,14 +409,24 @@ namespace Kratos {
                         array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
                         array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 
-                        noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
-                        UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+                  if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
+			{
+			    noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
+			    UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+			}
+			else
+			{
+			  itNode->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
+			  itNode->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
+			  itNode->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
+			  itNode->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
+			}
                     }
                 }
             }
 
-            // if (rModelPart.GetCommunicator().MyPID() == 0)
-            //     std::cout << "end of prediction" << std::endl;
+//              if (rModelPart.GetCommunicator().MyPID() == 0)
+//                  std::cout << "end of prediction" << std::endl;
 
         }
 

@@ -18,6 +18,7 @@
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 #include "custom_utilities/element_size_calculator.h"
+#include "custom_utilities/vorticity_utilities.h"
 
 namespace Kratos
 {
@@ -424,6 +425,77 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     return out;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template< class TElementData >
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+    Variable<array_1d<double, 3 > > const& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
+{
+    if (rVariable == VORTICITY)
+    {
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_function_gradients;
+        this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_gradients);
+
+        VorticityUtilities<Dim>::CalculateVorticityVector(this->GetGeometry(),shape_function_gradients,rValues);
+    }
+}
+
+
+template< class TElementData >
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+    Variable<double> const& rVariable,
+    std::vector<double>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
+{
+    if (rVariable == Q_VALUE)
+    {
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_function_gradients;
+        this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_gradients);
+
+        VorticityUtilities<Dim>::CalculateQValue(this->GetGeometry(),shape_function_gradients,rValues);
+    }
+    else if (rVariable == VORTICITY_MAGNITUDE)
+    {
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_function_gradients;
+        this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_gradients);
+
+        VorticityUtilities<Dim>::CalculateVorticityMagnitude(this->GetGeometry(),shape_function_gradients,rValues);
+    }
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+    Variable<array_1d<double, 6>> const& rVariable,
+    std::vector<array_1d<double, 6>>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
+{}
+
+template <class TElementData>
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+    Variable<Vector> const& rVariable,
+    std::vector<Vector>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
+{}
+
+template <class TElementData>
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+    Variable<Matrix> const& rVariable,
+    std::vector<Matrix>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
+{}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
 
@@ -632,34 +704,6 @@ void FluidElement<TElementData>::GetCurrentValuesVector(
         for (unsigned int d = 0; d < Dim; ++d)  // Velocity Dofs
             rValues[local_index++] = r_velocities(i, d);
         rValues[local_index++] = r_pressures[i];  // Pressure Dof
-    }
-}
-
-template <class TElementData>
-void FluidElement<TElementData>::IntegrationPointVorticity(
-    const ShapeFunctionDerivativesType& rDN_DX, array_1d<double, 3>& rVorticity) const
-{
-    rVorticity = array_1d<double, 3>(3, 0.0);
-
-    if (Dim == 2)
-    {
-        for (unsigned int i = 0; i < NumNodes; ++i)
-        {
-            const array_1d<double, 3>& rVelocity =
-                this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            rVorticity[2] += rDN_DX(i, 0) * rVelocity[1] - rDN_DX(i, 1) * rVelocity[0];
-        }
-    }
-    else
-    {
-        for (unsigned int i = 0; i < NumNodes; ++i)
-        {
-            const array_1d<double, 3>& rVelocity =
-                this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            rVorticity[0] += rDN_DX(i, 1) * rVelocity[2] - rDN_DX(i, 2) * rVelocity[1];
-            rVorticity[1] += rDN_DX(i, 2) * rVelocity[0] - rDN_DX(i, 0) * rVelocity[2];
-            rVorticity[2] += rDN_DX(i, 0) * rVelocity[1] - rDN_DX(i, 1) * rVelocity[0];
-        }
     }
 }
 

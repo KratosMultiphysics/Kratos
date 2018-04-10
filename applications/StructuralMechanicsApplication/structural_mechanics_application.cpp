@@ -249,7 +249,7 @@ void KratosStructuralMechanicsApplication::Register() {
     // Formfinding
     KRATOS_REGISTER_VARIABLE(LAMBDA_MAX)
     KRATOS_REGISTER_VARIABLE(IS_FORMFINDING)
-    
+
 
     // Cross section
     KRATOS_REGISTER_VARIABLE(SHELL_CROSS_SECTION)
@@ -443,21 +443,21 @@ void KratosStructuralMechanicsApplication::Register() {
 
     KRATOS_REGISTER_VARIABLE(INELASTIC_FLAG)
     // Register linear elastics laws
-    Serializer::Register("TrussConstitutiveLaw", mTrussConstitutiveLaw);
-    Serializer::Register("BeamConstitutiveLaw", mBeamConstitutiveLaw);
-    Serializer::Register("LinearElastic3DLaw", mElasticIsotropic3D);
-    Serializer::Register("LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain);
-    Serializer::Register("LinearElasticPlaneStress2DLaw", mLinearPlaneStress);
-    Serializer::Register("LinearElasticAxisym2DLaw", mAxisymElasticIsotropic);
-    Serializer::Register("LinearElasticOrthotropic2DLaw", mLinearElasticOrthotropic2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussConstitutiveLaw", mTrussConstitutiveLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BeamConstitutiveLaw", mBeamConstitutiveLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mElasticIsotropic3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStress2DLaw", mLinearPlaneStress);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticAxisym2DLaw", mAxisymElasticIsotropic);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticOrthotropic2DLaw", mLinearElasticOrthotropic2DLaw);
     // Register hyper elastic laws
-    Serializer::Register("KirchhoffSaintVenant3DLaw", mHyperElasticIsotropicKirchhoff3D);
-    Serializer::Register("KirchhoffSaintVenantPlaneStress2DLaw", mHyperElasticIsotropicKirchhoffPlaneStress2D);
-    Serializer::Register("KirchhoffSaintVenantPlaneStrain2DLaw", mHyperElasticIsotropicKirchhoffPlaneStrain2D);
-    Serializer::Register("HyperElastic3DLaw", mHyperElasticIsotropicNeoHookean3D);
-    Serializer::Register("HyperElasticPlaneStrain2DLaw", mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
-    Serializer::Register("LinearJ2PlasticityPlaneStrain2DLaw", mLinearJ2PlasticityPlaneStrain2D);
-    Serializer::Register("LinearJ2Plasticity3DLaw", mLinearJ2Plasticity3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("KirchhoffSaintVenant3DLaw", mHyperElasticIsotropicKirchhoff3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("KirchhoffSaintVenantPlaneStress2DLaw", mHyperElasticIsotropicKirchhoffPlaneStress2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("KirchhoffSaintVenantPlaneStrain2DLaw", mHyperElasticIsotropicKirchhoffPlaneStrain2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElastic3DLaw", mHyperElasticIsotropicNeoHookean3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrain2DLaw", mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearJ2PlasticityPlaneStrain2DLaw", mLinearJ2PlasticityPlaneStrain2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearJ2Plasticity3DLaw", mLinearJ2Plasticity3D);
 }
 
 }  // namespace Kratos.

@@ -321,7 +321,7 @@
 			}
 		    },
 		    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ],
-                    "contact_sub_model_part_list" : [
+                    "contact_bodies_list" : [
 *set cond group_DeformableBodies *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
@@ -863,7 +863,6 @@
 *if(strcmp(GenData(Write_Contact_Forces),"True")==0)
 				      "NORMAL",
 				      "CONTACT_FORCE",
-				      "CONTACT_STRESS",
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
 				      "PRESSURE",
