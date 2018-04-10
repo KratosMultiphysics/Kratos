@@ -256,7 +256,7 @@ namespace Kratos {
 
             mRotationTool.RotateVelocities(r_model_part);
 
-            mpDofUpdater->UpdateDOF(rDofSet,Dv);
+            mpDofUpdater->UpdateDof(rDofSet,Dv);
 
             mRotationTool.RecoverVelocities(r_model_part);
 

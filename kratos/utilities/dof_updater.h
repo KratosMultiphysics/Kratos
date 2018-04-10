@@ -34,7 +34,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
+/// Utility class to update the values of degree of freedom (Dof) variables after solving the system.
 /** Detail class definition.
 */
 template< class TSparseSpace >
@@ -72,19 +72,28 @@ public:
     ///@name Operations
     ///@{
 
+    /// Create a new instance of this class.
+    /** @return a std::unique_pointer to the new instance.
+     */
     virtual UniquePointer Create() const
     {
         return UniquePointer(new DofUpdater());
     }
 
+    /// Initialize the DofUpdater in preparation for a subsequent UpdateDof call.
+    /** Note that the base DofUpdater does not have internal data, so this does nothing.
+     */
     virtual void Initialize(
         DofsArrayType& rDofSet,
         SystemVectorType& rDx)
     {}
 
+    /// Free internal storage to reset the instance and/or optimize memory consumption.
+    /** Note that the base DofUpdater does not have internal data, so this does nothing.
+     */
     virtual void Clear() {}
 
-    virtual void UpdateDOF(
+    virtual void UpdateDof(
         DofsArrayType& rDofSet,
         SystemVectorType& rDx)
     {

@@ -131,7 +131,7 @@ public:
         mImportIsInitialized = false;
     }
 
-    void UpdateDOF(
+    void UpdateDof(
         DofsArrayType& rDofSet,
         SystemVectorType& rDx) override
     {
@@ -151,9 +151,13 @@ public:
 
         rDx.Comm().Barrier();
 
+        int num_dof = rDofSet.size();
+
         // performing the update
-        for (typename DofsArrayType::iterator it_dof = rDofSet.begin(); it_dof != rDofSet.end(); ++it_dof)
-        {
+        #pragma omp parallel for
+        for(int i = 0;  i < num_dof; ++i) {
+            auto it_dof = rDofSet.begin() + i;
+
             if (it_dof->IsFree()) {
                 int global_id = it_dof->EquationId();
                 if(global_id < system_size) {
