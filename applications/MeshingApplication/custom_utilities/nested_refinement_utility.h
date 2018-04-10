@@ -77,7 +77,7 @@ public:
     ///@{
 
     /// Default constructor.
-    NestedRefinementUtility(ModelPart& rModelPart);
+    NestedRefinementUtility(ModelPart& rModelPart, int RefinementLevel);
 
     /// Destructor.
     virtual ~NestedRefinementUtility();
@@ -176,6 +176,7 @@ private:
     ///@{
     
     ModelPart& mrModelPart;
+    int mFinalRefinementLevel;
     std::map<std::pair<int, int>, int> mNodesMap;
     //std::unordered_map<std::pair<int, int>, int, KeyHasherRange<std::pair<int, int>>, KeyComparorRange<std::pair<int, int>> > mNodesMap;
     unsigned int mLastNodeId;               /// The node Id
@@ -200,14 +201,14 @@ private:
      * If the middle node exist, returns a pointer to the existing node
      * If the middle node does not exist, create a new one and returns a pointer to it
      */
-    Node<3>::Pointer GetNodeBetween(const Node<3>::Pointer pNode0, const Node<3>::Pointer pNode1);
+    Node<3>::Pointer GetNodeBetween(const Node<3>::Pointer pNode0, const Node<3>::Pointer pNode1, const int ThisNodeLevel);
 
     /**
      * Calculate the nodal data
      * The destination node is assumed to be at the mid point between 
      * the origin nodes
      */
-    void CalculateNodalData(Node<3>::Pointer pNewNode, const Node<3>::Pointer pNode0, const  Node<3>::Pointer pNode1);
+    void CalculateNodalStepData(Node<3>::Pointer pNewNode, const Node<3>::Pointer pNode0, const  Node<3>::Pointer pNode1);
 
 
     ///@}

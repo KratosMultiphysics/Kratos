@@ -27,8 +27,9 @@ namespace Kratos
 {
 /// Default constructor
 template< unsigned int TDim>
-NestedRefinementUtility<TDim>::NestedRefinementUtility(ModelPart& rModelPart) :
-    mrModelPart(rModelPart) 
+NestedRefinementUtility<TDim>::NestedRefinementUtility(ModelPart& rModelPart, int RefinementLevel) :
+    mrModelPart(rModelPart),
+    mFinalRefinementLevel(RefinementLevel)
 {
     // Initialize the member variables storing the Id
     // Get the last node id
@@ -118,36 +119,43 @@ void NestedRefinementUtility<TDim>::Refine()
     // Loop the origin elements. Get the middle node on each edge and create the nodes
     for (const int id : elements_id)
     {
-        Element::Pointer sub_element;
-        // Get the element and its geometry
+        // Get the element
         Element::Pointer p_element = mrModelPart.Elements()(id);
-        Geometry<Node<3>>& geom = p_element->GetGeometry();
 
-        // Get the nodes on the edges of the father element
-        array_1d<Node<3>::Pointer, 3> p_middle_nodes;
-        p_middle_nodes[0] = GetNodeBetween(geom.pGetPoint(0), geom.pGetPoint(1));
-        p_middle_nodes[1] = GetNodeBetween(geom.pGetPoint(1), geom.pGetPoint(2));
-        p_middle_nodes[2] = GetNodeBetween(geom.pGetPoint(0), geom.pGetPoint(2));
-                
-        // And now, create the sub triangles
-        std::vector<Node<3>::Pointer> sub_element_nodes (3);
-        // First sub element
-        sub_element_nodes[0] = geom.pGetPoint(0);
-        sub_element_nodes[1] = p_middle_nodes[0];
-        sub_element_nodes[2] = p_middle_nodes[2];
-        sub_element = p_element->Create(mLastElemId++, sub_element_nodes, p_element->pGetProperties());
-        
-        if (sub_element != nullptr) 
+        // Check the refinement level of the element
+        int refinement_level = p_element->GetValue(REFINEMENT_LEVEL);
+        if (refinement_level < mFinalRefinementLevel)
         {
-            mrModelPart.AddElement(sub_element);
-            int& refinement_level = sub_element->GetValue(REFINEMENT_LEVEL);
-            refinement_level += 1;
+            refinement_level++;
+            // Get the geometry
+            Geometry<Node<3>>& geom = p_element->GetGeometry();
+
+            // Get the nodes on the edges of the father element
+            array_1d<Node<3>::Pointer, 3> p_middle_nodes;
+            p_middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), refinement_level );
+            p_middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), refinement_level );
+            p_middle_nodes[2] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(2), refinement_level );
+
+            // And now, create the sub triangles
+            std::vector<Node<3>::Pointer> sub_element_nodes (3);
+            // First sub element
+            sub_element_nodes[0] = geom.pGetPoint(0);
+            sub_element_nodes[1] = p_middle_nodes[0];
+            sub_element_nodes[2] = p_middle_nodes[2];
+            Element::Pointer sub_element = p_element->Create(mLastElemId++, sub_element_nodes, p_element->pGetProperties());
+            
+            if (sub_element != nullptr) 
+            {
+                mrModelPart.AddElement(sub_element);
+                int& refinement_level = sub_element->GetValue(REFINEMENT_LEVEL);
+                refinement_level += 1;
+            }
+
+            // Encontrar el lugar para setear ElementDataBase and SubModelParts
+
+            // Once we have created all the sub elements
+            p_element->Set(TO_ERASE, true);
         }
-
-        // Encontrar el lugar para setear NodalDataBase, ElementDataBase and SubModelParts
-
-        // Once we have created all the sub elements
-        p_element->Set(TO_ERASE, true);
     }
 
 }
@@ -157,7 +165,8 @@ void NestedRefinementUtility<TDim>::Refine()
 template< unsigned int TDim>
 Node<3>::Pointer NestedRefinementUtility<TDim>::GetNodeBetween(
     const Node<3>::Pointer pNode0,
-    const Node<3>::Pointer pNode1
+    const Node<3>::Pointer pNode1,
+    const int ThisNodeLevel
     )
 {
     // Initialize the output
@@ -182,7 +191,11 @@ Node<3>::Pointer NestedRefinementUtility<TDim>::GetNodeBetween(
         middle_node = mrModelPart.CreateNewNode(mLastNodeId++, new_x, new_y, new_z);
 
         // interpolate the variables
-        CalculateNodalData(middle_node, pNode0, pNode1);
+        CalculateNodalStepData(middle_node, pNode0, pNode1);
+
+        // Set the refinement level
+        int& this_node_level = middle_node->GetValue(REFINEMENT_LEVEL);
+        this_node_level = ThisNodeLevel;
 
         // Store the node in the map
         //std::pair< std::pair<int, int>, int > node_map = (node_key, middle_node->Id());
@@ -195,7 +208,7 @@ Node<3>::Pointer NestedRefinementUtility<TDim>::GetNodeBetween(
 
 /// Compute the nodal data of a node
 template< unsigned int TDim >
-void NestedRefinementUtility<TDim>::CalculateNodalData(
+void NestedRefinementUtility<TDim>::CalculateNodalStepData(
     Node<3>::Pointer pNewNode, 
     const Node<3>::Pointer pNode0, 
     const Node<3>::Pointer pNode1
@@ -211,9 +224,6 @@ void NestedRefinementUtility<TDim>::CalculateNodalData(
         for (unsigned int variable = 0; variable < mStepDataSize; variable++)
             new_node_data[variable] = .5 * node_data_0[variable] + .5 * node_data_1[variable];
     }
-
-    int& refinement_level = pNewNode->GetValue(REFINEMENT_LEVEL);
-    refinement_level += 1;
 }
 
 template class NestedRefinementUtility<2>;
