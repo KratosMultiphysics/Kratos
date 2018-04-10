@@ -6,14 +6,10 @@
 //
 
 // External includes 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
+#include "spaces/ublas_space.h"
 
 // Project includes
-#include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-#include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
 
 //strategies
@@ -40,9 +36,9 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddCustomStrategiesToPython()
+void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -64,26 +60,34 @@ void  AddCustomStrategiesToPython()
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    class_< NewmarkQuasistaticUPwSchemeType,bases< BaseSchemeType >, boost::noncopyable >("NewmarkQuasistaticUPwScheme",
-        init<  double, double, double >());
-    class_< NewmarkQuasistaticDampedUPwSchemeType,bases< BaseSchemeType >, boost::noncopyable >("NewmarkQuasistaticDampedUPwScheme",
-        init<  double, double, double, double, double >());
-    class_< NewmarkDynamicUPwSchemeType,bases< BaseSchemeType >, boost::noncopyable >("NewmarkDynamicUPwScheme",
-        init<  double, double, double, double, double >());
+    class_< NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
+    (m, "NewmarkQuasistaticUPwScheme")
+    .def(init<  double, double, double >());
+    class_< NewmarkQuasistaticDampedUPwSchemeType, typename NewmarkQuasistaticDampedUPwSchemeType::Pointer, BaseSchemeType >
+    (m, "NewmarkQuasistaticDampedUPwScheme")
+    .def(init<  double, double, double, double, double >());
+    class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
+    (m, "NewmarkDynamicUPwScheme")
+    .def(init<  double, double, double, double, double >());
 
-    class_< PoromechanicsNewtonRaphsonStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsNewtonRaphsonStrategy", 
-        init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
-                 BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
-    class_< PoromechanicsRammArcLengthStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsRammArcLengthStrategy", 
-        init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
-                 BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >())
-        .def("UpdateLoads",&PoromechanicsRammArcLengthStrategyType::UpdateLoads);
-    class_< PoromechanicsNewtonRaphsonNonlocalStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsNewtonRaphsonNonlocalStrategy", 
-        init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
-                 BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
-    class_< PoromechanicsRammArcLengthNonlocalStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsRammArcLengthNonlocalStrategy", 
-        init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
-                 BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
+    class_< PoromechanicsNewtonRaphsonStrategyType, typename PoromechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
+    (m, "PoromechanicsNewtonRaphsonStrategy")
+    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+        BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
+
+    class_< PoromechanicsRammArcLengthStrategyType, typename PoromechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType >
+    (m, "PoromechanicsRammArcLengthStrategy")
+    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+        BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >())
+    .def("UpdateLoads",&PoromechanicsRammArcLengthStrategyType::UpdateLoads);
+    class_< PoromechanicsNewtonRaphsonNonlocalStrategyType, typename PoromechanicsNewtonRaphsonNonlocalStrategyType::Pointer, BaseSolvingStrategyType >
+    (m, "PoromechanicsNewtonRaphsonNonlocalStrategy")
+    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+        BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
+    class_< PoromechanicsRammArcLengthNonlocalStrategyType, typename PoromechanicsRammArcLengthNonlocalStrategyType::Pointer, BaseSolvingStrategyType >
+    (m, "PoromechanicsRammArcLengthNonlocalStrategy")
+    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+        BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 
 }
 

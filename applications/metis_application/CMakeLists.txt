@@ -2,6 +2,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMetisApplication ****")
  
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 if(${USE_METIS_5} MATCHES ON)
@@ -27,7 +29,7 @@ set( KRATOS_METIS_APPLICATION_SOURCES
 
 
 # ###############################################################
-add_library(KratosMetisApplication SHARED ${KRATOS_METIS_APPLICATION_SOURCES})
+pybind11_add_module(KratosMetisApplication MODULE ${KRATOS_METIS_APPLICATION_SOURCES})
 target_link_libraries(KratosMetisApplication KratosCore ${METIS_LIBRARY} ${MPI_LIBRARIES} )
 set_target_properties(KratosMetisApplication PROPERTIES PREFIX "")
 
