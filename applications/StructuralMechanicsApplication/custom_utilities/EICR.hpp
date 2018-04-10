@@ -12,8 +12,6 @@
 #if !defined(EICR_H_INCLUDED )
 #define  EICR_H_INCLUDED
 
-#include "utilities/quaternion.h"
-
 namespace Kratos
 {
 /** \brief EICR Element Independent CoRotational formulation
@@ -39,8 +37,6 @@ public:
     typedef Vector VectorType;
 
     typedef Matrix MatrixType;
-
-    typedef Quaternion<RealType> QuaternionType;
 
     typedef std::size_t SizeType;
 
