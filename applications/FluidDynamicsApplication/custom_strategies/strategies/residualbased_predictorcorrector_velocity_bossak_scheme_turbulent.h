@@ -30,6 +30,7 @@
 #include "includes/cfd_variables.h"
 #include "containers/array_1d.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/dof_updater.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "processes/process.h"
 
@@ -132,6 +133,8 @@ namespace Kratos {
             mvel.resize(NumThreads);
             macc.resize(NumThreads);
             maccold.resize(NumThreads);
+
+            mpDOFUpdater = TSparseSpace::CreateDOFUpdater();
         }
 
 
@@ -161,6 +164,8 @@ namespace Kratos {
             mvel.resize(NumThreads);
             macc.resize(NumThreads);
             maccold.resize(NumThreads);
+
+            mpDOFUpdater = TSparseSpace::CreateDOFUpdater();
         }
 
 
@@ -190,6 +195,8 @@ namespace Kratos {
             mvel.resize(NumThreads);
             macc.resize(NumThreads);
             maccold.resize(NumThreads);
+
+            mpDOFUpdater = TSparseSpace::CreateDOFUpdater();
         }
 
         /** Constructor with a turbulence model
@@ -219,6 +226,8 @@ namespace Kratos {
             mvel.resize(NumThreads);
             macc.resize(NumThreads);
             maccold.resize(NumThreads);
+
+            mpDOFUpdater = TSparseSpace::CreateDOFUpdater();
         }
 
         /** Destructor.
@@ -247,7 +256,7 @@ namespace Kratos {
 
             mRotationTool.RotateVelocities(r_model_part);
 
-            BasicUpdateOperations(r_model_part, rDofSet, A, Dv, b);
+            mpDOFUpdater->UpdateDOF(rDofSet,Dv);
 
             mRotationTool.RecoverVelocities(r_model_part);
 
@@ -257,37 +266,6 @@ namespace Kratos {
         }
 
         //***************************************************************************
-
-        virtual void BasicUpdateOperations(ModelPart& rModelPart,
-                                           DofsArrayType& rDofSet,
-                                           TSystemMatrixType& A,
-                                           TSystemVectorType& Dv,
-                                           TSystemVectorType& b)
-        {
-            KRATOS_TRY
-
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            OpenMPUtils::PartitionVector DofSetPartition;
-            OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
-
-            //update of velocity (by DOF)
-            #pragma omp parallel
-            {
-                int k = OpenMPUtils::ThisThread();
-
-                typename DofsArrayType::iterator DofSetBegin = rDofSet.begin() + DofSetPartition[k];
-                typename DofsArrayType::iterator DofSetEnd = rDofSet.begin() + DofSetPartition[k + 1];
-
-                for (typename DofsArrayType::iterator itDof = DofSetBegin; itDof != DofSetEnd; itDof++) {
-                    if (itDof->IsFree()) {
-                        itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dv, itDof->EquationId());
-                    }
-                }
-
-            }
-
-            KRATOS_CATCH("")
-        }
 
         void AdditionalUpdateOperations(ModelPart& rModelPart,
                                         DofsArrayType& rDofSet,
@@ -326,8 +304,8 @@ namespace Kratos {
 
                         array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
 
-    
-                        
+
+
                         if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
 			{
 			    noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
@@ -340,7 +318,7 @@ namespace Kratos {
 			  itNode->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
 			  itNode->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
 			}
-			
+
                     }
                 }
             }
@@ -751,6 +729,18 @@ namespace Kratos {
         //************************************************************************************************
         //************************************************************************************************
 
+
+        void Clean() override
+        {
+            this->mpDOFUpdater->Clear();
+        }
+
+
+        void Clear() override
+        {
+            this->mpDOFUpdater->Clear();
+        }
+
         /*@} */
         /**@name Operations */
         /*@{ */
@@ -1028,6 +1018,8 @@ namespace Kratos {
         const Variable<int>& mrPeriodicIdVar;
 
         Process::Pointer mpTurbulenceModel;
+
+        typename TSparseSpace::DOFUpdaterPointerType mpDOFUpdater;
 
         /*@} */
         /**@name Private Operators*/
