@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_ASSIGN_VECTOR_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED)
-#define  KRATOS_ASSIGN_VECTOR_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED
+#if !defined(KRATOS_ASSIGN_VECTOR_FIELD_TO_ENTITIES_PROCESS_H_INCLUDED)
+#define  KRATOS_ASSIGN_VECTOR_FIELD_TO_ENTITIES_PROCESS_H_INCLUDED
 
 
 
@@ -17,9 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
-#include "processes/process.h"
+#include "custom_processes/assign_scalar_field_to_entities_process.h"
 
 namespace Kratos
 {
@@ -30,24 +28,26 @@ namespace Kratos
 /// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
 /** This function assigns a value to a variable belonging to all of the nodes in a given mesh
 */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) AssignVectorFieldToConditionsProcess : public Process
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) AssignVectorFieldToEntitiesProcess : public AssignScalarFieldToEntitiesProcess
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of AssignVectorFieldToConditionsProcess
-    KRATOS_CLASS_POINTER_DEFINITION(AssignVectorFieldToConditionsProcess);
+    /// Pointer definition of AssignVectorFieldToEntitiesProcess
+    KRATOS_CLASS_POINTER_DEFINITION(AssignVectorFieldToEntitiesProcess);
 
+    typedef AssignScalarFieldToEntitiesProcess   BaseType;
+    
     ///@}
     ///@name Life Cycle
     ///@{
-    AssignVectorFieldToConditionsProcess(ModelPart& model_part,
-					 pybind11::object& rPyObject,
-					 const std::string& rPyMethodName,
-					 const bool SpatialFieldFunction,
-					 Parameters rParameters
-					 ) : Process(Flags()), mrModelPart(model_part), mPyObject(rPyObject), mPyMethodName(rPyMethodName), mIsSpatialField(SpatialFieldFunction)
+    AssignVectorFieldToEntitiesProcess(ModelPart& rModelPart,
+                                       pybind11::object& rPyObject,
+                                       const std::string& rPyMethodName,
+                                       const bool SpatialFieldFunction,
+                                       Parameters rParameters
+                                       ) : BaseType(rModelPart, rPyObject, rPyMethodName, SpatialFieldFunction) 
     {
         KRATOS_TRY
 			 
@@ -55,6 +55,7 @@ public:
             {
                 "model_part_name":"MODEL_PART_NAME",
                 "variable_name": "VARIABLE_NAME",
+                "entity_type": "NODES",
                 "value" : [0.0, 0.0, 0.0],
                 "local_axes" : {}
             }  )" );
@@ -63,7 +64,7 @@ public:
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mvariable_name = rParameters["variable_name"].GetString();
+        this->mvariable_name = rParameters["variable_name"].GetString();
 
 	// Admissible values for local axes, are "empty" or 
         //"local_axes" :{
@@ -71,27 +72,48 @@ public:
         //    "axes"   : [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ] 
         //    }
 
-	mHasLocalOrigin = false;
+	this->mHasLocalOrigin = false;
 	if( rParameters["local_axes"].Has("origin") ){
-	  mHasLocalOrigin = true;
-	  mLocalOrigin.resize(3,false);
+	  this->mHasLocalOrigin = true;
+	  this->mLocalOrigin.resize(3,false);
 	  for( unsigned int i=0; i<3; i++)
-	    mLocalOrigin[i] = rParameters["local_axes"]["origin"][i].GetDouble();
+	    this->mLocalOrigin[i] = rParameters["local_axes"]["origin"][i].GetDouble();
 	}
 
-	mHasLocalAxes = false;
+	this->mHasLocalAxes = false;
 	if( rParameters["local_axes"].Has("axes") ){
-	  mHasLocalAxes = true;
-	  mTransformationMatrix.resize(3,3,false);
+	  this->mHasLocalAxes = true;
+	  this->mTransformationMatrix.resize(3,3,false);
 	  for( unsigned int i=0; i<3; i++)
 	    for( unsigned int j=0; j<3; j++)
-	      mTransformationMatrix(i,j) = rParameters["local_axes"]["axes"][i][j].GetDouble();
+	      this->mTransformationMatrix(i,j) = rParameters["local_axes"]["axes"][i][j].GetDouble();
 	}
-	
-        if(KratosComponents< Variable<Vector> >::Has(mvariable_name) == false)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
+
+        if( rParameters["entity_type"].GetString() == "NODES" ){
+          this->mEntity = NODES;
         }
+        else if(  rParameters["entity_type"].GetString() == "CONDITIONS" ){
+          this->mEntity = CONDITIONS;
+        }
+        else{
+          KRATOS_ERROR <<" Entity type "<< rParameters["entity_type"].GetString() <<" is not supported "<<std::endl;
+        }
+
+        if( this->mEntity == CONDITIONS ){
+
+          if(KratosComponents< Variable<Vector> >::Has(this->mvariable_name) == false) //case of vector variable
+          {
+            KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
+          }
+          else if( KratosComponents< Variable<array_1d<double,3> > >::Has( this->mvariable_name ) ) //case of array_1d variable
+          {
+            KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
+          }
+            
+        }
+        else{
+          KRATOS_ERROR << " Assignment to " << mEntity << " not implemented "<< std::endl;
+        }        
 
         mvector_value[0] = rParameters["value"][0].GetDouble();
         mvector_value[1] = rParameters["value"][1].GetDouble();
@@ -101,7 +123,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~AssignVectorFieldToConditionsProcess() {}
+    virtual ~AssignVectorFieldToEntitiesProcess() {}
 
 
     ///@}
@@ -120,7 +142,7 @@ public:
     ///@{
 
 
-    /// Execute method is used to execute the AssignVectorFieldToConditionsProcess algorithms.
+    /// Execute method is used to execute the AssignVectorFieldToEntitiesProcess algorithms.
     virtual void Execute() 
     {
 
@@ -130,25 +152,25 @@ public:
 
 	const double& rCurrentTime = rCurrentProcessInfo[TIME];
 
- 	if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) ) //case of vector variable
+ 	if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) ) //case of vector variable
         {
 
 	  Vector Value;
 	  //KratosComponents< Variable<Vector> >, Vector
-	  InternalAssignValue<>(KratosComponents< Variable<Vector> >::Get(mvariable_name), Value, rCurrentTime);
+	  AssignValueToConditions<>(KratosComponents< Variable<Vector> >::Get(this->mvariable_name), Value, rCurrentTime);
 
         }
-	else if( KratosComponents< Variable<array_1d<double,3> > >::Has( mvariable_name ) ) //case of array_1d variable
+	else if( KratosComponents< Variable<array_1d<double,3> > >::Has( this->mvariable_name ) ) //case of array_1d variable
         {
 
 	  array_1d<double,3> Value;
 	  //KratosComponents< Variable<array_1d<double,3> > >,array_1d<double,3> 
-	  InternalAssignValue<>(KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name), Value, rCurrentTime);
+	  AssignValueToConditions<>(KratosComponents< Variable<array_1d<double,3> > >::Get(this->mvariable_name), Value, rCurrentTime);
 
         }
 	else
 	{
-	  KRATOS_THROW_ERROR(std::logic_error, "Not able to set the variable. Attempting to set variable:",mvariable_name);
+	  KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << this->mvariable_name << std::endl;
         }
 	
 
@@ -199,27 +221,30 @@ public:
 
         KRATOS_TRY
 
-	if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) ) //case of vector variable
-        {
+        if( this->mEntity == CONDITIONS ){
+          
+          if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) ) //case of vector variable
+          {
 
-	  Vector Value;
-	  noalias(Value) = ZeroVector(3);
-	  InternalAssignValue<>(KratosComponents< Variable<Vector> >::Get(mvariable_name), Value);
+            Vector Value;
+            noalias(Value) = ZeroVector(3);
+            BaseType::AssignValueToConditions<>(KratosComponents< Variable<Vector> >::Get(this->mvariable_name), Value);
+
+          }
+          else if( KratosComponents< Variable<array_1d<double,3> > >::Has( this->mvariable_name ) ) //case of array_1d variable
+          {
+
+            array_1d<double,3> Value;
+            Value.clear();
+            BaseType::AssignValueToConditions<>(KratosComponents< Variable<array_1d<double,3> > >::Get(this->mvariable_name), Value);
+
+          }
+          else
+          {
+            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << this->mvariable_name << std::endl;
+          }
 
         }
-	else if( KratosComponents< Variable<array_1d<double,3> > >::Has( mvariable_name ) ) //case of array_1d variable
-        {
-
-	  array_1d<double,3> Value;
-	  Value.clear();
-	  InternalAssignValue<>(KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name), Value);
-
-        }
-	else
-	{
-	  KRATOS_THROW_ERROR(std::logic_error, "Not able to set the variable. Attempting to set variable:",mvariable_name);
-        }
-	
 
         KRATOS_CATCH("");
     }
@@ -242,13 +267,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "AssignVectorFieldToConditionsProcess";
+        return "AssignVectorFieldToEntitiesProcess";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "AssignVectorFieldToConditionsProcess";
+        rOStream << "AssignVectorFieldToEntitiesProcess";
     }
 
     /// Print object's data.
@@ -274,7 +299,7 @@ protected:
     ///@{
 
     /// Copy constructor.
-    AssignVectorFieldToConditionsProcess(AssignVectorFieldToConditionsProcess const& rOther);
+    AssignVectorFieldToEntitiesProcess(AssignVectorFieldToEntitiesProcess const& rOther);
 
     ///@}
     ///@name Protected  Access
@@ -295,58 +320,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
-    std::string mvariable_name;
-
     array_1d<double,3> mvector_value;
-
-    pybind11::object mPyObject;
-    std::string mPyMethodName;
-
-    Vector mLocalOrigin;
-    Matrix mTransformationMatrix;
-
-    bool mIsSpatialField;
-    
-    bool mHasLocalOrigin;
-    bool mHasLocalAxes;
       
     ///@}
     ///@name Private Operators
     ///@{
-    void LocalAxesTransform(const double& rX_global, const double& rY_global, const double& rZ_global,
-			    double& rx_local, double& ry_local, double& rz_local)
-    {
-      rx_local = rX_global;
-      ry_local = rY_global;
-      rz_local = rZ_global;
 
-      if( mHasLocalOrigin  || mHasLocalAxes ){
-
-	//implement global to local axes transformation
-	Vector GlobalPosition(3);
-	GlobalPosition[0] = rX_global;
-	GlobalPosition[1] = rY_global;
-	GlobalPosition[2] = rZ_global;
-
-	if( mHasLocalOrigin )
-	  GlobalPosition -= mLocalOrigin;
-
-	Vector LocalPosition(3);
-	noalias(LocalPosition) = ZeroVector(3);
-
-	if( mHasLocalAxes )
-	  noalias(LocalPosition) = prod(mTransformationMatrix,GlobalPosition);
-
-	rx_local = LocalPosition[0];
-	ry_local = LocalPosition[1];
-	rz_local = LocalPosition[2];
-
-      }
-     
-    }
-
-    template<class TDataType >
+    template<class TDataType>
     void CallFunction(const Condition::Pointer& pCondition, const double& time, TDataType& rValue)
     {
 
@@ -363,9 +343,9 @@ private:
 
 	for(unsigned int i=0; i<size; i++)
 	  {
-	    LocalAxesTransform(rConditionGeometry[i].X(), rConditionGeometry[i].Y(), rConditionGeometry[i].Z(), x, y, z);
+	    this->LocalAxesTransform(rConditionGeometry[i].X(), rConditionGeometry[i].Y(), rConditionGeometry[i].Z(), x, y, z);
 
-            value = mPyObject.attr(mPyMethodName.c_str())(x,y,z,time).cast<double>();
+            value = mPyObject.attr(this->mPyMethodName.c_str())(x,y,z,time).cast<double>();
             
 	    for(unsigned int j=0; j<3; j++)
 	      {
@@ -377,7 +357,7 @@ private:
       }
       else{
 
-        value = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
+        value = mPyObject.attr(this->mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
 	for(unsigned int i=0; i<size; i++)
 	  {
 	    for(unsigned int j=0; j<3; j++)
@@ -394,7 +374,7 @@ private:
 
 
     template< class TVarType, class TDataType >
-    void InternalAssignValue(TVarType& rVariable, TDataType& Value, const double& rTime )
+    void AssignValueToConditions(TVarType& rVariable, TDataType& Value, const double& rTime )
     {
         const int nconditions = mrModelPart.GetMesh().Conditions().size();
 	
@@ -415,26 +395,6 @@ private:
 
     }
 
-
-    template< class TVarType, class TDataType >
-    void InternalAssignValue(TVarType& rVar, const TDataType value)
-    {
-      const int nconditions = mrModelPart.GetMesh().Conditions().size();
-
-        if(nconditions != 0)
-        {
-            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
-
-             #pragma omp parallel for
-            for(int i = 0; i<nconditions; i++)
-            {
-                ModelPart::ConditionsContainerType::iterator it = it_begin + i;
-
-                it->SetValue(rVar, value);
-            }
-        }
-    }
-
     
     ///@}
     ///@name Private Operations
@@ -444,7 +404,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    AssignVectorFieldToConditionsProcess& operator=(AssignVectorFieldToConditionsProcess const& rOther);
+    AssignVectorFieldToEntitiesProcess& operator=(AssignVectorFieldToEntitiesProcess const& rOther);
 
 
     ///@}
@@ -457,7 +417,7 @@ private:
     ///@{
     ///@}
 
-}; // Class AssignVectorFieldToConditionsProcess
+}; // Class AssignVectorFieldToEntitiesProcess
 
 
 ///@}
@@ -473,11 +433,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  AssignVectorFieldToConditionsProcess& rThis);
+                                  AssignVectorFieldToEntitiesProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const AssignVectorFieldToConditionsProcess& rThis)
+                                  const AssignVectorFieldToEntitiesProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -490,4 +450,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ASSIGN_VECTOR_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_ASSIGN_VECTOR_FIELD_TO_ENTITIES_PROCESS_H_INCLUDED  defined

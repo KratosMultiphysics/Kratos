@@ -305,12 +305,14 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
         if( self.value_is_numeric ):
             params.AddEmptyValue("value").SetDouble(self.value)
-            self.AssignValueProcess = KratosSolid.AssignScalarToNodesProcess(self.model_part, params)
+            params.AddEmptyValue("entity_type").SetString("NODES")
+            self.AssignValueProcess = KratosSolid.AssignScalarToEntitiesProcess(self.model_part, params)
         else:
             if( self.value_is_current_value ):
                 self.AssignValueProcess = KratosMultiphysics.Process() #void process
             else:
-                self.AssignValueProcess = KratosSolid.AssignScalarFieldToNodesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
+                params.AddEmptyValue("entity_type").SetString("NODES")
+                self.AssignValueProcess = KratosSolid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
 
 
     #

@@ -17,12 +17,9 @@
 // Processes
 #include "custom_processes/transfer_entities_between_model_parts_process.h"
 #include "custom_processes/transfer_nodes_to_model_part_process.h"
-#include "custom_processes/assign_scalar_field_to_nodes_process.h"
-#include "custom_processes/assign_scalar_field_to_conditions_process.h"
-#include "custom_processes/assign_scalar_variable_to_nodes_process.h"
-#include "custom_processes/assign_scalar_variable_to_conditions_process.h"
+#include "custom_processes/assign_scalar_variable_to_entities_process.h"
 #include "custom_processes/assign_vector_variable_to_conditions_process.h"
-#include "custom_processes/assign_vector_field_to_conditions_process.h"
+#include "custom_processes/assign_vector_field_to_entities_process.h"
 #include "custom_processes/fix_scalar_dof_process.h"
 #include "custom_processes/free_scalar_dof_process.h"
 #include "custom_processes/add_dofs_process.h"
@@ -78,31 +75,22 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       
   //**********ASSIGN VALUES TO VARIABLES PROCESSES*********//
 
-  class_<AssignScalarVariableToNodesProcess, Process>(m,"AssignScalarToNodesProcess")
+  class_<AssignScalarVariableToEntitiesProcess, Process>(m,"AssignScalarToEntitiesProcess")
       .def(init<ModelPart&, Parameters>())
       .def(init< ModelPart&, Parameters& >())
-      .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, double>())
-      .def(init<ModelPart&, const Variable<double>&, double>())
-      .def(init<ModelPart&, const Variable<int>&, int>())
-      .def(init<ModelPart&, const Variable<bool>&, bool>())
-      .def("Execute", &AssignScalarVariableToNodesProcess::Execute)
-
+      .def("Execute", &AssignScalarVariableToEntitiesProcess::Execute)
       ;
 
-  class_<AssignScalarFieldToNodesProcess, Process>(m,"AssignScalarFieldToNodesProcess")
+  class_<AssignScalarFieldToEntitiesProcess, Process>(m,"AssignScalarFieldToEntitiesProcess")
       .def(init<ModelPart&, pybind11::object&, const std::string, const bool, Parameters>())
       .def(init< ModelPart&, pybind11::object&, const std::string, const bool, Parameters& >())
-      .def("Execute", &AssignScalarFieldToNodesProcess::Execute)
-
+      .def("Execute", &AssignScalarFieldToEntitiesProcess::Execute)
       ;
-
-  class_<AssignScalarVariableToConditionsProcess, Process>(m,"AssignScalarToConditionsProcess")
-      .def(init<ModelPart&, Parameters>())
-      .def(init< ModelPart&, Parameters& >())
-      .def(init<ModelPart&, const Variable<double>&, double>())
-      .def(init<ModelPart&, const Variable<int>&, int>())
-      .def(init<ModelPart&, const Variable<bool>&, bool>())
-      .def("Execute", &AssignScalarVariableToConditionsProcess::Execute)
+  
+  class_<AssignVectorFieldToEntitiesProcess, Process>(m,"AssignVectorFieldToEntitiesProcess")
+      .def(init<ModelPart&, pybind11::object&,const std::string,const bool, Parameters>())
+      .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
+      .def("Execute", &AssignVectorFieldToEntitiesProcess::Execute)
       ;
 
   class_<AssignVectorVariableToConditionsProcess, Process>(m,"AssignVectorToConditionsProcess")
@@ -110,20 +98,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def(init< ModelPart&, Parameters& >())
       .def(init<ModelPart&, const Variable<array_1d<double,3> >&, array_1d<double,3>&>())
       .def("Execute", &AssignVectorVariableToConditionsProcess::Execute)
-      ;
-
-  class_<AssignScalarFieldToConditionsProcess, Process>(m,"AssignScalarFieldToConditionsProcess")
-      .def(init<ModelPart&, pybind11::object&,const std::string,const bool, Parameters>())
-      .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
-      .def("Execute", &AssignScalarFieldToConditionsProcess::Execute)
-
-      ;
-
-  class_<AssignVectorFieldToConditionsProcess, Process>(m,"AssignVectorFieldToConditionsProcess")
-      .def(init<ModelPart&, pybind11::object&,const std::string,const bool, Parameters>())
-      .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
-      .def("Execute", &AssignVectorFieldToConditionsProcess::Execute)
-
       ;
 	
   //**********FIX AND FREE DOFS PROCESSES*********//
