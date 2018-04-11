@@ -536,11 +536,14 @@ protected:
     /**************** METHODS TO CALCULATE MORTAR CONDITION MATRICES ****************/
     /********************************************************************************/
 
-    /*
+    /**
      * Calculates the local contibution of the LHS
+     * @param rLocalLHS The local LHS to compute
+     * @param rMortarConditionMatrices The mortar operators to be considered
+     * @param rDofData The class containing all the information needed in order to compute the jacobian
      */
-
-    bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
+    void CalculateLocalLHS(
+        Matrix& rLocalLHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DofData& rDofData
         );
@@ -548,7 +551,8 @@ protected:
     /*
      * Calculates the local contibution of the LHS
      */
-    array_1d<double, MatrixSize> CalculateLocalRHS(
+    void CalculateLocalRHS(
+        Vector& rLocalRHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DofData& rDofData
         );
