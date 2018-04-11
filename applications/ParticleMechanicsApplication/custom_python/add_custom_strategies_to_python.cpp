@@ -30,7 +30,6 @@
 
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_strategies/convergence_criteria/displacement_convergence_criterion.hpp"
 
 //schemes
 //#include "custom_strategies/schemes/residual_based_static_scheme.hpp"
