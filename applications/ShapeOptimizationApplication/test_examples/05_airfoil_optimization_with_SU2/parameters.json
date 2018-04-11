@@ -1,0 +1,87 @@
+{
+    "optimization_settings" : {
+        "objectives" : [{
+                "identifier" : "drag",
+                "type"       : "minimization",
+                "use_kratos" : false
+        }],
+        "constraints" : [],
+        "design_variables" : {
+            "type"                               : "vertex_morphing",
+            "optimization_model_part_name"       : "mesh_NACA0012_inv",
+            "design_surface_sub_model_part_name" : "airfoil",
+            "domain_size"                        : 2,
+            "filter" : {
+                "filter_function_type"       : "gaussian",
+                "filter_radius"              : 0.3,
+                "max_nodes_in_filter_radius" : 1000,
+                "matrix_free_filtering"      : false
+            },
+            "damping" : {
+                "perform_damping" : true,
+                "damping_regions" : [{
+                        "sub_model_part_name"   : "fix_nodes",
+                        "damp_X"                : true,
+                        "damp_Y"                : true,
+                        "damp_Z"                : false,
+                        "damping_function_type" : "cosine",
+                        "damping_radius"        : 0.2
+                    }
+                ]
+            },
+            "mesh_motion" : {
+                "apply_ale_mesh_solver" : false
+            }
+        },
+        "optimization_algorithm" : {
+            "name"                                 : "steepest_descent",
+            "max_iterations"                       : 300,
+            "relative_tolerance"                   : 1e-2,
+            "project_gradients_on_surface_normals" : true
+        },
+        "line_search" : {
+            "line_search_type"           : "manual_stepping",
+            "normalize_search_direction" : true,
+            "step_size"                  : 0.001
+        },
+        "output" : {
+            "output_directory"        : "Optimization_Results",
+            "design_history_filename" : "design_history",
+            "response_log_filename"   : "response_log",
+            "design_output_mode"      : "WriteDesignSurface",
+            "nodal_results"           : [ "OBJECTIVE_SENSITIVITY",
+                                          "MAPPED_OBJECTIVE_SENSITIVITY",
+                                          "CONTROL_POINT_UPDATE",
+                                          "CONTROL_POINT_CHANGE",
+                                          "SHAPE_UPDATE",
+                                          "SHAPE_CHANGE",
+                                          "NORMALIZED_SURFACE_NORMAL" ],
+            "output_format" : {
+                "name"              : "gid",
+                "gid_configuration" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary"
+                        },
+                        "output_frequency"    : 1.0
+                    }
+                }
+            }
+        }
+    },
+    "su2_interface_settings" : {
+        "su2_related": {
+            "config_file"        : "inv_NACA0012.cfg",
+            "number_of_cores"    : 14,
+            "gradient_method"    : "DISCRETE_ADJOINT",
+            "mesh_file"          : "mesh_NACA0012_inv.su2",
+            "mesh_motion_file"   : "mesh_motion.dat",
+            "design_surface_tag" : "airfoil"
+        },
+        "kratos_related": {
+            "mdpa_file"      : "mesh_NACA0012_inv.mdpa",
+            "write_elements" : false
+        },
+        "echo_level" : 1
+    }
+}
