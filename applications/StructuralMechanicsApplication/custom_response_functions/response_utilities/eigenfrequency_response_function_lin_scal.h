@@ -74,16 +74,6 @@ public:
 	///@name Type Definitions
 	///@{
 
-	// TODO solve this via template or how to get this from Eigensolverstrategy
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
-	typedef array_1d<double, 3> array_3d;
-    typedef LocalSpaceType::VectorType DenseVectorType;
-	typedef LocalSpaceType::MatrixType DenseMatrixType;
-	typedef Variable<DenseVectorType> VariableDenseVectorType;
-	typedef Variable<DenseMatrixType> VariableDenseMatrixType;
-
-
 	/// Pointer definition of EigenfrequencyResponseFunctionLinScal
 	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunctionLinScal);
 
@@ -176,15 +166,12 @@ public:
 	{
 		KRATOS_TRY;
 
-		const VariableDenseVectorType& rEIGENVALUE_VECTOR =
-            KratosComponents<VariableDenseVectorType>::Get("EIGENVALUE_VECTOR");
-
-		int num_of_computed_eigenvalues = (mrModelPart.GetProcessInfo()[rEIGENVALUE_VECTOR]).size();
+		int num_of_computed_eigenvalues = (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR]).size();
 
 		if(num_of_computed_eigenvalues < id_eigenvalue)
 			KRATOS_THROW_ERROR(std::runtime_error, "The chosen eigenvalue was not solved by the eigenvalue analysis!", "");
 
-		return (mrModelPart.GetProcessInfo()[rEIGENVALUE_VECTOR])[id_eigenvalue-1];
+		return (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR])[id_eigenvalue-1];
 
 		KRATOS_CATCH("");
 	}
@@ -197,15 +184,12 @@ public:
 		Vector eigenvector_of_element;
 		eigenvector_of_element.resize(size_of_eigenvector,false);
 
-		const VariableDenseMatrixType& rEIGENVECTOR_MATRIX =
-           	  KratosComponents<VariableDenseMatrixType>::Get("EIGENVECTOR_MATRIX");
-
 		// Get eigenvector of element
 		int k = 0;
 		const int NumNodeDofs = size_of_eigenvector/traced_element.GetGeometry().size();
 		for (auto& node_i : traced_element.GetGeometry())
 		{
-			Matrix& rNodeEigenvectors = node_i.GetValue(rEIGENVECTOR_MATRIX);
+			Matrix& rNodeEigenvectors = node_i.GetValue(EIGENVECTOR_MATRIX);
 
 			for (int i = 0; i < NumNodeDofs; i++)
 				eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((id_eigenvalue-1),i);
@@ -325,7 +309,7 @@ protected:
 			// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
 			for (auto& node_i : elem_i.GetGeometry())
 			{
-				array_3d gradient_contribution(3, 0.0);
+				Vector gradient_contribution(3, 0.0);
 				Matrix perturbed_LHS = Matrix(0,0);
 				Matrix perturbed_mass_matrix = Matrix(0,0);
 

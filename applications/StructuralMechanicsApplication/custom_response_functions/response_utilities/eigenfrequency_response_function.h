@@ -74,15 +74,6 @@ public:
 	///@name Type Definitions
 	///@{
 
-	// TODO solve this via template or how to get this from Eigensolverstrategy
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
-	typedef array_1d<double, 3> array_3d;
-    typedef LocalSpaceType::VectorType DenseVectorType;
-	typedef LocalSpaceType::MatrixType DenseMatrixType;
-	typedef Variable<DenseVectorType> VariableDenseVectorType;
-	typedef Variable<DenseMatrixType> VariableDenseMatrixType;
-
 	/// Pointer definition of EigenfrequencyResponseFunction
 	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunction);
 
@@ -132,14 +123,11 @@ public:
 
 		double eigenvalue = 0.0;
 
-		const VariableDenseVectorType& rEIGENVALUE_VECTOR =
-            KratosComponents<VariableDenseVectorType>::Get("EIGENVALUE_VECTOR");
-
-		int num_of_computed_eigenvalues = (mrModelPart.GetProcessInfo()[rEIGENVALUE_VECTOR]).size();
+		int num_of_computed_eigenvalues = (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR]).size();
 
 		KRATOS_ERROR_IF(num_of_computed_eigenvalues < mTracedEigenValue) << "The chosen eigenvalue was not solved by the eigenvalue analysis!" << std::endl;
 
-		eigenvalue = (mrModelPart.GetProcessInfo()[rEIGENVALUE_VECTOR])[mTracedEigenValue - 1];
+		eigenvalue = (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR])[mTracedEigenValue - 1];
 
 		return eigenvalue;
 
@@ -236,9 +224,7 @@ protected:
 		// Working variables
 		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
-		const VariableDenseVectorType& rEIGENVALUE_VECTOR =
-            KratosComponents<VariableDenseVectorType>::Get("EIGENVALUE_VECTOR");
-		const double eigenvalue = (mrModelPart.GetProcessInfo()[rEIGENVALUE_VECTOR])[mTracedEigenValue - 1];
+		const double eigenvalue = (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR])[mTracedEigenValue - 1];
 
 		// Computation of: \frac{dF}{dx} = eigenvector^T\cdot (frac{\partial RHS}{\partial x} -
 		//				                   eigenvalue frac{\partial mass_matrix}{\partial x})\cdot eigenvector
@@ -255,15 +241,12 @@ protected:
 			int num_dofs_element = mass_matrix_org.size1();
 			eigenvector_of_element.resize(num_dofs_element,false);
 
-			const VariableDenseMatrixType& rEIGENVECTOR_MATRIX =
-           	      KratosComponents<VariableDenseMatrixType>::Get("EIGENVECTOR_MATRIX");
-
 			// Get eigenvector of element
 			int k = 0;
 			const int NumNodeDofs = num_dofs_element/elem_i.GetGeometry().size();
 			for (auto& node_i : elem_i.GetGeometry())
 			{
-				Matrix& rNodeEigenvectors = node_i.GetValue(rEIGENVECTOR_MATRIX);
+				Matrix& rNodeEigenvectors = node_i.GetValue(EIGENVECTOR_MATRIX);
 
 				for (int i = 0; i < NumNodeDofs; i++)
                     eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((mTracedEigenValue-1),i);
@@ -275,7 +258,7 @@ protected:
 			for (auto& node_i : elem_i.GetGeometry())
 			{
 
-				array_3d gradient_contribution(3, 0.0);
+				Vector gradient_contribution(3, 0.0);
 				Matrix perturbed_LHS = Matrix(0,0);
 				Matrix perturbed_mass_matrix = Matrix(0,0);
 				Vector aux = Vector(0);

@@ -34,7 +34,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
-#include "spaces/ublas_space.h"
+#include "includes/ublas_interface.h"
 
 // ==============================================================================
 
