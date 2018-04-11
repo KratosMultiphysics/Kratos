@@ -359,9 +359,11 @@ void BaseSolidElement::CalculateMassMatrix(
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( integration_method );
     const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
 
-    double density = 1.0;
-    if ( GetProperties().Has( DENSITY ))
-        density = GetProperties()[DENSITY];
+    KRATOS_ERROR_IF_NOT(GetProperties().Has( DENSITY ))
+        << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
+
+    const double density = GetProperties()[DENSITY];
+
     double thickness = 1.0;
     if ( dimension == 2 && GetProperties().Has( THICKNESS ))
         thickness = GetProperties()[THICKNESS];
@@ -1201,10 +1203,9 @@ Vector BaseSolidElement::GetBodyForce(
 {
     Vector body_force = ZeroVector(3);
 
-    KRATOS_ERROR_IF_NOT(GetProperties().Has( DENSITY ))
-        << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
-
-    const double density = GetProperties()[DENSITY];
+    double density = 0.0;
+    if (GetProperties().Has( DENSITY ) == true)
+        density = GetProperties()[DENSITY];
 
     if (GetProperties().Has( VOLUME_ACCELERATION ) == true)
         body_force += density * GetProperties()[VOLUME_ACCELERATION];

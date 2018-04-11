@@ -19,7 +19,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e9)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,123.0)
 
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)

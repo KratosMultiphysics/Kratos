@@ -36,7 +36,6 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         #define properties
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS, 21000)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY, 123.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YIELD_STRESS, 5.5)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.REFERENCE_HARDENING_MODULUS, 1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.12924)
