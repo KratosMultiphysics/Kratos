@@ -261,9 +261,9 @@ struct ilu0< backend::cuda<real> > {
         cusparseHandle_t handle;
         int n, nnz;
 
-        boost::shared_ptr<boost::remove_pointer<cusparseMatDescr_t>::type> descr_M, descr_L, descr_U;
-        boost::shared_ptr<boost::remove_pointer<csrilu02Info_t>::type> info_M;
-        boost::shared_ptr<boost::remove_pointer<csrsv2Info_t>::type>  info_L, info_U;
+        std::shared_ptr<boost::remove_pointer<cusparseMatDescr_t>::type> descr_M, descr_L, descr_U;
+        std::shared_ptr<boost::remove_pointer<csrilu02Info_t>::type> info_M;
+        std::shared_ptr<boost::remove_pointer<csrsv2Info_t>::type>  info_L, info_U;
 
         thrust::device_vector<int> ptr, col;
         thrust::device_vector<value_type> val;

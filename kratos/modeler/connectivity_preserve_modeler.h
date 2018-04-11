@@ -35,7 +35,7 @@ namespace Kratos
 {
 
 /// A tool to generate a copy of a ModelPart, sharing the same nodes as the original.
-class ConnectivityPreserveModeler : public Modeler
+class KRATOS_API(KRATOS_CORE) ConnectivityPreserveModeler : public Modeler
 {
 public:
 

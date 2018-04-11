@@ -1,10 +1,6 @@
 #ifndef PRE_UTILITES_H
 #define PRE_UTILITES_H
 
-// Project includes
-#include "utilities/timer.h"
-#include "includes/variables.h"
-
 /* System includes */
 #include <limits>
 #include <iostream>
@@ -22,6 +18,8 @@
 
 /* Project includes */
 #include "includes/define.h"
+#include "utilities/timer.h"
+#include "includes/variables.h"
 #include "utilities/openmp_utils.h"
 #include "cluster_information.h"
 #include "custom_elements/spheric_continuum_particle.h"
@@ -40,9 +38,9 @@ class PreUtilities
 
     KRATOS_CLASS_POINTER_DEFINITION(PreUtilities);
 
+    /// Default constructor
     PreUtilities() {}
     
-    /// Default constructor
     PreUtilities(ModelPart& rModelPart)
     {
         //mInitialCenterOfMassAndMass = CalculateCenterOfMass(rModelPart);
@@ -53,11 +51,11 @@ class PreUtilities
     virtual ~PreUtilities() {}
 
     void SetClusterInformationInProperties(std::string const& name,
-                                           boost::python::list& list_of_coordinates, 
-                                           boost::python::list& list_of_radii, 
+                                           pybind11::list& list_of_coordinates, 
+                                           pybind11::list& list_of_radii, 
                                            double size, 
                                            double volume, 
-                                           boost::python::list& inertias, 
+                                           pybind11::list& inertias, 
                                            Properties::Pointer& p_properties) {
         ClusterInformation cl_info;
 
@@ -65,22 +63,22 @@ class PreUtilities
 
         array_1d<double,3> coords(3,0.0);
         
-        for (int i = 0; i < boost::python::len(list_of_coordinates); i++) {
-            boost::python::list list(list_of_coordinates[i]);
-            coords[0] =  boost::python::extract<double>(list[0]);
-            coords[1] =  boost::python::extract<double>(list[1]);
-            coords[2] =  boost::python::extract<double>(list[2]);
+        for (int i = 0; i < pybind11::len(list_of_coordinates); i++) {
+            pybind11::list list(list_of_coordinates[i]);
+            coords[0] =  pybind11::cast<double>(list[0]);
+            coords[1] =  pybind11::cast<double>(list[1]);
+            coords[2] =  pybind11::cast<double>(list[2]);
             cl_info.mListOfCoordinates.push_back(coords);
         }
-        for (int i = 0; i < boost::python::len(list_of_radii); i++) {
-            cl_info.mListOfRadii.push_back(boost::python::extract<double>(list_of_radii[i]));
+        for (int i = 0; i < pybind11::len(list_of_radii); i++) {
+            cl_info.mListOfRadii.push_back(pybind11::cast<double>(list_of_radii[i]));
         }
         //TODO: check the sizes (should be the same)
         cl_info.mSize = size;
         cl_info.mVolume = volume;
-        cl_info.mInertias[0] = boost::python::extract<double>(inertias[0]);
-        cl_info.mInertias[1] = boost::python::extract<double>(inertias[1]);
-        cl_info.mInertias[2] = boost::python::extract<double>(inertias[2]);
+        cl_info.mInertias[0] = pybind11::cast<double>(inertias[0]);
+        cl_info.mInertias[1] = pybind11::cast<double>(inertias[1]);
+        cl_info.mInertias[2] = pybind11::cast<double>(inertias[2]);
 
         p_properties->SetValue(CLUSTER_INFORMATION, cl_info);
     }        
