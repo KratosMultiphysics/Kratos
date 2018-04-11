@@ -90,7 +90,7 @@ public:
         std::vector< int > index_array(number_of_dofs);
 
         // filling the array with the global ids
-        int counter = 0;
+        unsigned int counter = 0;
         for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
         {
             int id = i_dof->EquationId();
@@ -148,8 +148,6 @@ public:
         // importing in the new temp vector the values
         int ierr = local_dx.Import(rDx,*mpDofImport,Insert) ;
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found while trying to import Dx." << std::endl;
-
-        rDx.Comm().Barrier();
 
         int num_dof = rDofSet.size();
 
