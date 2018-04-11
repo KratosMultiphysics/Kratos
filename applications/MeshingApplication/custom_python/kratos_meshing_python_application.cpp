@@ -17,11 +17,10 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_python.h"
 #include "meshing_application.h"
 #include "custom_python/add_meshers_to_python.h"
 #include "custom_python/add_processes_to_python.h"
@@ -34,27 +33,28 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
 
 
-BOOST_PYTHON_MODULE(KratosMeshingApplication)
+PYBIND11_MODULE(KratosMeshingApplication,m)
 {
 
     class_<KratosMeshingApplication,
            KratosMeshingApplication::Pointer,
-           bases<KratosApplication>, boost::noncopyable >("KratosMeshingApplication")
+           KratosApplication >(m, "KratosMeshingApplication")
+           .def(init<>())
            ;
-    AddMeshersToPython();
-    AddProcessesToPython();
-    AddCustomUtilitiesToPython();
-    AddCustomStrategiesToPython();
+    AddMeshersToPython(m);
+    AddProcessesToPython(m);
+    AddCustomUtilitiesToPython(m);
+    AddCustomStrategiesToPython(m);
 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(AVERAGE_NODAL_ERROR)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(ANISOTROPIC_RATIO)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUXILIAR_GRADIENT)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUXILIAR_HESSIAN)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MMG_METRIC)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AVERAGE_NODAL_ERROR)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ANISOTROPIC_RATIO)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_GRADIENT)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_HESSIAN)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MMG_METRIC)
         
     //KRATOS_REGISTER_IN_PYTHON_VARIABLE(COUNTER)
 
