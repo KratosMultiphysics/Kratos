@@ -36,15 +36,15 @@ class SimpleResponseFunctionWrapper(ResponseFunctionBase):
         self.primal_analysis.Initialize()
         self.response_function_utility.Initialize()
     def CalculateValue(self):
-        print("\n> Starting primal analysis for response:", self.identifier)
+        Logger.PrintInfo("\n> Starting primal analysis for response:", self.identifier)
         startTime = timer.time()
         self.primal_analysis.InitializeTimeStep()
         self.primal_analysis.SolveTimeStep()
         self.primal_analysis.FinalizeTimeStep()
-        print("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
         startTime = timer.time()
         value = self.response_function_utility.CalculateValue()
-        print("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
         return value
     def CalculateGradient(self):
         self.response_function_utility.CalculateGradient()
