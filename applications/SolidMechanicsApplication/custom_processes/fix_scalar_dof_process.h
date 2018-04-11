@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_FIX_SCALAR_DOF_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_FIX_SCALAR_DOF_PROCESS_H_INCLUDED)
 #define  KRATOS_FIX_SCALAR_DOF_PROCESS_H_INCLUDED
 
 
@@ -30,7 +30,7 @@ namespace Kratos
 /// The base class for fixing scalar variable Dof or array_1d component Dof processes in Kratos.
 /** This function fix the variable dof belonging to all of the nodes in a given mesh
 */
-class FixScalarDofProcess : public Process
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) FixScalarDofProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -44,7 +44,7 @@ public:
     ///@{
     FixScalarDofProcess(ModelPart& model_part,
 			Parameters rParameters
-			) : Process() , mr_model_part(model_part)
+			) : Process() , mrModelPart(model_part)
     {
         KRATOS_TRY
 			 
@@ -99,7 +99,7 @@ public:
     }
 
     FixScalarDofProcess(ModelPart& model_part,
-			const Variable<double>& rVariable) : Process(), mr_model_part(model_part)
+			const Variable<double>& rVariable) : Process(), mrModelPart(model_part)
     {
         KRATOS_TRY;
 
@@ -115,7 +115,7 @@ public:
     }
 
     FixScalarDofProcess(ModelPart& model_part,
-			const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable) : Process(), mr_model_part(model_part)
+			const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable) : Process(), mrModelPart(model_part)
     {
         KRATOS_TRY;
 
@@ -130,7 +130,7 @@ public:
     }
 
     FixScalarDofProcess(ModelPart& model_part,
-			const Variable< int >& rVariable) : Process(), mr_model_part(model_part)
+			const Variable< int >& rVariable) : Process(), mrModelPart(model_part)
     {
         KRATOS_TRY;
 
@@ -145,7 +145,7 @@ public:
     }
 
     FixScalarDofProcess(ModelPart& model_part,
-			const Variable< bool >& rVariable) : Process(), mr_model_part(model_part)
+			const Variable< bool >& rVariable) : Process(), mrModelPart(model_part)
     {
         KRATOS_TRY;
 
@@ -322,7 +322,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     std::string mvariable_name;
 
     ///@}
@@ -332,11 +332,11 @@ private:
     template< class TVarType >
     void InternalFixDof(TVarType& rVar)
     {
-        const int nnodes = mr_model_part.GetMesh().Nodes().size();
+        const int nnodes = mrModelPart.GetMesh().Nodes().size();
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh().NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh().NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)

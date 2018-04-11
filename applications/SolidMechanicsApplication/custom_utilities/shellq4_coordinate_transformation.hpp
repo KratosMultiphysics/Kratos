@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SHELLQ4_COORDINATE_TRANSFORMATION_H_INCLUDED )
+#if !defined(KRATOS_SHELLQ4_COORDINATE_TRANSFORMATION_H_INCLUDED)
 #define  KRATOS_SHELLQ4_COORDINATE_TRANSFORMATION_H_INCLUDED
 
 #include "shellq4_local_coordinate_system.hpp"
@@ -24,7 +24,7 @@ namespace Kratos
  * 2) Transform the incoming global displacements in local coordinate system
  * 3) Transform the outgoing matrices and vectors in global coordinate system
  */
-class ShellQ4_CoordinateTransformation
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellQ4_CoordinateTransformation
 {
 
  public:

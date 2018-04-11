@@ -8,7 +8,7 @@
 //
 
 
-#if !defined(KRATOS_ENERGY_UTILITIES_H_INCLUDED )
+#if !defined(KRATOS_ENERGY_UTILITIES_H_INCLUDED)
 #define  KRATOS_ENERGY_UTILITIES_H_INCLUDED
 
 
@@ -40,7 +40,7 @@ namespace Kratos
   /** Computes the energy
    */
 
-  class EnergyUtilities
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) EnergyUtilities
   {
   public:
 
@@ -61,7 +61,7 @@ namespace Kratos
 
 
     /// Destructor.
-    ~EnergyUtilities(){};
+    virtual ~EnergyUtilities(){};
 
 
     ///@}

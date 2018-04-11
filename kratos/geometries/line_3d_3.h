@@ -280,9 +280,9 @@ public:
     {
 	if(rResult.size() != 3)
            rResult.resize( 3, false );
-        rResult[0] = 0.25;
-        rResult[2] = 0.5;
-        rResult[1] = 0.25;
+        rResult[0] = 1.0/6.0;
+        rResult[2] = 2.0/3.0;
+        rResult[1] = 1.0/6.0;
         return rResult;
     }
 

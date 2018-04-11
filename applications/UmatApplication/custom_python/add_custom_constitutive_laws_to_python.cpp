@@ -7,23 +7,13 @@
 //
 //
 
-
 // System includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <pybind11/stl.h>
 
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
-#include "includes/properties.h"
-
-#include "python/pointer_vector_set_python_interface.h"
-#include "python/variable_indexing_python.h"
-
-//Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
-
 
 //models
 #include "custom_models/hypoplastic_umat_small_strain_model.hpp"
@@ -36,27 +26,26 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-typedef ConstitutiveLaw      ConstitutiveLawBaseType;
-typedef ConstitutiveModel  ConstitutiveModelBaseType;
 
-void  AddCustomConstitutiveLawsToPython()
+void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
 
-    // models
-    class_< VonMisesSmallStrainUmatModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
-    	( "VonMisesSmallStrainUmatModel",
-    	  init<>() )
-     	;
-    class_< VonMisesLargeStrainUmatModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
-    	( "VonMisesLargeStrainUmatModel",
-    	  init<>() )
-     	;
-    class_< HypoplasticSmallStrainUmatModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
-    	( "HypoplasticSmallStrainUmatModel",
-    	  init<>() )
-     	;
+  // models
+  class_<VonMisesSmallStrainUmatModel, typename VonMisesSmallStrainUmatModel::Pointer, ConstitutiveModel>
+      (m, "VonMisesSmallStrainUmatModel")
+      .def( init<>() )
+      ;
+  class_<VonMisesLargeStrainUmatModel, typename VonMisesLargeStrainUmatModel::Pointer, ConstitutiveModel>
+      (m, "VonMisesLargeStrainUmatModel")
+      .def( init<>() )
+      ;
+  class_<HypoplasticSmallStrainUmatModel, typename HypoplasticSmallStrainUmatModel::Pointer, ConstitutiveModel>
+      (m, "HypoplasticSmallStrainUmatModel")
+      .def( init<>() )
+      ;
 }
+
 }  // namespace Python.
 } // Namespace Kratos

@@ -54,7 +54,6 @@
 #include "custom_conditions/EP_point_rigid_contact_penalty_2D_condition.hpp"
 #include "custom_conditions/EP_axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
-
 // friction laws
 #include "custom_friction/friction_law.hpp"
 #include "custom_friction/coulomb_adhesion_friction_law.hpp"
@@ -62,8 +61,6 @@
 
 
 // Core applications
-#include "pfem_application.h"
-
 #include "contact_mechanics_application_variables.h"
 
 namespace Kratos {
