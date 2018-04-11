@@ -91,7 +91,7 @@ public:
 
 	/// Default constructor.
 	EigenfrequencyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
-	: mr_model_part(model_part)
+	: mrModelPart(model_part)
 	{
 		std::string gradientMode = responseSettings["gradient_mode"].GetString();
 		if (gradientMode.compare("semi_analytic") == 0)
@@ -99,10 +99,10 @@ public:
 			mDelta = responseSettings["step_size"].GetDouble();
 		}
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
+			KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " << gradientMode << std::endl;
 
 		// Get number of eigenfrequency for which the structure has to be optimized
-		m_traced_eigenvalue = responseSettings["traced_eigenfrequency"].GetInt();
+		mTracedEigenValue = responseSettings["traced_eigenfrequency"].GetInt();
 	}
 
 	/// Destructor.
@@ -134,12 +134,11 @@ public:
 		const VariableDenseVectorType& rEIGENVALUE_VECTOR =
             KratosComponents<VariableDenseVectorType>::Get("EIGENVALUE_VECTOR");
 
-		int num_of_computed_eigenvalues = (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR]).size();
+		int num_of_computed_eigenvalues = (mrModelPart.GetProcessInfo()[rEIGENVALUE_VECTOR]).size();
 
-		if(num_of_computed_eigenvalues < m_traced_eigenvalue)
-			KRATOS_THROW_ERROR(std::runtime_error, "The chosen eigenvalue was not solved by the eigenvalue analysis!", "");
+		KRATOS_ERROR_IF(num_of_computed_eigenvalues < mTracedEigenValue) << "The chosen eigenvalue was not solved by the eigenvalue analysis!" << std::endl;
 
-		eigenvalue = (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[m_traced_eigenvalue - 1];
+		eigenvalue = (mrModelPart.GetProcessInfo()[rEIGENVALUE_VECTOR])[mTracedEigenValue - 1];
 
 		return eigenvalue;
 
@@ -157,7 +156,7 @@ public:
 
 		// First gradients are initialized
 		array_3d zeros_array(3, 0.0);
-		for (auto& node_i : mr_model_part.Nodes())
+		for (auto& node_i : mrModelPart.Nodes())
 			noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY) )= zeros_array;
 
 		// Gradient calculation is done by a semi-analytic approaches
@@ -236,15 +235,15 @@ protected:
 		KRATOS_TRY;
 
 		// Working variables
-		ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
+		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 		const VariableDenseVectorType& rEIGENVALUE_VECTOR =
             KratosComponents<VariableDenseVectorType>::Get("EIGENVALUE_VECTOR");
-		const double eigenvalue = (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[m_traced_eigenvalue - 1];
+		const double eigenvalue = (mrModelPart.GetProcessInfo()[rEIGENVALUE_VECTOR])[mTracedEigenValue - 1];
 
 		// Computation of: \frac{dF}{dx} = eigenvector^T\cdot (frac{\partial RHS}{\partial x} -
 		//				                   eigenvalue frac{\partial mass_matrix}{\partial x})\cdot eigenvector
-		for (auto& elem_i : mr_model_part.Elements())
+		for (auto& elem_i : mrModelPart.Elements())
 		{
 			Matrix mass_matrix_org;
 			Matrix LHS_org;
@@ -268,7 +267,7 @@ protected:
 				Matrix& rNodeEigenvectors = node_i.GetValue(rEIGENVECTOR_MATRIX);
 
 				for (int i = 0; i < NumNodeDofs; i++)
-                    eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((m_traced_eigenvalue-1),i);
+                    eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((mTracedEigenValue-1),i);
 
 				k++;
 			}
@@ -381,11 +380,11 @@ private:
 	///@name Member Variables
 	///@{
 
-	ModelPart &mr_model_part;
+	ModelPart &mrModelPart;
 	unsigned int mGradientMode;
 	unsigned int mWeightingMethod;
 	double mDelta;
-	int m_traced_eigenvalue;
+	int mTracedEigenValue;
 
 
 	///@}
