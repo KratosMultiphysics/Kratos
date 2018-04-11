@@ -93,7 +93,9 @@ public:
     GearScheme()
         :
         Scheme<TSparseSpace, TDenseSpace>()
-    {}
+    {
+        mpDofUpdater = TSparseSpace::CreateDofUpdater();
+    }
 
     /// Constructor to use the formulation combined with a turbulence model.
     /**
@@ -106,7 +108,9 @@ public:
         :
         Scheme<TSparseSpace, TDenseSpace>(),
         mpTurbulenceModel(pTurbulenceModel)
-    {}
+    {
+        mpDofUpdater = TSparseSpace::CreateDofUpdater();
+    }
 
     /// Destructor.
     ~GearScheme() override
@@ -300,7 +304,7 @@ public:
     {
         KRATOS_TRY
 
-        this->UpdateDofs(rDofSet,Dx);
+        mpDofUpdater->UpdateDofs(rDofSet,Dx);
 
         const Vector& BDFCoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
 
@@ -421,6 +425,18 @@ public:
         this->AddDynamicRHSContribution<Kratos::Condition>(rCurrentCondition,RHS_Contribution,Mass,rCurrentProcessInfo);
 
         KRATOS_CATCH("")
+    }
+
+
+    void Clean() override
+    {
+        this->mpDofUpdater->Clear();
+    }
+
+
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
     }
 
     ///@}
@@ -771,6 +787,8 @@ private:
 
     /// Poiner to a turbulence model
     Process::Pointer mpTurbulenceModel;
+
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater;
 
 //        ///@}
 //        ///@name Serialization
