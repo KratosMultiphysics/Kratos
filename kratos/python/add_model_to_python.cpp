@@ -14,11 +14,9 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "containers/model.h"
 #include "python/add_model_to_python.h"
 
@@ -28,17 +26,17 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddModelToPython()
+void  AddModelToPython(pybind11::module& m)
 {
-    class_<Model, Model::Pointer, boost::noncopyable >("Model", init<>())
+    class_<Model, Model::Pointer >(m,"Model")
+    .def(init<>())
     .def("AddModelPart", &Model::AddModelPart)
-    .def("GetModelPart", &Model::GetModelPart, return_internal_reference<>())
+    .def("GetModelPart", &Model::GetModelPart, return_value_policy::reference_internal)
     .def("HasModelPart", &Model::HasModelPart)
-//     .def("__setitem__", &Model::AddModelPart)
-    .def("__getitem__", &Model::GetModelPart, return_internal_reference<>())
-    .def(self_ns::str(self))
+    .def("__getitem__", &Model::GetModelPart, return_value_policy::reference_internal)
+    .def("__repr__", &Model::Info)
     ;
 }
 

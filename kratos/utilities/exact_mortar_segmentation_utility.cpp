@@ -29,7 +29,7 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
     )
 {
     // We take the geometry GP from the core
-    const double tolerance = 1.0e-6;  // ZeroTolerance;
+    const double tolerance = 1.0e-6;  // std::numeric_limits<double>::epsilon();
 
     double total_weight = 0.0;
     array_1d<double, 2> auxiliar_coordinates(2 , 0.0);
@@ -109,7 +109,7 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
     KRATOS_ERROR_IF(total_weight > 2.0) << "ERROR:: Impossible, Weight higher than 2: "<< auxiliar_coordinates << std::endl;
 
     // We do the final assignmen
-    if (total_weight > ZeroTolerance) {
+    if (total_weight > std::numeric_limits<double>::epsilon()) {
         ConditionsPointsSlave.resize(1);
         array_1d<PointType, 2> list_points;
         list_points[0].Coordinates()[0] = auxiliar_coordinates[0];
@@ -137,6 +137,9 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
     ConditionArrayListType& ConditionsPointsSlave
     )
 {
+    // Zero tolerance
+    const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
     // Firt we create an auxiliar plane based in the condition center and its normal
     const PointType& slave_center = OriginalSlaveGeometry.Center();
 
@@ -174,7 +177,7 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
     array_1d<bool, 3> all_inside;
 
     // We check if the nodes are inside
-    CheckInside(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside(all_inside, slave_geometry, master_geometry, zero_tolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -195,7 +198,7 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, zero_tolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry);
@@ -218,6 +221,9 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
     ConditionArrayListType& ConditionsPointsSlave
     )
 {
+    // Zero tolerance
+    const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
     // Firt we create an auxiliar plane based in the condition center and its normal
     const PointType& slave_center = OriginalSlaveGeometry.Center();
 
@@ -258,7 +264,7 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
     array_1d<bool, 4> all_inside;
 
     // We check if the nodes are inside
-    CheckInside(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside(all_inside, slave_geometry, master_geometry, zero_tolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -274,7 +280,7 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, zero_tolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry);
@@ -300,7 +306,7 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
     )
 {
     // We take the geometry GP from the core
-    const double tolerance = 1.0e-6;  // ZeroTolerance;
+    const double tolerance = 1.0e-6;  // std::numeric_limits<double>::epsilon();
 
     double total_weight = 0.0;
     array_1d<double, 2> auxiliar_coordinates(2, 0.0);
@@ -394,7 +400,7 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
     KRATOS_ERROR_IF(total_weight > 2.0) << "ERROR:: Impossible, Weight higher than 2: "<< auxiliar_coordinates << std::endl;
 
     // We do the final assignmen
-    if (total_weight > ZeroTolerance) {
+    if (total_weight > std::numeric_limits<double>::epsilon()) {
         ConditionsPointsSlave.resize(1);
         array_1d<PointBelong<2>, 2> list_points;
         list_points[0].Coordinates()[0] = auxiliar_coordinates[0];
@@ -424,6 +430,9 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
     ConditionArrayListType& ConditionsPointsSlave
     )
 {
+    // Zero tolerance
+    const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
     // Firt we create an auxiliar plane based in the condition center and its normal
     const PointType& slave_center = OriginalSlaveGeometry.Center();
 
@@ -456,7 +465,7 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
     array_1d<bool, 3> all_inside;
 
     // We check if the nodes are inside
-    CheckInside(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside(all_inside, slave_geometry, master_geometry, zero_tolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -477,7 +486,7 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry, Master);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, zero_tolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry, Slave);
@@ -500,6 +509,9 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
     ConditionArrayListType& ConditionsPointsSlave
     )
 {
+    // Zero tolerance
+    const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
     // Firt we create an auxiliar plane based in the condition center and its normal
     const PointType& slave_center = OriginalSlaveGeometry.Center();
 
@@ -540,7 +552,7 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
     array_1d<bool, 4> all_inside;
 
     // We check if the nodes are inside
-    CheckInside(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside(all_inside, slave_geometry, master_geometry, zero_tolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -556,7 +568,7 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry, Master);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, zero_tolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry, Slave);

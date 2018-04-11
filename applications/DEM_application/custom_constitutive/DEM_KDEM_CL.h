@@ -8,7 +8,7 @@
 
 namespace Kratos {
 
-    class DEM_KDEM : public DEMContinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_KDEM : public DEMContinuumConstitutiveLaw {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM);

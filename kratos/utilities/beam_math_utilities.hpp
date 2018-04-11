@@ -739,10 +739,10 @@ public:
     // local y-axis (e2_local)  
     double tolerance = 1.0/64.0;
     if(fabs(rLocalX[0])< tolerance && fabs(rLocalX[1])< tolerance){
-      rLocalY = MathUtilsType::CrossProduct(GlobalY, rLocalX);
+      MathUtilsType::CrossProduct(rLocalY,GlobalY,rLocalX);
     }
     else{
-      rLocalY = MathUtilsType::CrossProduct(GlobalZ, rLocalX);
+      MathUtilsType::CrossProduct(rLocalY,GlobalZ,rLocalX);
     }
     
     VectorNorm = MathUtilsType::Norm(rLocalY);
@@ -750,7 +750,7 @@ public:
       rLocalY /= VectorNorm;
     
     // local z-axis (e3_local)
-    rLocalZ = MathUtilsType::CrossProduct(rLocalX,rLocalY);
+    MathUtilsType::CrossProduct(rLocalZ,rLocalX,rLocalY);
     
     VectorNorm = MathUtilsType::Norm(rLocalZ);
     if( VectorNorm != 0 )
