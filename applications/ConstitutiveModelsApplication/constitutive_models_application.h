@@ -128,7 +128,7 @@ namespace Kratos {
   /// Short class definition.
   /** Detail class definition.
    */
-  class KratosConstitutiveModelsApplication : public KratosApplication
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) KratosConstitutiveModelsApplication : public KratosApplication
   {
   public:
     ///@name Type Definitions
