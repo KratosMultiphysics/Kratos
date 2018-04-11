@@ -40,13 +40,14 @@ class InterfaceSU2():
         {
             "su2_related":
             {
-                "config_file"        : "None",
-                "number_of_cores"    : 1,
-                "number_of_zones"    : 1,
-                "gradient_method"    : "DISCRETE_ADJOINT",
-                "mesh_file"          : "None",
-                "mesh_motion_file"   : "mesh_motion.dat",
-                "design_surface_tag" : "None"
+                "config_file"                 : "None",
+                "number_of_cores"             : 1,
+                "number_of_zones"             : 1,
+                "gradient_method"             : "DISCRETE_ADJOINT",
+                "write_frequency_adjoint_run" : 1000,
+                "mesh_file"                   : "None",
+                "mesh_motion_file"            : "mesh_motion.dat",
+                "design_surface_tag"          : "None"
             },
             "kratos_related":
             {
@@ -148,24 +149,29 @@ class InterfaceSU2():
             print("> Finished initializing SU2 project!\n")
 
     # --------------------------------------------------------------------------
-    def ComputeValues(self, list_of_response_ids, update_mesh):
+    def ComputeValues(self, list_of_response_ids, update_mesh, design_number):
         if self.interface_parameters["echo_level"].GetInt()==2:
-            return self.project.f (list_of_response_ids, update_mesh)
+            return self.project.f (list_of_response_ids, update_mesh, design_number)
         else:
             with suppress_stdout():
-                return self.project.f (list_of_response_ids, update_mesh)
+                return self.project.f (list_of_response_ids, update_mesh, design_number)
 
     # --------------------------------------------------------------------------
-    def ComputeGradient(self, response_id, update_mesh):
+    def ComputeGradient(self, response_id, update_mesh, design_number):
+        direct_solution_frequency = self.project.config["WRT_SOL_FREQ"]
+        self.project.config["WRT_SOL_FREQ"] = self.interface_parameters["su2_related"]["write_frequency_adjoint_run"].GetInt()
+
         if self.interface_parameters["echo_level"].GetInt()==2:
-            su2_gradient = self.project.df(response_id, update_mesh)[0]
+            su2_gradient = self.project.df(response_id, update_mesh, design_number)[0]
         else:
             with suppress_stdout():
-                su2_gradient = self.project.df(response_id, update_mesh)[0]
+                su2_gradient = self.project.df(response_id, update_mesh, design_number)[0]
 
         kratos_gradient = {}
         for su2_node_id in su2_gradient.keys():
             kratos_gradient[self.node_id_su2_to_kratos[su2_node_id]] = su2_gradient[su2_node_id]
+
+        self.project.config["WRT_SOL_FREQ"] = direct_solution_frequency
 
         return kratos_gradient
 
