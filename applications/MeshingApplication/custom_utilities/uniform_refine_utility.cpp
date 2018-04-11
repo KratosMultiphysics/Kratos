@@ -32,6 +32,10 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
     mFinalRefinementLevel(RefinementLevel)
 {
     // Initialize the member variables storing the Id
+    mLastNodeId = 0;
+    mLastElemId = 0;
+    mLastCondId = 0;
+
     // Get the last node id
     const int nnodes = mrModelPart.Nodes().size();
     for (int i = 0; i < nnodes; i++)
@@ -97,7 +101,7 @@ template< unsigned int TDim>
 void UniformRefineUtility<TDim>::Refine()
 {
     // Get the lowest refinement level
-    int minimum_refinement_level = 0;
+    int minimum_refinement_level = 1e6;
     const int n_elements = mrModelPart.Elements().size();
     for (int i = 0; i < n_elements; i++)
     {
@@ -149,7 +153,6 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& ThisLevel)
         if (step_refine_level == ThisLevel)
         {
             step_refine_level++;
-            
             // Get the geometry
             Geometry<Node<3>>& geom = p_element->GetGeometry();
 
@@ -208,8 +211,11 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& ThisLevel)
 
             // Once we have created all the sub elements
             p_element->Set(TO_ERASE, true);
+            //mrModelPart.RemoveElement(id);
         }
     }
+    mrModelPart.RemoveElements(TO_ERASE);
+    mrModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
     // Loop the origin conditions
     for (const int id : conditions_id)
@@ -255,10 +261,10 @@ Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeBetween(
     else
     {
         // Create the new node
-        double new_x = pNode0->X() - pNode1->X();
-        double new_y = pNode0->Y() - pNode1->Y();
-        double new_z = pNode0->Z() - pNode1->Z();
-        middle_node = mrModelPart.CreateNewNode(mLastNodeId++, new_x, new_y, new_z);
+        double new_x = 0.5*pNode0->X() + 0.5*pNode1->X();
+        double new_y = 0.5*pNode0->Y() + 0.5*pNode1->Y();
+        double new_z = 0.5*pNode0->Z() + 0.5*pNode1->Z();
+        middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
 
         // interpolate the variables
         CalculateNodalStepData(middle_node, pNode0, pNode1);
@@ -319,7 +325,7 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
         const double* node_data_1 = pNode1->SolutionStepData().Data(step);
 
         for (unsigned int variable = 0; variable < mStepDataSize; variable++)
-            new_node_data[variable] = .5 * node_data_0[variable] + .5 * node_data_1[variable];
+            new_node_data[variable] = 0.5 * node_data_0[variable] + 0.5 * node_data_1[variable];
     }
 }
 
@@ -332,7 +338,7 @@ void UniformRefineUtility<TDim>::CreateElement(
     const int& rRefinementLevel
     )
 {
-    Element::Pointer sub_element = pOriginElement->Create(mLastElemId++, ThisNodes, pOriginElement->pGetProperties());
+    Element::Pointer sub_element = pOriginElement->Create(++mLastElemId, ThisNodes, pOriginElement->pGetProperties());
     
     if (sub_element != nullptr) 
     {
