@@ -17,6 +17,7 @@
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "custom_utilities/element_size_calculator.h"
 #include "custom_utilities/vorticity_utilities.h"
 
@@ -790,6 +791,9 @@ template class FluidElement< QSVMSData<3,8> >;
 
 template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
 template class FluidElement< TimeIntegratedQSVMSData<3,4> >;
+
+template class FluidElement< TwoFluidNavierStokesData<2, 3> >;
+template class FluidElement< TwoFluidNavierStokesData<3, 4> >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

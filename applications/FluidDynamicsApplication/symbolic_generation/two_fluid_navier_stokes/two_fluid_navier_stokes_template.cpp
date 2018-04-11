@@ -299,7 +299,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     MatrixType& rV,
     MatrixType& rH,
     MatrixType& rKee,
-    MatrixType& rRHS_ee) {
+	VectorType& rRHS_ee) {
 
 	const double rho = rData.Density;
 	const double mu = rData.EffectiveViscosity;
@@ -363,7 +363,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     MatrixType& rV,
     MatrixType& rH,
     MatrixType& rKee,
-    MatrixType& rRHS_ee) {
+	VectorType& rRHS_ee) {
 
 	const double rho = rData.Density;
 	const double mu = rData.EffectiveViscosity;
@@ -419,6 +419,26 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     noalias(rKee) += rData.Weight * Kee;
     noalias(rRHS_ee) += rData.Weight * rhs_ee;
 }
+
+template< class TElementData >
+void TwoFluidNavierStokes<TElementData>::save(Serializer& rSerializer) const
+{
+	using BaseType = FluidElement<TElementData>;
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+}
+
+template< class TElementData >
+void TwoFluidNavierStokes<TElementData>::load(Serializer& rSerializer)
+{
+	using BaseType = FluidElement<TElementData>;
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Class template instantiation
+
+template class TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >;
+template class TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> >;
 
 
 //void NavierStokesEnr2D::ComputeGaussPointEnrichmentContributions(
