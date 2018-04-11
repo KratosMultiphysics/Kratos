@@ -3,10 +3,10 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:        BSD License
+//	                license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Armin Geiser
 //
 
 // System includes
