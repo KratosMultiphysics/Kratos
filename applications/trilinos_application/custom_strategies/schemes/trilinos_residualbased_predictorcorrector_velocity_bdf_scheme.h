@@ -149,7 +149,7 @@ public:
      */
     /*@{ */
 
-    virtual int Check(ModelPart& rModelPart) override
+    int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -191,11 +191,11 @@ public:
      * @param Dx Vector of nodal unknowns (increments to be added to each unknown value).
      * @param b System right hand side vector (unused).
      */
-    virtual void BasicUpdateOperations(ModelPart& r_model_part,
-                                       DofsArrayType& rDofSet,
-                                       TSystemMatrixType& A,
-                                       TSystemVectorType& Dx,
-                                       TSystemVectorType& b) override
+    void BasicUpdateOperations(ModelPart& r_model_part,
+                               DofsArrayType& rDofSet,
+                               TSystemMatrixType& A,
+                               TSystemVectorType& Dx,
+                               TSystemVectorType& b) override
     {
         KRATOS_TRY;
 
@@ -235,7 +235,7 @@ public:
         return mImporterIsInitialized;
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         mpDofImporter.reset();
         mImporterIsInitialized = false;

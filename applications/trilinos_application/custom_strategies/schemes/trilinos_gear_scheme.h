@@ -174,7 +174,7 @@ public:
      */
     /*@{ */
 
-    virtual int Check(ModelPart& rModelPart)
+    int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -212,7 +212,7 @@ public:
 
 
     /// Calculate OSS projections, properly taking into account periodic boundaries.
-    virtual void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
+    void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
     {
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -279,8 +279,8 @@ public:
 //                                       TSystemMatrixType& A,
 //                                       TSystemVectorType& Dx,
 //                                       TSystemVectorType& b)
-    virtual void UpdateDofs(DofsArrayType& rDofSet,
-                            TSystemVectorType& Dx)
+    void UpdateDofs(DofsArrayType& rDofSet,
+                    TSystemVectorType& Dx) override
     {
         KRATOS_TRY;
 
@@ -320,7 +320,7 @@ public:
         return mImporterIsInitialized;
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         mpDofImporter.reset();
         mImporterIsInitialized = false;

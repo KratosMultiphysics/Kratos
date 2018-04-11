@@ -98,7 +98,7 @@ public:
 
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosConvectionDiffusionStrategy);
- 
+
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -207,7 +207,7 @@ public:
     //*********************************************************************************
     //**********************************************************************
 
-    double Solve()
+    double Solve() override
     {
         KRATOS_TRY
 
@@ -327,12 +327,12 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         mstep1->SetEchoLevel(Level);
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         mstep1->Clear();
     }
