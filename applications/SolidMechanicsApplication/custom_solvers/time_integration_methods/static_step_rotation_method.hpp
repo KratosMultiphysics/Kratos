@@ -101,15 +101,8 @@ namespace Kratos
     ///@{
 
     // update
-    virtual void Update(NodeType& rNode) override 
-    {
-      KRATOS_TRY
-
-      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS " <<std::endl;
-	
-      KRATOS_CATCH( "" )
-    }
-    
+    virtual void Update(NodeType& rNode) override;
+     
     ///@}
     ///@name Access
     ///@{
@@ -251,8 +244,18 @@ namespace Kratos
   ///@name Type Definitions
   ///@{
   
-  // template<>
-  // void StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
+  template<>
+  void StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
+
+  template<class TVariableType, class TValueType>
+  void StaticStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
+  {
+      KRATOS_TRY
+
+      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS in StaticStepRotationMethod " <<std::endl;
+	
+      KRATOS_CATCH( "" )
+  }
 
   ///@}
   ///@name Input and output
