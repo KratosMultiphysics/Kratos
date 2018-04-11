@@ -23,8 +23,6 @@
 // ------------------------------------------------------------------------------
 // External includes
 // ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/io.hpp>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -35,6 +33,7 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
+#include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "structural_mechanics_application_variables.h"
 #include "response_function.h"
@@ -85,7 +84,7 @@ public:
 
 	/// Default constructor.
 	MassResponseFunction(ModelPart& model_part, Parameters responseSettings)
-	: mr_model_part(model_part)
+	: mrModelPart(model_part)
 	{
 		std::string gradientMode = responseSettings["gradient_mode"].GetString();
 		if (gradientMode.compare("finite_differencing") == 0)
@@ -125,7 +124,7 @@ public:
 		double total_mass = 0.0;
 
 		// Incremental computation of total mass
-		for (auto& elem_i : mr_model_part.Elements())
+		for (auto& elem_i : mrModelPart.Elements())
 		{
 			double elem_density = elem_i.GetProperties()[DENSITY];
 
@@ -148,18 +147,17 @@ public:
 		// \frac{dm_{total}}{dx}
 
 		// First gradients are initialized
-		array_3d zeros_array(3, 0.0);
-		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			noalias(node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = zeros_array;
+		VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+
 
 		// Start process to identify element neighbors for every node
-		FindNodalNeighboursProcess neighorFinder = FindNodalNeighboursProcess(mr_model_part, 10, 10);
+		FindNodalNeighboursProcess neighorFinder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
 		neighorFinder.Execute();
 
-		for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
+		for(auto& node_i : mrModelPart.Nodes())
 		{
 			// Get all neighbor elements of current node
-			WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
+			WeakPointerVector<Element >& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
 
 			// Compute total mass of all neighbor elements before finite differencing
 			double mass_before_fd = 0.0;
@@ -178,7 +176,7 @@ public:
 
 			// Apply pertubation in X-direction and recompute total mass of all neighbor elements
 			double mass_after_fd = 0.0;
-			node_i->X() += mDelta;
+			node_i.X() += mDelta;
 			for(unsigned int i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
@@ -189,11 +187,11 @@ public:
 				mass_after_fd +=  elem_density*elem_volume;
 			}
 			gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
-			node_i->X() -= mDelta;
+			node_i.X() -= mDelta;
 
 			// Apply pertubation in Y-direction and recompute total mass of all neighbor elements
 			mass_after_fd = 0.0;
-			node_i->Y() += mDelta;
+			node_i.Y() += mDelta;
 			for(unsigned int i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
@@ -204,11 +202,11 @@ public:
 				mass_after_fd +=  elem_density*elem_volume;
 			}
 			gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
-			node_i->Y() -= mDelta;
+			node_i.Y() -= mDelta;
 
 			// Apply pertubation in Z-direction and recompute total mass of all neighbor elements
 			mass_after_fd = 0.0;
-			node_i->Z() += mDelta;
+			node_i.Z() += mDelta;
 			for(unsigned int i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
@@ -219,10 +217,10 @@ public:
 				mass_after_fd +=  elem_density*elem_volume;
 			}
 			gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
-			node_i->Z() -= mDelta;
+			node_i.Z() -= mDelta;
 
 			// Compute sensitivity
-			noalias(node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = gradient;
+			noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = gradient;
 
 		}
 
@@ -236,10 +234,10 @@ public:
   	virtual void ConsiderDiscretization(){
 
 		std::cout<< "> Considering discretization size!" << std::endl;
-		for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
+		for(auto& node_i : mrModelPart.Nodes())
 		{
 			// Get all neighbor elements of current node
-			WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
+			WeakPointerVector<Element >& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
 
 			// Compute total mass of all neighbor elements before finite differencing
 			double scaling_factor = 0.0;
@@ -253,7 +251,7 @@ public:
 			}
 
 			// apply scaling
-			node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY) /= scaling_factor;
+			node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY) /= scaling_factor;
 		}
 	}
 
@@ -348,7 +346,7 @@ private:
 	///@name Member Variables
 	///@{
 
-	ModelPart &mr_model_part;
+	ModelPart &mrModelPart;
 	double mDelta;
 	bool mConsiderDiscretization;
 
