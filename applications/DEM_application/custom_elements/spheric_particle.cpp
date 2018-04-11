@@ -1340,9 +1340,25 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
                                               const array_1d<double,3>& gravity)
 {
     KRATOS_TRY
-    noalias(externally_applied_force)  += ComputeWeight(gravity, r_process_info);
-    noalias(externally_applied_force)  += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
-    noalias(externally_applied_moment) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
+    if (this->Is(DEMFlags::CUMULATIVE_ZONE)) {
+        const array_1d<double,3> gravity_force = ComputeWeight(gravity, r_process_info);
+
+        const double gravity_force_magnitude = std::sqrt(gravity_force[0] * gravity_force[0] +
+                                                        gravity_force[1] * gravity_force[1] +
+                                                        gravity_force[2] * gravity_force[2]);
+
+        const array_1d<double, 3>& vel = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);                                                
+        const double inlet_damping_coefficient = 1.0;
+        const array_1d<double, 3>& damping_force = - inlet_damping_coefficient * GetMass() * vel;
+        const array_1d<double, 3>& upward_force  = - 0.5 * gravity_force_magnitude * vel;
+
+        noalias(externally_applied_force)  += damping_force;
+        noalias(externally_applied_force)  += upward_force;
+    } else {
+        noalias(externally_applied_force)  += ComputeWeight(gravity, r_process_info);
+        noalias(externally_applied_force)  += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+        noalias(externally_applied_moment) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT); 
+    }
     KRATOS_CATCH("")
 }
 

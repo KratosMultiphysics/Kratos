@@ -291,6 +291,32 @@ namespace Kratos {
         node.Set(DEMFlags::FIXED_ANG_VEL_Z, true);
     }
 
+    void DEM_Inlet::DefineCumulativeZoneConditions(Element* p_element)
+    {
+        Node<3>& node = p_element->GetGeometry()[0];
+        node.Set(DEMFlags::CUMULATIVE_ZONE, true);
+    }
+
+    bool DEM_Inlet::CheckDistance(Element* p_element)
+    {
+        Node<3>& node = p_element->GetGeometry()[0];
+        const array_1d<double,3>& initial_coordinates = node.GetInitialPosition();
+        const array_1d<double,3>& coordinates = node.Coordinates();
+        const double distance = std::sqrt((initial_coordinates[0]- coordinates[0]) * (initial_coordinates[0] - coordinates[0]) +
+                                          (initial_coordinates[1]- coordinates[1]) * (initial_coordinates[1] - coordinates[1]) +
+                                          (initial_coordinates[2]- coordinates[2]) * (initial_coordinates[2] - coordinates[2]));
+
+        SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*p_element);
+            //Node<3>& r_node = spheric_particle.GetGeometry()[0];
+        const double reference_distance = 6.0 * spheric_particle.GetInteractionRadius();
+
+        if (distance < reference_distance) {
+            return true;
+        } else {
+            return false;
+        }                                  
+    }
+
     void DEM_Inlet::RemoveInjectionConditions(Element& element)
     {
         Node<3>& node = element.GetGeometry()[0];
@@ -541,6 +567,9 @@ namespace Kratos {
 
                         mOriginInletSubmodelPartIndexes[p_spheric_particle->Id()] = smp_it->Name();
                         FixInjectionConditions(p_spheric_particle, p_injector_element);
+
+                        if (CheckDistance(p_spheric_particle)) {DefineCumulativeZoneConditions(p_spheric_particle);}
+                        
                         UpdatePartialThroughput(*p_spheric_particle, smp_number);
                         max_Id++;
                     }
