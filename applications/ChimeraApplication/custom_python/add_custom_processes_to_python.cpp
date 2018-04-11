@@ -19,6 +19,9 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
+
+
+#include "custom_processes/spalart_allmaras_turbulence_model_for_chimera.h"
 #include "custom_processes/custom_hole_cutting_process.h"
 #include "custom_processes/apply_chimera_process.h"
 #include "custom_processes/custom_calculate_signed_distance_process.h"
@@ -35,8 +38,17 @@ namespace Python
 void AddCustomProcessesToPython()
 {
 	using namespace boost::python;
+
+	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
 		
-  
+   class_< SpalartAllmarasTurbulenceModelForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
+    ("SpalartAllmarasTurbulenceModelForChimera", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
+    .def("ActivateDES", &SpalartAllmarasTurbulenceModelForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
+    .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModelForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >::AdaptForFractionalStep)
+    ;
 	/*
 	 * ApplyChimeraProcess for 2d and 3d
 	 */

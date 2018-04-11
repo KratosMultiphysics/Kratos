@@ -32,6 +32,9 @@
 //#include "custom_utilities/multipoint_constraint_data.hpp"
 
 #include "custom_utilities/interpolation_utility.h"
+#include "custom_utilities/fractional_step_settings_for_chimera.h"
+#include "custom_utilities/periodic_condition_utilities_for_chimera.h"
+
 
 namespace Kratos
 {
@@ -59,12 +62,13 @@ namespace Python
 
   void  AddCustomUtilitiesToPython()
   {
+    
+    
     using namespace boost::python;
 
-
-      //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-      //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-      //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
 
           /// Processes
@@ -109,8 +113,52 @@ namespace Python
               .def("Projection_Traction", &InterpolationUtility < 3 > ::Projection_Traction)
               .def("ExtractBoundaryFaces",&InterpolationUtility < 3 >::ExtractBoundaryFaces)
               ;
+  // Periodic boundary conditions utilities
+    typedef void (PeriodicConditionUtilitiesForChimera::*AddDoubleVariableType)(Properties&,Variable<double>&);
+    typedef void (PeriodicConditionUtilitiesForChimera::*AddVariableComponentType)(Properties&,VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > >&);
+
+    AddDoubleVariableType AddDoubleVariable = &PeriodicConditionUtilitiesForChimera::AddPeriodicVariable;
+    AddVariableComponentType AddVariableComponent = &PeriodicConditionUtilitiesForChimera::AddPeriodicVariable;
+
+    class_<PeriodicConditionUtilitiesForChimera>("PeriodicConditionUtilitiesForChimera", init<ModelPart&,unsigned int>())
+        .def("SetUpSearchStructure",&PeriodicConditionUtilitiesForChimera::SetUpSearchStructure)
+        .def("DefinePeriodicBoundary",&PeriodicConditionUtilitiesForChimera::DefinePeriodicBoundary)
+        .def("AddPeriodicVariable",AddDoubleVariable)
+        .def("AddPeriodicVariable",AddVariableComponent)
+    ;  
 
 
+ // Base settings 
+    typedef SolverSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType> BaseSettingsType;
+
+    class_ < BaseSettingsType, boost::noncopyable >( "BaseSettingsType",no_init );
+
+    // Fractional step settings
+    enum_<FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel>("StrategyLabel")
+        .value("Velocity",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::Velocity)
+        .value("Pressure",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::Pressure)
+        //.value("EddyViscosity",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
+    ;
+
+    enum_<FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel>("TurbulenceModelLabel")
+        .value("SpalartAllmaras",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SpalartAllmaras)
+    ;
+
+    typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*SetStrategyByParamsType)(FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel const&,LinearSolverType::Pointer,const double,const unsigned int);
+    typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*BuildTurbModelType)(FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel const&, LinearSolverType::Pointer, const double, const unsigned int);
+    typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*PassTurbModelType)(Process::Pointer);
+    SetStrategyByParamsType ThisSetStrategyOverload = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetStrategy;
+    BuildTurbModelType SetTurbModel_Build = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;
+    PassTurbModelType SetTurbModel_Pass = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;
+
+    class_< FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>,bases<BaseSettingsType>, boost::noncopyable>
+        ("FractionalStepSettingsForChimera",init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
+        .def("SetStrategy",ThisSetStrategyOverload)
+        .def("SetTurbulenceModel",SetTurbModel_Build)
+        .def("SetTurbulenceModel",SetTurbModel_Pass)
+        .def("GetStrategy",&FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::pGetStrategy)
+        .def("SetEchoLevel",&FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
+    ; 
   }
 
 
