@@ -81,15 +81,18 @@ public:
     ///@{
 
     /// Create a new instance of this class.
-    /** @return a std::unique_pointer to the new instance.
+    /** This function is used by the SparseSpace class to create new
+     *  DofUpdater instances of the appropriate type.
+     *  @return a std::unique_pointer to the new instance.
      *  Note that the pointer is actually a pointer to the base class type.
+     *  @see UblasSpace::CreateDofUpdater(), TrilinosSpace::CreateDofUpdater().
      */
     UniquePointer Create() const override
     {
         return UniquePointer(new TrilinosDofUpdater());
     }
 
-    /// Initialize the DofUpdater in preparation for a subsequent UpdateDof call.
+    /// Initialize the DofUpdater in preparation for a subsequent UpdateDofs call.
     /** @param[in/out] rDofSet The list of degrees of freedom.
      *  @param[in] rDx The update vector.
      *  The DofUpdater needs to be initialized only if the dofset changes.
@@ -99,7 +102,7 @@ public:
      *  If the dofset only changes under certain conditions (for example because
      *  the domain is remeshed every N iterations), it is enough to call the
      *  Clear method to let this class know that its auxiliary data has to be re-generated
-     *  and Initialize will be called as part of the next UpdateDof call.
+     *  and Initialize will be called as part of the next UpdateDofs call.
      */
     void Initialize(
         DofsArrayType& rDofSet,
@@ -160,7 +163,7 @@ public:
      *  @param[in] rDx The update vector.
      *  This method will check if Initialize() was called before and call it if necessary.
      */
-    void UpdateDof(
+    void UpdateDofs(
         DofsArrayType& rDofSet,
         const SystemVectorType& rDx) override
     {
