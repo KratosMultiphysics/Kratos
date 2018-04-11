@@ -15,7 +15,6 @@
 /* System Includes */
 
 /* External Includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "includes/kratos_parameters.h"

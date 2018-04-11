@@ -7,7 +7,7 @@
 //
 // 
 
-#if !defined(KRATOS_LARGE_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_LARGE_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED)
 #define  KRATOS_LARGE_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED
 
 // System includes
@@ -43,7 +43,7 @@ namespace Kratos
  * Nodal Dofs: DISPLACEMENT, ROTATION
  */
 
-class LargeDisplacementBeamElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LargeDisplacementBeamElement
     :public BeamElement
 {
 public:

@@ -36,6 +36,7 @@
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.h"
+#include "custom_constitutive/DEM_compound_constitutive_law.h"
 
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
@@ -415,6 +416,12 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))) {}
+
+// Explicit instantiation of composed constituive laws
+template class DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>;
+template class DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>;
+template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>;
+template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>;
 
 void KratosDEMApplication::Register() {
     // Calling base class register to register Kratos components

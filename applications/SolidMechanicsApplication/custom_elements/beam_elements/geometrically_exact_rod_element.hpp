@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_GEOMETRICALLY_EXACT_ROD_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_GEOMETRICALLY_EXACT_ROD_ELEMENT_H_INCLUDED)
 #define  KRATOS_GEOMETRICALLY_EXACT_ROD_ELEMENT_H_INCLUDED
 
 // System includes
@@ -43,7 +43,7 @@ namespace Kratos
  * Nodal Dofs: DISPLACEMENT, ROTATION
  */
 
-class GeometricallyExactRodElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) GeometricallyExactRodElement
     :public LargeDisplacementBeamEMCElement
 {
 public:

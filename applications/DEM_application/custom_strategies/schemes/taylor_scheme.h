@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class TaylorScheme : public DEMIntegrationScheme {
+    class KRATOS_API(DEM_APPLICATION) TaylorScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;

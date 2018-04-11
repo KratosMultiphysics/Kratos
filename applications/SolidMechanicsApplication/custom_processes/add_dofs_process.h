@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_ADD_DOFS_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_ADD_DOFS_PROCESS_H_INCLUDED)
 #define  KRATOS_ADD_DOFS_PROCESS_H_INCLUDED
 
 
@@ -48,7 +48,7 @@ public:
     ///@{
     AddDofsProcess(ModelPart& model_part,
 		   Parameters rParameters
-		   ) : Process() , mr_model_part(model_part)
+		   ) : Process() , mrModelPart(model_part)
     {
         KRATOS_TRY
 	  
@@ -163,9 +163,9 @@ public:
 
     
     AddDofsProcess(ModelPart& model_part,
-		   const boost::python::list& rVariablesList,
-		   const boost::python::list& rReactionsList
-		   ) : Process(), mr_model_part(model_part)
+		   const pybind11::list& rVariablesList,
+		   const pybind11::list& rReactionsList
+		   ) : Process(), mrModelPart(model_part)
     {
         KRATOS_TRY
 	  
@@ -179,8 +179,10 @@ public:
 	for(unsigned int i=0; i<number_variables; i++)
 	  {
 
-	    std::string variable_name = boost::python::extract<std::string>(rVariablesList[i]);
-	    std::string reaction_name = boost::python::extract<std::string>(rReactionsList[i]);
+	    //std::string variable_name = boost::python::extract<std::string>(rVariablesList[i]);
+	    //std::string reaction_name = boost::python::extract<std::string>(rReactionsList[i]);
+	    std::string variable_name = pybind11::cast<std::string>(rVariablesList[i]);
+	    std::string reaction_name = pybind11::cast<std::string>(rReactionsList[i]);
 
 	    bool supplied_reaction = true;
 	    if(reaction_name == "NOT_DEFINED")
@@ -290,8 +292,8 @@ public:
 
         KRATOS_TRY;
 
-	int number_of_nodes = mr_model_part.NumberOfNodes();
-	ModelPart::NodeConstantIterator nodes_begin = mr_model_part.NodesBegin();
+	int number_of_nodes = mrModelPart.NumberOfNodes();
+	ModelPart::NodeConstantIterator nodes_begin = mrModelPart.NodesBegin();
 
 	/*
 	//1nd way: (fastest) generating the dofs for the initial node and add to others (still fails if a variable or a dof is set when mdpa is read)
@@ -445,7 +447,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
 
     const std::vector<std::string> ms_components {"_X", "_Y", "_Z"};
     
@@ -467,8 +469,8 @@ private:
     {
       KRATOS_TRY
 
-	int number_of_nodes = mr_model_part.NumberOfNodes();
-	ModelPart::NodeConstantIterator nodes_begin = mr_model_part.NodesBegin();
+	int number_of_nodes = mrModelPart.NumberOfNodes();
+	ModelPart::NodeConstantIterator nodes_begin = mrModelPart.NodesBegin();
 	
 	for( unsigned int i=0; i < m_component_variables_list.size(); i++ )
 	  {

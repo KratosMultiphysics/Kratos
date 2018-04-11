@@ -328,13 +328,13 @@ void sort_rows(crs<V, C, P> &A) {
 
 /// Transpose of a sparse matrix.
 template < typename V, typename C, typename P >
-boost::shared_ptr< crs<V,C,P> > transpose(const crs<V, C, P> &A)
+std::shared_ptr< crs<V,C,P> > transpose(const crs<V, C, P> &A)
 {
     const size_t n   = rows(A);
     const size_t m   = cols(A);
     const size_t nnz = nonzeros(A);
 
-    boost::shared_ptr< crs<V,C,P> > T = boost::make_shared< crs<V,C,P> >();
+    std::shared_ptr< crs<V,C,P> > T = std::make_shared< crs<V,C,P> >();
     T->set_size(m, n, true);
 
     for(size_t j = 0; j < nnz; ++j)
@@ -360,11 +360,11 @@ boost::shared_ptr< crs<V,C,P> > transpose(const crs<V, C, P> &A)
 
 /// Matrix-matrix product.
 template <class MatrixA, class MatrixB>
-boost::shared_ptr< crs< typename value_type<MatrixA>::type > >
+std::shared_ptr< crs< typename value_type<MatrixA>::type > >
 product(const MatrixA &A, const MatrixB &B, bool sort = false) {
     typedef typename value_type<MatrixA>::type  V;
 
-    boost::shared_ptr< crs<V> > C = boost::make_shared< crs<V> >();
+    std::shared_ptr< crs<V> > C = std::make_shared< crs<V> >();
 
 #ifdef _OPENMP
     int nt = omp_get_max_threads();
@@ -513,33 +513,33 @@ struct builtin {
     static std::string name() { return "builtin"; }
 
     // Copy matrix. This is a noop for builtin backend.
-    static boost::shared_ptr<matrix>
-    copy_matrix(boost::shared_ptr<matrix> A, const params&)
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr<matrix> A, const params&)
     {
         return A;
     }
 
     // Copy vector to builtin backend.
     template <class T>
-    static boost::shared_ptr< numa_vector<T> >
+    static std::shared_ptr< numa_vector<T> >
     copy_vector(const std::vector<T> &x, const params&)
     {
-        return boost::make_shared< numa_vector<T> >(x);
+        return std::make_shared< numa_vector<T> >(x);
     }
 
     // Copy vector to builtin backend. This is a noop for builtin backend.
     template <class T>
-    static boost::shared_ptr< numa_vector<T> >
-    copy_vector(boost::shared_ptr< numa_vector<T> > x, const params&)
+    static std::shared_ptr< numa_vector<T> >
+    copy_vector(std::shared_ptr< numa_vector<T> > x, const params&)
     {
         return x;
     }
 
     // Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params&)
     {
-        return boost::make_shared<vector>(size);
+        return std::make_shared<vector>(size);
     }
 
     struct gather {
@@ -569,9 +569,9 @@ struct builtin {
     };
 
     // Create direct solver for coarse level
-    static boost::shared_ptr<direct_solver>
-    create_solver(boost::shared_ptr<matrix> A, const params&) {
-        return boost::make_shared<direct_solver>(*A);
+    static std::shared_ptr<direct_solver>
+    create_solver(std::shared_ptr<matrix> A, const params&) {
+        return std::make_shared<direct_solver>(*A);
     }
 };
 

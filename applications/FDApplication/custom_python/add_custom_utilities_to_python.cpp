@@ -49,9 +49,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // System includes
+#include <pybind11/pybind11.h>
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -66,8 +66,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos {
 namespace Python {
 
-void  AddCustomUtilitiesToPython() {
-  using namespace boost::python;
+void  AddCustomUtilitiesToPython(pybind11::module& m) {
+  using namespace pybind11;
 
 	// typedef UblasSpace<double, CompressedMatrix, Vector>    SparseSpaceType;
 	// typedef UblasSpace<double, Matrix, Vector>              LocalSpaceType;

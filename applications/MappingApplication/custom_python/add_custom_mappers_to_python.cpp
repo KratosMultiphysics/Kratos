@@ -16,7 +16,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
 #include "custom_utilities/mapper_flags.h"
@@ -89,9 +88,9 @@ inline void InverseMapWithoutOptionsVector(Mapper& dummy,
     dummy.InverseMap(origin_variable, destination_variable, dummy_flags);
 }
 
-void  AddCustomMappersToPython()
+void  AddCustomMappersToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
     void (Mapper::*pMapScalarOptions)(const Variable<double> &,
             const Variable<double> &,
@@ -112,10 +111,10 @@ void  AddCustomMappersToPython()
             const Variable< array_1d<double, 3> > &,
             Kratos::Flags)
         = &Mapper::InverseMap;
-    
+
     // Exposing the base class of the Mappers to Python, but without constructor
-    class_< Mapper, Mapper::Pointer, boost::noncopyable > mapper 
-        = class_< Mapper, Mapper::Pointer, boost::noncopyable >("Mapper", no_init)
+    class_< Mapper, Mapper::Pointer > mapper
+        = class_< Mapper, Mapper::Pointer >(m, "Mapper")
             .def("UpdateInterface",  UpdateInterfaceWithoutArgs)
             .def("UpdateInterface",  UpdateInterfaceWithOptions)
             .def("UpdateInterface",  UpdateInterfaceWithSearchRadius)
@@ -130,7 +129,7 @@ void  AddCustomMappersToPython()
             .def("InverseMap",       pInverseMapScalarOptions)
             .def("InverseMap",       pInverseMapVectorOptions)
             ;
-    
+
     // Adding the flags that can be used while mapping
     mapper.attr("SWAP_SIGN")        = MapperFlags::SWAP_SIGN;
     mapper.attr("ADD_VALUES")       = MapperFlags::ADD_VALUES;
@@ -141,16 +140,17 @@ void  AddCustomMappersToPython()
     // This would circumvent problems with the wrong space being selected
 
     // Exposing the Mappers
-    class_< NearestNeighborMapper, bases<Mapper>, boost::noncopyable>
-    ("NearestNeighborMapper", init<ModelPart&, ModelPart&, Parameters>());
-    class_< NearestElementMapper, bases<Mapper>, boost::noncopyable>
-    ("NearestElementMapper", init<ModelPart&, ModelPart&, Parameters>());
+    class_< NearestNeighborMapper, NearestNeighborMapper::Pointer, Mapper>
+    (m, "NearestNeighborMapper")
+        .def( init<ModelPart&, ModelPart&, Parameters>() );
+
+    class_< NearestElementMapper, NearestElementMapper::Pointer, Mapper>
+    (m, "NearestElementMapper")
+        .def( init<ModelPart&, ModelPart&, Parameters>() );
 
     // Exposing the MapperFactory
-    class_< MapperFactory, boost::noncopyable>("MapperFactory", no_init)
-    .def("CreateMapper", &MapperFactory::CreateMapper)
-    .staticmethod("CreateMapper")
-    ;
+    class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
+        .def_static("CreateMapper", &MapperFactory::CreateMapper);
 }
 
 }  // namespace Python.
