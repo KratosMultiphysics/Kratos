@@ -35,8 +35,14 @@ namespace Kratos
 ///@{
 
 /// Utility class to update the values of degree of freedom (Dof) variables after solving the system.
-/** Detail class definition.
-*/
+/** This class encapsulates the operation of updating nodal degrees of freedom after a system solution.
+ *  In pseudo-code, the operation to be performed is
+ *  for each dof: dof.variable += dx[dof.equation_id]
+ *  This operation is a simple loop in shared memory, but requires additional infrastructure in MPI,
+ *  to obtain out-of-process update data. DofUpdater takes care of both the operation and the eventual
+ *  auxiliary infrastructure.
+ *  @see TrilinosDofUpdater for the trilinos version.
+ */
 template< class TSparseSpace >
 class DofUpdater
 {
@@ -82,10 +88,12 @@ public:
 
     /// Initialize the DofUpdater in preparation for a subsequent UpdateDof call.
     /** Note that the base DofUpdater does not have internal data, so this does nothing.
+     *  @param[in/out] rDofSet The list of degrees of freedom.
+     *  @param[in] rDx The update vector.
      */
     virtual void Initialize(
         DofsArrayType& rDofSet,
-        SystemVectorType& rDx)
+        const SystemVectorType& rDx)
     {}
 
     /// Free internal storage to reset the instance and/or optimize memory consumption.
@@ -93,9 +101,16 @@ public:
      */
     virtual void Clear() {}
 
+    /// Calculate new values for the problem's degrees of freedom using the update vector rDx.
+    /** For each Dof in rDofSet, this function calculates the updated value for the corresponding
+     *  variable as value += rDx[dof.EquationId()].
+     *  @param[in/out] rDofSet The list of degrees of freedom.
+     *  @param[in] rDx The update vector.
+     *  This method will check if Initialize() was called before and call it if necessary.
+     */
     virtual void UpdateDof(
         DofsArrayType& rDofSet,
-        SystemVectorType& rDx)
+        const SystemVectorType& rDx)
     {
         const int num_dof = static_cast<int>(rDofSet.size());
 

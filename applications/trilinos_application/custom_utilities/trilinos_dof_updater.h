@@ -35,9 +35,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/// Utility class to update the values of degree of freedom (Dof) variables after solving the system.
+/** This class encapsulates the operation of updating nodal degrees of freedom after a system solution.
+ *  In pseudo-code, the operation to be performed is
+ *  for each dof: dof.variable += dx[dof.equation_id]
+ *  This operation is a simple loop in shared memory, but requires additional infrastructure in MPI,
+ *  to obtain out-of-process update data. TrilinosDofUpdater manages both the update operation and the
+ *  auxiliary infrastructure.
+ */
 template< class TSparseSpace >
 class TrilinosDofUpdater : public DofUpdater<TSparseSpace>
 {
@@ -75,14 +80,30 @@ public:
     ///@name Operations
     ///@{
 
+    /// Create a new instance of this class.
+    /** @return a std::unique_pointer to the new instance.
+     *  Note that the pointer is actually a pointer to the base class type.
+     */
     UniquePointer Create() const override
     {
         return UniquePointer(new TrilinosDofUpdater());
     }
 
+    /// Initialize the DofUpdater in preparation for a subsequent UpdateDof call.
+    /** @param[in/out] rDofSet The list of degrees of freedom.
+     *  @param[in] rDx The update vector.
+     *  The DofUpdater needs to be initialized only if the dofset changes.
+     *  If the problem does not require creating/destroying nodes or changing the
+     *  mesh graph, it is in general enough to intialize this tool once at the
+     *  begining of the problem.
+     *  If the dofset only changes under certain conditions (for example because
+     *  the domain is remeshed every N iterations), it is enough to call the
+     *  Clear method to let this class know that its auxiliary data has to be re-generated
+     *  and Initialize will be called as part of the next UpdateDof call.
+     */
     void Initialize(
         DofsArrayType& rDofSet,
-        SystemVectorType& rDx) override
+        const SystemVectorType& rDx) override
     {
 
         int system_size = TSparseSpace::Size(rDx);
@@ -125,15 +146,23 @@ public:
         mImportIsInitialized = true;
     }
 
+    /// Free internal storage to reset the instance and/or optimize memory consumption.
     void Clear() override
     {
         mpDofImport.reset();
         mImportIsInitialized = false;
     }
 
+    /// Calculate new values for the problem's degrees of freedom using the update vector rDx.
+    /** For each Dof in rDofSet, this function calculates the updated value for the corresponding
+     *  variable as value += rDx[dof.EquationId()].
+     *  @param[in/out] rDofSet The list of degrees of freedom.
+     *  @param[in] rDx The update vector.
+     *  This method will check if Initialize() was called before and call it if necessary.
+     */
     void UpdateDof(
         DofsArrayType& rDofSet,
-        SystemVectorType& rDx) override
+        const SystemVectorType& rDx) override
     {
         KRATOS_TRY;
 
@@ -199,8 +228,10 @@ private:
     //@name Member Variables
     ///@{
 
+    /// This lets the class control if Initialize() was properly called.
     bool mImportIsInitialized;
 
+    /// Auxiliary trilinos data structure to import out-of-process data in the update vector.
     std::unique_ptr<Epetra_Import> mpDofImport;
 
     ///@}
