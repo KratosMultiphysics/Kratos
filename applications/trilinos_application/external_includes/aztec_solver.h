@@ -13,10 +13,7 @@
 #if !defined(KRATOS_AZTEC_SOLVER_H_INCLUDED )
 #define  KRATOS_AZTEC_SOLVER_H_INCLUDED
 
-// #define BOOST_NUMERIC_BINDINGS_SUPERLU_PRINT
-
 // External includes
-#include "boost/smart_ptr.hpp"
 #include "string.h"
 
 // Project includes

@@ -28,11 +28,6 @@
 
 // Project includes
 
-// Core applications
-#include "solid_mechanics_application.h"
-#include "contact_mechanics_application.h"
-
-//conditions
 
 //elements
 #include "custom_elements/total_updated_lagrangian_element.hpp"

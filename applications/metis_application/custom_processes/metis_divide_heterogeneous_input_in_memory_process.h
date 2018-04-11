@@ -1,3 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Jordi Cotela
+//                   Carlos Roig
+//
+
 #ifndef KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_IN_MEMORY_PROCESS_H
 #define KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_IN_MEMORY_PROCESS_H
 
@@ -145,11 +159,11 @@ public:
         }
 
         // Transfer Streams
-        boost::shared_ptr<std::iostream> * streams = new boost::shared_ptr<std::iostream>[mpi_size];
+        Kratos::shared_ptr<std::iostream> * streams = new Kratos::shared_ptr<std::iostream>[mpi_size];
         std::stringbuf * stringbufs = new std::stringbuf[mpi_size];
 
         for(auto i = 0; i < mpi_size; i++) {
-          streams[i] = boost::shared_ptr<std::iostream>(new std::iostream(&stringbufs[i]));
+          streams[i] = Kratos::shared_ptr<std::iostream>(new std::iostream(&stringbufs[i]));
         }
 
         // Calculate the partitions and write the result into temporal streams

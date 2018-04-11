@@ -23,7 +23,6 @@
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -319,7 +318,7 @@ public:
             {
                 //this is in case of emergency if we were not able to compute the deflation step in another way
                 std::size_t dim = 1;
-                mpconstant_def_space = boost::make_shared<constant_deflation_space>(rA.NumMyRows(), mndof,dim);
+                mpconstant_def_space = Kratos::make_shared<constant_deflation_space>(rA.NumMyRows(), mndof,dim);
             }
             dv = *mpconstant_def_space;;
         }
@@ -470,7 +469,7 @@ public:
 
         if(muse_linear_deflation == true)
         {
-            mplinear_def_space = boost::make_shared<deflation_space>(chunk, mndof,dim);
+            mplinear_def_space = Kratos::make_shared<deflation_space>(chunk, mndof,dim);
 
             unsigned int i=0;
             for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
@@ -564,7 +563,7 @@ public:
         }
         else
         {
-            mpconstant_def_space = boost::make_shared<constant_deflation_space>(chunk, mndof,dim);
+            mpconstant_def_space = Kratos::make_shared<constant_deflation_space>(chunk, mndof,dim);
 
             unsigned int i=0;
             for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
@@ -607,8 +606,8 @@ private:
     bool mprovide_coordinates = false;
     bool muse_block_matrices_if_possible = false;
 
-    boost::shared_ptr< deflation_space    > mplinear_def_space = nullptr;
-    boost::shared_ptr< constant_deflation_space    > mpconstant_def_space = nullptr;
+    Kratos::shared_ptr< deflation_space    > mplinear_def_space = nullptr;
+    Kratos::shared_ptr< constant_deflation_space    > mpconstant_def_space = nullptr;
 
 //     amgcl::runtime::coarsening::type mcoarsening;
 //     amgcl::runtime::relaxation::type mrelaxation;
