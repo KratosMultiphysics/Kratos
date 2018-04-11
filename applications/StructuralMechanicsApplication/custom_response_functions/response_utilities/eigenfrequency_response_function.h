@@ -1,13 +1,13 @@
-// ==============================================================================
-//  KratosShapeOptimizationApplication
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:         BSD License
-//                   license: ShapeOptimizationApplication/license.txt
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Fusseder Martin
-//                   martin.fusseder@tum.de
 //
-// ==============================================================================
 
 #ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_H
 #define EIGENFREQUENCY_RESPONSE_FUNCTION_H
