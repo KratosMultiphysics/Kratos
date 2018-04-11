@@ -26,7 +26,8 @@ class SimpleResponseFunctionWrapper(ResponseFunctionBase):
         super(SimpleResponseFunctionWrapper, self).__init__(identifier, project_parameters)
 
         # Create the primal solver
-        ProjectParametersPrimal = Parameters( open(project_parameters["primal_settings"].GetString(),'r').read() )
+        with open(project_parameters["primal_settings"].GetString()) as parameters_file:
+            ProjectParametersPrimal = Parameters( parameters_file.read() )
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal, model_part)
 
         self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
