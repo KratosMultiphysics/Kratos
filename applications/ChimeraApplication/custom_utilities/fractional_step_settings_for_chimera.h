@@ -12,7 +12,7 @@
 // Project includes
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/schemes/scheme.h"
@@ -25,6 +25,7 @@
 // Application includes
 #include "custom_processes/spalart_allmaras_turbulence_model_for_chimera.h"
 #include "custom_utilities/solver_settings_for_chimera.h"
+#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_mpc_chimera.h"
 
 
 namespace Kratos
