@@ -26,7 +26,6 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE
 
 	#strain rate laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/strain_rate_laws/newtonian_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/strain_rate_laws/newtonian_plane_strain_2d_law.cpp
 
 	#general constitutive models
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/constitutive_model.cpp

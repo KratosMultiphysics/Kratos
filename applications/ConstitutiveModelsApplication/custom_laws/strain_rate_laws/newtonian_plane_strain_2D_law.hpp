@@ -44,7 +44,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NewtonianPlaneStrain2DLaw : public Newtonian3DLaw
+  class NewtonianPlaneStrain2DLaw : public Newtonian3DLaw
     {
     public:
       ///@name Type Definitions
