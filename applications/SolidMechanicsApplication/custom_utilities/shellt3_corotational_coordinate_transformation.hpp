@@ -42,7 +42,7 @@ namespace Kratos
  * - C.A.Felippa, AFEM.Ch.37, "Triangular Shell Elements",
  *   link: http://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/
  */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTransformation
+class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTransformation
 {
 
  public:

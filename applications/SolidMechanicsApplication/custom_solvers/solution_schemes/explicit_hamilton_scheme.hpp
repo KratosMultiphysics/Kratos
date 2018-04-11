@@ -59,7 +59,7 @@ namespace Kratos
   template<class TSparseSpace,
 	   class TDenseSpace //= DenseSpace<double>
 	   >
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitHamiltonScheme : public Scheme<TSparseSpace,TDenseSpace>
+  class ExplicitHamiltonScheme : public Scheme<TSparseSpace,TDenseSpace>
   {
 
   public:

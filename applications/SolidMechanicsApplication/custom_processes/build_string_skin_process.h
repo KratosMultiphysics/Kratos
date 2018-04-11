@@ -36,7 +36,7 @@ namespace Kratos
      radius: define the walls of the tube respect to the generatrix
 */
   
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) BuildStringSkinProcess : public Process
+class BuildStringSkinProcess : public Process
 {
 public:
     ///@name Type Definitions

@@ -38,7 +38,7 @@ namespace Kratos
   /** @brief Bossak integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) DisplacementBossakScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
+  class DisplacementBossakScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
   {   
   public:
     

@@ -39,7 +39,7 @@ namespace Kratos
   /** @brief Static integration scheme (for static problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) DisplacementStaticScheme: public SolutionScheme<TSparseSpace,TDenseSpace>
+  class DisplacementStaticScheme: public SolutionScheme<TSparseSpace,TDenseSpace>
   {   
   public:
     

@@ -156,7 +156,7 @@ typedef array_1d<double,6> Vector6;
 /// Short class definition.
 /** Detail class definition.
  */
- class KratosSolidMechanicsApplication : public KratosApplication
+ class KRATOS_API(SOLID_MECHANICS_APPLICATION) KratosSolidMechanicsApplication : public KratosApplication
  {
  public:
 

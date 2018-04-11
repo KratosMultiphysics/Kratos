@@ -33,7 +33,7 @@ template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitHamiltonStrategy
+class ExplicitHamiltonStrategy
     : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:

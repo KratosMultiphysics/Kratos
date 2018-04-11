@@ -51,8 +51,7 @@ template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitHamiltonBuilderAndSolver
-    : public BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
+class ExplicitHamiltonBuilderAndSolver : public BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
 {
 public:
     /**@name Type Definitions */

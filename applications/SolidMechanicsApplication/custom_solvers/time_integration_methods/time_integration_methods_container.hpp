@@ -44,7 +44,7 @@ namespace Kratos
 /** A container for time integration methods.     
  * This class implements a container for setting all methods in ProcessInfo     
  */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) TimeIntegrationMethodsContainer
+class TimeIntegrationMethodsContainer
 {
 public:
   ///@name Type Definitions

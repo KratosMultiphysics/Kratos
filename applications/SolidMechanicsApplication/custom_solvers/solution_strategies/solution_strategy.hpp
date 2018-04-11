@@ -48,7 +48,7 @@ template<class TSparseSpace,
          class TDenseSpace,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) SolutionStrategy : public Flags
+class SolutionStrategy : public Flags
 {
  public:
 

@@ -37,7 +37,7 @@ namespace Kratos
   ///@{
 
   template<class TSparseSpace, class TDenseSpace>
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) ExplicitCentralDifferencesScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
+  class ExplicitCentralDifferencesScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
   {
   public:
 

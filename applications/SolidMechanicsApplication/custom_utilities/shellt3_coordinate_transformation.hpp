@@ -24,7 +24,7 @@ namespace Kratos
  * 2) Transform the incoming global displacements in local coordinate system
  * 3) Transform the outgoing matrices and vectors in global coordinate system
  */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellT3_CoordinateTransformation
+class ShellT3_CoordinateTransformation
 {
 
  public:

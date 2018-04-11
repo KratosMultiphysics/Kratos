@@ -30,7 +30,7 @@
 namespace Kratos
 {
 template<class TDataType>
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) SolidMechanicsMathUtilities
+class SolidMechanicsMathUtilities
 {
 public:
     /**

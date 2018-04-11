@@ -40,7 +40,7 @@ namespace Kratos
   /** Computes the energy
    */
 
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) EnergyUtilities
+  class EnergyUtilities
   {
   public:
 

@@ -38,7 +38,7 @@ namespace Kratos
   /** @brief Newmark integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) DisplacementNewmarkScheme: public SolutionScheme<TSparseSpace,TDenseSpace>
+  class DisplacementNewmarkScheme: public SolutionScheme<TSparseSpace,TDenseSpace>
   {
   protected:
 

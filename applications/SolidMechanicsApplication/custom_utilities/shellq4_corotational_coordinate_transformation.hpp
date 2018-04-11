@@ -41,7 +41,7 @@ namespace Kratos
  *   Chapter 5 of B.Haugen's Thesis.
  *   link: http://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/
  */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTransformation
+class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTransformation
 {
 
  public:

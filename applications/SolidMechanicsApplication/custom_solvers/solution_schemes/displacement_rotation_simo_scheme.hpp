@@ -39,7 +39,7 @@ namespace Kratos
   /** @brief Bossak integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) DisplacementRotationSimoScheme: public DisplacementRotationBossakScheme<TSparseSpace,TDenseSpace>
+  class DisplacementRotationSimoScheme: public DisplacementRotationBossakScheme<TSparseSpace,TDenseSpace>
   {   
   public:
     

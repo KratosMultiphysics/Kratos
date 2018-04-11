@@ -47,7 +47,7 @@ template<class TSparseSpace,
          class TDenseSpace,
          class TLinearSolver
          >
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) EigensolverStrategy
+class EigensolverStrategy
     : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
  public:

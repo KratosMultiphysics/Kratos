@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) IsotropicDamageUtilities
+class IsotropicDamageUtilities
 {
 public:
     /**

@@ -39,7 +39,7 @@ namespace Kratos
   /** @brief Newmark integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) DisplacementRotationNewmarkScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
+  class DisplacementRotationNewmarkScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
   {   
   public:
     

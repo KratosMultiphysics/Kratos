@@ -50,8 +50,7 @@ template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) ReductionBuilderAndSolver
-    : public SolutionBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
+class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
 {
  public:
   ///@name Type Definitions

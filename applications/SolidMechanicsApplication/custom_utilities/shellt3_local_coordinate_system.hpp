@@ -20,7 +20,7 @@ namespace Kratos
  * This class represent the local coordinate system of any element whose geometry
  * is a TRIANGLE 3 in 3D space
  */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellT3_LocalCoordinateSystem
+class ShellT3_LocalCoordinateSystem
 {
 
  public:

@@ -54,7 +54,7 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace
          >
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) EigensolverDynamicScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
+class EigensolverDynamicScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
 {
  public:
   ///@name Type Definitions
