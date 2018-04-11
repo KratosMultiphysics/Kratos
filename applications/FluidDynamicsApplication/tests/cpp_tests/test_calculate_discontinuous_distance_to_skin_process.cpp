@@ -14,14 +14,13 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/checks.h"
-#include "includes/gid_io.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 
-// TODO: REMOVE THAT ONCE THE IMPLEMENTATION IS FINISHED.
-// TODO: BESIDES, MOVE THE TEST TO THE CORE 
-#include "custom_processes/embedded_skin_visualization_process.h"
+// Toggle this comments if visualization is needed for debugging
+// #include "includes/gid_io.h"
+// #include "custom_processes/embedded_skin_visualization_process.h" // 
 
 namespace Kratos {
 namespace Testing {
