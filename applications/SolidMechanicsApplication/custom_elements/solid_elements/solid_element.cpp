@@ -2009,7 +2009,6 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
 
             //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateValue(Values,rVariable,rOutput[PointNumber]);
-	    std::cout<<" rOutput "<<rOutput[PointNumber]<<std::endl;
 
         }
     }    
