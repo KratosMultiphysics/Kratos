@@ -101,14 +101,7 @@ namespace Kratos
     ///@{
 
     // update
-    virtual void Update(NodeType& rNode) override
-    {
-      KRATOS_TRY
-
-      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS " <<std::endl;
-	
-      KRATOS_CATCH( "" )
-    }
+    virtual void Update(NodeType& rNode) override;
        
     ///@}
     ///@name Access
@@ -238,6 +231,17 @@ namespace Kratos
   template<>
   void EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
 
+
+  template<class TVariableType, class TValueType>
+  void EmcStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
+  {
+      KRATOS_TRY
+
+      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS in EmcStepRotationMethod " <<std::endl;
+	
+      KRATOS_CATCH( "" )
+  }
+
   ///@}
   ///@name Input and output
   ///@{
@@ -254,9 +258,6 @@ namespace Kratos
     return rOStream << rThis.Info();
   }
 
-
-  // template<>
-  // class EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > : public EmcStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > {};
   
   ///@}
 
