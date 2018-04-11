@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_ASSIGN_TORQUE_ABOUT_AN_AXIS_TO_CONDITIONS_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_ASSIGN_TORQUE_ABOUT_AN_AXIS_TO_CONDITIONS_PROCESS_H_INCLUDED)
 #define  KRATOS_ASSIGN_TORQUE_ABOUT_AN_AXIS_TO_CONDITIONS_PROCESS_H_INCLUDED
 
 
@@ -30,7 +30,7 @@ namespace Kratos
 /// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
 /** This function assigns a value to a variable belonging to all of the nodes in a given mesh
 */
-class AssignTorqueAboutAnAxisToConditionsProcess : public Process
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) AssignTorqueAboutAnAxisToConditionsProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -44,13 +44,13 @@ public:
     ///@{
 
 
-    AssignTorqueAboutAnAxisToConditionsProcess(ModelPart& model_part) : Process(Flags()) , mr_model_part(model_part) {}
+    AssignTorqueAboutAnAxisToConditionsProcess(ModelPart& model_part) : Process(Flags()) , mrModelPart(model_part) {}
 
 
 
     AssignTorqueAboutAnAxisToConditionsProcess(ModelPart& model_part,
 					       Parameters rParameters
- 				              ) : Process(Flags()) , mr_model_part(model_part)
+ 				              ) : Process(Flags()) , mrModelPart(model_part)
     {
         KRATOS_TRY
 
@@ -218,7 +218,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     std::string mvariable_name;
     double mvalue;
     array_1d<double,3> mdirection;
@@ -260,11 +260,11 @@ private:
     void InternalAssignValue(const Variable<array_1d<double,3> >& rVariable,
 			     const array_1d<double,3>& rvector_value)
     {
-        const int nconditions = mr_model_part.GetMesh().Conditions().size();
+        const int nconditions = mrModelPart.GetMesh().Conditions().size();
 
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nconditions; i++)
@@ -280,11 +280,11 @@ private:
     {
 	KRATOS_TRY
 
-	const int nconditions = mr_model_part.GetMesh().Conditions().size();
+	const int nconditions = mrModelPart.GetMesh().Conditions().size();
 
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
 
 	    std::vector<array_1d<double,3> > Couples(nconditions);
 	    std::vector<array_1d<double,3> > Forces(nconditions);

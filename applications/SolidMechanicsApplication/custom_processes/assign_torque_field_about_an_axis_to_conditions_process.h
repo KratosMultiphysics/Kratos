@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_ASSIGN_TORQUE_FIELD_ABOUT_AN_AXIS_TO_CONDITIONS_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_ASSIGN_TORQUE_FIELD_ABOUT_AN_AXIS_TO_CONDITIONS_PROCESS_H_INCLUDED)
 #define  KRATOS_ASSIGN_TORQUE_FIELD_ABOUT_AN_AXIS_TO_CONDITIONS_PROCESS_H_INCLUDED
 
 
@@ -28,7 +28,7 @@ namespace Kratos
 /// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
 /** This function assigns a value to a variable belonging to all of the nodes in a given mesh
 */
-class AssignTorqueFieldAboutAnAxisToConditionsProcess : public AssignTorqueAboutAnAxisToConditionsProcess
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) AssignTorqueFieldAboutAnAxisToConditionsProcess : public AssignTorqueAboutAnAxisToConditionsProcess
 {
 public:
     ///@name Type Definitions
@@ -42,8 +42,8 @@ public:
     ///@{
     
     AssignTorqueFieldAboutAnAxisToConditionsProcess(ModelPart& model_part,
-						    PyObject* pPyObject,
-						    const char* pPyMethodName,
+						    pybind11::object& pPyObject,
+						    const std::string& pPyMethodName,
 						    const bool SpatialFieldFunction,
 						    Parameters rParameters
 	                                         ) : AssignTorqueAboutAnAxisToConditionsProcess(model_part)
@@ -68,8 +68,8 @@ public:
 	if( KratosComponents< Variable<array_1d<double, 3> > >::Has( mvariable_name ) ) //case of array_1d variable
         {
 
-	    mpPyObject      =  pPyObject;	
-	    mpPyMethodName  =  pPyMethodName;
+	    mPyObject      =  pPyObject;	
+	    mPyMethodName  =  pPyMethodName;
 
 	    mIsSpatialField = SpatialFieldFunction;
 
@@ -122,7 +122,7 @@ public:
 
 	if( ! mIsSpatialField ){
 
-	  const ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
+	  const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 	  const double& rCurrentTime  = rCurrentProcessInfo[TIME];
 	  
 	  this->CallTimeFunction(rCurrentTime, mvalue);
@@ -229,8 +229,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    PyObject* mpPyObject;  
-    const char* mpPyMethodName;
+    pybind11::object mPyObject;  
+    std::string mPyMethodName;
    
     bool mIsSpatialField;
 
@@ -277,13 +277,11 @@ private:
 
 	double x = pNode->X(), y = pNode->Y(), z = pNode->Z();
 	   
-	rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, x, y, z, time);
-	
+       rValue = mPyObject.attr(mPyMethodName.c_str())(x,y,z,time).cast<double>();
       }
       else{
 	
-	rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, 0.0, 0.0, 0.0, time);
-	
+        rValue = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
       }
       
      KRATOS_CATCH( "" )
@@ -295,11 +293,12 @@ private:
       
       KRATOS_TRY
 	
-      rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, 0.0, 0.0, 0.0, time);
-	      
+      rValue = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
+      
       KRATOS_CATCH( "" )
       
     }
+
 
     ///@}
     ///@name Private Operations

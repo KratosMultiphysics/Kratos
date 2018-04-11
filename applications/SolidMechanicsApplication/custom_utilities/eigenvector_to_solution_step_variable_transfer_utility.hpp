@@ -52,7 +52,7 @@ namespace Kratos {
  *   EigenvectorToSolutionStepVariableTransferUtility().Transfer(main_model_part,step,0)
  *   gid_output.PrintOutput()
  */
-class EigenvectorToSolutionStepVariableTransferUtility {
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) EigenvectorToSolutionStepVariableTransferUtility {
 public:
     ///@name Type Definitions
     ///@{

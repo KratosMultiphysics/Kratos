@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_TRANSFER_NODES_TO_MODEL_PART_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_TRANSFER_NODES_TO_MODEL_PART_PROCESS_H_INCLUDED)
 #define  KRATOS_TRANSFER_NODES_TO_MODEL_PART_PROCESS_H_INCLUDED
 
 
@@ -30,7 +30,7 @@ namespace Kratos
 /// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
 /** This function assigns a value to a variable belonging to all of the nodes in a given mesh
 */
-class TransferNodesToModelPartProcess : public Process
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) TransferNodesToModelPartProcess : public Process
 {
 public:
     ///@name Type Definitions

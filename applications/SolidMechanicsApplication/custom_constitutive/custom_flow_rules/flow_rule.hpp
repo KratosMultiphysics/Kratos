@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_FLOW_RULE_H_INCLUDED )
+#if !defined(KRATOS_FLOW_RULE_H_INCLUDED)
 #define  KRATOS_FLOW_RULE_H_INCLUDED
 
 // System includes
