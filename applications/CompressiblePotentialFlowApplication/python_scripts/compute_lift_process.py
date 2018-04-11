@@ -42,7 +42,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         
-        self.reference_area =  1#8#383 #m² # WRONG 489.89 m²   
+        self.reference_area =  8#383 #m² # WRONG 489.89 m²   
         
         self.AOAdeg                 = 5#°
         

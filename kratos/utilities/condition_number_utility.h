@@ -24,6 +24,9 @@
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/power_iteration_eigenvalue_solver.h"
 
+#include "linear_solvers/skyline_lu_factorization_solver.h"
+#include "linear_solvers/power_iteration_highest_eigenvalue_solver.h"
+
 namespace Kratos
 {
 
@@ -57,6 +60,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of ConditionNumberUtility
+    KRATOS_CLASS_POINTER_DEFINITION( ConditionNumberUtility );
+
     typedef std::size_t SizeType;
     
     typedef unsigned int IndexType;
@@ -75,6 +81,18 @@ public:
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
+    /// The reorder considered
+    typedef Reorderer<SparseSpaceType,  LocalSpaceType > ReordererType;
+
+    /// Skyline solver definion
+    typedef SkylineLUFactorizationSolver<SparseSpaceType,  LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
+
+    /// Power iteration solver for the highest eigenvalue
+    typedef PowerIterationHighestEigenvalueSolver<SparseSpaceType,  LocalSpaceType, LinearSolverType > PowerIterationHighestEigenvalueSolverType;
+
+    /// Power iteration solver for the lowest eigenvalue
+    typedef PowerIterationEigenvalueSolver<SparseSpaceType,  LocalSpaceType, LinearSolverType > PowerIterationEigenvalueSolverType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -86,18 +104,71 @@ public:
     /// Default constructor.
     ConditionNumberUtility() 
     {
+        //Parameters empty_parameters = Parameters(R"({})");
+        Parameters settings_max = Parameters(R"(
+        {
+            "solver_type"             : "power_iteration_highest_eigenvalue_solver",
+            "max_iteration"           : 10000,
+            "tolerance"               : 1e-9,
+            "required_eigen_number"   : 1,
+            "verbosity"               : 0,
+            "linear_solver_settings"  : {
+                "solver_type"             : "SuperLUSolver",
+                "max_iteration"           : 500,
+                "tolerance"               : 1e-9,
+                "scaling"                 : false,
+                "verbosity"               : 0
+            }
+        }
+        )");
+        Parameters settings_min = Parameters(R"(
+        {
+            "solver_type"             : "power_iteration_eigenvalue_solver",
+            "max_iteration"           : 10000,
+            "tolerance"               : 1e-9,
+            "required_eigen_number"   : 1,
+            "verbosity"               : 0,
+            "linear_solver_settings"  : {
+                "solver_type"             : "SuperLUSolver",
+                "max_iteration"           : 500,
+                "tolerance"               : 1e-9,
+                "scaling"                 : false,
+                "verbosity"               : 0
+            }
+        }
+        )");
+        LinearSolverType::Pointer psolver = LinearSolverType::Pointer ( new SkylineLUFactorizationSolverType() );
+        mpEigenSolverMax = LinearSolverType::Pointer( new PowerIterationHighestEigenvalueSolverType(settings_max, psolver));
+        mpEigenSolverMin = LinearSolverType::Pointer( new PowerIterationEigenvalueSolverType(settings_min, psolver));
         
     }
 
-    /// Destructor
-    ~ConditionNumberUtility()
-    {
+    /// Default constructor.
+    ConditionNumberUtility(
+        LinearSolverType::Pointer pEigenSolverMax,
+        LinearSolverType::Pointer pEigenSolverMin
+        ) :mpEigenSolverMax(pEigenSolverMax), 
+           mpEigenSolverMin(pEigenSolverMin)
+    {std::cout << "\n" << "I ENTER second default constructor CONDITION NUMBER"  << std::endl;}
 
-    }
+    /// Destructor
+    virtual ~ConditionNumberUtility(){}
 
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * This function computes using the inverse power method the minimal eigenvalue
+     * @param InputMatrix The matrix to compute the eigenvalue
+     * @return condition_number The condition number
+     */
+    
+    double GetConditionNumber(SparseMatrixType& InputMatrix)
+    {
+        KRATOS_ERROR_IF(mpEigenSolverMax == nullptr || mpEigenSolverMin == nullptr) << "ERROR:: PLEASE DEFINE THE EigenSolvers" << std::endl;
+        return GetConditionNumber(InputMatrix, mpEigenSolverMax, mpEigenSolverMin);
+    }
     
     /**
      * This function computes using the inverse power method the minimal eigenvalue
@@ -113,7 +184,7 @@ public:
         LinearSolverType::Pointer pEigenSolverMin
         )
     {
-        double condition_number;
+        std::cout << "\n" << "I ENTER GET CONDITION NUMBER"  << std::endl;
         
         DenseVectorType eigen_values;
         DenseMatrixType eigen_vectors;
@@ -124,10 +195,14 @@ public:
         pEigenSolverMax->Solve(InputMatrix, identity_matrix, eigen_values, eigen_vectors);
         const double max_lambda = eigen_values[0];
 
+        std::cout << "\n" << "max_lambda = " << std::scientific << max_lambda  << std::endl;
+
         pEigenSolverMin->Solve(InputMatrix, identity_matrix, eigen_values, eigen_vectors);
         const double min_lambda = eigen_values[0];
+
+        std::cout << "\n" << "min_lambda = " << std::scientific << min_lambda  << std::endl;
         
-        condition_number = std::abs(max_lambda)/std::abs(min_lambda); 
+        const double condition_number = std::abs(max_lambda)/std::abs(min_lambda); 
         
         return condition_number;
     }
@@ -158,6 +233,9 @@ private:
     ///@}
     ///@name Private member Variables
     ///@{
+
+    LinearSolverType::Pointer mpEigenSolverMax;
+    LinearSolverType::Pointer mpEigenSolverMin;
 
     ///@}
     ///@name Private Operators

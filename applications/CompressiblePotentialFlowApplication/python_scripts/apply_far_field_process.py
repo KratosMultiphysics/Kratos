@@ -20,7 +20,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "density_infinity"  : 1.225,
                 "gamma"                 : 1.4,
                 "speed_sound_infinity"  : 340,
-                "AOAdeg" : 5
+                "AOAdeg" : 3
             }  """ );
         
             

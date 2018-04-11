@@ -372,6 +372,24 @@ public:
         }
         else if(pElem->Is(MARKER))//wake condition
         {
+            // if (rLeftHandSideMatrix.size1() != TNumNodes)
+            //     rLeftHandSideMatrix.resize(TNumNodes,TNumNodes,false);
+            // if (rRightHandSideVector.size() != TNumNodes)
+            //     rRightHandSideVector.resize(TNumNodes,false);
+            // rLeftHandSideMatrix.clear();
+
+            // array_1d<double,3> An;
+            // if(TDim == 2) CalculateNormal2D(An);
+            // else CalculateNormal3D(An);
+
+            // const array_1d<double,3>& v = this->GetValue(VELOCITY);
+            // const double value = density*inner_prod(v, An)/static_cast<double>(TNumNodes);
+
+            // for(unsigned int i=0; i<TNumNodes; ++i)
+            // {
+            //     rRightHandSideVector[i] = value;
+            // }
+
             if (rLeftHandSideMatrix.size1() !=2* TNumNodes)
                 rLeftHandSideMatrix.resize(2*TNumNodes,2*TNumNodes,false);
             if (rRightHandSideVector.size() != 2*TNumNodes)
@@ -399,7 +417,7 @@ public:
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
                 if(distances[i] > 0)
-                    rRightHandSideVector[i] = value;
+                    rRightHandSideVector[i] = 0;//value;
                 else
                     rRightHandSideVector[i] = 0;
             }
@@ -408,7 +426,7 @@ public:
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
                 if(distances[i] < 0)
-                    rRightHandSideVector[TNumNodes+i] = value;
+                    rRightHandSideVector[TNumNodes+i] = 0;//value;
                 else
                     rRightHandSideVector[TNumNodes+i] = 0;
             }

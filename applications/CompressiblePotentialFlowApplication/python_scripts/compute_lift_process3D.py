@@ -56,9 +56,12 @@ class ComputeLiftProcess3D(KratosMultiphysics.Process):
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         
-        self.reference_area =  8#383 #m² # WRONG 489.89 m²   
+        if(self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): #2D case
+            self.reference_area =  1#
+        else:
+            self.reference_area =  383 #m² # WRONG 489.89 m² 
         
-        self.AOAdeg                 = 5#°
+        self.AOAdeg             = 3#5#°
         
         #convert angle from degrees to radians
         self.AOArad = self.AOAdeg*pi/180  
@@ -75,8 +78,10 @@ class ComputeLiftProcess3D(KratosMultiphysics.Process):
          for cond in itertools.chain(self.upper_surface_model_part.Conditions,self.lower_surface_model_part.Conditions):
            n = cond.GetValue(NORMAL)
            cp = cond.GetValue(PRESSURE)
-           #print(cp)
-
+           print(n)
+           print(cp)
+           
+           #if(cp > -100.0):
            rx += n[0]*cp
            ry += n[1]*cp
            rz += n[2]*cp
@@ -95,7 +100,7 @@ class ComputeLiftProcess3D(KratosMultiphysics.Process):
          print('RX = ', RX)
          print('RY = ', RY)
          
-         print('Cl = ', Cl) 
+         print('\nCl = ', Cl) 
          print('Cd = ', Cd)
          print('Mach = ', self.velocity_infinity[0]/340) 
          

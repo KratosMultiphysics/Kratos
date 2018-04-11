@@ -37,6 +37,8 @@ class LaplacianSolver:
             "linear_solver_settings": {
                     "solver_type": "AMGCL",
                     "max_iteration": 400,
+                    "gmres_krylov_space_dimension": 100,
+                    "coarse_enough" : 100000,
                     "smoother_type":"ilu0",
                     "coarsening_type":"aggregation",
                     "krylov_type": "lgmres",

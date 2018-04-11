@@ -24,7 +24,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 "direction"                     : [1.0,0.0,0.0],
                 "stl_filename"                  : "please specify name of stl file",
                 "epsilon"    : 1e-9,
-                "AOAdeg" : 5
+                "AOAdeg" : 3
             }
             """)
 
@@ -43,8 +43,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.direction[1] = settings["direction"][2].GetDouble()  
         '''
         self.direction = KratosMultiphysics.Vector(3)
-        self.direction[0] = settings["direction"][0].GetDouble()
-        self.direction[1] = settings["direction"][1].GetDouble()
+        self.direction[0] = settings["direction"][0].GetDouble()*cos(self.AOArad)
+        self.direction[1] = settings["direction"][0].GetDouble()*sin(self.AOArad)
         self.direction[2] = settings["direction"][2].GetDouble()
         #'''
         dnorm = math.sqrt(self.direction[0]**2 + self.direction[1]**2 + self.direction[2]**2)
@@ -99,7 +99,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             self.projection[0,1] = 0.0
             self.projection[1,1] = 1.0
             self.projection[1,0] = 0.0
-            self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.PROJECTION_MATRIX,self.projection)
+            self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.UPPER_PROJECTION,self.projection)
             
             xn = KratosMultiphysics.Vector(3)
             
@@ -146,7 +146,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             #if(xn[0] < 0 and xn[1] > 0 and xn[1] < 0.0001):#for high angles of attack
                             if(xn[0] < 0 and d > 0 and d < 0.0001):#for high angles of attack (selecting nodes in the lower surface)
                                 d = -self.epsilon
-                            #    print(elnode)
+                                print(elnode)
                             #    print(elnode.X - x0)
                             distances[counter] = d
                             counter += 1
@@ -160,7 +160,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                                 npos += 1
                                 
                         if(nneg>0 and npos>0):
-                            elem.Set(KratosMultiphysics.MARKER,True)
+                            #elem.Set(KratosMultiphysics.MARKER,True)
                             counter = 0
                             for elnode in elem.GetNodes():
                                 #test to check whether the value of the distance affects the solution. IT DOES!
@@ -203,12 +203,13 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                         elem.Set(KratosMultiphysics.BOUNDARY,True)
                         
             '''
-                            
+        
         else: #3D case
             import numpy
             print('\nImporting wake ...')
             from stl import mesh #this requires numpy-stl
             print('\nWake has been imported')
+            #'''
             self.up_projection = KratosMultiphysics.Matrix(3,3)
             self.up_projection[0,0] = 1.0
             self.up_projection[0,1] = 0.0
@@ -230,7 +231,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             self.low_projection[0,2] = 0.0
             
             self.low_projection[1,0] = 0.0
-            self.low_projection[1,1] = -1.0
+            self.low_projection[1,1] = 1.0
             self.low_projection[1,2] = 0.0
             
             self.low_projection[2,0] = 0.0
@@ -238,6 +239,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             self.low_projection[2,2] = 1.0
             
             self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.LOWER_PROJECTION,self.low_projection)
+            #'''
             
             self.wake_normal = KratosMultiphysics.Vector(3)
             self.wake_normal[0] = -self.direction[2]
@@ -492,6 +494,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
                     
                     #print(elem.Id, elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))
-            #'''    
+                
     def ExecuteInitialize(self):
         self.Execute()

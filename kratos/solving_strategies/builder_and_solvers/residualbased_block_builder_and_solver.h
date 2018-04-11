@@ -39,6 +39,10 @@
 // #include <iostream>
 // #include <fstream>
 
+#include "utilities/condition_number_utility.h"
+#include "linear_solvers/power_iteration_highest_eigenvalue_solver.h"
+
+
 namespace Kratos
 {
 
@@ -139,6 +143,8 @@ public:
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
+
+    typedef ConditionNumberUtility::Pointer ConditionNumberUtilityPointerType;
 
     struct dof_iterator_hash
     {
@@ -442,6 +448,10 @@ public:
 
         double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
+
+        // ConditionNumberUtility();
+        // const double condition_number = ConditionNumberUtility().GetConditionNumber(A);
+        // std::cout << "\n" << "CONDITION NUMBER:" << "\t" << std::scientific << condition_number << std::endl;
 
         SystemSolveWithPhysics(A, Dx, b, r_model_part);
 
