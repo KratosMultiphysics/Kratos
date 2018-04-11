@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Pooyan Dadvand, Ruben Zorrilla
 //
 
 // System includes
@@ -136,15 +136,8 @@ namespace Kratos
 
 		// Compute the number of intersected edges
 		std::vector<unsigned int> cut_edges_vector;
-		std::vector<array_1d <double,3> > int_pts_vector;
-		ComputeEdgesIntersections(rElement1,rIntersectedObjects,cut_edges_vector,int_pts_vector);
-
-		unsigned int n_cut_edges = 0;
-		for (unsigned int i_edge = 0; i_edge < cut_edges_vector.size(); i_edge++){
-			if (cut_edges_vector[i_edge] != 0){
-				n_cut_edges++;
-			}
-		}
+		std::vector<array_1d <double,3> > int_pts_vector, comp_pts_vector;
+		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, int_pts_vector, comp_pts_vector);
 
 		// Check if there is intersection: 3 or more intersected edges for a tetrahedron
 		// If there is only 1 or 2 intersected edges, intersection is not considered
@@ -160,7 +153,10 @@ namespace Kratos
 			if (do_plane_approx){
 				// Call the plane optimization utility
 				array_1d<double,3> base_pt, normal;
-				ComputePlaneApproximation(rElement1, int_pts_vector, base_pt, normal);
+				std::vector<array_1d <double,3> > approx_pts;
+				approx_pts.insert(approx_pts.end(), int_pts_vector.begin(), int_pts_vector.end());
+				// approx_pts.insert(approx_pts.end(), comp_pts_vector.begin(), comp_pts_vector.end());
+				ComputePlaneApproximation(rElement1, approx_pts, base_pt, normal);
 				// Compute the distance to the approximation plane
 				Plane3D approximation_plane(normal, base_pt);
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
@@ -209,40 +205,87 @@ namespace Kratos
 		return result_distance;
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::ComputeEdgesIntersections(
+	unsigned int CalculateDiscontinuousDistanceToSkinProcess::ComputeEdgesIntersections(
 		Element& rElement1, 
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
 		std::vector<unsigned int> &rCutEdgesVector,
-      	std::vector<array_1d <double,3> > &rIntersectionPointsArray){
+      	std::vector<array_1d <double,3> > &rIntersectionPointsArray,
+      	std::vector<array_1d <double,3> > &rComplementaryPointsArray){
 
 		auto &r_geometry = rElement1.GetGeometry();
 		const auto r_edges_container = r_geometry.Edges();
 		const std::size_t n_edges = r_geometry.EdgesNumber();
-		const std::size_t n_int_obj = rIntersectedObjects.size();
 
-		// Initialize cut edges and intersection points arrays
+		// Initialize cut edges and points arrays
+		unsigned int n_cut_edges = 0;
 		rIntersectionPointsArray.clear();
+		rComplementaryPointsArray.clear();
 		rCutEdgesVector = std::vector<unsigned int>(n_edges, 0);
+
+		std::vector<unsigned int> NODES_IDS;
 
 		// Check wich edges are intersected
 		for (auto i_edge = 0; i_edge < n_edges; ++i_edge){
+			array_1d<double,3> avg_pt = ZeroVector(3);
+			std::vector<array_1d<double,3> > aux_pts;
 			// Check against all candidates to count the number of current edge intersections
-			for (auto i_int_obj = 0; i_int_obj < n_int_obj; ++i_int_obj){
+			for (const auto &r_int_obj : rIntersectedObjects){
 				// Call the compute intersection method
 				Point int_pt;
-				auto &r_int_obj_geom = rIntersectedObjects[i_int_obj].GetGeometry();
+				auto &r_int_obj_geom = r_int_obj.GetGeometry();
+
+				// TODO: REMOVE THIS ONCE THE TESTS SETTINGS IS DONE
+				// if (i_edge == 0){
+				// 	if (rElement1.Id() == 861){
+				// 		std::cout << "skin_part.CreateNewElement(\"Element3D3N\", " <<  r_int_obj.Id() << ", {" << r_int_obj_geom[0].Id() << "," << r_int_obj_geom[1].Id() << "," << r_int_obj_geom[2].Id() << "}, p_properties_1);" << std::endl;
+				// 		for (unsigned int i=0; i<3; i++){
+				// 			if (std::find(NODES_IDS.begin(), NODES_IDS.end(), r_int_obj_geom[i].Id()) == NODES_IDS.end()){
+				// 				std::cout<<"skin_part.CreateNewNode(" << r_int_obj_geom[i].Id() <<", " << r_int_obj_geom[i].X() << ", " << r_int_obj_geom[i].Y() << ", " << r_int_obj_geom[i].Z() << ");" << std::endl;
+				// 				NODES_IDS.push_back(r_int_obj_geom[i].Id());
+				// 			}
+				// 		}
+				// 	}
+				// }
+
 				const int int_id = ComputeEdgeIntersection(r_int_obj_geom, r_edges_container[i_edge][0], r_edges_container[i_edge][1], int_pt);
+
 				// There is intersection
 				if (int_id == 1){
-					// Increase the edge intersections counter
-					rCutEdgesVector[i_edge] += 1;
+					
+					// Check if there is a close intersection (repeated intersection point)
+					bool is_repeated = false;
+					for (auto aux_pt : aux_pts){
+						const double aux_dist = norm_2(int_pt - aux_pt);
+						const double tol_edge = 1e-2*norm_2(r_edges_container[i_edge][0] - r_edges_container[i_edge][1]);
+						if (aux_dist < tol_edge){
+							is_repeated = true;
+							break;
+						}
+					}
 
-					// Save the intersection point
-					rIntersectionPointsArray.push_back(int_pt);
+					// If the intersection pt. is not repeated, consider it
+					if (!is_repeated){
+						// Add the intersection pt. to the aux array pts.
+						aux_pts.push_back(int_pt);
+						// Increase the edge intersections counter
+						rCutEdgesVector[i_edge] += 1;
+						// Save the intersection point for computing the average
+						avg_pt += int_pt;
+					}
 				}
+			}
+
+			// No intersection if the edge is intersected a pair number of times
+			// It is assumed that the skin enters and leaves the element
+			// if (rCutEdgesVector[i_edge] % 2 != 0){
+			if (rCutEdgesVector[i_edge] != 0){
+				avg_pt /= rCutEdgesVector[i_edge];
+				rIntersectionPointsArray.push_back(avg_pt);
+				n_cut_edges++;
 			}
 		}
 
+		// TODO: REMOVE THIS IF COMPLEMENTARY PTS. ARE FINALLY NOT USED
 		// // Save the intersection of the baricenter lines with the intersecting geometries as extra points
 		// const std::size_t n_nodes = r_geometry.PointsNumber();
 		// for (std::size_t i_node = 0; i_node < n_nodes; ++i_node){
@@ -261,10 +304,12 @@ namespace Kratos
 		// 		const int aux_int_id = ComputeEdgeIntersection(r_int_obj_geom, r_geometry[i_node], face_center, aux_int_pt);
 		// 		// If there is intersection, add it as auxiliar pt.
 		// 		if (aux_int_id == 1){
-		// 			rIntersectionPointsArray.push_back(aux_int_pt);
+		// 			rComplementaryPointsArray.push_back(aux_int_pt);
 		// 		}
 		// 	}
 		// }
+
+		return n_cut_edges;
 	}
 
 	int CalculateDiscontinuousDistanceToSkinProcess::ComputeEdgeIntersection(
