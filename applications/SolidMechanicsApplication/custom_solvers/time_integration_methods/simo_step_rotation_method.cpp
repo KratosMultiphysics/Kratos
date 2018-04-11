@@ -78,7 +78,9 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-  
+    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoStepRotationMethod< VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> ,  double >;
+    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoStepRotationMethod< Variable<array_1d<double, 3> >,                                  array_1d<double,3>>;
+
 }  // namespace Kratos.
 
 

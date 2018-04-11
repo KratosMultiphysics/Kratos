@@ -47,7 +47,7 @@ namespace Kratos
    * This class performs predict and update of dofs variables, their time derivatives and time integrals      
    */
   template<class TVariableType, class TValueType>
-  class StaticStepRotationMethod : public StaticStepMethod<TVariableType,TValueType>
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepRotationMethod : public StaticStepMethod<TVariableType,TValueType>
   {   
   public:
  
@@ -101,7 +101,14 @@ namespace Kratos
     ///@{
 
     // update
-    virtual void Update(NodeType& rNode) override;
+    virtual void Update(NodeType& rNode) override 
+    {
+      KRATOS_TRY
+
+      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS " <<std::endl;
+	
+      KRATOS_CATCH( "" )
+    }
     
     ///@}
     ///@name Access
@@ -244,19 +251,8 @@ namespace Kratos
   ///@name Type Definitions
   ///@{
   
-  template<>
-  void StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
-  
-
-  template<class TVariableType, class TValueType>
-  void StaticStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
-  {
-      KRATOS_TRY
-
-      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS " <<std::endl;
-	
-      KRATOS_CATCH( "" )
-  }
+  // template<>
+  // void StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
 
   ///@}
   ///@name Input and output
