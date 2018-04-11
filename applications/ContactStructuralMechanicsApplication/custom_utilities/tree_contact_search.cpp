@@ -379,8 +379,8 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
                 it_cond->GetGeometry().ShapeFunctionsValues( N_min, local_point_min );
                 it_cond->GetGeometry().ShapeFunctionsValues( N_max, local_point_max );
 
-                const array_1d<double,3>& normal_min = MortarUtilities::GaussPointUnitNormal(N_min, it_cond->GetGeometry());
-                const array_1d<double,3>& normal_max = MortarUtilities::GaussPointUnitNormal(N_max, it_cond->GetGeometry());
+                const array_1d<double,3> normal_min = MortarUtilities::GaussPointUnitNormal(N_min, it_cond->GetGeometry());
+                const array_1d<double,3> normal_max = MortarUtilities::GaussPointUnitNormal(N_max, it_cond->GetGeometry());
 
                 ContactUtilities::ScaleNode<NodeType>(min_point, normal_min, length_search);
                 ContactUtilities::ScaleNode<NodeType>(max_point, normal_max, length_search);
