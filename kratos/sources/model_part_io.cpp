@@ -80,7 +80,9 @@ namespace Kratos
     }
 
     /// Destructor.
-    ModelPartIO::~ModelPartIO() {}
+    ModelPartIO::~ModelPartIO() {
+        Timer::CloseOuputFile();
+    }
 
     ///@}
     ///@name Operators

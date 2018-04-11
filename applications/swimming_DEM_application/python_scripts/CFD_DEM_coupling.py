@@ -14,6 +14,7 @@ class ProjectionModule:
         self.fluid_model_part            = fluid_model_part
         self.particles_model_part        = balls_model_part
         self.FEM_DEM_model_part          = FEM_DEM_model_part
+        self.pp                          = pp
         self.dimension                   = pp.domain_size
         self.min_fluid_fraction          = pp.CFD_DEM["min_fluid_fraction"].GetDouble()
         self.coupling_type               = pp.CFD_DEM["coupling_weighing_type"].GetInt()
@@ -88,7 +89,11 @@ class ProjectionModule:
             self.InterpolateVelocityOnSlipVelocity()
 
     def ProjectFromFluid(self, alpha):
-        self.projector.InterpolateFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
+        self.projector.InterpolateFromFluidMesh(self.fluid_model_part,
+                                                self.particles_model_part,
+                                                self.pp.CFD_DEM,
+                                                self.bin_of_objects_fluid,
+                                                alpha)
 
     def ProjectFromNewestFluid(self):
         self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)

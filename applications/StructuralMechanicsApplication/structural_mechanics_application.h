@@ -121,7 +121,7 @@ namespace Kratos
  * This application features Elements, Conditions, Constitutive laws and Utilities
  * for structural analysis problems
  */
-class KratosStructuralMechanicsApplication : public KratosApplication
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) KratosStructuralMechanicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions

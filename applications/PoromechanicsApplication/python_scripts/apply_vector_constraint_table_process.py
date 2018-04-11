@@ -4,11 +4,11 @@ import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyConstraintVectorTableProcess(Model, settings["Parameters"])
+    return ApplyVectorConstraintTableProcess(Model, settings["Parameters"])
 
 ## All the python processes should be derived from "python_process"
 
-class ApplyConstraintVectorTableProcess(KratosMultiphysics.Process):
+class ApplyVectorConstraintTableProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
@@ -20,8 +20,8 @@ class ApplyConstraintVectorTableProcess(KratosMultiphysics.Process):
         if settings["active"][0].GetBool() == True:
             x_params = KratosMultiphysics.Parameters("{}")
             x_params.AddValue("model_part_name",settings["model_part_name"])
-            x_params.AddValue("mesh_id",settings["mesh_id"])
-            x_params.AddValue("is_fixed",settings["is_fixed"][0])
+            if settings.Has("is_fixed"):
+                x_params.AddValue("is_fixed",settings["is_fixed"][0])
             x_params.AddValue("value",settings["value"][0])
             x_params.AddEmptyValue("variable_name").SetString(variable_name+"_X")
             if settings["table"][0].GetInt() == 0:
@@ -33,8 +33,8 @@ class ApplyConstraintVectorTableProcess(KratosMultiphysics.Process):
         if settings["active"][1].GetBool() == True:
             y_params = KratosMultiphysics.Parameters("{}")
             y_params.AddValue("model_part_name",settings["model_part_name"])
-            y_params.AddValue("mesh_id",settings["mesh_id"])
-            y_params.AddValue("is_fixed",settings["is_fixed"][1])
+            if settings.Has("is_fixed"):
+                y_params.AddValue("is_fixed",settings["is_fixed"][1])
             y_params.AddValue("value",settings["value"][1])
             y_params.AddEmptyValue("variable_name").SetString(variable_name+"_Y")
             if settings["table"][1].GetInt() == 0:
@@ -46,8 +46,8 @@ class ApplyConstraintVectorTableProcess(KratosMultiphysics.Process):
         if settings["active"][2].GetBool() == True:
             z_params = KratosMultiphysics.Parameters("{}")
             z_params.AddValue("model_part_name",settings["model_part_name"])
-            z_params.AddValue("mesh_id",settings["mesh_id"])
-            z_params.AddValue("is_fixed",settings["is_fixed"][2])
+            if settings.Has("is_fixed"):
+                z_params.AddValue("is_fixed",settings["is_fixed"][2])
             z_params.AddValue("value",settings["value"][2])
             z_params.AddEmptyValue("variable_name").SetString(variable_name+"_Z")
             if settings["table"][2].GetInt() == 0:

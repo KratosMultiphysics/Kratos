@@ -45,7 +45,7 @@ NodalValuesInterpolationProcess<TDim>::NodalValuesInterpolationProcess(
     mStepDataSize = ThisParameters["step_data_size"].GetInt();
     mBufferSize   = ThisParameters["buffer_size"].GetInt();
 
-    if (mEchoLevel > 0) std::cout << "Step data size: " << mStepDataSize << " Buffer size: " << mBufferSize << std::endl;
+    KRATOS_INFO_IF("NodalValuesInterpolationProcess", mEchoLevel > 0) << "Step data size: " << mStepDataSize << " Buffer size: " << mBufferSize << std::endl;
 }
 
 /***********************************************************************************/
@@ -63,9 +63,8 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
     auto num_nodes = nodes_array.end() - nodes_array.begin();
     
     /* Nodes */
-//         #pragma omp parallel for 
-    for(unsigned int i = 0; i < num_nodes; ++i) 
-    {
+//     #pragma omp parallel for 
+    for(unsigned int i = 0; i < num_nodes; ++i) {
         auto it_node = nodes_array.begin() + i;
         
         Vector shape_functions;
@@ -74,25 +73,14 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
         const array_1d<double, 3>& coordinates = it_node->Coordinates();
         const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mMaxNumberOfResults, 5.0e-2);
         
-        if (is_found == false)
-        {
-            if (mEchoLevel > 0 || mFramework == Lagrangian) // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
-            {
-                std::cout << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << std::endl;
-                std::cout << "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
-                
-                if (mFramework == Lagrangian)
-                {
-                    std::cout << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
-                }
+        if (is_found == false) {
+            if (mEchoLevel > 0 || mFramework == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
+                KRATOS_WARNING("NodalValuesInterpolationProcess") << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
+                KRATOS_WARNING_IF("NodalValuesInterpolationProcess", mFramework == FrameworkEulerLagrange::LAGRANGIAN) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
             }
-        }
-        else
-        {
+        } else {
             for(unsigned int i_step = 0; i_step < mBufferSize; ++i_step)
-            {
                 CalculateStepData(*(it_node.base()), p_element, shape_functions, i_step);
-            }
         }
     }
 }
@@ -147,26 +135,6 @@ void NodalValuesInterpolationProcess<3>::CalculateStepData(
                      + ShapeFunctions[1] * node_data_1[j]
                      + ShapeFunctions[2] * node_data_2[j]
                      + ShapeFunctions[3] * node_data_3[j];
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-FrameworkEulerLagrange NodalValuesInterpolationProcess<TDim>::ConvertFramework(const std::string& str)
-{
-    if(str == "Lagrangian") 
-    {
-        return Lagrangian;
-    }
-    else if(str == "Eulerian") 
-    {
-        return Eulerian;
-    }
-    else
-    {
-        return Eulerian;
     }
 }
 

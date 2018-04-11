@@ -126,8 +126,8 @@ KRATOS_TEST_CASE_IN_SUITE(
     model_part_0.AddNodalSolutionStepVariable(PARTITION_INDEX);
     model_part_0.GetCommunicator().SetNumberOfColors(number_of_colors);
 
-    ModelPartIO model_part_io_0(p_output_0);
-    model_part_io_0.ReadModelPart(model_part_0);
+    ModelPartIO * model_part_io_0 = new ModelPartIO(p_output_0);
+    model_part_io_0->ReadModelPart(model_part_0);
 
     KRATOS_CHECK_EQUAL(model_part_0.NumberOfNodes(), 3);
     KRATOS_CHECK_EQUAL(model_part_0.NumberOfElements(), 1);
@@ -147,8 +147,8 @@ KRATOS_TEST_CASE_IN_SUITE(
     model_part_1.AddNodalSolutionStepVariable(PARTITION_INDEX);
     model_part_1.GetCommunicator().SetNumberOfColors(number_of_colors + 1);
 
-    ModelPartIO model_part_io_1(p_output_1);
-    model_part_io_1.ReadModelPart(model_part_1);
+    ModelPartIO * model_part_io_1 = new ModelPartIO(p_output_1);
+    model_part_io_1->ReadModelPart(model_part_1);
 
     KRATOS_CHECK_EQUAL(model_part_1.NumberOfNodes(), 3);
     KRATOS_CHECK_EQUAL(model_part_1.NumberOfElements(), 1);
@@ -161,6 +161,10 @@ KRATOS_TEST_CASE_IN_SUITE(
         model_part_1.GetSubModelPart("BasePart").NumberOfElements(), 0);
     KRATOS_CHECK_EQUAL(
         model_part_1.GetSubModelPart("BasePart").NumberOfConditions(), 0);
+
+    // Free the modelparts to prevent files still being opened
+    delete model_part_io_0;
+    delete model_part_io_1;
 
     //KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(p_output_1->str(), R"/(Begin SubModelPart BaseNodes
     //Begin SubModelPartNodes
@@ -231,13 +235,13 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     output_file.close();
 
     // Fill the output .mdpa file
-    ModelPartIO model_part_io_write(output_file_name, IO::WRITE);
-    model_part_io_write.WriteModelPart(main_model_part);
+    ModelPartIO * model_part_io_write = new ModelPartIO(output_file_name, IO::WRITE);
+    model_part_io_write->WriteModelPart(main_model_part);
 
     // Read and check the written .mdpa file
-    ModelPartIO model_part_io_output(output_file_name);
+    ModelPartIO * model_part_io_output = new ModelPartIO(output_file_name);
     ModelPart main_model_part_output("MainModelPartOutput");
-    model_part_io_output.ReadModelPart(main_model_part_output);
+    model_part_io_output->ReadModelPart(main_model_part_output);
 
     // Assert results
     KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfProperties(), 1);
@@ -259,6 +263,9 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetCondition(1).GetValue(TEMPERATURE), temperature);
     KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetCondition(1).GetValue(DISPLACEMENT_X), displacement_x);
 
+    // Free the modelparts to prevent files still being opened
+    delete model_part_io_write;
+    delete model_part_io_output;
 
     // Remove the generated files
     std::string aux_string_mdpa = output_file_name + ".mdpa"; 

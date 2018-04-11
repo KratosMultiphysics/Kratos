@@ -256,36 +256,6 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-
-    /**
-     * @brief Default constructor
-     * @param rThisModelPart The model part to compute 
-     * @param ThisVariable The variable to transfer and be transfered
-     * @param ThisParameters The configuration parameters
-     * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
-     */
-    SimpleMortarMapperProcess( 
-        ModelPart& rThisModelPart,
-        TVarType& ThisVariable, 
-        Parameters ThisParameters = Parameters(R"({})" ),
-        LinearSolverType::Pointer pThisLinearSolver = nullptr
-        );
-    
-    /**
-     * @brief A constructor where two different variables can be considered for each subdomain
-     * @param rThisModelPart The model part to compute 
-     * @param OriginVariable The variable to transfer
-     * @param DestinationVariable The variable to be transfered
-     * @param ThisParameters The configuration parameters
-     * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
-     */
-    SimpleMortarMapperProcess( 
-        ModelPart& rThisModelPart,
-        TVarType& OriginVariable,
-        TVarType& DestinationVariable,
-        Parameters ThisParameters = Parameters(R"({})" ),
-        LinearSolverType::Pointer pThisLinearSolver = nullptr
-        );
     
     /**
      * @brief Default constructor
@@ -428,8 +398,8 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrOriginModelPart;                 /// The origin model part to compute
-    ModelPart& mrDestinationModelPart;            /// The destination model part to compute
+    ModelPart& mOriginModelPart;                  /// The origin model part to compute
+    ModelPart& mDestinationModelPart;             /// The destination model part to compute
     TVarType mOriginVariable;                     /// The origin variable to map
     TVarType mDestinationVariable;                /// The destiny variable to map
     
@@ -613,13 +583,6 @@ private:
      * @brief This method executes the mapping when a linear solver is avalaible and a system of equations can be solved
      */
     void ExecuteImplicitMapping();
-        
-    /**
-     * @brief This method sets the origin destination model maps when only one model part is provided 
-     * @details The only model part should have MASTER/SLAVE flags in the nodes and conditions
-     * @param rModelPart The main model part, where the origin/destination model parts will be created
-     */
-    void SetOriginDestinationModelParts(ModelPart& rModelPart);
     
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors

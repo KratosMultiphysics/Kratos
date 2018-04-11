@@ -280,9 +280,9 @@ public:
         // GiD IO for debugging
         if (mIODebug == true) {
             mpGidIO->CloseResultFile();
-            std::string new_name = "POST_LINEAR_ITER_STEP=";
-            new_name.append(std::to_string(rModelPart.GetProcessInfo()[STEP]));
-            mpGidIO->ChangeOutputName(new_name);
+            std::ostringstream new_name ;
+            new_name << "POST_LINEAR_ITER_STEP=""POST_LINEAR_ITER_STEP=" << rModelPart.GetProcessInfo()[STEP];
+            mpGidIO->ChangeOutputName(new_name.str());
         }
     }
     
