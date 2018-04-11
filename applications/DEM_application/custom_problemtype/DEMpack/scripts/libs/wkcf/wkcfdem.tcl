@@ -1190,6 +1190,7 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
 	# PostPrintVirtualSeaSurface
 	if {[::wkcf::TranslateToBinaryJson [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-SeaSurface" dv]]} {
 	    puts $fileid "\"virtual_sea_surface_settings\"     : {"
+	    puts $fileid "\"print_sea_surface\"                : true,"
 	    puts $fileid "\"PostVirtualSeaSurfaceX1\"          : [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceX1" dv],"
 	    puts $fileid "\"PostVirtualSeaSurfaceY1\"          : [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceY1" dv],"
 	    puts $fileid "\"PostVirtualSeaSurfaceX2\"          : [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceX2" dv],"

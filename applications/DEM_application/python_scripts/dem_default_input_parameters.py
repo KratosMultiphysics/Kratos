@@ -69,6 +69,7 @@ def GetDefaultInputParameters():
             "ControlTime"                      : 4.0,
             "NeighbourSearchFrequency"         : 50,
             "virtual_sea_surface_settings"     : {
+                "print_sea_surface"            : false,
                 "PostVirtualSeaSurfaceX1"      : 0.0,
                 "PostVirtualSeaSurfaceY1"      : 0.0,
                 "PostVirtualSeaSurfaceX2"      : 0.0,

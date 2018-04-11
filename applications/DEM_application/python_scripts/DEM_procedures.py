@@ -1466,8 +1466,9 @@ class DEMIo(object):
             self.PostFaceNormalImpactVelocity = 1
 
         # Ice
-        self.SeaSurfaceX1 = self.DEM_parameters["virtual_sea_surface_settings"]["PostVirtualSeaSurfaceX1"].GetDouble()
-        if self.SeaSurfaceX1:
+        
+        if self.DEM_parameters["virtual_sea_surface_settings"]["print_sea_surface"].GetBool():
+            self.SeaSurfaceX1 = self.DEM_parameters["virtual_sea_surface_settings"]["PostVirtualSeaSurfaceX1"].GetDouble()
             self.SeaSurfaceY1 = self.DEM_parameters["virtual_sea_surface_settings"]["PostVirtualSeaSurfaceY1"].GetDouble()
             self.SeaSurfaceX2 = self.DEM_parameters["virtual_sea_surface_settings"]["PostVirtualSeaSurfaceX2"].GetDouble()
             self.SeaSurfaceY2 = self.DEM_parameters["virtual_sea_surface_settings"]["PostVirtualSeaSurfaceY2"].GetDouble()
