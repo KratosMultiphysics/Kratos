@@ -12,6 +12,7 @@
 // External includes 
 
 // Project includes
+#include "includes/model_part.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
 // Processes

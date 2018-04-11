@@ -32,17 +32,17 @@ namespace Kratos
 namespace Python
 {		
 using namespace pybind11;
-  
+
 void  AddCustomStrategiesToPython(pybind11::module& m)
-{
-      
+{      
+  //base types
   typedef UblasSpace<double, CompressedMatrix, Vector>                                   SparseSpaceType;
   typedef UblasSpace<double, Matrix, Vector>                                              LocalSpaceType;
   typedef LinearSolver<SparseSpaceType, LocalSpaceType >                                LinearSolverType;
   typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >   BaseSolvingStrategyType;
   typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >     BuilderAndSolverType;
   typedef Scheme< SparseSpaceType, LocalSpaceType >                                       BaseSchemeType;
-      
+
   // Solution strategy types
   typedef TwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >           TwoStepVPStrategyType;
   typedef GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GaussSeidelStrategyType;
@@ -52,15 +52,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   class_<TwoStepVPStrategyType, typename TwoStepVPStrategyType::Pointer, BaseSolvingStrategyType>
       (m,"TwoStepVPStrategy")
       .def(init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
-      .def("CalculateAccelerations",&TwoStepVPStrategyType::CalculateAccelerations)
-      .def("CalculateDisplacements",&TwoStepVPStrategyType::CalculateDisplacements)
+      .def("CalculateAccelerations", &TwoStepVPStrategyType::CalculateAccelerations)
+      .def("CalculateDisplacements", &TwoStepVPStrategyType::CalculateDisplacements)
       ;
 
-  class_<GaussSeidelLinearStrategyType, typename GaussSeidelLinearStrategyType::Pointer, BaseSolvingStrategyType>
+  class_<GaussSeidelStrategyType, typename GaussSeidelStrategyType::Pointer, BaseSolvingStrategyType>
       (m,"GaussSeidelLinearStrategy")
       .def(init<ModelPart&,BaseSchemeType::Pointer,LinearSolverType::Pointer,BuilderAndSolverType::Pointer,bool,bool>())
-      .def("GetResidualNorm", &GaussSeidelLinearStrategyType::GetResidualNorm)
-      .def("SetBuilderAndSolver", &GaussSeidelLinearStrategyType::SetBuilderAndSolver)
+      .def("GetResidualNorm", &GaussSeidelStrategyType::GetResidualNorm)
+      .def("SetBuilderAndSolver", &GaussSeidelStrategyType::SetBuilderAndSolver)
       ;
 
 }

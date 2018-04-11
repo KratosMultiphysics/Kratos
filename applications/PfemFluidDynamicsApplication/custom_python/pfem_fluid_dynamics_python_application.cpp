@@ -28,7 +28,7 @@ using namespace pybind11;
 
 
   
-BOOST_PYTHON_MODULE(KratosPfemFluidDynamicsApplication,m)
+PYBIND11_MODULE(KratosPfemFluidDynamicsApplication,m)
 {
 
   class_<KratosPfemFluidDynamicsApplication, 
