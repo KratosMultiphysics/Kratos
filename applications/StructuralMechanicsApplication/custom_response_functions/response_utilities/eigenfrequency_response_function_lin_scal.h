@@ -34,6 +34,7 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
+#include "utilities/variable_utils.h"
 #include "response_function.h"
 
 // ==============================================================================
@@ -92,7 +93,7 @@ public:
 
 	/// Default constructor.
 	EigenfrequencyResponseFunctionLinScal(ModelPart& model_part, Parameters& responseSettings)
-	: mr_model_part(model_part)
+	: mrModelPart(model_part)
 	{
 		// Set gradient mode
 		std::string gradientMode = responseSettings["gradient_mode"].GetString();
@@ -104,35 +105,32 @@ public:
 			mDelta = responseSettings["step_size"].GetDouble();
 		}
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
+			KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " << gradientMode << std::endl;
 
 
         // Get array of numbers of the eigenfrequencies which have to be traced by this response function
-		m_num_eigenvalues =  responseSettings["traced_eigenfrequency"].size();
-		m_vector_ev.resize(m_num_eigenvalues,false);
+		mTracedEigenfrequencies.resize(responseSettings["traced_eigenfrequency"].size(),false);
 
-		for(int i = 0; i < m_num_eigenvalues; i++)
-			m_vector_ev[i] = responseSettings["traced_eigenfrequency"][i].GetInt();
+		for(size_t i = 0; i < mTracedEigenfrequencies.size(); i++)
+			mTracedEigenfrequencies[i] = responseSettings["traced_eigenfrequency"][i].GetInt();
 
 		// Ask for weighting factors and check their number
-		m_num_weight_fac =  responseSettings["weighting_factors"].size();
-		if(m_num_weight_fac != m_num_eigenvalues)
-			KRATOS_THROW_ERROR(std::logic_error, "The number of chosen eigenvalues does not fit to the number of weighting factors!", "");
-		m_vector_weight_fac.resize(m_num_weight_fac,false);
+		KRATOS_ERROR_IF(responseSettings["weighting_factors"].size() != mTracedEigenfrequencies.size()) << "The number of chosen eigenvalues does not fit to the number of weighting factors!" << std::endl;
+		mWeightingFactors.resize(responseSettings["weighting_factors"].size(),false);
 
 		// Read weighting factors and sum them up
 		double test_sum_weight_facs = 0.0;
-		for(int i = 0; i < m_num_weight_fac; i++)
+		for(size_t i = 0; i < mWeightingFactors.size(); i++)
 		{
-			m_vector_weight_fac[i] = responseSettings["weighting_factors"][i].GetDouble();
-			test_sum_weight_facs += m_vector_weight_fac[i];
+			mWeightingFactors[i] = responseSettings["weighting_factors"][i].GetDouble();
+			test_sum_weight_facs += mWeightingFactors[i];
 		}
 
 		// Check the weighting factors and modify them for the case that their sum is unequal to one
 		if(test_sum_weight_facs != 1.0)
 		{
-			for(int i = 0; i < m_num_eigenvalues; i++)
-				m_vector_weight_fac[i] /= test_sum_weight_facs;
+			for(size_t i = 0; i < mTracedEigenfrequencies.size(); i++)
+				mWeightingFactors[i] /= test_sum_weight_facs;
 
 			std::cout << "> The sum of the chosen weighting factors is unequal to one. A scaling process was executed for them!" << std::endl;
 		}
@@ -165,8 +163,8 @@ public:
 		double m_resp_function_value = 0.0;
 
 		// Compute response function by weighting with linear scalarization
-		for(int i = 0; i < m_num_eigenvalues; i++)
-			m_resp_function_value += m_vector_weight_fac[i] * get_single_eigenvalue(m_vector_ev[i]);
+		for(size_t i = 0; i < mTracedEigenfrequencies.size(); i++)
+			m_resp_function_value += mWeightingFactors[i] * get_single_eigenvalue(mTracedEigenfrequencies[i]);
 
 		return m_resp_function_value;
 
@@ -181,12 +179,12 @@ public:
 		const VariableDenseVectorType& rEIGENVALUE_VECTOR =
             KratosComponents<VariableDenseVectorType>::Get("EIGENVALUE_VECTOR");
 
-		int num_of_computed_eigenvalues = (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR]).size();
+		int num_of_computed_eigenvalues = (mrModelPart.GetProcessInfo()[rEIGENVALUE_VECTOR]).size();
 
 		if(num_of_computed_eigenvalues < id_eigenvalue)
 			KRATOS_THROW_ERROR(std::runtime_error, "The chosen eigenvalue was not solved by the eigenvalue analysis!", "");
 
-		return (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[id_eigenvalue-1];
+		return (mrModelPart.GetProcessInfo()[rEIGENVALUE_VECTOR])[id_eigenvalue-1];
 
 		KRATOS_CATCH("");
 	}
@@ -226,9 +224,7 @@ public:
 		KRATOS_TRY;
 
 		// First gradients are initialized
-		array_3d zeros_array(3, 0.0);
-		for (auto& node_i : mr_model_part.Nodes())
-			noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY) ) = zeros_array;
+		VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
 
 		// Gradient calculation is done by a semi-analytic approaches
 		// The gradient is computed in one step
@@ -308,9 +304,9 @@ protected:
 		KRATOS_TRY;
 
 		// Working variables
-		ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
+		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
-		for (auto& elem_i : mr_model_part.Elements())
+		for (auto& elem_i : mrModelPart.Elements())
 		{
 			Matrix mass_matrix_org;
 			Matrix LHS_org;
@@ -343,15 +339,15 @@ protected:
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
 				// Loop over eigenvalues
-				for(int i = 0; i < m_num_eigenvalues; i++)
+				for(size_t i = 0; i < mTracedEigenfrequencies.size(); i++)
 				{
-					traced_eigenvalue = get_single_eigenvalue(m_vector_ev[i]);
-					eigenvector_of_element = get_eigenvector_of_element(elem_i, m_vector_ev[i], num_dofs_element);
+					traced_eigenvalue = get_single_eigenvalue(mTracedEigenfrequencies[i]);
+					eigenvector_of_element = get_eigenvector_of_element(elem_i, mTracedEigenfrequencies[i], num_dofs_element);
 
 					aux_matrix = perturbed_LHS;
 					aux_matrix -= (perturbed_mass_matrix * traced_eigenvalue);
 					aux_vector = prod(aux_matrix , eigenvector_of_element);
-					gradient_contribution[0] += inner_prod(eigenvector_of_element , aux_vector) * m_vector_weight_fac[i];
+					gradient_contribution[0] += inner_prod(eigenvector_of_element , aux_vector) * mWeightingFactors[i];
 
 					eigenvector_of_element = Vector(0);
 					aux_matrix = Matrix(0,0);
@@ -377,15 +373,15 @@ protected:
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
 				// Loop over eigenvalues
-				for(int i = 0; i < m_num_eigenvalues; i++)
+				for(size_t i = 0; i < mTracedEigenfrequencies.size(); i++)
 				{
-					traced_eigenvalue = get_single_eigenvalue(m_vector_ev[i]);
-					eigenvector_of_element = get_eigenvector_of_element(elem_i, m_vector_ev[i], num_dofs_element);
+					traced_eigenvalue = get_single_eigenvalue(mTracedEigenfrequencies[i]);
+					eigenvector_of_element = get_eigenvector_of_element(elem_i, mTracedEigenfrequencies[i], num_dofs_element);
 
 					aux_matrix = perturbed_LHS;
 					aux_matrix -= (perturbed_mass_matrix * traced_eigenvalue);
 					aux_vector = prod(aux_matrix , eigenvector_of_element);
-					gradient_contribution[1] += inner_prod(eigenvector_of_element , aux_vector) * m_vector_weight_fac[i];
+					gradient_contribution[1] += inner_prod(eigenvector_of_element , aux_vector) * mWeightingFactors[i];
 
 					eigenvector_of_element = Vector(0);
 				    aux_matrix = Matrix(0,0);
@@ -409,15 +405,15 @@ protected:
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
 				// Loop over eigenvalues
-				for(int i = 0; i < m_num_eigenvalues; i++)
+				for(size_t i = 0; i < mTracedEigenfrequencies.size(); i++)
 				{
-					traced_eigenvalue = get_single_eigenvalue(m_vector_ev[i]);
-					eigenvector_of_element = get_eigenvector_of_element(elem_i, m_vector_ev[i], num_dofs_element);
+					traced_eigenvalue = get_single_eigenvalue(mTracedEigenfrequencies[i]);
+					eigenvector_of_element = get_eigenvector_of_element(elem_i, mTracedEigenfrequencies[i], num_dofs_element);
 
 					aux_matrix = perturbed_LHS;
 					aux_matrix -= (perturbed_mass_matrix * traced_eigenvalue);
 					aux_vector = prod(aux_matrix , eigenvector_of_element);
-					gradient_contribution[2] += inner_prod(eigenvector_of_element , aux_vector) * m_vector_weight_fac[i];
+					gradient_contribution[2] += inner_prod(eigenvector_of_element , aux_vector) * mWeightingFactors[i];
 
 					eigenvector_of_element = Vector(0);
 					aux_matrix = Matrix(0,0);
@@ -463,13 +459,11 @@ private:
 	///@name Member Variables
 	///@{
 
-	ModelPart &mr_model_part;
+	ModelPart &mrModelPart;
 	unsigned int mGradientMode;
 	double mDelta;
-	int m_num_eigenvalues;
-	std::vector<int> m_vector_ev;
-	int m_num_weight_fac;
-	std::vector<double> m_vector_weight_fac;
+	std::vector<int> mTracedEigenfrequencies;
+	std::vector<double> mWeightingFactors;
 
 	///@}
 ///@name Private Operators

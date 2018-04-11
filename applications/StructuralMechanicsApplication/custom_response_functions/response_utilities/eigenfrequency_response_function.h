@@ -34,6 +34,7 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
+#include "utilities/variable_utils.h"
 #include "response_function.h"
 
 // ==============================================================================
@@ -155,11 +156,9 @@ public:
 		//				   eigenvalue frac{\partial mass_matrix}{\partial x})\cdot eigenvector
 
 		// First gradients are initialized
-		array_3d zeros_array(3, 0.0);
-		for (auto& node_i : mrModelPart.Nodes())
-			noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY) )= zeros_array;
+		VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
 
-		// Gradient calculation is done by a semi-analytic approaches
+		// Gradient calculation is done by a semi-analytic approach
 		// The gradient is computed in one step
 
 		switch (mGradientMode)
