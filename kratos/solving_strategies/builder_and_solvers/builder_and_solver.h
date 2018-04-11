@@ -222,6 +222,7 @@ public:
 
         mReshapeMatrixFlag = false; //by default the matrix is shaped just once
         //		mVectorsAreInitialized = false;
+
     }
 
     /** Destructor.
@@ -600,7 +601,7 @@ protected:
     /**@name Protected Operators*/
     /*@{ */
 
-    int mEchoLevel;
+    int mEchoLevel = 0;
 
     TSystemVectorPointerType mpReactionsVector;
 

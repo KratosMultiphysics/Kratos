@@ -125,7 +125,8 @@ namespace Kratos
             
             const double tolerance = 1.0e-4;
             for (auto& i_node : this_model_part.Nodes())
-                KRATOS_CHECK_LESS_EQUAL(std::abs(i_node.FastGetSolutionStepValue(NODAL_H) - 1.0/std::sqrt(2.0))*std::sqrt(2.0), tolerance);
+                if (i_node.X() < 0.001 || i_node.X() > 1.9999)
+                    KRATOS_CHECK_LESS_EQUAL(i_node.FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
         }
         
         /** 

@@ -64,26 +64,54 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeMaterialParameters(double& Density,
 									       double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
-									       double timeStep,
+									       ProcessInfo &currentProcessInfo,
 									       ElementalVariables &rElementalVariables)
   {
     double FluidBulkModulus=0;
     double FluidYieldShear=0;
+    double staticFrictionCoefficient=0;
+    double regularizationCoefficient=0;
+    double inertialNumberThreshold=0;
+    double timeStep=currentProcessInfo[DELTA_TIME];
+
     this->EvaluatePropertyFromANotRigidNode(Density,DENSITY);
     this->EvaluatePropertyFromANotRigidNode(FluidBulkModulus,BULK_MODULUS);
     this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient,REGULARIZATION_COEFFICIENT);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold,INERTIAL_NUMBER_ONE);
 
     if(FluidBulkModulus==0){
       FluidBulkModulus = 1000000000.0;
     }
     VolumetricCoeff = FluidBulkModulus*timeStep;
 
+    
     if(FluidYieldShear!=0){
       // std::cout<<"For a Newtonian fluid I should not enter here"<<std::endl;
       DeviatoricCoeff=this->ComputeNonLinearViscosity(rElementalVariables.EquivalentStrainRate);
+    }else if(staticFrictionCoefficient!=0){
+      if(regularizationCoefficient!=0 && inertialNumberThreshold==0){
+    	// DeviatoricCoeff=this->ComputeBercovierMuIrheologyViscosity(rElementalVariables);
+	DeviatoricCoeff=this->ComputePapanastasiouMuIrheologyViscosity(rElementalVariables); 
+      }else if(regularizationCoefficient==0 && inertialNumberThreshold!=0){
+	DeviatoricCoeff=this->ComputeBarkerMuIrheologyViscosity(rElementalVariables);
+      }else if(regularizationCoefficient!=0 && inertialNumberThreshold!=0){
+    	DeviatoricCoeff=this->ComputeBarkerBercovierMuIrheologyViscosity(rElementalVariables);
+      }else{
+	DeviatoricCoeff=this->ComputeJopMuIrheologyViscosity(rElementalVariables);
+      }
     }else{
+      // std::cout<<"For a Newtonian fluid I should  enter here"<<std::endl;
       this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);
     }
+
+    // this->ComputeMaterialParametersGranularGas(rElementalVariables,VolumetricCoeff,DeviatoricCoeff);
+    // std::cout<<"Density "<<Density<<std::endl;
+    // std::cout<<"FluidBulkModulus "<<FluidBulkModulus<<std::endl;
+    // std::cout<<"staticFrictionCoefficient "<<staticFrictionCoefficient<<std::endl;
+    // std::cout<<"DeviatoricCoeff "<<DeviatoricCoeff<<std::endl;
+
 
     this->mMaterialDeviatoricCoefficient=DeviatoricCoeff;
     this->mMaterialVolumetricCoefficient=VolumetricCoeff;
@@ -92,16 +120,20 @@ namespace Kratos {
     // const SizeType NumNodes = this->GetGeometry().PointsNumber();
     // for (SizeType i = 0; i < NumNodes; ++i)
     //   {
-    // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=mMaterialDeviatoricCoefficient;
+    // 	this->GetGeometry()[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=VolumetricCoeff;
+    // 	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=DeviatoricCoeff;
+    // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=rElementalVariables.EquivalentStrainRate;
     //   }
 
   }
 
+  
 
   template< unsigned int TDim>
   double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeNonLinearViscosity(double & equivalentStrainRate)
   {
     double FluidViscosity=0;
+    
     double FluidFlowIndex=0;
     double FluidYieldShear=0;
     double FluidAdaptiveExponent=0;
@@ -119,9 +151,345 @@ namespace Kratos {
     }
     return FluidViscosity;
   }
+  
+
+  template< unsigned int TDim>
+  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeMaterialParametersGranularGas(double& Density,
+											  double& DeviatoricCoeff,
+											  double& VolumetricCoeff,
+											  ProcessInfo &currentProcessInfo,
+											  ElementalVariables &rElementalVariables)
+  {
+
+    this->EvaluatePropertyFromANotRigidNode(Density,DENSITY);
+
+    double staticFrictionCoefficient=0;
+    double dynamicFrictionCoefficient=0;
+    double inertialNumberZero=0;
+    double grainDiameter=0;
+    double grainDensity=0;
+
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
+    this->EvaluatePropertyFromANotRigidNode(grainDiameter,GRAIN_DIAMETER);
+    this->EvaluatePropertyFromANotRigidNode(grainDensity,GRAIN_DENSITY);
+    double temperature=5.0;
+    double gZero=0;
+    double voidRatioS=0.35;
+    double epsilonR=0.6;
+    double nuDot=rElementalVariables.VolumetricDefRate;//????
+    double voidRatio=1.45;
+    double concentration=1.0/(1.0+voidRatio);
+    double concentrationS=1.0/(1.0+voidRatioS);
+    if(concentration>0.49){
+      gZero=5.69*(concentrationS-0.49)/(concentrationS-concentration);
+    }else{
+      gZero=(2-concentration)/(2*(1-concentration)*(1-concentration)*(1-concentration));
+    }
+    // if(voidRatio<1.04){
+    //   gZero=(2.9019-2.7881*voidRatioS)*(1.0+voidRatio)/((voidRatio-voidRatioS));
+    // }else{
+    //   double lC=1.0;// ???
+    //   gZero=lC*(2.0*voidRatio+1.0)*(1.0+voidRatio)*(1.0+voidRatio)/(2*pow(voidRatio,3));
+    // }
+    const double PI  =3.141592653589793238463;
+    double G=gZero*concentration;
+    double F=0.5*(1.0+epsilonR)+0.25*G;
+    double J=0.5*(1.0+epsilonR) + 0.09817477*(5.0+2.0*(1.0+epsilonR)*(-1.0+3.0*epsilonR)*G)*(5.0+4.0*(1.0+epsilonR)*G)/
+      ((24.0-6.0*(1.0+epsilonR)*(1.0+epsilonR)-5.0*(1.0-pow(epsilonR,2)))*pow(G,2));
+    double cStar=32*(1.0-epsilonR)*(1.0-pow(epsilonR,2))/(81.0-17.0*epsilonR+30.0*pow(epsilonR,2)*(1.0-epsilonR));
+    double Gamma=8.148733086*G*(1.0+epsilonR)*(1-0.03125*cStar);
+    double nuK=(1.0-0.4*(1.0+epsilonR)*(1.0-3.0*epsilonR)*gZero/(1.0+voidRatio))/
+      (gZero*(1-0.25*(1.0-epsilonR)*(1.0-epsilonR))*(1-0.015625*cStar)-0.20833333333*gZero*(1-pow(epsilonR,2))*(1+0.09375*cStar));
+    double f1Coeff=4*G*F/(1.0+voidRatio);
+    double f2Coeff=0.90270333333*G*J*concentration;
+    double psiStar0=0.4166666667*gZero*(1+pow(epsilonR,2))*(1+0.09375*cStar);
+    double pStar=1+2*(1+epsilonR)*G;
+    double nuGammaStar=(1+epsilonR)*0.020833333333*gZero*(128-96*epsilonR+15*pow(epsilonR,2)-15*pow(epsilonR,3)+cStar*0.015625*(15*pow(epsilonR,3)-15*pow(epsilonR,2)+498*epsilonR-434));
+    double lambda=0.375*((1.0-epsilonR)*(5*pow(epsilonR,2)+4*epsilonR-1.0)+0.083333333333*cStar*(-15*pow(epsilonR,3)+3*pow(epsilonR,2)-19*epsilonR-159));
+    double cD=0.01188634*(1.0+voidRatio)*(0.26666666667*lambda*gZero*concentration+(pStar-1.0)*(0.6666666667-epsilonR)*cStar)/
+      (0.5*psiStar0+nuGammaStar+0.078125*cStar*(1+0.046875*cStar)*gZero*(1-pow(epsilonR,2)));
+    double psiStar1=(0.0520833333*sqrt(PI/temperature)*grainDiameter*(1.0+voidRatio)*(pStar-1.0)-0.15625*(1-pow(epsilonR,2))*(1+0.046875*cStar)*gZero*cD)*nuDot;
+    double psiStar=psiStar0+psiStar1;
+    double f3Coeff=20.2646753*psiStar*pow(concentration,2);
+    double f4Coeff=0.092315304*(0.6*Gamma-0.6666666667*nuK*(1+0.8*gZero*(1.0+epsilonR)*concentration));
+    double correlationLength=grainDiameter;
+    double cMaterialParameter=0.5;
+    double value=pow(cMaterialParameter,2)*pow(G,0.666666666667)*f3Coeff/(4.0*f2Coeff);
+    if(value>1.0){
+      correlationLength*=value;
+    }
+    double f5Coeff=correlationLength*f2Coeff/(grainDiameter*f3Coeff);
+    temperature=pow(grainDiameter,2)*f5Coeff*rElementalVariables.EquivalentStrainRate;
+    // temperature=pow(grainDiameter,2)*f5Coeff*ElementalVariables.SpatialDefRate[2];
+
+				
+    VolumetricCoeff=grainDensity*grainDiameter*f4Coeff*sqrt(fabs(temperature));
+    DeviatoricCoeff=grainDensity*grainDiameter*f2Coeff*sqrt(fabs(temperature));
+
+    // std::cout<<"  temperature "<<temperature<<"  grainDensity "<<grainDensity<<"  f1Coeff "<<f1Coeff<<"  f2Coeff "<<f2Coeff<<"  f3Coeff "<<f3Coeff<<"  f4Coeff "<<f4Coeff<<"  f5Coeff "<<f5Coeff<<std::endl;
+    // std::cout<<"Density "<<Density<<"   VolumetricCoeff "<<VolumetricCoeff<<"   DeviatoricCoeff "<<DeviatoricCoeff<<std::endl;
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+    	this->GetGeometry()[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=VolumetricCoeff;
+    	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=DeviatoricCoeff;
+	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=rElementalVariables.EquivalentStrainRate;
+      }
+    rElementalVariables.UpdatedTotalCauchyStress[0]=grainDensity*grainDiameter*f1Coeff*f5Coeff*rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2];
+    rElementalVariables.UpdatedTotalCauchyStress[1]=grainDensity*grainDiameter*f1Coeff*f5Coeff*rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2];
+    rElementalVariables.UpdatedTotalCauchyStress[2]=DeviatoricCoeff*rElementalVariables.SpatialDefRate[2];
+  }
+
+  
+  template< unsigned int TDim>
+  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeJopMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  {
+    double FluidViscosity=0;
+
+    double staticFrictionCoefficient=0;
+    double dynamicFrictionCoefficient=0;
+    double inertialNumberZero=0;
+    double grainDiameter=0;
+    double grainDensity=0;
+
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
+    this->EvaluatePropertyFromANotRigidNode(grainDiameter,GRAIN_DIAMETER);
+    this->EvaluatePropertyFromANotRigidNode(grainDensity,GRAIN_DENSITY);
+
+    double meanPressure=rElementalVariables.MeanPressure;
+    if(meanPressure>0){
+      meanPressure=0.0000001;
+    }
+    
+    double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
+    double inertialNumber=0;
+    if(meanPressure!=0){
+      inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(meanPressure)/grainDensity);
+    }
+    // double inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(rElementalVariables.MeanPressure)/grainDensity);
+
+    if(rElementalVariables.EquivalentStrainRate!=0 && fabs(meanPressure)!=0){
+      double firstViscousTerm=staticFrictionCoefficient/rElementalVariables.EquivalentStrainRate;
+      double secondViscousTerm=deltaFrictionCoefficient*inertialNumber/ ((inertialNumberZero+inertialNumber)*rElementalVariables.EquivalentStrainRate);
+      FluidViscosity=(firstViscousTerm+secondViscousTerm)*fabs(meanPressure);
+    }else{
+      FluidViscosity=1.0;
+    }
+    return FluidViscosity;
+  }
 
 
+  template< unsigned int TDim>
+  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  {
+    double FluidViscosity=0;
+    double staticFrictionCoefficient=0;
+    double dynamicFrictionCoefficient=0;
+    double inertialNumberZero=0;
+    double grainDiameter=0;
+    double grainDensity=0;
+    double regularizationCoefficient=0;
 
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
+    this->EvaluatePropertyFromANotRigidNode(grainDiameter,GRAIN_DIAMETER);
+    this->EvaluatePropertyFromANotRigidNode(grainDensity,GRAIN_DENSITY);
+    this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient,REGULARIZATION_COEFFICIENT);
+
+    double meanPressure=rElementalVariables.MeanPressure;
+    if(meanPressure>0){
+      meanPressure=0.0000001;
+    }
+    
+     double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
+     double inertialNumber=0;
+     if(meanPressure!=0){
+       inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(meanPressure)/grainDensity);
+     }
+    
+    if(rElementalVariables.EquivalentStrainRate!=0 && fabs(meanPressure)!=0){
+      double firstViscousTerm=staticFrictionCoefficient / sqrt(pow(rElementalVariables.EquivalentStrainRate,2)+pow(regularizationCoefficient,2));
+      double secondViscousTerm=deltaFrictionCoefficient*inertialNumber/ ((inertialNumberZero+inertialNumber)*rElementalVariables.EquivalentStrainRate);
+      FluidViscosity=(firstViscousTerm+secondViscousTerm)*fabs(meanPressure);
+    }else{
+      FluidViscosity=1.0;
+    }
+    
+    return FluidViscosity;
+  }
+
+
+  template< unsigned int TDim>
+  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputePapanastasiouMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  {
+    double FluidViscosity=0;
+    double staticFrictionCoefficient=0;
+    double dynamicFrictionCoefficient=0;
+    double inertialNumberZero=0;
+    double grainDiameter=0;
+    double grainDensity=0;
+    double regularizationCoefficient=0;
+
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
+    this->EvaluatePropertyFromANotRigidNode(grainDiameter,GRAIN_DIAMETER);
+    this->EvaluatePropertyFromANotRigidNode(grainDensity,GRAIN_DENSITY);
+    this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient,REGULARIZATION_COEFFICIENT);
+
+    double pressure=rElementalVariables.MeanPressure;
+    if(pressure>0){
+      pressure=0.0000001;
+    }
+    
+    double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
+    double inertialNumber=0;
+      if(rElementalVariables.MeanPressure!=0){
+	inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(pressure)/grainDensity);
+    }
+    
+    double exponent=-rElementalVariables.EquivalentStrainRate/regularizationCoefficient;
+
+    if(rElementalVariables.EquivalentStrainRate!=0 && fabs(pressure)!=0){
+      double firstViscousTerm=staticFrictionCoefficient*(1-exp(exponent))/rElementalVariables.EquivalentStrainRate;
+      double secondViscousTerm=deltaFrictionCoefficient*inertialNumber/ ((inertialNumberZero+inertialNumber)*rElementalVariables.EquivalentStrainRate);
+      FluidViscosity=(firstViscousTerm+secondViscousTerm)*fabs(pressure);
+    }else{
+      FluidViscosity=1.0;
+    }
+
+    // const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    // for (SizeType i = 0; i < NumNodes; ++i)
+    //   {
+    // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=FluidViscosity;
+    // 	this->GetGeometry()[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=rElementalVariables.EquivalentStrainRate;
+    // 	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=inertialNumber;
+    // 	// std::cout<<"FluidViscosity "<<FluidViscosity<<"  StrainRate "<<rElementalVariables.EquivalentStrainRate<<"  inertialNumber "<<inertialNumber<<"  pressure "<<rElementalVariables.MeanPressure<<std::endl;
+    //   }
+    
+    return FluidViscosity;
+  }
+
+  template< unsigned int TDim>
+  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBarkerMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  {
+    double FluidViscosity=0;
+    double staticFrictionCoefficient=0;
+    double dynamicFrictionCoefficient=0;
+    double inertialNumberZero=0;
+    double grainDiameter=0;
+    double grainDensity=0;
+    double inertialNumberThreshold=0;
+    double infiniteFrictionCoefficient=0;
+    double alphaParameter=0;
+  
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
+    this->EvaluatePropertyFromANotRigidNode(grainDiameter,GRAIN_DIAMETER);
+    this->EvaluatePropertyFromANotRigidNode(grainDensity,GRAIN_DENSITY);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold,INERTIAL_NUMBER_ONE);
+    this->EvaluatePropertyFromANotRigidNode(infiniteFrictionCoefficient,INFINITE_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(alphaParameter,ALPHA_PARAMETER);
+
+    double meanPressure=rElementalVariables.MeanPressure;
+    if(meanPressure>0){
+      meanPressure=0.0000001;
+    }
+        
+    double inertialNumber=0;
+    if(meanPressure!=0){
+      inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(meanPressure)/grainDensity);
+    }
+
+    if(inertialNumber>inertialNumberThreshold){
+      FluidViscosity=(staticFrictionCoefficient*inertialNumberZero+dynamicFrictionCoefficient*inertialNumber+infiniteFrictionCoefficient*pow(inertialNumber,2))/(inertialNumberZero+inertialNumber);
+    }else{
+      double denominator=staticFrictionCoefficient*inertialNumberZero+dynamicFrictionCoefficient*inertialNumberThreshold+infiniteFrictionCoefficient*pow(inertialNumberThreshold,2);
+      double exponent=alphaParameter*(inertialNumberZero+inertialNumberThreshold)*(inertialNumberZero+inertialNumberThreshold)/pow(denominator,2);
+      double firstAconstant=inertialNumberThreshold*exp(exponent);
+      FluidViscosity=sqrt(alphaParameter/log(firstAconstant/inertialNumber));
+    }
+
+    if(rElementalVariables.EquivalentStrainRate!=0 && fabs(meanPressure)!=0){
+      FluidViscosity*=fabs(meanPressure)/rElementalVariables.EquivalentStrainRate;	    
+    }else{
+      FluidViscosity=1.0;
+    }
+    return FluidViscosity;
+  }
+
+  
+  template< unsigned int TDim>
+  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  {
+
+    double FluidViscosity=0;
+    double staticFrictionCoefficient=0;
+    double dynamicFrictionCoefficient=0;
+    double inertialNumberZero=0;
+    double grainDiameter=0;
+    double grainDensity=0;
+    double inertialNumberThreshold=0;
+    double infiniteFrictionCoefficient=0;
+    double alphaParameter=0;
+    double regularizationCoefficient=0;
+  
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
+    this->EvaluatePropertyFromANotRigidNode(grainDiameter,GRAIN_DIAMETER);
+    this->EvaluatePropertyFromANotRigidNode(grainDensity,GRAIN_DENSITY);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold,INERTIAL_NUMBER_ONE);
+    this->EvaluatePropertyFromANotRigidNode(infiniteFrictionCoefficient,INFINITE_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(alphaParameter,ALPHA_PARAMETER);
+    this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient,REGULARIZATION_COEFFICIENT);
+
+    double meanPressure=rElementalVariables.MeanPressure;
+    if(meanPressure>0){
+      meanPressure=0.0000001;
+    }
+        
+    double inertialNumber=0;
+    if(meanPressure!=0){
+      inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(meanPressure)/grainDensity);
+    }
+
+    if(inertialNumber>inertialNumberThreshold){
+      double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
+      double firstViscousTerm=staticFrictionCoefficient;
+      double secondViscousTerm=deltaFrictionCoefficient*inertialNumber / (inertialNumberZero+inertialNumber);
+      FluidViscosity=(firstViscousTerm+secondViscousTerm);
+    }else{
+      double denominator=staticFrictionCoefficient*inertialNumberZero+dynamicFrictionCoefficient*inertialNumberThreshold+infiniteFrictionCoefficient*pow(inertialNumberThreshold,2);
+      double exponent=alphaParameter*(inertialNumberZero+inertialNumberThreshold)*(inertialNumberZero+inertialNumberThreshold)/pow(denominator,2);
+      double firstAconstant=inertialNumberThreshold*exp(exponent);
+      FluidViscosity=sqrt(alphaParameter/log(firstAconstant/inertialNumber));
+    }
+
+    if(rElementalVariables.EquivalentStrainRate!=0 && fabs(meanPressure)!=0){
+      double exponent=-rElementalVariables.EquivalentStrainRate/regularizationCoefficient;
+      FluidViscosity*=fabs(meanPressure)*(1-exp(exponent))/rElementalVariables.EquivalentStrainRate;
+    }else{
+      if(meanPressure==0 && rElementalVariables.EquivalentStrainRate!=0){
+    	FluidViscosity*=1.0 / sqrt(pow(rElementalVariables.EquivalentStrainRate,2)+pow(regularizationCoefficient,2));
+      }else if(meanPressure!=0 && rElementalVariables.EquivalentStrainRate==0){
+    	FluidViscosity*=fabs(meanPressure) / sqrt(0.001+pow(regularizationCoefficient,2));
+      }else{
+    	FluidViscosity=1.0;
+      }
+    }   
+ 
+    return FluidViscosity;
+  }
+
+
+  
   template< unsigned int TDim >
   int TwoStepUpdatedLagrangianVPFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
   {
@@ -695,42 +1063,6 @@ namespace Kratos {
 
     //   }
 
-
-    // if(this->Is(TO_ERASE)){
-    //   WeakPointerVector<Node<3> >& rN0 = rGeom[0].GetValue(NEIGHBOUR_NODES);
-    //   WeakPointerVector<Node<3> >& rN1 = rGeom[1].GetValue(NEIGHBOUR_NODES);
-    //   WeakPointerVector<Node<3> >& rN2 = rGeom[2].GetValue(NEIGHBOUR_NODES);
-
-    //   if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) && (rN0.size()<NumNodes || rN1.size()<NumNodes)){ 
-    // 	AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
-    // 	AccB= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
-    // 	const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-    // 	const array_1d<double, 3> &NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-    // 	if(rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
-    // 	  BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/3.0;
-    // 	if(rGeom[1].IsNot(INLET))
-    // 	  BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/3.0;
-    //   }else  if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) && (rN0.size()<NumNodes || rN2.size()<NumNodes) ){
-    // 	AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
-    // 	AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
-    // 	const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-    // 	const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-    // 	if(rGeom[0].IsNot(INLET))
-    // 	  BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/3.0;
-    // 	if(rGeom[2].IsNot(INLET))   
-    // 	  BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/3.0;
-    //   }else  if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && (rN1.size()<NumNodes || rN2.size()<NumNodes) ){
-    // 	AccA= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
-    // 	AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
-    // 	const array_1d<double, 3> &NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-    // 	const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-    // 	if(rGeom[1].IsNot(INLET))
-    // 	  BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/3.0;
-    // 	if(rGeom[2].IsNot(INLET))
-    // 	  BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/3.0;
-    //   }
-
-    // }else{
       const double factor = 0.5/TimeStep;
       const double one_third = 1.0/3.0;
 
@@ -764,8 +1096,7 @@ namespace Kratos {
 	if(rGeom[2].IsNot(INLET))
 	  BoundRHSVector[2] += one_third * (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev);
       }
-    // }
-
+  
   }
 
 
@@ -883,73 +1214,6 @@ namespace Kratos {
 			      BoundRHSCoeffDev);
     }
 
-    // if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){      
-    //   noalias(AccA)= factor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
-    //   noalias(AccB)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
-    //   noalias(AccC)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
-    //   const array_1d<double,3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-    //   const array_1d<double,3> &NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-    //   const array_1d<double,3> &NormalC    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-    //   if(rGeom[0].IsNot(INLET))
-    // 	BoundRHSVector[0] += 0.25 * (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
-    // 			      BoundRHSCoeffDev);
-    //   if(rGeom[1].IsNot(INLET))
-    // 	BoundRHSVector[1] += 0.25 * (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
-    // 			      BoundRHSCoeffDev);
-    //   if(rGeom[2].IsNot(INLET))
-    // 	BoundRHSVector[2] += 0.25 * (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
-    // 			      BoundRHSCoeffDev);
-    // }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
-    //   noalias(AccA)= factor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
-    //   noalias(AccB)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
-    //   noalias(AccC)= factor*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1); 
-    //   const array_1d<double,3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-    //   const array_1d<double,3> &NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-    //   const array_1d<double,3> &NormalC    = rGeom[3].FastGetSolutionStepValue(NORMAL);
-    //   if(rGeom[0].IsNot(INLET))
-    // 	BoundRHSVector[0] += 0.25 * (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
-    // 			      BoundRHSCoeffDev);
-    //   if(rGeom[1].IsNot(INLET))
-    // 	BoundRHSVector[1] += 0.25 * (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
-    // 			      BoundRHSCoeffDev);
-    //   if(rGeom[3].IsNot(INLET))
-    // 	BoundRHSVector[3] += 0.25 * (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
-    // 			      BoundRHSCoeffDev);
-    // }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
-    //   noalias(AccA)= factor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
-    //   noalias(AccB)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
-    //   noalias(AccC)= factor*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1); 
-    //   const array_1d<double,3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-    //   const array_1d<double,3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-    //   const array_1d<double,3> &NormalC    = rGeom[3].FastGetSolutionStepValue(NORMAL);
-    //   if(rGeom[0].IsNot(INLET))
-    // 	BoundRHSVector[0] += 0.25 * (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
-    // 			      BoundRHSCoeffDev);
-    //   if(rGeom[2].IsNot(INLET))
-    // 	BoundRHSVector[2] += 0.25 * (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
-    // 			      BoundRHSCoeffDev);
-    //   if(rGeom[3].IsNot(INLET))
-    // 	BoundRHSVector[3] += 0.25 * (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
-    // 			      BoundRHSCoeffDev);
-    // }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){      
-    //   noalias(AccA)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
-    //   noalias(AccB)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
-    //   noalias(AccC)= factor*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1); 
-    //   const array_1d<double,3> &NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-    //   const array_1d<double,3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-    //   const array_1d<double,3> &NormalC    = rGeom[3].FastGetSolutionStepValue(NORMAL);
-    //   if(rGeom[1].IsNot(INLET))
-    // 	BoundRHSVector[1] += 0.25 * (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
-    // 			      BoundRHSCoeffDev);
-    //   if(rGeom[2].IsNot(INLET))
-    // 	BoundRHSVector[2] += 0.25 * (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
-    // 			      BoundRHSCoeffDev);
-    //   if(rGeom[3].IsNot(INLET))
-    // 	BoundRHSVector[3] += 0.25 * (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
-    // 			      BoundRHSCoeffDev);
-    // }
-
-
 
   }
 
@@ -970,11 +1234,14 @@ namespace Kratos {
     double MeanVelocity=0;
     this->CalcMeanVelocity(MeanVelocity,0);
 
-    Tau = 1.0 / (2.0 * Density *(0.5 * MeanVelocity / ElemSize + 0.5/DeltaTime) +  8.0 * Viscosity / (ElemSize * ElemSize) ); 
-  
-    if(Tau<0.0000001){
-      Tau=0.0000001;
-    }
+    // Tau = 1.0 / (2.0 * Density *(0.5 * MeanVelocity / ElemSize + 0.5/DeltaTime) +  8.0 * Viscosity / (ElemSize * ElemSize) ); 
+     Tau = (ElemSize * ElemSize * DeltaTime) / ( Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize +  8.0 * Viscosity * DeltaTime  ); 
+    // if(Tau<0.0000001){
+    //   Tau=0.0000001;
+    // }
+    // if(Tau>0.0001){
+    //   Tau=0.0001;
+    // }
 
     if(MeanVelocity==0){
       Tau=0;
@@ -1231,8 +1498,68 @@ namespace Kratos {
     rElementalVariables.UpdatedTotalCauchyStress[1]=sigmaTot_yy;
     rElementalVariables.UpdatedTotalCauchyStress[2]=sigmaTot_xy;
 
+    // double TauNorm=sqrt((0.5*sigmaDev_xx*sigmaDev_xx + 0.5*sigmaDev_yy*sigmaDev_yy + sigmaDev_xy*sigmaDev_xy));
+    // double FluidYieldShear=0;
+    // this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
+
+    // const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    // for (SizeType i = 0; i < NumNodes; ++i)
+    //   {
+    // 	this->GetGeometry()[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=VolumetricCoeff;
+    // 	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=DeviatoricCoeff;
+    // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=rElementalVariables.EquivalentStrainRate;
+    //   }
+    // GeometryType& rGeom = this->GetGeometry();
+    // const SizeType NumNodes = rGeom.PointsNumber();
+    // if(TauNorm>FluidYieldShear){
+    //   this->SetValue(YIELDED,1.0);
+
+    //   for (SizeType i = 0; i < NumNodes; ++i){
+	
+    // 	// rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = 1;
+    // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
+    //   }
+    // }else{
+
+    //   this->SetValue(YIELDED,0.0);
+    //   // std::vector<double> rOutput;
+    //   // this->GetElementalValueForOutput(YIELDED,rOutput);
+      
+    //   for (SizeType i = 0; i < NumNodes; ++i){
+    // 	// rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = 0;
+    // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 0;
+    //   }
+    // }
+
   }
 
+//    template< unsigned int TDim >
+//   void TwoStepUpdatedLagrangianVPFluidElement<TDim>::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+// 									      std::vector<ConstitutiveLaw::Pointer>& rValues,
+// 									      const ProcessInfo& rCurrentProcessInfo )
+//   {
+
+//     if(rVariable == YIELDED)
+//     {
+
+//       rValues[0] = 1.5
+//         // if ( rValues.size() != mConstitutiveLawVector.size() )
+//         // {
+//         //     rValues.resize(mConstitutiveLawVector.size());
+//         // }
+
+//         // for(unsigned int i=0; i<rValues.size(); i++)
+//         // {
+//         //     rValues[i] = 1.5;
+//         // }
+//     }
+
+// }
+
+
+  
+
+  
 
   template < > 
   void TwoStepUpdatedLagrangianVPFluidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
@@ -1348,12 +1675,16 @@ namespace Kratos {
 
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
-
+	
     double Density = this->mMaterialDensity;
     double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
-    double DeviatoricCoeff = 0;
-    this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);
-    
+    double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
+    // if(DeviatoricCoeff>0.01){
+    //   DeviatoricCoeff=0.01;
+    // }
+    // if(DeviatoricCoeff>0.1){
+    //   DeviatoricCoeff=0.1;
+    // }
     double Tau=0;
     this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
 
@@ -1369,8 +1700,6 @@ namespace Kratos {
 	computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
 
 	if(computeElement==true){
-	  // Evaluate required variables at the integration point
-
 	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
 	  // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
 	
@@ -1378,9 +1707,9 @@ namespace Kratos {
 	  // this->ComputeBulkMatrixForPressureAcc(BulkAccMatrix,N,BulkStabCoeff);
 
 	  double BoundLHSCoeff=Tau*4.0*GaussWeight/(ElemSize*ElemSize);
- 	  if(TDim==3){
-	    BoundLHSCoeff=Tau*2*GaussWeight/(0.81649658*ElemSize*ElemSize);
-	  }
+ 	  // if(TDim==3){
+	  //   BoundLHSCoeff=Tau*2*GaussWeight/(0.81649658*ElemSize*ElemSize);
+	  // }
 
 	  this->ComputeBoundLHSMatrix(rLeftHandSideMatrix,N,BoundLHSCoeff);
 
@@ -1388,10 +1717,10 @@ namespace Kratos {
 
 	  double BoundRHSCoeffAcc=Tau*Density*2*GaussWeight/ElemSize;
 	  double BoundRHSCoeffDev=Tau*8.0*NProjSpatialDefRate*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
-	  if(TDim==3){
-	    BoundRHSCoeffAcc=Tau*GaussWeight*Density/(0.81649658*ElemSize);
-	    BoundRHSCoeffDev=Tau*GaussWeight*4.0*NProjSpatialDefRate*DeviatoricCoeff/(0.81649658*ElemSize*ElemSize);
-	  }
+	  // if(TDim==3){
+	  //   BoundRHSCoeffAcc=Tau*GaussWeight*Density/(0.81649658*ElemSize);
+	  //   BoundRHSCoeffDev=Tau*GaussWeight*4.0*NProjSpatialDefRate*DeviatoricCoeff/(0.81649658*ElemSize*ElemSize);
+	  // }
 
 	  this->ComputeBoundRHSVector(rRightHandSideVector,N,TimeStep,BoundRHSCoeffAcc,BoundRHSCoeffDev);
 

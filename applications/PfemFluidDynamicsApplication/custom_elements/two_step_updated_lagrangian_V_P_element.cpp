@@ -214,10 +214,13 @@ namespace Kratos {
 
 	bool computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,rDN_DX,g);
 
-	this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep,rElementalVariables);
+	this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,rCurrentProcessInfo,rElementalVariables);
 
 	this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
 
+	// std::vector<double> rOutput;
+	// this->GetElementalValueForOutput(YIELDED,rOutput);
+	
 	if(computeElement==true){
 	  // Add integration point contribution to the local mass matrix
 	  // double DynamicWeight=GaussWeight*Density;
@@ -232,10 +235,12 @@ namespace Kratos {
 
 	  // double MeanValueMaterial=0.0;
 	  // this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight,MeanValueMass,TimeStep);    
-
+	  // double deviatoricCoeffTemp=DeviatoricCoeff;
+	  // DeviatoricCoeff=0;
 	  // // Add viscous term
 	  // this->ComputeCompleteTangentTerm(rElementalVariables,rLeftHandSideMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
 	  this->ComputeCompleteTangentTerm(rElementalVariables,StiffnessMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
+	  // DeviatoricCoeff=deviatoricCoeffTemp;
 	}
       }
 
@@ -311,6 +316,17 @@ namespace Kratos {
  
   }
 
+
+    template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPElement<TDim>::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+									  std::vector<double>& rValues,
+									  const ProcessInfo& rCurrentProcessInfo )
+{
+    if ( rVariable == YIELDED)
+    {
+      rValues[0]=this->GetValue(YIELDED);
+    }
+}
 
   template<>
   void TwoStepUpdatedLagrangianVPElement<2>::ComputeCompleteTangentTerm(ElementalVariables & rElementalVariables,
@@ -614,12 +630,12 @@ namespace Kratos {
     for (SizeType i = 0; i < NumNodes; ++i){
       rValues[i] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
 
-      if(rGeom[i].Is(FREE_SURFACE)){
-	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
+      // if(rGeom[i].Is(FREE_SURFACE)){
+      // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
 
-      }else{
-      	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 0;
-      }
+      // }else{
+      // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 0;
+      // }
 
     }
   }

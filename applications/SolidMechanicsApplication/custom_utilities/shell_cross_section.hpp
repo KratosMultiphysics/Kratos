@@ -40,7 +40,7 @@ namespace Kratos
 * References...
 *
 */
-class ShellCrossSection : public Flags
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellCrossSection : public Flags
 {
 
 public:
@@ -262,7 +262,9 @@ public:
 			}
 			return *this;
 		}
-		
+          
+                virtual ~IntegrationPoint(){};
+          
 	public:
 		
 		inline double GetWeight()const { return mWeight; }
@@ -346,7 +348,9 @@ public:
 			}
 			return *this;
 		}
-		
+
+                virtual ~Ply(){};
+          
 	public:
 		
 		inline double GetThickness()const { return mThickness; }

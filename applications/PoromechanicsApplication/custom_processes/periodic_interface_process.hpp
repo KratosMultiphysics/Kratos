@@ -39,7 +39,6 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "dimension": 2,
                 "von_mises_limit": 100.0e6
             }  )" );
@@ -51,7 +50,6 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
         
-        mmesh_id = rParameters["mesh_id"].GetInt();
         mDimension = rParameters["dimension"].GetInt();
         if(mDimension == 2)
             mVoigtSize = 3;
@@ -177,7 +175,6 @@ protected:
     /// Member Variables
 
     ModelPart& mr_model_part;
-    std::size_t mmesh_id;
     int mDimension;
     int mVoigtSize;
     double mVonMisesLimit;

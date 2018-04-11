@@ -8,235 +8,183 @@
 //
 
 // System includes 
-#include <boost/python.hpp>
 
 // External includes 
 
 // Project includes
-#include "includes/node.h"
-#include "includes/define.h"
-#include "processes/process.h"
-#include "containers/flags.h"
-
-//Application includes
 #include "custom_python/add_custom_processes_to_python.h"
 
-//Processes
+// Processes
 #include "custom_processes/transfer_entities_between_model_parts_process.h"
 #include "custom_processes/transfer_nodes_to_model_part_process.h"
-#include "custom_processes/assign_scalar_field_to_nodes_process.h"
-#include "custom_processes/assign_scalar_field_to_conditions_process.h"
-#include "custom_processes/assign_scalar_variable_to_nodes_process.h"
-#include "custom_processes/assign_scalar_variable_to_conditions_process.h"
+#include "custom_processes/assign_scalar_variable_to_entities_process.h"
 #include "custom_processes/assign_vector_variable_to_conditions_process.h"
-#include "custom_processes/assign_vector_field_to_conditions_process.h"
+#include "custom_processes/assign_vector_field_to_entities_process.h"
 #include "custom_processes/fix_scalar_dof_process.h"
 #include "custom_processes/free_scalar_dof_process.h"
 #include "custom_processes/add_dofs_process.h"
 #include "custom_processes/assign_rotation_field_about_an_axis_to_nodes_process.h"
 #include "custom_processes/assign_torque_field_about_an_axis_to_conditions_process.h"
+#include "custom_processes/build_string_skin_process.h"
 
 namespace Kratos
 {
 	
-  namespace Python
-  {
+namespace Python
+{
 
-    typedef std::vector<Flags>  FlagsContainer;
+typedef std::vector<Flags>  FlagsContainer;
     
     
-    void Push_Back_Flags( FlagsContainer& ThisFlagContainer,
-			  Flags ThisFlag )
-    {
-      ThisFlagContainer.push_back( ThisFlag );
-    }
+void Push_Back_Flags( FlagsContainer& ThisFlagContainer,
+                      Flags ThisFlag )
+{
+  ThisFlagContainer.push_back( ThisFlag );
+}
 
     
-    void  AddCustomProcessesToPython()
-    {
+void  AddCustomProcessesToPython(pybind11::module& m)
+{
 
-      using namespace boost::python;
-      typedef Process                                         ProcessBaseType;
+  using namespace pybind11;
 
-
-      class_< FlagsContainer >( "FlagsContainer", init<>() )
-	.def( "PushBack", Push_Back_Flags )
-	;
-    
-
-      //**********TRANSFER NODES TO MODEL PART*********//
-
-      class_<TransferNodesToModelPartProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "TransferNodesProcess", init<ModelPart&, ModelPart&, const FlagsContainer&>()
-      	)
-	.def(init<ModelPart&, ModelPart&, const FlagsContainer&, const FlagsContainer& >())
-        .def("Execute", &TransferNodesToModelPartProcess::Execute)
-      	;
       
-      //**********TRANSFER ENTITIES BETWEEN MODEL PARTS*********//
+  class_< FlagsContainer >(m,"FlagsContainer")
+      .def( init<>() )
+      .def( "PushBack", Push_Back_Flags )
+      ;
+    
 
-      class_<TransferEntitiesBetweenModelPartsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "TransferEntitiesProcess", init<ModelPart&, ModelPart&, const std::string>()
-      	)	
-	.def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&>())
-	.def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&, const FlagsContainer& >())
-        .def("Execute", &TransferEntitiesBetweenModelPartsProcess::Execute)
-      	;
+  //**********TRANSFER NODES TO MODEL PART*********//
+
+  class_<TransferNodesToModelPartProcess, Process>(m,"TransferNodesProcess")
+      .def(init<ModelPart&, ModelPart&, const FlagsContainer&>())
+      .def(init<ModelPart&, ModelPart&, const FlagsContainer&, const FlagsContainer& >())
+      .def("Execute", &TransferNodesToModelPartProcess::Execute)
+      ;
+      
+  //**********TRANSFER ENTITIES BETWEEN MODEL PARTS*********//
+
+  class_<TransferEntitiesBetweenModelPartsProcess, Process>(m,"TransferEntitiesProcess")
+      .def(init<ModelPart&, ModelPart&, const std::string>())	
+      .def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&>())
+      .def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&, const FlagsContainer& >())
+      .def("Execute", &TransferEntitiesBetweenModelPartsProcess::Execute)
+      ;
       
       
-      //**********ASSIGN VALUES TO VARIABLES PROCESSES*********//
+  //**********ASSIGN VALUES TO VARIABLES PROCESSES*********//
 
-      class_<AssignScalarVariableToNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignScalarToNodesProcess", init<ModelPart&, Parameters>()
-      	)
-        .def(init< ModelPart&, Parameters& >())
-        .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, double>())
-        .def(init<ModelPart&, const Variable<double>&, double>())
-        .def(init<ModelPart&, const Variable<int>&, int>())
-        .def(init<ModelPart&, const Variable<bool>&, bool>())
-        .def("Execute", &AssignScalarVariableToNodesProcess::Execute)
+  class_<AssignScalarVariableToEntitiesProcess, Process>(m,"AssignScalarToEntitiesProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init< ModelPart&, Parameters& >())
+      .def("Execute", &AssignScalarVariableToEntitiesProcess::Execute)
+      ;
 
-      	;
+  class_<AssignScalarFieldToEntitiesProcess, Process>(m,"AssignScalarFieldToEntitiesProcess")
+      .def(init<ModelPart&, pybind11::object&, const std::string, const bool, Parameters>())
+      .def(init< ModelPart&, pybind11::object&, const std::string, const bool, Parameters& >())
+      .def("Execute", &AssignScalarFieldToEntitiesProcess::Execute)
+      ;
+  
+  class_<AssignVectorFieldToEntitiesProcess, Process>(m,"AssignVectorFieldToEntitiesProcess")
+      .def(init<ModelPart&, pybind11::object&,const std::string,const bool, Parameters>())
+      .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
+      .def("Execute", &AssignVectorFieldToEntitiesProcess::Execute)
+      ;
 
-      class_<AssignScalarFieldToNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignScalarFieldToNodesProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
-      	)
-        .def(init< ModelPart&, PyObject* ,const char* ,const bool, Parameters& >())
-        .def("Execute", &AssignScalarFieldToNodesProcess::Execute)
-
-      	;
-
-      class_<AssignScalarVariableToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignScalarToConditionsProcess", init<ModelPart&, Parameters>()
-      	)
-        .def(init< ModelPart&, Parameters& >())
-        .def(init<ModelPart&, const Variable<double>&, double>())
-        .def(init<ModelPart&, const Variable<int>&, int>())
-        .def(init<ModelPart&, const Variable<bool>&, bool>())
-        .def("Execute", &AssignScalarVariableToConditionsProcess::Execute)
-      	;
-
-      class_<AssignVectorVariableToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignVectorToConditionsProcess", init<ModelPart&, Parameters>()
-      	)
-        .def(init< ModelPart&, Parameters& >())
-        .def(init<ModelPart&, const Variable<array_1d<double,3> >&, array_1d<double,3>&>())
-        .def("Execute", &AssignVectorVariableToConditionsProcess::Execute)
-      	;
-
-      class_<AssignScalarFieldToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignScalarFieldToConditionsProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
-      	)
-        .def(init< ModelPart&, PyObject* ,const char* ,const bool, Parameters& >())
-        .def("Execute", &AssignScalarFieldToConditionsProcess::Execute)
-
-      	;
-
-      class_<AssignVectorFieldToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignVectorFieldToConditionsProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
-      	)
-        .def(init< ModelPart&, PyObject* ,const char* ,const bool, Parameters& >())
-        .def("Execute", &AssignVectorFieldToConditionsProcess::Execute)
-
-      	;
+  class_<AssignVectorVariableToConditionsProcess, Process>(m,"AssignVectorToConditionsProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init< ModelPart&, Parameters& >())
+      .def(init<ModelPart&, const Variable<array_1d<double,3> >&, array_1d<double,3>&>())
+      .def("Execute", &AssignVectorVariableToConditionsProcess::Execute)
+      ;
 	
-      //**********FIX AND FREE DOFS PROCESSES*********//
+  //**********FIX AND FREE DOFS PROCESSES*********//
 
-      class_<FixScalarDofProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "FixScalarDofProcess", init<ModelPart&, Parameters>()
-      	)
-        .def(init<ModelPart&, Parameters&>())
-        .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&>())
-        .def(init<ModelPart&, const Variable<double>&>())
-        .def(init<ModelPart&, const Variable<int>&>())
-        .def(init<ModelPart&, const Variable<bool>&>())
-        .def("Execute", &FixScalarDofProcess::Execute)
+  class_<FixScalarDofProcess, Process>(m,"FixScalarDofProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init<ModelPart&, Parameters&>())
+      .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&>())
+      .def(init<ModelPart&, const Variable<double>&>())
+      .def(init<ModelPart&, const Variable<int>&>())
+      .def(init<ModelPart&, const Variable<bool>&>())
+      .def("Execute", &FixScalarDofProcess::Execute)
 
-      	;
+      ;
 
 
-      class_<FreeScalarDofProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "FreeScalarDofProcess", init<ModelPart&, Parameters>()
-      	)
-        .def(init<ModelPart&, Parameters&>())
-        .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&>())
-        .def(init<ModelPart&, const Variable<double>&>())
-        .def(init<ModelPart&, const Variable<int>&>())
-        .def(init<ModelPart&, const Variable<bool>&>())
-        .def("Execute", &FreeScalarDofProcess::Execute)
+  class_<FreeScalarDofProcess, Process>(m,"FreeScalarDofProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init<ModelPart&, Parameters&>())
+      .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&>())
+      .def(init<ModelPart&, const Variable<double>&>())
+      .def(init<ModelPart&, const Variable<int>&>())
+      .def(init<ModelPart&, const Variable<bool>&>())
+      .def("Execute", &FreeScalarDofProcess::Execute)
 
-      	;
+      ;
 
  
-      //**********ADD DOFS PROCESS*********//
+  //**********ADD DOFS PROCESS*********//
 
-      class_<AddDofsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AddDofsProcess", init<ModelPart&, Parameters>()
-      	)
-        .def(init<ModelPart&, Parameters&>())
-	.def(init<ModelPart&, const boost::python::list&, const boost::python::list&>())
-        .def("Execute", &AddDofsProcess::Execute)
+  class_<AddDofsProcess, Process>(m,"AddDofsProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init<ModelPart&, Parameters&>())
+      .def(init<ModelPart&, const pybind11::list&, const pybind11::list&>())
+      .def("Execute", &AddDofsProcess::Execute)
 
-      	;
+      ;
 
 
-      //**********ASSIGN ROTATION ABOUT AND AXIS*********//
+  //**********ASSIGN ROTATION ABOUT AND AXIS*********//
 
-      class_<AssignRotationAboutAnAxisToNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignRotationAboutAnAxisToNodesProcess", init<ModelPart&, Parameters>()
-      	)
-        .def(init< ModelPart&, Parameters& >())
-        .def("Execute", &AssignRotationAboutAnAxisToNodesProcess::Execute)
+  class_<AssignRotationAboutAnAxisToNodesProcess, Process>(m,"AssignRotationAboutAnAxisToNodesProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init< ModelPart&, Parameters& >())
+      .def("Execute", &AssignRotationAboutAnAxisToNodesProcess::Execute)
 
-      	;
+      ;
 
       
-      class_<AssignRotationFieldAboutAnAxisToNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignRotationFieldAboutAnAxisToNodesProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
-      	)
-	.def(init< ModelPart&, PyObject* ,const char* ,const bool, Parameters& >())
-        .def("Execute", &AssignRotationFieldAboutAnAxisToNodesProcess::Execute)
+  class_<AssignRotationFieldAboutAnAxisToNodesProcess, Process>(m,"AssignRotationFieldAboutAnAxisToNodesProcess")
+      .def(init<ModelPart&, pybind11::object&, const std::string,const bool, Parameters>())
+      .def(init< ModelPart&, pybind11::object&, const std::string,const bool, Parameters& >())
+      .def("Execute", &AssignRotationFieldAboutAnAxisToNodesProcess::Execute)
 
-      	;
+      ;
 
-      //**********ASSIGN TORQUE ABOUT AN AXIS*********//
+  //**********ASSIGN TORQUE ABOUT AN AXIS*********//
 
-      class_<AssignTorqueAboutAnAxisToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignTorqueAboutAnAxisToConditionsProcess", init<ModelPart&, Parameters>()
-      	)
-        .def(init< ModelPart&, Parameters& >())
-        .def("Execute", &AssignTorqueAboutAnAxisToConditionsProcess::Execute)
+  class_<AssignTorqueAboutAnAxisToConditionsProcess, Process>(m,"AssignTorqueAboutAnAxisToConditionsProcess")
+      .def(init< ModelPart&, Parameters >())
+      .def(init< ModelPart&, Parameters& >())
+      .def("Execute", &AssignTorqueAboutAnAxisToConditionsProcess::Execute)
 
-      	;
+      ;
 
       
-      class_<AssignTorqueFieldAboutAnAxisToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignTorqueFieldAboutAnAxisToConditionsProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
-      	)
-	.def(init< ModelPart&, PyObject* ,const char* ,const bool, Parameters& >())
-        .def("Execute", &AssignTorqueFieldAboutAnAxisToConditionsProcess::Execute)
+  class_<AssignTorqueFieldAboutAnAxisToConditionsProcess, Process>(m,"AssignTorqueFieldAboutAnAxisToConditionsProcess")
+      .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters >())
+      .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
+      .def("Execute", &AssignTorqueFieldAboutAnAxisToConditionsProcess::Execute)
 
-      	;
-      
-      
-    }
+      ;
+
+
+  //**********BUILD STRING SKIN PROCESS*********//
+
+  class_<BuildStringSkinProcess, Process>(m,"BuildStringSkinProcess")
+      .def(init<ModelPart&, unsigned int, double>())
+      .def("ExecuteInitialize", &BuildStringSkinProcess::ExecuteInitialize)
+      .def("ExecuteFinalizeSolutionStep", &BuildStringSkinProcess::ExecuteFinalizeSolutionStep)
+      .def("ExecuteBeforeOutputStep", &BuildStringSkinProcess::ExecuteBeforeOutputStep)	
+      .def("ExecuteAfterOutputStep", &BuildStringSkinProcess::ExecuteAfterOutputStep)
+      ;
+            
+}
  
-  }  // namespace Python.
+}  // namespace Python.
 
 } // Namespace Kratos
 

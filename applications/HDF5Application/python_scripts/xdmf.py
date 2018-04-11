@@ -112,7 +112,8 @@ class TopologyCellType:
         (2,4): "Quadrilateral",
         (3,2): "Polyline_2",
         (3,3): "Triangle",
-        (3,4): "Tetrahedron"
+        (3,4): "Tetrahedron",
+        (3,8): "Hexahedron"
         }
 
     def __init__(self, dim, num_points):

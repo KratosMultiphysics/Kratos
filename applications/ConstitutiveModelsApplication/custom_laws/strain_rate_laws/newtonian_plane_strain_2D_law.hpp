@@ -44,7 +44,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NewtonianPlaneStrain2DLaw : public Newtonian3DLaw
+  class NewtonianPlaneStrain2DLaw : public Newtonian3DLaw
     {
     public:
       ///@name Type Definitions
@@ -102,7 +102,7 @@ namespace Kratos
 	rFeatures.mOptions.Set( ISOTROPIC );
 	
 	//Set strain measure required by the consitutive law
-	rFeatures.mStrainMeasures.push_back(StrainMeasure_Velocity_Gradient);
+	//rFeatures.mStrainMeasures.push_back(StrainMeasure_Velocity_Gradient);
 
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();

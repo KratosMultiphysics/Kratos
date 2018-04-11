@@ -18,8 +18,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
 
-        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
-
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -37,7 +35,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = self.settings["echo_level"].GetInt()
-        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
 
         self.meshing_control_is_time = False
@@ -46,6 +43,20 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
             self.meshing_control_is_time = True
         elif(meshing_control_type == "step"):
             self.meshing_control_is_time = False
+
+        self.step_count   = 1
+        self.counter      = 1
+        self.next_meshing = 0.0
+        self.meshing_before_output = self.settings["meshing_before_output"].GetBool()
+
+        self.Model = Model
+
+    #
+    def ExecuteInitialize(self):
+
+        self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
+
+        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         #construct meshing domains
         self.meshing_domains = []
@@ -62,14 +73,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         for domain in self.meshing_domains:
             if( domain.Active() ):
                 self.remesh_domains_active = True
-
-        self.step_count   = 1
-        self.counter      = 1
-        self.next_meshing = 0.0
-        self.meshing_before_output = self.settings["meshing_before_output"].GetBool()
-
-    #
-    def ExecuteInitialize(self):
 
         # check restart
         self.restart = False
