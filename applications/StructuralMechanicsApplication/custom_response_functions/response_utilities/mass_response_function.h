@@ -86,14 +86,14 @@ public:
 	MassResponseFunction(ModelPart& model_part, Parameters responseSettings)
 	: mrModelPart(model_part)
 	{
-		std::string gradientMode = responseSettings["gradient_mode"].GetString();
-		if (gradientMode.compare("finite_differencing") == 0)
+		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
+		if (gradient_mode.compare("finite_differencing") == 0)
 		{
 			double delta = responseSettings["step_size"].GetDouble();
 			mDelta = delta;
 		}
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: finite_differencing. Specified gradient_mode: ", gradientMode);
+			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: finite_differencing" << std::endl;
 
 		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 	}

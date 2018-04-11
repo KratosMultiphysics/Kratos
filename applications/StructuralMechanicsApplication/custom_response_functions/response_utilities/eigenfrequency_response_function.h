@@ -83,13 +83,13 @@ public:
 	EigenfrequencyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
 	: mrModelPart(model_part)
 	{
-		std::string gradientMode = responseSettings["gradient_mode"].GetString();
-		if (gradientMode.compare("semi_analytic") == 0)
+		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
+		if (gradient_mode.compare("semi_analytic") == 0)
 		{
 			mDelta = responseSettings["step_size"].GetDouble();
 		}
 		else
-			KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " << gradientMode << std::endl;
+			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
 
 		// Get number of eigenfrequency for which the structure has to be optimized
 		mTracedEigenValue = responseSettings["traced_eigenfrequency"].GetInt();

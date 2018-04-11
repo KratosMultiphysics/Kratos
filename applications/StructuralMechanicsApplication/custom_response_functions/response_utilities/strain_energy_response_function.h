@@ -86,15 +86,15 @@ public:
 	: mrModelPart(model_part)
 	{
 		// Set gradient mode
-		std::string gradientMode = responseSettings["gradient_mode"].GetString();
+		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
 
-		if (gradientMode.compare("semi_analytic") == 0)
+		if (gradient_mode.compare("semi_analytic") == 0)
 		{
 			double delta = responseSettings["step_size"].GetDouble();
 			mDelta = delta;
 		}
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
+			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
 
 		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 	}

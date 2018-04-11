@@ -84,16 +84,16 @@ public:
 	: mrModelPart(model_part)
 	{
 		// Set gradient mode
-		std::string gradientMode = responseSettings["gradient_mode"].GetString();
+		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
 
 		// Mode 1: semi-analytic sensitivities
-		if (gradientMode.compare("semi_analytic") == 0)
+		if (gradient_mode.compare("semi_analytic") == 0)
 		{
 			mGradientMode = 1;
 			mDelta = responseSettings["step_size"].GetDouble();
 		}
 		else
-			KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " << gradientMode << std::endl;
+			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
 
 
         // Get array of numbers of the eigenfrequencies which have to be traced by this response function
@@ -166,8 +166,7 @@ public:
 
 		int num_of_computed_eigenvalues = (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR]).size();
 
-		if(num_of_computed_eigenvalues < id_eigenvalue)
-			KRATOS_THROW_ERROR(std::runtime_error, "The chosen eigenvalue was not solved by the eigenvalue analysis!", "");
+		KRATOS_ERROR_IF(num_of_computed_eigenvalues < id_eigenvalue) << "The chosen eigenvalue was not solved by the eigenvalue analysis!" << std::endl;
 
 		return (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR])[id_eigenvalue-1];
 
