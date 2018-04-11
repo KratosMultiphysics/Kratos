@@ -1,4 +1,7 @@
+project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
+
+
 
 # Setting some policies
 if(POLICY CMP0054)
@@ -10,7 +13,7 @@ if(POLICY CMP0022)
   cmake_policy(SET CMP0022 NEW)
 endif(POLICY CMP0022)
 
-project (KratosMultiphysics)
+
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 6)
@@ -34,6 +37,8 @@ SET( CMAKE_C_FLAGS_CUSTOM "" )
 SET( CMAKE_CXX_FLAGS_CUSTOM "" )
 SET( CMAKE_SHARED_LINKER_FLAGS_CUSTOM "" )
 SET( CMAKE_EXE_LINKER_FLAGS_CUSTOM "" )
+SET( CMAKE_MODULE_LINKER_FLAGS_FULLDEBUG "${CMAKE_MODULE_LINKER_FLAGS}")
+SET( CMAKE_MODULE_LINKER_FLAGS_CUSTOM "${CMAKE_MODULE_LINKER_FLAGS}")
 
 if(USE_COTIRE MATCHES ON)
     set(CMAKE_SKIP_RPATH ON)
@@ -146,8 +151,8 @@ endif(${MSVC12})
 # Common flags for MSVC
 if(${MSVC})
   message("Detected compiler as MSVC")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
 endif(${MSVC})
 
 # Specific flags for different versions of MSVC
