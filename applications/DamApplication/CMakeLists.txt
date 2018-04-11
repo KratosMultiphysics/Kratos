@@ -77,7 +77,7 @@ if(${USE_DAM_MPI} MATCHES ON)
 
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-    target_link_libraries(KratosDamCore PRIVATE KratosCore KratosTrilinosApplication KratosPoromechanicsCore)
+    target_link_libraries(KratosDamCore PRIVATE KratosCore KratosTrilinosApplication KratosSolidMechanicsCore KratosPoromechanicsCore)
 
 else()
 
@@ -93,7 +93,7 @@ else()
     
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-    target_link_libraries(KratosDamCore PRIVATE KratosCore KratosPoromechanicsCore)
+    target_link_libraries(KratosDamCore PRIVATE KratosCore KratosSolidMechanicsCore KratosPoromechanicsCore)
 
 endif()
 
@@ -103,7 +103,7 @@ endif()
 ###############################################################################
 ## DamApplication core library (C++ parts)
 #add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-#target_link_libraries(KratosDamCore PRIVATE KratosCore KratosPoromechanicsCore)
+#target_link_libraries(KratosDamCore PRIVATE KratosCore KratosSolidMechanicsCore KratosPoromechanicsCore)
 
 ## DamApplication python module
 pybind11_add_module(KratosDamApplication MODULE ${KRATOS_DAM_APPLICATION_PYTHON_INTERFACE_SOURCES})
