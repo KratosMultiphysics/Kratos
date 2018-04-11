@@ -515,9 +515,9 @@ protected:
         ResponseFunction& r_response_function = *(this->mpResponseFunction);
 
         // Process the part that does not require assembly first
-        const int number_of_local_nodes = rModelPart.NumberOfNodes();
+        const int number_of_nodes = rModelPart.NumberOfNodes();
         #pragma omp parallel for
-        for (int i = 0; i < number_of_local_nodes; i++) {
+        for (int i = 0; i < number_of_nodes; i++) {
             Node<3>& r_node = *(rModelPart.NodesBegin() + i);
             noalias(r_node.FastGetSolutionStepValue(mAuxiliaryVariable)) = mAuxiliaryVariable.Zero();
         }
