@@ -28,13 +28,14 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "../../kratos/includes/define.h"
-#include "../../kratos/processes/process.h"
-#include "../../kratos/includes/node.h"
-#include "../../kratos/includes/element.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/kratos_flags.h"
+#include "includes/define.h"
+#include "processes/process.h"
+#include "includes/node.h"
+#include "includes/element.h"
+#include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 #include "processes/find_nodal_neighbours_process.h"
+#include "structural_mechanics_application_variables.h"
 #include "response_function.h"
 
 // ==============================================================================
@@ -123,17 +124,12 @@ public:
 		double total_mass = 0.0;
 
 		// Incremental computation of total mass
-		for (ModelPart::ElementsContainerType::iterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
+		for (auto& elem_i : mr_model_part.Elements())
 		{
-			Element::GeometryType& element_geometry = elem_i->GetGeometry();
-			double elem_density = elem_i->GetProperties()[DENSITY];
+			double elem_density = elem_i.GetProperties()[DENSITY];
 
 			// Compute mass according to element dimension
-			double elem_volume = 0.0;
-			if( IsElementOfTypeShell(element_geometry) )
-				elem_volume = element_geometry.Area()*elem_i->GetProperties()[THICKNESS];
-			else
-				elem_volume = element_geometry.Volume();
+			double elem_volume = GetElementVolume(elem_i);
 			total_mass +=  elem_density*elem_volume;
 		}
 
@@ -168,16 +164,11 @@ public:
 			double mass_before_fd = 0.0;
 			for(unsigned int i = 0; i < ng_elem.size(); i++)
 			{
-				Kratos::Element& ng_elem_i = ng_elem[i];
-				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+				Element& ng_elem_i = ng_elem[i];
 				double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 				// Compute mass according to element dimension
-				double elem_volume = 0.0;
-				if( IsElementOfTypeShell(element_geometry) )
-					elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
-				else
-					elem_volume = element_geometry.Volume();
+				double elem_volume = GetElementVolume(ng_elem_i);
 				mass_before_fd +=  elem_density*elem_volume;
 			}
 
@@ -189,16 +180,11 @@ public:
 			node_i->X() += mDelta;
 			for(unsigned int i = 0; i < ng_elem.size(); i++)
 			{
-				Kratos::Element& ng_elem_i = ng_elem[i];
-				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+				Element& ng_elem_i = ng_elem[i];
 				double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 				// Compute mass according to element dimension
-				double elem_volume = 0.0;
-				if( IsElementOfTypeShell(element_geometry) )
-					elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
-				else
-					elem_volume = element_geometry.Volume();
+				double elem_volume = GetElementVolume(ng_elem_i);
 				mass_after_fd +=  elem_density*elem_volume;
 			}
 			gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
@@ -209,16 +195,11 @@ public:
 			node_i->Y() += mDelta;
 			for(unsigned int i = 0; i < ng_elem.size(); i++)
 			{
-				Kratos::Element& ng_elem_i = ng_elem[i];
-				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+				Element& ng_elem_i = ng_elem[i];
 				double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 				// Compute mass according to element dimension
-				double elem_volume = 0.0;
-				if( IsElementOfTypeShell(element_geometry) )
-					elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
-				else
-					elem_volume = element_geometry.Volume();
+				double elem_volume = GetElementVolume(ng_elem_i);
 				mass_after_fd +=  elem_density*elem_volume;
 			}
 			gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
@@ -229,16 +210,11 @@ public:
 			node_i->Z() += mDelta;
 			for(unsigned int i = 0; i < ng_elem.size(); i++)
 			{
-				Kratos::Element& ng_elem_i = ng_elem[i];
-				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+				Element& ng_elem_i = ng_elem[i];
 				double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 				// Compute mass according to element dimension
-				double elem_volume = 0.0;
-				if( IsElementOfTypeShell(element_geometry) )
-					elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
-				else
-					elem_volume = element_geometry.Volume();
+				double elem_volume = GetElementVolume(ng_elem_i);
 				mass_after_fd +=  elem_density*elem_volume;
 			}
 			gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
@@ -268,14 +244,11 @@ public:
 			double scaling_factor = 0.0;
 			for(unsigned int i = 0; i < ng_elem.size(); i++)
 			{
-				Kratos::Element& ng_elem_i = ng_elem[i];
+				Element& ng_elem_i = ng_elem[i];
 				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
 
 				// Compute mass according to element dimension
-				if( IsElementOfTypeShell(element_geometry) )
-					scaling_factor += element_geometry.Area();
-				else
-					scaling_factor += element_geometry.Volume();
+				scaling_factor += element_geometry.DomainSize();
 			}
 
 			// apply scaling
@@ -284,12 +257,17 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	bool IsElementOfTypeShell( Element::GeometryType& given_element_geometry )
+	double GetElementVolume(Element& element)
 	{
-		if(given_element_geometry.WorkingSpaceDimension() != given_element_geometry.LocalSpaceDimension())
-			return true;
+		Element::GeometryType& geometry = element.GetGeometry();
+		if (geometry.LocalSpaceDimension() == 3)
+			return geometry.Volume();
+		else if (geometry.LocalSpaceDimension() == 2)
+			return geometry.Area()*element.GetProperties()[THICKNESS];
+		else if (geometry.LocalSpaceDimension() == 1)
+			return geometry.Length()*element.GetProperties()[CROSS_AREA];
 		else
-		    return false;
+			KRATOS_ERROR << "Invalid local dimension found in element!" << std::endl;
 	}
 
 	// ==============================================================================

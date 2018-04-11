@@ -453,23 +453,11 @@ protected:
 				Kratos::Element& ng_elem_i = ng_elem[i];
 				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
 
-				if( isElementOfTypeShell(element_geometry) )
-					scaling_factor += element_geometry.Area();
-				else
-					scaling_factor += element_geometry.Volume();
+				scaling_factor += element_geometry.DomainSize();
 			}
 
 			node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY) /= scaling_factor;
 		}
-	}
-
-	// --------------------------------------------------------------------------
-	bool isElementOfTypeShell( Element::GeometryType& given_element_geometry )
-	{
-		if(given_element_geometry.WorkingSpaceDimension() != given_element_geometry.LocalSpaceDimension())
-			return true;
-		else
-		    return false;
 	}
 
 	// ==============================================================================
