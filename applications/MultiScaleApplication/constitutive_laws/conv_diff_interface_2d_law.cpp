@@ -48,10 +48,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "multiscale_application_variables.h"
 #include "custom_utilities/math_helpers.h"
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif // !M_PI
-
 //#define EXPONENTIAL_DAMAGE
 
 namespace Kratos
@@ -484,7 +480,7 @@ namespace Kratos
 			data.K_2 = props[CONDUCT_MAT2];
 			data.nu_2 = props[POISSON_MAT2];
 
-			// Modifico Proporzionalmente le proprietá per degradare allo stesso modo del meccanico
+			// Modifico Proporzionalmente le proprieta per degradare allo stesso modo del meccanico
 			data.Ks = props[CONDUCTIVITY];
 			data.Kg = props[AIR_CONDUCTIVITY];
 

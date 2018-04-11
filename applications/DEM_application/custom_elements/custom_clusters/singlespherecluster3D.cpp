@@ -42,8 +42,10 @@ namespace Kratos {
     // Destructor
     SingleSphereCluster3D::~SingleSphereCluster3D() {}      
     
-    void SingleSphereCluster3D::CustomInitialize(ProcessInfo& r_process_info) {
+    void SingleSphereCluster3D::Initialize(ProcessInfo& r_process_info) {
         
+        RigidBodyElement3D::Initialize(r_process_info); //Skipping the Cluster3D level intentionally!! We should unifiy this when we code ECCENTRICITY and SCALES for Cluster3D
+
         int number_of_spheres = 1;
         mListOfRadii.resize(number_of_spheres);
         mListOfCoordinates.resize(number_of_spheres);
@@ -71,7 +73,7 @@ namespace Kratos {
         
         double particle_density = this->SlowGetDensity();
          
-        double cluster_volume = 4.0 * KRATOS_M_PI_3 * radius * radius * radius;
+        double cluster_volume = 4.0 * Globals::Pi / 3.0 * radius * radius * radius;
         
         double cluster_mass = particle_density * cluster_volume;
         

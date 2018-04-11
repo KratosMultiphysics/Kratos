@@ -13,7 +13,7 @@ class Algorithm(BaseAlgorithm):
     def SetBetaParameters(self):
         BaseAlgorithm.SetBetaParameters(self)
         self.pp.CFD_DEM.alpha = 0.01
-        self.pp["IntegrationScheme"].GetString() = 'TerminalVelocityScheme'
+        self.pp["TranslationalIntegrationScheme"].GetString() = 'TerminalVelocityScheme'
         self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(0)
         self.pp.CFD_DEM.PostCationConcentration = True
         self.pp.initial_concentration = 10
@@ -36,4 +36,4 @@ class Algorithm(BaseAlgorithm):
         return SDP.Counter(self.pp.cation_concentration_frequence, 1)
 
     def DoSolveDEMVariable(self):
-        self.pp.do_solve_dem = False
+        self.do_solve_dem = False

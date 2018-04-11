@@ -1,7 +1,7 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:           MSantasusana $
-//   Last modified by:    $Co-Author:          JMCarbonel $
+//   Last modified by:    $Co-Author:         JMCarbonell $
 //   Date:                $Date:               April 2014 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -40,7 +40,7 @@ class ExplicitStrategy
 public:
 
     /** Counted pointer of ClassName */
-    //typedef boost::shared_ptr< ExplicitStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
+
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;

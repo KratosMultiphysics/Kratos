@@ -78,12 +78,9 @@ void UpdatedLagrangianVSolidElement<2>:: CalcElasticPlasticCauchySplitted(Elemen
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
   rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
-  double Density  = 0;
-  double CurrSecondLame  = 0;
-  double CurrBulkModulus = 0;
+  double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
+  double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
 
-  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
- 
   double CurrFirstLame  = 0;
   CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
@@ -129,12 +126,9 @@ void UpdatedLagrangianVSolidElement<3>:: CalcElasticPlasticCauchySplitted(Elemen
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
   rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
-  double Density  = 0;
-  double CurrSecondLame  = 0;
-  double CurrBulkModulus = 0;
+  double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
+  double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
 
-  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
-  
   double CurrFirstLame   = 0;
   CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
   

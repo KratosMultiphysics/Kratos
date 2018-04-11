@@ -641,7 +641,6 @@ public:
     public:
 
       //SubModelPart Name
-      unsigned int MeshId;
       std::string SubModelPartName;
 
       //General configuration flags
@@ -712,11 +711,6 @@ public:
       void SetOptions(const Flags&  rOptions)
       {
 	Options=rOptions;
-      };
-
-      void SetMeshId(const unsigned int& rMeshId)
-      {
-	MeshId = rMeshId;
       };
 
       void SetSubModelPartName(std::string const& rSubModelPartName)
@@ -807,11 +801,6 @@ public:
 	return Holes;
       }
 
-      int GetMeshId()
-      {
-	return MeshId;
-      };
-
       std::string GetSubModelPartName()
       {
 	return SubModelPartName;
@@ -853,8 +842,6 @@ public:
 
 
       void Initialize (){
-
-	MeshId = 0;
 
 	AlphaParameter = 0;
 
@@ -915,8 +902,6 @@ public:
     ///@name Operations
     ///@{
 
-    void SetDomainLabels   (ModelPart& rModelPart);
-
     void SetModelPartNameToConditions (ModelPart& rModelPart);
 
     void SetModelPartNameToNodes (ModelPart& rModelPart);
@@ -958,7 +943,7 @@ public:
     double FindBoundaryH    (Node<3>& BoundaryPoint);
 
     //writes a list of particles telling if they are set as boundary or not
-    void CheckParticles     (ModelPart& rModelPart,ModelPart::IndexType MeshId=0);
+    void CheckParticles     (ModelPart& rModelPart);
 
     //*******************************************************************************************
     //*******************************************************************************************
@@ -1301,9 +1286,9 @@ public:
 
     bool CheckContactCurvature(GeometryType& rConditionGeometry, std::vector<array_1d<double, 3> >& rContactNormals);
 
-    double CheckCriticalRadius(ModelPart& rModelPart, double rCriticalRadius, unsigned int MeshId);
+    double CheckCriticalRadius(ModelPart& rModelPart, double rCriticalRadius);
 
-    double GetMeanRadius(ModelPart& rModelPart, double& rCriticalRadius, unsigned int MeshId = 0);
+    double GetMeanRadius(ModelPart& rModelPart, double& rCriticalRadius);
 
     //*******************************************************************************************
     //*******************************************************************************************
@@ -1333,7 +1318,7 @@ public:
     {
       KRATOS_TRY
       
-	const unsigned int dimension = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+	const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
       double ModelPartVolume = 0;
       if( dimension ==2 ){
       

@@ -43,6 +43,10 @@ THE SOFTWARE.
 #include <boost/make_shared.hpp>
 #include <boost/range/iterator_range.hpp>
 
+#if BOOST_VERSION > 105800
+#include <boost/container/small_vector.hpp>
+#endif
+
 #include <amgcl/util.hpp>
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/solver/skyline_lu.hpp>
@@ -698,10 +702,26 @@ struct inner_product_impl<
     static return_type get(const Vec1 &x, const Vec2 &y)
     {
         const size_t n = x.size();
-        return_type sum = math::zero<return_type>();
-
+#ifdef _OPENMP
+        const int nt = omp_get_max_threads();
+#else
+        const int nt = 1;
+#endif
+        
+#if BOOST_VERSION > 105800
+        boost::container::small_vector<return_type, 64> sum(nt);
+#else
+        std::vector<return_type> sum(nt);
+#endif
+        
 #pragma omp parallel
         {
+#ifdef _OPENMP
+            const int tid = omp_get_thread_num();
+#else
+            const int tid = 0;
+#endif
+
             return_type s = math::zero<return_type>();
             return_type c = math::zero<return_type>();
 
@@ -713,11 +733,10 @@ struct inner_product_impl<
                 s = t;
             }
 
-#pragma omp critical
-            sum += s;
+            sum[tid] = s;
         }
 
-        return sum;
+        return std::accumulate(sum.begin(), sum.end(), math::zero<return_type>());
     }
 };
 

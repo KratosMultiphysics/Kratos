@@ -80,6 +80,7 @@ namespace Kratos
       	double DetFgrad;
       	double DetFgradVel;
       	double DeviatoricInvariant;
+      	double EquivalentStrainRate;
       	double VolumetricDefRate;
       	VectorType SpatialDefRate;
       	VectorType MDGreenLagrangeMaterial;
@@ -336,10 +337,12 @@ namespace Kratos
       ///@name Friends
       ///@{
 
-
       ///@}
     protected:
 
+      double mMaterialDeviatoricCoefficient=0;
+      double mMaterialVolumetricCoefficient=0;
+      double mMaterialDensity=0;
 
       ///@name Protected static Member Variables
       ///@{
@@ -365,6 +368,10 @@ namespace Kratos
       ///@name Protected Operations
       ///@{
 
+      void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+					std::vector<double>& rValues,
+					const ProcessInfo& rCurrentProcessInfo );
+      
       void CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,
 					   VectorType& rRightHandSideVector,
 					   ProcessInfo& rCurrentProcessInfo);
@@ -376,7 +383,14 @@ namespace Kratos
       virtual void ComputeMaterialParameters (double& Density,
 					      double& DeviatoricCoeff,
 					      double& VolumetricCoeff,
-					      double timeStep){};
+					      ProcessInfo& rCurrentProcessInfo,
+					      ElementalVariables& rElementalVariables){};
+
+      virtual void ComputeMaterialParametersGranularGas (double& Density,
+							 double& DeviatoricCoeff,
+							 double& VolumetricCoeff,
+							 ProcessInfo& rCurrentProcessInfo,
+							 ElementalVariables& rElementalVariables){};
 
       virtual double GetThetaMomentum (){return 1.0;};
 
@@ -574,6 +588,9 @@ namespace Kratos
       void CalcDeviatoricInvariant(VectorType &SpatialDefRate,
 				   double &DeviatoricInvariant);
 
+      void CalcEquivalentStrainRate(VectorType &SpatialDefRate,
+				    double &EquivalentStrainRate);
+
       double CalcNormalProjectionDefRate(VectorType &SpatialDefRate);
 
       void CheckStrain1(double &VolumetricDefRate,
@@ -743,10 +760,10 @@ namespace Kratos
 	  const TwoStepUpdatedLagrangianVPElement<TDim>* const_this = static_cast<const TwoStepUpdatedLagrangianVPElement<TDim>*> (this);
 	  const TValueType& Val = const_this->GetValue(rVariable);
 
-	  for (unsigned int i = 0; i < NumValues; i++)
+	  for (unsigned int i = 0; i < NumValues; i++){
 	    rOutput[i] = Val;
+	  }
 	}
-
       ///@}
       ///@name Protected  Access
       ///@{

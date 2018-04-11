@@ -104,7 +104,7 @@ class FilterFunction
 
         // Throw error message in case of wrong specification
         else
-            KRATOS_THROW_ERROR(std::invalid_argument, "Specified filter function type not recognized. Options are: linear , gaussian. Specified: ",filter_function_type);
+            KRATOS_ERROR << "Specified filter function type not recognized. Options are: linear , gaussian. Specified: " << std::endl;
     }
 
     /// Destructor.

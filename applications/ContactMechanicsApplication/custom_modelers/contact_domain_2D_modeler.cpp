@@ -28,9 +28,7 @@ namespace Kratos
 
     KRATOS_TRY
 
-    unsigned int& MeshId = rMeshingVariables.MeshId;
-
-    const unsigned int dimension = rModelPart.ConditionsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = rModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
 
     //*********************************************************************
 
@@ -161,9 +159,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    unsigned int& MeshId = rMeshingVariables.MeshId;
-
-    const unsigned int dimension = rModelPart.ConditionsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = rModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
 
     //*********************************************************************
     if(in.segmentlist){
@@ -203,7 +199,7 @@ namespace Kratos
 
     
     int base = 0;
-    for(unsigned int i = 0; i<rModelPart.Conditions(MeshId).size(); i++)
+    for(unsigned int i = 0; i<rModelPart.Conditions().size(); i++)
       {
 	Geometry< Node<3> >& rGeometry = (conditions_begin + i)->GetGeometry();
 	in.segmentlist[base]   = rGeometry[0].Id();

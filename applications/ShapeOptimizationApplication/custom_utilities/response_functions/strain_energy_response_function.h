@@ -82,33 +82,26 @@ public:
 	///@{
 
 	/// Default constructor.
-	StrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
+	StrainEnergyResponseFunction(ModelPart& model_part, Parameters responseSettings)
 	: mr_model_part(model_part)
 	{
 		// Set gradient mode
 		std::string gradientMode = responseSettings["gradient_mode"].GetString();
 
-		// Mode 1: analytic sensitivities
-		if (gradientMode.compare("analytic") == 0)
-			mGradientMode = 1;
-
-		// Mode 2: semi-analytic sensitivities
-		else if (gradientMode.compare("semi_analytic") == 0)
+		// Mode 1: semi-analytic sensitivities
+		if (gradientMode.compare("semi_analytic") == 0)
 		{
-			mGradientMode = 2;
+			mGradientMode = 1;
 			double delta = responseSettings["step_size"].GetDouble();
 			mDelta = delta;
 		}
-
 		// Throw error message in case of wrong specification
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: ", gradientMode);
+			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: semi_analytic. Specified gradient_mode: " << gradientMode << std::endl;
 
-		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
+		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 
 		// Initialize member variables to NULL
-		m_initial_value = 0.0;
-		m_initial_value_defined = false;
 		m_strain_energy = 0.0;
 	}
 
@@ -126,37 +119,13 @@ public:
 	///@{
 
 	// ==============================================================================
-	void initialize()
+	void Initialize()
 	{
-		// In case of analytic sensitivity analysis, check if specified elements in model_part provide necessary sensitivity information.
-		// To check, we compare if the class type of all the given elements in the model_part is among the elements
-		// that provide the required sensitivity information (reference elements)
-		// The reference class type is: "SmallDisplacementAnalyticSensitivityElement"
-
-		if(mGradientMode==1)
-		{
-			const char element_name[] = "SmallDisplacementAnalyticSensitivityElement3D4N";
-			Element const &reference_element = KratosComponents<Element>::Get(element_name);
-
-			bool sensitivity_analysis_implemented = true;
-			for (ModelPart::ElementsContainerType::iterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
-			{
-				Element const &given_element = mr_model_part.Elements()[elem_i->Id()];
-
-				if (typeid(given_element) != typeid(reference_element))
-				{
-					sensitivity_analysis_implemented = false;
-					break;
-				}
-			}
-
-			if (!sensitivity_analysis_implemented)
-				KRATOS_THROW_ERROR(std::logic_error, "Analytic sensitivity analysis for given element type not implemented. Please choose for complete model part elements that support an analytic sensitivity analysis", "");
-		}
+		//not needed because only semi-analytical sensitivity analysis is implemented yet
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_value()
+	void CalculateValue()
 	{
 		KRATOS_TRY;
 
@@ -179,18 +148,11 @@ public:
 			m_strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
 		}
 
-		// Set initial value if not done yet
-		if(!m_initial_value_defined)
-		{
-			m_initial_value = m_strain_energy;
-			m_initial_value_defined = true;
-		}
-
 		KRATOS_CATCH("");
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_gradient()
+	void CalculateGradient()
 	{
 		KRATOS_TRY;
 
@@ -218,46 +180,24 @@ public:
 
 		switch (mGradientMode)
 		{
-		// analytic sensitivities
+		// Semi analytic sensitivities
 		case 1:
 		{
-			std::cout << "WARNING: in StrainEnergyResponseFunction::calculate_gradient()!!!! No variation of external force considerd yet in analytical sensitivity analysis" << std::endl;
-
-			// calculate_response_derivative_part_analytically();
-			calculate_adjoint_field();
-			calculate_state_derivative_part_analytically();
-			break;
-		}
-		// Semi analytic sensitivities
-		case 2:
-		{
-			calculate_response_derivative_part_by_finite_differencing();
-			calculate_adjoint_field();
-			calculate_state_derivative_part_by_finite_differencing();
+			CalculateResponseDerivativePartByFiniteDifferencing();
+			CalculateAdjointField();
+			CalculateStateDerivativePartByFiniteDifferencing();
 			break;
 		}
 		}
 
 		if (mConsiderDiscretization)
-			this->consider_discretization();
-
-		KRATOS_CATCH("");
-	}
-	// --------------------------------------------------------------------------
-	double get_initial_value()
-	{
-		KRATOS_TRY;
-
-		if(!m_initial_value_defined)
-			KRATOS_THROW_ERROR(std::logi:error, "Initial value not yet defined! First compute it by calling \"calculate_value()\"", m_initial_value_defined);
-
-		return m_initial_value;
+			this->ConsiderDiscretization();
 
 		KRATOS_CATCH("");
 	}
 
 	// --------------------------------------------------------------------------
-	double get_value()
+	double GetValue()
 	{
 		KRATOS_TRY;
 
@@ -267,7 +207,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	boost::python::dict get_gradient()
+	boost::python::dict GetGradient()
 	{
 		KRATOS_TRY;
 
@@ -337,7 +277,7 @@ protected:
 	///@{
 
 	// ==============================================================================
-	void calculate_adjoint_field()
+	void CalculateAdjointField()
 	{
 		KRATOS_TRY;
 
@@ -347,49 +287,7 @@ protected:
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_state_derivative_part_analytically()
-	{
-		KRATOS_TRY;
-
-		// Working variables
-		ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
-
-		// Computation of: \frac{1}{2} u^T \cdot ( - \frac{\partial K}{\partial x} )
-		for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
-		{
-			Vector u;
-			Vector lambda;
-
-			// Get state solution
-			elem_i->GetValuesVector(u,0);
-
-			// Get adjoint variables (Corresponds to 1/2*u)
-			lambda = 0.5*u;
-
-			// Analytic computation of partial derivative of state equation w.r.t. node coordinates
-			for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
-			{
-				array_3d gradient_contribution(3, 0.0);
-				int node_index = node_i - elem_i->GetGeometry().begin();
-
-				// Specify node for which DKDXU (including DKDXU_X,DKDXU_Y,DKDXU_Z) shall be computed
-				elem_i->SetValue(ACTIVE_NODE_INDEX, node_index);
-				elem_i->Calculate(DKDXU, u, CurrentProcessInfo);
-
-				gradient_contribution[0] = -inner_prod(lambda, elem_i->GetValue(DKDXU_X));
-				gradient_contribution[1] = -inner_prod(lambda, elem_i->GetValue(DKDXU_Y));
-				gradient_contribution[2] = -inner_prod(lambda, elem_i->GetValue(DKDXU_Z));
-
-				// Assemble gradient to node
-				noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += gradient_contribution;
-			}
-		}
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	void calculate_state_derivative_part_by_finite_differencing()
+	void CalculateStateDerivativePartByFiniteDifferencing()
 	{
 		KRATOS_TRY;
 
@@ -509,7 +407,7 @@ protected:
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_response_derivative_part_by_finite_differencing()
+	void CalculateResponseDerivativePartByFiniteDifferencing()
 	{
 		KRATOS_TRY;
 
@@ -577,7 +475,7 @@ protected:
 	}
 
 	// --------------------------------------------------------------------------
-  	virtual void consider_discretization(){
+  	virtual void ConsiderDiscretization(){
 
 
 		// Start process to identify element neighbors for every node
@@ -642,8 +540,6 @@ private:
 	unsigned int mGradientMode;
 	double m_strain_energy;
 	double mDelta;
-	double m_initial_value;
-	bool m_initial_value_defined;
 	bool mConsiderDiscretization;
 
 	///@}

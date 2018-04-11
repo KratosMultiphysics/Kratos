@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #include "custom_processes/pressure_calculate_process.h"
+#include "custom_processes/pressure_calculate_process_axisym.h"
 #include "custom_processes/mass_calculate_process.h"
 #include "custom_processes/ulf_apply_bc_process.h"
 #include "custom_processes/ulf_time_step_dec_process.h"
@@ -73,8 +74,25 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/merge_model_parts_process.h"
 #include "custom_processes/save_fluid_only_process.h"
 #include "custom_processes/lagrangian_inlet_process.h"
+#include "custom_processes/remove_and_save_wall_process.h"
+#include "custom_processes/add_wall_process.h"
+#include "custom_processes/calculate_curvature.h"
+#include "custom_processes/find_triple_point.h"
+#include "custom_processes/calculate_contact_angle.h"
+
+#include "custom_processes/calculate_nodal_length.h"
+#include "custom_processes/find_nodal_neighbours_surface_process.h"
 
 #include "includes/node.h"
+
+#include "custom_processes/calculate_normal_eq.h"
+
+// #include "custom_processes/assign_surface_tension_conditions.h"
+#include "custom_processes/calculate_adhesion_force.h"
+
+
+
+
 
 namespace Kratos
 {
@@ -115,6 +133,10 @@ void  AddProcessesToPython()
     class_<PressureCalculateProcess, bases<Process> >("PressureCalculateProcess",
             init<ModelPart&, unsigned int>())
     ;
+    class_<PressureCalculateProcessAxisym, bases<Process> >("PressureCalculateProcessAxisym",
+            init<ModelPart&, unsigned int>())
+    ;
+
     class_<MassCalculateProcess, bases<Process> >("MassCalculateProcess",
             init<ModelPart&>())
     ;
@@ -149,6 +171,51 @@ void  AddProcessesToPython()
     class_<LagrangianInletProcess, bases<Process> >("LagrangianInletProcess",
             init<ModelPart&, double,  array_1d<double,3> >())
     ;
+    class_<RemoveAndSaveWallNodesProcess, bases<Process> >("RemoveAndSaveWallNodesProcess", init<> ())
+    .def("RemoveAndSave", &RemoveAndSaveWallNodesProcess::RemoveAndSave)
+    ;     
+    class_<AddWallProcess, bases<Process> >("AddWallProcess", init<> ())
+    .def("AddWall", &AddWallProcess::AddWall)
+    ;  
+    class_<CalculateCurvature > ("CalculateCurvature", init<>())
+    .def("CalculateCurvature2D", &CalculateCurvature::CalculateCurvature2D)
+    .def("CalculateCurvature3D", &CalculateCurvature::CalculateCurvature3D)
+    .def("CalculateCurvatureContactLine", &CalculateCurvature::CalculateCurvatureContactLine)
+    .def("CalculatePrincipalDirections3D", &CalculateCurvature::CalculatePrincipalDirections3D)
+    ;
+    
+    
+    class_<CalculateNormalEq > ("CalculateNormalEq", init<>())
+    .def("CalculateNormalEq3D", &CalculateNormalEq::CalculateNormalEq3D)
+    ;   
+    
+    class_<CalculateContactAngle > ("CalculateContactAngle", init<>())
+    .def("CalculateContactAngle2D", &CalculateContactAngle::CalculateContactAngle2D)
+    .def("CalculateContactAngle3D", &CalculateContactAngle::CalculateContactAngle3D)
+    ;   
+    
+     class_<FindTriplePoint > ("FindTriplePoint", init<>())
+    .def("FindTriplePoint2D", &FindTriplePoint::FindTriplePoint2D)
+    .def("FindTriplePoint3D", &FindTriplePoint::FindTriplePoint3D)
+    ;
+    
+     class_<CalculateNodalLength > ("CalculateNodalLength", init<>())
+    .def("CalculateNodalLength2D", &CalculateNodalLength::CalculateNodalLength2D)
+    .def("CalculateNodalLength3D", &CalculateNodalLength::CalculateNodalLength3D)
+    ;    
+    
+    class_<FindNodalNeighboursSurfaceProcess > ("FindNodalNeighboursSurfaceProcess", init<ModelPart&, const int, const int>())
+    .def("Execute", &FindNodalNeighboursSurfaceProcess::Execute)
+    ; 
+    
+
+    class_<CalculateAdhesionForce > ("CalculateAdhesionForce", init<>())
+    .def("CalculateAdhesionForce3D", &CalculateAdhesionForce::CalculateAdhesionForce3D)
+    ;
+    
+//      class_<AssignSurfaceTensionConditions > ("AssignSurfaceTensionConditions", init<>())
+//     .def("AssignSurfaceTensionConditions2D", &AssignSurfaceTensionConditions::AssignSurfaceTensionConditions2D)
+//     ;
 }
 
 }  // namespace Python.

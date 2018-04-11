@@ -84,13 +84,11 @@ namespace Kratos
     NodalNeighboursSearchProcess(ModelPart& rModelPart, 				
 				 int EchoLevel = 0,
 				 int AverageElements = 10, 
-				 int AverageNodes = 10,
-				 int MeshId = 0)
+				 int AverageNodes = 10)
       : mrModelPart(rModelPart)
     {
       mAverageElements = AverageNodes;
       mAverageNodes = AverageElements;
-      mMeshId = MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -124,11 +122,11 @@ namespace Kratos
 
       if(method==0)
 	{
-	  success=KratosSearch(mMeshId);
+	  success=KratosSearch();
 	}
       else
 	{
-	  success=LohnerSearch(mMeshId); //seems to be worse (needs to be optimized)
+	  success=LohnerSearch(); //seems to be worse (needs to be optimized)
 	}
 
 
@@ -147,9 +145,9 @@ namespace Kratos
 
     };
 
-    void ClearNeighbours(int MeshId = 0)
+    void ClearNeighbours()
     {
-      NodesContainerType& rNodes = mrModelPart.Nodes(MeshId);
+      NodesContainerType& rNodes = mrModelPart.Nodes();
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
 	{
 	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
@@ -248,7 +246,6 @@ namespace Kratos
     ModelPart& mrModelPart;
     int mAverageElements;
     int mAverageNodes;
-    int mMeshId;
     int mEchoLevel;
 
     ///@}
@@ -273,9 +270,9 @@ namespace Kratos
 
     }
 
-    void CleanNodeNeighbours(int MeshId = 0)
+    void CleanNodeNeighbours()
     {
-      NodesContainerType&    rNodes = mrModelPart.Nodes(MeshId);
+      NodesContainerType&    rNodes = mrModelPart.Nodes();
       //*************  Erase old node neighbours  *************//
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
 	{
@@ -303,10 +300,10 @@ namespace Kratos
     }
 
 
-    void PrintNodeNeighbours(int MeshId = 0)
+    void PrintNodeNeighbours()
     {
 
-      NodesContainerType& rNodes = mrModelPart.Nodes(MeshId);
+      NodesContainerType& rNodes = mrModelPart.Nodes();
       std::cout<<" NODES: neighbour elems: "<<std::endl;
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
 	{
@@ -343,13 +340,13 @@ namespace Kratos
     ///@name Private Operations
     ///@{
 
-    bool KratosSearch(int MeshId = 0)
+    bool KratosSearch()
     {
-      NodesContainerType&    rNodes = mrModelPart.Nodes(MeshId);
-      ElementsContainerType& rElems = mrModelPart.Elements(MeshId);
+      NodesContainerType&    rNodes = mrModelPart.Nodes();
+      ElementsContainerType& rElems = mrModelPart.Elements();
 
       //*************  Erase old node neighbours  *************//
-      CleanNodeNeighbours(MeshId);
+      CleanNodeNeighbours();
 
       //*************  Neighbours of nodes  ************//
 
@@ -394,13 +391,13 @@ namespace Kratos
     }
 
 
-    bool LohnerSearch(int MeshId = 0)
+    bool LohnerSearch()
     {
-      NodesContainerType&    rNodes = mrModelPart.Nodes(MeshId);
-      ElementsContainerType& rElems = mrModelPart.Elements(MeshId);
+      NodesContainerType&    rNodes = mrModelPart.Nodes();
+      ElementsContainerType& rElems = mrModelPart.Elements();
 
       //*************  Erase old node neighbours  *************//
-      CleanNodeNeighbours(MeshId);
+      CleanNodeNeighbours();
 
 
       //*************  Neighbours of nodes  ************//

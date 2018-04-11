@@ -64,18 +64,22 @@ public:
         const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
         double reference_coordinate = mpTable->GetValue(Time);
         
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
 
-            #pragma omp parallel for
+            array_1d<double,3> Coordinates;
+
+            #pragma omp parallel for private(Coordinates)
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 
-                double pressure = mspecific_weight*( reference_coordinate - (it->Coordinate(mgravity_direction)) );
+                noalias(Coordinates) = it->Coordinates();
+
+                const double pressure = mspecific_weight*( reference_coordinate - Coordinates[mgravity_direction] );
                 
                 if(pressure > 0.0) 
                 {

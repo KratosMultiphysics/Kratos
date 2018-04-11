@@ -44,6 +44,7 @@ THE SOFTWARE.
 #include <boost/static_assert.hpp>
 
 #ifdef AMGCL_ASYNC_SETUP
+#  include <boost/atomic.hpp>
 #  include <boost/thread/thread.hpp>
 #  include <boost/thread/condition_variable.hpp>
 #  include <boost/thread/locks.hpp>
@@ -253,6 +254,7 @@ class amg {
 
 #ifdef AMGCL_ASYNC_SETUP
         ~amg() {
+            done = true;
             if (prm.async_setup) init_thread.join();
         }
 #endif
@@ -400,6 +402,7 @@ class amg {
         std::list<level> levels;
 #ifdef AMGCL_ASYNC_SETUP
         boost::thread init_thread;
+        boost::atomic<bool> done;
         mutable boost::mutex levels_mx;
         mutable boost::condition_variable ready_to_cycle;
 #endif
@@ -419,13 +422,17 @@ class amg {
             while( backend::rows(*A) > prm.coarse_enough && levels.size() < prm.max_levels) {
                 {
 #ifdef AMGCL_ASYNC_SETUP
+                    if (done) break;
                     boost::lock_guard<boost::mutex> lock(levels_mx);
 #endif
                     levels.push_back( level(A, prm, bprm) );
                 }
 #ifdef AMGCL_ASYNC_SETUP
+                if (done) break;
                 ready_to_cycle.notify_all();
 #endif
+                if (levels.size() >= prm.max_levels) break;
+
                 A = levels.back().step_down(A, prm, bprm);
                 if (!A) {
                     // Zero-sized coarse level. Probably the system matrix on
@@ -474,6 +481,7 @@ class amg {
                 )
         {
 #ifdef AMGCL_ASYNC_SETUP
+            done = false;
             if (prm.async_setup) {
                 init_thread = boost::thread(&amg::init, this, A, bprm);
                 {

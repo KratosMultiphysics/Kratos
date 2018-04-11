@@ -6,7 +6,7 @@
             "Material": {
                     "name": "Material",
                     "constitutive_law": {
-                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
+                            "name": "KratosMultiphysics.StructuralMechanicsApplication.HyperElastic3DLaw"
                     },
                     "Variables": {
                             "KratosMultiphysics.DENSITY": 1.00000E+03,
@@ -22,7 +22,7 @@
             "Material": {
                     "name": "Material",
                     "constitutive_law": {
-                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
+                            "name": "KratosMultiphysics.StructuralMechanicsApplication.HyperElastic3DLaw"
                     },
                     "Variables": {
                             "KratosMultiphysics.DENSITY": 1.00000E+03,

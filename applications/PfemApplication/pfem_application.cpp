@@ -39,6 +39,7 @@ namespace Kratos
 
 
   KratosPfemApplication    ::KratosPfemApplication    ():
+    KratosApplication("PfemApplication"),
     mCompositeCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mCompositeCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )    
   {}
@@ -65,7 +66,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( INITIALIZED_DOMAINS )
     KRATOS_REGISTER_VARIABLE( MESHING_STEP_PERFORMED )
     KRATOS_REGISTER_VARIABLE( MODEL_PART_NAME )
-    KRATOS_REGISTER_VARIABLE( DOMAIN_LABEL )
 
     //boundary definition
     KRATOS_REGISTER_VARIABLE( RIGID_WALL )

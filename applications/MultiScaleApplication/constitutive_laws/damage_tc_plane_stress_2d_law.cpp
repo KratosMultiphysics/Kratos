@@ -154,7 +154,7 @@ namespace Kratos
 		angle = 0.0;
 		for(int i = 0; i <= 180.0; i++)
 		{
-			double a = double(i)/180.0*KRATOS_M_PI;
+			double a = double(i)/180.0*Globals::Pi;
 			double dq_trial = det_acoustic_tensor_2d(C,a);
 			if(dq_trial < dq) {
 				dq = dq_trial;

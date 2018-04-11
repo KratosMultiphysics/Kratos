@@ -25,12 +25,12 @@ namespace Kratos
 
 namespace Python
 {
-    using namespace boost::python;
+using namespace boost::python;
 
-    void  AddMappingVariablesToPython()
-    {
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(TANGENT_FACTOR)
-    }
+void  AddMappingVariablesToPython()
+{
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(TANGENT_FACTOR)                       // The factor between the tangent and normal behaviour
+}
 }  // namespace Python.
 } // Namespace Kratos
 

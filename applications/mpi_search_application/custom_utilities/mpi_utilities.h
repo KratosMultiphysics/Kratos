@@ -397,14 +397,14 @@ namespace Kratos
 
           //ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-          //double search_tolerance = 0.0;
-          //if (extension_option) search_tolerance = rCurrentProcessInfo[SEARCH_TOLERANCE];
+          //double search_increment = 0.0;
+          //if (extension_option) search_increment = rCurrentProcessInfo[SEARCH_RADIUS_INCREMENT];
 
           static double MaxNodeRadius = 0.0f;
           if(MaxNodeRadius == 0.0f) {//TODO
             for (ElementsContainerType::ContainerType::iterator particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it) {
               double NodeRadius = Configure::GetObjectRadius(*particle_pointer_it);
-              //double NodeRadius = search_tolerance + (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+              //double NodeRadius = search_increment + (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
               MaxNodeRadius = NodeRadius > MaxNodeRadius ? NodeRadius : MaxNodeRadius;
             }
           }

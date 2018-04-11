@@ -30,7 +30,7 @@ if (HDF5)
   target_link_libraries(gidpost ${HDF5_LIBRARIES})
 endif (HDF5)
 
-target_link_libraries(gidpost zlib)
+target_link_libraries(gidpost ${ZLIB_LIBRARIES})
 
 find_package( Threads )
 if ( Threads_FOUND )

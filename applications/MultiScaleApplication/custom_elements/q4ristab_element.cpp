@@ -127,7 +127,7 @@ namespace Kratos
 			double dq = std::numeric_limits<double>::max();
 			for(int i = 0; i <= 180.0; i++)
 			{
-				double a = double(i)/180.0*KRATOS_M_PI;
+				double a = double(i)/180.0*Globals::Pi;
 				dq = std::min(dq, detQ(C,a));
 			}
 			return dq;

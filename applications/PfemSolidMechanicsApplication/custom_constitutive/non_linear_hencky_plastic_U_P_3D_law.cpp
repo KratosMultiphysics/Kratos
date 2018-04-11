@@ -18,7 +18,7 @@
 #include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
 
 #include "custom_constitutive/non_linear_hencky_plastic_U_P_3D_law.hpp"
-
+#include "utilities/math_utils.h"
 #include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
@@ -54,7 +54,7 @@ ConstitutiveLaw::Pointer NonLinearHenckyElasticPlasticUP3DLaw::Clone() const
     NonLinearHenckyElasticPlasticUP3DLaw::Pointer p_clone(new NonLinearHenckyElasticPlasticUP3DLaw(*this));
     return p_clone;
 }
-
+ 
 NonLinearHenckyElasticPlasticUP3DLaw::~NonLinearHenckyElasticPlasticUP3DLaw()
 {
 }
@@ -108,14 +108,17 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( 
 {
 
      mpFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix);
-     // HO SACO K A SACO O ALGO
+
+
+     Matrix StressTensor = mpFlowRule->ComputeKirchhoffStressMatrix( rNewElasticLeftCauchyGreen);
+     CorrectDomainPressure( StressTensor, rElasticVariables);
+     Matrix ExtraMatrix = this->CalculateExtraMatrix( StressTensor);
+
+     rElastoPlasticTangentMatrix += ExtraMatrix;
+
 
      // ADDING THE K TERMS
-     double Pressure;
-     //GetDomainPressure( Pressure, rElasticVariables);
-     GetDomainPressure( Pressure, rElasticVariables);
-     
-     Pressure *= rElasticVariables.DeterminantF;
+
 
      double Young = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
      double Nu = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
@@ -127,6 +130,26 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( 
            rElastoPlasticTangentMatrix(i,j)  -= K;
          }
      }
+
+     double Pressure;
+     //GetDomainPressure( Pressure, rElasticVariables);
+     GetDomainPressure( Pressure, rElasticVariables);
+     
+     Pressure *= rElasticVariables.DeterminantF;
+
+
+     Matrix DeviatoricTensor = ZeroMatrix(6,6);
+     for (unsigned int i = 0; i < 6; i++)
+        DeviatoricTensor(i,i) = 1.0;
+     
+     for (unsigned int i = 0; i < 3; i++) {
+        for (unsigned int j = 0; j < 3; j++) {
+           DeviatoricTensor(i,j) = -1.0/3.0;
+        }
+     }
+     
+     //rElastoPlasticTangentMatrix = prod( DeviatoricTensor, rElastoPlasticTangentMatrix);
+      
 
      Matrix FourthOrderIdentity = ZeroMatrix(6,6);
      for (unsigned int i = 0; i<3; ++i)
@@ -145,6 +168,8 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( 
 
      rElastoPlasticTangentMatrix += Pressure* ( IdentityCross - 2.0 * FourthOrderIdentity);
 
+     double det =  MathUtils<double>::Det( mElasticLeftCauchyGreen);
+     mElasticLeftCauchyGreen /= pow( det, 1/3);
 }
 
 // I HAVE TO DELETE THE DEFINITION FROM THE HPP IN ORDER TO REMOVE THE TO FOLLOWING FUNCTIONS; THAT ARE COPY PASTE; THEY ARE ALREADY DEFINED BY INHERITANCE !!!!
@@ -233,16 +258,9 @@ Matrix& NonLinearHenckyElasticPlasticUP3DLaw::GetValue(const Variable<Matrix>& r
    if ( rThisVariable == KIRCHHOFF_STRESS_TENSOR )
    {
       Matrix StressMatrix;
-      Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen;
+      StressMatrix = mpFlowRule->ComputeKirchhoffStressMatrix( mElasticLeftCauchyGreen);
 
-      Matrix DeformationGradientF = ZeroMatrix(3,3);
-      for (unsigned int i = 0; i < 3; ++i)
-         DeformationGradientF(i,i) = 1.0;
- 
-      FlowRule::RadialReturnVariables ReturnMappingVariables;
-
-      mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, DeformationGradientF, StressMatrix, NewElasticLeftCauchyGreen);
-
+      // Check if p == 0 and correct
       double MeanStress = 0;
       for (unsigned int i = 0; i < 3; ++i)
          MeanStress += StressMatrix(i,i);

@@ -48,9 +48,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication       as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication      as KratosSolvers
-import KratosMultiphysics.PfemApplication             as KratosPfem
-import KratosMultiphysics.ContactMechanicsApplication     as KratosContact
-import KratosMultiphysics.PfemSolidMechanicsApplication   as KratosPfemSolid
+import KratosMultiphysics.PfemApplication                 as KratosPfem
 import KratosMultiphysics.PfemFluidDynamicsApplication    as KratosPfemFluid
 import KratosMultiphysics.ConvectionDiffusionApplication  as KratosConvDiff
 
@@ -85,7 +83,8 @@ print("::[KPFEM Simulation]:: [Time Step:", ProjectParameters["problem_data"]["t
 # Defining the model_part
 main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
 
-main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, ProjectParameters["problem_data"]["dimension"].GetInt())
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["dimension"].GetInt())
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParameters["problem_data"]["time_step"].GetDouble())
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, ProjectParameters["problem_data"]["start_time"].GetDouble())
 if( ProjectParameters["problem_data"].Has("gravity_vector") ):
@@ -104,8 +103,8 @@ solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_s
 solver.AddVariables()
 
 # Add PfemSolidMechanicsApplication Variables
-import pfem_solid_variables  
-pfem_solid_variables.AddVariables(main_model_part) 
+import pfem_variables  
+pfem_variables.AddVariables(main_model_part) 
 
 #thermal thing:
 import eulerian_convection_diffusion_solver as convection_diffusion_solver_scripts

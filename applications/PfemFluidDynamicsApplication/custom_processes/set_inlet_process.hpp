@@ -26,7 +26,7 @@
 
 ///VARIABLES used:
 //Data:      
-//StepData: DOMAIN_LABEL, CONTACT_FORCE, DISPLACEMENT
+//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked) 
 //          (set)     
 //          (modified)  
@@ -219,7 +219,6 @@ private:
  
     ModelerUtilities mModelerUtilities;  
 
-    ModelPart::IndexType mMeshId; 
     int mEchoLevel;
 
     ///@}

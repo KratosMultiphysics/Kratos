@@ -94,11 +94,12 @@ all_model_parts = DEM_procedures.SetOfModelParts(mp_list)
 creator_destructor = ParticleCreatorDestructor()
 dem_fem_search = DEM_FEM_Search()
 
-scheme = procedures.SetScheme()
-#solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, contact_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
-solver = SolverStrategy.ExplicitStrategy(all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+translational_scheme = procedures.SetTranslationalScheme()
+rotational_scheme = procedures.SetRotationalScheme()
+#solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, contact_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures)
+solver = SolverStrategy.ExplicitStrategy(all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
-procedures.AddAllVariablesInAllModelParts(solver, scheme, all_model_parts, DEM_parameters)
+procedures.AddAllVariablesInAllModelParts(solver, translational_scheme, rotational_scheme, all_model_parts, DEM_parameters)
 
 os.chdir(main_path)
 # Reading the model_part
@@ -237,7 +238,7 @@ while time < DEM_parameters["FinalTime"].GetDouble():
     
     #### PRINTING GRAPHS ####
     os.chdir(graphs_path)
-    post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
+    post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", time)
 
     materialTest.MeasureForcesAndPressure()
     materialTest.PrintGraph(time)

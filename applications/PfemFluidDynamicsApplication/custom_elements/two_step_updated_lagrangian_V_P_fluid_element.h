@@ -306,7 +306,8 @@ namespace Kratos
       void ComputeMaterialParameters (double& Density,
 				      double& DeviatoricCoeff,
 				      double& VolumetricCoeff,
-				      double timeStep);
+				      ProcessInfo& rCurrentProcessInfo,
+				      ElementalVariables& rElementalVariables);
 
    
 
@@ -332,7 +333,25 @@ namespace Kratos
 						   double& bulkCoefficient,
 						   double timeStep);
       
-     void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
+      double ComputeNonLinearViscosity(double & equivalentStrainRate);
+
+      void ComputeMaterialParametersGranularGas(double& Density,
+						double& DeviatoricCoeff,
+						double& VolumetricCoeff,
+						ProcessInfo& rCurrentProcessInfo,
+						ElementalVariables& rElementalVariables);
+
+      double ComputeJopMuIrheologyViscosity(ElementalVariables & rElementalVariables);
+
+      double ComputeBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
+
+      double ComputePapanastasiouMuIrheologyViscosity(ElementalVariables & rElementalVariables);
+
+      double ComputeBarkerMuIrheologyViscosity(ElementalVariables & rElementalVariables);
+
+      double ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
+      
+      void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
 					      const double Weight);
 	
      void ComputeBulkMatrixForPressureAccLump(MatrixType& BulkAccMatrix,

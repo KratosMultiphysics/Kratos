@@ -4,10 +4,9 @@
 # the 16.04 LTS of ubuntu
 
 KRATOS_MAJOR="5" 																# Kratos major
-KRATOS_MINOR="1" 																# Kratos minor
+KRATOS_MINOR="3" 																# Kratos minor
+KRATOS_PATCH="0" 																# Kratos minor
 KRATOS_ARCHY="64"
-KRATOS_NEWSD="Beta Release"
-KRATOS_TVERS="${KRATOS_MAJOR}.${KRATOS_MINOR}"
 KRATOS_TDATE="XX-XX-XX"
 
 KRATOS_RLS="$HOME/KratosRelease"
@@ -40,6 +39,6 @@ rm ${KRATOS_RLS}/kratos.gid/libs/libmetis*
 cp -r ${KRATOS_AUX}/* ${KRATOS_RLS}/kratos.gid
 
 # Create a tar
-tar -czf "${KRATOS_RLS}/kratos-${KRATOS_MAJOR}.${KRATOS_MINOR}-${GIT_NUMB}-linux-${KRATOS_ARCHY}.tar.gz" -C "${KRATOS_RLS}" kratos.gid
+tar -czf "${KRATOS_RLS}/kratos-${KRATOS_MAJOR}.${KRATOS_MINOR}.${KRATOS_PATCH}-${GIT_NUMB}-linux-${KRATOS_ARCHY}.tar.gz" -C "${KRATOS_RLS}" kratos.gid
 
-cp "${KRATOS_RLS}/kratos-${KRATOS_MAJOR}.${KRATOS_MINOR}-${GIT_NUMB}-linux-${KRATOS_ARCHY}.tar.gz" "${DEPLOY_DIR}/kratos-${KRATOS_MAJOR}.${KRATOS_MINOR}-${GIT_NUMB}-linux-${KRATOS_ARCHY}.tar.gz"
+cp "${KRATOS_RLS}/kratos-${KRATOS_MAJOR}.${KRATOS_MINOR}.${KRATOS_PATCH}-${GIT_NUMB}-linux-${KRATOS_ARCHY}.tar.gz" "${DEPLOY_DIR}/kratos-${KRATOS_MAJOR}.${KRATOS_MINOR}.${KRATOS_PATCH}-${GIT_NUMB}-linux-${KRATOS_ARCHY}.tar.gz"

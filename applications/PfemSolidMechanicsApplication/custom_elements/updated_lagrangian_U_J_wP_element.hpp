@@ -108,26 +108,11 @@ namespace Kratos
           */
          Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
-         //************* GETTING METHODS
-
-         //SET
-
-         /**
-          * Set a double  Value on the Element Constitutive Law
-          */
-         void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-
-         //GET:
-
          /**
           * Get on rVariable a double Value from the Element Constitutive Law
           */
-         void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-         void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-         void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo);
+         void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
          //************* STARTING - ENDING  METHODS
 
@@ -156,10 +141,25 @@ namespace Kratos
           */
          void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
 
+
+         //************* COMPUTING  METHODS
+
          /**
-          * Called at the end of eahc solution step
+          * this is called during the assembling process in order
+          * to calculate the elemental mass matrix
+          * @param rMassMatrix: the elemental mass matrix
+          * @param rCurrentProcessInfo: the current process info instance
           */
-         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+         void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+
+         /**
+          * this is called during the assembling process in order
+          * to calculate the elemental damping matrix
+          * @param rDampingMatrix: the elemental damping matrix
+          * @param rCurrentProcessInfo: the current process info instance
+          */
+         void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+
 
          //************************************************************************************
          //************************************************************************************
@@ -199,14 +199,6 @@ namespace Kratos
          ///@name Protected Operators
          ///@{
 
-         /**
-          * Calculates the elemental contributions
-          * \f$ K^e = w\,B^T\,D\,B \f$ and
-          * \f$ r^e \f$
-          */
-         virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-               ProcessInfo& rCurrentProcessInfo);
-
          ///@}
          ///@name Protected Operations
          ///@{
@@ -216,7 +208,7 @@ namespace Kratos
           */
 
          virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-               GeneralVariables& rVariables,
+               ElementVariables& rVariables,
                double& rIntegrationWeight);
 
          /**
@@ -224,141 +216,24 @@ namespace Kratos
           */
 
          virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-               GeneralVariables& rVariables,
+               ElementVariables& rVariables,
                Vector& rVolumeForce,
                double& rIntegrationWeight);
 
          /**
           * Initialize Element General Variables
           */
-         virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-         /**
-          * Calculation of the geometric terms due to the water pressure 
-          */
-         virtual void CalculateAndAddUnconsideredKuuTerms(MatrixType& rK,
-               GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
-
-         /**
-          * Calculation of the Ku wP Matrix
-          */
-         virtual void CalculateAndAddKuwP(MatrixType& rK,
-               GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
-
-         /**
-          * Calculation of the KwP U Matrix
-          */
-         virtual void CalculateAndAddKwPu(MatrixType& rK,
-               GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
-
-         /**
-          * Calculation of the KwP J Matrix
-          */
-         virtual void CalculateAndAddKwPJ(MatrixType& rK,
-               GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
-
-         /**
-          * Calculation of the K wP wP Matrix
-          */
-         virtual void CalculateAndAddKwPwP(MatrixType& rK,
-               GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
-
-         /**
-          * Calculation of the Stabilization Tangent Matrix
-          */
-         virtual void CalculateAndAddKwPwPStab(MatrixType& rK,
-               GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
-
-         /**
-          * Calculation of the External Forces Vector. Fe = N * t + N * b
-          */
-         void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-               GeneralVariables& rVariables,
-               Vector& rVolumeForce,
-               double& rIntegrationWeight
-               );
+         virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
-         /**
-          * Calculation of the Internal Forces due to Pressure-Balance
-          */
-         virtual void CalculateAndAddJacobianForces(VectorType& rRightHandSideVector,
-               GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
-
-
-         /**
-          * Calculation of the Internal Forces due to Pressure-Balance
-          */
-         virtual void CalculateAndAddStabilizedJacobian(VectorType& rRightHandSideVector,
-               GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
-
-         /**
-          * Calculation of the Internal Forces due to sigma. Fi = B * sigma
-          */
-         virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-               GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
-
-         /**
-          * Calculation of the Mass Balance ( ie water pressure equation)
-          */
-         virtual void CalculateAndAddWaterPressureForces( VectorType& rRightHandSideVector,
-               GeneralVariables& rVariables,
-               double& rIntegrationWeight
-               );
-         /**
-          * Stabilization of the MassBalance equation
-          */
-         virtual void CalculateAndAddStabilizedWaterPressure( VectorType& rRightHandSideVector, 
-               GeneralVariables& rVariables,
-               double& rIntegartionWeight
-               );
-
+      
          /**
           * Initialize System Matrices
           */
          void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
                VectorType& rRightHandSideVector,
                Flags& rCalculationFlags);
-
-         //on integration points:
-         /**
-          * Calculate a double Variable on the Element Constitutive Law
-          */
-         void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
-         void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
-         void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
-
-
-         /**
-          * Calculation of the Volume Change of the Element
-          */
-         virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
-
-
-         void GetConstants( double& rScalingConstant, double& rWaterBulk, double& rDeltaTime, double& rPermeability);
-
-    virtual double GetElementSize( const Matrix& rDN_DX);
+    
     
          ///@}
          ///@name Protected  Access

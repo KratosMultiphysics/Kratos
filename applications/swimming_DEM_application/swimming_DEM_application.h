@@ -60,8 +60,12 @@ namespace Kratos
     #define SWIMMING_POW_5(a)                                (a * a * a * a * a)
     #define SWIMMING_POW_6(a)                                (a * a * a * a * a * a)
     #define SWIMMING_POW_7(a)                                (a * a * a * a * a * a * a)
+
+    KRATOS_DEFINE_APPLICATION_VARIABLE(FLUID_DYNAMICS_APPLICATION, double, SCALAR_ERROR)
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR)
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
-  
+
 
 class KratosSwimmingDEMApplication : public KratosApplication
 {
@@ -153,17 +157,6 @@ private:
     const SphericSwimmingParticle<SphericParticle> mSphericSwimmingParticle3D;
     const SphericSwimmingParticle<NanoParticle> mSwimmingNanoParticle3D;
     const SphericSwimmingParticle<AnalyticSphericParticle> mSwimmingAnalyticParticle3D;
-
-    //const DEM_FEM_Particle mDEM_FEM_Particle2D;
-    const VariablesList mVariablesList;
-
-    //       static const ApplicationCondition  msApplicationCondition;
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-// 		const Elem2D   mElem2D;
-// 		const Elem3D   mElem3D;
 
     /// Assignment operator.
     KratosSwimmingDEMApplication& operator=(KratosSwimmingDEMApplication const& rOther);

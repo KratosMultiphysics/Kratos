@@ -51,7 +51,8 @@
 namespace Kratos
 {
 
-  KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication():   
+  KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication():
+    KratosApplication("PfemFluidDynamicsApplication"),
     mTwoStepUpdatedLagrangianVPElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTwoStepUpdatedLagrangianVPElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
     mTwoStepUpdatedLagrangianVPElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -96,11 +97,28 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(BAD_VELOCITY_CONVERGENCE);
     KRATOS_REGISTER_VARIABLE(BAD_PRESSURE_CONVERGENCE);
 
-    KRATOS_REGISTER_VARIABLE(PRESSURE_VELOCITY)
-      KRATOS_REGISTER_VARIABLE(PRESSURE_ACCELERATION)
+    //Papanastasiou variables
+    KRATOS_REGISTER_VARIABLE(YIELDED);
+    KRATOS_REGISTER_VARIABLE(FLOW_INDEX);
+    KRATOS_REGISTER_VARIABLE(YIELD_SHEAR);
+    KRATOS_REGISTER_VARIABLE(ADAPTIVE_EXPONENT);
 
-      //Register Elements
-      KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPElement2D",mTwoStepUpdatedLagrangianVPElement2D);
+    //mu(I)-rheology variables
+    KRATOS_REGISTER_VARIABLE(STATIC_FRICTION);
+    KRATOS_REGISTER_VARIABLE(DYNAMIC_FRICTION);
+    KRATOS_REGISTER_VARIABLE(INERTIAL_NUMBER_ZERO);
+    KRATOS_REGISTER_VARIABLE(GRAIN_DIAMETER);
+    KRATOS_REGISTER_VARIABLE(GRAIN_DENSITY);
+    KRATOS_REGISTER_VARIABLE(REGULARIZATION_COEFFICIENT);
+    KRATOS_REGISTER_VARIABLE(INFINITE_FRICTION);
+    KRATOS_REGISTER_VARIABLE(INERTIAL_NUMBER_ONE);
+    KRATOS_REGISTER_VARIABLE(ALPHA_PARAMETER);
+
+    KRATOS_REGISTER_VARIABLE(PRESSURE_VELOCITY);
+    KRATOS_REGISTER_VARIABLE(PRESSURE_ACCELERATION);
+
+    //Register Elements
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPElement2D",mTwoStepUpdatedLagrangianVPElement2D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPElement2Dquadratic",mTwoStepUpdatedLagrangianVPElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPElement3D",mTwoStepUpdatedLagrangianVPElement3D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPElement3Dquadratic",mTwoStepUpdatedLagrangianVPElement3Dquadratic);

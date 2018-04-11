@@ -371,7 +371,7 @@ namespace Kratos
 	  ModelPart&  i_mp = mrModelPart.GetSubModelPart(*n_mp);
 
 	  //Get inside point of the subdomains
-	  unsigned int dimension = i_mp.GetProcessInfo()[DOMAIN_SIZE];
+	  unsigned int dimension = i_mp.GetProcessInfo()[SPACE_DIMENSION];
 	  if(i_mp.NumberOfConditions()){
 	    ModelPart::ConditionsContainerType::iterator element_begin = i_mp.ConditionsBegin();
 	    dimension = element_begin->GetGeometry().WorkingSpaceDimension();

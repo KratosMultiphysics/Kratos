@@ -14,11 +14,8 @@
 #if !defined(QUATERNION_H_INCLUDED)
 #define QUATERNION_H_INCLUDED
 
+#include "includes/global_variables.h"
 #include "includes/serializer.h"
-
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif // M_PI
 
 namespace Kratos
 {
@@ -240,7 +237,7 @@ namespace Kratos
 			}
 			else if (test < (-1.0 +  1.0e-6)) { // singularity at south pole
 				EA[0] = atan2 (2 * mZ * mW, (mW * mW - mZ * mZ));
-				EA[1] = KRATOS_M_PI;
+				EA[1] = Globals::Pi;
 				EA[2] = 0.0;
 			}
 			else {                    

@@ -104,7 +104,7 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return boost::make_shared< Stokes3DTwoFluid >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_shared< Stokes3DTwoFluid >(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
     
@@ -112,7 +112,7 @@ public:
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return boost::make_shared< Stokes3DTwoFluid >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< Stokes3DTwoFluid >(NewId, pGeom, pProperties);
     }
 
 

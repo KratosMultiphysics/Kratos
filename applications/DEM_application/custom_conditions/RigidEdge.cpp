@@ -241,7 +241,7 @@ void RigidEdge3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
 	double n[3] = {Xnormal, Ynormal, Znormal};
 	GeometryFunctions::normalize(n);
 
-	double omiga = CyclePerSec * 2.0 * KRATOS_M_PI;
+	double omiga = CyclePerSec * 2.0 * Globals::Pi;
 	
 	double vel = NormalV;
 

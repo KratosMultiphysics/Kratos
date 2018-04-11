@@ -33,6 +33,9 @@
 
 #include "containers/flags.h"
 
+//condition
+//#include "custom_conditions/mpm_line_load_2D_condition.hpp"
+//#include "custom_conditions/mpm_line_load_3D_condition.hpp"
 
 
 //element
@@ -292,6 +295,14 @@ private:
 
     //const TotalLagrangian mTotalLagrangian2D3N;
     //const TotalLagrangian mTotalLagrangian3D4N;
+    
+    //conditions
+    //const MPMLineLoad2DCondition                mMPMLineLoadCondition2D2N;
+    //const MPMLineLoad2DCondition                mMPMLineLoadCondition2D3N;
+
+    //const MPMLineLoad3DCondition                mMPMLineLoadCondition3D2N;
+    //const MPMLineLoad3DCondition                mMPMLineLoadCondition3D3N;
+    
 
     //constitutive laws
 

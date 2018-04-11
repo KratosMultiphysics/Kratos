@@ -30,7 +30,7 @@ from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.ExternalConstitutiveLawsApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.MeshingApplication import *
-from KratosMultiphysics.MKLSolversApplication import *
+# from KratosMultiphysics.MKLSolversApplication import *
 kernel = Kernel()  # defining kernel
 
 #
@@ -151,7 +151,7 @@ class Model:
         # INITIALISE SOLVER FOR PARTICULAR SOLUTION #####################
         #
         # defining linear solver
-        plinear_solver = MKLPardisoSolver()
+        # plinear_solver = MKLPardisoSolver()
         # plinear_solver = ParallelMKLPardisoSolver()
         self.solver.structure_linear_solver = plinear_solver
         self.solver.Initialize()

@@ -144,7 +144,7 @@ private:
      * @param InverseCTensor: The inverse right Cauchy-Green tensor
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
+     * @param LameMu: Second Lame parameter
      */
     void CalculateConstitutiveMatrixPK2(
         Matrix& ConstitutiveMatrix,
@@ -159,9 +159,9 @@ private:
      * @param ConstitutiveMatrix: The constitutive matrix
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
+     * @param LameMu: Second Lame parameter
      */
-    void CalculateConstitutiveMatrixKirchoff(
+    void CalculateConstitutiveMatrixKirchhoff(
         Matrix& ConstitutiveMatrix,
         const double& DeterminantF,
         const double& LameLambda,

@@ -474,14 +474,12 @@ class TestModelPart(KratosUnittest.TestCase):
     def test_modelpart_variables_list(self):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VELOCITY)
-        model_part.AddNodalSolutionStepVariable(VELOCITIES)
 
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
         model_part.CreateNewNode(3, 1.00,1.00,0.00)
 
         self.assertTrue(model_part.Nodes[1].SolutionStepsDataHas(VELOCITY))
-        self.assertTrue(model_part.Nodes[1].SolutionStepsDataHas(VELOCITIES))
 
     def test_modelpart_buffersize(self):
         model_part = ModelPart("Main")

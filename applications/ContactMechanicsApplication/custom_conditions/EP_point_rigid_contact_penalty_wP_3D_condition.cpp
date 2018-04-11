@@ -251,7 +251,7 @@ namespace Kratos
    //******************************************************************************************
 
    void EPPointRigidContactPenaltywP3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
+         ConditionVariables& rVariables,
          double& rIntegrationWeight)
 
    {
@@ -296,7 +296,7 @@ namespace Kratos
    // ********************* CalculateKuugTangent (with effective water pressure term) *******************
    // ***************************************************************************************************
    void EPPointRigidContactPenaltywP3DCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
+         ConditionVariables& rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY

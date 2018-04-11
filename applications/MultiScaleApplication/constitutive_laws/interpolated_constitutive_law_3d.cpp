@@ -53,10 +53,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "interpolated_constitutive_law_3d.h"
 #include "multiscale_application_variables.h"
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif // !M_PI
-
 #define SIGMA_SIGN(X) (X == 0.0 ? 1.0 : ( X > 0.0 ? 1.0 : -1.0 ))
 
 namespace Kratos
@@ -422,7 +418,7 @@ namespace Kratos
 		//Calculate phi & number of division
 		const size_t m = mpRveMaterialDatabase->NumberOfDivision();
 		//std::cout << "m: " << m << std::endl;
-		double phi = M_PI / m;
+		double phi = Globals::Pi / m;
 		//std::cout << "phi: " << phi << " rad" << std::endl;
 
 		//1. Calculate the normalized Strain
@@ -1038,46 +1034,46 @@ namespace Kratos
 		
 		//Calculate Theta1
 		double theta_1 = acos(StrainVector[0] / sqrt(pow(StrainVector[5], 2) + pow(StrainVector[4], 2) + pow(StrainVector[3], 2) + pow(StrainVector[2], 2) + pow(StrainVector[1], 2) + pow(StrainVector[0], 2)));
-		if (abs(theta_1) > M_PI)
+		if (abs(theta_1) > Globals::Pi)
 		{
-			double mult = abs(floor(theta_1 / M_PI));
-			if (theta_1 > M_PI)
-				theta_1 = theta_1 - 2.0 * M_PI*mult;
+			double mult = abs(floor(theta_1 / Globals::Pi));
+			if (theta_1 > Globals::Pi)
+				theta_1 = theta_1 - 2.0 * Globals::Pi*mult;
 			else
-				theta_1 = theta_1 + 2.0 * M_PI*mult;
+				theta_1 = theta_1 + 2.0 * Globals::Pi*mult;
 		}
 
 		//Calculate Theta2
 		double theta_2 = acos(StrainVector[1] / sqrt(pow(StrainVector[5], 2) + pow(StrainVector[4], 2) + pow(StrainVector[3], 2) + pow(StrainVector[2], 2) + pow(StrainVector[1], 2)));
-		if (abs(theta_2) > M_PI)
+		if (abs(theta_2) > Globals::Pi)
 		{
-			double mult = abs(floor(theta_2 / M_PI));
-			if (theta_2 > M_PI)
-				theta_2 = theta_2 - 2.0 * M_PI*mult;
+			double mult = abs(floor(theta_2 / Globals::Pi));
+			if (theta_2 > Globals::Pi)
+				theta_2 = theta_2 - 2.0 * Globals::Pi*mult;
 			else
-				theta_2 = theta_2 + 2.0 * M_PI*mult;
+				theta_2 = theta_2 + 2.0 * Globals::Pi*mult;
 		}
 
 		//Calculate Theta3
 		double theta_3 = acos(StrainVector[2] / sqrt(pow(StrainVector[5], 2) + pow(StrainVector[4], 2) + pow(StrainVector[3], 2) + pow(StrainVector[2], 2)));
-		if (abs(theta_3) > M_PI)
+		if (abs(theta_3) > Globals::Pi)
 		{
-			double mult = abs(floor(theta_3 / M_PI));
-			if (theta_3 > M_PI)
-				theta_3 = theta_3 - 2.0 * M_PI*mult;
+			double mult = abs(floor(theta_3 / Globals::Pi));
+			if (theta_3 > Globals::Pi)
+				theta_3 = theta_3 - 2.0 * Globals::Pi*mult;
 			else
-				theta_3 = theta_3 + 2.0 * M_PI*mult;
+				theta_3 = theta_3 + 2.0 * Globals::Pi*mult;
 		}
 
 		//Calculate Theta4
 		double theta_4 = acos(StrainVector[2] / sqrt(pow(StrainVector[5], 2) + pow(StrainVector[4], 2) + pow(StrainVector[3], 2)));
-		if (abs(theta_4) > M_PI)
+		if (abs(theta_4) > Globals::Pi)
 		{
-			double mult = abs(floor(theta_4 / M_PI));
-			if (theta_4 > M_PI)
-				theta_4 = theta_4 - 2.0 * M_PI*mult;
+			double mult = abs(floor(theta_4 / Globals::Pi));
+			if (theta_4 > Globals::Pi)
+				theta_4 = theta_4 - 2.0 * Globals::Pi*mult;
 			else
-				theta_4 = theta_4 + 2.0 * M_PI*mult;
+				theta_4 = theta_4 + 2.0 * Globals::Pi*mult;
 		}
 
 		//Calculate Theta5
@@ -1091,20 +1087,20 @@ namespace Kratos
 		{
 			if (StrainVector[5] < 0.0)
 			{
-				theta_5 = 2 * M_PI - acos(StrainVector[4] / denom);
+				theta_5 = 2 * Globals::Pi - acos(StrainVector[4] / denom);
 			}
 			else
 			{
 				theta_5 = acos(StrainVector[4] / denom);
 			}
 		}
-		if (abs(theta_5) > M_PI)
+		if (abs(theta_5) > Globals::Pi)
 		{
-			double mult = abs(floor(theta_5 / M_PI));
-			if (theta_5 > M_PI)
-				theta_5 = theta_5 - 2.0 * M_PI*mult;
+			double mult = abs(floor(theta_5 / Globals::Pi));
+			if (theta_5 > Globals::Pi)
+				theta_5 = theta_5 - 2.0 * Globals::Pi*mult;
 			else
-				theta_5 = theta_5 + 2.0 * M_PI*mult;
+				theta_5 = theta_5 + 2.0 * Globals::Pi*mult;
 		}
 
 		//Assemble Theta

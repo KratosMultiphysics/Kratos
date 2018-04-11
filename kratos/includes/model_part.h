@@ -212,7 +212,7 @@ public:
     /// The container of the sub model parts. A hash table is used.
     /**
     */
-    typedef PointerHashMapSet<ModelPart, boost::hash< std::string >, GetModelPartName, ModelPart*>  SubModelPartsContainerType;
+    typedef PointerHashMapSet<ModelPart, boost::hash< std::string >, GetModelPartName, ModelPart::Pointer>  SubModelPartsContainerType;
 
     /// Iterator over the sub model parts of this model part.
     /**	Note that this iterator only iterates over the next level of
@@ -310,7 +310,7 @@ public:
 
     /** Inserts a list of nodes in a submodelpart provided their Id. Does nothing if applied to the top model part
      */    
-    void AddNodes(std::vector<IndexType>& NodeIds, IndexType ThisIndex = 0);
+    void AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIndex = 0);
     
     /** Inserts a list of pointers to nodes
      */    
@@ -478,6 +478,11 @@ public:
         return *mpVariablesList;
     }
 
+    VariablesList const& GetNodalSolutionStepVariablesList() const
+    {
+        return *mpVariablesList;
+    }
+
     void SetNodalSolutionStepVariablesList();
 
     SizeType GetNodalSolutionStepDataSize()
@@ -588,7 +593,7 @@ public:
             }
             else
             {
-                PropertiesType::Pointer pnew_property = boost::make_shared<PropertiesType>(PropertiesId);
+                PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
                 GetMesh(ThisIndex).AddProperties(pnew_property);
                 return pnew_property;
             }
@@ -613,7 +618,7 @@ public:
             }
             else
             {
-                PropertiesType::Pointer pnew_property = boost::make_shared<PropertiesType>(PropertiesId);
+                PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
                 GetMesh(ThisIndex).AddProperties(pnew_property);
                 return *pnew_property;
             }
@@ -704,7 +709,7 @@ public:
     
     /** Inserts a list of elements to a submodelpart provided their Id. Does nothing if applied to the top model part
      */    
-    void AddElements(std::vector<IndexType>& ElementIds, IndexType ThisIndex = 0);
+    void AddElements(std::vector<IndexType> const& ElementIds, IndexType ThisIndex = 0);
     
     /** Inserts a list of pointers to nodes
      */    
@@ -726,7 +731,7 @@ public:
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != &(*it_found))//check if the pointee coincides
+                if(&(*it_found) != &(*it))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new element with Id :" << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
@@ -867,7 +872,7 @@ public:
     
     /** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
      */    
-    void AddConditions(std::vector<IndexType>& ConditionIds, IndexType ThisIndex = 0);
+    void AddConditions(std::vector<IndexType> const& ConditionIds, IndexType ThisIndex = 0);
     
     /** Inserts a list of pointers to nodes
      */    
@@ -889,8 +894,8 @@ public:
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != &(*it_found))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
+                if(&(*it_found) != &(*it))//check if the pointee coincides
+                    KRATOS_ERROR << "attempting to add a new Condition with Id :" << it_found->Id() << ", unfortunately a (different) Condition with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
             }
@@ -1032,7 +1037,7 @@ public:
     /** Creates a new sub model part with given name.
     Does nothing if a sub model part with the same name exist.
     */
-    ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
+    ModelPart::Pointer CreateSubModelPart(std::string const& NewSubModelPartName);
 
     /** Add an existing model part as a sub model part.
     	All the meshes will be added to the parents.
@@ -1041,7 +1046,7 @@ public:
     	In the case of conflict the new one would replace the old one
     	resulting inconsitency in parent.
     */
-    void AddSubModelPart(ModelPart& rThisSubModelPart);
+    void AddSubModelPart(ModelPart::Pointer rThisSubModelPart);
 
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
@@ -1054,6 +1059,19 @@ public:
             //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
 
             return *i;
+    }
+
+    /** Returns a shared pointer to the sub_model part with given string name
+    	In debug gives an error if does not exist.
+    */
+    ModelPart::Pointer pGetSubModelPart(std::string const& SubModelPartName)
+    {
+        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+        if(i == mSubModelParts.end())
+            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
+            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
+
+            return i.base()->second;
     }
 
     /** Remove a sub modelpart with given name.

@@ -52,7 +52,7 @@ namespace Kratos
         PropertiesType::Pointer pProperties 
         ) const
     {
-        return Condition::Pointer( new AxisymPointLoadCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+        return Kratos::make_shared<AxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************
@@ -71,7 +71,7 @@ namespace Kratos
         // We calculate the axisymmetric coefficient 
         const double Radius = StructuralMechanicsMathUtilities::CalculateRadiusPoint(GetGeometry());
         const double Thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
-        const double AxiSymCoefficient = 2.0 * M_PI * Radius/Thickness;
+        const double AxiSymCoefficient = 2.0 * Globals::Pi * Radius/Thickness;
         
         return AxiSymCoefficient;
     }

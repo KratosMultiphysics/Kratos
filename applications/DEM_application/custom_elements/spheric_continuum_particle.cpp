@@ -137,9 +137,9 @@ namespace Kratos {
     void SphericContinuumParticle::ContactAreaWeighting() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbors of my neighbors.
     {
         double alpha = 1.0;
-        //double external_sphere_area = 4 * KRATOS_M_PI * GetRadius()*GetRadius();
+        //double external_sphere_area = 4 * Globals::Pi * GetRadius()*GetRadius();
         double effectiveVolumeRadius = EffectiveVolumeRadius();  //calculateEffectiveVolumeRadius
-        double external_sphere_area = 4 * KRATOS_M_PI * effectiveVolumeRadius * effectiveVolumeRadius;
+        double external_sphere_area = 4 * Globals::Pi * effectiveVolumeRadius * effectiveVolumeRadius;
         double total_equiv_area = 0.0;
         double total_mContIniNeighArea = 0.0;
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
@@ -668,7 +668,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void SphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info){}
+    void SphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) {}
     
     double SphericContinuumParticle::CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info) {
         
@@ -677,7 +677,7 @@ namespace Kratos {
         double max_local_search = 0.0;
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-	    if(mNeighbourElements[i] == NULL) continue;
+	    if (mNeighbourElements[i] == NULL) continue;
             SphericContinuumParticle* r_continuum_ini_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             double search_dist = mContinuumConstitutiveLawArray[i]->LocalMaxSearchDistance(i, this, r_continuum_ini_neighbour);
             if (search_dist > max_local_search) max_local_search = search_dist;
@@ -794,7 +794,7 @@ namespace Kratos {
             else if ((coeff == 1.0) && (r_process_info[VIRTUAL_MASS_OPTION])) { Output = 9.0E09; }
             else {
                 if (r_process_info[VIRTUAL_MASS_OPTION]) { mass /= 1 - coeff; }
-                double K = GetYoung() * KRATOS_M_PI * GetRadius();
+                double K = GetYoung() * Globals::Pi * GetRadius();
                 Output = 0.34 * sqrt(mass / K);
                 if (r_process_info[ROTATION_OPTION] == 1) { Output = Output * 0.5; } //factor for critical time step when rotation is allowed.
             }

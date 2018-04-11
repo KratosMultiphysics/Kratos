@@ -292,7 +292,7 @@ public:
 
 	int number_of_nodes = mr_model_part.NumberOfNodes();
 	ModelPart::NodeConstantIterator nodes_begin = mr_model_part.NodesBegin();
-	
+
 	/*
 	//1nd way: (fastest) generating the dofs for the initial node and add to others (still fails if a variable or a dof is set when mdpa is read)
 	AddNodalDofs(nodes_begin);

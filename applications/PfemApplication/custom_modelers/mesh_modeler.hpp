@@ -254,16 +254,14 @@ protected:
      * Mesh Modeler :: Start Echo
      */
     virtual void StartEcho(ModelPart& rSubModelPart,
-			   std::string GenerationMessage, 
-			   ModelPart::IndexType MeshId=0);
+			   std::string GenerationMessage);
 
 
     /**
      * Mesh Modeler :: End Echo
      */
     virtual void EndEcho(ModelPart& rSubModelPart,
-			 std::string GenerationMessage, 
-			 ModelPart::IndexType MeshId=0);
+			 std::string GenerationMessage);
 
 
 

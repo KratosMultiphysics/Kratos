@@ -72,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/constant_velocity_field.h"
 #include "custom_utilities/fields/cellular_flow_field.h"
 #include "custom_utilities/fields/ethier_flow_field.h"
+#include "custom_utilities/fields/product_of_sines_field.h"
 #include "custom_utilities/fields/pouliot_flow_field.h"
 #include "custom_utilities/fields/pouliot_flow_field_2D.h"
 #include "custom_utilities/fields/shear_flow_1D_with_exponential_viscosity_field.h"
@@ -81,6 +82,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/inlets/bentonite_force_based_inlet.h"
 #include "custom_utilities/swimming_dem_in_pfem_utils.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/mesh_rotation_utility.h"
 
 namespace Kratos{
 
@@ -172,6 +174,14 @@ using namespace boost::python;
     typedef void (VelocityField::*CalculateTimeDerivative)(const double, const vector<double>&, vector<double>&, const int);
     CalculateTimeDerivative CalculateTimeDerivativeVector = &VelocityField::CalculateTimeDerivative;
 
+    typedef void (VelocityField::*CalculateGradient)(const double,
+                                                     const array_1d<double, 3>&,
+                                                     vector< double>&,
+                                                     vector< double>&,
+                                                     vector< double>&,
+                                                     const int);
+    CalculateGradient CalculateGradientVector = &VelocityField::CalculateGradient;
+
     typedef double (VelocityField::*CalculateDivergence)(const double, const vector<double>&, const int);
     CalculateDivergence CalculateDivergenceVector = &VelocityField::CalculateDivergence;
 
@@ -184,14 +194,18 @@ using namespace boost::python;
     typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const vector<double>&, vector<double>&, const int);
     CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
 
+    typedef void (VelocityField::*CalculateConvectiveDerivative)(const double, const vector<double>&, vector<double>&, const int);
+    CalculateConvectiveDerivative CalculateConvectiveDerivativeVector = &VelocityField::CalculateConvectiveDerivative;
+
     class_<VelocityField, bases<VectorField<3> > > ("VelocityField", boost::python::no_init)
         .def("Evaluate", EvaluateVector)
         .def("CalculateTimeDerivative", CalculateTimeDerivativeVector)
-        .def("CalculateGradient", &VelocityField::CalculateGradient)
+        .def("CalculateGradient", CalculateGradientVector)
         .def("CalculateDivergence", CalculateDivergenceVector)
         .def("CalculateRotational", CalculateRotationalVector)
         .def("CalculateLaplacian", CalculateLaplacianVector)
         .def("CalculateMaterialAcceleration", CalculateMaterialAccelerationVector)
+        .def("CalculateConvectiveDerivative", CalculateConvectiveDerivativeVector)
         ;
 
     class_<ConstantVelocityField, bases<VelocityField> > ("ConstantVelocityField", init<const double, const double, const double>())
@@ -205,6 +219,9 @@ using namespace boost::python;
         ;
 
     class_<EthierFlowField, bases<VelocityField> > ("EthierFlowField",  init<const double, const double>())
+        ;
+
+    class_<ProductOfSines, bases<VelocityField> > ("ProductOfSines",  init<const double>())
         ;
 
     class_<PouliotFlowField, bases<VelocityField> > ("PouliotFlowField", init<>())
@@ -339,7 +356,7 @@ using namespace boost::python;
 //    RecoverGradientScalar RecoverSuperconvergentGradientScalar = &DerivativeRecovery<3>::RecoverSuperconvergentGradient<std::size_t TDim, class TScalarVariable>;
 //    RecoverGradientComponent RecoverSuperconvergentGradientComponent = &DerivativeRecovery<3>::RecoverSuperconvergentGradient<std::size_t TDim, class TScalarVariable>;
 
-    class_<DerivativeRecovery <3> > ("DerivativeRecoveryTool3D", init<ModelPart&>())
+    class_<DerivativeRecovery <3> > ("DerivativeRecoveryTool3D", init<ModelPart&, Parameters&>())
         .def("AddTimeDerivativeComponent", &DerivativeRecovery <3>::AddTimeDerivativeComponent)
         .def("RecoverSuperconvergentGradient", &DerivativeRecovery <3>::RecoverSuperconvergentGradient< Variable<double> >)
         .def("RecoverSuperconvergentGradient", &DerivativeRecovery <3>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >)
@@ -352,6 +369,7 @@ using namespace boost::python;
         .def("CalculateVorticityContributionOfTheGradientOfAComponent", &DerivativeRecovery <3>::CalculateVorticityContributionOfTheGradientOfAComponent)
         .def("RecoverSuperconvergentMatDerivAndLaplacian", &DerivativeRecovery <3>::RecoverSuperconvergentMatDerivAndLaplacian)
         .def("CalculateGradient", &DerivativeRecovery <3>::CalculateGradient< Variable<double> >)
+        .def("SmoothVectorField", &DerivativeRecovery <3>::SmoothVectorField)
         .def("CalculateVectorMaterialDerivative", &DerivativeRecovery <3>::CalculateVectorMaterialDerivative)
         .def("CalculateVectorLaplacian", &DerivativeRecovery <3>::CalculateVectorLaplacian)
         .def("CalculateVelocityLaplacianRate", &DerivativeRecovery <3>::CalculateVelocityLaplacianRate)
@@ -370,7 +388,7 @@ using namespace boost::python;
             ("BinBasedDEMFluidCoupledMapping2D", init<double, int, int, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromField)
+        .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ComputePostProcessResults)
@@ -383,7 +401,7 @@ using namespace boost::python;
             ("BinBasedNanoDEMFluidCoupledMapping2D", init<double, int, int, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromField)
+        .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ComputePostProcessResults)
@@ -394,11 +412,11 @@ using namespace boost::python;
 
     class_<BinBasedDEMFluidCoupledMapping <3, SphericParticle> >
             ("BinBasedDEMFluidCoupledMapping3D", init<double, int, int, int>())
-        .def("InterpolateVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateVelocity)
+        .def("InterpolateVelocityOnSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateVelocityOnSlipVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromNewestFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeVelocityOnDEMFromField)
+        .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ComputePostProcessResults)
@@ -410,11 +428,11 @@ using namespace boost::python;
 
     class_<BinBasedDEMFluidCoupledMapping <3, NanoParticle> >
             ("BinBasedNanoDEMFluidCoupledMapping3D", init<double, int, int, int>())
-        .def("InterpolateVelocity", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateVelocity)
+        .def("InterpolateVelocityOnSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateVelocityOnSlipVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromNewestFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ImposeVelocityOnDEMFromField)
+        .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ComputePostProcessResults)
@@ -445,7 +463,15 @@ using namespace boost::python;
         .def("TransferWalls", &SwimmingDemInPfemUtils::TransferWalls)
         ;
 
+    class_<MeshRotationUtility >("MeshRotationUtility", init<Kratos::Parameters&>())
+        .def("RotateMesh", &MeshRotationUtility::RotateMesh)
+        .def("RotateDEMMesh", &MeshRotationUtility::RotateDEMMesh)
+        .def("SetStationaryField", &MeshRotationUtility::SetStationaryField)
+        .def("RotateFluidVelocities", &MeshRotationUtility::RotateFluidVelocities)
+        ;
+
     }
+
 }  // namespace Python.
 
 } // Namespace Kratos

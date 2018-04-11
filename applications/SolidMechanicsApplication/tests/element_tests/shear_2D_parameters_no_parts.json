@@ -1,0 +1,54 @@
+{
+    "model_settings"           : {
+        "dimension"            : 2
+    },
+    "solver_settings"          : {
+	"solver_type" : "solid_mechanics_static_solver",
+	"Parameters"  : {
+            "time_integration_settings" : {
+                "solution_type"      : "Static",
+                "integration_method" : "Non-Linear"
+            },
+            "linear_solver_settings"    : {
+		"solver_type" : "SuperLUSolver",
+		"scaling"     : false
+            }
+        }
+    },
+    "constraints_process_list" : [{
+
+    },{
+        "value"           : [0.0,null,0.0]
+    }
+    ],
+    "loads_process_list"       : [{
+        "variable_name"   : "LINE_LOAD",
+        "modulus"         : 1.0,
+        "direction"       : [1.0,0.0,0.0]
+    },{
+        "variable_name"   : "LINE_LOAD",
+        "modulus"         : 1.0,
+        "direction"       : [-1.0,0.0,0.0]
+    },{
+        "variable_name"   : "LINE_LOAD",
+        "modulus"         : 1.0,
+        "direction"       : [0.0,1.0,0.0]
+    },{
+        "variable_name"   : "LINE_LOAD",
+        "modulus"         : 1.0,
+        "direction"       : [0.0,-1.0,0.0]
+    }],
+    "check_process_list" : [
+    {
+        "python_module"   : "check_scalar_on_nodes_process",
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "Parameters"      : {
+            "variable_name"   : "DISPLACEMENT_Y",
+            "interval"        : [0.0, "End"],
+            "value"           : 7.8E-03,
+            "tolerance_rank"  : 3
+        }
+    }
+    ]
+
+}

@@ -54,7 +54,6 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "VARIABLE_NAME",
                 "local_axes" : {}
             }  )" );
@@ -63,7 +62,6 @@ public:
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mmesh_id       = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
 
 	mpPyObject      =  pPyObject;	
@@ -303,7 +301,6 @@ private:
     bool mHasLocalOrigin;
     bool mHasLocalAxes;
     
-    std::size_t mmesh_id;
 
     ///@}
     ///@name Private Operators
@@ -364,13 +361,13 @@ private:
     template< class TVarType>
     void InternalAssignValue(TVarType& rVariable, const double& rTime)
     {
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const int nnodes = mr_model_part.GetMesh().Nodes().size();
 
 	double Value = 0;
 	
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh().NodesBegin();
 
             //#pragma omp parallel for  //it does not work in parallel
             for(int i = 0; i<nnodes; i++)

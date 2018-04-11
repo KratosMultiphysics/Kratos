@@ -257,6 +257,6 @@ namespace Kratos
                         actual_neck_radius = std::sqrt(rmin*indentation);
                 }
 
-                calculation_area = KRATOS_M_PI * actual_neck_radius * actual_neck_radius;
+                calculation_area = Globals::Pi * actual_neck_radius * actual_neck_radius;
         }	
 }  // namespace Kratos.

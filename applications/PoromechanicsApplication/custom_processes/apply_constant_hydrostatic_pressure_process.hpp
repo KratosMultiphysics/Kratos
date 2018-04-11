@@ -37,10 +37,9 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed": false,
-                "gravity_direction" : 3,
+                "gravity_direction" : 2,
                 "reference_coordinate" : 0.0,
                 "specific_weight" : 10000.0,
                 "table" : 1
@@ -55,7 +54,6 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
         
-        mmesh_id = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
         mis_fixed = rParameters["is_fixed"].GetBool();
         mgravity_direction = rParameters["gravity_direction"].GetInt();
@@ -85,13 +83,15 @@ public:
         
         Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
         
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
-
+        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
+        
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+            
+            array_1d<double,3> Coordinates;
 
-            #pragma omp parallel for
+            #pragma omp parallel for private(Coordinates)
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -101,7 +101,9 @@ public:
                     it->Fix(var);
                 }
                 
-                double pressure = mspecific_weight*( mreference_coordinate - (it->Coordinate(mgravity_direction)) );
+                noalias(Coordinates) = it->Coordinates();
+
+                const double pressure = mspecific_weight*( mreference_coordinate - Coordinates[mgravity_direction] );
                 
                 if(pressure > 0.0) 
                 {
@@ -141,7 +143,6 @@ protected:
     /// Member Variables
 
     ModelPart& mr_model_part;
-    std::size_t mmesh_id;
     std::string mvariable_name;
     bool mis_fixed;
     unsigned int mgravity_direction;

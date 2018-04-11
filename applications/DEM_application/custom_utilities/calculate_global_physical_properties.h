@@ -67,7 +67,7 @@ class SphericElementGlobalPhysicsCalculator
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
                       SphericParticle& r_spheric_particle = dynamic_cast<Kratos::SphericParticle&> (*it);
                       const double particle_radius = r_spheric_particle.GetRadius();
-                      added_volume += 4.0 / 3.0 * KRATOS_M_PI * particle_radius * particle_radius * particle_radius;
+                      added_volume += 4.0 / 3.0 * Globals::Pi * particle_radius * particle_radius * particle_radius;
                   }
             }
         }
@@ -475,9 +475,12 @@ class SphericElementGlobalPhysicsCalculator
                       (it)->Calculate(MOMENTUM, particle_momentum, r_model_part.GetProcessInfo());
                       (it)->Calculate(ANGULAR_MOMENTUM, particle_local_angular_momentum, r_model_part.GetProcessInfo());
 
-                      am_x += particle_local_angular_momentum[0] + (Kratos::MathUtils<double>::CrossProduct(center_of_mass_to_particle, particle_momentum))[0];
-                      am_y += particle_local_angular_momentum[1] + (Kratos::MathUtils<double>::CrossProduct(center_of_mass_to_particle, particle_momentum))[1];
-                      am_z += particle_local_angular_momentum[2] + (Kratos::MathUtils<double>::CrossProduct(center_of_mass_to_particle, particle_momentum))[2];
+                      array_1d<double, 3> aux;
+                      Kratos::MathUtils<double>::CrossProduct(aux, particle_momentum, center_of_mass_to_particle);
+                      
+                      am_x += particle_local_angular_momentum[0] + aux[0];
+                      am_y += particle_local_angular_momentum[1] + aux[1];
+                      am_z += particle_local_angular_momentum[2] + aux[2];
                   }
               }
           }

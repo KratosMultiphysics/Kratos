@@ -41,9 +41,9 @@ namespace Kratos {
         
            // double calculated_radius  = sqrt(equiv_radius*indentation); // sosss
                       
-          // double  calculation_area = KRATOS_M_PI * calculated_radius * calculated_radius;
+          // double  calculation_area = Globals::Pi * calculated_radius * calculated_radius;
            
-           double  calculation_area = KRATOS_M_PI * equiv_radius * indentation ;
+           double  calculation_area = Globals::Pi * equiv_radius * indentation ;
            
             
        //double rmin = my_radius;

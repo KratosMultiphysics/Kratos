@@ -221,8 +221,7 @@ namespace Kratos
 		      const Element & rReferenceElement,
 		      PointPointerVector &list_of_new_centers,
 		      std::vector<Geometry<Node<3> > >& list_of_new_vertices,
-		      Flags Options,
-		      ModelPart::IndexType MeshId=0);
+		      Flags Options);
 
 
     //*******************************************************************************************
@@ -273,16 +272,14 @@ namespace Kratos
     //*******************************************************************************************
 
     void TransferBoundaryData(const TransferParameters& rTransferVariables,
-			      ModelPart& rModelPart,
-			      ModelPart::IndexType MeshId=0);
+			      ModelPart& rModelPart);
 
     //*******************************************************************************************
     //*******************************************************************************************
 
 
     void TransferNodalValuesToElements(const TransferParameters& rTransferVariables,
-				       ModelPart& rModelPart,
-				       ModelPart::IndexType MeshId=0);
+				       ModelPart& rModelPart);
 
 
 
@@ -293,16 +290,14 @@ namespace Kratos
     void TransferNodalValuesToElements(const TransferParameters& rTransferVariables,
 				       const Variable<double>& rCriticalVariable,
 				       const double& CriticalValue,
-				       ModelPart& rModelPart,
-				       ModelPart::IndexType MeshId=0);
+				       ModelPart& rModelPart);
 
 
 
     //*******************************************************************************************
     //*******************************************************************************************
     void TransferElementalValuesToNodes( const TransferParameters& rTransferVariables,
-					 ModelPart& rModelPart,
-					 ModelPart::IndexType MeshId=0);
+					 ModelPart& rModelPart);
 
 
 
@@ -311,8 +306,7 @@ namespace Kratos
     void TransferNodalValuesToElements(ModelPart& rModelPart,
 				       const Element & rReferenceElement,
 				       PointPointerVector &list_of_new_centers,
-				       std::vector<Geometry<Node<3> > >& list_of_new_vertices,
-				       ModelPart::IndexType MeshId=0);
+				       std::vector<Geometry<Node<3> > >& list_of_new_vertices);
 
 
     //*******************************************************************************************
@@ -320,8 +314,7 @@ namespace Kratos
     void TransferElementalValuesToNodes(ModelPart& rModelPart,
 					const Element & rReferenceElement,
 					PointPointerVector &list_of_new_centers,
-					std::vector<Geometry<Node<3> > >& list_of_new_vertices,
-					ModelPart::IndexType MeshId=0);
+					std::vector<Geometry<Node<3> > >& list_of_new_vertices);
 
 
     //*******************************************************************************************
@@ -330,8 +323,7 @@ namespace Kratos
     void TransferElementalValuesToElements(ModelPart& rModelPart,
 					   const Element & rReferenceElement,
 					   PointPointerVector &list_of_new_centers,
-					   std::vector<Geometry<Node<3> > >& list_of_new_vertices,
-					   ModelPart::IndexType MeshId=0);
+					   std::vector<Geometry<Node<3> > >& list_of_new_vertices);
 
 
 

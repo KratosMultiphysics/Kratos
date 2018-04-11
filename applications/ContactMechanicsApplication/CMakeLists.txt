@@ -18,7 +18,7 @@ endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
   set(INCLUDE_TETGEN ON)
-  set(TETGEN_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PfemApplication/custom_external_libraries/tetgen/tetgen1.4.3/)
+  set(TETGEN_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PfemApplication/external_modules/tetgen/)
   include_directories( ${TETGEN_INSTALL_DIR} )
   link_directories( ${TETGEN_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TETGEN})
@@ -49,7 +49,18 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_penalty_2D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.cpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/EP_point_rigid_contact_penalty_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/EP_point_rigid_contact_penalty_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/EP_point_rigid_contact_penalty_wP_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/EP_axisym_point_rigid_contact_penalty_2D_condition.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_point_rigid_contact_condition.cpp
+
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_condition.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_penalty_3D_condition.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_LM_3D_condition.cpp
+        #${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_pressure_condition.cpp
+
 
 	##elements
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp

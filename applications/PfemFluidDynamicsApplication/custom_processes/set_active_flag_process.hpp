@@ -138,15 +138,18 @@ namespace Kratos
 		if(dimension==2){
 		  ElementalVolume =  (itElem)->GetGeometry().Area();
 		}else if(dimension==3){
-		  ElementalVolume =  (itElem)->GetGeometry().Volume();
+		  ElementalVolume = 0;
+		  if( itElem->GetGeometry().Dimension() == 3 )
+		    ElementalVolume =  (itElem)->GetGeometry().Volume();
 		}else{
 		  ElementalVolume = 0;
 		}
 		double CriticalVolume=0.01*ModelPartVolume/double(mrModelPart.Elements().size());
-		if(ElementalVolume<CriticalVolume && ElementalVolume>0){
+		// if(ElementalVolume<CriticalVolume && ElementalVolume>0){
+		 if(ElementalVolume<CriticalVolume){
 		  sliverEliminationCriteria=true;
-		  // std::cout<<"RESET ACTIVE FOR THIS SLIVER! \t";
-		  // std::cout<<"its volume is "<<ElementalVolume<<" vs CriticalVolume "<<CriticalVolume<<std::endl;
+		  std::cout<<"RESET ACTIVE FOR THIS SLIVER! \t";
+		  std::cout<<"its volume is "<<ElementalVolume<<" vs CriticalVolume "<<CriticalVolume<<std::endl;
 		}
 	      }
 	      

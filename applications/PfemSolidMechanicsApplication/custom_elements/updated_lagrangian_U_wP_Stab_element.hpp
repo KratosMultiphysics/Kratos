@@ -143,26 +143,29 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * Calculation and addition of the matrices of the LHS
+     */
+
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    ElementVariables& rVariables,
+                                    double& rIntegrationWeight);
 
     /**
-     * Calculation of the Kpp Stabilization Term matrix
+     * Calculation and addition of the vectors of the RHS
      */
-    virtual void CalculateAndAddKppStab(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        double& rIntegrationWeight
-                                       );
+
+    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+				    ElementVariables & rVariables,
+                                    Vector& rVolumeForce,
+                                    double& rIntegrationWeight);
+
+
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            double& rIntegrationWeight
-                                                  );
 
     ///@}
     ///@name Protected  Access

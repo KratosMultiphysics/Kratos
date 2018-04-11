@@ -38,7 +38,7 @@ namespace Kratos {
          
         double rmin = radius;
         if (other_radius < radius) rmin = other_radius;
-        calculation_area = KRATOS_M_PI * rmin*rmin;
+        calculation_area = Globals::Pi * rmin*rmin;
     }
 
     void DEM_Dempack::GetContactArea(const double radius,

@@ -37,7 +37,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = self.settings["echo_level"].GetInt()
-        self.domain_size       = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
         self.meshing_control_is_time = False
@@ -150,9 +150,8 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
             
     def BuildMeshBoundaryForFluids(self):
 
-              # set building options:
-        mesh_id = 0
-
+        # set building options:
+        
         # define building utility
         model_part_name = self.settings["model_part_name"].GetString()
         skin_build = KratosPfem.BuildModelPartBoundary(self.main_model_part, model_part_name, self.echo_level)

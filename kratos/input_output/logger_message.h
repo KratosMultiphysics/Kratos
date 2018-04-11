@@ -29,6 +29,7 @@
 
 // Project includes
 #include "includes/kratos_export_api.h"
+#include "includes/code_location.h"
 
 namespace Kratos
 {
@@ -57,7 +58,6 @@ namespace Kratos
 			///@{
 
 			enum class Severity {
-				ERROR,
 				WARNING,
 				INFO,
 				DETAIL,
@@ -69,20 +69,20 @@ namespace Kratos
 				STATUS,
 				CRITICAL,
 				STATISTICS,
-				PROFILING
+				PROFILING,
+				CHECKING
 			};
 
 			///@}
 			///@name Life Cycle
 			///@{
 
-			LoggerMessage() : mMessage(), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS) {}
 
-			LoggerMessage(std::string const& TheMessage) 
-				: mMessage(TheMessage), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS) {}
+			LoggerMessage(std::string const& TheLabel) 
+				: mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS) {}
 
 			LoggerMessage(LoggerMessage const& Other) 
-				: mMessage(Other.mMessage), mLevel(Other.mLevel), mSeverity(Other.mSeverity), mCategory(Other.mCategory) {}
+				: mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mCategory(Other.mCategory) {}
 
 			/// Destructor.
 			virtual ~LoggerMessage() {}
@@ -93,8 +93,10 @@ namespace Kratos
 			///@{
 
 			LoggerMessage& operator=(LoggerMessage const& Other) {
+				mLabel = Other.mLabel;
 				mMessage = Other.mMessage;
-				mLevel = Other.mLevel;
+                mLevel = Other.mLevel;
+                // mLocation = Other.mLocation;
 				mSeverity = Other.mSeverity;
 				mCategory = Other.mCategory;
 
@@ -110,6 +112,14 @@ namespace Kratos
 			///@name Access
 			///@{
 
+			void SetLabel(std::string const& TheLabel){
+				mLabel = TheLabel;
+			}
+
+			std::string const& GetLabel() const {
+				return mLabel;
+			}
+
 			void SetMessage(std::string const& TheMessage) {
 				mMessage = TheMessage;
 			}
@@ -124,6 +134,14 @@ namespace Kratos
 
 			std::size_t GetLevel() const {
 				return mLevel;
+            }
+            
+            void SetLocation(CodeLocation const& TheLocation) {
+				mLocation = TheLocation;
+			}
+
+			CodeLocation GetLocation() const {
+				return mLocation;
 			}
 
 			void SetSeverity(Severity const& TheSeverity) {
@@ -184,7 +202,10 @@ namespace Kratos
 			LoggerMessage& operator << (std::ostream& (*pf)(std::ostream&));
 
 			/// char stream function
-			LoggerMessage& operator << (const char * rString);
+            LoggerMessage& operator << (const char * rString);
+            
+            /// Location stream function
+			LoggerMessage& operator << (CodeLocation const& TheLocation);
 
 			/// Severity stream function
 			LoggerMessage& operator << (Severity const& TheSeverity);
@@ -202,8 +223,10 @@ namespace Kratos
 			///@name Member Variables
 			///@{
 
+			std::string mLabel;
 			std::string mMessage;
-			std::size_t mLevel;
+            std::size_t mLevel;
+            CodeLocation mLocation;
 			Severity mSeverity;
 			Category mCategory;
 			TimePointType mTime;

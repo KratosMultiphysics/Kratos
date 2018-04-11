@@ -1,14 +1,13 @@
-//-------------------------------------------------------------
-//         ___  __          
-//  KRATOS| _ \/ _|___ _ __
-//        |  _/  _/ -_) '  '
-//        |_| |_| \___|_|_|_|APPLICATION
-//                                                                
-//  License:(BSD)    PfemFluidMechanicsApplication/license.txt
-//
-//  Main authors:    Josep Maria Carbonell
-//                   ..                  
-//-------------------------------------------------------------
+//--------------------------------------------------------
+//          ___  __                                      .
+//  KRATOS | _ \/ _|___ _ __                             .
+//         |  _/  _/ -_) '  \                            .  
+//         |_| |_| \___|_|_|_| APPLICATION               .
+//                                                       .    
+//  License:(BSD)         PfemApplication/license.txt    .
+//  Main authors:         Josep Maria Carbonell          .
+//                        ..                             .
+//--------------------------------------------------------
 //
 //   Project Name:        KratosPfemApplication     $
 //   Created by:          $Author:      JMCarbonell $
@@ -56,8 +55,6 @@ namespace Kratos
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, bool, INITIALIZED_DOMAINS )
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, bool, MESHING_STEP_PERFORMED )
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, std::string, MODEL_PART_NAME )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, unsigned int, DOMAIN_LABEL )
-
 
   //boundary definition
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, int,                               RIGID_WALL )

@@ -2,7 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return PrintEigenvaluesProcess(Model, settings["Parameters"])
 
@@ -23,7 +23,7 @@ class PrintEigenvaluesProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.variable = getattr(KratosSolid, settings["variable_name"].GetString())
- 
+
     def ExecuteFinalizeSolutionStep(self):
 
         eigen_values = [ev for ev in self.model_part.ProcessInfo[self.variable]]

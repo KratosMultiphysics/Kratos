@@ -22,7 +22,7 @@ class ResultsCandelier:
             self.method = 'Daitche'
         else:
             self.method = 'Hinsberg'
-            self.m = pp.CFD_DEM.number_of_exponentials
+            self.m = pp.CFD_DEM["number_of_exponentials"].GetInt()
             self.t_w = pp.CFD_DEM["time_window"].GetDouble()
 
         self.result_code = self.method + '_dt=' + str(self.dt) + '_Nq=' + str(self.N_q) + '_quadrature_order=' + str(self.quadrature_order)

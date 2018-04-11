@@ -31,8 +31,7 @@ namespace Kratos
 						     const Element & rReferenceElement,
 						     PointPointerVector &list_of_new_centers,
 						     std::vector<Geometry<Node<3> > >& list_of_new_vertices,
-						     Flags Options,
-						     ModelPart::IndexType MeshId)
+						     Flags Options)
 	  
 	{
 	  KRATOS_TRY
@@ -42,17 +41,17 @@ namespace Kratos
 	  
 	    if(Options.Is(MeshDataTransferUtilities::NODE_TO_ELEMENT))
 	      {
-		TransferNodalValuesToElements(rModelPart,rReferenceElement,list_of_new_centers,list_of_new_vertices,MeshId);
+		TransferNodalValuesToElements(rModelPart,rReferenceElement,list_of_new_centers,list_of_new_vertices);
 	      }
 	    else
 	      {
 		if(Options.Is(MeshDataTransferUtilities::ELEMENT_TO_ELEMENT)){
-		  TransferElementalValuesToElements(rModelPart,rReferenceElement,list_of_new_centers,list_of_new_vertices,MeshId);
+		  TransferElementalValuesToElements(rModelPart,rReferenceElement,list_of_new_centers,list_of_new_vertices);
 		}
 		else
 		  {
 		    if(Options.Is(MeshDataTransferUtilities::ELEMENT_TO_NODE)){
-		      TransferElementalValuesToNodes(rModelPart,rReferenceElement,list_of_new_centers,list_of_new_vertices,MeshId);
+		      TransferElementalValuesToNodes(rModelPart,rReferenceElement,list_of_new_centers,list_of_new_vertices);
 		    }
 		  }
 	      }
@@ -73,7 +72,7 @@ namespace Kratos
 
 	  KRATOS_TRY
 
-	  const unsigned int dimension  = rCurrentProcessInfo[DOMAIN_SIZE];
+	  const unsigned int dimension  = rCurrentProcessInfo[SPACE_DIMENSION];
 	  const unsigned int voigt_size = dimension * (dimension +1) * 0.5; //axisymmetric, processinfo is needed
 
 
@@ -255,7 +254,7 @@ namespace Kratos
 	{
 	  KRATOS_TRY
 
-	  const unsigned int dimension  = rCurrentProcessInfo[DOMAIN_SIZE];
+	  const unsigned int dimension  = rCurrentProcessInfo[SPACE_DIMENSION];
 	  const unsigned int voigt_size = dimension * (dimension +1) * 0.5;
 
 	  BoundaryVariables Variables;
@@ -283,8 +282,7 @@ namespace Kratos
 	//*******************************************************************************************
 
         void MeshDataTransferUtilities::TransferBoundaryData(const TransferParameters& rTransferVariables,
-							     ModelPart& rModelPart,
-							     ModelPart::IndexType MeshId)
+							     ModelPart& rModelPart)
 	{
 	    KRATOS_TRY
 
@@ -295,7 +293,7 @@ namespace Kratos
 		std::cout<<"  TRANSFER INITIALIZE MASTER CONDITION "<<std::endl;
 
 		ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-		const unsigned int dimension  = rCurrentProcessInfo[DOMAIN_SIZE];
+		const unsigned int dimension  = rCurrentProcessInfo[SPACE_DIMENSION];
 		const unsigned int voigt_size = dimension * (dimension +1) * 0.5; //axisymmetric, processinfo is needed
 
 		BoundaryVariables Variables;
@@ -317,7 +315,7 @@ namespace Kratos
 		std::cout<<"  TRANSFER MASTER_ELEMENT_TO_MASTER_CONDITION "<<std::endl;
 
 		ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-		const unsigned int dimension  = rCurrentProcessInfo[DOMAIN_SIZE];
+		const unsigned int dimension  = rCurrentProcessInfo[SPACE_DIMENSION];
 		const unsigned int voigt_size = dimension * (dimension +1) * 0.5; //axisymmetric, processinfo is needed
 
 		BoundaryVariables Variables;
@@ -372,8 +370,7 @@ namespace Kratos
       //*******************************************************************************************
 	
       void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferParameters& rTransferVariables,
-								    ModelPart& rModelPart,
-								    ModelPart::IndexType MeshId)
+								    ModelPart& rModelPart)
 	{
 
 	    KRATOS_TRY
@@ -382,7 +379,7 @@ namespace Kratos
 
 	    double alpha = 0.25; //[0,1] //smoothing level of the Jacobian	      
 
-	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin(MeshId)->GetGeometry();
+	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin()->GetGeometry();
 	    GeometryData::IntegrationMethod IntegrationMethod =  rGeom.GetDefaultIntegrationMethod();
 	    unsigned int integration_points_number = rGeom.IntegrationPointsNumber( IntegrationMethod );
 
@@ -399,7 +396,7 @@ namespace Kratos
 
 	    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-	    for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId); ie != rModelPart.ElementsEnd(MeshId); ie++)
+	    for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ie++)
 	      {
 		
 		Geometry<Node<3> > & rGeometry = (ie)->GetGeometry();
@@ -565,8 +562,7 @@ namespace Kratos
       void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferParameters& rTransferVariables,
 								    const Variable<double>& rCriticalVariable,
 								    const double& rCriticalValue,
-								    ModelPart& rModelPart,
-								    ModelPart::IndexType MeshId)
+								    ModelPart& rModelPart)
 	{
 
 	    KRATOS_TRY
@@ -576,7 +572,7 @@ namespace Kratos
 
 	    double alpha = 0.25; //[0,1] //smoothing level of the Jacobian	      
 
-	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin(MeshId)->GetGeometry();
+	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin()->GetGeometry();
 	    GeometryData::IntegrationMethod IntegrationMethod =  rGeom.GetDefaultIntegrationMethod();
 	    unsigned int integration_points_number = rGeom.IntegrationPointsNumber( IntegrationMethod );
 
@@ -587,7 +583,7 @@ namespace Kratos
 
 	    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-	    for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId); ie != rModelPart.ElementsEnd(MeshId); ie++)
+	    for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ie++)
 	      {
 	     
 	    	(ie)->GetValueOnIntegrationPoints(rCriticalVariable,ComputedValues,CurrentProcessInfo);
@@ -624,7 +620,7 @@ namespace Kratos
 		
 	    int counter = 0;
 
-	    for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId); ie != rModelPart.ElementsEnd(MeshId); ie++)
+	    for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ie++)
 	      {
 		
 		Geometry<Node<3> > & rGeometry = (ie)->GetGeometry();
@@ -782,12 +778,12 @@ namespace Kratos
 		}
 	      }
 
-	    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in!=rModelPart.NodesEnd(MeshId); in++)
+	    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in!=rModelPart.NodesEnd(); in++)
 	      {
 	    	in->Reset(TO_REFINE);
 	      }
 
-	    //std::cout<<" [ Finished NODE to ELEMENT Transfer ] : ( Performed "<<counter<<" transfers of "<<rModelPart.NumberOfElements(MeshId)<<" possible )"<<std::endl;
+	    //std::cout<<" [ Finished NODE to ELEMENT Transfer ] : ( Performed "<<counter<<" transfers of "<<rModelPart.NumberOfElements()<<" possible )"<<std::endl;
 
 	    
 	    KRATOS_CATCH( "" )
@@ -799,8 +795,7 @@ namespace Kratos
 
         //KRATOS MESH INPUT
         void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferParameters& rTransferVariables,
-									ModelPart& rModelPart,
-									ModelPart::IndexType MeshId)
+									ModelPart& rModelPart)
 	{
 
 	    KRATOS_TRY
@@ -808,9 +803,9 @@ namespace Kratos
 	    //std::cout<<" [ Data Transfer ELEMENT to NODE ] :"<<std::endl;
 
 	    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-	    NodesContainerType& rNodes      = rModelPart.Nodes(MeshId);
+	    NodesContainerType& rNodes      = rModelPart.Nodes();
 
-	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin(MeshId)->GetGeometry();
+	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin()->GetGeometry();
 	    GeometryData::IntegrationMethod IntegrationMethod =  rGeom.GetDefaultIntegrationMethod();
 	    unsigned int integration_points_number = rGeom.IntegrationPointsNumber( IntegrationMethod );
 
@@ -858,7 +853,7 @@ namespace Kratos
 		  //Vector
 		  for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); i++)
 		    {			  
-		      // (rModelPart.Elements(MeshId).begin())->GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
+		      // (rModelPart.Elements().begin())->GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
 		      // if( ElementVectorVariableArray[i].size() != 0)
 		      // 	NodesVectorVariableArray[i] = ZeroVector(ElementVectorVariableArray[i].size());
 		      // else
@@ -868,7 +863,7 @@ namespace Kratos
 		  //Matrix
 		  for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); i++)
 		    {	
-		      // (rModelPart.Elements(MeshId).begin())->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
+		      // (rModelPart.Elements().begin())->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
 		      // if( ElementMatrixVariableArray[i].size1() != 0  && ElementMatrixVariableArray[i].size2() != 0 )
 		      // 	NodesMatrixVariableArray[i] = ZeroMatrix(ElementMatrixVariableArray[i].size1(),ElementMatrixVariableArray[i].size2());
 		      // else
@@ -1025,8 +1020,7 @@ namespace Kratos
 	void MeshDataTransferUtilities::TransferNodalValuesToElements(ModelPart& rModelPart,
 								      const Element& rReferenceElement,
 								      PointPointerVector &list_of_new_centers,
-								      std::vector<Geometry<Node<3> > >& list_of_new_vertices,
-								      ModelPart::IndexType MeshId)
+								      std::vector<Geometry<Node<3> > >& list_of_new_vertices)
 	{
 
 	    KRATOS_TRY
@@ -1046,8 +1040,7 @@ namespace Kratos
 	void MeshDataTransferUtilities::TransferElementalValuesToNodes(ModelPart& rModelPart,
 								       const Element & rReferenceElement,
 								       PointPointerVector &list_of_new_centers,
-								       std::vector<Geometry<Node<3> > >& list_of_new_vertices,
-								       ModelPart::IndexType MeshId)
+								       std::vector<Geometry<Node<3> > >& list_of_new_vertices)
 	{
 
 	    KRATOS_TRY
@@ -1068,8 +1061,7 @@ namespace Kratos
 	void MeshDataTransferUtilities::TransferElementalValuesToElements(ModelPart& rModelPart,
 									  const Element & rReferenceElement,
 									  PointPointerVector &list_of_new_centers,
-									  std::vector<Geometry<Node<3> > >& list_of_new_vertices,				       
-									  ModelPart::IndexType MeshId)
+									  std::vector<Geometry<Node<3> > >& list_of_new_vertices)
 	{
 
 	    KRATOS_TRY
@@ -1089,7 +1081,7 @@ namespace Kratos
 	    //definitions for spatial search
 
 
-	    ElementsContainerType& rPreElements = rModelPart.Elements(MeshId);
+	    ElementsContainerType& rPreElements = rModelPart.Elements();
 		
 	    //creating an auxiliary list for the pre integration points
 	    PointPointerVector list_of_pre_centers;
@@ -1150,8 +1142,8 @@ namespace Kratos
 
 	    //make a loop on temporal elements
 	    ElementsContainerType temporal_elements;
-	    temporal_elements.reserve(rModelPart.Elements(MeshId).size());    
-	    temporal_elements.swap(rModelPart.Elements(MeshId));
+	    temporal_elements.reserve(rModelPart.Elements().size());    
+	    temporal_elements.swap(rModelPart.Elements());
 
 
 	    int count=0;
@@ -1355,7 +1347,6 @@ namespace Kratos
 		Element::Pointer new_element = PreviousElement->Clone((*i_center)->Id(), list_of_new_vertices[(*i_center)->Id()-1]);	
 	      
 		//set transfer variables
-		//new_element->SetValue(DOMAIN_LABEL,vertices[0].GetValue(DOMAIN_LABEL)); //DOMAIN_LABEL set as a variable
 		new_element->SetValue(MODEL_PART_NAME,vertices[0].GetValue(MODEL_PART_NAME)); //MODEL_PART_NAME set as a variable
 		new_element->AssignFlags(*PreviousElement);	
 
@@ -1363,7 +1354,7 @@ namespace Kratos
 		//new_element->PrintInfo(std::cout);
 
 		//setting new elements
-		(rModelPart.Elements(MeshId)).push_back(new_element);
+		(rModelPart.Elements()).push_back(new_element);
 
 		// CREATE ELEMENT WITH THE TRANSFERED VALUES :: END
 		//***************************************************

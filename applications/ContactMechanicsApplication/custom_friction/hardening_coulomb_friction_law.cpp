@@ -46,9 +46,9 @@ namespace Kratos
    */
   double HardeningCoulombFrictionLaw::EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
    {
-      double aux = std::exp( rTangentVariables.Alpha * rPlasticSlip );
-      double H = - aux * rTangentVariables.FrictionCoefficient * rTangentVariables.Alpha * fabs(rNormalStress);
-      return H;
+      double aux2 = -std::exp( -rTangentVariables.Alpha * rPlasticSlip );
+      double H = - aux2 * rTangentVariables.FrictionCoefficient * rTangentVariables.Alpha * fabs(rNormalStress);
+      return -H;
    }
 
   /**
@@ -56,8 +56,9 @@ namespace Kratos
    */
    double HardeningCoulombFrictionLaw::EvaluateContactYield( const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
    {
-      double aux = std::exp( rTangentVariables.Alpha * rPlasticSlip );
+      double aux = (1- std::exp( -rTangentVariables.Alpha * rPlasticSlip ));
       double YieldFunction = fabs(rTangentStress) - rTangentVariables.FrictionCoefficient * aux * fabs(rNormalStress); 
+
       return YieldFunction;
 
    }
@@ -65,12 +66,12 @@ namespace Kratos
   /**
    * Methods
    */
-   void HardeningCoulombFrictionLaw::EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& rGamma, FrictionLawVariables& rTangentVariables) 
+   void HardeningCoulombFrictionLaw::EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
    {
       rdF_dt = 1.0;
 
-      double aux = std::exp( rTangentVariables.Alpha * rGamma );
-      rdF_dp = - rTangentVariables.FrictionCoefficient * aux;
+      double aux = (1- std::exp( -rTangentVariables.Alpha * rPlasticSlip ));
+      rdF_dp =  -rTangentVariables.FrictionCoefficient * aux;
    }
 
 } // end namespace Kratos

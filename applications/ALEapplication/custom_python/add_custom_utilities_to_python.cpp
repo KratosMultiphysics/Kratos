@@ -1,109 +1,65 @@
-// ==============================================================================
-/*
- KratosALEApllication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Pooyan Dadvand, Riccardo Rossi, Andreas Winterstein
-                     pooyan@cimne.upc.edu
-                     rrossi@cimne.upc.edu
-                     a.winterstein@tum.de
-- CIMNE (International Center for Numerical Methods in Engineering),
-  Gran Capita' s/n, 08034 Barcelona, Spain
-- Chair of Structural Analysis, Technical University of Munich
-  Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-//==============================================================================
-
-/* ****************************************************************************
- *  Projectname:         $KratosALEApplication
- *  Last Modified by:    $Author: A.Winterstein@tum.de $
- *  Date:                $Date: June 2016 $
- *  Revision:            $Revision: 1.5 $
- * ***************************************************************************/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license:
+// kratos/license.txt
+//
+//  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
+//
 
 // System includes
 
 // External includes
 #include <boost/python.hpp>
 
-
 // Project includes
-#include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "processes/process.h"
 
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
 #include "custom_utilities/ball_vertex_meshmoving.h"
 #include "custom_utilities/ball_vertex_meshmoving3D.h"
-#include "custom_utilities/move_mesh_utilities.h"
+#include "linear_solvers/linear_solver.h"
+#include "spaces/ublas_space.h"
 
+namespace Kratos {
 
-namespace Kratos
-{
+namespace Python {
 
-namespace Python
-{
+void AddCustomUtilitiesToPython() {
+  using namespace boost::python;
 
+  typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+  typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+  typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
-void  AddCustomUtilitiesToPython()
-{
-    using namespace boost::python;
+  class_<BallVertexMeshMoving<2, SparseSpaceType, LinearSolverType>,
+         boost::noncopyable>("BallVertexMeshMoving2D", init<>())
+      .def("ConstructSystem",
+           &BallVertexMeshMoving<2, SparseSpaceType,
+                                 LinearSolverType>::ConstructSystem)
+      .def("BuildAndSolveSystem",
+           &BallVertexMeshMoving<2, SparseSpaceType,
+                                 LinearSolverType>::BuildAndSolveSystem)
+      .def("ClearSystem", &BallVertexMeshMoving<2, SparseSpaceType,
+                                                LinearSolverType>::ClearSystem);
 
-
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
-    class_< BallVertexMeshMoving< 2, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("BallVertexMeshMoving2D", init<	>() )
-    .def("ConstructSystem",&BallVertexMeshMoving< 2, SparseSpaceType, LinearSolverType >::ConstructSystem)
-    .def("BuildAndSolveSystem",&BallVertexMeshMoving< 2, SparseSpaceType, LinearSolverType >::BuildAndSolveSystem)
-    .def("ClearSystem",&BallVertexMeshMoving< 2, SparseSpaceType, LinearSolverType >::ClearSystem)
-    ;
-
-
-    class_< BallVertexMeshMoving3D< 3, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("BallVertexMeshMoving3D", init<	>() )
-    .def("ConstructSystem",&BallVertexMeshMoving3D< 3, SparseSpaceType, LinearSolverType >::ConstructSystem)
-    .def("BuildAndSolveSystem",&BallVertexMeshMoving3D< 3, SparseSpaceType, LinearSolverType >::BuildAndSolveSystem)
-    .def("ClearSystem",&BallVertexMeshMoving3D< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
-    ;
-
-
-    class_< MoveMeshUtilities,  boost::noncopyable >	("MoveMeshUtilities", init<	>() )
-    .def("BDF_MoveMesh",&MoveMeshUtilities::BDF_MoveMesh)
-    ;
-
+  class_<BallVertexMeshMoving3D<3, SparseSpaceType, LinearSolverType>,
+         boost::noncopyable>("BallVertexMeshMoving3D", init<>())
+      .def("ConstructSystem",
+           &BallVertexMeshMoving3D<3, SparseSpaceType,
+                                   LinearSolverType>::ConstructSystem)
+      .def("BuildAndSolveSystem",
+           &BallVertexMeshMoving3D<3, SparseSpaceType,
+                                   LinearSolverType>::BuildAndSolveSystem)
+      .def("ClearSystem",
+           &BallVertexMeshMoving3D<3, SparseSpaceType,
+                                   LinearSolverType>::ClearSystem);
 }
 
-
-
-
-
-}  // namespace Python.
+} // namespace Python.
 
 } // Namespace Kratos

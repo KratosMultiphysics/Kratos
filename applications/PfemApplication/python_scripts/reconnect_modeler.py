@@ -53,7 +53,7 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
             
         modeler_flags = ""
         modeler_info  = "Reconnect a cloud of points"
-        if( self.domain_size == 2 ):
+        if( self.dimension == 2 ):
            
             if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
                 modeler_flags = "pnBYYQ"  
@@ -61,7 +61,7 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
                 modeler_flags = "nQP"
 
             
-        elif( self.domain_size == 3 ):
+        elif( self.dimension == 3 ):
 
             if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
                 modeler_flags = "pnBFMYYQ" 

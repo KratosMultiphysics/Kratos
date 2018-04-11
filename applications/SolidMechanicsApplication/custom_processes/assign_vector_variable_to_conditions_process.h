@@ -43,15 +43,13 @@ public:
     ///@name Life Cycle
     ///@{
     AssignVectorVariableToConditionsProcess(ModelPart& model_part,
-					    Parameters rParameters
-					    ) : Process(Flags()) , mr_model_part(model_part)
+					    Parameters rParameters) : Process(Flags()) , mr_model_part(model_part)
     {
         KRATOS_TRY
 			 
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "VARIABLE_NAME",
                 "value" : [0.0, 0.0, 0.0]
             }  )" );
@@ -60,7 +58,6 @@ public:
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mmesh_id       = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
 
         if(KratosComponents< Variable<array_1d<double,3> > >::Has(mvariable_name) == false)
@@ -78,9 +75,7 @@ public:
     
     AssignVectorVariableToConditionsProcess(ModelPart& model_part,
 					    const Variable<array_1d<double,3> >& rVariable,
-					    const array_1d<double,3>& rvector_value,
-					    std::size_t mesh_id
-					    ) : Process() , mr_model_part(model_part), mvector_value(rvector_value), mmesh_id(mesh_id)
+					    const array_1d<double,3>& rvector_value) : Process() , mr_model_part(model_part), mvector_value(rvector_value)
     {
         KRATOS_TRY;
 
@@ -89,7 +84,7 @@ public:
 	if( KratosComponents< Variable<array_1d<double,3> > >::Has( mvariable_name ) == false ) //case of array_1d variable
 	  KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
 
@@ -117,11 +112,11 @@ public:
     virtual void Execute() 
     {
 
-        KRATOS_TRY;
+        KRATOS_TRY
  
 	InternalAssignValue(KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name), mvector_value);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
 
     }
 
@@ -165,6 +160,13 @@ public:
     /// right after reading the model and the groups
     virtual void ExecuteFinalize()
     {
+        KRATOS_TRY
+
+	array_1d<double,3> vector_value;
+	vector_value.clear();
+	InternalAssignValue(KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name), vector_value);
+
+        KRATOS_CATCH("")
     }
 
 
@@ -241,8 +243,6 @@ private:
     ModelPart& mr_model_part;
     std::string mvariable_name;
     array_1d<double,3> mvector_value;
-
-    std::size_t mmesh_id;
   
     ///@}
     ///@name Private Operators
@@ -251,11 +251,11 @@ private:
     void InternalAssignValue(const Variable<array_1d<double,3> >& rVariable,
 			     const array_1d<double,3>& rvector_value)
     {
-        const int nconditions = mr_model_part.GetMesh(mmesh_id).Conditions().size();
+        const int nconditions = mr_model_part.GetMesh().Conditions().size();
 
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nconditions; i++)

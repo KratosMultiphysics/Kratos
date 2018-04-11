@@ -54,7 +54,7 @@ public:
         double& X() {return mCoordinates[0];}
         double& Y() {return mCoordinates[1];}
         double& Z() {return mCoordinates[2];}
-        double& Coordinate(int i) {return mCoordinates[i-1];}
+        double& operator[](int i) {return mCoordinates[i];}
         std::size_t& Id(){return mId;}
     };
 
@@ -330,10 +330,11 @@ private:
           for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin() ; i_node != mrSkinModelPart.NodesEnd() ; i_node++)
           {
               double temp_point[3];
+              const Node<3>& r_node = *i_node;
               
-              temp_point[0] = i_node->Coordinate(1);
-              temp_point[1] = i_node->Coordinate(2);
-              temp_point[2] = i_node->Coordinate(3);
+              temp_point[0] = r_node[0];
+              temp_point[1] = r_node[1];
+              temp_point[2] = r_node[2];
               
               mOctree.Insert(temp_point);
           }
@@ -541,7 +542,7 @@ private:
 // //            KRATOS_WATCH(nodes_array.size())
 //             for (int i_node = 0; i_node < nodes_array.size() ; i_node++)
 //             {
-//                 double coord = nodes_array[i_node]->Coordinate(i_direction+1);
+//                 double coord = nodes_array[i_node]->Coordinates()[i_direction];
 //    //             KRATOS_WATCH(intersections.size());
 // 
 //                 int ray_color= 1;
@@ -1027,7 +1028,7 @@ private:
 
             for(DistanceSpatialContainersConfigure::data_type::const_iterator i_node = mOctreeNodes.begin() ; i_node != mOctreeNodes.end() ; i_node++)
             {
-                rOStream << (*i_node)->Id() << "  " << (*i_node)->Coordinate(1) << "  " << (*i_node)->Coordinate(2) << "  " << (*i_node)->Coordinate(3) << std::endl;
+                rOStream << (*i_node)->Id() << "  " << (*i_node)->X() << "  " << (*i_node)->Y() << "  " << (*i_node)->Z() << std::endl;
             }
             
             std::cout << "Nodes written..." << std::endl;

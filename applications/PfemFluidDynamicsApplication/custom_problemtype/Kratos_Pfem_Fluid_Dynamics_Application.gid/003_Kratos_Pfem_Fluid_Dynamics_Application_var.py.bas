@@ -1,4 +1,4 @@
-domain_size = *GenData(DOMAIN_SIZE)
+dimension = *GenData(DIMENSION)
 
 #Problem Data
 #####################################
@@ -17,7 +17,7 @@ EchoLevel = *GenData(Echo_Level)
 class SolverSettings:
     echo_level   =  EchoLevel
     solver_type  = "fluid_pfem_mechanical_solver"
-    domain_size  = *GenData(DOMAIN_SIZE,INT)
+    dimension    = *GenData(DIMENSION,INT)
     scheme_type  = "*GenData(Solver_Type)"
 *if(strcmp(GenData(Solver_Type),"Dynamic")==0)
     time_integration_method = "*GenData(Time_Integration_Method)"
@@ -31,7 +31,7 @@ class SolverSettings:
 *if(strcmp(GenData(Axisymmetric),"True")==0)
     model_type = "Axisymmetric"	    
 *else
-    model_type = "*GenData(DOMAIN_SIZE)D"
+    model_type = "*GenData(DIMENSION)D"
 *endif
 *if(strcmp(GenData(DOFS),"ROTATIONS")==0)
     RotationDofs = True

@@ -12,26 +12,19 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 # ==============================================================================
 class DesignLogger:
 
     # --------------------------------------------------------------------------
-    def initializeLogging( self ):
-        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> initializeLogging << .")
+    def InitializeLogging( self ):
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> InitializeLogging << .")
 
     # --------------------------------------------------------------------------
-    def logCurrentDesign( self, optimizationIteration ):
-        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> logCurrentDesign << .")
+    def LogCurrentDesign( self, optimizationIteration ):
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> LogCurrentDesign << .")
 
     #---------------------------------------------------------------------------
-    def finalizeLogging( self ):
-        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> finalizeLogging << .")
+    def FinalizeLogging( self ):
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> FinalizeLogging << .")
 
 # ==============================================================================

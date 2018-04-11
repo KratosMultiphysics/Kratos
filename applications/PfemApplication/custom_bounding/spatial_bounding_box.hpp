@@ -713,6 +713,14 @@ public:
     }
 
    
+    virtual void GetParametricDirections(BoundingBoxParameters & rValues, Vector & rT1, Vector & rT2)
+    {
+        KRATOS_TRY
+
+        //std::cout<< "Calling empty method directions" <<std::endl;
+
+        KRATOS_CATCH("")
+    }
 
     ///@}
     ///@name Access
@@ -846,45 +854,36 @@ public:
       ModelPart::ConditionsContainerType::iterator condition_begin = rModelPart.ConditionsBegin();
       const unsigned int dimension = condition_begin->GetGeometry().WorkingSpaceDimension();
 
-      unsigned int start=0;
-      unsigned int NumberOfMeshes=rModelPart.NumberOfMeshes();
-      if(NumberOfMeshes>1) 
-	start=1;
-
       std::vector<PointType > Holes;
-      for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
+      PointType Point(dimension);
+      for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin(); in!=rModelPart.NodesEnd(); in++)
 	{
-	  PointType Point(dimension);
-	  for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin(MeshId); in!=rModelPart.NodesEnd(MeshId); in++)
-	    {
-	      if(in->IsNot(BOUNDARY) ){
-		Point[0] = in->X();	
-		Point[1] = in->Y();
+	  if(in->IsNot(BOUNDARY) ){
+	    Point[0] = in->X();	
+	    Point[1] = in->Y();
 
-		if(dimension>2)
-		  Point[2] = in->Z();		
+	    if(dimension>2)
+	      Point[2] = in->Z();		
 
-		Holes.push_back(Point);
-		break;
-	      }
-	      else{
-		array_1d<double, 3>& Normal = in->FastGetSolutionStepValue(NORMAL);
+	    Holes.push_back(Point);
+	    break;
+	  }
+	  else{
+	    array_1d<double, 3>& Normal = in->FastGetSolutionStepValue(NORMAL);
 
-		std::cout<<" Normal "<<Normal<<std::endl;
-		double tolerance = 0.25;
+	    std::cout<<" Normal "<<Normal<<std::endl;
+	    double tolerance = 0.25;
 
-		Point[0] = in->X() - Normal[0] * tolerance;
-		Point[1] = in->Y() - Normal[1] * tolerance;
-		if(dimension>2)
-		  Point[2] = in->Z() - Normal[2] * tolerance;
+	    Point[0] = in->X() - Normal[0] * tolerance;
+	    Point[1] = in->Y() - Normal[1] * tolerance;
+	    if(dimension>2)
+	      Point[2] = in->Z() - Normal[2] * tolerance;
 		
-		Holes.push_back(Point);
-		break;
-	      }
-	    }
-
+	    Holes.push_back(Point);
+	    break;
+	  }
 	}
-	
+
 
       return Holes;
     }
@@ -1433,10 +1432,10 @@ protected:
 
       double tolerance = 1.0/64.0;
       if(fabs(rDirectionVectorX[0])< tolerance && fabs(rDirectionVectorX[1])< tolerance){
-	rDirectionVectorY = MathUtils<double>::CrossProduct(GlobalY, rDirectionVectorX);
+	MathUtils<double>::CrossProduct(rDirectionVectorY, GlobalY, rDirectionVectorX);
       }
       else{
-	rDirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ, rDirectionVectorX);
+	MathUtils<double>::CrossProduct(rDirectionVectorY, GlobalZ, rDirectionVectorX);
       }
 
 
@@ -1445,7 +1444,7 @@ protected:
 	rDirectionVectorY /= VectorNorm;
 
       // local z-axis (e3_local) (in GID is e2_local)
-      rDirectionVectorZ = MathUtils<double>::CrossProduct(rDirectionVectorX,rDirectionVectorY);
+      MathUtils<double>::CrossProduct(rDirectionVectorZ, rDirectionVectorX,rDirectionVectorY);
  
       VectorNorm = MathUtils<double>::Norm(rDirectionVectorZ);
       if( VectorNorm != 0 )

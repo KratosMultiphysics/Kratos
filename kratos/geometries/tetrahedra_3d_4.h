@@ -292,7 +292,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
     //     }
 
     //     //creating a geometry with the new points
@@ -332,7 +332,7 @@ public:
     double Length() const override
     {
         constexpr double factor = 2.0396489026555;                              // (12/sqrt(2)) ^ 1/3);
-        return  factor * pow(std::fabs(Volume()), 0.33333333333333);            // sqrt(fabs( DeterminantOfJacobian(PointType())));
+        return  factor * std::pow(std::fabs(Volume()), 0.33333333333333);            // sqrt(fabs( DeterminantOfJacobian(PointType())));
     }
 
     /**
@@ -523,10 +523,12 @@ public:
       const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
       const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
 
-      auto c012 = MathUtils<double>::CrossProduct(rP1-rP0, rP2-rP0);
-      auto c013 = MathUtils<double>::CrossProduct(rP1-rP0, rP3-rP0);
-      auto c023 = MathUtils<double>::CrossProduct(rP2-rP0, rP3-rP0);
-      auto c123 = MathUtils<double>::CrossProduct(rP2-rP1, rP3-rP1);
+      array_1d<double, 3> c012, c013, c023, c123;
+
+      MathUtils<double>::CrossProduct(c012, rP2-rP0, rP1-rP0);
+      MathUtils<double>::CrossProduct(c013, rP3-rP0, rP1-rP0);
+      MathUtils<double>::CrossProduct(c023, rP3-rP0, rP2-rP0);
+      MathUtils<double>::CrossProduct(c123, rP3-rP1, rP2-rP1);
 
       double n012 = std::sqrt(c012[0]*c012[0] + c012[1]*c012[1] + c012[2]*c012[2]);
       double n013 = std::sqrt(c013[0]*c013[0] + c013[1]*c013[1] + c013[2]*c013[2]);
@@ -559,7 +561,7 @@ public:
      *  1 -> Optimal value
      *  0 -> Worst value
      *
-     * \f$ \frac{r}{\ro} \f$
+     * \f$ \frac{r}{\rho} \f$
      *
      * @return The inradius to circumradius quality metric.
      */
@@ -759,11 +761,108 @@ public:
     }
 
     /**
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @details Based on https://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch09.d/AFEM.Ch09.pdf. Section 9.1.6
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinates(
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint
+            ) override
+    {
+        // Compute RHS
+        array_1d<double,4> X;
+        X[0] = 1.0;
+        X[1] = rPoint[0];
+        X[2] = rPoint[1];
+        X[3] = rPoint[2];
+        
+        // Auxiliar coordinates
+        const double x1 = this->GetPoint( 0 ).X();
+        const double x2 = this->GetPoint( 1 ).X();
+        const double x3 = this->GetPoint( 2 ).X();
+        const double x4 = this->GetPoint( 3 ).X();
+        const double y1 = this->GetPoint( 0 ).Y();
+        const double y2 = this->GetPoint( 1 ).Y();
+        const double y3 = this->GetPoint( 2 ).Y();
+        const double y4 = this->GetPoint( 3 ).Y();
+        const double z1 = this->GetPoint( 0 ).Z();
+        const double z2 = this->GetPoint( 1 ).Z();
+        const double z3 = this->GetPoint( 2 ).Z();
+        const double z4 = this->GetPoint( 3 ).Z();
+        
+        // Auxiliar diff
+        const double x12 = x1 - x2;
+        const double x13 = x1 - x3;
+        const double x14 = x1 - x4;
+        const double x21 = x2 - x1;
+        const double x24 = x2 - x4;
+        const double x31 = x3 - x1;
+        const double x32 = x3 - x2;
+        const double x34 = x3 - x4;
+        const double x42 = x4 - x2;
+        const double x43 = x4 - x3;
+        const double y12 = y1 - y2;
+        const double y13 = y1 - y3;
+        const double y14 = y1 - y4;
+        const double y21 = y2 - y1;
+        const double y24 = y2 - y4;
+        const double y31 = y3 - y1;
+        const double y32 = y3 - y2;
+        const double y34 = y3 - y4;
+        const double y42 = y4 - y2;
+        const double y43 = y4 - y3;
+        const double z12 = z1 - z2;
+        const double z13 = z1 - z3;
+        const double z14 = z1 - z4;
+        const double z21 = z2 - z1;
+        const double z24 = z2 - z4;
+        const double z31 = z3 - z1;
+        const double z32 = z3 - z2;
+        const double z34 = z3 - z4;
+        const double z42 = z4 - z2;
+        const double z43 = z4 - z3;
+        
+        // Compute LHS
+        bounded_matrix<double, 4,4> invJ;
+        const double aux_volume = 1.0/(6.0*this->Volume());
+        invJ(0,0) = aux_volume * (x2*(y3*z4-y4*z3)+x3*(y4*z2-y2*z4)+x4*(y2*z3-y3*z2));
+        invJ(1,0) = aux_volume * (x1*(y4*z3-y3*z4)+x3*(y1*z4-y4*z1)+x4*(y3*z1-y1*z3));
+        invJ(2,0) = aux_volume * (x1*(y2*z4-y4*z2)+x2*(y4*z1-y1*z4)+x4*(y1*z2-y2*z1));
+        invJ(3,0) = aux_volume * (x1*(y3*z2-y2*z3)+x2*(y1*z3-y3*z1)+x3*(y2*z1-y1*z2));
+        invJ(0,1) = aux_volume * (y42*z32 - y32*z42);
+        invJ(1,1) = aux_volume * (y31*z43 - y34*z13);
+        invJ(2,1) = aux_volume * (y24*z14 - y14*z24);
+        invJ(3,1) = aux_volume * (y13*z21 - y12*z31);
+        invJ(0,2) = aux_volume * (x32*z42 - x42*z32);
+        invJ(1,2) = aux_volume * (x43*z31 - x13*z34);
+        invJ(2,2) = aux_volume * (x14*z24 - x24*z14);
+        invJ(3,2) = aux_volume * (x21*z13 - x31*z12);
+        invJ(0,3) = aux_volume * (x42*y32 - x32*y42);
+        invJ(1,3) = aux_volume * (x31*y43 - x34*y13);
+        invJ(2,3) = aux_volume * (x24*y14 - x14*y24);
+        invJ(3,3) = aux_volume * (x13*y21 - x12*y31);
+        
+        const array_1d<double,4> result = prod(invJ, X);
+        
+        if (rResult.size() != 3)
+            rResult.resize(3, false);
+        
+        rResult[0] = result[1];
+        rResult[1] = result[2];
+        rResult[2] = result[3];
+
+        return rResult;
+    }
+    
+    /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
     bool IsInside( 
@@ -1313,12 +1412,10 @@ public:
         array_1d<double, 3> edge21 = geom_1[2].Coordinates() - geom_1[1].Coordinates();
         array_1d<double, 3> edge31 = geom_1[3].Coordinates() - geom_1[1].Coordinates();
 
-
-        plane[0].mNormal = MathUtils<double>::UnitCrossProduct(edge20,edge10);  // <v0,v2,v1>
-        plane[1].mNormal = MathUtils<double>::UnitCrossProduct(edge10,edge30);  // <v0,v1,v3>
-        plane[2].mNormal = MathUtils<double>::UnitCrossProduct(edge30,edge20);  // <v0,v3,v2>
-        plane[3].mNormal = MathUtils<double>::UnitCrossProduct(edge21,edge31);  // <v1,v2,v3>
-
+        MathUtils<double>::UnitCrossProduct(plane[0].mNormal, edge10, edge20);  // <v0,v2,v1>
+        MathUtils<double>::UnitCrossProduct(plane[1].mNormal, edge30, edge10);  // <v0,v1,v3>
+        MathUtils<double>::UnitCrossProduct(plane[2].mNormal, edge20, edge30);  // <v0,v3,v2>
+        MathUtils<double>::UnitCrossProduct(plane[3].mNormal, edge31, edge21);  // <v1,v2,v3>
 
         double det = inner_prod(edge10, plane[3].mNormal);
         if (det < 0.00)

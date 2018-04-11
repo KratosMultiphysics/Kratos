@@ -100,12 +100,12 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingMatrixFree( ModelPart& designSurface, Parameters& optimizationSettings )
+    MapperVertexMorphingMatrixFree( ModelPart& designSurface, Parameters MapperSettings )
         : mrDesignSurface( designSurface ),
           mNumberOfDesignVariables( designSurface.Nodes().size() ),
-          mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
-          mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
-          mMaxNumberOfNeighbors( optimizationSettings["design_variables"]["filter"]["max_nodes_in_filter_radius"].GetInt() )
+          mFilterType( MapperSettings["filter_function_type"].GetString() ),
+          mFilterRadius( MapperSettings["filter_radius"].GetDouble() ),
+          mMaxNumberOfNeighbors( MapperSettings["max_nodes_in_filter_radius"].GetInt() )
     {
         CreateListOfNodesOfDesignSurface();
         CreateSearchTreeWithAllNodesOnDesignSurface();
@@ -128,52 +128,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    // ==============================================================================
-    void CreateListOfNodesOfDesignSurface()
-    {
-        mListOfNodesOfDesignSurface.resize(mNumberOfDesignVariables);
-        std::size_t counter = 0;
-        for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
-        {
-            NodeTypePointer pnode = *(node_it.base());
-            mListOfNodesOfDesignSurface[counter++] = pnode;
-        }
-    }
-
-    // --------------------------------------------------------------------------
-    void CreateSearchTreeWithAllNodesOnDesignSurface()
-    {
-        boost::timer timer;        
-        std::cout << "> Creating search tree to perform mapping..." << std::endl;        
-        mpSearchTree = boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
-        std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;        
-    }   
-
-    // --------------------------------------------------------------------------
-    void CreateFilterFunction()
-    {
-        mpFilterFunction = boost::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
-    }     
-
-    // --------------------------------------------------------------------------
-    void InitializeMappingVariables()
-    {
-        x_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
-        y_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
-        z_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
-        x_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
-        y_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
-        z_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
-    }
-
-    // --------------------------------------------------------------------------
-    void AssignMappingIds()
-    {
-        unsigned int i = 0;
-        for(auto& node_i : mrDesignSurface.Nodes())
-            node_i.SetValue(MAPPING_ID,i++);
-    }
 
     // --------------------------------------------------------------------------
     void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
@@ -201,6 +155,167 @@ public:
         AssignResultingGeometryVectorsToNodalVariable( rNodalVariableInGeometrySpace );
 
         std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "MapperVertexMorphingMatrixFree";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "MapperVertexMorphingMatrixFree";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    // Initialized by class constructor
+    ModelPart& mrDesignSurface;
+    const unsigned int mNumberOfDesignVariables;
+    std::string mFilterType;
+    double mFilterRadius;
+    unsigned int mMaxNumberOfNeighbors;            
+    FilterFunction::Pointer mpFilterFunction;
+
+    // Variables for spatial search
+    unsigned int mBucketSize = 100;
+    NodeVector mListOfNodesOfDesignSurface;
+    KDTree::Pointer mpSearchTree;
+
+    // Variables for mapping
+    Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;    
+    Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
+    double mControlSum = 0.0;
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    // --------------------------------------------------------------------------
+    void CreateListOfNodesOfDesignSurface()
+    {
+        mListOfNodesOfDesignSurface.resize(mNumberOfDesignVariables);
+        int counter = 0;
+        for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
+        {
+            NodeTypePointer pnode = *(node_it.base());
+            mListOfNodesOfDesignSurface[counter++] = pnode;
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    void CreateSearchTreeWithAllNodesOnDesignSurface()
+    {
+        boost::timer timer;        
+        std::cout << "> Creating search tree to perform mapping..." << std::endl;        
+        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
+        std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;        
+    }   
+
+    // --------------------------------------------------------------------------
+    void CreateFilterFunction()
+    {
+        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
+    }     
+
+    // --------------------------------------------------------------------------
+    void InitializeMappingVariables()
+    {
+        x_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
+        y_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
+        z_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
+        x_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
+        y_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
+        z_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
+    }
+
+    // --------------------------------------------------------------------------
+    void AssignMappingIds()
+    {
+        unsigned int i = 0;
+        for(auto& node_i : mrDesignSurface.Nodes())
+            node_i.SetValue(MAPPING_ID,i++);
     }
 
     // --------------------------------------------------------------------------
@@ -404,127 +519,7 @@ public:
              return false;
     }   
 
-    // ==============================================================================
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "MapperVertexMorphingMatrixFree";
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "MapperVertexMorphingMatrixFree";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-    }
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    // ==============================================================================
-    // Initialized by class constructor
-    // ==============================================================================
-    ModelPart& mrDesignSurface;
-    const unsigned int mNumberOfDesignVariables;
-    std::string mFilterType;
-    double mFilterRadius;
-    unsigned int mMaxNumberOfNeighbors;            
-    FilterFunction::Pointer mpFilterFunction;
-
-    // ==============================================================================
-    // Variables for spatial search
-    // ==============================================================================
-    unsigned int mBucketSize = 100;
-    NodeVector mListOfNodesOfDesignSurface;
-    KDTree::Pointer mpSearchTree;
-
-    // ==============================================================================
-    // Variables for mapping
-    // ==============================================================================
-    Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;    
-    Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
-    double mControlSum = 0.0;
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
+    // --------------------------------------------------------------------------
 
     ///@}
     ///@name Private  Access

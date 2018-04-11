@@ -62,7 +62,7 @@ class PostRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
 
-        if( self.domain_size == 2 ):
+        if( self.dimension == 2 ):
            
             if( refining_options.Is(KratosPfem.ModelerUtilities.REFINE_ADD_NODES) ):
                 #"YYJaqrn" "YJq1.4arn" "Jq1.4arn"
@@ -79,7 +79,7 @@ class PostRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
                     #modeler_flags = "nJFMQO4/4"
                     modeler_flags = "nQP"
             
-        elif( self.domain_size == 3 ):
+        elif( self.dimension == 3 ):
 
             if( refining_options.Is(KratosPfem.ModelerUtilities.REFINE_ADD_NODES) ):
                 if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
@@ -120,7 +120,7 @@ class PostRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
             print("::[fluid_post_refining_modeler]:: -START SetPostMeshingProcesses-")
 
         #select mesh elements
-        #generate_particles  = KratosPfem.GenerateNewNodes(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        #generate_particles  = KratosPfem.GenerateNewNodes(self.main_model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPostMeshingProcess(generate_particles)
 
         #select mesh elements
@@ -131,7 +131,7 @@ class PostRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
 
 
         #rebuild elements
-        #rebuild_mesh_elements = KratosPfem.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        #rebuild_mesh_elements = KratosPfem.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         rebuild_mesh_elements = KratosPfem.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 

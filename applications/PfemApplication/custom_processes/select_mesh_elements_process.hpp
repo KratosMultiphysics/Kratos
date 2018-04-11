@@ -68,8 +68,6 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-    
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -135,12 +133,12 @@ public:
 	  unsigned int nds = 3;
 	  unsigned int dimension = 2;
 	  if( mrModelPart.NumberOfElements() ){
-	    ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+	    ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
 	    nds = element_begin->GetGeometry().size();
 	    dimension = element_begin->GetGeometry().WorkingSpaceDimension();
 	  }
 	  else if ( mrModelPart.NumberOfConditions() ){
-	    ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin(mMeshId);
+	    ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin();
 	    dimension = condition_begin->GetGeometry().WorkingSpaceDimension();
 	    if( dimension == 3 ) //number of nodes of a tetrahedron
 	      nds = 4;
@@ -150,7 +148,7 @@ public:
 	    
 	  int* OutElementList = mrRemesh.OutMesh.GetElementList();
 	 
-	  ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+	  ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	  int el = 0;
 	  int number = 0;
@@ -166,9 +164,9 @@ public:
 	  // 	}
 	  //   }
 
-	  // //std::cout<<"   MaxOutID "<<max_out_id<<std::endl;
-	  // //std::cout<<"   NumberOfNodes "<<rNodes.size()<<std::endl;
-	  // //std::cout<<"   NodalPreIdsSize "<<mrRemesh.NodalPreIds.size()<<std::endl;
+	  // std::cout<<"   MaxOutID "<<max_out_id<<std::endl;
+	  // std::cout<<"   NumberOfNodes "<<rNodes.size()<<std::endl;
+	  // std::cout<<"   NodalPreIdsSize "<<mrRemesh.NodalPreIds.size()<<std::endl;
 	  
 	  // if( max_out_id >= mrRemesh.NodalPreIds.size() )
 	  //   std::cout<<" ERROR ID PRE IDS "<<max_out_id<<" > "<<mrRemesh.NodalPreIds.size()<<std::endl;
@@ -195,7 +193,7 @@ public:
 	      // 	}
 	      
 	      // std::cout<<"] "<<std::endl;
-
+	      wrong_added_node = false;
 	      box_side_element = false;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
@@ -205,21 +203,22 @@ public:
 		    std::cout<<" ERROR: something is wrong: nodal id < 0 "<<el<<std::endl;
 		  
 		  //check if the number of nodes are considered in the nodal pre ids
-		  if( (unsigned int)OutElementList[el*nds+pn] > mrRemesh.NodalPreIds.size() ){
-		    wrong_added_node = true;
-		    std::cout<<" ERROR: something is wrong: node out of bounds "<<std::endl;
-		    break;
+		  if( (unsigned int)OutElementList[el*nds+pn] >= mrRemesh.NodalPreIds.size() ){
+		      if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
+			  wrong_added_node = true;
+		      std::cout<<" ERROR: something is wrong: node out of bounds "<<std::endl;
+		      break;
 		  }
 		  
 		  //check if is a vertex of an artificial external bounding box
 		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
-		    if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
-		      std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
-		    box_side_element = true;
-		    break;
+		      if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
+			  std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
+		      box_side_element = true;
+		      break;
 		  }
 		  		
-		  //vertices.push_back( *((rNodes).find( OutElementList[el*nds+pn] ).base() ) );
+		  //vertices.push_bac( *((rNodes).find( OutElementList[el*nds+pn] ).base() ) );
 		  vertices.push_back(rNodes(OutElementList[el*nds+pn]));
 
 		  //check flags on nodes
@@ -333,9 +332,9 @@ public:
 
 		  if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		    {
-		      //problems in 3D: take care
+		      //problems in 3D: be careful
 		      if(self_contact)
-			accepted=ModelerUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
+			  accepted = ModelerUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
 		    }
 		  else
 		    {
@@ -373,6 +372,13 @@ public:
 		      
 		      number_of_slivers++;
 		    }
+		    else{
+
+		      if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
+			accepted = false;
+		      else
+			accepted = true;
+		    }
 
 		    delete tetrahedron;
 		  }
@@ -381,7 +387,7 @@ public:
 
 	      if(accepted)
 		{
-		  //std::cout<<" Element ACCEPTED after cheking Center "<<number<<std::endl;
+		  //std::cout<<" Element ACCEPTED after cheking Center+Sliver "<<number<<std::endl;
 		  number+=1;
 		  mrRemesh.PreservedElements[el] = number;
 		}
@@ -397,18 +403,18 @@ public:
 
 	}
 
-      std::cout<<"   Number of Preserved Elements "<<mrRemesh.Info->NumberOfElements<<" (slivers detected: "<<number_of_slivers<<") "<<std::endl;
+      std::cout<<"   [Preserved Elements "<<mrRemesh.Info->NumberOfElements<<"] :: (slivers detected: "<<number_of_slivers<<") "<<std::endl;
       std::cout<<"   (passed_alpha_shape: "<<passed_alpha_shape<<", passed_inner_outer: "<<passed_inner_outer<<") "<<std::endl;
 
       if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::KEEP_ISOLATED_NODES)){
 
 	unsigned int nds = 3;
 	if( mrModelPart.NumberOfElements() ){
-	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
 	  nds = element_begin->GetGeometry().size();
 	}
 	else if ( mrModelPart.NumberOfConditions() ){
-	  ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin(mMeshId);
+	  ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin();
 	  unsigned int dimension = condition_begin->GetGeometry().WorkingSpaceDimension();
 	  if( dimension == 3 ) //number of nodes of a tetrahedron
 	    nds = 4;
@@ -418,7 +424,7 @@ public:
 
 	int* OutElementList = mrRemesh.OutMesh.GetElementList();
       
-	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	//check engaged nodes
 	for(int el=0; el<OutNumberOfElements; el++)
@@ -456,7 +462,7 @@ public:
       }
       else{
 	
-	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
 	  { 
@@ -469,8 +475,8 @@ public:
 	// std::cout<<"   Passed_AlphaShape  :"<<mrRemesh.Info->NumberOfElements<<std::endl;
 	// if(OutNumberOfElements-mrRemesh.Info->NumberOfElements!=0)
 	//   std::cout<<" DELETED ELEMENTS "<<std::endl;
-	
-	std::cout<<"   SELECT MESH ELEMENTS ]; "<<std::endl;
+	std::cout<<"   SELECT MESH ELEMENTS ("<<mrRemesh.Info->NumberOfElements<<") ]; "<<std::endl;
+
       }
 
       KRATOS_CATCH( "" )
@@ -568,8 +574,6 @@ private:
     ModelerUtilities::MeshingParameters& mrRemesh;
 
     ModelerUtilities mModelerUtilities;  
-
-    ModelPart::IndexType mMeshId; 
 
     int mEchoLevel;
 

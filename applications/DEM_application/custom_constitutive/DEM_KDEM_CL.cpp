@@ -31,7 +31,7 @@ namespace Kratos {
         double radius_sum = radius + other_radius;
         double equiv_radius = radius * other_radius / radius_sum;
         //double equiv_radius = 0.5 * radius_sum;
-        calculation_area = KRATOS_M_PI * equiv_radius * equiv_radius;
+        calculation_area = Globals::Pi * equiv_radius * equiv_radius;
         KRATOS_CATCH("")  
     }
     
@@ -351,8 +351,8 @@ namespace Kratos {
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaAngularVelocity, LocalDeltaAngularVelocity);
         //GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mContactMoment, LocalRotationalMoment);
         
-        const double equivalent_radius = sqrt(calculation_area / KRATOS_M_PI);
-        const double Inertia_I = 0.25 * KRATOS_M_PI * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
+        const double equivalent_radius = sqrt(calculation_area / Globals::Pi);
+        const double Inertia_I = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
         const double debugging_rotational_factor = 5.0; //1.0; // Hardcoded only for testing purposes. Obviously, this parameter should be always 1.0
                         

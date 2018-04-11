@@ -142,6 +142,21 @@ public:
         KRATOS_CATCH("")
     }
 
+    void Calculate_RHS_Contribution(
+        Element::Pointer rCurrentElement,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+
+        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
+
     void Condition_CalculateSystemContributions(
         Condition::Pointer pCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
@@ -191,6 +206,21 @@ public:
                 RHS_Contribution,
                 EquationId,
                 CurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
+
+    void Condition_Calculate_RHS_Contribution(
+        Condition::Pointer rCurrentCondition,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+
+        (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }

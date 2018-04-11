@@ -9,28 +9,27 @@
 # ==============================================================================
 
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division 
+from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
+# Additional imports
 from algorithm_steepest_descent import AlgorithmSteepestDescent
 from algorithm_penalized_projection import AlgorithmPenalizedProjection
 
 # ==============================================================================
-def CreateAlgorithm( designSurface, listOfDampingRegions, analyzer, mapper, communicator, optimizationSettings ):
+def CreateAlgorithm( optimization_settings, model_part_controller, analyzer, communicator ):
+    algorithm_name = optimization_settings["optimization_algorithm"]["name"].GetString()
 
-    optimizationAlgorithm = optimizationSettings["optimization_algorithm"]["name"].GetString()
-
-    if optimizationAlgorithm == "steepest_descent":
-        return AlgorithmSteepestDescent( designSurface, listOfDampingRegions, analyzer, mapper, communicator, optimizationSettings )
-    elif optimizationAlgorithm == "penalized_projection":
-        return AlgorithmPenalizedProjection( designSurface, listOfDampingRegions, analyzer, mapper, communicator, optimizationSettings )  
+    if algorithm_name == "steepest_descent":
+        return AlgorithmSteepestDescent( optimization_settings,
+                                         model_part_controller,
+                                         analyzer,
+                                         communicator )
+    elif algorithm_name == "penalized_projection":
+        return AlgorithmPenalizedProjection( optimization_settings,
+                                             model_part_controller,
+                                             analyzer,
+                                             communicator )
     else:
-        raise NameError("The following optimization algorithm not supported by the algorithm driver (name may be misspelled): " + optimizationAlgorithm)              
+        raise NameError("The following optimization algorithm not supported by the algorithm factory: " + AlgorithmName)
 
 # # ==============================================================================

@@ -30,9 +30,7 @@ namespace Kratos
 
     KRATOS_TRY
  
-    unsigned int& MeshId = rMeshingVariables.MeshId;
-
-    this->StartEcho(rModelPart,"PFEM Remesh",MeshId);
+    this->StartEcho(rModelPart,"PFEM Remesh");
     
     //*********************************************************************
 
@@ -104,7 +102,7 @@ namespace Kratos
        DeleteOutContainer(rMeshingVariables.OutMesh,out);
 
     
-    this->EndEcho(rModelPart,"PFEM Remesh",MeshId);
+    this->EndEcho(rModelPart,"PFEM Remesh");
 
     KRATOS_CATCH( "" )
 
@@ -248,8 +246,6 @@ namespace Kratos
   {
      KRATOS_TRY
 
-     unsigned int& MeshId = rMeshingVariables.MeshId;
-
      //*********************************************************************
 
      if(in.segmentlist){
@@ -272,16 +268,16 @@ namespace Kratos
 
 
      //PART 2: faced list (we can have holes in facets != area holes)
-     in.numberofsegments           = rModelPart.NumberOfConditions(MeshId);
+     in.numberofsegments           = rModelPart.NumberOfConditions();
      in.segmentmarkerlist          = new int[in.numberofsegments];
      in.segmentlist                = new int[in.numberofsegments*2];
      
      
-      ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin(MeshId);
+      ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin();
       
       
       int base = 0;
-      for(unsigned int i = 0; i<rModelPart.Conditions(MeshId).size(); i++)
+      for(unsigned int i = 0; i<rModelPart.Conditions().size(); i++)
 	{
 	  if( (conditions_begin + i)->Is(TO_ERASE) )
 	    std::cout<<" ERROR: condition to erase present "<<std::endl;
@@ -323,7 +319,7 @@ namespace Kratos
       // std::cout<<" region list [x:"<<in.regionlist[0]<<",y:"<<in.regionlist[1]<<"]"<<std::endl;
       
       //region attribute (regional attribute or marker "A" must be switched)
-      in.regionlist[2] = MeshId; 
+      in.regionlist[2] = 0; 
 
       //region maximum volume attribute (maximum area attribute "a" (with no number following) must be switched)
       in.regionlist[3] = -1;
@@ -507,24 +503,26 @@ namespace Kratos
     KRATOS_TRY
 
     //always for "out":
-    delete [] tr.trianglelist;
-    delete [] tr.triangleattributelist;
-    delete [] tr.trianglearealist;
+    if(tr.numberoftriangles){
+      if(tr.trianglelist) trifree(tr.trianglelist);
+      if(tr.triangleattributelist) trifree(tr.triangleattributelist);
+      if(tr.trianglearealist) trifree(tr.trianglearealist);
+      if(tr.neighborlist) trifree(tr.neighborlist);
+    }
 
-    //in case of n switch not used
-    delete [] tr.neighborlist;
-    
     //if p is switched then in and out are pointed:(free only once)
-    delete [] tr.segmentlist;
-    delete [] tr.segmentmarkerlist;
+    if(tr.segmentlist) trifree(tr.segmentlist);
+    if(tr.segmentmarkerlist) trifree(tr.segmentmarkerlist);
 
-    delete [] tr.holelist;
-    delete [] tr.regionlist;      
+    if(tr.holelist) trifree(tr.holelist);
 
-    delete [] tr.edgelist;
-    delete [] tr.edgemarkerlist;
-    delete [] tr.normlist;
+    if(tr.regionlist) trifree(tr.regionlist);
 
+    if(tr.edgelist) trifree(tr.edgelist);
+    if(tr.edgemarkerlist) trifree(tr.edgemarkerlist);
+    if(tr.normlist) trifree(tr.normlist);
+      
+       
     KRATOS_CATCH(" ")
   }
 
@@ -533,42 +531,14 @@ namespace Kratos
 
   void TriangularMesh2DModeler::DeletePointsList (struct triangulateio& tr)
   {
+
     KRATOS_TRY
 
-    delete [] tr.pointlist;
-    delete [] tr.pointmarkerlist;
-    delete [] tr.pointattributelist;
-
-    KRATOS_CATCH(" ")
-  }
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void TriangularMesh2DModeler::FreeTrianglesList(struct triangulateio& tr)
-  {
-    KRATOS_TRY
-
-    if(tr.pointlist) free(tr.pointlist );
-    if(tr.pointattributelist) free(tr.pointattributelist );
-    if(tr.pointmarkerlist) free(tr.pointmarkerlist   );
-     
-    if(tr.trianglelist) free(tr.trianglelist  );
-    if(tr.triangleattributelist) free(tr.triangleattributelist );
-    if(tr.trianglearealist) free(tr.trianglearealist );
-    if(tr.neighborlist) free(tr.neighborlist   );
-
-    if(tr.segmentlist) free(tr.segmentlist    );
-    if(tr.segmentmarkerlist) free(tr.segmentmarkerlist   );
-
-    if(tr.holelist) free(tr.holelist      );
-
-    if(tr.regionlist) free(tr.regionlist  );
-
-    if(tr.edgelist) free(tr.edgelist   );
-    if(tr.edgemarkerlist) free(tr.edgemarkerlist   );
-    if(tr.normlist) free(tr.normlist  );
+    if(tr.numberofpoints){
+      if(tr.pointlist) trifree(tr.pointlist);
+      if(tr.pointattributelist) trifree(tr.pointattributelist);
+      if(tr.pointmarkerlist) trifree(tr.pointmarkerlist);
+    }
 
     KRATOS_CATCH(" ")
   }

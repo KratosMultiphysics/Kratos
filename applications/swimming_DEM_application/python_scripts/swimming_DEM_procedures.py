@@ -9,6 +9,7 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 import DEM_procedures
 import shutil
 import os
+import weakref
 
 def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part):
 
@@ -267,19 +268,6 @@ class IOTools:
 
             prev_time = (incremental_time)
 
-    def CalculationLengthEstimationEcho(self, step, incremental_time, total_steps_expected):
-
-        estimated_sim_duration = 60.0 * (total_steps_expected / step)  # seconds
-
-        print(('The total calculation estimated time is ' + str(estimated_sim_duration) + 'seconds.' + '\n'))
-        print(('In minutes :' + str(estimated_sim_duration / 60) + 'min.' + '\n'))
-        print(('In hours :' + str(estimated_sim_duration / 3600) + 'hrs.' + '\n'))
-        print(('In days :' + str(estimated_sim_duration / 86400) + 'days.' + '\n'))
-
-        if estimated_sim_duration / 86400 > 2.0:
-
-            print(('WARNING!!!:       VERY LASTING CALCULATION' + '\n'))
-
 class ProjectionDebugUtils:
 
     def __init__(self, domain_volume, fluid_model_part, particles_model_part, custom_functions_calculator):
@@ -456,7 +444,7 @@ class PostUtils:
                  rigid_faces_model_part,
                  mixed_model_part):
 
-        self.gid_io                 = gid_io
+        self.gid_io                 = weakref.proxy(gid_io)
         self.fluid_model_part       = fluid_model_part
         self.balls_model_part       = balls_model_part
         self.clusters_model_part    = clusters_model_part
@@ -479,7 +467,18 @@ class PostUtils:
             self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.rigid_faces_model_part)
             self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.fluid_model_part)
 
-        self.gid_io.write_swimming_DEM_results(time, self.fluid_model_part, self.balls_model_part, self.clusters_model_part, self.rigid_faces_model_part, self.mixed_model_part, self.pp.nodal_results, self.pp.dem_nodal_results, self.pp.clusters_nodal_results, self.pp.rigid_faces_nodal_results, self.pp.mixed_nodal_results, self.pp.gauss_points_results)
+        self.gid_io.write_swimming_DEM_results(time,
+                                               self.fluid_model_part,
+                                               self.balls_model_part,
+                                               self.clusters_model_part,
+                                               self.rigid_faces_model_part,
+                                               self.mixed_model_part,
+                                               self.pp.nodal_results,
+                                               self.pp.dem_nodal_results,
+                                               self.pp.clusters_nodal_results,
+                                               self.pp.rigid_faces_nodal_results,
+                                               self.pp.mixed_nodal_results,
+                                               self.pp.gauss_points_results)
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
@@ -512,10 +511,6 @@ class ResultsFileCreator:
             vector_vars_list = []
 
         self.scalar_vars = scalar_vars_list
-
-        for var in self.scalar_vars:
-            a = str(var).split()
-            print(a)
 
         self.vector_vars = vector_vars_list
         self.n_scalars = len(scalar_vars_list)
@@ -584,7 +579,7 @@ def CreateRunCode(pp):
         method_name = 'Daitche'
         code.append(method_name)
     else:
-        method_name = pp.CFD_DEM["IntegrationScheme"].GetString()
+        method_name = pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
         code.append(method_name)
 
     DEM_dt = 'Dt=' + str(pp.CFD_DEM["MaxTimeStep"].GetDouble())
@@ -644,7 +639,7 @@ class StationarityAssessmentTool:
 
     def __init__(self, max_pressure_variation_rate_tol, custom_functions_tool):
         self.tol  = max_pressure_variation_rate_tol
-        self.tool = custom_functions_tool
+        self.tool = weakref.proxy(custom_functions_tool)
 
     def Assess(self, model_part): # in the first time step the 'old' pressure vector is created and filled
         stationarity = self.tool.AssessStationarity(model_part, self.tol)

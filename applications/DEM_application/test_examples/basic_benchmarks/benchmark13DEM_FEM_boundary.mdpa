@@ -5500,8 +5500,8 @@ Begin Conditions RigidFace3D3N // GUI DEM-FEM-Wall group identifier: FEM
 3603  0  2 4 3
 End Conditions
 
-Begin Mesh 1 // GUI DEM-FEM-Wall group identifier: FEM
-  Begin MeshData // GUI DEM-FEM-Wall group identifier: FEM
+Begin SubModelPart 1 // GUI DEM-FEM-Wall group identifier: FEM
+  Begin SubModelPartData // GUI DEM-FEM-Wall group identifier: FEM
   VELOCITY [3] (0.0,0.0,0.0)
   VELOCITY_PERIOD 0.0
   ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
@@ -5516,8 +5516,8 @@ Begin Mesh 1 // GUI DEM-FEM-Wall group identifier: FEM
   TOP 0
   BOTTOM 0
   FORCE_INTEGRATION_GROUP 0
-  End MeshData
-  Begin MeshNodes
+  End SubModelPartData
+  Begin SubModelPartNodes
   1
   2
   3
@@ -7399,6 +7399,6 @@ Begin Mesh 1 // GUI DEM-FEM-Wall group identifier: FEM
   1882
   1883
   1884
-  End MeshNodes
-End Mesh
+  End SubModelPartNodes
+End SubModelPart
 

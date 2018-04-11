@@ -25,7 +25,6 @@ class MeshingDomain(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
 	    "python_module": "meshing_domain",
-            "mesh_id": 0,
             "model_part_name": "model_part_name",
             "alpha_shape": 2.4,
             "offset_factor": 0.0,
@@ -112,15 +111,14 @@ class MeshingDomain(object):
 
         print("::[Meshing Domain]:: -START-")
         
-        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        self.mesh_id     = self.settings["mesh_id"].GetInt()
+        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         # Set MeshingParameters
         self.SetMeshingParameters()
         
         # Meshing Stratety
         self.MeshingStrategy.SetEchoLevel(self.echo_level)
-        self.MeshingStrategy.Initialize(self.MeshingParameters, self.domain_size)
+        self.MeshingStrategy.Initialize(self.MeshingParameters, self.dimension)
         
         print("::[Meshing Domain]:: -END- ")
 
@@ -158,7 +156,7 @@ class MeshingDomain(object):
         self.SetMeshSizeValues()
            
         # set mesh refinement in box
-        size = self.domain_size
+        size = self.dimension
         refining_box = self.settings["refining_parameters"]["refining_box"]
         if(refining_box["refine_in_box_only"].GetBool()):               
             radius   = refining_box["radius"].GetDouble()
@@ -224,7 +222,6 @@ class MeshingDomain(object):
         self.MeshingParameters = KratosPfem.MeshingParameters()
         self.MeshingParameters.Initialize()
 
-        self.MeshingParameters.SetMeshId(self.settings["mesh_id"].GetInt())
         self.MeshingParameters.SetSubModelPartName(self.settings["model_part_name"].GetString())
 
         if(self.active_remeshing):
@@ -275,7 +272,7 @@ class MeshingDomain(object):
         # set the domain labels to mesh modeler
         critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
 
-        critical_radius = self.modeler_utils.CheckCriticalRadius(self.main_model_part,critical_mesh_size,self.mesh_id)
+        critical_radius = self.modeler_utils.CheckCriticalRadius(self.main_model_part,critical_mesh_size)
         print(" CriticalRadius ", critical_radius)
 
     #        

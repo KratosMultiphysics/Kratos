@@ -176,8 +176,6 @@ public:
         : BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
     {
 
-        /* 			std::cout << "using the standard builder and solver " << std::endl; */
-
     }
 
     /** Destructor.
@@ -291,21 +289,13 @@ public:
         // KRATOS_THROW_ERROR(std::logic_error,"i want to stop here :-D","")
 
         double stop_build = OpenMPUtils::GetCurrentTime();
-        if (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)
-            std::cout << "build time: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
 
         //for (int i = 0; i < A_size; i++)
         //    omp_destroy_lock(&lock_array[i]);
-        if (this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
-        {
-            KRATOS_WATCH("finished parallel building");
-        }
-
-
-
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
-
     }
 
     //**************************************************************************
@@ -368,10 +358,7 @@ public:
             TSparseSpace::SetToZero(Dx);
 
         //prints informations about the current time
-        if (this->GetEchoLevel() > 1)
-        {
-            std::cout << *(BaseType::mpLinearSystemSolver) << std::endl;
-        }
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
 
@@ -404,14 +391,11 @@ public:
         else
         {
             TSparseSpace::SetToZero(Dx);
-            std::cout << "ATTENTION! setting the RHS to zero!" << std::endl;
+            KRATOS_WARNING("ResidualBasedBlockBuilderAndSolver") << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
         //prints informations about the current time
-        if (this->GetEchoLevel() > 1)
-        {
-            std::cout << *(BaseType::mpLinearSystemSolver) << std::endl;
-        }
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
 
@@ -438,13 +422,7 @@ public:
 
         ApplyDirichletConditions(pScheme, r_model_part, A, Dx, b);
 
-        if (this->GetEchoLevel() == 3)
-        {
-            std::cout << "before the solution of the system" << std::endl;
-            std::cout << "System Matrix = " << A << std::endl;
-            std::cout << "unknowns vector = " << Dx << std::endl;
-            std::cout << "RHS vector = " << b << std::endl;
-        }
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
         double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
@@ -457,16 +435,9 @@ public:
 
         Timer::Stop("Solve");
         double stop_solve = OpenMPUtils::GetCurrentTime();
-        if (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)
-            std::cout << "system solve time: " << stop_solve - start_solve << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
-        if (this->GetEchoLevel() == 3)
-        {
-            std::cout << "after the solution of the system" << std::endl;
-            std::cout << "System Matrix = " << A << std::endl;
-            std::cout << "unknowns vector = " << Dx << std::endl;
-            std::cout << "RHS vector = " << b << std::endl;
-        }
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -527,10 +498,7 @@ public:
     {
         KRATOS_TRY;
 
-        if( this->GetEchoLevel() > 1 && r_model_part.GetCommunicator().MyPID() == 0)
-        {
-            std::cout << "Setting up the dofs" << std::endl;
-        }
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
 
         //Gets the array of elements from the modeler
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -559,10 +527,8 @@ public:
         std::vector<set_type> dofs_aux_list(nthreads);
 // 		std::vector<allocator_type> allocators(nthreads);
 
-        if( this->GetEchoLevel() > 2)
-        {
-            std::cout << "Number of threads" << nthreads << "\n" << std::endl;
-        }
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
+
         for (int i = 0; i < static_cast<int>(nthreads); i++)
         {
 #ifdef USE_GOOGLE_HASH
@@ -572,10 +538,9 @@ public:
             dofs_aux_list[i].reserve(nelements);
 #endif
         }
-        if( this->GetEchoLevel() > 2)
-        {
-            KRATOS_WATCH("Initializing element loop")
-        }
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+
         #pragma omp parallel firstprivate(nelements, ElementalDofList)
         {
             #pragma omp for schedule(guided, 512) nowait
@@ -589,10 +554,9 @@ public:
 
                 dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
             }
-            if( this->GetEchoLevel() > 2)
-            {
-                std::cout << "Initializing condition loop\n" << std::endl;
-            }
+
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing condition loop" << std::endl;
+
             ConditionsArrayType& pConditions = r_model_part.Conditions();
             const int nconditions = static_cast<int>(pConditions.size());
             #pragma omp for  schedule(guided, 512)
@@ -608,10 +572,8 @@ public:
             }
         }
 
-        if( this->GetEchoLevel() > 2)
-        {
-            std::cout << "Initializing tree reduction\n" << std::endl;
-        }
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing tree reduction\n" << std::endl;
+
         // Here we do a reduction in a tree so to have everything on thread 0
         unsigned int old_max = nthreads;
         unsigned int new_max = ceil(0.5*static_cast<double>(old_max));
@@ -646,10 +608,7 @@ public:
 
         }
 
-        if( this->GetEchoLevel() > 2)
-        {
-            std::cout << "Initializing ordered array filling\n" << std::endl;
-        }
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
 
         DofsArrayType Doftemp;
         BaseType::mDofSet = DofsArrayType();
@@ -664,24 +623,15 @@ public:
         BaseType::mDofSet = Doftemp;
 
         //Throws an exception if there are no Degrees Of Freedom involved in the analysis
-        if (BaseType::mDofSet.size() == 0)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
-        }
-        if( this->GetEchoLevel() > 2)
-        {
-            KRATOS_WATCH(BaseType::mDofSet.size())
-        }
-        BaseType::mDofSetIsInitialized = true;
-        if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
-        {
-            std::cout << "Finished setting up the dofs" << std::endl;
-        }
+        KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
 
-        if( this->GetEchoLevel() > 2)
-        {
-            KRATOS_WATCH("Initializing lock array")
-        }
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
+
+        BaseType::mDofSetIsInitialized = true;
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing lock array" << std::endl;
 
 #ifdef _OPENMP
         if (mlock_array.size() != 0)
@@ -698,10 +648,25 @@ public:
             omp_init_lock(&mlock_array[i]);
         }
 #endif
-        if( this->GetEchoLevel() > 2)
-        {
-            std::cout << "End of setupdofset\n" << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
+
+    // If reactions are to be calculated, we check if all the dofs have reactions defined
+    // This is tobe done only in debug mode
+
+    #ifdef KRATOS_DEBUG        
+
+    if(BaseType::GetCalculateReactionsFlag())
+    {
+        for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+        { 
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                    << "Node : "<<dof_iterator->Id()<< std::endl
+                    << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
         }
+    }
+    #endif
+
 
         KRATOS_CATCH("");
     }
@@ -845,12 +810,10 @@ public:
 		{
 			typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
 
-			if (dof_iterator->IsFixed())
-			{
-				const int i = (dof_iterator)->EquationId();
-				(dof_iterator)->GetSolutionStepReactionValue() = -b[i];
-			}
-		}
+			const int i = (dof_iterator)->EquationId();
+			(dof_iterator)->GetSolutionStepReactionValue() = -b[i];
+			
+        }
 
         //KRATOS_WATCH(__LINE__)
     }
@@ -947,10 +910,7 @@ public:
 
         this->mpLinearSystemSolver->Clear();
 
-        if (this->GetEchoLevel() > 0)
-        {
-            std::cout << "ResidualBasedBlockBuilderAndSolver Clear Function called" << std::endl;
-        }
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 0) << "Clear Function called" << std::endl;
 
 #ifdef _OPENMP
         for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
@@ -964,10 +924,10 @@ public:
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param r_model_part
+     * @param rModelPart The model part to check
      * @return 0 all ok
      */
-    int Check(ModelPart& r_mUSE_GOOGLE_HASHodel_part) override
+    int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 

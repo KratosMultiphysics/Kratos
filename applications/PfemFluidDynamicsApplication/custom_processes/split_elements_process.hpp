@@ -184,7 +184,9 @@ namespace Kratos
 		  }
 		}
 		else if(dimension==3){
-		  double elementalVolume=i_elem->GetGeometry().Volume();
+		  double elementalVolume = 0;
+		  if( i_elem->GetGeometry().Dimension() == 3 )
+		    elementalVolume=i_elem->GetGeometry().Volume();
 		  if(numNodes==4){
 		    if(numRigid==0 && (numRigid+numFreeSurface)==vertices.size() && vertices.size()>3 && elementalVolume>criticalVolume){
 		      i_elem->Set(ACTIVE,false);

@@ -54,7 +54,6 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "VARIABLE_NAME",
                 "local_axes" : {}
             }  )" );
@@ -63,7 +62,6 @@ public:
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mmesh_id       = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
 
 	mpPyObject      =  pPyObject;	
@@ -101,7 +99,7 @@ public:
 	  KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name); 
 	}
 	
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
 
@@ -130,7 +128,7 @@ public:
     virtual void Execute() 
     {
 
-        KRATOS_TRY;
+        KRATOS_TRY
 
 	ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
 
@@ -146,7 +144,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error, "Not able to set the variable. Attempting to set variable:",mvariable_name);
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
 
     }
 
@@ -190,6 +188,20 @@ public:
     /// right after reading the model and the groups
     virtual void ExecuteFinalize()
     {
+        KRATOS_TRY
+ 
+	if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) ) //case of double variable
+        {
+	  Vector Value(3);
+	  noalias(Value) = ZeroVector(3);
+	  InternalAssignValue<>(KratosComponents< Variable<Vector> >::Get(mvariable_name), Value);
+        }
+        else
+        {
+            KRATOS_THROW_ERROR(std::logic_error, "Not able to set the variable. Attempting to set variable:",mvariable_name);
+        }
+
+        KRATOS_CATCH("")
     }
 
 
@@ -280,8 +292,6 @@ private:
     bool mHasLocalOrigin;
     bool mHasLocalAxes;
 
-    std::size_t mmesh_id;
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -353,13 +363,13 @@ private:
     template< class TVarType >
     void InternalAssignValue(TVarType& rVar, const double& rTime)
     {
-        const int nconditions = mr_model_part.GetMesh(mmesh_id).Conditions().size();
+        const int nconditions = mr_model_part.GetMesh().Conditions().size();
 
 	Vector Value;
 	
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
 
             // #pragma omp parallel for //it does not work in parallel
             for(int i = 0; i<nconditions; i++)
@@ -373,6 +383,26 @@ private:
         }
     }
 
+    template< class TVarType, class TDataType >
+    void InternalAssignValue(TVarType& rVar, const TDataType value)
+    {
+      const int nconditions = mr_model_part.GetMesh().Conditions().size();
+
+        if(nconditions != 0)
+        {
+            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
+
+             #pragma omp parallel for
+            for(int i = 0; i<nconditions; i++)
+            {
+                ModelPart::ConditionsContainerType::iterator it = it_begin + i;
+
+                it->SetValue(rVar, value);
+            }
+        }
+    }
+
+    
     ///@}
     ///@name Private Operations
     ///@{

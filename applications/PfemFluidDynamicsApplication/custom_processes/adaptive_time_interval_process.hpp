@@ -140,7 +140,7 @@ namespace Kratos
       if(updatedTimeInterval<2.0*minimumTimeInterval && mEchoLevel > 0 && mrModelPart.GetCommunicator().MyPID() == 0){
 	std::cout<<"ATTENTION! time step much smaller than initial time step, I'll not reduce it"<<std::endl;
       }
-      if(badVelocityConvergence==true && updatedTimeInterval>(2.0*minimumTimeInterval)){
+      if((badPressureConvergence==true || badVelocityConvergence==true) && updatedTimeInterval>(2.0*minimumTimeInterval)){
 	updatedTimeInterval *=0.5;
 	/* std::cout<<"reducing time step (bad convergence at the previous step)"<<updatedTimeInterval<<std::endl; */
 	rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
@@ -162,17 +162,18 @@ namespace Kratos
 
       if(timeIntervalReduced==false){
 	if(updatedTimeInterval>(2.0*minimumTimeInterval)){
-	  
-	  CheckNodalConditionForTimeStepReduction(updatedTimeInterval,increaseTimeInterval,timeIntervalReduced);
 
-	  if(timeIntervalReduced==false){
-
-	    CheckElementalConditionForTimeStepReduction(increaseTimeInterval);
-
-	  }
+	  const unsigned int dimension =  mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+	  if(dimension==2){
+	    CheckNodalConditionForTimeStepReduction(updatedTimeInterval,increaseTimeInterval,timeIntervalReduced);
+	    if(timeIntervalReduced==false){
+	      CheckElementalConditionForTimeStepReduction(increaseTimeInterval);
+	    }
+	}
 	}
 
-	if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badPressureConvergence==false && badVelocityConvergence==false ){
+	// if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badPressureConvergence==false && badVelocityConvergence==false ){
+	if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badVelocityConvergence==false ){
 	  IncreaseTimeInterval(updatedTimeInterval,deltaTimeToNewMilestone,tolerance,increaseTimeInterval);
 	}
 	else{
@@ -225,7 +226,6 @@ namespace Kratos
 	    ModelPart::NodeIterator NodeBegin;
 	    ModelPart::NodeIterator NodeEnd;
 	    OpenMPUtils::PartitionedIterators(mrModelPart.Nodes(),NodeBegin,NodeEnd);
-
 	    for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
 	      {
 		if(itNode->IsNot(TO_ERASE) && itNode->IsNot(ISOLATED) && itNode->IsNot(SOLID)){

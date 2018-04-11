@@ -17,8 +17,7 @@
         "scheme_type"                        : "bossak",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "pendulus_test/pendulus_UL_test",
-            "input_file_label" : 0
+            "input_filename"   : "pendulus_test/pendulus_UL_test"
         },
         "material_import_settings"           : {
             "materials_filename" : "pendulus_test/pendulus_material.json"
@@ -109,18 +108,5 @@
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
-    },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
-    "material_import_settings" : {
-        "materials_filename" : "StructuralMaterials.json"
     }
 }

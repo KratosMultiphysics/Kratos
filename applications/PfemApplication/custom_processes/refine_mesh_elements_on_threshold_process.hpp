@@ -68,8 +68,6 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-    
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -200,8 +198,6 @@ private:
 
     ModelerUtilities mModelerUtilities;  
 
-    ModelPart::IndexType mMeshId; 
-
     int mEchoLevel;
 
     ///@}
@@ -222,8 +218,8 @@ private:
 
       int counter = 0;
       //set label refine in elements that must be refined due to dissipation
-      for(ModelPart::ElementsContainerType::const_iterator iii = mrModelPart.ElementsBegin(mMeshId);
-	  iii != mrModelPart.ElementsEnd(mMeshId); iii++)
+      for(ModelPart::ElementsContainerType::const_iterator iii = mrModelPart.ElementsBegin();
+	  iii != mrModelPart.ElementsEnd(); iii++)
 	{
 	  double variable_value=0;
 	  std::vector<double> Value(1);

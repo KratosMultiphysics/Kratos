@@ -12,10 +12,9 @@
 #include <iostream>
 
 // External includes
-#include<cmath>
+// #include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 
 #include "structural_mechanics_application_variables.h"

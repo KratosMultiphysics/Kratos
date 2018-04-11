@@ -55,3 +55,15 @@ kratos/includes/kratos_version.h
 *.mesh
 *.o.sol
 *.o.mesh
+
+*.bak
+
+*.h~
+
+applications/FluidDynamicsApplication/test_examples/fs_cavity/ProjectParameters\.py
+
+applications/FluidDynamicsApplication/test_examples/fs_cavity/run_test\.py
+
+*.cpp~
+
+applications/python_scripts/beam_profiles\.csv

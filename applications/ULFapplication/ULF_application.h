@@ -1,4 +1,4 @@
-//
+
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: anonymous $
 //   Date:                $Date: 2008-04-01 10:25:52 $
@@ -25,6 +25,7 @@
 #include "includes/kratos_application.h"
 
 #include "includes/variables.h"
+#include "includes/deprecated_variables.h"
 #include "includes/condition.h"
 #include "custom_elements/updated_lagrangian_fluid.h"
 #include "custom_elements/updated_lagrangian_fluid3D.h"
@@ -32,32 +33,21 @@
 #include "custom_elements/updated_lagrangian_fluid3D_inc.h"
 #include "custom_elements/ulf_frac2d.h"
 #include "custom_elements/ulf_frac3d.h"
-#include "custom_elements/ulf_frac2d_swimming.h"
-#include "custom_elements/ulf_frac3d_swimming.h"
+#include "custom_elements/ulf_axisym.h"
+//#include "custom_elements/ulf_frac2d_swimming.h"
+//#include "custom_elements/ulf_frac3d_swimming.h"
 #include "custom_conditions/Point_Neumann3D.h"
+#include "custom_conditions/Point_Neumann2D.h"
+#include "custom_conditions/Point_Neumann_Axisym.h"
+#include "custom_elements/surface_tension.h"
+#include "includes/ublas_interface.h"
+
 namespace Kratos
 {
 
 ///@name Kratos Globals
 ///@{
 
-// Variables definition
-/*	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
-	KRATOS_DEFINE_VARIABLE(double, NODAL_H)
-	KRATOS_DEFINE_VARIABLE(double, IS_STRUCTURE)
-	KRATOS_DEFINE_VARIABLE(double, IS_FLUID)
-	KRATOS_DEFINE_VARIABLE(double, IS_BOUNDARY)
-	KRATOS_DEFINE_VARIABLE(double, IS_FREE_SURFACE)
-	KRATOS_DEFINE_VARIABLE(double, IS_FREE_SURFACE)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NORMAL_TO_WALL)
-*/
-//KRATOS_DEFINE_VARIABLE(double, IS_LAGRANGIAN_INLET)
-//	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
-
-
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
 ///@}
 ///@name Type Definitions
@@ -214,10 +204,15 @@ private:
     //
     const UlfFrac2D mUlfFrac2D;
     const UlfFrac3D mUlfFrac3D;
-    const UlfFrac2DSwimming mUlfFrac2DSwimming;
-    const UlfFrac3DSwimming mUlfFrac3DSwimming;
+    const UlfAxisym mUlfAxisym;    
     const PointNeumann3D  mPointNeumann3D;
-
+    const PointNeumann2D  mPointNeumann2D;
+    const PointNeumannAxisym  mPointNeumannAxisym;
+    
+       /// 2D instance of the SurfaceTension element
+    const SurfaceTension<2> mSurfaceTension2D;
+    /// 3D instance of the SurfaceTension element
+    const SurfaceTension<3> mSurfaceTension3D;
 
     ///@}
     ///@name Private Operators
@@ -271,6 +266,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_KRATOS_ULF_APPLICATION_H_INCLUDED  defined 
-
-
-

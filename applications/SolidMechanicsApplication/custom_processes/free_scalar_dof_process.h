@@ -43,15 +43,13 @@ public:
     ///@name Life Cycle
     ///@{
     FreeScalarDofProcess(ModelPart& model_part,
-			Parameters rParameters
-			) : Process() , mr_model_part(model_part)
+			Parameters rParameters) : Process() , mr_model_part(model_part)
     {
         KRATOS_TRY
 			 
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME"
             }  )" );
 
@@ -59,7 +57,6 @@ public:
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mmesh_id       = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
 
         if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
@@ -101,9 +98,7 @@ public:
     }
 
     FreeScalarDofProcess(ModelPart& model_part,
-			const Variable<double>& rVariable,
-			std::size_t mesh_id
-			) : Process(), mr_model_part(model_part), mmesh_id(mesh_id)
+			const Variable<double>& rVariable) : Process(), mr_model_part(model_part)
     {
         KRATOS_TRY;
 
@@ -119,9 +114,7 @@ public:
     }
 
     FreeScalarDofProcess(ModelPart& model_part,
-			const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable,
-			std::size_t mesh_id
-			) : Process(), mr_model_part(model_part), mmesh_id(mesh_id)
+			const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable) : Process(), mr_model_part(model_part)
     {
         KRATOS_TRY;
 
@@ -136,9 +129,7 @@ public:
     }
 
     FreeScalarDofProcess(ModelPart& model_part,
-			const Variable< int >& rVariable,
-			std::size_t mesh_id
-			) : Process(), mr_model_part(model_part), mmesh_id(mesh_id)
+			const Variable< int >& rVariable) : Process(), mr_model_part(model_part)
     {
         KRATOS_TRY;
 
@@ -153,9 +144,7 @@ public:
     }
 
     FreeScalarDofProcess(ModelPart& model_part,
-			const Variable< bool >& rVariable,
-			std::size_t mesh_id
-			) : Process(), mr_model_part(model_part), mmesh_id(mesh_id)
+			const Variable< bool >& rVariable) : Process(), mr_model_part(model_part)
     {
         KRATOS_TRY;
 
@@ -334,7 +323,6 @@ private:
 
     ModelPart& mr_model_part;
     std::string mvariable_name;
-    std::size_t mmesh_id;
 
     ///@}
     ///@name Private Operators
@@ -343,11 +331,11 @@ private:
     template< class TVarType >
     void InternalFreeDof(TVarType& rVar)
     {
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const int nnodes = mr_model_part.GetMesh().Nodes().size();
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
 
              #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)

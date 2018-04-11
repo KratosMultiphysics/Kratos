@@ -32,7 +32,7 @@ namespace Kratos {
         const double radius_sum     = my_radius + other_radius;
         const double radius_sum_inv = 1.0 / radius_sum;
         const double equiv_radius   = my_radius * other_radius * radius_sum_inv;
-        const double cohesive_force = 8.0 * KRATOS_M_PI * equiv_cohesion * equiv_radius;
+        const double cohesive_force = 8.0 * Globals::Pi * equiv_cohesion * equiv_radius;
 
         return cohesive_force;
     }
@@ -42,7 +42,7 @@ namespace Kratos {
         const double cohesion         = element->GetParticleCohesion(); // For the time being, this represents the Surface Energy
         const double equiv_cohesion   = 0.5 * (cohesion + wall->GetProperties()[WALL_COHESION]);
         const double equiv_radius     = element->GetRadius(); // Equivalent Radius for RIGID WALLS
-        const double cohesive_force = 8.0 * KRATOS_M_PI * equiv_cohesion * equiv_radius;
+        const double cohesive_force = 8.0 * Globals::Pi * equiv_cohesion * equiv_radius;
 
         return cohesive_force;
     }

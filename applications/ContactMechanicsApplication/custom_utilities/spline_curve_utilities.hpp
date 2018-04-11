@@ -1111,36 +1111,7 @@ namespace Kratos
       return Basis;
     }
 
-
-    //**************************************************************************
-    //**************************************************************************
-
-
-    //Total Energy on initial configuration
-    double GetTotalStrainEnergy(ModelPart& rModelPart, unsigned int MeshId)
-    {
-
-        KRATOS_TRY
-
-        KRATOS_CATCH( "" )
-    }
-
-    //**************************************************************************
-    //**************************************************************************
-
-    /**
-     * level of echo for the error calculation
-     */
-    void SetEchoLevel(int Level)
-    {
-      mEchoLevel = Level;
-    }
-
-    int GetEchoLevel()
-    {
-      return mEchoLevel;
-    }
-
+    
     ///@}
     ///@name Access
     ///@{

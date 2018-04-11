@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+ #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
@@ -324,7 +324,7 @@ class ULFStrategyPythonInc:
         self.builder_and_solver.CalculatePreconditionerDiagonalMatrix(self.D, self.MPinv, self.A, preconditioner)
 
         # for the add_GMinvD_prod function
-        WorkArray = Vector(self.space_utils.Size(self.b) / self.domain_size)
+        WorkArray = Vector(self.space_utils.Size(self.MPinv))
 
         # we are assuming that the initial guess for the unknown X is 0 vecotr, =>r(0) = b - Ax = b
         # x0 = 0. mult by b just to get teh right size

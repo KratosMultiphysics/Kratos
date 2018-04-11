@@ -55,7 +55,7 @@ namespace Kratos
     
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::ComputeContactArea(const double rmin, double indentation, double& calculation_area) {
-            calculation_area = KRATOS_M_PI*rmin*rmin;
+            calculation_area = Globals::Pi*rmin*rmin;
     }
                 
     template< class TBaseElement >

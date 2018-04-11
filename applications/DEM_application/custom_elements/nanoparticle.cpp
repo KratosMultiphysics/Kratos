@@ -13,6 +13,16 @@ namespace Kratos {
 
 NanoParticle::~NanoParticle(){}
 
+NanoParticle& NanoParticle::operator=(NanoParticle const& rOther) {
+    
+    SphericParticle::operator=(rOther);
+        
+    mThicknessOverRadius = rOther.mThicknessOverRadius;
+    mInteractionRadius = rOther.mInteractionRadius;
+
+    return *this;
+}
+
 void NanoParticle::Initialize(const ProcessInfo& r_process_info) {   
     SphericParticle::Initialize(r_process_info);
     double added_mass_coefficient = 1.0;
@@ -58,13 +68,12 @@ void NanoParticle::SetDefaultRadiiHierarchy(const double radius)
     SetRadius(radius);
     SetInteractionRadius(2.5 * radius);
     SetSearchRadius(3 * radius); // overwriting that established by the strategy
-    SetSearchRadiusWithFem(3 * radius);
 }
 
 double NanoParticle::CalculateVolume()
 {
     const double radius = this->GetRadius();
-    return KRATOS_M_PI * radius * radius * radius * mThicknessOverRadius;
+    return Globals::Pi * radius * radius * radius * mThicknessOverRadius;
 }
 
     

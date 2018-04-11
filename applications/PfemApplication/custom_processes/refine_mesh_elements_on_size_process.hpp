@@ -67,8 +67,6 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-    
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -121,7 +119,7 @@ public:
 	 && mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES) )
 	{
 	  
-	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);
+	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
 	  
 	  unsigned int nds = (*element_begin).GetGeometry().size();
 	  
@@ -137,14 +135,14 @@ public:
 
 	  int* OutElementList       = mrRemesh.OutMesh.GetElementList();
 	  
-	  ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
+	  ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
 
 	  //PREPARE THE NODAL_H as a variable to control the automatic point insertion
 	  //**************************************************************************
 
 	  if(mrRemesh.Refine->RefiningOptions.IsNot(ModelerUtilities::REFINE_BOUNDARY)){
 
-	    for(unsigned int i = 0; i<mrModelPart.Nodes(mMeshId).size(); i++)
+	    for(unsigned int i = 0; i<mrModelPart.Nodes().size(); i++)
 	      {
 		////Assign a huge NODAL_H to the free surface nodes, so that there no nodes will be added
 		// if ( (nodes_begin + i)->Is(FREE_SURFACE))
@@ -364,7 +362,7 @@ public:
 	  //*********************************************************************
 	  if(mrRemesh.Refine->RefiningOptions.IsNot(ModelerUtilities::REFINE_BOUNDARY)){
 
-	    for(unsigned int i = 0; i<mrModelPart.Nodes(mMeshId).size(); i++)
+	    for(unsigned int i = 0; i<mrModelPart.Nodes().size(); i++)
 	      {
 		// //Unassign the NODAL_H of the free surface nodes
 		// if ( (nodes_begin + i)->Is(FREE_SURFACE))
@@ -386,7 +384,7 @@ public:
 	}
       else{
 
-	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);
+	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
 	
 	  unsigned int nds = (*element_begin).GetGeometry().size();
 	  
@@ -403,7 +401,7 @@ public:
 	  int* OutElementList       = mrRemesh.OutMesh.GetElementList();
 
 	  	  
-	  ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);	  
+	  ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();	  
 	    
 	  for(int el = 0; el< OutNumberOfElements; el++)
 	    {
@@ -530,8 +528,6 @@ private:
     ModelerUtilities::MeshingParameters& mrRemesh;
 
     ModelerUtilities mModelerUtilities;  
-
-    ModelPart::IndexType mMeshId; 
 
     int mEchoLevel;
 

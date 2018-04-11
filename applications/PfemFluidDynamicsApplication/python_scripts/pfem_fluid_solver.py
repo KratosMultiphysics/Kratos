@@ -28,8 +28,7 @@ class PfemFluidSolver:
                 "input_filename": "unknown_name",
                 "input_file_label": 0
             },
-            "rotation_dofs": false,
-            "pressure_dofs": false,
+            "dofs"                : [],
             "stabilization_factor": 1.0,
             "reform_dofs_at_each_step": false,
             "line_search": false,
@@ -47,9 +46,9 @@ class PfemFluidSolver:
             "pressure_tolerance": 1e-5,
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "AMGCL",
-                "max_iteration"                  : 1000,
-                "tolerance"                      : 1e-12,
-                "provide_coordinates"            : true,
+                "max_iteration"                  : 5000,
+                "tolerance"                      : 1e-9,
+                "provide_coordinates"            : false,
                 "scaling"                        : false,
                 "smoother_type"                  : "damped_jacobi",
                 "krylov_type"                    : "cg",
@@ -57,10 +56,10 @@ class PfemFluidSolver:
                 "verbosity"                      : 0
             },
             "velocity_linear_solver_settings": {
-                "solver_type"                    : "bicgstab",
-                "max_iteration"                  : 10000,
-                "tolerance"                      : 1e-12,
-                "preconditioner_type"            : "ILU0Preconditioner",
+                "solver_type"                    : "BICGSTABSolver",
+                "max_iteration"                  : 5000,
+                "tolerance"                      : 1e-9,
+                "preconditioner_type"            : "None",
                 "scaling"                        : false
             },
             "bodies_list": [
@@ -109,7 +108,7 @@ class PfemFluidSolver:
                                                               self.settings["pressure_tolerance"].GetDouble(),
                                                               self.settings["maximum_pressure_iterations"].GetInt(),
                                                               self.settings["time_order"].GetInt(),
-                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
         # Set echo_level
         self.fluid_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -140,11 +139,26 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
- 
+        
+        #VARIABLES FOR PAPANASTASIOU MODEL
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
+
+        #VARIABLES FOR MU-I RHEOLOGY MODEL
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ZERO)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DIAMETER)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INFINITE_FRICTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ONE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER)
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-
 
         # PFEM fluid variables
         # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NORMVELOCITY)
@@ -275,11 +289,11 @@ class PfemFluidSolver:
     def InitializeSolutionStep(self):
         #self.fluid_solver.InitializeSolutionStep()
 
-        adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
-        adaptive_time_interval.Execute()
+        #adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+        #adaptive_time_interval.Execute()
 
-        unactive_peak_elements = True
-        unactive_sliver_elements = True
+        unactive_peak_elements = False
+        unactive_sliver_elements = False
         set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
         set_active_flag.Execute()
 
@@ -298,8 +312,8 @@ class PfemFluidSolver:
         #pass
         self.fluid_solver.FinalizeSolutionStep()  
 
-        unactive_peak_elements = True
-        unactive_sliver_elements = True
+        unactive_peak_elements = False
+        unactive_sliver_elements = False
         set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
         set_active_flag.ExecuteFinalize()
 
@@ -329,6 +343,18 @@ class PfemFluidSolver:
             bulk_modulus = el.Properties.GetValue(KratosMultiphysics.BULK_MODULUS)
             young_modulus = el.Properties.GetValue(KratosMultiphysics.YOUNG_MODULUS)
             poisson_ratio = el.Properties.GetValue(KratosMultiphysics.POISSON_RATIO)
+            flow_index = el.Properties.GetValue(KratosPfemFluid.FLOW_INDEX)
+            yield_shear = el.Properties.GetValue(KratosPfemFluid.YIELD_SHEAR)
+            adaptive_exponent = el.Properties.GetValue(KratosPfemFluid.ADAPTIVE_EXPONENT)
+            static_friction = elem.Properties.GetValue(KratosPfemFluid.STATIC_FRICTION)
+            dynamic_friction = elem.Properties.GetValue(KratosPfemFluid.DYNAMIC_FRICTION)
+            inertial_number_zero = elem.Properties.GetValue(KratosPfemFluid.INERTIAL_NUMBER_ZERO)
+            grain_diameter = elem.Properties.GetValue(KratosPfemFluid.GRAIN_DIAMETER)
+            grain_density = elem.Properties.GetValue(KratosPfemFluid.GRAIN_DENSITY)
+            regularization_coefficient = elem.Properties.GetValue(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
+            inertial_number_one = elem.Properties.GetValue(KratosPfemFluid.INERTIAL_NUMBER_ONE)
+            infinite_friction = elem.Properties.GetValue(KratosPfemFluid.INFINITE_FRICTION)
+            alpha_parameter = elem.Properties.GetValue(KratosPfemFluid.ALPHA_PARAMETER)
             break
             
         print ("density: ",density)
@@ -336,6 +362,18 @@ class PfemFluidSolver:
         print ("bulk_modulus: ",bulk_modulus)
         print ("young_modulus: ",young_modulus)
         print ("poisson_ratio: ",poisson_ratio)
+        print ("flow_index: ",flow_index)
+        print ("yield_shear: ",yield_shear)
+        print ("adaptive_exponent: ",adaptive_exponent)
+        print ("static_friction: ",static_friction)
+        print ("dynamic_friction: ",dynamic_friction)
+        print ("inertial_number_zero: ",inertial_number_zero)
+        print ("grain_diameter: ",grain_diameter)
+        print ("grain_density: ",grain_density)
+        print ("regularization_coefficient: ",regularization_coefficient)
+        print ("inertial_number_one: ",inertial_number_one)
+        print ("infinite_friction: ",infinite_friction)
+        print ("alpha_parameter: ",alpha_parameter)
 
 #
 

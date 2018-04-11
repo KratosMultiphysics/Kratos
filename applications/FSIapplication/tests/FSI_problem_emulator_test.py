@@ -6,6 +6,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 from os import remove
 
 try:
+    from KratosMultiphysics.ExternalSolversApplication import *
     from KratosMultiphysics.StructuralMechanicsApplication import *
     missing_external_dependencies = False
     missing_application = ''

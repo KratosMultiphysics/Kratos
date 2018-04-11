@@ -84,8 +84,6 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-    
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -117,7 +115,7 @@ public:
 
       if( mEchoLevel > 0 ){
 	std::cout<<" [ REMOVE CLOSE NODES: "<<std::endl;
-	//std::cout<<"   Nodes before erasing : "<<mrModelPart.Nodes(mMeshId).size()<<std::endl;
+	//std::cout<<"   Nodes before erasing : "<<mrModelPart.Nodes().size()<<std::endl;
       }
 
       if( mrModelPart.Name() != mrRemesh.SubModelPartName )
@@ -127,8 +125,8 @@ public:
       mrRemesh.Refine->Info.BodyNodesRemoved.Initialize();
       mrRemesh.Refine->Info.BoundaryNodesRemoved.Initialize();
       
-      double RemovedConditions = mrModelPart.NumberOfConditions(mMeshId);
-      double NumberOfNodes     = mrModelPart.NumberOfNodes(mMeshId);
+      double RemovedConditions = mrModelPart.NumberOfConditions();
+      double NumberOfNodes     = mrModelPart.NumberOfNodes();
       
       bool any_node_removed      = false;
       bool any_condition_removed = false;         
@@ -181,14 +179,14 @@ public:
 	  
 
 	  if(any_node_removed)
-	    this->CleanRemovedNodes(mrModelPart,mMeshId);
+	    this->CleanRemovedNodes(mrModelPart);
 
 	  if(any_condition_removed){
 	    //Clean Conditions
 	    ModelPart::ConditionsContainerType PreservedConditions;
 
 	    //id = 0;
-	    for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(mMeshId); ic!= mrModelPart.ConditionsEnd(mMeshId); ic++)
+	    for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ic++)
 	      {
 
 		if(ic->IsNot(TO_ERASE)){
@@ -201,7 +199,7 @@ public:
 		}
 	      }
 
-	    mrModelPart.Conditions(mMeshId).swap(PreservedConditions);
+	    mrModelPart.Conditions().swap(PreservedConditions);
 
 	  }
 
@@ -210,8 +208,8 @@ public:
 
       
       // number of removed nodes:
-      mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes(mMeshId);      
-      RemovedConditions -= mrModelPart.NumberOfConditions(mMeshId);
+      mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes();      
+      RemovedConditions -= mrModelPart.NumberOfConditions();
       
       if( mEchoLevel > 0 ){
 	std::cout<<"   [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
@@ -222,7 +220,7 @@ public:
 	  mrRemesh.Refine->Info.BoundaryNodesRemoved.EchoStats();
 	}
 	
-	//std::cout<<"   Nodes after  erasing : "<<mrModelPart.Nodes(mMeshId).size()<<std::endl;
+	//std::cout<<"   Nodes after  erasing : "<<mrModelPart.Nodes().size()<<std::endl;
 	std::cout<<"   REMOVE CLOSE NODES ]; "<<std::endl;	
       }
 
@@ -321,8 +319,6 @@ private:
 
     ModelerUtilities mModelerUtilities;  
 
-    ModelPart::IndexType mMeshId; 
-
     int mEchoLevel;
 
     ///@}
@@ -334,20 +330,20 @@ private:
     //**************************************************************************
     //**************************************************************************
 
-    void CleanRemovedNodes(ModelPart& rModelPart, ModelPart::IndexType MeshId)
+    void CleanRemovedNodes(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
         //MESH 0 total domain mesh
 	ModelPart::NodesContainerType temporal_nodes;
-	temporal_nodes.reserve(rModelPart.Nodes(MeshId).size());
+	temporal_nodes.reserve(rModelPart.Nodes().size());
 	
-	temporal_nodes.swap(rModelPart.Nodes(MeshId));
+	temporal_nodes.swap(rModelPart.Nodes());
 	
 	for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
 	  {
 	    if( i_node->IsNot(TO_ERASE) ){
-	      (rModelPart.Nodes(MeshId)).push_back(*(i_node.base()));	
+	      (rModelPart.Nodes()).push_back(*(i_node.base()));	
 	    }
 	    else{
 	      if( i_node->Is(BOUNDARY) )
@@ -355,7 +351,7 @@ private:
 	    }
 	  }
 	
-	rModelPart.Nodes(MeshId).Sort();
+	rModelPart.Nodes().Sort();
 	
 	
 	KRATOS_CATCH( "" )
@@ -376,7 +372,7 @@ private:
        MeshErrorCalculationUtilities MeshErrorDistribution;
        MeshErrorDistribution.SetEchoLevel(mEchoLevel);
 
-       std::vector<double> NodalError(rModelPart.NumberOfNodes(mMeshId)+1);
+       std::vector<double> NodalError(rModelPart.NumberOfNodes()+1);
 
        unsigned int number_of_nodes = 0;
        
@@ -388,9 +384,9 @@ private:
        std::vector<int> nodes_ids(number_of_nodes);
 
 	      
-       MeshErrorDistribution.NodalErrorCalculation(rModelPart,NodalError,nodes_ids,mMeshId,mrRemesh.Refine->GetErrorVariable());
+       MeshErrorDistribution.NodalErrorCalculation(rModelPart,NodalError,nodes_ids,mrRemesh.Refine->GetErrorVariable());
 
-       for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(mMeshId); in != rModelPart.NodesEnd(mMeshId); in++)
+       for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
 	 {
 
 	   WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
@@ -461,8 +457,8 @@ private:
 
             //create the list of the nodes to be check during the search
             std::vector<Node<3>::Pointer> list_of_nodes;
-            list_of_nodes.reserve(mrModelPart.NumberOfNodes(mMeshId));
-            for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
+            list_of_nodes.reserve(mrModelPart.NumberOfNodes());
+            for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
             {
                (list_of_nodes).push_back(*(i_node.base()));
             }
@@ -484,7 +480,7 @@ private:
             unsigned int n_points_in_radius;
 
 
-            for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
+            for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
             {
                bool on_contact_tip = false;
                array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
@@ -613,7 +609,7 @@ private:
 
             if ( mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES) &&  mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE) )
             {
-               for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
+               for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
                {
 
                   bool on_contact_tip = false;
@@ -712,8 +708,8 @@ private:
        
        //create the list of the nodes to be check during the search
        std::vector<Node<3>::Pointer> list_of_nodes;
-       list_of_nodes.reserve(rModelPart.NumberOfNodes(mMeshId));
-       for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(mMeshId) ; i_node != rModelPart.NodesEnd(mMeshId) ; i_node++)
+       list_of_nodes.reserve(rModelPart.NumberOfNodes());
+       for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin() ; i_node != rModelPart.NodesEnd() ; i_node++)
 	 {
 	   (list_of_nodes).push_back(*(i_node.base()));
 	 }
@@ -735,7 +731,7 @@ private:
        unsigned int n_points_in_radius;
        
        
-       for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(mMeshId); in != rModelPart.NodesEnd(mMeshId); in++)
+       for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
 	 {
 	   bool on_contact_tip = false;
 	   bool contact_active = false;
@@ -874,7 +870,7 @@ private:
       
       std::vector<std::vector<Condition::Pointer> > node_shared_conditions(number_of_nodes); //all domain nodes
       
-      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(mMeshId); ic!= rModelPart.ConditionsEnd(mMeshId); ic++)
+      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
 	{	 
 	  if(ic->IsNot(NEW_ENTITY) && ic->IsNot(TO_ERASE)){
 	    Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
@@ -904,7 +900,7 @@ private:
       unsigned int id = 1;
       unsigned int new_id = 0;
       
-      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(mMeshId); in != rModelPart.NodesEnd(mMeshId); in++) 
+      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++) 
 	{
 	  
 	  if( in->Is(BOUNDARY) && in->IsNot(BLOCKED) && in->IsNot(NEW_ENTITY) && in->Is(TO_ERASE) ){
@@ -971,7 +967,7 @@ private:
 		MeshDataTransferUtilities TransferUtilities;
 		TransferUtilities.TransferBoundaryData(pcond, NewCond, *(mrRemesh.Transfer)); 
 
-		(rModelPart.Conditions(mMeshId)).push_back(pcond);
+		(rModelPart.Conditions()).push_back(pcond);
 
 		id +=1;
 	      }
@@ -984,7 +980,7 @@ private:
 
 	}
 
-      // for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(mMeshId); in != rModelPart.NodesEnd(mMeshId); in++)
+      // for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
       // 	{
       // 	  in->Reset(BLOCKED);
       // 	}
@@ -1003,10 +999,10 @@ private:
 
       if( mEchoLevel > 0 ){
 	std::cout<<"   [ REMOVE NON CONVEX BOUNDARY : "<<std::endl;
-	//std::cout<<"     Starting Conditions : "<<rModelPart.Conditions(mMeshId).size()<<std::endl;
+	//std::cout<<"     Starting Conditions : "<<rModelPart.Conditions().size()<<std::endl;
       }
 
-      double RemovedConditions = rModelPart.NumberOfConditions(mMeshId);
+      double RemovedConditions = rModelPart.NumberOfConditions();
 
       //***SIZES :::: parameters do define the tolerance in mesh size: 
       double critical_angle        = -120;
@@ -1024,7 +1020,7 @@ private:
       
       //std::cout<<"     Shared Conditions Size "<<node_shared_conditions.size()<<std::endl;
       
-      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(mMeshId); ic!= rModelPart.ConditionsEnd(mMeshId); ic++)
+      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
 	{	 
 	  if(ic->IsNot(NEW_ENTITY) && ic->IsNot(TO_ERASE)){
 	    Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
@@ -1069,7 +1065,7 @@ private:
       unsigned int new_id = 0;
       int RemovedNodes =0;
       
-      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(mMeshId); in != rModelPart.NodesEnd(mMeshId); in++)
+      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
 	{
 
           //angles 
@@ -1176,7 +1172,7 @@ private:
 		    MeshDataTransferUtilities TransferUtilities;
 		    TransferUtilities.TransferBoundaryData(pcond, NewCond,*(mrRemesh.Transfer)); 
 
-		    (rModelPart.Conditions(mMeshId)).push_back(pcond);
+		    (rModelPart.Conditions()).push_back(pcond);
 
 		    RemovedNodes += 1;
 		    id +=1;
@@ -1339,7 +1335,7 @@ private:
 		      MeshDataTransferUtilities TransferUtilities;
 		      TransferUtilities.TransferBoundaryData(pcond, NewCond, *(mrRemesh.Transfer) ); 
 
-		      (rModelPart.Conditions(mMeshId)).push_back(pcond);
+		      (rModelPart.Conditions()).push_back(pcond);
 
 		      RemovedNodes += 1;
 		      id +=1;
@@ -1351,19 +1347,19 @@ private:
 	    }
 	}
 
-      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(mMeshId); in != rModelPart.NodesEnd(mMeshId); in++)
+      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
 	{
 	  in->Reset(BLOCKED);
 	}
 	      
     
-      RemovedConditions = rModelPart.Conditions(mMeshId).size() - RemovedConditions;
+      RemovedConditions = rModelPart.Conditions().size() - RemovedConditions;
 
       if( mEchoLevel > 0 ){
 	std::cout<<"     [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
 	std::cout<<"     [ NODES      ( removed : "<<RemovedNodes<<" ) ]"<<std::endl;
     
-	std::cout<<"     Ending   Conditions : "<<rModelPart.Conditions(mMeshId).size()<<"  (Removed nodes: "<< RemovedNodes<<" ) "<<std::endl;
+	std::cout<<"     Ending   Conditions : "<<rModelPart.Conditions().size()<<"  (Removed nodes: "<< RemovedNodes<<" ) "<<std::endl;
 	std::cout<<"     REMOVE NON CONVEX BOUNDARY ]; "<<std::endl;
       }
 

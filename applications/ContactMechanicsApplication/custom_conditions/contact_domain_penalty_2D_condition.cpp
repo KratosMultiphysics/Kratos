@@ -92,30 +92,36 @@ namespace Kratos
     double penalty_parameter = 1000;
     penalty_parameter = GetProperties()[PENALTY_PARAMETER];
 
-    ElementType& MasterElement = mContactVariables.GetMasterElement();
+    ElementType& rMasterElement = mContactVariables.GetMasterElement();
   
     //Look at the nodes, get the slave and get the Emin
 
     //Contact face segment node1-node2
     unsigned int slave = mContactVariables.slaves.back();
 
+    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
+    const Properties& MasterProperties = rMasterElement.GetProperties();
+    double Eslave  = 1e9;
+    if( SlaveProperties.Has(YOUNG_MODULUS) ){
+	Eslave  = SlaveProperties[YOUNG_MODULUS];
+    }
+    else if( SlaveProperties.Has(C10) ){
+	Eslave = SlaveProperties[C10];
+    }
 
-    double Eslave = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties()[YOUNG_MODULUS];
-    // double Emax   = MasterElement.GetProperties()[YOUNG_MODULUS];
-
-    // //STANDARD OPTION
-    // if(Emax<Eslave)
-    // 	Emax=Eslave;
-
-    // mContactVariables.PenaltyFactor = 0.5 * penalty_parameter * Emax;
-
-    double Emin   = MasterElement.GetProperties()[YOUNG_MODULUS];
-
+    double Emaster = 1e9;
+    if( MasterProperties.Has(YOUNG_MODULUS) ){
+	Emaster = MasterProperties[YOUNG_MODULUS];
+    }
+    else if( MasterProperties.Has(C10) ){
+	Emaster = MasterProperties[C10];
+    }
+    
     //STANDARD OPTION
-    if(Emin>Eslave)
-      Emin=Eslave;
+    if(Emaster>Eslave)
+      Emaster=Eslave;
 
-    mContactVariables.PenaltyFactor = 0.5 * penalty_parameter * Emin;
+    mContactVariables.PenaltyFactor = 0.5 * penalty_parameter * Emaster;
 
     // mContactVariables.PenaltyParameter = 0.5 / mContactVariables.StabilizationFactor ;
    
@@ -131,7 +137,7 @@ namespace Kratos
   //****************************CALCULATE EXPLICIT PENALTY PARAMETERS*******************
   //************************************************************************************
 
-  void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainPenalty2DCondition::CalculateExplicitFactors(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
   {
 
 
@@ -364,7 +370,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainPenalty2DCondition::CalculateNormalForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+  void ContactDomainPenalty2DCondition::CalculateNormalForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
   {    
     F = rVariables.Contact.Penalty.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir];
 
@@ -374,7 +380,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainPenalty2DCondition::CalculateTangentStickForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+  void ContactDomainPenalty2DCondition::CalculateTangentStickForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
   {
 
     if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
@@ -392,7 +398,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainPenalty2DCondition::CalculateTangentSlipForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+  void ContactDomainPenalty2DCondition::CalculateTangentSlipForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
   {
 
     if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
@@ -412,7 +418,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainPenalty2DCondition::CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
+  void ContactDomainPenalty2DCondition::CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
   {
     KRATOS_TRY
     

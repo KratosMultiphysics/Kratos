@@ -36,7 +36,7 @@ namespace Python
 using namespace boost::python;
 
 template<class TContainerType>
-struct UblasVectorModifier
+struct UblasVectorModifierRenamed
 {
     typedef typename TContainerType::size_type index_type;
     static void Resize(TContainerType& ThisContainer, typename TContainerType::size_type NewSize)
@@ -95,7 +95,7 @@ void  AddVectorToPython()
 //       .def(VectorVectorOperatorPython<scalar_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
     ;
 
-    VectorPythonInterface<vector<double>, UblasVectorModifier<vector<double> > >::CreateInterface("Vector")
+    VectorPythonInterface<vector<double>, UblasVectorModifierRenamed<vector<double> > >::CreateInterface("Vector")
     .def(init<vector<double>::size_type>())
     .def(init<vector_expression<vector<double> > >())
     .def(VectorScalarOperatorPython<vector<double>, double, vector<double> >())
@@ -105,7 +105,7 @@ void  AddVectorToPython()
 //       .def(VectorVectorOperatorPython<vector<double>, mapped_vector<double>, vector<double> >())
    ;
     
-      VectorPythonInterface<vector<int>, UblasVectorModifier<vector<int> > >::CreateInterface("IntegerVector")
+      VectorPythonInterface<vector<int>, UblasVectorModifierRenamed<vector<int> > >::CreateInterface("IntegerVector")
       .def(init<vector<int>::size_type>())
    ;
 

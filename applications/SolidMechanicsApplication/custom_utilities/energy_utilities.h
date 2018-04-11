@@ -78,7 +78,7 @@ namespace Kratos
     //**************************************************************************
 
 
-    double GetTotalKinematicEnergy(ModelPart& rModelPart, unsigned int MeshId) //default mesh 0, all model
+    double GetTotalKinematicEnergy(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -88,7 +88,7 @@ namespace Kratos
         double mass = 0.0;
         double vel_arg = 0.0;
 
-        ModelPart::NodesContainerType& pNodes = rModelPart.Nodes(MeshId);
+        ModelPart::NodesContainerType& pNodes = rModelPart.Nodes();
 
         #ifdef _OPENMP
                 int number_of_threads = omp_get_max_threads();
@@ -135,7 +135,7 @@ namespace Kratos
 
 
 
-    double GetGravitationalEnergy(ModelPart& rModelPart, unsigned int MeshId) //default mesh 0, all model
+    double GetGravitationalEnergy(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -148,7 +148,7 @@ namespace Kratos
         Vector VolumeAcceleration(3);
 	noalias(VolumeAcceleration) = ZeroVector(3);
 
-        ModelPart::NodesContainerType& pNodes = rModelPart.Nodes(MeshId);
+        ModelPart::NodesContainerType& pNodes = rModelPart.Nodes();
 
         #ifdef _OPENMP
                 int number_of_threads = omp_get_max_threads();
@@ -204,7 +204,7 @@ namespace Kratos
 
 
     //Total Energy on initial configuration
-    double GetTotalStrainEnergy(ModelPart& rModelPart, unsigned int MeshId)
+    double GetTotalStrainEnergy(ModelPart& rModelPart)
     {
 
         KRATOS_TRY
@@ -212,7 +212,7 @@ namespace Kratos
         double StrainEnergy = 0.0;
         ProcessInfo& rCurrentProcessInfo                  = rModelPart.GetProcessInfo();
 
-        ModelPart::ElementsContainerType& pElements = rModelPart.Elements(MeshId);
+        ModelPart::ElementsContainerType& pElements = rModelPart.Elements();
 
         #ifdef _OPENMP
                 int number_of_threads = omp_get_max_threads();
@@ -271,7 +271,7 @@ namespace Kratos
 
 
 
-    double GetExternallyAppliedEnergy(ModelPart& rModelPart, unsigned int MeshId) //default mesh 0, all model
+    double GetExternallyAppliedEnergy(ModelPart& rModelPart)
     {
       KRATOS_TRY
 

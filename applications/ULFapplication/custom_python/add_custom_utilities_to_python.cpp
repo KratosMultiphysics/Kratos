@@ -115,8 +115,8 @@ void  AddCustomUtilitiesToPython()
     .def ("SetLagInletNodalH", &UlfUtils::SetNodalHAtLagInlet)
     .def ("DeleteFreeSurfaceNodesBladder", &UlfUtils::DeleteFreeSurfaceNodesBladder)
     .def ("SaveNodalArea", &UlfUtils::SaveNodalArea)
-    .def ("ClearNodalPressureGrad", &UlfUtils::ClearNodalPressureGrad)
-    .def ("CalculateNodalPressureGrad", &UlfUtils::CalculateNodalPressureGrad)
+  //  .def ("ClearNodalPressureGrad", &UlfUtils::ClearNodalPressureGrad)
+//    .def ("CalculateNodalPressureGrad", &UlfUtils::CalculateNodalPressureGrad)
 
     ;
 
@@ -127,8 +127,11 @@ void  AddCustomUtilitiesToPython()
     ;
 
    class_<AssignPointNeumannConditions > ("AssignPointNeumannConditions", init<>())
-    .def("AssignPointNeumannConditions3D", &AssignPointNeumannConditions::AssignPointNeumannConditions3D)
-    ;
+    .def("AssignPointNeumannConditionsDisp", &AssignPointNeumannConditions::AssignPointNeumannConditionsDisp)
+    .def("AssignPointNeumannConditionsDispAxisym", &AssignPointNeumannConditions::AssignPointNeumannConditionsDispAxisym)
+    //.def("AssignPointNeumannConditionsMonolithic2D", &AssignPointNeumannConditions::AssignPointNeumannConditionsMonolithic2D)
+    ; 
+
 
 }
 

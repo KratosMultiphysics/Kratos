@@ -1,14 +1,13 @@
-//-------------------------------------------------------------
-//         ___  __                  
-//  KRATOS| _ \/ _|___ _ __
-//        |  _/  _/ -_) '  '
-//        |_| |_| \___|_|_|_|APPLICATION
-//                                                                
-//  License:(BSD)    PfemApplication/license.txt
-//
-//  Main authors:    Josep Maria Carbonell
-//                   ..                  
-//-------------------------------------------------------------
+//--------------------------------------------------------
+//          ___  __                                      .
+//  KRATOS | _ \/ _|___ _ __                             .
+//         |  _/  _/ -_) '  \                            .  
+//         |_| |_| \___|_|_|_| APPLICATION               .
+//                                                       .    
+//  License:(BSD)         PfemApplication/license.txt    .
+//  Main authors:         Josep Maria Carbonell          .
+//                        ..                             .
+//--------------------------------------------------------
 //
 //   Project Name:        KratosPfemApplication     $
 //   Created by:          $Author:      JMCarbonell $

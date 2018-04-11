@@ -3,7 +3,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
 
-# DEM Application using Verlet 2-step scheme for continuum
+# DEM Application using Velocity Verlet 2-step scheme for continuum
 
 import continuum_sphere_strategy as SolverStrategy
 
@@ -11,9 +11,9 @@ BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
 class ExplicitStrategy(BaseExplicitStrategy):   
    
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures):
 
-        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
     def AddAdditionalVariables(self, model_part, DEM_parameters):
         
@@ -59,8 +59,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.ModifyProperties(properties)
 
         # CONTINUUM
-
-        self.model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)
+        self.search_increment_for_walls = 0.0 # for the moment, until all bugs are removed
+        self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
+        self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
         self.model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
         self.model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
 
@@ -87,8 +88,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.settings.inlet_model_part = self.inlet_model_part
         self.settings.cluster_model_part = self.cluster_model_part
 
-        self.cplusplus_strategy = VerletVelocitySolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                    self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
+        self.cplusplus_strategy = VelocityVerletSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor, self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy)
     
     def Initialize(self):
 

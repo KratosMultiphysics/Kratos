@@ -14,10 +14,6 @@
 
 #include "utilities/quaternion.h"
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif // M_PI
-
 namespace Kratos
 {
 /** \brief EICR Element Independent CoRotational formulation
@@ -305,8 +301,8 @@ public:
 
             double angle = norm_2(rv);
 
-            if(angle >= 2.0 * M_PI)
-                angle = std::fmod(angle, 2.0 * M_PI);
+            if(angle >= 2.0 * Globals::Pi)
+                angle = std::fmod(angle, 2.0 * Globals::Pi);
 
             double eta;
             if(angle < 0.05)
@@ -318,7 +314,7 @@ public:
             }
             else
             {
-                eta = ( 1.0 - 0.5 * angle * std::tan( 0.5 * M_PI - 0.5 * angle ) ) / (angle * angle);
+                eta = ( 1.0 - 0.5 * angle * std::tan( 0.5 * Globals::Pi - 0.5 * angle ) ) / (angle * angle);
             }
 
             Spin( rv, Omega );
@@ -367,8 +363,8 @@ public:
 
             double angle = norm_2(rotationVector);
 
-            if(angle >= 2.0 * M_PI)
-                angle = std::fmod(angle, 2.0 * M_PI);
+            if(angle >= 2.0 * Globals::Pi)
+                angle = std::fmod(angle, 2.0 * Globals::Pi);
 
             double angle2 = angle * angle;
             double angle4 = angle2 * angle2;
@@ -383,7 +379,7 @@ public:
             }
             else
             {
-                eta = ( 1.0 - 0.5 * angle * std::tan( 0.5 * M_PI - 0.5 * angle ) ) / (angle * angle);
+                eta = ( 1.0 - 0.5 * angle * std::tan( 0.5 * Globals::Pi - 0.5 * angle ) ) / (angle * angle);
                 double sin_h_angle = std::sin(0.5 * angle);
                 mu  = ( angle2 + 4.0 * std::cos(angle) + angle * std::sin(angle) - 4.0 ) / ( 4.0 * angle4 * sin_h_angle * sin_h_angle );
             }
