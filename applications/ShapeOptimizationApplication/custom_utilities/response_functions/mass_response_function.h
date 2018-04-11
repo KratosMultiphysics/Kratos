@@ -121,11 +121,11 @@ public:
 	///@{
 
 	// ==============================================================================
-	void Initialize()
+	void Initialize() override
 	{}
 
 	// --------------------------------------------------------------------------
-	void CalculateValue()
+	void CalculateValue() override
 	{
 		KRATOS_TRY;
 
@@ -151,7 +151,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void CalculateGradient()
+	void CalculateGradient() override
 	{
 		KRATOS_TRY;
 
@@ -272,7 +272,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	double GetValue()
+	double GetValue() override
 	{
 		KRATOS_TRY;
 
@@ -282,7 +282,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	boost::python::dict GetGradient()
+	boost::python::dict GetGradient() override
 	{
 		KRATOS_TRY;
 
@@ -299,7 +299,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-  	virtual void ConsiderDiscretization(){
+  	void ConsiderDiscretization() override {
 
 		std::cout<< "> Considering discretization size!" << std::endl;
 		for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
@@ -350,19 +350,19 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const
+	std::string Info() const override
 	{
 		return "MassResponseFunction";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
+	void PrintInfo(std::ostream &rOStream) const override
 	{
 		rOStream << "MassResponseFunction";
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
+	void PrintData(std::ostream &rOStream) const override
 	{
 	}
 
