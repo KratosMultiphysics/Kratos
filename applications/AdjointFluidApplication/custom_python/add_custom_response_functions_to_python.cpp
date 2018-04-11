@@ -1,5 +1,5 @@
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 // Project includes
 
@@ -12,11 +12,12 @@ namespace Kratos
 {
 namespace Python
 {
-using namespace boost::python;
+using namespace pybind11;
 
-void AddCustomResponseFunctionsToPython()
+void AddCustomResponseFunctionsToPython(pybind11::module& m)
 {
-  class_<ResponseFunction, boost::noncopyable>("ResponseFunction", init<ModelPart&, Parameters&>())
+  class_<ResponseFunction>(m,"ResponseFunction")
+        .def(init<ModelPart&, Parameters&>())
         .def("Initialize", &ResponseFunction::Initialize)
         .def("InitializeSolutionStep", &ResponseFunction::InitializeSolutionStep)
         .def("FinalizeSolutionStep", &ResponseFunction::FinalizeSolutionStep)
@@ -31,11 +32,11 @@ void AddCustomResponseFunctionsToPython()
         .def("CalculateValue", &ResponseFunction::CalculateValue)
         .def("UpdateSensitivities", &ResponseFunction::UpdateSensitivities);
 
-    class_<DragResponseFunction<2>, bases<ResponseFunction>, boost::noncopyable>
-      ("DragResponseFunction2D", init<ModelPart&, Parameters&>());
+    class_<DragResponseFunction<2>>(m,"DragResponseFunction2D")
+        .def(init<ModelPart&, Parameters&>());
 
-    class_<DragResponseFunction<3>, bases<ResponseFunction>, boost::noncopyable>
-      ("DragResponseFunction3D", init<ModelPart&, Parameters&>());
+    class_<DragResponseFunction<3>>(m,"DragResponseFunction3D")
+        .def(init<ModelPart&, Parameters&>());
 
 }
 

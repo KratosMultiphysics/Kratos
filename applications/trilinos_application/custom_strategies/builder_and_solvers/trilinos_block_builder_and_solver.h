@@ -18,7 +18,6 @@
 /* #include <omp.h> */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 #include "boost/timer.hpp"
 
 
@@ -566,6 +565,22 @@ public:
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size()==0)
             KRATOS_ERROR << "No degrees of freedom!";
+
+    // If reactions are to be calculated, we check if all the dofs have reactions defined
+    // This is tobe done only in debug mode
+
+    #ifdef KRATOS_DEBUG        
+
+    if(BaseType::GetCalculateReactionsFlag())
+    {
+        for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+        { 
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                    << "Node : "<<dof_iterator->Id()<< std::endl
+                    << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+        }
+    }
+    #endif
 
         BaseType::mDofSetIsInitialized = true;
 

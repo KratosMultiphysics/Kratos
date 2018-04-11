@@ -17,7 +17,7 @@
 //
 //
 
-#if !defined(KRATOS_SOLID_MECHANICS_APPLICATION_H_INCLUDED )
+#if !defined(KRATOS_SOLID_MECHANICS_APPLICATION_H_INCLUDED)
 #define  KRATOS_SOLID_MECHANICS_APPLICATION_H_INCLUDED
 
 // System includes
@@ -156,7 +156,7 @@ typedef array_1d<double,6> Vector6;
 /// Short class definition.
 /** Detail class definition.
  */
- class KratosSolidMechanicsApplication : public KratosApplication
+ class KRATOS_API(SOLID_MECHANICS_APPLICATION) KratosSolidMechanicsApplication : public KratosApplication
  {
  public:
 

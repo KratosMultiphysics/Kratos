@@ -1,11 +1,14 @@
-/* *********************************************************
- *
- *   Last Modified by:    $Author: rrossi $
- *   Date:                $Date: 2007-03-06 10:30:32 $
- *   Revision:            $Revision: 1.2 $
- *
- * ***********************************************************/
-
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
+//
+//  License:             BSD License
+//                                       Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
 #if !defined(KRATOS_RESIDUALBASED_CONVECTION_DIFFUSION_STRATEGY )
 #define  KRATOS_RESIDUALBASED_CONVECTION_DIFFUSION_STRATEGY
@@ -15,7 +18,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */

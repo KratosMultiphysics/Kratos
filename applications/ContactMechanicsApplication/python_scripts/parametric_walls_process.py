@@ -48,11 +48,13 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         self.counter      = 1
         self.next_search  = 0.0
 
+        self.Model = Model
+
     #
     def ExecuteInitialize(self):
 
 
-        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
+        self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
         self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         #construct parametric wall domains
@@ -182,7 +184,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
     #
     def GetVariables(self):
-        nodal_variables = ['RIGID_WALl']
-        nodal_variables = nodal_variables + ['CONTACT_FORCE', 'CONTACT_NORMAL']
-        #nodal_variables = nodal_variables + ['VOLUME_ACCELERATION']
+        nodal_variables = ['RIGID_WALL']
+        nodal_variables =  nodal_variables + ['CONTACT_FORCE', 'CONTACT_NORMAL']
+        nodal_variables = nodal_variables + ['VOLUME_ACCELERATION']
         return nodal_variables

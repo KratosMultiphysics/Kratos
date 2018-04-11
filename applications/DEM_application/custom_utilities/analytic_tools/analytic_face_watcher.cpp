@@ -56,92 +56,92 @@ void AnalyticFaceWatcher::MakeMeasurements(ModelPart& analytic_model_part)
     mVectorOfTimeStepDatabases.push_back(time_step_database);
 }
 
-void AnalyticFaceWatcher::ClearList(boost::python::list& my_list)
-{
-    while (len(my_list)){
-        my_list.pop(); // only way I found to remove all entries
-    }
-}
-
 void AnalyticFaceWatcher::GetFaceData(int id,
-                                      boost::python::list times,
-                                      boost::python::list neighbour_ids,
-                                      boost::python::list masses,
-                                      boost::python::list normal_relative_vel,
-                                      boost::python::list tangential_relative_vel)
+                                      std::list<double> times,
+                                      std::list<int> neighbour_ids,
+                                      std::list<double> masses,
+                                      std::list<double> normal_relative_vel,
+                                      std::list<double> tangential_relative_vel)
 {
     mMapOfFaceHistoryDatabases[id].FillUpPythonLists(times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel);
 }
 
 void AnalyticFaceWatcher::GetAllFacesData(ModelPart& analytic_model_part,
-                                          boost::python::list times,
-                                          boost::python::list neighbour_ids,
-                                          boost::python::list masses,
-                                          boost::python::list normal_relative_vel,
-                                          boost::python::list tangential_relative_vel)
+                                          std::list<double> times,
+                                          std::list<int> neighbour_ids,
+                                          std::list<double> masses,
+                                          std::list<double> normal_relative_vel,
+                                          std::list<double> tangential_relative_vel)
 {
-    ClearList(times);
-    ClearList(neighbour_ids);
-    ClearList(masses);
-    ClearList(normal_relative_vel);
-    ClearList(tangential_relative_vel);
+    times.clear();
+    neighbour_ids.clear();
+    masses.clear();
+    normal_relative_vel.clear();
+    tangential_relative_vel.clear();
 
     for (ConditionsIteratorType i_cond = analytic_model_part.ConditionsBegin(); i_cond != analytic_model_part.ConditionsEnd(); ++i_cond){
-        boost::python::list times_i;
-        boost::python::list neighbour_ids_i;
-        boost::python::list masses_i;
-        boost::python::list normal_relative_vel_i;
-        boost::python::list tangential_relative_vel_i;
+        std::list<double> times_i;
+        std::list<int> neighbour_ids_i;
+        std::list<double> masses_i;
+        std::list<double> normal_relative_vel_i;
+        std::list<double> tangential_relative_vel_i;
+        
         const int id = int(i_cond->Id());
+        
         GetFaceData(id, times_i, neighbour_ids_i, masses_i, normal_relative_vel_i, tangential_relative_vel_i);
-        times.append(times_i);
-        neighbour_ids.append(neighbour_ids_i);
-        masses.append(masses_i);
-        normal_relative_vel.append(normal_relative_vel_i);
-        tangential_relative_vel.append(tangential_relative_vel_i);
+
+        times.insert(times.end(), times_i.begin(), times_i.end());
+        neighbour_ids.insert(neighbour_ids.end(), neighbour_ids_i.begin(), neighbour_ids_i.end());
+        masses.insert(masses.end(), masses_i.begin(), masses_i.end());
+        normal_relative_vel.insert(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
+        tangential_relative_vel.insert(tangential_relative_vel_i.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
     }
 
 }
 
-void AnalyticFaceWatcher::GetTimeStepsData(boost::python::list ids,
-                                           boost::python::list neighbour_ids,
-                                           boost::python::list masses,
-                                           boost::python::list normal_relative_vel,
-                                           boost::python::list tangential_relative_vel)
+void AnalyticFaceWatcher::GetTimeStepsData(std::list<int> ids,
+                                           std::list<int> neighbour_ids,
+                                           std::list<double> masses,
+                                           std::list<double> normal_relative_vel,
+                                           std::list<double> tangential_relative_vel)
 {
-    ClearList(ids);
-    ClearList(neighbour_ids);
-    ClearList(masses);
-    ClearList(normal_relative_vel);
-    ClearList(tangential_relative_vel);
+    ids.clear();
+    neighbour_ids.clear();
+    masses.clear();
+    normal_relative_vel.clear();
+    tangential_relative_vel.clear();
+
     const int n_time_steps = mVectorOfTimeStepDatabases.size();
 
     for (int i = 0; i < n_time_steps; ++i){
-        boost::python::list ids_i;
-        boost::python::list neighbour_ids_i;
-        boost::python::list masses_i;
-        boost::python::list normal_relative_vel_i;
-        boost::python::list tangential_relative_vel_i;
+        std::list<int> ids_i;
+        std::list<int> neighbour_ids_i;
+        std::list<double> masses_i;
+        std::list<double> normal_relative_vel_i;
+        std::list<double> tangential_relative_vel_i;
+
         mVectorOfTimeStepDatabases[i].FillUpPythonLists(ids_i, neighbour_ids_i, masses_i, normal_relative_vel_i, tangential_relative_vel_i);
-        ids.append(ids_i);
-        neighbour_ids.append(neighbour_ids_i);
-        masses.append(masses_i);
-        normal_relative_vel.append(normal_relative_vel_i);
-        tangential_relative_vel.append(tangential_relative_vel_i);
+        
+        ids.insert(ids.end(), ids_i.begin(), ids_i.end());
+        neighbour_ids.insert(neighbour_ids.end(), neighbour_ids_i.begin(), neighbour_ids_i.end());
+        masses.insert(masses.end(), masses_i.begin(), masses_i.end());
+        normal_relative_vel.insert(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
+        tangential_relative_vel.insert(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
     }
 }
 
-void AnalyticFaceWatcher::GetTotalFlux(boost::python::list &times, boost::python::list &n_particles, boost::python::list &mass)
+void AnalyticFaceWatcher::GetTotalFlux(std::list<double> &times, std::list<int> &n_particles, std::list<double> &mass)
 {
-    ClearList(times);
-    ClearList(n_particles);
-    ClearList(mass);
+    times.clear();
+    n_particles.clear();
+    mass.clear();
+
     const int n_time_steps = mVectorOfTimeStepDatabases.size();
 
     for (int i = 0; i < n_time_steps; ++i){
-        times.append(mVectorOfTimeStepDatabases[i].GetTime());
-        n_particles.append(mVectorOfTimeStepDatabases[i].GetTotalThroughput());
-        mass.append(mVectorOfTimeStepDatabases[i].GetTotalMassThroughput());
+        times.push_back(mVectorOfTimeStepDatabases[i].GetTime());
+        n_particles.push_back(mVectorOfTimeStepDatabases[i].GetTotalThroughput());
+        mass.push_back(mVectorOfTimeStepDatabases[i].GetTotalMassThroughput());
     }
 }
 

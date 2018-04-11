@@ -191,9 +191,9 @@ public:
             // Construct the modified shape fucntions utility
             ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
             if (TNumNodes == 4) {
-                p_modified_sh_func = boost::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, distances);
+                p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, distances);
             } else {
-                p_modified_sh_func = boost::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, distances);
+                p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, distances);
             }
 
             // Call the fluid side modified shape functions calculator
@@ -445,6 +445,21 @@ public:
             KRATOS_ERROR << "Calculate method not implemented for the requested variable.";
         }
     }
+    
+    void Calculate(const Variable<double>& rVariable,
+                   double& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {}
+
+    void Calculate(const Variable<Vector >& rVariable,
+                   Vector& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {}
+
+    void Calculate(const Variable<Matrix >& rVariable,
+                   Matrix& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {}
 
     ///@}
     ///@name Access

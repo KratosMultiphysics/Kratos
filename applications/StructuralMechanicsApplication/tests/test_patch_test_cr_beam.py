@@ -52,7 +52,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
     def _apply_elemental_data(self,element):
         # Adding LOCAL_AXIS_2
-        element.SetValue(KratosMultiphysics.LOCAL_AXIS_2,(0,1,0))
+        element.SetValue(KratosMultiphysics.LOCAL_AXIS_2,[0,1,0])
 
     def _apply_3D_moment_hinge_z(self,element):
         # Adding LOCAL_AXIS_2

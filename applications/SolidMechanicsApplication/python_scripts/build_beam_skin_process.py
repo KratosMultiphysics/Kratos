@@ -1,7 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-import importlib
-import math
 
 def Factory(custom_settings, Model):
     if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):

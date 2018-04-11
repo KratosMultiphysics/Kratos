@@ -196,12 +196,12 @@ public:
         return mSize;
     }
 
-    bool IsComponent()
+    bool IsComponent() const
     {
         return mIsComponent;
     }
 
-    bool IsNotComponent()
+    bool IsNotComponent() const
     {
         return !mIsComponent;
     }
@@ -240,7 +240,7 @@ public:
     64           size         32-bit hash                comp. index 0
         |-----------|----|---------------------------------------------|-|
     */
-    static KeyType GenerateKey(const std::string& Name, std::size_t Size, std::size_t ComponentIndex);
+    static KeyType GenerateKey(const std::string& Name, std::size_t Size, bool IsComponent, char ComponentIndex);
 
     ///@}
     ///@name Friends
@@ -277,7 +277,7 @@ protected:
     ///@{
 
     /// Constructor.
-    VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent = false);
+    VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent = false, char ComponentIndex = 0);
 
 
     /** default constructor is to be used only with serialization due to the fact that

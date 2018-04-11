@@ -193,10 +193,10 @@ class subdomain_deflation {
             dx.resize(ndv);
             dd = backend_type::create_vector(ndv, bprm);
 
-            boost::shared_ptr<build_matrix> a_loc  = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> a_rem  = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> az_loc = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> az_rem = boost::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> a_loc  = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> a_rem  = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> az_loc = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> az_rem = std::make_shared<build_matrix>();
 
             // Get sizes of each domain in comm.
             std::vector<ptrdiff_t> domain = mpi::exclusive_sum(comm, nrows);
@@ -301,7 +301,7 @@ class subdomain_deflation {
                             for(ptrdiff_t j = 0; j < ndv; ++j) {
                                 if (marker[j] < az_loc_head) {
                                     marker[j] = az_loc_tail;
-                                    assert(az_loc_tail < az_loc->nnz);
+                                    assert(static_cast<unsigned int>(az_loc_tail) < az_loc->nnz);
                                     az_loc->col[az_loc_tail] = j;
                                     az_loc->val[az_loc_tail] = v * prm.def_vec(loc_c, j);
                                     ++az_loc_tail;
@@ -320,13 +320,13 @@ class subdomain_deflation {
             AMGCL_TOC("second pass");
 
             // Create local preconditioner.
-            P = boost::make_shared<LocalPrecond>( *a_loc, prm.local, bprm );
+            P = std::make_shared<LocalPrecond>( *a_loc, prm.local, bprm );
 
             // Analyze communication pattern for A, create distributed matrix.
-            Acp = boost::make_shared< comm_pattern<backend_type> >(comm, nrows, a_rem->nnz, a_rem->col, bprm);
+            Acp = std::make_shared< comm_pattern<backend_type> >(comm, nrows, a_rem->nnz, a_rem->col, bprm);
             a_rem->ncols = Acp->renumber(a_rem->nnz, a_rem->col);
             Arem = backend_type::copy_matrix(a_rem, bprm);
-            A = boost::make_shared<matrix>(*Acp, P->system_matrix(), *Arem);
+            A = std::make_shared<matrix>(*Acp, P->system_matrix(), *Arem);
 
             AMGCL_TIC("remote(A*Z)");
             /* Construct remote part of AZ */
@@ -551,7 +551,7 @@ class subdomain_deflation {
             // Prepare E factorization.
             AMGCL_TIC("factorize E");
             if (comm.rank == master_rank) {
-                E = boost::make_shared<DirectSolver>(
+                E = std::make_shared<DirectSolver>(
                         masters_comm, Eptr.size() - 1, Eptr, Ecol, Eval, prm.dsolver
                         );
 
@@ -561,11 +561,11 @@ class subdomain_deflation {
             AMGCL_TOC("factorize E");
 
             AMGCL_TIC("finish(A*Z)");
-            AZcp = boost::make_shared< comm_pattern<backend_type> >(comm, ndv, az_rem->nnz, az_rem->col, bprm);
+            AZcp = std::make_shared< comm_pattern<backend_type> >(comm, ndv, az_rem->nnz, az_rem->col, bprm);
             az_rem->ncols = AZcp->renumber(az_rem->nnz, az_rem->col);
             AZloc = backend_type::copy_matrix(az_loc, bprm);
             AZrem = backend_type::copy_matrix(az_rem, bprm);
-            AZ = boost::make_shared<matrix>(*AZcp, *AZloc, *AZrem);
+            AZ = std::make_shared<matrix>(*AZcp, *AZloc, *AZrem);
             AMGCL_TOC("finish(A*Z)");
 
             // Prepare Gatherv configuration for coarse solve
@@ -667,23 +667,23 @@ class subdomain_deflation {
 
         MPI_Datatype dtype;
 
-        boost::shared_ptr< comm_pattern<backend_type> > Acp, AZcp;
-        boost::shared_ptr<bmatrix> Arem, AZloc, AZrem;
-        boost::shared_ptr<matrix> A, AZ;
-        boost::shared_ptr<LocalPrecond> P;
+        std::shared_ptr< comm_pattern<backend_type> > Acp, AZcp;
+        std::shared_ptr<bmatrix> Arem, AZloc, AZrem;
+        std::shared_ptr<matrix> A, AZ;
+        std::shared_ptr<LocalPrecond> P;
 
         mutable std::vector<value_type> df, dx, cf, cx;
         std::vector<ptrdiff_t> dv_start;
         std::vector<int> sstart, ssize;
 
-        std::vector< boost::shared_ptr<vector> > Z;
+        std::vector< std::shared_ptr<vector> > Z;
 
         MPI_Comm masters_comm, slaves_comm;
         int master_rank;
-        boost::shared_ptr<DirectSolver> E;
+        std::shared_ptr<DirectSolver> E;
 
-        boost::shared_ptr<vector> q;
-        boost::shared_ptr<vector> dd;
+        std::shared_ptr<vector> q;
+        std::shared_ptr<vector> dd;
 
         ISolver S;
 

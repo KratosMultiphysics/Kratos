@@ -1,48 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-/* *********************************************************
-*
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2009-01-13 15:39:56 $
-*   Revision:            $Revision: 1.5 $
-*
-* ***********************************************************/
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
+//
+//  License:             BSD License
+//                                       Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
 
 #if !defined(KRATOS_TRILINOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER )
@@ -53,7 +19,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <set>
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 #include "boost/timer.hpp"
 
 
@@ -808,6 +773,23 @@ public:
 // 			for(typename NodesArrayType::iterator i_node = rNodes.ptr_begin(); i_node != rNodes.end(); ++i_node)
 // 			  for(ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
 // 			    i_dof->FixDof();
+
+    // If reactions are to be calculated, we check if all the dofs have reactions defined
+    // This is tobe done only in debug mode
+
+    #ifdef KRATOS_DEBUG        
+
+    if(BaseType::GetCalculateReactionsFlag())
+    {
+        for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+        { 
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                    << "Node : "<<dof_iterator->Id()<< std::endl
+                    << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+        }
+    }
+    #endif
+
 
         BaseType::mDofSetIsInitialized = true;
 

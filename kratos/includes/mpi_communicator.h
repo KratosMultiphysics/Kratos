@@ -1536,7 +1536,7 @@ private:
         return true;
     }
 
-    bool SynchronizeElementalFlags()
+    bool SynchronizeElementalFlags() override
     {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);

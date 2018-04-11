@@ -134,6 +134,7 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rElements)
     std::vector<std::string> names;
     std::vector<ElementsContainerType> factored_elements;
     FactorElements(rElements, names, factored_elements);
+    mpFile->AddPath(mPrefix + "/Elements");
     for (unsigned int i = 0; i < names.size(); ++i)
     {
         Internals::ConnectivitiesData connectivities;
@@ -174,7 +175,8 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
     std::vector<std::string> names;
     std::vector<ConditionsContainerType> factored_conditions;
     FactorConditions(rConditions, names, factored_conditions);
-    for (unsigned i = 0; i < names.size();  ++i)
+    mpFile->AddPath(mPrefix + "/Conditions");
+    for (unsigned i = 0; i < names.size(); ++i)
     {
         Internals::ConnectivitiesData connectivities;
         // For partitioned conditions, the local container may be empty. Therefore,

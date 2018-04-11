@@ -2,6 +2,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosTrilinosApplication ****")
 
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/ )
 
@@ -48,8 +50,8 @@ endif(TRILINOS_USE_AMGCL MATCHES ON)
 
 ## generate variables with the sources
 set( KRATOS_TRILINOS_APPLICATION_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/trilinos_python_application.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/trilinos_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_space_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_convergence_criterias_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_schemes_to_python.cpp
@@ -60,7 +62,7 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_communicator_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_zoltan_processes_to_python.cpp
-    ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp
+    ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp  #TODO: this should REALLY NOT BE HERE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi_normal_calculation_utilities.cpp;
 )
 
@@ -68,7 +70,7 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 # target_link_libraries(testmap ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${BLAS_LIBRARIES})
 
 # ###############################################################
-add_library(KratosTrilinosApplication SHARED ${KRATOS_TRILINOS_APPLICATION_SOURCES})
+pybind11_add_module(KratosTrilinosApplication MODULE ${KRATOS_TRILINOS_APPLICATION_SOURCES})
 
 
 

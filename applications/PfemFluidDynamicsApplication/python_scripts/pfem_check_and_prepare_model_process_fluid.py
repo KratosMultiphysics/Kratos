@@ -247,11 +247,36 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             flow_index = 1
             yield_shear=0
             adaptive_exponent=0
-            
+            static_friction=0
+            dynamic_friction=0
+            inertial_number_zero=0
+            grain_diameter=0
+            grain_density=0
+            regularization_coefficient=0
+            infinite_friction=0
+            inertial_number_one=0
+            alpha_parameter=0
+
+
             if(elem.Properties.Has(KratosPfemFluid.YIELD_SHEAR)):
                 flow_index = elem.Properties.GetValue(KratosPfemFluid.FLOW_INDEX)
                 yield_shear = elem.Properties.GetValue(KratosPfemFluid.YIELD_SHEAR)
                 adaptive_exponent = elem.Properties.GetValue(KratosPfemFluid.ADAPTIVE_EXPONENT)
+                break
+
+            if(elem.Properties.Has(KratosPfemFluid.STATIC_FRICTION)):
+                static_friction = elem.Properties.GetValue(KratosPfemFluid.STATIC_FRICTION)
+                dynamic_friction = elem.Properties.GetValue(KratosPfemFluid.DYNAMIC_FRICTION)
+                inertial_number_zero = elem.Properties.GetValue(KratosPfemFluid.INERTIAL_NUMBER_ZERO)
+                grain_diameter = elem.Properties.GetValue(KratosPfemFluid.GRAIN_DIAMETER)
+                grain_density = elem.Properties.GetValue(KratosPfemFluid.GRAIN_DENSITY)
+                if(elem.Properties.Has(KratosPfemFluid.INERTIAL_NUMBER_ONE)):
+                    inertial_number_one = elem.Properties.GetValue(KratosPfemFluid.INERTIAL_NUMBER_ONE)
+                    infinite_friction = elem.Properties.GetValue(KratosPfemFluid.INFINITE_FRICTION)
+                    alpha_parameter = elem.Properties.GetValue(KratosPfemFluid.ALPHA_PARAMETER)
+                if(elem.Properties.Has(KratosPfemFluid.REGULARIZATION_COEFFICIENT)):
+                    regularization_coefficient = elem.Properties.GetValue(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
+                    break
             break
 
         for nn in rigid_model_part.Nodes:
@@ -262,6 +287,15 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             nn.SetSolutionStepValue(KratosPfemFluid.FLOW_INDEX,flow_index)
             nn.SetSolutionStepValue(KratosPfemFluid.YIELD_SHEAR,yield_shear)
             nn.SetSolutionStepValue(KratosPfemFluid.ADAPTIVE_EXPONENT,adaptive_exponent)
+            nn.SetSolutionStepValue(KratosPfemFluid.STATIC_FRICTION,static_friction)
+            nn.SetSolutionStepValue(KratosPfemFluid.DYNAMIC_FRICTION,dynamic_friction)
+            nn.SetSolutionStepValue(KratosPfemFluid.INERTIAL_NUMBER_ZERO,inertial_number_zero)
+            nn.SetSolutionStepValue(KratosPfemFluid.GRAIN_DIAMETER,grain_diameter)
+            nn.SetSolutionStepValue(KratosPfemFluid.GRAIN_DENSITY,grain_density)
+            nn.SetSolutionStepValue(KratosPfemFluid.REGULARIZATION_COEFFICIENT,regularization_coefficient)
+            nn.SetSolutionStepValue(KratosPfemFluid.INERTIAL_NUMBER_ONE,inertial_number_one)
+            nn.SetSolutionStepValue(KratosPfemFluid.INFINITE_FRICTION,infinite_friction)
+            nn.SetSolutionStepValue(KratosPfemFluid.ALPHA_PARAMETER,alpha_parameter)
 
 
     def SetMaterialPropertiesToFluidNodes(self,model_part):
@@ -274,13 +308,37 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             flow_index = 1
             yield_shear=0
             adaptive_exponent=0
+            static_friction=0
+            dynamic_friction=0
+            inertial_number_zero=0
+            grain_diameter=0
+            grain_density=0
+            regularization_coefficient=0
+            infinite_friction=0
+            inertial_number_one=0
+            alpha_parameter=0
             
             if(elem.Properties.Has(KratosPfemFluid.YIELD_SHEAR)):
                 flow_index = elem.Properties.GetValue(KratosPfemFluid.FLOW_INDEX)
                 yield_shear = elem.Properties.GetValue(KratosPfemFluid.YIELD_SHEAR)
                 adaptive_exponent = elem.Properties.GetValue(KratosPfemFluid.ADAPTIVE_EXPONENT)
-            break
+                break
 
+            if(elem.Properties.Has(KratosPfemFluid.STATIC_FRICTION)):
+                static_friction = elem.Properties.GetValue(KratosPfemFluid.STATIC_FRICTION)
+                dynamic_friction = elem.Properties.GetValue(KratosPfemFluid.DYNAMIC_FRICTION)
+                inertial_number_zero = elem.Properties.GetValue(KratosPfemFluid.INERTIAL_NUMBER_ZERO)
+                grain_diameter = elem.Properties.GetValue(KratosPfemFluid.GRAIN_DIAMETER)
+                grain_density = elem.Properties.GetValue(KratosPfemFluid.GRAIN_DENSITY)
+                if(elem.Properties.Has(KratosPfemFluid.INERTIAL_NUMBER_ONE)):
+                    inertial_number_one = elem.Properties.GetValue(KratosPfemFluid.INERTIAL_NUMBER_ONE)
+                    infinite_friction = elem.Properties.GetValue(KratosPfemFluid.INFINITE_FRICTION)
+                    alpha_parameter = elem.Properties.GetValue(KratosPfemFluid.ALPHA_PARAMETER)
+                if(elem.Properties.Has(KratosPfemFluid.REGULARIZATION_COEFFICIENT)):
+                    regularization_coefficient = elem.Properties.GetValue(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
+                    break
+            break
+        
         for nn in model_part.Nodes:
             count+=1
             nn.SetSolutionStepValue(KratosMultiphysics.BULK_MODULUS,bulk_modulus)
@@ -289,6 +347,15 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             nn.SetSolutionStepValue(KratosPfemFluid.FLOW_INDEX,flow_index)
             nn.SetSolutionStepValue(KratosPfemFluid.YIELD_SHEAR,yield_shear)
             nn.SetSolutionStepValue(KratosPfemFluid.ADAPTIVE_EXPONENT,adaptive_exponent)
+            nn.SetSolutionStepValue(KratosPfemFluid.STATIC_FRICTION,static_friction)
+            nn.SetSolutionStepValue(KratosPfemFluid.DYNAMIC_FRICTION,dynamic_friction)
+            nn.SetSolutionStepValue(KratosPfemFluid.INERTIAL_NUMBER_ZERO,inertial_number_zero)
+            nn.SetSolutionStepValue(KratosPfemFluid.GRAIN_DIAMETER,grain_diameter)
+            nn.SetSolutionStepValue(KratosPfemFluid.GRAIN_DENSITY,grain_density)
+            nn.SetSolutionStepValue(KratosPfemFluid.REGULARIZATION_COEFFICIENT,regularization_coefficient)
+            nn.SetSolutionStepValue(KratosPfemFluid.INERTIAL_NUMBER_ONE,inertial_number_one)
+            nn.SetSolutionStepValue(KratosPfemFluid.INFINITE_FRICTION,infinite_friction)
+            nn.SetSolutionStepValue(KratosPfemFluid.ALPHA_PARAMETER,alpha_parameter)
 
 
     def SetMaterialPropertiesToSolidNodes(self,model_part):

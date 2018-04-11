@@ -68,13 +68,13 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
 
         # Setting default configurations true by default
         if (self.settings["clear_storage"].GetBool() == False):
-            self.print_warning_on_rank_zero("Clear storage", "Storage must be cleared each step. Switching to True")
+            self.print_on_rank_zero("Clear storage", "Storage must be cleared each step. Switching to True")
             self.settings["clear_storage"].SetBool(True)
         if (self.settings["reform_dofs_at_each_step"].GetBool() == False):
-            self.print_warning_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
+            self.print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
             self.settings["reform_dofs_at_each_step"].SetBool(True)
         if (self.settings["block_builder"].GetBool() == False):
-            self.print_warning_on_rank_zero("Builder and solver", "EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
+            self.print_on_rank_zero("Builder and solver", "EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
             self.settings["block_builder"].SetBool(True)
 
         # Setting echo level
@@ -198,7 +198,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"):
             if (self.contact_settings["use_mixed_ulm_solver"].GetBool() == True):
-                KM.Logger.PrintWarning("Using MixedULMLinearSolver, definition of ALM parameters recommended")
+                self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
                 name_mixed_solver = self.contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
                 if (name_mixed_solver == "mixed_ulm_linear_solver"):
                     linear_solver_name = self.settings["linear_solver_settings"]["solver_type"].GetString()
