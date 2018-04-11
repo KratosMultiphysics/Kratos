@@ -45,7 +45,7 @@ namespace Kratos
 /** @brief Solver local flags class definition
  *  @details This is the base class for solver local flags
  */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) SolverLocalFlags
+class SolverLocalFlags
 {
  public:
   /// Flags for the solution control:
