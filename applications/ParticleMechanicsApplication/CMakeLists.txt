@@ -7,7 +7,6 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemSolidMechanicsApplication )
 
 ## generate variables with the sources
 set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES     
@@ -49,13 +48,6 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 )
 
 ###############################################################
-# ## define library Kratos which defines the basic python interface
-# add_library(KratosParticleMechanicsApplication SHARED ${KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES})
-# target_link_libraries(KratosParticleMechanicsApplication KratosCore KratosSolidMechanicsApplication )
-# set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
-# set_target_properties(KratosParticleMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PARTICLE_MECHANICS_APPLICATION=EXPORT,API")
-# install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
-
 pybind11_add_module(KratosParticleMechanicsApplication MODULE ${KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES})
 target_link_libraries(KratosParticleMechanicsApplication PRIVATE KratosCore KratosSolidMechanicsApplication)
 set_target_properties(KratosParticleMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PARTICLE_MECHANICS_APPLICATION=EXPORT,API")

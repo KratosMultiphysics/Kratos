@@ -78,37 +78,37 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     class_< HyperElasticViscoplastic3DLaw, typename HyperElasticViscoplastic3DLaw::Pointer, ConstitutiveLaw >
     (m, "HyperElasticViscoplastic3DLaw")
     .def(init<>() )
-//     .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
 
     class_< HyperElasticViscoplasticPlaneStrain2DLaw, typename HyperElasticViscoplasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
     (m, "HyperElasticViscoplasticPlaneStrain2DLaw")
     .def(init<>() )
-//     .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
 
     class_< HenckyMCPlasticPlaneStrain2DLaw, typename HenckyMCPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCPlasticPlaneStrain2DLaw")
     .def(init<>() )
-//     .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
 
     class_< HenckyMCPlastic3DLaw, typename HenckyMCPlastic3DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCPlastic3DLaw")
     .def(init<>() )
-//     .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
 
     class_< HenckyMCPlasticUP3DLaw, typename HenckyMCPlasticUP3DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCPlasticUP3DLaw")
     .def(init<>() )
-//     .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
 
     class_< HenckyMCPlasticPlaneStrainUP2DLaw, typename HenckyMCPlasticPlaneStrainUP2DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCPlasticPlaneStrainUP2DLaw")
     .def(init<>() )
-//     .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
 }
 
