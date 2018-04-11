@@ -321,7 +321,7 @@ if(${MPI_NEEDED} MATCHES ON )
   set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 
   # Note: that this will be included in the compilation of the kratos core, so that it is not needed to include it somewhere else
-  include_directories(${MPI_INCLUDE_PATH})
+  include_directories(SYSTEM ${MPI_INCLUDE_PATH})
   # find_package(Boost COMPONENTS mpi_python REQUIRED)
 endif(${MPI_NEEDED} MATCHES ON )
 
