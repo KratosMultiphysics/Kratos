@@ -41,7 +41,7 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
         # Validate the remaining settings in the base class.
-        
+
         # Construct the base solver.
         super(TrilinosImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
@@ -49,11 +49,6 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
         super(TrilinosImplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
         self.print_on_rank_zero("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
-    
-    def AddDofs(self):
-        super(TrilinosImplicitMechanicalSolver, self).AddDofs()
-        self._add_dynamic_dofs()
-        self.print_on_rank_zero("::[TrilinosImplicitMechanicalSolver]:: DOF's ADDED")
 
     #### Private functions ####
 

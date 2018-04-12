@@ -13,9 +13,6 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import structural_mechanics_solver
 
 
-
-
-
 def CreateSolver(main_model_part, custom_settings):
     return ExplicitMechanicalSolver(main_model_part, custom_settings)
 
@@ -42,7 +39,6 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
         # Validate the remaining settings in the base class.
 
-
         # Construct the base solver.
         super(ExplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
         self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: Construction finished")
@@ -62,13 +58,8 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
         self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: Variables ADDED")
 
-    def AddDofs(self):
-        super(ExplicitMechanicalSolver, self).AddDofs()
-        self._add_dynamic_dofs()
-        self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: DOF's ADDED")
-
-
     #### Specific internal functions ####
+
     def _create_solution_scheme(self):
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
 
