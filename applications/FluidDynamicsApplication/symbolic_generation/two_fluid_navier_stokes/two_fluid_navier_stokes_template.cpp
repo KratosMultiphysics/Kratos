@@ -245,7 +245,7 @@ template <>
 void TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >::ComputeGaussPointLHSContribution(
 	TwoFluidNavierStokesData<2, 3>& rData, MatrixType& rLHS) {
     const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
+    const double mu = rData.DynamicViscosity;
 
     const double h = rData.ElementSize;
 
@@ -281,7 +281,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
 	TwoFluidNavierStokesData<3, 4>& rData, MatrixType& rLHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
+    const double mu = rData.DynamicViscosity;
 
     const double h = rData.ElementSize;
 
@@ -318,7 +318,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
 	TwoFluidNavierStokesData<2, 3>& rData, VectorType& rRHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
+    const double mu = rData.DynamicViscosity;
 
     const double h = rData.ElementSize;
 
@@ -362,7 +362,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
 	TwoFluidNavierStokesData<3, 4>& rData, VectorType& rRHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
+    const double mu = rData.DynamicViscosity;
 
     const double h = rData.ElementSize;
 
@@ -409,7 +409,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
 	VectorType& rRHS_ee) {
 
 	const double rho = rData.Density;
-	const double mu = rData.EffectiveViscosity;
+	const double mu = rData.DynamicViscosity;
 
 	const double h = rData.ElementSize;
 
@@ -472,7 +472,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
 	VectorType& rRHS_ee) {
 
 	const double rho = rData.Density;
-	const double mu = rData.EffectiveViscosity;
+	const double mu = rData.DynamicViscosity;
 
 	const double h = rData.ElementSize;
 
