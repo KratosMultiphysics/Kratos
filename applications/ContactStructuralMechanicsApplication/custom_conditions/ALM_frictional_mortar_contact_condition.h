@@ -57,7 +57,7 @@ namespace Kratos
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  * @author Vicente Mataix Ferrandiz
  */
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AugmentedLagrangianMethodFrictionalMortarContactCondition
     : public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation>
 {
@@ -70,23 +70,11 @@ public:
 
     typedef AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation> BaseType;
 
+    typedef typename BaseType::MortarConditionMatrices                                                      MortarConditionMatrices;
+
     typedef Condition                                                                                             ConditionBaseType;
 
     typedef PairedCondition                                                                                 PairedConditionBaseType;
-
-    typedef typename BaseType::MortarConditionMatrices                                                      MortarConditionMatrices;
-
-    typedef typename BaseType::GeneralVariables                                                                    GeneralVariables;
-
-    typedef typename BaseType::IntegrationUtility                                                                IntegrationUtility;
-
-    typedef typename BaseType::DerivativesUtilitiesType                                                    DerivativesUtilitiesType;
-
-    typedef typename BaseType::BelongType                                                                                BelongType;
-
-    typedef typename BaseType::ConditionArrayListType                                                        ConditionArrayListType;
-
-    typedef MortarOperator<TNumNodes>                                                                   MortarBaseConditionMatrices;
 
     typedef typename ConditionBaseType::VectorType                                                                       VectorType;
 
@@ -106,6 +94,8 @@ public:
 
     typedef typename ConditionBaseType::DofsVectorType                                                               DofsVectorType;
 
+    typedef typename std::vector<array_1d<PointType,TDim>>                                                   ConditionArrayListType;
+
     typedef Line2D2<Point>                                                                                                 LineType;
 
     typedef Triangle3D3<Point>                                                                                         TriangleType;
@@ -114,7 +104,7 @@ public:
 
     typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation>                                          DerivativeDataType;
 
-    static constexpr unsigned int MatrixSize = TDim * (TNumNodes + TNumNodes + TNumNodes);
+    static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodes + TNumNodes);
 
     ///@}
     ///@name Life Cycle
@@ -171,18 +161,7 @@ public:
     ///@{
 
     /**
-    * @brief Called at the beginning of each solution step
-    */
-    void Initialize() override;
-
-    /**
-    * @brief Called at the ending of each solution step
-    * @param rCurrentProcessInfo the current process info instance
-    */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief Creates a new element pointer from an arry of nodes
+     * Creates a new element pointer from an arry of nodes
      * @param NewId the ID of the new element
      * @param rThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -196,7 +175,7 @@ public:
         ) const override;
 
     /**
-     * @brief Creates a new element pointer from an existing geometry
+     * Creates a new element pointer from an existing geometry
      * @param NewId the ID of the new element
      * @param pGeom the  geometry taken to create the condition
      * @param pProperties the properties assigned to the new element
@@ -210,7 +189,7 @@ public:
         ) const override;
 
     /**
-     * @brief Creates a new element pointer from an existing geometry
+     * Creates a new element pointer from an existing geometry
      * @param NewId the ID of the new element
      * @param pGeom the  geometry taken to create the condition
      * @param pProperties the properties assigned to the new element
@@ -224,24 +203,12 @@ public:
         GeometryPointerType pMasterGeom
         ) const override;
 
-    /**
-     * this is called during the assembling process in order
-     * to calculate the condition contribution in explicit calculation.
-     * NodalData is modified Inside the function, so the
-     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION
-     * IS ALLOWED TO WRITE ON ITS NODES.
-     * the caller is expected to ensure thread safety hence
-     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override;
-
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
 
     /**
-     * @brief Sets on rResult the ID's of the element degrees of freedom
+     * Sets on rResult the ID's of the element degrees of freedom
      * @param rResult The result vector with the ID's of the DOF
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -252,7 +219,7 @@ public:
         ) override;
 
     /**
-     * @brief Sets on ConditionalDofList the degrees of freedom of the considered element geometry
+     * Sets on ConditionalDofList the degrees of freedom of the considered element geometry
      * @param rConditionalDofList The list of DOFs
      * @param rCurrentProcessInfo The current process info instance
      */
@@ -263,8 +230,8 @@ public:
         ) override;
 
     /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process information
@@ -297,9 +264,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    MortarBaseConditionMatrices mPreviousMortarOperators; /// These are the mortar operators from the previous converged step, necessary for a consistent definition of the slip
-
-    // TODO: Define the "CL" or friction law to compute this. Or do it nodally
+    // TODO: Define the "CL" or friction law to compute this
 
     ///@}
     ///@name Protected Operators
@@ -314,7 +279,7 @@ protected:
     /********************************************************************************/
 
     /**
-     * @brief Calculates the local contibution of the LHS
+     * Calculates the local contibution of the LHS
      * @param rLocalLHS The local LHS to compute
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
@@ -325,12 +290,11 @@ protected:
         Matrix& rLocalLHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive,
-        const ProcessInfo& rCurrentProcessInfo
+        const IndexType rActiveInactive
         ) override;
 
     /**
-     * @brief Calculates the local contibution of the RHS
+     * Calculates the local contibution of the RHS
      * @param rLocalRHS The local RHS to compute
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
@@ -341,8 +305,7 @@ protected:
         Vector& rLocalRHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive,
-        const ProcessInfo& rCurrentProcessInfo
+        const IndexType rActiveInactive
         ) override;
 
     /******************************************************************/
@@ -350,15 +313,15 @@ protected:
     /******************************************************************/
 
     /**
-     * @brief Returns a value depending of the active/inactive set
+     * Returns a value depending of the active/inactive set
      * @param CurrentGeometry The geometry containing the nodes that are needed to be checked as active or inactive
      * @return The integer that can be used to identify the case to compute
      */
 
-    unsigned int GetActiveInactiveValue(GeometryType& CurrentGeometry) const override
+    IndexType GetActiveInactiveValue(GeometryType& CurrentGeometry) const override
     {
-        unsigned int value = 0;
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+        IndexType value = 0;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             if (CurrentGeometry[i_node].Is(ACTIVE) == true) {
                 if (CurrentGeometry[i_node].Is(SLIP) == true)
                     value += std::pow(3, i_node);
@@ -371,22 +334,19 @@ protected:
     }
 
     /**
-     * @brief This method returns a vector containing the friction coefficients
-     * @return The friction coefficient corresponding to each node
+     * Returns a value depending of the active/inactive set
      */
+
     array_1d<double, TNumNodes> GetFrictionCoefficient()
     {
         // The friction coefficient
-        array_1d<double, TNumNodes> friction_coeffient_vector;
-        auto& geom = this->GetGeometry();
+        const double mu = this->GetProperties().GetValue(FRICTION_COEFFICIENT);
 
-        for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
-            friction_coeffient_vector[i_node] = geom[i_node].GetValue(FRICTION_COEFFICIENT);
-        }
+        array_1d<double, TNumNodes> FrictionCoefficientVector(TNumNodes, mu);
 
         // TODO: Define the "CL" or friction law to compute this
 
-        return friction_coeffient_vector;
+        return FrictionCoefficientVector;
     }
 
     ///@}

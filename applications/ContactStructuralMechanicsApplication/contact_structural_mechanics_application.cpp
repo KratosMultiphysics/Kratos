@@ -97,33 +97,36 @@ void KratosContactStructuralMechanicsApplication::Register()
 
     // VARIABLES
     /* Mortar method general variables */
-    KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                             // The integration order computed in the contact
-    KRATOS_REGISTER_VARIABLE( DISTANCE_THRESHOLD )                                    // The distance threshold considered
-    KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                                   // The factor employed to serach an active/inactive node
-    KRATOS_REGISTER_VARIABLE( PAIRED_GEOMETRY )                                       // The paired geometry with the current condition
-    KRATOS_REGISTER_VARIABLE( PAIRED_NORMAL )                                         // The normal of the paired geometry
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )               // Auxiliar coordinates used to map
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )                  // Delta coordinates used to map
+    KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
+    KRATOS_REGISTER_VARIABLE( DISTANCE_THRESHOLD )                              // The distance threshold considered
+    KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                             // The factor employed to serach an active/inactive node
+    KRATOS_REGISTER_VARIABLE( PAIRED_GEOMETRY )                                 // The paired geometry with the current condition
+    KRATOS_REGISTER_VARIABLE( PAIRED_NORMAL )                                   // The normal of the paired geometry
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )         // Auxiliar coordinates used to map
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )            // Delta coordinates used to map
 
 
     /* Weighted values */
-    KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                          // The integrated gap employed in mortar formulation
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_SLIP )                      // The integrated slip employed in mortar formulation
-    KRATOS_REGISTER_VARIABLE( WEIGHTED_SCALAR_RESIDUAL )                              // The integrated scalar residual
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )           // The integrated vector residual
-    KRATOS_REGISTER_VARIABLE( NORMAL_GAP )                                            // The normal gap employed in contact formulation
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                    // The integrated gap employed in mortar formulation
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_SLIP )                                   // The integrated slip employed in mortar formulation
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_FRICTION )                               // The integrated friction coefficient
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_SCALAR_RESIDUAL )                        // The integrated scalar residual
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )     // The integrated vector residual
+    KRATOS_REGISTER_VARIABLE( NORMAL_GAP )                                      // The normal gap employed in contact formulation
 
     /* For ALM mortar condition */
-    KRATOS_REGISTER_VARIABLE( ACTIVE_SET_CONVERGED )                                  // To know if the active set has converged
-    KRATOS_REGISTER_VARIABLE( DYNAMIC_FACTOR )                                        // The factor considered for dynamic problems (in order to take intro account the gap evolution)
-    KRATOS_REGISTER_VARIABLE( AUGMENTED_NORMAL_CONTACT_PRESSURE )                     // The resultant augmented pressure in the normal direction
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUGMENTED_TANGENT_CONTACT_PRESSURE ) // The resultant augmented pressure in the tangent direction
-    KRATOS_REGISTER_VARIABLE( CONSIDER_NORMAL_VARIATION )                             // A value used to check if consider normal variation or not
-    KRATOS_REGISTER_VARIABLE( ADAPT_PENALTY )                                         // To set if the penalty is recalculated or not
-    KRATOS_REGISTER_VARIABLE( MAX_GAP_FACTOR )                                        // The factor between the nodal H and the max gap considered to recalculate the penalty
+    KRATOS_REGISTER_VARIABLE( ACTIVE_SET_CONVERGED )                            // To know if the active set has converged
+    KRATOS_REGISTER_VARIABLE( DYNAMIC_FACTOR )                                  // The factor considered for dynamic problems (in order to take intro account the gap evolution)
+    KRATOS_REGISTER_VARIABLE( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE )            // The lagrange multiplier for normal contact pressure
+    KRATOS_REGISTER_VARIABLE( AUGMENTED_NORMAL_CONTACT_PRESSURE )               // The resultant augmented pressure in the normal direction
+    KRATOS_REGISTER_VARIABLE( AUGMENTED_TANGENT_CONTACT_PRESSURE )              // The resultant augmented pressure in the tangent direction
+    KRATOS_REGISTER_VARIABLE( TANGENT_FACTOR )                                  // The proportion between the tangent and normal penalty
+    KRATOS_REGISTER_VARIABLE( CONSIDER_NORMAL_VARIATION )                       // A value used to check if consider normal variation or not
+    KRATOS_REGISTER_VARIABLE( ADAPT_PENALTY )                                   // To set if the penalty is recalculated or not
+    KRATOS_REGISTER_VARIABLE( MAX_GAP_FACTOR )                                  // The factor between the nodal H and the max gap considered to recalculate the penalty
 
     /* For mesh tying mortar condition */
-    KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                        // The variable name for the mesh tying
+    KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                  // The variable name for the mesh tying
 
     // CONDITIONS
     // Mesh tying mortar condition
