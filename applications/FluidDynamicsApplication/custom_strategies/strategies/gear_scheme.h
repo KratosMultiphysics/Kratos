@@ -93,9 +93,7 @@ public:
     GearScheme()
         :
         Scheme<TSparseSpace, TDenseSpace>()
-    {
-        mpDofUpdater = TSparseSpace::CreateDofUpdater();
-    }
+    {}
 
     /// Constructor to use the formulation combined with a turbulence model.
     /**
@@ -108,9 +106,7 @@ public:
         :
         Scheme<TSparseSpace, TDenseSpace>(),
         mpTurbulenceModel(pTurbulenceModel)
-    {
-        mpDofUpdater = TSparseSpace::CreateDofUpdater();
-    }
+    {}
 
     /// Destructor.
     ~GearScheme() override
@@ -788,7 +784,7 @@ private:
     /// Poiner to a turbulence model
     Process::Pointer mpTurbulenceModel;
 
-    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater;
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
 //        ///@}
 //        ///@name Serialization
