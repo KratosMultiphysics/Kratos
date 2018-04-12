@@ -95,25 +95,25 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         if  mortar_type != "":
             self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)  # Add normal
             self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # Add nodal size variable
-            if  mortar_type == "ALMContactFrictionless":            # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
-                self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL_CONTACT_STRESS)        # Add normal contact stress
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)               # Add normal contact gap
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL)   # Add scalar LM residual
-            elif mortar_type == "ALMContactFrictionlessComponents": # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
-                self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)   # Add normal contact stress
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)               # Add normal contact gap
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)   # Add vector LM residual
-            elif mortar_type == "ALMContactFrictional":             # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
-                self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)   # Add normal contact stress
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)               # Add normal contact gap
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SLIP)              # Add contact slip
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)   # Add vector LM residual
+            if  mortar_type == "ALMContactFrictionless":
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) # Add normal contact stress
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)                         # Add normal contact gap
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL)             # Add scalar LM residual
+            elif mortar_type == "ALMContactFrictionlessComponents":
+                self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)             # Add normal contact stress
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)                         # Add normal contact gap
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)             # Add vector LM residual
+            elif mortar_type == "ALMContactFrictional":
+                self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)             # Add normal contact stress
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)                         # Add normal contact gap
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SLIP)                        # Add contact slip
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)             # Add vector LM residual
             elif  mortar_type == "ScalarMeshTying":
-                self.main_model_part.AddNodalSolutionStepVariable(KM.SCALAR_LAGRANGE_MULTIPLIER)   # Add scalar LM
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL)   # Add scalar LM residual
+                self.main_model_part.AddNodalSolutionStepVariable(KM.SCALAR_LAGRANGE_MULTIPLIER)             # Add scalar LM
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL)             # Add scalar LM residual
             elif  mortar_type == "ComponentsMeshTying":
-                self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)   # Add vector LM
-                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)   # Add vector LM residual
+                self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)             # Add vector LM
+                self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)             # Add vector LM residual
 
         self.print_on_rank_zero("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Variables ADDED")
 
@@ -123,7 +123,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if (mortar_type == "ALMContactFrictionless"):                                                      # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
-            KM.VariableUtils().AddDof(KM.NORMAL_CONTACT_STRESS, CSMA.WEIGHTED_SCALAR_RESIDUAL, self.main_model_part)
+            KM.VariableUtils().AddDof(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, CSMA.WEIGHTED_SCALAR_RESIDUAL, self.main_model_part)
         elif (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"): # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_X, CSMA.WEIGHTED_VECTOR_RESIDUAL_X, self.main_model_part)
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, CSMA.WEIGHTED_VECTOR_RESIDUAL_Y, self.main_model_part)

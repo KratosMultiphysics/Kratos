@@ -84,6 +84,8 @@ public:
     typedef std::size_t                                           KeyType;
     
     typedef TableStreamUtility::Pointer           TablePrinterPointerType;
+    
+    typedef std::size_t                                         IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -168,7 +170,7 @@ public:
         if (SparseSpaceType::Size(b) != 0) { //if we are solving for something
             // Initialize
             TDataType disp_residual_solution_norm = 0.0, lm_solution_norm = 0.0, lm_increase_norm = 0.0;
-            unsigned int disp_dof_num(0),lm_dof_num(0);
+            IndexType disp_dof_num(0),lm_dof_num(0);
 
             // Loop over Dofs
             #pragma omp parallel for reduction(+:disp_residual_solution_norm,lm_solution_norm,lm_increase_norm,disp_dof_num,lm_dof_num)
@@ -181,8 +183,8 @@ public:
                 if (it_dof->IsFree()) {
                     dof_id = it_dof->EquationId();
                     
-                    const KeyType curr_var = it_dof->GetVariable().Key();
-                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == NORMAL_CONTACT_STRESS)) {
+                    const auto curr_var = it_dof->GetVariable();
+                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
                         dof_value = it_dof->GetSolutionStepValue(0);
                         dof_incr = Dx[dof_id];
                         lm_solution_norm += dof_value * dof_value;
