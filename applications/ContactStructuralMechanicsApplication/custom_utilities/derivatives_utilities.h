@@ -936,7 +936,7 @@ public:
             const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, SlaveGeometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
 
             if (bad_shape == false) {
-                const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
+                const GeometryType::IntegrationPointsArrayType integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
 
                 // Integrating the mortar operators
                 for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {

@@ -72,6 +72,9 @@ from NightlyTests import ComponentsALMHertzSimpleSphereTestContact     as TCompo
 from NightlyTests import ComponentsALMHertzSphereTestContact           as TComponentsALMHertzSphereTestContact
 from NightlyTests import ComponentsALMHertzCompleteTestContact         as TComponentsALMHertzCompleteTestContact
 
+# ALM frictionless tests
+from NightlyTests import ALMTaylorPatchFrictionalTestContact           as TALMTaylorPatchFrictionalTestContact
+
 ## VALIDATION TESTS
 from ValidationTests import LargeDisplacementPatchTestHexa as TLargeDisplacementPatchTestHexa
 
@@ -179,6 +182,9 @@ def AssambleTestSuites():
     nightSuite.addTest(TComponentsALMHertzSimpleTestContact('test_execution'))
     nightSuite.addTest(TComponentsALMHertzCompleteTestContact('test_execution'))
 
+    # ALM frictional tests
+    nightSuite.addTest(TALMTaylorPatchFrictionalTestContact('test_execution'))
+
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(nightSuite)
@@ -269,6 +275,7 @@ def AssambleTestSuites():
             TComponentsALMHertzSimpleSphereTestContact,
             #####TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             TComponentsALMHertzCompleteTestContact,
+            TALMTaylorPatchFrictionalTestContact,
             #### VALIDATION
             TALMTaylorPatchDynamicTestContact,
             TALMMeshMovingMatchingTestContact,
