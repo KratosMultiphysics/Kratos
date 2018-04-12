@@ -475,7 +475,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CalculateNegativeDistanceVolume", &EmbeddedVolumeTool <3> ::CalculateNegativeDistanceVolume)
         ;
 
-    class_<Bentonite_Force_Based_Inlet, Bentonite_Force_Based_Inlet::Pointer, DEM_Force_Based_Inlet > (m, "Bentonite_Force_Based_Inlet")
+    class_<Bentonite_Force_Based_Inlet, DEM_Force_Based_Inlet > (m, "Bentonite_Force_Based_Inlet")
         .def(init<ModelPart&, array_1d<double, 3> >())
         ;
 
