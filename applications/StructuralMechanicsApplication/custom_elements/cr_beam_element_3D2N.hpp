@@ -304,9 +304,6 @@ namespace Kratos
          */		
 		void CalculateLocalNodalForces(const Vector& Bisectrix,const Vector& VectorDifference);
 
-	
-		std::string Info() const override; //fusseder needed for sensitivity analysis
-
 	private:
 
 		int mIterationCount = 0;
