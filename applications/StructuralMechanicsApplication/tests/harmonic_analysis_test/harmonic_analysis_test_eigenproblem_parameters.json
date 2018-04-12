@@ -79,7 +79,7 @@
         "Parameters" : {
             "model_part_name" : "Structure",
             "file_settings" : {
-                "file_name" : "eigen_results.h5",
+                "file_name" : "harmonic_analysis_test/eigen_results.h5",
                 "file_access_mode" : "truncate"
             },
             "prefix" : "/ModelData"
