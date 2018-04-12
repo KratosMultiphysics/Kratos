@@ -163,9 +163,9 @@ public:
                 rDerivativeData.DeltaDetjSlave[i + 1] = rVariables.jSlave( 1, 0 ) * rVariables.DNDeSlave( i_slave, 0) / rVariables.DetjSlave;
             }
         } else {
-            const array_1d<double, 3> x1cell = DecompGeom[0].Coordinates();
-            const array_1d<double, 3> x2cell = DecompGeom[1].Coordinates();
-            const array_1d<double, 3> x3cell = DecompGeom[2].Coordinates();
+            const array_1d<double, 3>& x1cell = DecompGeom[0].Coordinates();
+            const array_1d<double, 3>& x2cell = DecompGeom[1].Coordinates();
+            const array_1d<double, 3>& x3cell = DecompGeom[2].Coordinates();
 
             const array_1d<double, 3> x21cell = x2cell - x1cell;
             const array_1d<double, 3> x31cell = x3cell - x1cell;
