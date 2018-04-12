@@ -136,28 +136,28 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CalculateSecondDerivative", &RealFunction::CalculateSecondDerivative)
         ;
 
-    class_<LinearFunction, LinearFunction::Pointer, RealFunction> (m, "LinearFunction")
+    class_<LinearFunction, RealFunction> (m, "LinearFunction")
         .def(init<const double, const double>())
         .def("Evaluate", &LinearFunction::Evaluate)
         .def("CalculateDerivative", &LinearFunction::CalculateDerivative)
         .def("CalculateSecondDerivative", &LinearFunction::CalculateSecondDerivative)
         ;
 
-    class_<PowerFunction, PowerFunction::Pointer, RealFunction> (m, "PowerFunction")
+    class_<PowerFunction, RealFunction> (m, "PowerFunction")
         .def(init<const double, const double, const double>())
         .def("Evaluate", &PowerFunction::Evaluate)
         .def("CalculateDerivative", &PowerFunction::CalculateDerivative)
         .def("CalculateSecondDerivative", &PowerFunction::CalculateSecondDerivative)
         ;
 
-    class_<AdditionFunction, AdditionFunction::Pointer, RealFunction> (m, "AdditionFunction")
+    class_<AdditionFunction, RealFunction> (m, "AdditionFunction")
         .def(init<const double, RealFunction&, RealFunction&>())
         .def("Evaluate", &AdditionFunction::Evaluate)
         .def("CalculateDerivative", &AdditionFunction::CalculateDerivative)
         .def("CalculateSecondDerivative", &AdditionFunction::CalculateSecondDerivative)
         ;
 
-    class_<CompositionFunction, CompositionFunction::Pointer, RealFunction> (m, "CompositionFunction")
+    class_<CompositionFunction, RealFunction> (m, "CompositionFunction")
         .def(init<const double, RealFunction&, RealFunction&>())
         .def("Evaluate", &CompositionFunction::Evaluate)
         .def("CalculateDerivative", &CompositionFunction::CalculateDerivative)
