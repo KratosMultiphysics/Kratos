@@ -55,7 +55,7 @@ namespace Kratos {
         }            
         virtual void CheckSubModelPart(ModelPart& smp);
         virtual void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum = false);
-        virtual void InitializeStep(ModelPart&){}
+        virtual void InitializeStep(ModelPart& r_modelpart);
         void DettachElements(ModelPart& r_modelpart, unsigned int& max_Id);
         void DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id);
         virtual void CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator);
@@ -79,8 +79,7 @@ namespace Kratos {
         virtual void UpdatePartialThroughput(SphericParticle& r_spheric_particle, const int i);
         virtual void UpdatePartialThroughput(Cluster3D& r_cluster, const int i);
         double GetInputNumberOfParticles(const ModelPart& mp);
-        virtual void DefineCumulativeZoneConditions(Element* p_element);
-        virtual bool CheckDistance(Element* p_element);
+        virtual void CheckDistanceAndSetFlag(ModelPart& r_modelpart);
 
 
         Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes

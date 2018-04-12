@@ -122,6 +122,8 @@ namespace Kratos {
             std::string& identifier = mp[IDENTIFIER];
             mp[INLET_INITIAL_VELOCITY] = mp[LINEAR_VELOCITY];    //This is the velocity of the moving injector of particles
             mp[INLET_INITIAL_PARTICLES_VELOCITY] = mp[VELOCITY]; //This is the initial velocity vector of the injected particles
+            mp[MAX_RADIUS] = 1.5 * mp[RADIUS];
+            mp[MIN_RADIUS] = 0.5 * mp[RADIUS];
             
             array_1d<double, 3>& inlet_velocity = mp[VELOCITY];
             
@@ -291,30 +293,45 @@ namespace Kratos {
         node.Set(DEMFlags::FIXED_ANG_VEL_Z, true);
     }
 
-    void DEM_Inlet::DefineCumulativeZoneConditions(Element* p_element)
+    void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
     {
-        Node<3>& node = p_element->GetGeometry()[0];
-        node.Set(DEMFlags::CUMULATIVE_ZONE, true);
-    }
+        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
+            ModelPart& mp = *smp_it;
+            
+            CheckSubModelPart(mp);
+            int mesh_size = smp_it->NumberOfNodes();
+            if (!mesh_size) continue;
+            
+            array_1d<double, 3>& inlet_velocity = mp[VELOCITY];
 
-    bool DEM_Inlet::CheckDistance(Element* p_element)
-    {
-        Node<3>& node = p_element->GetGeometry()[0];
-        const array_1d<double,3>& initial_coordinates = node.GetInitialPosition();
-        const array_1d<double,3>& coordinates = node.Coordinates();
-        const double distance = std::sqrt((initial_coordinates[0]- coordinates[0]) * (initial_coordinates[0] - coordinates[0]) +
-                                          (initial_coordinates[1]- coordinates[1]) * (initial_coordinates[1] - coordinates[1]) +
-                                          (initial_coordinates[2]- coordinates[2]) * (initial_coordinates[2] - coordinates[2]));
+            const double inlet_velocity_magnitude = DEM_MODULUS_3(inlet_velocity);    
 
-        SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*p_element);
-            //Node<3>& r_node = spheric_particle.GetGeometry()[0];
-        const double reference_distance = 6.0 * spheric_particle.GetInteractionRadius();
+            const array_1d<double, 3>& unitary_inlet_velocity =  inlet_velocity/inlet_velocity_magnitude;   
 
-        if (distance < reference_distance) {
-            return true;
-        } else {
-            return false;
-        }                                  
+            vector<unsigned int> ElementPartition;
+            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
+            typedef ElementsArrayType::iterator ElementIterator;
+
+            #pragma omp parallel
+            {
+            #pragma omp for
+            for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
+                ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;                                        
+
+                SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*elem_it);
+                Node<3>& node = spheric_particle.GetGeometry()[0];
+                const array_1d<double,3>& initial_coordinates = node.GetInitialPosition();
+                const array_1d<double,3>& coordinates = node.Coordinates();
+                const array_1d<double,3>& distance = coordinates - initial_coordinates;
+                
+            const double reference_distance = 6.0 * mp[MAX_RADIUS];
+            /// Projection over injection axis
+
+            const double projected_distance = DEM_INNER_PRODUCT_3(distance, unitary_inlet_velocity);
+            if (projected_distance < reference_distance) {node.Set(DEMFlags::CUMULATIVE_ZONE, true);}
+            }       
+            } 
+        }                          
     }
 
     void DEM_Inlet::RemoveInjectionConditions(Element& element)
@@ -408,7 +425,11 @@ namespace Kratos {
         }
     }
     } //DettachClusters
-    
+
+
+    void DEM_Inlet::InitializeStep(ModelPart& r_modelpart) {                    
+        CheckDistanceAndSetFlag(r_modelpart);}
+
     void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {                    
         InitializeStep(r_modelpart);
         unsigned int& max_Id=creator.mMaxNodeId;
@@ -567,9 +588,6 @@ namespace Kratos {
 
                         mOriginInletSubmodelPartIndexes[p_spheric_particle->Id()] = smp_it->Name();
                         FixInjectionConditions(p_spheric_particle, p_injector_element);
-
-                        if (CheckDistance(p_spheric_particle)) {DefineCumulativeZoneConditions(p_spheric_particle);}
-                        
                         UpdatePartialThroughput(*p_spheric_particle, smp_number);
                         max_Id++;
                     }
