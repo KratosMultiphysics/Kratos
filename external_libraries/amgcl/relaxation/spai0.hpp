@@ -63,7 +63,7 @@ struct spai0 {
 
         const size_t n = rows(A);
 
-        boost::shared_ptr< backend::numa_vector<value_type> > m = boost::make_shared< backend::numa_vector<value_type> >(n, false);
+        std::shared_ptr< backend::numa_vector<value_type> > m = std::make_shared< backend::numa_vector<value_type> >(n, false);
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
@@ -114,7 +114,7 @@ struct spai0 {
     }
 
     private:
-        boost::shared_ptr<matrix_diagonal> M;
+        std::shared_ptr<matrix_diagonal> M;
 };
 
 } // namespace relaxation

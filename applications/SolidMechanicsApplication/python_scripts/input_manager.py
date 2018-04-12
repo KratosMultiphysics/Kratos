@@ -134,7 +134,7 @@ class InputManager(object):
                         size = process_list.size()
                         self.project_parameters.AddEmptyList("check_process_list")
                         for i in range(0,size):
-                            self.project_parameters["check_process_list"].PushBack(parameters["check_process_list"][i])
+                            self.project_parameters["check_process_list"].Append(parameters["check_process_list"][i])
 
             else:
                 self._set_defaults(parameters)

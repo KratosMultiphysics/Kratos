@@ -15,7 +15,6 @@
 
 // External includes
 #include "spaces/ublas_space.h"
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -29,9 +28,9 @@
 namespace Kratos {
 
 namespace Python {
-using namespace boost::python;
+using namespace pybind11;
 
-void AddCustomStrategiesToPython() {
+void AddCustomStrategiesToPython(pybind11::module& m) {
   typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
   typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
@@ -42,19 +41,18 @@ void AddCustomStrategiesToPython() {
   using StructuralMeshMovingStrategyType = StructuralMeshMovingStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType >;
 
 
-  class_<LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,
-                                     LinearSolverType>,
-         bases<BaseSolvingStrategyType>, boost::noncopyable>(
-      "LaplacianMeshMovingStrategy",
-      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
+  class_<LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>,
+    LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
+    BaseSolvingStrategyType>(
+      m,"LaplacianMeshMovingStrategy")
+        .def(init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
       .def("UpdateReferenceMesh",&LaplacianMeshMovingStrategyType::UpdateReferenceMesh)
       ;
 
-  class_<StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,
-                                      LinearSolverType>,
-         bases<BaseSolvingStrategyType>, boost::noncopyable>(
-      "StructuralMeshMovingStrategy",
-      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
+  class_<StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>, 
+  StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
+  BaseSolvingStrategyType>(m,"StructuralMeshMovingStrategy")
+      .def(init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
       .def("UpdateReferenceMesh",&StructuralMeshMovingStrategyType::UpdateReferenceMesh)
       ;
 }

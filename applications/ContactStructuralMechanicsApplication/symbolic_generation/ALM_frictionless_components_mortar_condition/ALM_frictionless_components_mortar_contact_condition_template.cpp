@@ -22,7 +22,7 @@ namespace Kratos
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create( 
     IndexType NewId,
     NodesArrayType const& rThisNodes,
@@ -34,7 +34,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactC
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create(
     IndexType NewId,
     GeometryPointerType pGeom,
@@ -46,7 +46,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactC
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create(
     IndexType NewId,
     GeometryPointerType pGeom,
@@ -59,7 +59,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactC
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation>::~AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition( )
 = default;
 
@@ -79,7 +79,7 @@ AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumN
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& CurrentProcessInfo 
@@ -90,13 +90,13 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
     if (rResult.size() != MatrixSize)
         rResult.resize( MatrixSize, false );
     
-    unsigned int index = 0;
+    IndexType index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
     GeometryType& current_master = this->GetPairedGeometry();;
     
     // Master Nodes Displacement Equation IDs
-    for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
+    for ( IndexType i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
     {
         NodeType& master_node = current_master[i_master];
         rResult[index++] = master_node.GetDof( DISPLACEMENT_X ).EquationId( );
@@ -105,7 +105,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
     }
 
     // Slave Nodes Displacement Equation IDs
-    for ( unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++ )
+    for ( IndexType i_slave = 0; i_slave < TNumNodes; i_slave++ )
     {
         NodeType& slave_node = this->GetGeometry()[ i_slave ];
         rResult[index++] = slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
@@ -114,7 +114,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
     }
 
     // Slave Nodes  Lambda Equation IDs
-    for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
+    for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave )
     {
         NodeType& slave_node = this->GetGeometry()[ i_slave ];
         rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( );
@@ -128,7 +128,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation>::GetDofList(
     DofsVectorType& rConditionalDofList,
     ProcessInfo& rCurrentProcessInfo 
@@ -139,13 +139,13 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
     if (rConditionalDofList.size() != MatrixSize)
         rConditionalDofList.resize( MatrixSize );
     
-    unsigned int index = 0;
+    IndexType index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
     GeometryType& current_master = this->GetPairedGeometry();;
 
     // Master Nodes Displacement Equation IDs
-    for ( unsigned int i_master = 0; i_master < TNumNodes; ++i_master ) // NOTE: Assuming same number of nodes for master and slave
+    for ( IndexType i_master = 0; i_master < TNumNodes; ++i_master ) // NOTE: Assuming same number of nodes for master and slave
     {
         NodeType& master_node = current_master[i_master];
         rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_X );
@@ -154,7 +154,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
     }
 
     // Slave Nodes Displacement Equation IDs
-    for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
+    for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave )
     {
         NodeType& slave_node = this->GetGeometry()[ i_slave ];
         rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_X );
@@ -163,7 +163,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
     }
 
     // Slave Nodes Lambda Equation IDs
-    for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
+    for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave )
     {
         NodeType& slave_node = this->GetGeometry()[ i_slave ];
         rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X );
@@ -177,7 +177,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 int AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -190,7 +190,7 @@ int AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,T
     KRATOS_CHECK_VARIABLE_KEY(VECTOR_LAGRANGE_MULTIPLIER)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( unsigned int i = 0; i < TNumNodes; ++i )
+    for ( IndexType i = 0; i < TNumNodes; ++i )
     {
         NodeType &rnode = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VECTOR_LAGRANGE_MULTIPLIER,rnode)

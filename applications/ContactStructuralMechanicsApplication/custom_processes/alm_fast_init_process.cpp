@@ -59,7 +59,6 @@ void ALMFastInit::Execute()
     for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
         (conditions_array.begin() + i)->SetValue(NORMAL, ZeroVector(3)); // The normal and tangents vectors
 
-
     KRATOS_CATCH("");
 } // class ALMFastInit
 } // namespace Kratos

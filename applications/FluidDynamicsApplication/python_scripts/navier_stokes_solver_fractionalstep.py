@@ -207,9 +207,8 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
         # Note that the first two time steps are dropped to fill the buffer
         if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= 2):
             self.solver.Solve()
-
-        if(self.compute_reactions):
-            self.solver.CalculateReactions()
+            if(self.compute_reactions):
+                self.solver.CalculateReactions()
 
 
     def _set_physical_properties(self):

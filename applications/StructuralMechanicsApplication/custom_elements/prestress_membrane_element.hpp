@@ -241,10 +241,6 @@ namespace Kratos
         array_1d<double, 3>& g1,
         array_1d<double, 3>& g2);
 
-    void CalculateMembraneElasticityTensor(
-        Matrix& D
-        );
-
     void TransformPrestress(const unsigned int PointNumber);
 
     void UpdatePrestress(const unsigned int PointNumber);

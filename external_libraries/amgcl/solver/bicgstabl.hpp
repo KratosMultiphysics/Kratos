@@ -449,13 +449,13 @@ done:
     private:
         size_t n;
 
-        mutable boost::shared_ptr< vector > Rt;
-        mutable boost::shared_ptr< vector > X;
-        mutable boost::shared_ptr< vector > B;
-        mutable boost::shared_ptr< vector > T;
+        mutable std::shared_ptr< vector > Rt;
+        mutable std::shared_ptr< vector > X;
+        mutable std::shared_ptr< vector > B;
+        mutable std::shared_ptr< vector > T;
 
-        mutable std::vector< boost::shared_ptr< vector > > R;
-        mutable std::vector< boost::shared_ptr< vector > > U;
+        mutable std::vector< std::shared_ptr< vector > > R;
+        mutable std::vector< std::shared_ptr< vector > > U;
 
         mutable boost::multi_array<coef_type, 2> MZa, MZb;
         mutable std::vector<coef_type> Y0, YL;
