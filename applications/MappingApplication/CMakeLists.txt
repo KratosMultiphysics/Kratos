@@ -3,8 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosMappingApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-# include_directories( ${CMAKE_SOURCE_DIR}/applications/mpi_search_application ) # TODO can be removed for now
-
 
 # generate variables with the sources
 set( KRATOS_MAPPING_APPLICATION_SOURCES
