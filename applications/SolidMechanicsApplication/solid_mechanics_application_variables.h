@@ -17,7 +17,7 @@
 //
 //
 
-#if !defined(KRATOS_SOLID_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED )
+#if !defined(KRATOS_SOLID_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED)
 #define  KRATOS_SOLID_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED
 
 // System includes
@@ -30,7 +30,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "includes/mat_variables.h"
-#include "custom_strategies/time_integration_methods/time_integration_method.hpp"
+#include "custom_solvers/time_integration_methods/time_integration_methods_container.hpp"
 #include "custom_utilities/shell_cross_section.hpp"
 
 namespace Kratos
@@ -39,8 +39,8 @@ namespace Kratos
   ///@{
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
-  typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >   VariableComponentType;
-  typedef TimeIntegrationMethod<VariableComponentType, double>     TimeIntegrationMethodComponentType;
+  typedef TimeIntegrationMethodsContainer                                TimeIntegrationContainerType;      
+  typedef TimeIntegrationContainerType::Pointer                   TimeIntegrationContainerPointerType;
   ///@}
 
   ///@name Kratos Globals
@@ -53,10 +53,10 @@ namespace Kratos
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Vector, EIGENVALUE_VECTOR)
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Matrix , EIGENVECTOR_MATRIX )
 
-
+  //for integration methods
+  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, TimeIntegrationContainerPointerType, TIME_INTEGRATION_METHODS )  
+  
   //for explicit schemes
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, TimeIntegrationMethodComponentType::Pointer, TIME_INTEGRATION_METHOD )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, TimeIntegrationMethodComponentType::Pointer, ANGULAR_TIME_INTEGRATION_METHOD )  
   KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, MIDDLE_VELOCITY )
 
   //solution

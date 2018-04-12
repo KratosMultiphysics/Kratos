@@ -89,6 +89,8 @@ public:
     typedef TableStreamUtility::Pointer               TablePrinterPointerType;
     
     typedef ConditionNumberUtility::Pointer ConditionNumberUtilityPointerType;
+    
+    typedef std::size_t                                             IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -154,7 +156,7 @@ public:
     {
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             if (mpTable != nullptr)
-                mpTable->AddToRow<unsigned int>(rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]);
+                mpTable->AddToRow<IndexType>(rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]);
         
         bool criterion_result = BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
         

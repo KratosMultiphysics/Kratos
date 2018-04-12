@@ -38,7 +38,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults2, KratosHDF5TestSuite)
             "file_access_mode": "exclusive",
             "file_driver": "core"
         })");
-    auto p_test_file = boost::make_shared<HDF5::FileSerial>(file_params);
+    auto p_test_file = Kratos::make_shared<HDF5::FileSerial>(file_params);
 
     ModelPart read_model_part("test_read");
     ModelPart write_model_part("test_write");
@@ -96,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults, KratosHDF5TestSuite)
             "file_access_mode": "exclusive",
             "file_driver": "core"
         })");
-    auto p_test_file = boost::make_shared<HDF5::FileSerial>(file_params);
+    auto p_test_file = Kratos::make_shared<HDF5::FileSerial>(file_params);
 
     ModelPart read_model_part("test_read");
     ModelPart write_model_part("test_write");

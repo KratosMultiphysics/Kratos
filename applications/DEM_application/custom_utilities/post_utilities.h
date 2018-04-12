@@ -12,7 +12,6 @@
 #include <omp.h>
 #endif
 
-//#include "boost/smart_ptr.hpp"
 #include "utilities/openmp_utils.h"
 
 #include <limits>
@@ -28,6 +27,8 @@ namespace Kratos {
 
         typedef ModelPart::ElementsContainerType ElementsArrayType;
         typedef ModelPart::NodesContainerType NodesContainerType;
+
+        KRATOS_CLASS_POINTER_DEFINITION(PostUtilities);
 
         /// Default constructor.       
 

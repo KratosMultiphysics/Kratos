@@ -51,7 +51,7 @@ namespace Kratos
  * @details For that pourpose if builds an unordered map of the surrounding elements and nodes and performs different checks
  * @author Vicente Mataix Ferrandiz
 */
-class PrismNeighboursProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PrismNeighboursProcess
     : public Process
 {
 public:
