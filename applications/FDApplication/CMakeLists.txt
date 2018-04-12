@@ -9,7 +9,7 @@ file(GLOB_RECURSE KRATOS_FD_APPLICATION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cp
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosFDApplication SHARED ${KRATOS_FD_APPLICATION_SOURCES})
+pybind11_add_module(KratosFDApplication MODULE ${KRATOS_FD_APPLICATION_SOURCES})
 target_link_libraries(KratosFDApplication KratosCore )
 set_target_properties(KratosFDApplication PROPERTIES PREFIX "")
 install(TARGETS KratosFDApplication DESTINATION libs )

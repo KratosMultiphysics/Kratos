@@ -15,7 +15,7 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 
 // Project includes
@@ -43,11 +43,11 @@ namespace Kratos
 namespace Python
 {
 
-void AddCustomIOToPython()
+void AddCustomIOToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
-    class_<HDF5::File, HDF5::File::Pointer, boost::noncopyable >("HDF5File", no_init)
+    class_<HDF5::File, HDF5::File::Pointer >(m,"HDF5File")
     .def("HasPath",&HDF5::File::HasPath)
     .def("IsGroup",&HDF5::File::IsGroup)
     .def("IsDataSet",&HDF5::File::IsDataSet)
@@ -61,43 +61,47 @@ void AddCustomIOToPython()
     .def("GetFileName",&HDF5::File::GetFileName)
     ;
 
-    class_<HDF5::FileSerial, HDF5::FileSerial::Pointer, bases<HDF5::File>, boost::noncopyable>(
-        "HDF5FileSerial", init<Parameters&>())
-    ;
-    
-    class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, bases<IO>, boost::noncopyable>(
-        "HDF5ModelPartIO", init<HDF5::File::Pointer, std::string const&>())
+    class_<HDF5::FileSerial, HDF5::FileSerial::Pointer, HDF5::File>(m,"HDF5FileSerial")
+    .def(init<Parameters&>())
     ;
 
-    class_<HDF5::NodalSolutionStepDataIO, HDF5::NodalSolutionStepDataIO::Pointer, boost::noncopyable>(
-        "HDF5NodalSolutionStepDataIO", init<Parameters, HDF5::File::Pointer>())
+    class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")
+    .def(init<HDF5::File::Pointer, std::string const&>())
+    ;
+
+    class_<HDF5::NodalSolutionStepDataIO, HDF5::NodalSolutionStepDataIO::Pointer>(
+        m,"HDF5NodalSolutionStepDataIO")
+        .def(init<Parameters, HDF5::File::Pointer>())
         .def("WriteNodalResults", &HDF5::NodalSolutionStepDataIO::WriteNodalResults)
         .def("ReadNodalResults", &HDF5::NodalSolutionStepDataIO::ReadNodalResults)
     ;
 
-    class_<HDF5::NodalSolutionStepBossakIO, HDF5::NodalSolutionStepBossakIO::Pointer, boost::noncopyable>(
-        "HDF5NodalSolutionStepBossakIO", init<Parameters, HDF5::File::Pointer>())
+    class_<HDF5::NodalSolutionStepBossakIO, HDF5::NodalSolutionStepBossakIO::Pointer>(
+        m,"HDF5NodalSolutionStepBossakIO")
+        .def(init<Parameters, HDF5::File::Pointer>())
         .def("WriteNodalResults", &HDF5::NodalSolutionStepBossakIO::WriteNodalResults)
         .def("ReadNodalResults", &HDF5::NodalSolutionStepBossakIO::ReadNodalResults)
         .def("SetAlphaBossak", &HDF5::NodalSolutionStepBossakIO::SetAlphaBossak)
     ;
 
-    class_<HDF5::NonHistoricalNodalValueIO, HDF5::NonHistoricalNodalValueIO::Pointer, boost::noncopyable>(
-        "HDF5NonHistoricalNodalValueIO", init<Parameters, HDF5::File::Pointer>())
+    class_<HDF5::NonHistoricalNodalValueIO, HDF5::NonHistoricalNodalValueIO::Pointer>(
+        m,"HDF5NonHistoricalNodalValueIO")
+        .def(init<Parameters, HDF5::File::Pointer>())
         .def("WriteNodalResults", &HDF5::NonHistoricalNodalValueIO::WriteNodalResults)
         .def("ReadNodalResults", &HDF5::NonHistoricalNodalValueIO::ReadNodalResults)
     ;
 
 #ifdef KRATOS_USING_MPI
-    class_<HDF5::FileParallel, HDF5::FileParallel::Pointer, bases<HDF5::File>, boost::noncopyable>(
-        "HDF5FileParallel", init<Parameters&>())
+    class_<HDF5::FileParallel, HDF5::FileParallel::Pointer, HDF5::File>(m,"HDF5FileParallel")
+    .def(init<Parameters&>())
     ;
 
-    class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, bases<IO>, boost::noncopyable>(
-        "HDF5PartitionedModelPartIO", init<HDF5::File::Pointer, std::string const&>())
+    class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>
+        (m,"HDF5PartitionedModelPartIO")
+        .def(init<HDF5::File::Pointer, std::string const&>())
     ;
 #endif
-    
+
 }
 
 } // namespace Python.

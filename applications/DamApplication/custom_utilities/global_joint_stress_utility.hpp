@@ -14,12 +14,12 @@
 #if !defined(KRATOS_GLOBAL_JOINT_STRESS_UTILITIES)
 #define KRATOS_GLOBAL_JOINT_STRESS_UTILITIES
 
+// System includes
 #include <cmath>
 
 // Project includes
-#include "includes/kratos_flags.h"
+#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "processes/process.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
 #include "includes/element.h"

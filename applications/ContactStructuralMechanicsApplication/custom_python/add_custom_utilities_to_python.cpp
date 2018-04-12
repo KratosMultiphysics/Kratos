@@ -12,13 +12,14 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "includes/ublas_interface.h"
+
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
 
 //Utilities
 #include "custom_utilities/tree_contact_search.h"
@@ -29,12 +30,13 @@ namespace Kratos
 {
 namespace Python
 {
-void  AddCustomUtilitiesToPython()
-{
-    using namespace boost::python;
+using namespace pybind11;
 
+void  AddCustomUtilitiesToPython(pybind11::module& m)
+{
     // Tree contact search
-    class_<TreeContactSearch<2, 2>>("TreeContactSearch2D2N", init<ModelPart&>())
+    class_<TreeContactSearch<2, 2>, typename TreeContactSearch<2, 2>::Pointer>(m, "TreeContactSearch2D2N")
+    .def(init<ModelPart&>())
     .def(init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<2, 2>::InitializeMortarConditions)
     .def("ClearMortarConditions",&TreeContactSearch<2, 2>::ClearMortarConditions)
@@ -45,7 +47,8 @@ void  AddCustomUtilitiesToPython()
     .def("CheckMortarConditions",&TreeContactSearch<2, 2>::CheckMortarConditions)
     .def("InvertSearch",&TreeContactSearch<2, 2>::InvertSearch)
     ;
-    class_<TreeContactSearch<3, 3>>("TreeContactSearch3D3N", init<ModelPart&>())
+    class_<TreeContactSearch<3, 3>, typename TreeContactSearch<3, 3>::Pointer>(m, "TreeContactSearch3D3N")
+    .def(init<ModelPart&>())
     .def(init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<3, 3>::InitializeMortarConditions)
     .def("ClearMortarConditions",&TreeContactSearch<3, 3>::ClearMortarConditions)
@@ -56,7 +59,8 @@ void  AddCustomUtilitiesToPython()
     .def("CheckMortarConditions",&TreeContactSearch<3, 3>::CheckMortarConditions)
     .def("InvertSearch",&TreeContactSearch<3, 3>::InvertSearch)
     ;
-    class_<TreeContactSearch<3, 4>>("TreeContactSearch3D4N", init<ModelPart&>())
+    class_<TreeContactSearch<3, 4>, typename TreeContactSearch<3, 4>::Pointer>(m, "TreeContactSearch3D4N")
+    .def(init<ModelPart&>())
     .def(init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<3, 4>::InitializeMortarConditions)
     .def("ClearMortarConditions",&TreeContactSearch<3, 4>::ClearMortarConditions)
@@ -69,9 +73,10 @@ void  AddCustomUtilitiesToPython()
     ;
 
     // Process Factory utility
-    class_<ProcessFactoryUtility>("ProcessFactoryUtility", init<>())
-    .def(init<boost::python::list&>())
-    .def(init<boost::python::object&>())
+    class_<ProcessFactoryUtility, typename ProcessFactoryUtility::Pointer>(m, "ProcessFactoryUtility")
+    .def(init< >())
+    .def(init<  list&>())
+    .def(init<  object&>())
     .def("AddProcess",&ProcessFactoryUtility::AddProcess)
     .def("AddProcesses",&ProcessFactoryUtility::AddProcesses)
     .def("ExecuteMethod",&ProcessFactoryUtility::ExecuteMethod)
@@ -88,7 +93,8 @@ void  AddCustomUtilitiesToPython()
     ;
 
     // Sparse matrix multiplication utility
-    class_<SparseMatrixMultiplicationUtility>("SparseMatrixMultiplicationUtility", init<>())
+    class_<SparseMatrixMultiplicationUtility, typename SparseMatrixMultiplicationUtility::Pointer>(m, "SparseMatrixMultiplicationUtility")
+    .def(init<>())
     .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
     .def("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
     .def("MatrixAdd",&SparseMatrixMultiplicationUtility::MatrixAdd<CompressedMatrix, CompressedMatrix>)

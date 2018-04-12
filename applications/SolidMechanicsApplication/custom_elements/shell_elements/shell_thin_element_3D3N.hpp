@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(SHELL_THIN_ELEMENT_3D3N_H_INCLUDED )
+#if !defined(SHELL_THIN_ELEMENT_3D3N_H_INCLUDED)
 #define  SHELL_THIN_ELEMENT_3D3N_H_INCLUDED
 
 
@@ -56,7 +56,7 @@ class ShellT3_CoordinateTransformation;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class ShellThinElement3D3N : public Element
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Element
 {
  public:
 

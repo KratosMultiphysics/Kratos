@@ -13,7 +13,7 @@
 
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
@@ -28,7 +28,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddConvergenceAcceleratorsToPython();
+void AddConvergenceAcceleratorsToPython(pybind11::module &m);
 
 }  // namespace Python.
 
