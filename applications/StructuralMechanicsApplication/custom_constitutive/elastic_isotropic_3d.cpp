@@ -77,11 +77,6 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
 
     if( r_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
-        if (rValues.IsSetDeformationGradientF() == true)
-        {
-            CalculateCauchyGreenStrain(rValues, r_strain_vector);
-        }
-
         if( r_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
         {
             Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
@@ -241,8 +236,8 @@ void ElasticIsotropic3D::CheckClearElasticMatrix(
 void ElasticIsotropic3D::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double& E = r_material_properties[YOUNG_MODULUS];
-    const double& NU = r_material_properties[POISSON_RATIO];
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
 
     this->CheckClearElasticMatrix(C);
 
@@ -275,8 +270,8 @@ void ElasticIsotropic3D::CalculatePK2Stress(
 )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double& E = r_material_properties[YOUNG_MODULUS];
-    const double& NU = r_material_properties[POISSON_RATIO];
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
 
     const double c1 = E / ((1.00 + NU) * (1 - 2 * NU));
     const double c2 = c1 * (1 - NU);
