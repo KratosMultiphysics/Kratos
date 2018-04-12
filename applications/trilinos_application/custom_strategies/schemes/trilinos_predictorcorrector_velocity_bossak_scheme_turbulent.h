@@ -138,8 +138,8 @@ public:
         if (ErrorCode != 0) return ErrorCode;
 
         // Check buffer size
-        if (rModelPart.GetBufferSize() < 2)
-            KRATOS_THROW_ERROR(std::logic_error, "GearScheme error: Insufficient buffer size for Bossak scheme, should be at least 2, got ",rModelPart.GetBufferSize());
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2 ) <<
+            "Insufficient buffer size for Bossak scheme, should be at least 2, got " << rModelPart.GetBufferSize() << std::endl;
 
         // Check that all required variables were registered
         if(DELTA_TIME.Key() == 0)
