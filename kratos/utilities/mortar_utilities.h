@@ -631,13 +631,13 @@ public:
      */
     
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline bounded_matrix<TNumNodes, TDim> GetVariableMatrix(
+    static inline bounded_matrix<double, TNumNodes, TDim> GetVariableMatrix(
         const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVariable,
         const unsigned int Step
         ) {
         /* DEFINITIONS */        
-        bounded_matrix<TNumNodes, TDim> var_matrix;
+        bounded_matrix<double, TNumNodes, TDim> var_matrix;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3> value = Nodes[i_node].FastGetSolutionStepValue(rVariable, Step);
@@ -656,12 +656,12 @@ public:
      */
         
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline bounded_matrix<TNumNodes, TDim> GetVariableMatrix(
+    static inline bounded_matrix<double, TNumNodes, TDim> GetVariableMatrix(
         const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVariable
         ) {
         /* DEFINITIONS */        
-        bounded_matrix<TNumNodes, TDim> var_matrix;
+        bounded_matrix<double, TNumNodes, TDim> var_matrix;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3>& value = Nodes[i_node].GetValue(rVariable);
