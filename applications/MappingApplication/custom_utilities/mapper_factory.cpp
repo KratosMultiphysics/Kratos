@@ -13,12 +13,9 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "mapper_factory.h"

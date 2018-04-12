@@ -13,9 +13,6 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPER_FLAGS_CPP_INCLUDED )
-#define  KRATOS_MAPPER_FLAGS_CPP_INCLUDED
-
 // System includes
 
 // External includes
@@ -23,7 +20,6 @@
 // Project includes
 #include "includes/define.h"
 #include "mapper_flags.h"
-
 
 namespace Kratos
 {
