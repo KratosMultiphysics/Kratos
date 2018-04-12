@@ -112,7 +112,8 @@ namespace Python
               .def("Projection_Scalar", &InterpolationUtility < 3 > ::Projection_Vector< double >)
               .def("Projection_Traction", &InterpolationUtility < 3 > ::Projection_Traction)
               .def("ExtractBoundaryFaces",&InterpolationUtility < 3 >::ExtractBoundaryFaces)
-              ;
+               ;
+             
   // Periodic boundary conditions utilities
     typedef void (PeriodicConditionUtilitiesForChimera::*AddDoubleVariableType)(Properties&,Variable<double>&);
     typedef void (PeriodicConditionUtilitiesForChimera::*AddVariableComponentType)(Properties&,VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > >&);
@@ -140,22 +141,22 @@ namespace Python
         //.value("EddyViscosity",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
     ;
 
-    enum_<FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel>("TurbulenceModelLabel")
+    /* enum_<FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel>("TurbulenceModelLabel")
         .value("SpalartAllmaras",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SpalartAllmaras)
     ;
-
+ */
     typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*SetStrategyByParamsType)(FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel const&,LinearSolverType::Pointer,const double,const unsigned int);
-    typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*BuildTurbModelType)(FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel const&, LinearSolverType::Pointer, const double, const unsigned int);
-    typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*PassTurbModelType)(Process::Pointer);
+    //typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*BuildTurbModelType)(FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel const&, LinearSolverType::Pointer, const double, const unsigned int);
+    //typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*PassTurbModelType)(Process::Pointer);
     SetStrategyByParamsType ThisSetStrategyOverload = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetStrategy;
-    BuildTurbModelType SetTurbModel_Build = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;
-    PassTurbModelType SetTurbModel_Pass = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;
+    //BuildTurbModelType SetTurbModel_Build = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;
+    //PassTurbModelType SetTurbModel_Pass = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;
 
     class_< FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>,bases<BaseSettingsType>, boost::noncopyable>
         ("FractionalStepSettingsForChimera",init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
         .def("SetStrategy",ThisSetStrategyOverload)
-        .def("SetTurbulenceModel",SetTurbModel_Build)
-        .def("SetTurbulenceModel",SetTurbModel_Pass)
+        //.def("SetTurbulenceModel",SetTurbModel_Build)
+        //.def("SetTurbulenceModel",SetTurbModel_Pass)
         .def("GetStrategy",&FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::pGetStrategy)
         .def("SetEchoLevel",&FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
     ; 
