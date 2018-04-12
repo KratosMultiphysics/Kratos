@@ -442,7 +442,7 @@ public:
             for (unsigned int i = 0; i < number_nodes; ++i) {
                 auto& this_node = this_geometry[i];
                 aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_node.Coordinates());
-                const array_1d<double, 3>& normal = this_geometry.UnitNormal(aux_coords);
+                const array_1d<double, 3> normal = this_geometry.UnitNormal(aux_coords);
                 auto& aux_normal = this_node.FastGetSolutionStepValue(NORMAL);
                 for (unsigned int index = 0; index < 3; ++index) {
                     #pragma omp atomic
@@ -631,13 +631,13 @@ public:
      */
     
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline Matrix GetVariableMatrix(
+    static inline bounded_matrix<double, TNumNodes, TDim> GetVariableMatrix(
         const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVariable,
         const unsigned int Step
         ) {
         /* DEFINITIONS */        
-        Matrix var_matrix(TNumNodes, TDim);
+        bounded_matrix<double, TNumNodes, TDim> var_matrix;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3> value = Nodes[i_node].FastGetSolutionStepValue(rVariable, Step);
@@ -656,12 +656,12 @@ public:
      */
         
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline Matrix GetVariableMatrix(
+    static inline bounded_matrix<double, TNumNodes, TDim> GetVariableMatrix(
         const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVariable
         ) {
         /* DEFINITIONS */        
-        Matrix var_matrix(TNumNodes, TDim);
+        bounded_matrix<double, TNumNodes, TDim> var_matrix;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3>& value = Nodes[i_node].GetValue(rVariable);
