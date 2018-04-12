@@ -110,9 +110,7 @@ PYBIND11_MODULE(KratosParticleMechanicsApplication, m)
     //def("CreateTotalLagragian2D3N", &CreateTotalLagragian2D3N);
     //def("CreateTotalLagragian3D4N", &CreateTotalLagragian3D4N);
 
-
-    //registering variables in python
-
+    // Registering variables in python
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  GAUSS_COORD )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COUNTER);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_NUMBER);
@@ -158,7 +156,6 @@ PYBIND11_MODULE(KratosParticleMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  AUX_R_ACC )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  AUX_T_ACC )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,  NODAL_LUMPED_MASS )
-
 }
 
 
