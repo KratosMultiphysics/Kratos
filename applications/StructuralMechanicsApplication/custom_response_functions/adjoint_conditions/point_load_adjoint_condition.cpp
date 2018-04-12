@@ -270,18 +270,6 @@ namespace Kratos
         return 0;
     }
 
-    std::string PointLoadAdjointCondition::Info() const
-    {
-        std::string condition_name = "PointLoadAdjointCondition";
-        const unsigned int dim =  GetGeometry().WorkingSpaceDimension();
-        if(dim == 2)
-            condition_name = "PointLoadAdjointCondition2D1N";
-        else if(dim == 3)
-            condition_name = "PointLoadAdjointCondition3D1N";
-
-		return condition_name;
-    }
-
 } // Namespace Kratos
 
 

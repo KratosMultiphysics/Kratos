@@ -111,7 +111,6 @@ public:
 
     int Check( const ProcessInfo& rCurrentProcessInfo ) override; 
 
-    std::string Info() const override; 
     ///@}
     ///@name Access
     ///@{
