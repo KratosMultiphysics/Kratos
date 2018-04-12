@@ -19,7 +19,16 @@ namespace Kratos
 {
  
   // specilization to array_1d
-  
+  template<class TVariableType, class TValueType>
+  void EmcStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
+  {
+      KRATOS_TRY
+
+      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS in EmcStepRotationMethod " <<std::endl;
+	
+      KRATOS_CATCH( "" )
+  }
+
   template<>
   void EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode)
   {
