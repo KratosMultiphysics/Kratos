@@ -102,7 +102,6 @@ namespace Kratos
 
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-		std::string Info() const override; 
 
 	protected:
 		CrBeamAdjointElement3D2N(): CrBeamElementLinear3D2N()

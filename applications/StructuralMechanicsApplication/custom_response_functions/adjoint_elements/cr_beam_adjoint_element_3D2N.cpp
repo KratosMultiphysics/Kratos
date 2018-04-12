@@ -871,11 +871,6 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	std::string CrBeamAdjointElement3D2N::Info() const
-    {
-		return "CrBeamAdjointElement3D2N";
-    }
-
 	void CrBeamAdjointElement3D2N::save(Serializer& rSerializer) const
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElementLinear3D2N);
