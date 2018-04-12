@@ -145,9 +145,9 @@ void  AddCustomMappersToPython(pybind11::module& m)
     // class_< NearestElementMapper, bases<Mapper>, boost::noncopyable>
     // ("NearestElementMapper", init<ModelPart&, ModelPart&, Parameters, bool>());
 
-    class_< NearestElementMapper, NearestElementMapper::Pointer, Mapper>
-    (m, "NearestElementMapper")
-        .def( init<ModelPart&, ModelPart&, Parameters>() );
+    // class_< NearestElementMapper, NearestElementMapper::Pointer, Mapper>
+    // (m, "NearestElementMapper")
+    //     .def( init<ModelPart&, ModelPart&, Parameters>() );
 
     // Exposing the MapperFactory
     class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")

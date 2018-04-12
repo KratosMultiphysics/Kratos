@@ -11,9 +11,37 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/mapping_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mapping_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/mapping_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_mappers_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_mappers_to_python.cpp
+    # Mappers
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/mapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_neighbor_mapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_element_mapper.cpp
+    # Mapper Conditions
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mapper_conditions/nearest_neighbor_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mapper_conditions/nearest_element_condition.cpp
+    # Searching
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/interface_search_structure.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/mapper_bounding_box.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/mapper_axis_aligned_bounding_box.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/interface_object.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/interface_node.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/interface_geometry_object.cpp
+    # Utilities
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_communicator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_operation_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_factory.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_flags.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_factory.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities.cpp
+
+    if(${MPI_NEEDED} MATCHES ON ) # MPI-Parallel compilation
+        # Searching
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/interface_search_structure_mpi.cpp
+        # Utilities
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_communicator_mpi.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility_mpi.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities_mpi.cpp
+    endif(${MPI_NEEDED} MATCHES ON )
 )
 
 set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS "")
