@@ -25,6 +25,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
 
 namespace Kratos
 {
@@ -108,12 +109,13 @@ public:
         std::string ignore_string = mSettings["elements_conditions_to_ignore"].GetString();
         bool  from_primal_to_adjoint = mSettings["from_primal_to_adjoint"].GetBool();
         
-    #pragma omp parallel for                              //--> TODO: Check if this really works in parallel
+    #pragma omp parallel for                              
         for(int i=0; i< (int)r_root_model_part.Elements().size(); i++)
         {
             ModelPart::ElementsContainerType::iterator it = r_root_model_part.ElementsBegin() + i;
 
-            std::string element_name = it->Info();
+            std::string element_name; 
+            CompareElementsAndConditionsUtility::GetRegisteredName(*it, element_name);
  
             if(!(element_name == ignore_string))
             {
@@ -143,12 +145,13 @@ public:
             }
         }
         
-    #pragma omp parallel for                              //--> TODO: Check if this really works in parallel
+    #pragma omp parallel for                              
         for(int i=0; i< (int)r_root_model_part.Conditions().size(); i++)
         {
             ModelPart::ConditionsContainerType::iterator it = r_root_model_part.ConditionsBegin() + i;
 
-            std::string condition_name = it->Info();
+            std::string condition_name; 
+            CompareElementsAndConditionsUtility::GetRegisteredName(*it, condition_name);
 
             if(!(condition_name == ignore_string))
             {
