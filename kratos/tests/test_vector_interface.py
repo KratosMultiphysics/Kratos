@@ -96,6 +96,32 @@ class TestVectorInterface(KratosUnittest.TestCase):
         for i in range(5):
             self.assertEqual(v[i],expected[i])
 
+        # modifying the vector through the slice
+        # (numpy-like behaviour)
+        s = v[0:3]
+
+        # double assignment
+        s[0] = 99
+        self.assertEqual(v[0],99)
+
+        # vector assignment
+        w = Vector(3)
+        w[:] = [10.,20.,30.]
+        s[:] = w
+
+        expected = [10,20,30,3,4]
+        for i in range(5):
+            self.assertEqual(v[i],expected[i])
+
+        # slice assignment
+        w = Vector(5)
+        w[:] = [-1.,-2.,-3.,-4.,-5.]
+        s[:] = w[1:4]
+
+        expected = [-2.,-3.,-4.,3,4]
+        for i in range(5):
+            self.assertEqual(v[i],expected[i])
+
     def test_array_construction(self):
         a = Array3(5.0)
         for it in a:

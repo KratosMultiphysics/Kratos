@@ -78,14 +78,12 @@ namespace Python
                 self[start] = value[i]; start += step;
             }
         });
-        binder.def("__getitem__", [](const TVectorType &self, pybind11::slice this_slice) -> TVectorType {
+        binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> boost::numeric::ublas::vector_slice<TVectorType> {
             size_t start, stop, step, slicelength;
             if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
                 throw pybind11::error_already_set();
-            TVectorType sliced_self(slicelength);
-            for (size_t i = 0; i < slicelength; ++i) {
-                sliced_self[i] = self[start]; start += step;
-            }
+            boost::numeric::ublas::slice ublas_slice(start, step, slicelength );
+            boost::numeric::ublas::vector_slice<TVectorType> sliced_self(self, ublas_slice);
             return sliced_self;
         });
 
@@ -97,6 +95,48 @@ namespace Python
 
     void  AddVectorToPython(pybind11::module& m)
     {
+        typedef boost::numeric::ublas::vector_slice<Vector> VectorSlice;
+        class_< VectorSlice >(m, "VectorSlice")
+        .def("Size", [](const VectorSlice& self){return self.size();} )
+        .def("__len__", [](const VectorSlice& self){return self.size();} )
+        .def("__iadd__", [](VectorSlice& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]+=scalar; return self;}, is_operator())
+        .def("__isub__", [](VectorSlice& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]-=scalar; return self;}, is_operator())
+        .def("__imul__", [](VectorSlice& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]*=scalar; return self;}, is_operator())
+        .def("__itruediv__", [](VectorSlice& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]/=scalar; return self;}, is_operator())
+        .def("__iadd__", [](VectorSlice& self, const VectorSlice& other_vec){noalias(self) += other_vec; return self;}, is_operator())
+        .def("__isub__", [](VectorSlice& self, const VectorSlice& other_vec){noalias(self) -= other_vec; return self; }, is_operator())
+        .def("__mul__", [](VectorSlice vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]*=scalar; return vec1;}, is_operator())
+        .def("__div__", [](VectorSlice vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar; return vec1;}, is_operator())
+        .def("__rmul__", [](VectorSlice vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]*=scalar; return vec1;}, is_operator())
+        .def("__rdiv__", [](VectorSlice vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar;}, is_operator())
+        .def("__add__", [](const VectorSlice& vec1, const VectorSlice& vec2){Vector aux(vec1); aux += vec2; return aux;}, is_operator())
+        .def("__sub__", [](const VectorSlice& vec1, const VectorSlice& vec2){Vector aux(vec1); aux -= vec2; return aux;}, is_operator())
+        .def("__setitem__", [](VectorSlice& self, const unsigned int i, const typename VectorSlice::value_type value){self[i] = value;} )
+        .def("__getitem__", [](const VectorSlice& self, const unsigned int i){return self[i];} )
+        .def("__setitem__", [](VectorSlice &self, pybind11::slice this_slice, const VectorSlice &value) {
+            size_t start, stop, step, slicelength;
+            if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
+                throw pybind11::error_already_set();
+            if (slicelength != value.size())
+                throw std::runtime_error("Left and right hand size of slice assignment have different sizes!");
+            for (size_t i = 0; i < slicelength; ++i) {
+                self[start] = value[i]; start += step;
+            }
+        })
+        .def("__setitem__", [](VectorSlice &self, pybind11::slice this_slice, const Vector &value) {
+            size_t start, stop, step, slicelength;
+            if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
+                throw pybind11::error_already_set();
+            if (slicelength != value.size())
+                throw std::runtime_error("Left and right hand size of slice assignment have different sizes!");
+            for (size_t i = 0; i < slicelength; ++i) {
+                self[start] = value[i]; start += step;
+            }
+        })
+        .def("__iter__", [](VectorSlice& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() )
+        .def("__repr__", [](const VectorSlice& self) -> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; })
+        ;
+
         auto vector_binder = CreateVectorInterface<Vector>(m, "Vector");
         vector_binder.def(init<typename Vector::size_type>());
         vector_binder.def(init<typename Vector::size_type, double>());
