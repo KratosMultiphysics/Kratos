@@ -72,12 +72,12 @@ struct eigen {
     static std::string name() { return "eigen"; }
 
     /// Copy matrix from builtin backend.
-    static boost::shared_ptr<matrix>
-    copy_matrix(boost::shared_ptr< typename builtin<real>::matrix > A, const params&)
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr< typename builtin<real>::matrix > A, const params&)
     {
         const typename builtin<real>::matrix &a = *A;
 
-        return boost::shared_ptr<matrix>(
+        return std::shared_ptr<matrix>(
                 new matrix(
                     rows(*A), cols(*A), nonzeros(*A),
                     const_cast<index_type*>(a.ptr),
@@ -89,38 +89,38 @@ struct eigen {
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     copy_vector(typename builtin<real>::vector const &x, const params&)
     {
-        return boost::make_shared<vector>(
+        return std::make_shared<vector>(
                 Eigen::Map<const vector>(x.data(), x.size())
                 );
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
-    copy_vector(boost::shared_ptr< typename builtin<real>::vector > x, const params &prm)
+    static std::shared_ptr<vector>
+    copy_vector(std::shared_ptr< typename builtin<real>::vector > x, const params &prm)
     {
         return copy_vector(*x, prm);
     }
 
     /// Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params&)
     {
-        return boost::make_shared<vector>(size);
+        return std::make_shared<vector>(size);
     }
 
     /// Create direct solver for coarse level
-    static boost::shared_ptr<direct_solver>
-    create_solver(boost::shared_ptr< typename builtin<real>::matrix > A, const params&)
+    static std::shared_ptr<direct_solver>
+    create_solver(std::shared_ptr< typename builtin<real>::matrix > A, const params&)
     {
-        return boost::make_shared<direct_solver>(*A);
+        return std::make_shared<direct_solver>(*A);
     }
 
     private:
         struct hold_host {
-            typedef boost::shared_ptr< crs<real, ptrdiff_t, ptrdiff_t> > host_matrix;
+            typedef std::shared_ptr< crs<real, ptrdiff_t, ptrdiff_t> > host_matrix;
             host_matrix host;
 
             hold_host( host_matrix host ) : host(host) {}

@@ -10,7 +10,7 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 
 // Project includes
@@ -25,19 +25,20 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
 
 
-BOOST_PYTHON_MODULE(KratosExternalSolversApplication)
+PYBIND11_MODULE(KratosExternalSolversApplication,m)
 {
 
     class_<KratosExternalSolversApplication,
            KratosExternalSolversApplication::Pointer,
-           bases<KratosApplication>, boost::noncopyable >("KratosExternalSolversApplication")
+           KratosApplication >(m,"KratosExternalSolversApplication")
+           .def(init<>())
            ;
 
-    AddLinearSolversToPython();
+    AddLinearSolversToPython(m);
 
 
 }

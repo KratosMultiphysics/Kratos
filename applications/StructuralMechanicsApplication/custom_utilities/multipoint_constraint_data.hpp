@@ -37,7 +37,7 @@ namespace Kratos
  * @brief A class that implements the data structure needed for applying Multipoint constraints.
  * @author Aditya Ghantasala
  */
-class MpcData
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MpcData
 {
 
 public:
