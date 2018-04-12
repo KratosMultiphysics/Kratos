@@ -26,6 +26,9 @@
 
 namespace Kratos
 {      
+    template< class TBaseElement >
+    ThermalSphericParticle<TBaseElement>::~ThermalSphericParticle() {}
+
     
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_info){

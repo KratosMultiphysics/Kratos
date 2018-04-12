@@ -1,10 +1,19 @@
+project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
 
+
+
+# Setting some policies
 if(POLICY CMP0054)
   cmake_policy(SET CMP0054 OLD)
 endif(POLICY CMP0054)
 
-project (KratosMultiphysics)
+# Uses INTERFACE_LINK_LIBRARIES instead of LINK_INTERFACE_LIBRARIES
+if(POLICY CMP0022)
+  cmake_policy(SET CMP0022 NEW)
+endif(POLICY CMP0022)
+
+
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 6)
@@ -28,6 +37,8 @@ SET( CMAKE_C_FLAGS_CUSTOM "" )
 SET( CMAKE_CXX_FLAGS_CUSTOM "" )
 SET( CMAKE_SHARED_LINKER_FLAGS_CUSTOM "" )
 SET( CMAKE_EXE_LINKER_FLAGS_CUSTOM "" )
+SET( CMAKE_MODULE_LINKER_FLAGS_FULLDEBUG "${CMAKE_MODULE_LINKER_FLAGS}")
+SET( CMAKE_MODULE_LINKER_FLAGS_CUSTOM "${CMAKE_MODULE_LINKER_FLAGS}")
 
 if(USE_COTIRE MATCHES ON)
     set(CMAKE_SKIP_RPATH ON)
@@ -140,8 +151,8 @@ endif(${MSVC12})
 # Common flags for MSVC
 if(${MSVC})
   message("Detected compiler as MSVC")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
 endif(${MSVC})
 
 # Specific flags for different versions of MSVC
@@ -169,6 +180,9 @@ if(USE_COTIRE MATCHES ON)
     include(cotire)
 endif(USE_COTIRE MATCHES ON)
 
+################### PYBIND11
+include(pybind11Tools)
+
 ######################################################################################
 ######################################################################################
 ######################################################################################
@@ -194,32 +208,19 @@ else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
 ##*****************************
-# Finding and including BOOST library
+# Finding and including BOOST library (version should not matter anymore)
+find_package(Boost)
+
 set(Boost_USE_STATIC_LIBS   OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_REALPATH ON)
 
-# Select python3 by default unless its specified in the configure file
-message("Using component: python${BOOST_PYTHON_SUFFIX}")
-if(BOOST_PYTHON_SUFFIX)
-  FIND_PACKAGE(Boost COMPONENTS "python${BOOST_PYTHON_SUFFIX}" REQUIRED)
-else(BOOST_PYTHON_SUFFIX)
-  FIND_PACKAGE(Boost COMPONENTS python REQUIRED)
-endif(BOOST_PYTHON_SUFFIX)
-
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
 
 message("Boost Include: ${Boost_INCLUDE_DIRS}")
 message("Boost Linkdir: ${Boost_LIBRARY_DIRS}")
-message("Boostlib used: ${Boost_LIBRARIES}")
 
 ##*****************************
-# Finding and including PYTHON
-find_package(PythonLibs REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIRS})
-list(REMOVE_ITEM PYTHON_LIBRARIES "debug" "optimized")
-link_directories(${PYTHON_LIBRARIES})
 
 # Follow the symbolic links for the python lib only if needed
 if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
@@ -393,7 +394,7 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" D
 
 # Remove the tags in the event of multiple versions of boost being found
 # in the same directory
-list(REMOVE_ITEM Boost_LIBRARIES "debug" "optimized")
+# list(REMOVE_ITEM Boost_LIBRARIES "debug" "optimized")
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)

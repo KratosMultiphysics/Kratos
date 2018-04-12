@@ -102,8 +102,8 @@ struct ilu0 {
             }
         }
 
-        boost::shared_ptr<build_matrix> L = boost::make_shared<build_matrix>();
-        boost::shared_ptr<build_matrix> U = boost::make_shared<build_matrix>();
+        std::shared_ptr<build_matrix> L = std::make_shared<build_matrix>();
+        std::shared_ptr<build_matrix> U = std::make_shared<build_matrix>();
 
         L->set_size(n, n); L->set_nonzeros(Lnz); L->ptr[0] = 0;
         U->set_size(n, n); U->set_nonzeros(Unz); U->ptr[0] = 0;
@@ -111,8 +111,8 @@ struct ilu0 {
         size_t Lhead = 0;
         size_t Uhead = 0;
 
-        boost::shared_ptr<backend::numa_vector<value_type> > D =
-            boost::make_shared<backend::numa_vector<value_type> >(n, false);
+        std::shared_ptr<backend::numa_vector<value_type> > D =
+            std::make_shared<backend::numa_vector<value_type> >(n, false);
 
         std::vector<value_type*> work(n, NULL);
 
@@ -171,7 +171,7 @@ struct ilu0 {
                 work[A.col[j]] = NULL;
         }
 
-        ilu = boost::make_shared<ilu_solve>(L, U, D, prm.solve, bprm);
+        ilu = std::make_shared<ilu_solve>(L, U, D, prm.solve, bprm);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
@@ -207,7 +207,7 @@ struct ilu0 {
     }
 
     private:
-        boost::shared_ptr<ilu_solve> ilu;
+        std::shared_ptr<ilu_solve> ilu;
 
 };
 

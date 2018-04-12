@@ -33,8 +33,8 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
         if( self.value_is_numeric ):
             params.AddValue("variable_name", self.settings["variable_name"])
             params.AddValue("value", self.settings["value"])
-
-            self.AssignValueProcess = KratosSolid.AssignScalarToConditionsProcess(self.model_part, params)
+            params.AddEmptyValue("entity_type").SetString("CONDITIONS")
+            self.AssignValueProcess = KratosSolid.AssignScalarToEntitiesProcess(self.model_part, params)
         else:
             #function values are assigned to a vector variable :: transformation is needed
             if( isinstance(self.var,KratosMultiphysics.DoubleVariable) ):
@@ -45,7 +45,8 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
             else:
                 params.AddValue("variable_name", self.settings["variable_name"])
 
-            self.AssignValueProcess = KratosSolid.AssignScalarFieldToConditionsProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)
+            params.AddEmptyValue("entity_type").SetString("CONDITIONS")
+            self.AssignValueProcess = KratosSolid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)
 
         if( self.IsInsideInterval() and self.interval_string == "initial" ):
             self.AssignValueProcess.Execute()

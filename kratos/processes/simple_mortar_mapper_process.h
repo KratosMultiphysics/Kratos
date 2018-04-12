@@ -196,7 +196,7 @@ private:
  * If the pairs sets are not provided a serach will be performed using a KDTree
  * @author Vicente Mataix Ferrandiz
  */
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination = THistOrigin> 
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination = THistOrigin>
 class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess
         : public Process
 {
@@ -235,8 +235,14 @@ public:
     /// Component type
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;  
     
-    /// An integer map
-    typedef std::unordered_map<int, int>                             IntMap;
+    /// Index type definition
+    typedef std::size_t                                           IndexType;
+
+    /// Size type definition
+    typedef std::size_t                                            SizeType;
+
+    /// A map for integers
+    typedef std::unordered_map<IndexType, IndexType>                 IntMap;
     
     /// BoundedMatrix
     typedef bounded_matrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
@@ -551,7 +557,7 @@ private:
     void AssembleRHSAndLHS(
         MatrixType& A,
         std::vector<VectorType>& b,
-        const unsigned int& VariableSize,
+        const SizeType& VariableSize,
         const Matrix& ResidualMatrix,
         GeometryType& SlaveGeometry,
         IntMap& InverseConectivityDatabase,
@@ -568,7 +574,7 @@ private:
      */
     void AssembleRHS(
         std::vector<VectorType>& b,
-        const unsigned int& VariableSize,
+        const SizeType& VariableSize,
         const Matrix& ResidualMatrix,
         GeometryType& SlaveGeometry,
         IntMap& InverseConectivityDatabase
