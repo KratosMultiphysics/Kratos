@@ -219,13 +219,16 @@ private:
         );
 
     /**
-     * Get the node between node_a and node_b
-     * The two input nodes define an element edge
-     * If the middle node exist, returns a pointer to the existing node
+     * Get the node inside a face
+     * The four input nodes define an element face
+     * TODO: If the middle node exist, returns a pointer to the existing node
      * If the middle node does not exist, create a new one and returns a pointer to it
      */
-    Node<3>::Pointer GetNodeInEdge(
-        const GeometriesArrayType ThisEdge,
+    Node<3>::Pointer GetNodeInFace(
+        const NodeType::Pointer pNode0,
+        const NodeType::Pointer pNode1,
+        const NodeType::Pointer pNode2,
+        const NodeType::Pointer pNode3,
         const int& rRefinementLevel
         );
 
@@ -249,6 +252,23 @@ private:
         const int& rRefinementLevel
         );
 
+    /**
+     * Return the nodes defining the i-subtriangle
+     */
+    std::vector<Node<3>::Pointer> GetSubTriangleNodes(
+        int Position,
+        Geometry<NodeType>& rGeom,
+        std::array<NodeType::Pointer, 3>& rMiddleNodes
+        );
+
+    /**
+     * Return the nodes defining the i-subtriangle
+     */
+    std::vector<Node<3>::Pointer> GetSubQuadrilateralNodes(
+        int Position,
+        Geometry<NodeType>& rGeom,
+        std::array<NodeType::Pointer, 5>& rMiddleNodes
+        );
 
     ///@}
     ///@name Private  Access

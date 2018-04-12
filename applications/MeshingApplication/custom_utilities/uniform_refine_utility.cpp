@@ -154,53 +154,45 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& ThisLevel)
         {
             step_refine_level++;
             // Get the geometry
-            Geometry<Node<3>>& geom = p_element->GetGeometry();
+            Geometry<NodeType>& geom = p_element->GetGeometry();
 
             if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
             {
                 // FIRST: Create the nodes
                 // Loop the edges of the father element and get the nodes
-                std::vector<Node<3>::Pointer> p_middle_nodes(3);
-                p_middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
-                p_middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
-                p_middle_nodes[2] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(2), step_refine_level );
+                std::array<NodeType::Pointer, 3> middle_nodes;
+                middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
+                middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
+                middle_nodes[2] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(2), step_refine_level );
 
                 // SECOND: create the sub elements
-                std::vector<Node<3>::Pointer> sub_element_nodes(3);
+                std::vector<NodeType::Pointer> sub_element_nodes(3);
 
-                // First sub element
-                sub_element_nodes[0] = geom.pGetPoint(0);
-                sub_element_nodes[1] = p_middle_nodes[0];
-                sub_element_nodes[2] = p_middle_nodes[2];
-                CreateElement(p_element, sub_element_nodes, step_refine_level);
-
-                // Second sub element
-                sub_element_nodes[0] = geom.pGetPoint(1);
-                sub_element_nodes[1] = p_middle_nodes[1];
-                sub_element_nodes[2] = p_middle_nodes[0];
-                CreateElement(p_element, sub_element_nodes, step_refine_level);
-
-                // Third sub element
-                sub_element_nodes[0] = geom.pGetPoint(2);
-                sub_element_nodes[1] = p_middle_nodes[2];
-                sub_element_nodes[2] = p_middle_nodes[1];
-                CreateElement(p_element, sub_element_nodes, step_refine_level);
-
-                // Fourth sub element
-                sub_element_nodes[0] = p_middle_nodes[0];
-                sub_element_nodes[1] = p_middle_nodes[1];
-                sub_element_nodes[2] = p_middle_nodes[2];
-                CreateElement(p_element, sub_element_nodes, step_refine_level);
+                for (int position = 0; position < 4; position++)
+                {
+                    sub_element_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
+                    CreateElement(p_element, sub_element_nodes, step_refine_level);
+                }
             }
             else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
             {
                 // FIRST: Create the nodes
                 // Loop the edges of the father element and get the nodes
-                std::vector<Node<3>::Pointer> p_middle_nodes(4);
-                p_middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
-                p_middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
-                p_middle_nodes[2] = GetNodeBetween( geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
-                p_middle_nodes[3] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(3), step_refine_level );
+                std::array<NodeType::Pointer, 5> middle_nodes;
+                middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
+                middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
+                middle_nodes[2] = GetNodeBetween( geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
+                middle_nodes[3] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(3), step_refine_level );
+                middle_nodes[4] = GetNodeInFace( geom.pGetPoint(0), geom.pGetPoint(1), geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
+
+                // SECOND: create the sub elements
+                std::vector<NodeType::Pointer> sub_element_nodes(4);
+
+                for (int position = 0; position < 4; position++)
+                {
+                    sub_element_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
+                    CreateElement(p_element, sub_element_nodes, step_refine_level);
+                }
 
             }
             else
@@ -237,16 +229,16 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& ThisLevel)
 }
 
 
-/// Get the middle node on an edge defined by two nodes
+/// Get the middle node on an edge defined by two nodes. If the node does not exist, it creates one
 template< unsigned int TDim>
 Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeBetween(
-    const Node<3>::Pointer pNode0,
-    const Node<3>::Pointer pNode1,
+    const NodeType::Pointer pNode0,
+    const NodeType::Pointer pNode1,
     const int& rRefinementLevel
     )
 {
     // Initialize the output
-    Node<3>::Pointer middle_node;
+    NodeType::Pointer middle_node;
     
     // Get the middle node key
     std::pair<int, int> node_key;
@@ -281,40 +273,63 @@ Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeBetween(
     return middle_node;
 }
 
-// /// Get the middle node on an edge defined by two nodes
-// template< unsigned int TDim>
-// Node<3>::Pointer UniformRefineUtility<TDim>::CreateNodeBetween(
-//     const Node<3>::Pointer pNode0,
-//     const Node<3>::Pointer pNode1,
-//     const int& rRefinementLevel
-//     )
-// {
-//     double new_x = pNode0->X() - pNode1->X();
-//     double new_y = pNode0->Y() - pNode1->Y();
-//     double new_z = pNode0->Z() - pNode1->Z();
-//     middle_node = mrModelPart.CreateNewNode(mLastNodeId++, new_x, new_y, new_z);
 
-//     // interpolate the variables
-//     CalculateNodalStepData(middle_node, pNode0, pNode1);
+/// Get the middle node on a face defined by four nodes. If the node does not exist, it creates one
+template< unsigned int TDim>
+Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeInFace(
+    const NodeType::Pointer pNode0,
+    const NodeType::Pointer pNode1,
+    const NodeType::Pointer pNode2,
+    const NodeType::Pointer pNode3,
+    const int& rRefinementLevel
+)
+{
+    // Initialize the output
+    NodeType::Pointer middle_node;
+    
+    // WARNING: I am working on a 2D space, so I am assuming that the node inside the face only belongs to ONE quadrilateral
+    // TODO: develop the 3D and check the existance of the node
 
-//     // Set the refinement level
-//     int& this_node_level = p_middle_nodes[0]->GetValue(REFINEMENT_LEVEL);
-//     this_node_level = rRefinementLevel;
+    // // Get the middle node key
+    // std::pair<int, int> node_key;
+    // node_key = std::minmax(pNode0->Id(), pNode1->Id());
 
-//     // Store the node in the map
-//     //std::pair< std::pair<int, int>, int > node_map = (node_key, middle_node->Id());
-//     mNodesMap.insert( std::pair< std::pair<int, int>, int > (node_key, middle_node->Id()) );
+    // // Check if the node exist
+    // auto search = mNodesMap.find(node_key);
+    // if (search != mNodesMap.end() )
+    // {
+    //     middle_node = mrModelPart.Nodes()(search->second);
+    // }
+    // else
+    // {
 
-//     return middle_node;
-// }
+    // Create the new node
+    double new_x = 0.25*pNode0->X() + 0.25*pNode1->X() + 0.25*pNode2->X() + 0.25*pNode3->X();
+    double new_y = 0.25*pNode0->Y() + 0.25*pNode1->Y() + 0.25*pNode2->Y() + 0.25*pNode3->Y();
+    double new_z = 0.25*pNode0->Z() + 0.25*pNode1->Z() + 0.25*pNode2->Z() + 0.25*pNode3->Z();
+    middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
+
+    // interpolate the variables
+    CalculateNodalStepData(middle_node, pNode0, pNode1);
+
+    // Set the refinement level
+    int& this_node_level = middle_node->GetValue(REFINEMENT_LEVEL);
+    this_node_level = rRefinementLevel;
+
+        // // Store the node in the map
+        // mNodesMap.insert( std::pair< std::pair<int, int>, int > (node_key, middle_node->Id()) );
+    // }
+
+    return middle_node;
+}
 
 
 /// Compute the nodal data of a node
 template< unsigned int TDim >
 void UniformRefineUtility<TDim>::CalculateNodalStepData(
-    Node<3>::Pointer pNewNode, 
-    const Node<3>::Pointer pNode0, 
-    const Node<3>::Pointer pNode1
+    NodeType::Pointer pNewNode, 
+    const NodeType::Pointer pNode0, 
+    const NodeType::Pointer pNode1
     )
 {
     for (unsigned int step = 0; step < mBufferSize; step++)
@@ -334,7 +349,7 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
 template<unsigned int TDim>
 void UniformRefineUtility<TDim>::CreateElement(
     Element::Pointer pOriginElement,
-    std::vector<Node<3>::Pointer> ThisNodes,
+    std::vector<NodeType::Pointer> ThisNodes,
     const int& rRefinementLevel
     )
 {
@@ -348,6 +363,104 @@ void UniformRefineUtility<TDim>::CreateElement(
     }
 
 }
+
+
+/// Return the nodes defining the i-subtriangle
+template<unsigned int TDim>
+std::vector<Node<3>::Pointer> UniformRefineUtility<TDim>::GetSubTriangleNodes(
+    int Position,
+    Geometry<NodeType>& rGeom,
+    std::array<NodeType::Pointer, 3>& rMiddleNodes
+    )
+{
+    std::vector<NodeType::Pointer> sub_element_nodes(3);
+
+    if (Position == 0)
+    {
+        // First sub element
+        sub_element_nodes[0] = rGeom.pGetPoint(0);
+        sub_element_nodes[1] = rMiddleNodes[0];
+        sub_element_nodes[2] = rMiddleNodes[2];
+    }
+    else if (Position == 1)
+    {
+        // Second sub element
+        sub_element_nodes[0] = rGeom.pGetPoint(1);
+        sub_element_nodes[1] = rMiddleNodes[1];
+        sub_element_nodes[2] = rMiddleNodes[0];
+    }
+    else if (Position == 2)
+    {
+        // Third sub element
+        sub_element_nodes[0] = rGeom.pGetPoint(2);
+        sub_element_nodes[1] = rMiddleNodes[2];
+        sub_element_nodes[2] = rMiddleNodes[1];
+    }
+    else if (Position == 3)
+    {
+        // Fourth sub element (inner element)
+        sub_element_nodes[0] = rMiddleNodes[0];
+        sub_element_nodes[1] = rMiddleNodes[1];
+        sub_element_nodes[2] = rMiddleNodes[2];
+    }
+    else
+    {
+        KRATOS_ERROR << "Attempting to get " << Position << " sub element inside a triangle" << std::endl;
+    }
+
+    return sub_element_nodes;
+}
+
+/// Return the nodes defining the i-subquadrilateral
+template<unsigned int TDim>
+std::vector<Node<3>::Pointer> UniformRefineUtility<TDim>::GetSubQuadrilateralNodes(
+    int Position,
+    Geometry<NodeType>& rGeom,
+    std::array<NodeType::Pointer, 5>& rMiddleNodes
+    )
+{
+    std::vector<NodeType::Pointer> sub_element_nodes(4);
+
+    if (Position == 0)
+    {
+        // First sub element
+        sub_element_nodes[0] = rGeom.pGetPoint(0);
+        sub_element_nodes[1] = rMiddleNodes[0];
+        sub_element_nodes[2] = rMiddleNodes[4];
+        sub_element_nodes[3] = rMiddleNodes[3];
+    }
+    else if (Position == 1)
+    {
+        // Second sub element
+        sub_element_nodes[0] = rGeom.pGetPoint(1);
+        sub_element_nodes[1] = rMiddleNodes[1];
+        sub_element_nodes[2] = rMiddleNodes[4];
+        sub_element_nodes[3] = rMiddleNodes[0];
+    }
+    else if (Position == 2)
+    {
+        // Third sub element
+        sub_element_nodes[0] = rGeom.pGetPoint(2);
+        sub_element_nodes[1] = rMiddleNodes[2];
+        sub_element_nodes[2] = rMiddleNodes[4];
+        sub_element_nodes[3] = rMiddleNodes[1];
+    }
+    else if (Position == 3)
+    {
+        // Fourth sub element
+        sub_element_nodes[0] = rGeom.pGetPoint(3);
+        sub_element_nodes[1] = rMiddleNodes[3];
+        sub_element_nodes[2] = rMiddleNodes[4];
+        sub_element_nodes[3] = rMiddleNodes[2];
+    }
+    else
+    {
+        KRATOS_ERROR << "Attempting to get " << Position << " sub element inside a quadrilateral" << std::endl;
+    }
+
+    return sub_element_nodes;
+}
+
 
 
 template class UniformRefineUtility<2>;
