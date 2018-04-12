@@ -38,20 +38,5 @@ class EigenSolutionInputProcess(KratosMultiphysics.Process):
         non_historical_nodal_io = KratosHDF5.HDF5NonHistoricalNodalValueIO(nodal_io_settings, hdf5_file)
         non_historical_nodal_io.ReadNodalResults(self._model_part.Nodes, self._model_part.GetCommunicator())
 
-
-    # def ExecuteFinalize(self):
-    #     hdf5_file = self._GetFile()
-    #     prefix = self.settings["prefix"].GetString()
-    #     KratosHDF5.WriteDataValueContainer(hdf5_file, prefix, self._model_part.ProcessInfo)
-    #     nodal_io_settings = KratosMultiphysics.Parameters("""
-    #         {
-    #             "list_of_variables": ["EIGENVECTOR_MATRIX"],
-    #             "prefix" : ""
-    #         }
-    #         """)
-    #     nodal_io_settings["prefix"].SetString(prefix)
-    #     non_historical_nodal_io = KratosHDF5.HDF5NonHistoricalNodalValueIO(nodal_io_settings, hdf5_file)
-    #     non_historical_nodal_io.WriteNodalResults(self._model_part.Nodes)
-
     def _GetFile(self):
         return KratosHDF5.HDF5FileSerial(self.settings["file_settings"])
