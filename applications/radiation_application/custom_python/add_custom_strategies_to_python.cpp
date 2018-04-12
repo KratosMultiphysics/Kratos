@@ -13,10 +13,10 @@
 
 
 // External includes 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
-
+//#include <boost/python.hpp>
+//#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+//#include <boost/timer.hpp> 
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define.h"
@@ -44,9 +44,9 @@ namespace Kratos
 
 	namespace Python
 	{		
-		using namespace boost::python;
+		using namespace pybind11;
 
-		void  AddCustomStrategiesToPython()
+		void  AddCustomStrategiesToPython(pybind11::module& m)
 		{
 			typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -60,19 +60,9 @@ namespace Kratos
 			//
 
 
-/*			class_< ResidualBasedConvectionDiffusionrStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
-					bases< BaseSolvingStrategyType >,  boost::noncopyable >
-				("ResidualBasedConvectionDiffusionrStrategy", 
-				init<	ModelPart&, LinearSolverType::Pointer,	bool, int, int	>() )
-				  .def("Clear",&ResidualBasedConvectionDiffusionrStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
-				;
-*/
-			class_< ResidualBasedConvectionDiffusionrStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
-					bases< BaseSolvingStrategyType >,  boost::noncopyable >
-				("ResidualBasedConvectionDiffusionrStrategyNonLinear", 
-				init<	ModelPart&, LinearSolverType::Pointer,	bool, int, int ,double	>() )
-				  .def("Clear",&ResidualBasedConvectionDiffusionrStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
-				;	
+		class_< ResidualBasedConvectionDiffusionrStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >,ResidualBasedConvectionDiffusionrStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,BaseSolvingStrategyType> (m,"ResidualBasedConvectionDiffusionrStrategyNonLinear").def(init<ModelPart&, LinearSolverType::Pointer,	bool, int, int ,double	>() );
+		
+
 		}
 
 	}  // namespace Python.
