@@ -230,9 +230,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 		// Calculate functions
 		void Calculate(const Variable<Matrix >& rVariable,
 			Matrix& Output,
-			const ProcessInfo& rCurrentProcessInfo) override;
-
-		std::string Info() const override; //added by M.Fusseder (needed for sensitivity analysis)		
+			const ProcessInfo& rCurrentProcessInfo) override;	
 
 		///@}
 
@@ -253,7 +251,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 		{
 		}
 
-		// by M.Fusseder
+		
     	// Needed to reset the sections for semi analytical sensitivity analysis where the derivatives are calculated with finite differenes.
     	// There it is necessary the reset the sections and re-initialize them again after the design variable is perturbed
     	// in order have sections with the changed properties.

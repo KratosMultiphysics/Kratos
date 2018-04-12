@@ -86,8 +86,6 @@ namespace Kratos
 				std::vector< Vector >& rOutput,
 				const ProcessInfo& rCurrentProcessInfo) override;
 
-			std::string Info() const override; //fusseder needed for sensitivity analysis	
-
 		private:
 
 			friend class Serializer;

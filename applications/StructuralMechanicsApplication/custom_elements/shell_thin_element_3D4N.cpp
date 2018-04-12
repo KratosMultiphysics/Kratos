@@ -911,16 +911,10 @@ namespace Kratos
 		}
 	}
 
-	void ShellThinElement3D4N::ResetSections() // added by M.Fusseder
+	void ShellThinElement3D4N::ResetSections() 
 	{
    		mSections.clear();
 	}
-
-	std::string ShellThinElement3D4N::Info() const // added by M.Fusseder
-	{		
-		return "ShellThinElement3D4N";
-		//TODO: seperate between linear and nonliner case!!!!
-	}	
 
 	// =========================================================================
 	//
@@ -1961,9 +1955,7 @@ namespace Kratos
 		// calculate the displacement vector
 		// in global and local coordinate systems
 
-		ShellThinElement3D4N::GetValuesVector(data.globalDisplacements); /*changed by M.Fusseder in order to ensure
-    	that dofs of primal solution are used during computing sensitivities. (The GetValuesVector function is overwritten
-    	by corresponding adjoint element. There adjoint dofs are used)*/
+		ShellThinElement3D4N::GetValuesVector(data.globalDisplacements); 
 		data.localDisplacements =
 			mpCoordinateTransformation->CalculateLocalDisplacements(
 				data.LCS, data.globalDisplacements);
