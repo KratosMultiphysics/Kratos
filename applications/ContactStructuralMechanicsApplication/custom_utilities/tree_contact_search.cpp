@@ -578,9 +578,9 @@ void TreeContactSearch<TDim, TNumNodes>::ClearALMFrictionlessMortarConditions(No
 
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::ComputeLinearRegressionGapPressure(
-        double& a,
-        double& b
-        )
+    double& a,
+    double& b
+    )
 {
     // Initialize the n
     SizeType n = 0;
@@ -605,7 +605,13 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeLinearRegressionGapPressu
 
         if (it_node->Is(ACTIVE)) {
             xi = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-            yi = it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
+            if (mTypeSolution == TypeSolution::NormalContactStress) {
+                yi = it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+            } else {
+                const array_1d<double, 3>& lm = it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
+                yi = inner_prod(lm, normal);
+            }
             sum_x += xi;
             sum_xsq += std::pow(xi, 2);
             sum_y += yi;
@@ -816,6 +822,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::AddPotentialPairing(
     // Some auxiliar values
     const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
     const double tolerance = std::numeric_limits<double>::epsilon();
+    const bool frictional = mrMainModelPart.IsDefined(SLIP) ? mrMainModelPart.Is(SLIP) : false;
 
     // Slave geometry
     GeometryType& geom_slave = pCondSlave->GetGeometry();
@@ -846,12 +853,18 @@ inline void TreeContactSearch<TDim, TNumNodes>::AddPotentialPairing(
                     if (aux_distance <= geom_slave[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  geom_master.IsInside(projected_point, result, tolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                         at_least_one_node_potential_contact = true;
                         geom_slave[i_node].Set(ACTIVE, true);
+                        if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional)
+                            if (norm_2(geom_slave[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance)
+                                geom_slave[i_node].Set(SLIP, false);
                     }
 
                     aux_distance = MortarUtilities::FastProjectDirection(geom_master, geom_slave[i_node], projected_point, normal_master, -normal_master);
                     if (aux_distance <= geom_slave[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  geom_master.IsInside(projected_point, result, tolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                         at_least_one_node_potential_contact = true;
                         geom_slave[i_node].Set(ACTIVE, true);
+                        if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional)
+                            if (norm_2(geom_slave[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance)
+                                geom_slave[i_node].Set(SLIP, false);
                     }
                 } else
                     at_least_one_node_potential_contact = true;
@@ -871,12 +884,18 @@ inline void TreeContactSearch<TDim, TNumNodes>::AddPotentialPairing(
                         if (aux_distance <= geom_master[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  geom_slave.IsInside(projected_point, result, tolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                             at_least_one_node_potential_contact = true;
                             geom_master[i_node].Set(ACTIVE, true);
+                            if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional)
+                                if (norm_2(geom_master[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance)
+                                    geom_master[i_node].Set(SLIP, false);
                         }
 
                         aux_distance = MortarUtilities::FastProjectDirection(geom_slave, geom_master[i_node], projected_point, normal_master, -normal_master);
                         if (aux_distance <= geom_master[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  geom_slave.IsInside(projected_point, result, tolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                             at_least_one_node_potential_contact = true;
                             geom_master[i_node].Set(ACTIVE, true);
+                            if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional)
+                                if (norm_2(geom_master[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance)
+                                    geom_master[i_node].Set(SLIP, false);
                         }
                     } else
                         at_least_one_node_potential_contact = true;
@@ -884,8 +903,12 @@ inline void TreeContactSearch<TDim, TNumNodes>::AddPotentialPairing(
             }
         } else {
             at_least_one_node_potential_contact = true;
-            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
+            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 geom_slave[i_node].Set(ACTIVE, true);
+                if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional)
+                        if (norm_2(geom_slave[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance)
+                            geom_slave[i_node].Set(SLIP, false);
+            }
         }
 
         if (at_least_one_node_potential_contact)
@@ -1064,10 +1087,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeActiveInactiveNodes()
 
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::SetActiveNode(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     if (ItNode->Is(ACTIVE) ) {
         switch(mTypeSolution) {
@@ -1137,10 +1160,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::SetInactiveNode(NodesArrayType::
 
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::CorrectScalarMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1150,10 +1173,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::CorrectScalarMortarLM(
 
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::CorrectComponentsMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1163,10 +1186,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::CorrectComponentsMortarLM(
 
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionlessMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
 //     const double old_weighted_gap = ItNode->FastGetSolutionStepValue(WEIGHTED_GAP, 1);
     const double current_weighted_gap = ItNode->FastGetSolutionStepValue(WEIGHTED_GAP);
@@ -1213,10 +1236,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionlessMortarLM(
 
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionlessComponentsMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1226,10 +1249,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionlessComponents
 
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionalMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1239,10 +1262,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionalMortarLM(
 
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::PredictScalarMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1252,10 +1275,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::PredictScalarMortarLM(
 
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::PredictComponentsMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1265,10 +1288,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::PredictComponentsMortarLM(
 
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionlessMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
 //     // The penalty to be use (TODO: think about use the nodal penalty)
 //     ProcessInfo& current_process_info = mrMainModelPart.GetProcessInfo(); // TODO: Avoid call the process info each time
@@ -1300,10 +1323,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionlessMortarLM(
 
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionlessComponentsMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
 //     // The penalty to be use (TODO: think about use the nodal penalty)
 //     ProcessInfo& current_process_info = mrMainModelPart.GetProcessInfo(); // TODO: Avoid call the process info each time
@@ -1339,10 +1362,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionlessComponents
 
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionalMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1353,23 +1376,31 @@ inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionalMortarLM(
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::ComputeWeightedReaction()
 {
+    // Auxiliar zero array
+    const array_1d<double, 3> zero_array(3, 0.0);
+
     // Auxiliar gap
     ModelPart& rcontact_model_part = mrMainModelPart.GetSubModelPart("Contact");
+    NodesArrayType& nodes_array = rcontact_model_part.Nodes();
     switch(mTypeSolution) {
         case TypeSolution::VectorLagrangeMultiplier :
             if (mrMainModelPart.Is(SLIP)) {
-                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, rcontact_model_part.Nodes());
-                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_SLIP, 0.0, rcontact_model_part.Nodes());
+                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+                    auto it_node = nodes_array.begin() + i;
+                    it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = it_node->FastGetSolutionStepValue(WEIGHTED_SLIP, 1);
+                }
             } else if (mrMainModelPart.Is(CONTACT)) {
-                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, rcontact_model_part.Nodes());
+                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
             } else
-                VariableUtils().SetVectorVar(WEIGHTED_VECTOR_RESIDUAL, ZeroVector(3), rcontact_model_part.Nodes());
+                VariableUtils().SetVectorVar(WEIGHTED_VECTOR_RESIDUAL, zero_array, nodes_array);
             break;
         case TypeSolution::ScalarLagrangeMultiplier :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_SCALAR_RESIDUAL, 0.0, rcontact_model_part.Nodes());
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_SCALAR_RESIDUAL, 0.0, nodes_array);
             break;
         case TypeSolution::NormalContactStress :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, rcontact_model_part.Nodes());
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
             break;
     }
     ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");

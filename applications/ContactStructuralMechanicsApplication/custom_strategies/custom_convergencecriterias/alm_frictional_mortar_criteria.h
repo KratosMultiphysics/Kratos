@@ -83,8 +83,6 @@ public:
     
     typedef std::size_t                                                        IndexType;
 
-    typedef std::size_t                                                        IndexType;
-
     ///@}
     ///@name Life Cycle
     ///@{
