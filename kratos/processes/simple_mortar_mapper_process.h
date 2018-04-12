@@ -196,7 +196,7 @@ private:
  * If the pairs sets are not provided a serach will be performed using a KDTree
  * @author Vicente Mataix Ferrandiz
  */
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination = THistOrigin> 
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination = THistOrigin>
 class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess
         : public Process
 {
@@ -235,8 +235,14 @@ public:
     /// Component type
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;  
     
-    /// An integer map
-    typedef std::unordered_map<int, int>                             IntMap;
+    /// Index type definition
+    typedef std::size_t                                           IndexType;
+
+    /// Size type definition
+    typedef std::size_t                                            SizeType;
+
+    /// A map for integers
+    typedef std::unordered_map<IndexType, IndexType>                 IntMap;
     
     /// BoundedMatrix
     typedef bounded_matrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
@@ -256,36 +262,6 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-
-    /**
-     * @brief Default constructor
-     * @param rThisModelPart The model part to compute 
-     * @param ThisVariable The variable to transfer and be transfered
-     * @param ThisParameters The configuration parameters
-     * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
-     */
-    SimpleMortarMapperProcess( 
-        ModelPart& rThisModelPart,
-        TVarType& ThisVariable, 
-        Parameters ThisParameters = Parameters(R"({})" ),
-        LinearSolverType::Pointer pThisLinearSolver = nullptr
-        );
-    
-    /**
-     * @brief A constructor where two different variables can be considered for each subdomain
-     * @param rThisModelPart The model part to compute 
-     * @param OriginVariable The variable to transfer
-     * @param DestinationVariable The variable to be transfered
-     * @param ThisParameters The configuration parameters
-     * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
-     */
-    SimpleMortarMapperProcess( 
-        ModelPart& rThisModelPart,
-        TVarType& OriginVariable,
-        TVarType& DestinationVariable,
-        Parameters ThisParameters = Parameters(R"({})" ),
-        LinearSolverType::Pointer pThisLinearSolver = nullptr
-        );
     
     /**
      * @brief Default constructor
@@ -428,8 +404,8 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrOriginModelPart;                 /// The origin model part to compute
-    ModelPart& mrDestinationModelPart;            /// The destination model part to compute
+    ModelPart& mOriginModelPart;                  /// The origin model part to compute
+    ModelPart& mDestinationModelPart;             /// The destination model part to compute
     TVarType mOriginVariable;                     /// The origin variable to map
     TVarType mDestinationVariable;                /// The destiny variable to map
     
@@ -581,7 +557,7 @@ private:
     void AssembleRHSAndLHS(
         MatrixType& A,
         std::vector<VectorType>& b,
-        const unsigned int& VariableSize,
+        const SizeType& VariableSize,
         const Matrix& ResidualMatrix,
         GeometryType& SlaveGeometry,
         IntMap& InverseConectivityDatabase,
@@ -598,7 +574,7 @@ private:
      */
     void AssembleRHS(
         std::vector<VectorType>& b,
-        const unsigned int& VariableSize,
+        const SizeType& VariableSize,
         const Matrix& ResidualMatrix,
         GeometryType& SlaveGeometry,
         IntMap& InverseConectivityDatabase
@@ -613,13 +589,6 @@ private:
      * @brief This method executes the mapping when a linear solver is avalaible and a system of equations can be solved
      */
     void ExecuteImplicitMapping();
-        
-    /**
-     * @brief This method sets the origin destination model maps when only one model part is provided 
-     * @details The only model part should have MASTER/SLAVE flags in the nodes and conditions
-     * @param rModelPart The main model part, where the origin/destination model parts will be created
-     */
-    void SetOriginDestinationModelParts(ModelPart& rModelPart);
     
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors

@@ -205,7 +205,7 @@ namespace Kratos
  * @details This is the definition of the kinematic variables used on the mortar operators assemble, which means three shape functions (one for the slave , one for the master and the third for the Lagrange Multipliers), and the jacobian in the corresponding Gauss point
  * @author Vicente Mataix Ferrandiz
  */
-template< const unsigned int TNumNodes>
+template< const std::size_t TNumNodes>
 class MortarKinematicVariables
 {
 public:
@@ -224,10 +224,12 @@ public:
     virtual ~MortarKinematicVariables(){}
 
     // Shape functions for contact pair
-    Vector NMaster, NSlave, PhiLagrangeMultipliers;
+    Vector NMaster = Vector(TNumNodes, 0.0);
+    Vector NSlave = Vector(TNumNodes, 0.0);
+    Vector PhiLagrangeMultipliers = Vector(TNumNodes, 0.0);
 
     // Determinant of slave cell's jacobian
-    double DetjSlave;
+    double DetjSlave = 0.0;
 
     ///@}
     ///@name Operators
@@ -349,7 +351,7 @@ private:
  * @details This class derives from MortarKinematicVariables and includes additionally to the variables of the previous class, the variables needed to define the directional derivatives of the mortar operators, like the gradients of the shape functions and the jacobians
  * @author Vicente Mataix Ferrandiz
  */
-template< const unsigned int TDim, const unsigned int TNumNodes>
+template< const std::size_t TDim, const std::size_t TNumNodes>
 class MortarKinematicVariablesWithDerivatives 
     : public MortarKinematicVariables<TNumNodes>
 {
@@ -371,15 +373,16 @@ public:
     ~MortarKinematicVariablesWithDerivatives() override= default;
 
     // Shape functions local derivatives for contact pair
-    Matrix DNDeMaster, DNDeSlave;
+    Matrix DNDeMaster = Matrix(TNumNodes, TDim - 1, 0.0);
+    Matrix DNDeSlave = Matrix(TNumNodes, TDim - 1, 0.0);
 
     /*
     * Jacobians in current configuration on all integration points of slave segment
     * Only those two variables contain info on all GP
     * other variables contain info only on the currently-calculated GP
     */
-    Matrix jSlave;
-    Matrix jMaster;
+    Matrix jSlave = Matrix(TDim, TDim - 1, 0.0);
+    Matrix jMaster = Matrix(TDim, TDim - 1, 0.0);
 
     ///@}
     ///@name Operators
@@ -500,7 +503,7 @@ private:
  * @details This class includes different information that is used in order to compute the directional derivatives in the mortar contact conditions
  * @author Vicente Mataix Ferrandiz
  */
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation>
 class DerivativeData
 {
 public:
@@ -519,15 +522,15 @@ public:
     typedef typename std::conditional<TNumNodes == 2, DummyBoundedMatrixType, bounded_matrix<double, 3, 3>>::type VertexDerivativesMatrixType;
 
     // Auxiliar sizes
-    static const unsigned int DummySize = 1;
+    static const std::size_t DummySize = 1;
 
-    static const unsigned int DoFSizeGeometry = (TNumNodes * TDim);
+    static const std::size_t DoFSizeGeometry = (TNumNodes * TDim);
 
-    static const unsigned int DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
+    static const std::size_t DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
 
-    static const unsigned int DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeGeometry : DoFSizePairedGeometry;
+    static const std::size_t DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeGeometry : DoFSizePairedGeometry;
 
-    static const unsigned int DoFSizeDerivativesVertex = (TDim == 2) ? DummySize : DoFSizePairedGeometry;
+    static const std::size_t DoFSizeDerivativesVertex = (TDim == 2) ? DummySize : DoFSizePairedGeometry;
 
     ///@}
     ///@name Life Cycle
@@ -598,20 +601,21 @@ public:
         X1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false, 1);
 
         // We get the ALM variables
-        for (unsigned int i = 0; i < TNumNodes; ++i)
+        for (std::size_t i = 0; i < TNumNodes; ++i)
             PenaltyParameter[i] = SlaveGeometry[i].GetValue(INITIAL_PENALTY);
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
 
         // We initialize the derivatives
-        for (unsigned int i = 0; i < TNumNodes * TDim; ++i) {
+        const array_1d<double, TNumNodes> zerovector(TNumNodes, 0.0); 
+        for (IndexType i = 0; i < TNumNodes * TDim; ++i) { 
             DeltaDetjSlave[i] = 0.0;
             if (TDim == 3) DeltaDetjSlave[i + TNumNodes * TDim] = 0.0;
-            DeltaPhi[i] = ZeroVector(TNumNodes);
-            if (TDim == 3) DeltaPhi[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-            DeltaN1[i] = ZeroVector(TNumNodes);
-            if (TDim == 3) DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-            DeltaN2[i] = ZeroVector(TNumNodes);
-            if (TDim == 3) DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
+            noalias(DeltaPhi[i]) = zerovector; 
+            if (TDim == 3) noalias(DeltaPhi[i + TNumNodes * TDim]) = zerovector; 
+            noalias(DeltaN1[i]) = zerovector; 
+            if (TDim == 3) noalias(DeltaN1[i + TNumNodes * TDim]) = zerovector; 
+            noalias(DeltaN2[i]) = zerovector; 
+            if (TDim == 3) noalias(DeltaN2[i + TNumNodes * TDim]) = zerovector;
         }
     }
 
@@ -623,7 +627,7 @@ public:
     {
         // Derivatives
         if (TDim == 3) { // Derivative of the cell vertex
-            for (unsigned int i = 0; i < TNumNodes * TDim; ++i) {
+            for (std::size_t i = 0; i < TNumNodes * TDim; ++i) {
                 DeltaCellVertex[i] = ZeroMatrix(3, 3);
                 DeltaCellVertex[i + TNumNodes * TDim] = ZeroMatrix(3, 3);
             }
@@ -640,7 +644,7 @@ public:
         Ae = ZeroMatrix(TNumNodes, TNumNodes);
 
         // Derivatives Ae
-        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i)
+        for (std::size_t i = 0; i < DoFSizeDerivativesDependence; ++i)
             DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes);
     }
 
@@ -745,7 +749,7 @@ private:
  * @details Includes additionally the derivatives necessary to compute the directional derivatives for the frictional conditions
  * @author Vicente Mataix Ferrandiz
  */
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation>
 class DerivativeDataFrictional 
     : public DerivativeData<TDim, TNumNodes, TNormalVariation>
 {
@@ -760,10 +764,10 @@ public:
     typedef bounded_matrix<double, TNumNodes, TDim> GeometryDoFMatrixType;
 
     // Size of DoFs of a not paired dependency
-    static const unsigned int DoFSizeGeometry = (TNumNodes * TDim);
+    static const std::size_t DoFSizeGeometry = (TNumNodes * TDim);
 
     /// Size of DoFs of a paired dependency
-    static const unsigned int DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
+    static const std::size_t DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
 
     ///@}
     ///@name Life Cycle
@@ -774,7 +778,7 @@ public:
     virtual ~DerivativeDataFrictional()= default;
 
     /// The ALM parameters
-    double TangentFactor;
+    double TangentFactor = 0.0;
 
     /// Displacements and velocities
     GeometryDoFMatrixType u1old, u2old;
@@ -908,7 +912,7 @@ private:
  * Popp thesis pge 50 and following
  * @author Vicente Mataix Ferrandiz
  */
-template< const unsigned int TNumNodes>
+template< const std::size_t TNumNodes>
 class MortarOperator
 {
 public:
@@ -970,8 +974,8 @@ public:
         const Vector& n1_vector   = rKinematicVariables.NSlave;
         const Vector& n2_vector   = rKinematicVariables.NMaster;
 
-        for (unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave) {
-            for (unsigned int j_slave = 0; j_slave < TNumNodes; ++j_slave) {
+        for (std::size_t i_slave = 0; i_slave < TNumNodes; ++i_slave) {
+            for (std::size_t j_slave = 0; j_slave < TNumNodes; ++j_slave) {
                 const double phi = phi_vector[i_slave];
 
                 DOperator(i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * n1_vector[j_slave];
@@ -1091,7 +1095,7 @@ private:
  * @details The derived operators are defined in each DoF of each domain, which means TNumNodes x TDim x 2 derivatives definitions in order to compute all the necessary derivatives. Popp thesis page 102 and following
  * @author Vicente Mataix Ferrandiz
  */
-template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
+template< const std::size_t TDim, const std::size_t TNumNodes, bool TFrictional, bool TNormalVariation>
 class MortarOperatorWithDerivatives 
     : public MortarOperator<TNumNodes>
 {
@@ -1113,11 +1117,11 @@ public:
     typedef bounded_matrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
 
     // Auxiliar sizes
-    static const unsigned int DoFSizeGeometry = (TNumNodes * TDim);
+    static const std::size_t DoFSizeGeometry = (TNumNodes * TDim);
 
-    static const unsigned int DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
+    static const std::size_t DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
 
-    static const unsigned int DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeGeometry : DoFSizePairedGeometry;
+    static const std::size_t DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeGeometry : DoFSizePairedGeometry;
 
     /// Counted pointer of MortarOperatorWithDerivatives
     KRATOS_CLASS_POINTER_DEFINITION( MortarOperatorWithDerivatives );
@@ -1150,7 +1154,7 @@ public:
         BaseClassType::Initialize();
 
         // We initialize the D and M derivatives operators
-        for (unsigned int i = 0; i < TNumNodes * TDim; ++i) {
+        for (std::size_t i = 0; i < TNumNodes * TDim; ++i) {
             DeltaDOperator[i] = ZeroMatrix(TNumNodes, TNumNodes);
             DeltaDOperator[i + TNumNodes * TDim] = ZeroMatrix(TNumNodes, TNumNodes);
             DeltaMOperator[i] = ZeroMatrix(TNumNodes, TNumNodes);
@@ -1182,17 +1186,17 @@ public:
         const array_1d<array_1d<double, TNumNodes >, DoFSizeDerivativesDependence>& delta_n1  = rDerivativeData.DeltaN1;
         const array_1d<array_1d<double, TNumNodes >, DoFSizeDerivativesDependence>& delta_n2  = rDerivativeData.DeltaN2;
 
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const double phi = vector_phi[i_node];
 
-            for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node) {
+            for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
                 const double n1 = vector_n1[j_node];
                 const double n2 = vector_n2[j_node];
 
                 BaseClassType::DOperator(i_node, j_node) += det_j_slave * rIntegrationWeight * phi * n1;
                 BaseClassType::MOperator(i_node, j_node) += det_j_slave * rIntegrationWeight * phi * n2;
 
-                for (unsigned int i = 0; i < TDim * TNumNodes; ++i) {
+                for (IndexType i = 0; i < TDim * TNumNodes; ++i) {
                     DeltaDOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi* n1
                                                        + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n1
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n1[i][j_node];
@@ -1202,7 +1206,7 @@ public:
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n2[i][j_node];
                 }
                 if (TDim == 3) {
-                    for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; ++i) {
+                    for (IndexType i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; ++i) {
                         DeltaDOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n1[i][j_node];
                         DeltaMOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n2[i][j_node];
                         DeltaDOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi * n1;
@@ -1222,7 +1226,7 @@ public:
     {
         BaseClassType::PrintInfo(rOStream);
 
-        for (unsigned int i = 0; i < TNumNodes * TDim; ++i)
+        for (std::size_t i = 0; i < TNumNodes * TDim; ++i)
         {
             rOStream << "DeltaDOperator_" << i << ": " << DeltaDOperator[i] << std::endl;
             rOStream << "DeltaMOperator_" << i << ": " << DeltaMOperator[i] << std::endl;
@@ -1317,7 +1321,7 @@ private:
  * Popp thesis page 69 and following
  * @author Vicente Mataix Ferrandiz
  */
-template< const unsigned int TNumNodes>
+template< const std::size_t TNumNodes>
 class DualLagrangeMultiplierOperators
 {
 public:
@@ -1421,15 +1425,16 @@ public:
      * @param N1 The shape function
      * @param detJ The jacobian of the geometry
      */
+    template<class TArray>
     GeometryMatrixType ComputeDe(
-        const Vector& N1,
+        const TArray& N1,
         const double detJ
         ) const
     {
         GeometryMatrixType De;
 
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            for (unsigned int j = 0; j < TNumNodes; ++j) {
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            for (IndexType j = 0; j < TNumNodes; ++j) {
                 if (i == j) De(i,i) = detJ * N1[i];
                 else De(i,j) = 0.0;
             }
@@ -1532,7 +1537,7 @@ private:
  * @details It is based in the same work as the previous class. In this case it computes the derivatives in order to compute the directionald erivative of the dual shape functions. Popp thesis page 111 and following
  * @author Vicente Mataix Ferrandiz
  */
-template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
+template< const std::size_t TDim, const std::size_t TNumNodes, bool TFrictional, bool TNormalVariation>
 class DualLagrangeMultiplierOperatorsWithDerivatives 
     : public DualLagrangeMultiplierOperators<TNumNodes>
 {
@@ -1554,11 +1559,11 @@ public:
     typedef bounded_matrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
 
     // Auxiliar sizes
-    static const unsigned int DoFSizeGeometry = (TNumNodes * TDim);
+    static const std::size_t DoFSizeGeometry = (TNumNodes * TDim);
 
-    static const unsigned int DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
+    static const std::size_t DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
 
-    static const unsigned int DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeGeometry : DoFSizePairedGeometry;
+    static const std::size_t DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeGeometry : DoFSizePairedGeometry;
 
     /// Counted pointer of DualLagrangeMultiplierOperatorsWithDerivatives
     KRATOS_CLASS_POINTER_DEFINITION( DualLagrangeMultiplierOperatorsWithDerivatives );
@@ -1592,9 +1597,10 @@ public:
         BaseClassType::Initialize();
 
         // Derivatives matrices
-        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i) {
-            DeltaMe[i] = ZeroMatrix(TNumNodes, TNumNodes);
-            DeltaDe[i] = ZeroMatrix(TNumNodes, TNumNodes);
+	const bounded_matrix<double, TNumNodes, TNumNodes> zeromatrix = ZeroMatrix(TNumNodes, TNumNodes);
+        for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i) {
+            noalias(DeltaMe[i]) = zeromatrix;
+            noalias(DeltaDe[i]) = zeromatrix;
         }
     }
 
@@ -1617,9 +1623,9 @@ public:
 
         BaseClassType::CalculateAeComponents(rKinematicVariables, rIntegrationWeight);
 
-        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i) {
+        for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i) {
             const double delta_det_j = rDerivativeData.DeltaDetjSlave[i];
-            const Vector& delta_n1 = rDerivativeData.DeltaN1[i];
+            const array_1d<double, TNumNodes>& delta_n1 = rDerivativeData.DeltaN1[i];
 
             DeltaDe[i] += rIntegrationWeight * this->ComputeDe( n1, delta_det_j )
                        +  rIntegrationWeight * this->ComputeDe( delta_n1, det_j_slave );
@@ -1658,7 +1664,7 @@ public:
 
         array_1d<GeometryMatrixType , DoFSizeDerivativesDependence>& delta_Ae = rDerivativeData.DeltaAe;
 
-        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i) {
+        for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i) {
             const GeometryMatrixType aux_matrix = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
             noalias(delta_Ae[i]) = prod(aux_matrix, inv_Me);
         }
@@ -1674,7 +1680,7 @@ public:
         BaseClassType::PrintInfo(rOStream);
 
         // Derivatives matrices
-        for (unsigned int i = 0; i < DoFSizeDerivativesDependence; ++i) {
+        for (std::size_t i = 0; i < DoFSizeDerivativesDependence; ++i) {
             rOStream << "DeltaMe_" << i << ": " << DeltaMe[i] << std::endl;
             rOStream << "DeltaDe_" << i << ": " << DeltaDe[i] << std::endl;
         }
@@ -1766,7 +1772,7 @@ private:
  * @details This point which is a derived class of the standard point, contains the variable mBelongs. This variable is a "hash" that can be used to determine where in which intersections the point belongs
  * @author Vicente Mataix Ferrandiz
  */
-template<unsigned int TNumNodes>
+template<std::size_t TNumNodes>
 class PointBelong 
     : public Point
 {

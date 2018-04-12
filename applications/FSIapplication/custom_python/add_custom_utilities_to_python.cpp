@@ -111,9 +111,7 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
 
     // Note: The StaticMethod thing should be done only once for each set of overloads
     class_< VariableRedistributionUtility >(m,"VariableRedistributionUtility")
-    .def("DistributePointValues",DistributePointDouble)
     .def_static("DistributePointValues",DistributePointArray)
-    .def("ConvertDistributedValuesToPoint",ConvertDistributedDouble)
     .def_static("ConvertDistributedValuesToPoint",ConvertDistributedArray)
     ;
 }

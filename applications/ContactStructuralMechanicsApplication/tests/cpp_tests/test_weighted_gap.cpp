@@ -28,7 +28,7 @@ namespace Kratos
 {
     namespace Testing 
     {
-        typedef Node<3>                                                    NodeType;
+        typedef Node<3> NodeType;
 
         void GiDIOGapDebug(ModelPart& ThisModelPart)
         {
@@ -62,6 +62,11 @@ namespace Kratos
             const double Slope = 0.0
             )
         {
+            ThisModelPart.CreateSubModelPart("SlaveModelPart");
+            ModelPart& slave_model_part = ThisModelPart.GetSubModelPart("SlaveModelPart");
+            ThisModelPart.CreateSubModelPart("MasterModelPart");
+            ModelPart& master_model_part = ThisModelPart.GetSubModelPart("MasterModelPart");
+
             Properties::Pointer p_cond_prop = ThisModelPart.pGetProperties(0);
             
             double x, y;
@@ -74,11 +79,13 @@ namespace Kratos
                 y = Slope * dx * i;
                 id_node++;
                 NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(id_node, x , y , 0.0);
+                slave_model_part.AddNode(p_node_1);
                 p_node_1->Set(SLAVE, true);
                 p_node_1->Set(MASTER, false);
                 p_node_1->Set(ACTIVE, true);
                 id_node++;
                 NodeType::Pointer p_node_2 = ThisModelPart.CreateNewNode(id_node, x , y , 1.0);
+                slave_model_part.AddNode(p_node_2);
                 p_node_2->Set(SLAVE, true);
                 p_node_2->Set(MASTER, false);
                 p_node_2->Set(ACTIVE, true);
@@ -97,6 +104,7 @@ namespace Kratos
                 Quadrilateral3D4 <NodeType> quad( condition_nodes);
                 
                 Condition::Pointer pcond = ThisModelPart.CreateNewCondition("Condition3D4N", id_cond, quad, p_cond_prop);
+                slave_model_part.AddCondition(pcond);
                 pcond->Set(SLAVE, true);
                 pcond->Set(MASTER, false);
                 slave_conds.push_back(pcond);
@@ -111,11 +119,13 @@ namespace Kratos
                 y = Radius * (1.0 - std::cos(count * dtheta));
                 id_node++;
                 NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(id_node, x, y , 0.0);
+                master_model_part.AddNode(p_node_1);
                 p_node_1->Set(SLAVE, false);
                 p_node_1->Set(MASTER, true);
                 p_node_1->Set(ACTIVE, false);
                 id_node++;
                 NodeType::Pointer p_node_2 = ThisModelPart.CreateNewNode(id_node, x, y , 1.0);
+                master_model_part.AddNode(p_node_2);
                 p_node_2->Set(SLAVE, false);
                 p_node_2->Set(MASTER, true);
                 p_node_2->Set(ACTIVE, false);
@@ -136,6 +146,7 @@ namespace Kratos
                 Quadrilateral3D4 <NodeType> quad( condition_nodes);
                 
                 Condition::Pointer pcond = ThisModelPart.CreateNewCondition("Condition3D4N", id_cond, quad, p_cond_prop);
+                master_model_part.AddCondition(pcond);
                 pcond->Set(SLAVE, false);
                 pcond->Set(MASTER, true);
                 master_conds.push_back(pcond);
@@ -160,10 +171,10 @@ namespace Kratos
             }
             
             // We set the mapper parameters
-            Parameters mapping_parameters = Parameters(R"({"inverted_master_slave_pairing": false, "distance_threshold" : 1.0e24})" );
+            Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24})" );
             mapping_parameters["distance_threshold"].SetDouble(ThisModelPart.GetProcessInfo()[DISTANCE_THRESHOLD]);
             typedef SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>, NonHistorical> MapperType;
-            MapperType mapper = MapperType(ThisModelPart, AUXILIAR_COORDINATES, mapping_parameters);
+            MapperType mapper = MapperType(master_model_part, slave_model_part, AUXILIAR_COORDINATES, mapping_parameters);
             mapper.Execute();
             
             // We compute now the normal gap and set the nodes under certain threshold as active
@@ -208,6 +219,7 @@ namespace Kratos
             this_model_part.CreateSubModelPart("ComputingContact");
             this_model_part.SetBufferSize(2);
             
+            this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             this_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
             this_model_part.AddNodalSolutionStepVariable(NORMAL);
             

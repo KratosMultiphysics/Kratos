@@ -11,10 +11,6 @@ set(KRATOS_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/DEM_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/explicit_solver_strategy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/explicit_solver_continuum.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/DEM_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nanoparticle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/analytic_spheric_particle.cpp
@@ -77,7 +73,6 @@ set(KRATOS_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/properties_proxies.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/dem_fem_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/excavator_utility.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AuxiliaryUtilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_model_part_filler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_particle_watcher.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_face_watcher.cpp
@@ -102,17 +97,6 @@ set_target_properties( KratosDEMCore PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICA
 pybind11_add_module(KratosDEMApplication MODULE ${KRATOS_DEM_PYTHON_INTERFACE_SOURCES})
 target_link_libraries(KratosDEMApplication PRIVATE KratosDEMCore )
 set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
-
-#if(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
-#GENERATE_EXPORT_HEADER( KratosDEMApplication
-#             BASE_NAME KratosDEMApplication
-#             EXPORT_MACRO_NAME KRATOS_DEMAPPLICATION_EXPORT_DLL
-#             EXPORT_FILE_NAME ../../../applications/DEM_application/kratos_DEMApplication_export_dll.h
-#             STATIC_DEFINE KratosDemApplication_BUILT_AS_STATIC
-#)
-#endif(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
-ADD_COMPILER_EXPORT_FLAGS()
-
 
 if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
     add_definitions(-DDEBUG_MACRO)

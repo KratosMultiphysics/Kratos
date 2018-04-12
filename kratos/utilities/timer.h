@@ -190,6 +190,13 @@ public:
         return msOutputFile.is_open();
     }
 
+    static int CloseOuputFile()
+    {
+        if(msOutputFile.is_open())
+            msOutputFile.close();
+
+        return msOutputFile.is_open();
+    }
 
     static bool GetPrintOnScreen()
     {

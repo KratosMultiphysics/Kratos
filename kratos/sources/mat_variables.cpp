@@ -50,6 +50,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, C30 )
 
   //viscosity
+  //KRATOS_CREATE_VARIABLE( double, DYNAMIC_VISCOSITY )
   //KRATOS_CREATE_VARIABLE( double, VISCOSITY )
   
   //damage
@@ -161,6 +162,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( C30 )
 
     //viscosity
+    //KRATOS_REGISTER_VARIABLE( DYNAMIC_VISCOSITY )
     //KRATOS_REGISTER_VARIABLE( VISCOSITY )
   
     //damage

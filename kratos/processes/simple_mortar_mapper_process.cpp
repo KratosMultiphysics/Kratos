@@ -23,34 +23,7 @@
 
 namespace Kratos
 {
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
-SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::SimpleMortarMapperProcess(
-    ModelPart& rThisModelPart,
-    TVarType& ThisVariable,
-    Parameters ThisParameters,
-    LinearSolverType::Pointer pThisLinearSolver
-    ): mrOriginModelPart(*new ModelPart()),
-       mrDestinationModelPart(*new ModelPart()),
-       mOriginVariable(ThisVariable),
-       mDestinationVariable(ThisVariable),
-       mThisParameters(ThisParameters),
-       mpThisLinearSolver(pThisLinearSolver)
-{
-    // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-    // We set some values
-    mEchoLevel = mThisParameters["echo_level"].GetInt();
-    
-    // We add the corresponding conditions and nodes to the modelparts
-    SetOriginDestinationModelParts(rThisModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::SimpleMortarMapperProcess(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart,
@@ -58,8 +31,8 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestinati
     TVarType& DestinationVariable,
     Parameters ThisParameters,
     LinearSolverType::Pointer pThisLinearSolver
-    ): mrOriginModelPart(rOriginModelPart),
-       mrDestinationModelPart(rDestinationModelPart),
+    ): mOriginModelPart(rOriginModelPart),
+       mDestinationModelPart(rDestinationModelPart),
        mOriginVariable(OriginVariable),
        mDestinationVariable(DestinationVariable),
        mThisParameters(ThisParameters),
@@ -76,43 +49,15 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestinati
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
-SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::SimpleMortarMapperProcess(
-    ModelPart& rThisModelPart,
-    TVarType& OriginVariable,
-    TVarType& DestinationVariable,
-    Parameters ThisParameters,
-    LinearSolverType::Pointer pThisLinearSolver
-    ): mrOriginModelPart(*new ModelPart()),
-       mrDestinationModelPart(*new ModelPart()),
-       mOriginVariable(OriginVariable),
-       mDestinationVariable(DestinationVariable),
-       mThisParameters(ThisParameters),
-       mpThisLinearSolver(pThisLinearSolver)
-{
-    // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-    // We set some values
-    mEchoLevel = mThisParameters["echo_level"].GetInt();
-    
-    // We add the corresponding conditions and nodes to the modelparts
-    SetOriginDestinationModelParts(rThisModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::SimpleMortarMapperProcess(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart,
     TVarType& ThisVariable,
     Parameters ThisParameters,
     LinearSolverType::Pointer pThisLinearSolver
-):  mrOriginModelPart(rOriginModelPart),
-    mrDestinationModelPart(rDestinationModelPart),
+):  mOriginModelPart(rOriginModelPart),
+    mDestinationModelPart(rDestinationModelPart),
     mOriginVariable(ThisVariable),
     mDestinationVariable(ThisVariable),
     mThisParameters(ThisParameters),
@@ -129,7 +74,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestinati
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>:: Execute()
 {
     KRATOS_TRY;
@@ -145,14 +90,14 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::CheckAndPerformSearch()
 {
     // First we check if search already exists
     bool search_exists = true;
     // Iterate in the conditions
-    ConditionsArrayType& destination_conditions_array = mrDestinationModelPart.Conditions();
-    for(std::size_t i = 0; i < destination_conditions_array.size(); ++i) {
+    ConditionsArrayType& destination_conditions_array = mDestinationModelPart.Conditions();
+    for(IndexType i = 0; i < destination_conditions_array.size(); ++i) {
         auto it_cond = destination_conditions_array.begin() + i;
 
         if (!it_cond->Has( INDEX_SET )) {
@@ -178,7 +123,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
         point_list_destination.clear();
         
         // Iterate in the conditions
-        ConditionsArrayType& origin_conditions_array = mrOriginModelPart.Conditions();
+        ConditionsArrayType& origin_conditions_array = mOriginModelPart.Conditions();
         
         // Creating a buffer for parallel vector fill
         const int num_threads = OpenMPUtils::GetNumThreads();
@@ -209,16 +154,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
             point_list_destination[i]->UpdatePoint();
         
         // Some auxiliar values
-        const unsigned int allocation_size = mThisParameters["search_parameters"]["allocation_size"].GetInt(); // Allocation size for the vectors and max number of potential results 
+        const SizeType allocation_size = mThisParameters["search_parameters"]["allocation_size"].GetInt(); // Allocation size for the vectors and max number of potential results
         const double search_factor = mThisParameters["search_parameters"]["search_factor"].GetDouble(); // The search factor to be considered 
-        unsigned int bucket_size = mThisParameters["search_parameters"]["bucket_size"].GetInt(); // Bucket size for kd-tree
+        SizeType bucket_size = mThisParameters["search_parameters"]["bucket_size"].GetInt(); // Bucket size for kd-tree
         
         // Create a tree
         // It will use a copy of mNodeList (a std::vector which contains pointers)
         // Copying the list is required because the tree will reorder it for efficiency
         KDTreeType tree_points(point_list_destination.begin(), point_list_destination.end(), bucket_size);
         
-        for(std::size_t i = 0; i < destination_conditions_array.size(); ++i) {
+        for(IndexType i = 0; i < destination_conditions_array.size(); ++i) {
             auto it_cond = destination_conditions_array.begin() + i;
             
             // Initialize values
@@ -228,7 +173,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
             const Point& center = geometry.Center();
             
             double radius = 0.0; 
-            for(std::size_t i_node = 0; i_node < it_cond->GetGeometry().PointsNumber(); ++i_node)  { 
+            for(IndexType i_node = 0; i_node < it_cond->GetGeometry().PointsNumber(); ++i_node)  {
                 const array_1d<double, 3>& aux_vector = center.Coordinates() - it_cond->GetGeometry()[i_node].Coordinates();
                 const double aux_value = inner_prod(aux_vector, aux_vector);
                 if(aux_value > radius) radius = aux_value; 
@@ -236,12 +181,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
             
             const double search_radius = search_factor * std::sqrt(radius);
 
-            std::size_t number_points_found = tree_points.SearchInRadius(center, search_radius, points_found.begin(), allocation_size);
+            SizeType number_points_found = tree_points.SearchInRadius(center, search_radius, points_found.begin(), allocation_size);
             
             if (number_points_found > 0) {  
                 IndexSet::Pointer indexes_set = it_cond->GetValue(INDEX_SET);
                 
-                for (std::size_t i_point = 0; i_point < number_points_found; ++i_point ) {
+                for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                     Condition::Pointer p_cond_master = points_found[i_point]->GetCondition();
                     indexes_set->AddId(p_cond_master->Id());
                 }
@@ -253,10 +198,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::ResetNodalArea()
 {
-    NodesArrayType& nodes_array = mrDestinationModelPart.Nodes();
+    NodesArrayType& nodes_array = mDestinationModelPart.Nodes();
 
     // We set to zero
     #pragma omp parallel for
@@ -269,11 +214,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 double SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::GetReferenceArea()
 {
     double ref_area = 0.0;
-    ConditionsArrayType& conditions_array_origin = mrOriginModelPart.Conditions();
+    ConditionsArrayType& conditions_array_origin = mOriginModelPart.Conditions();
 
     // We look for the max area in the origin model part
     for(int i = 0; i < static_cast<int>(conditions_array_origin.size()); ++i) {
@@ -282,7 +227,7 @@ double SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDe
         if (current_area > ref_area) ref_area = current_area;
     }
     
-    ConditionsArrayType& conditions_array_destination = mrDestinationModelPart.Conditions();
+    ConditionsArrayType& conditions_array_destination = mDestinationModelPart.Conditions();
     
     // We look for the max area in the destination model part
     for(int i = 0; i < static_cast<int>(conditions_array_destination.size()); ++i) {
@@ -297,7 +242,7 @@ double SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDe
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::AssemblyMortarOperators(
     const std::vector<array_1d<PointType,TDim>>& ConditionsPointSlave,
     GeometryType& SlaveGeometry,
@@ -309,9 +254,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     const BoundedMatrixType Ae
 )
 {
-    for (unsigned int i_geom = 0; i_geom < ConditionsPointSlave.size(); ++i_geom) {
+    for (IndexType i_geom = 0; i_geom < ConditionsPointSlave.size(); ++i_geom) {
         std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-        for (unsigned int i_node = 0; i_node < TDim; ++i_node) {
+        for (IndexType i_node = 0; i_node < TDim; ++i_node) {
             PointType global_point;
             SlaveGeometry.GlobalCoordinates(global_point, ConditionsPointSlave[i_geom][i_node]);
             points_array[i_node] = Kratos::make_shared<PointType>( global_point );
@@ -325,7 +270,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
             const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
 
             // Integrating the mortar operators
-            for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
+            for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
                 const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
                 PointType local_point_parent;
                 PointType gp_global;
@@ -364,7 +309,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::CalculateAe(
     GeometryType& SlaveGeometry,
     MortarKinematicVariables<TNumNodes>& ThisKinematicVariables,
@@ -379,9 +324,9 @@ inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TD
     // Initialize general variables for the current master element
     ThisKinematicVariables.Initialize();
 
-    for (unsigned int i_geom = 0; i_geom < ConditionsPointsSlave.size(); ++i_geom) {
+    for (IndexType i_geom = 0; i_geom < ConditionsPointsSlave.size(); ++i_geom) {
         std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-        for (unsigned int i_node = 0; i_node < TDim; ++i_node) {
+        for (IndexType i_node = 0; i_node < TDim; ++i_node) {
             PointType global_point;
             SlaveGeometry.GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
             points_array[i_node] = Kratos::make_shared<PointType>( global_point );
@@ -395,7 +340,7 @@ inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TD
             const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
 
             // Integrating the mortar operators
-            for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
+            for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
                 const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
                 PointType local_point_parent;
                 PointType gp_global;
@@ -422,12 +367,12 @@ inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TD
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::InvertDiagonalMatrix(const BoundedMatrixType& InputMatrix)
 {
     BoundedMatrixType inv_matrix = ZeroMatrix(TNumNodes);
 
-    for (std::size_t i = 0; i < TNumNodes; ++i)
+    for (IndexType i = 0; i < TNumNodes; ++i)
         inv_matrix(i, i) = 1.0/InputMatrix(i, i);
 
     return inv_matrix;
@@ -436,7 +381,7 @@ inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TD
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 inline void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::InvertDiagonalMatrix(
     const BoundedMatrixType& InputMatrix,
     BoundedMatrixType& InvertedMatrix
@@ -444,18 +389,18 @@ inline void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, TH
 {
     InvertedMatrix = ZeroMatrix(TNumNodes);
 
-    for (std::size_t i = 0; i < TNumNodes; ++i)
+    for (IndexType i = 0; i < TNumNodes; ++i)
         InvertedMatrix(i, i) = 1.0/InputMatrix(i, i);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::LumpMatrix(BoundedMatrixType& InputMatrix)
 {
-    for (std::size_t i = 0; i < TNumNodes; ++i) {
-        for (std::size_t j = 0; j < TNumNodes; ++j) {
+    for (IndexType i = 0; i < TNumNodes; ++i) {
+        for (IndexType j = 0; j < TNumNodes; ++j) {
             if (i != j) {
                 InputMatrix(i, i) += InputMatrix(i, j);
                 InputMatrix(i, j) = 0.0;
@@ -467,16 +412,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::GetSystemSize(std::size_t& SizeSystem)
 {
-    SizeSystem = mrDestinationModelPart.Nodes().size();
+    SizeSystem = mDestinationModelPart.Nodes().size();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::CreateSlaveConectivityDatabase(
     std::size_t& SizeSystem,
     IntMap& ConectivityDatabase,
@@ -486,10 +431,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     // Initialize the value
     SizeSystem = 0;
 
-    NodesArrayType& nodes_array = mrDestinationModelPart.Nodes();
+    NodesArrayType& nodes_array = mDestinationModelPart.Nodes();
 
     // We create the database
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+    for(IndexType i = 0; i < nodes_array.size(); ++i) {
         auto it_node = nodes_array.begin() + i;
         ConectivityDatabase[SizeSystem] = it_node->Id();
         InverseConectivityDatabase[it_node->Id()] = SizeSystem;
@@ -500,7 +445,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 IntegrationMethod SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::GetIntegrationMethod()
 {
     const int& integration_order = mThisParameters["integration_order"].GetInt();
@@ -526,12 +471,12 @@ IntegrationMethod SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrig
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 bool SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::CheckWholeVector(std::vector<bool> VectorToCheck)
 {
     bool result = true;
 
-    for(std::size_t i = 0; i < VectorToCheck.size(); ++i)
+    for(IndexType i = 0; i < VectorToCheck.size(); ++i)
         if (VectorToCheck[i] == false) return false;
 
     return result;
@@ -540,7 +485,7 @@ bool SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::ComputeResidualMatrix(
     Matrix& ResidualMatrix,
     GeometryType& SlaveGeometry,
@@ -548,14 +493,14 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     const MortarOperator<TNumNodes>& ThisMortarOperators
 )
 {
-    const unsigned int size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
+    const SizeType size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
     Matrix var_origin_matrix(TNumNodes, size_to_compute);
     MortarUtilities::MatrixValue<TVarType, THistOrigin>(MasterGeometry, mOriginVariable, var_origin_matrix);
     Matrix var_destination_matrix(TNumNodes, size_to_compute);
     MortarUtilities::MatrixValue<TVarType, THistDestination>(SlaveGeometry, mDestinationVariable, var_destination_matrix);
 
-    const std::size_t size_1 = var_origin_matrix.size1();
-    const std::size_t size_2 = var_origin_matrix.size2();
+    const SizeType size_1 = var_origin_matrix.size1();
+    const SizeType size_2 = var_origin_matrix.size2();
     if (ResidualMatrix.size1() != size_1  || ResidualMatrix.size2() !=  size_2)
         ResidualMatrix.resize(size_1, size_2, false);
 
@@ -565,23 +510,23 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::AssembleRHSAndLHS(
     MatrixType& A,
     std::vector<VectorType>& b,
-    const unsigned int& VariableSize,
+    const SizeType& VariableSize,
     const Matrix& ResidualMatrix,
     GeometryType& SlaveGeometry,
     IntMap& InverseConectivityDatabase,
     const MortarOperator<TNumNodes>& ThisMortarOperators
 )
 {
-    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const std::size_t& node_i_id = SlaveGeometry[i_node].Id();
         const std::size_t& pos_i_id = static_cast<std::size_t>(InverseConectivityDatabase[node_i_id]);
 
         // First we assemble the RHS
-        for (unsigned int i_var = 0; i_var < VariableSize; ++i_var) {
+        for (IndexType i_var = 0; i_var < VariableSize; ++i_var) {
             double& aux_b = b[i_var][pos_i_id];
             #pragma omp atomic
             aux_b += ResidualMatrix(i_node, i_var);
@@ -603,20 +548,20 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::AssembleRHS(
     std::vector<VectorType>& b,
-    const unsigned int& VariableSize,
+    const SizeType& VariableSize,
     const Matrix& ResidualMatrix,
     GeometryType& SlaveGeometry,
     IntMap& InverseConectivityDatabase
 )
 {
     // First we assemble the RHS
-    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const int& node_i_id = SlaveGeometry[i_node].Id();
         const int& pos_i_id = InverseConectivityDatabase[node_i_id];
-        for (unsigned int i_var = 0; i_var < VariableSize; ++i_var) {
+        for (IndexType i_var = 0; i_var < VariableSize; ++i_var) {
             double& aux_b = b[i_var][pos_i_id];
             #pragma omp atomic
             aux_b += ResidualMatrix(i_node, i_var);
@@ -627,34 +572,34 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::ExecuteExplicitMapping()
 {
     KRATOS_TRY;
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mrOriginModelPart);
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mrDestinationModelPart);
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart);
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart);
 
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
     const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
     const double distance_threshold = mThisParameters["distance_threshold"].GetDouble();
-    const unsigned int max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
-    unsigned int iteration = 0;
+    const SizeType max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
+    IndexType iteration = 0;
 
     // We set to zero the variables
-    MortarUtilities::ResetValue<TVarType, THistDestination>(mrDestinationModelPart, mDestinationVariable);
+    MortarUtilities::ResetValue<TVarType, THistDestination>(mDestinationModelPart, mDestinationVariable);
 
     // Getting the auxiliar variable
     TVarType aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
 
     // Creating the assemble database
-    std::size_t system_size;
+    SizeType system_size;
     GetSystemSize(system_size);
 
     // Defining the operators
-    const unsigned int variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
+    const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
     std::vector<bool> is_converged(variable_size, false);
     std::vector<double> residual_norm(variable_size, 0.0);
     std::vector<double> norm_b0(variable_size, 0.0);
@@ -681,10 +626,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     
     while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations) {
         // We reset the auxiliar variable
-        MortarUtilities::ResetAuxiliarValue<TVarType>(mrOriginModelPart);
-        MortarUtilities::ResetAuxiliarValue<TVarType>(mrDestinationModelPart);
+        MortarUtilities::ResetAuxiliarValue<TVarType>(mOriginModelPart);
+        MortarUtilities::ResetAuxiliarValue<TVarType>(mDestinationModelPart);
 
-        ConditionsArrayType& conditions_array = mrDestinationModelPart.Conditions();
+        ConditionsArrayType& conditions_array = mDestinationModelPart.Conditions();
         const int num_conditions = static_cast<int>(conditions_array.size());
 
         // We map the values from one side to the other
@@ -696,10 +641,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
             GeometryType& slave_geometry = it_cond->GetGeometry();
 
             IndexSet::Pointer& indexes_set = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-            std::vector<std::size_t> indexes_to_remove;
+            std::vector<IndexType> indexes_to_remove;
 
             for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
-                Condition::Pointer p_cond_master = mrOriginModelPart.pGetCondition(*it_pair); // MASTER
+                Condition::Pointer p_cond_master = mOriginModelPart.pGetCondition(*it_pair); // MASTER
                 const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL);
                 GeometryType& master_geometry = p_cond_master->GetGeometry();
 
@@ -721,7 +666,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
                     AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
 
                     /* We compute the residual */
-                    const unsigned int size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
+                    const IndexType size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
                     Matrix residual_matrix(TNumNodes, size_to_compute);
                     ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
 
@@ -742,28 +687,28 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
                     }
 
                     if (iteration == 0) // Just assembled the first iteration
-                        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+                        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
                             slave_geometry[i_node].GetValue(NODAL_AREA) += this_mortar_operators.DOperator(i_node, i_node);
                 } else
                     indexes_to_remove.push_back(*it_pair);
             }
 
             // Clear indexes
-            for (unsigned int i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove)
+            for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove)
                 indexes_set->RemoveId(indexes_to_remove[i_to_remove]);
         }
 
-        NodesArrayType& nodes_array = mrDestinationModelPart.Nodes();
+        NodesArrayType& nodes_array = mDestinationModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());
 
         // We compute the residual norm
-        for (unsigned int i_size = 0; i_size < variable_size; ++i_size) residual_norm[i_size] = 0.0;
+        for (IndexType i_size = 0; i_size < variable_size; ++i_size) residual_norm[i_size] = 0.0;
         #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i) {
             auto it_node = nodes_array.begin() + i;
             NodeType::Pointer pnode = *(it_node.base());
             MortarUtilities::AddAreaWeightedNodalValue<TVarType, THistDestination>(pnode, mDestinationVariable, ref_area);
-            for (unsigned int i_size = 0; i_size < variable_size; ++i_size) {
+            for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
                 const double& value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
                 #pragma omp atomic
                 residual_norm[i_size] += std::pow(value, 2);
@@ -771,7 +716,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
         }
 
         // Finally we compute the residual
-        for (unsigned int i_size = 0; i_size < variable_size; ++i_size) {
+        for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
             residual_norm[i_size] = std::sqrt(residual_norm[i_size])/system_size;
             if (iteration == 0) norm_b0[i_size] = residual_norm[i_size];
             if (residual_norm[i_size] < absolute_convergence_tolerance) is_converged[i_size] = true;
@@ -795,35 +740,35 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::ExecuteImplicitMapping()
 {
     KRATOS_TRY;
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mrOriginModelPart);
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mrDestinationModelPart);
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart);
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart);
 
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
     const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
     const double distance_threshold = mThisParameters["distance_threshold"].GetDouble();
-    const unsigned int max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
-    unsigned int iteration = 0;
+    const SizeType max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
+    IndexType iteration = 0;
 
     // We set to zero the variables
-    MortarUtilities::ResetValue<TVarType, THistDestination>(mrDestinationModelPart, mDestinationVariable);
+    MortarUtilities::ResetValue<TVarType, THistDestination>(mDestinationModelPart, mDestinationVariable);
 
     // Creating the assemble database
-    std::size_t system_size;
+    SizeType system_size;
     IntMap conectivity_database, inverse_conectivity_database;
     CreateSlaveConectivityDatabase(system_size, conectivity_database, inverse_conectivity_database);
 
     // Defining the operators
-    const unsigned int variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
+    const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
     std::vector<bool> is_converged(variable_size, false);
     MatrixType A(system_size, system_size);
-    for (std::size_t i = 0; i < system_size; ++i)
+    for (IndexType i = 0; i < system_size; ++i)
         A.push_back(i, i, 0.0);
     const VectorType zero_vector = ZeroVector(system_size);
     std::vector<VectorType> b(variable_size, zero_vector);
@@ -846,10 +791,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations) {
         // We reset the RHS
         if (iteration > 0)
-            for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
+            for (IndexType i_size = 0; i_size < variable_size; ++i_size)
                 b[i_size] = zero_vector;
 
-        ConditionsArrayType& conditions_array = mrDestinationModelPart.Conditions();
+        ConditionsArrayType& conditions_array = mDestinationModelPart.Conditions();
         const int num_conditions = static_cast<int>(conditions_array.size());
 
         // We map the values from one side to the other
@@ -860,10 +805,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
             GeometryType& slave_geometry = it_cond->GetGeometry();
 
             IndexSet::Pointer& indexes_set = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-            std::vector<std::size_t> indexes_to_remove;
+            std::vector<IndexType> indexes_to_remove;
 
             for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
-                Condition::Pointer p_cond_master = mrOriginModelPart.pGetCondition(*it_pair); // MASTER
+                Condition::Pointer p_cond_master = mOriginModelPart.pGetCondition(*it_pair); // MASTER
                 const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL);
                 GeometryType& master_geometry = p_cond_master->GetGeometry();
 
@@ -885,7 +830,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
                     AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
 
                     /* We compute the residual */
-                    const unsigned int size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
+                    const SizeType size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
                     Matrix residual_matrix(TNumNodes, size_to_compute);
                     ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
 
@@ -908,21 +853,19 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
                         AssembleRHSAndLHS(A, b, variable_size, residual_matrix, slave_geometry, inverse_conectivity_database, this_mortar_operators);
                     else
                         AssembleRHS(b, variable_size, residual_matrix, slave_geometry, inverse_conectivity_database);
-                }
-                else
+                } else
                     indexes_to_remove.push_back(*it_pair);
             }
 
             // Clear indexes
-            for (unsigned int i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove)
+            for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove)
                 indexes_set->RemoveId(indexes_to_remove[i_to_remove]);
         }
 
         // Finally we solve the system
-        for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
-        {
+        for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
             mpThisLinearSolver->Solve(A, Dx, b[i_size]);
-            MortarUtilities::UpdateDatabase<TVarType, THistDestination>(mrDestinationModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
+            MortarUtilities::UpdateDatabase<TVarType, THistDestination>(mDestinationModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
             const double residual_norm = norm_2(b[i_size])/system_size;
             if (iteration == 0) norm_b0[i_size] = residual_norm;
             const double increment_norm = norm_2(Dx)/system_size;
@@ -945,7 +888,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
@@ -956,7 +899,6 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THi
         "max_number_iterations"            : 10,
         "integration_order"                : 2,
         "distance_threshold"               : 1.0e24,
-        "inverted_master_slave_pairing"    : false,
         "search_parameters"                : {
             "allocation_size"                  : 1000, 
             "bucket_size"                      : 4, 
@@ -965,58 +907,6 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THi
     })" );
     
     return default_parameters;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
-void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::SetOriginDestinationModelParts(ModelPart& rModelPart)
-{
-    // We check if the MapperModelPart already exists
-    if (rModelPart.HasSubModelPart("MapperModelPart") == true) {
-        auto& mapper_sub_model_part = rModelPart.GetSubModelPart("MapperModelPart");
-        mrOriginModelPart = mapper_sub_model_part.GetSubModelPart("OriginModelPart");
-        mrDestinationModelPart = mapper_sub_model_part.GetSubModelPart("DestinationModelPart");
-    } else {
-        auto mapper_sub_model_part = rModelPart.CreateSubModelPart("MapperModelPart");
-        mrOriginModelPart = *mapper_sub_model_part->CreateSubModelPart("OriginModelPart");
-        mrDestinationModelPart = *mapper_sub_model_part->CreateSubModelPart("DestinationModelPart");
-    }
-    
-    // The if the master/slaves are paired inverted  
-    const bool inverted_pairing = mThisParameters["inverted_master_slave_pairing"].GetBool();
-    
-    for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-        auto it_cond = rModelPart.ConditionsBegin() + i;
-
-        if (it_cond->Is(SLAVE) == !inverted_pairing) {
-            mrDestinationModelPart.AddCondition(*(it_cond.base()));
-        } else if (it_cond->Is(MASTER) == !inverted_pairing) {
-            mrOriginModelPart.AddCondition(*(it_cond.base()));
-        }
-    }
-
-    for(int i=0; i<static_cast<int>(rModelPart.Nodes().size()); ++i) {
-        auto it_node = rModelPart.NodesBegin() + i;
-
-        if (it_node->Is(SLAVE) == !inverted_pairing) {
-            mrDestinationModelPart.AddNode(*(it_node.base()));
-        } else if (it_node->Is(MASTER) == !inverted_pairing) {
-            mrOriginModelPart.AddNode(*(it_node.base()));
-        }
-    }
-    
-    KRATOS_ERROR_IF(mrOriginModelPart.Conditions().size() == 0) << "No origin conditions. Check your flags are properly set" << std::endl;
-    KRATOS_ERROR_IF(mrDestinationModelPart.Conditions().size() == 0) << "No destination conditions. Check your flags are properly set" << std::endl;
-    
-    KRATOS_ERROR_IF(mrOriginModelPart.Nodes().size() == 0) << "No origin nodes. Check your flags are properly set" << std::endl;
-    KRATOS_ERROR_IF(mrDestinationModelPart.Nodes().size() == 0) << "No destination nodes. Check your flags are properly set" << std::endl;
-    
-    if (mEchoLevel > 2) {
-        KRATOS_WATCH(mrOriginModelPart)
-        KRATOS_WATCH(mrDestinationModelPart)
-    }
 }
 
 /***********************************************************************************/
