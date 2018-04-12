@@ -257,7 +257,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     class_<SpaceTimeRule> (m, "SpaceTimeRule")
         .def(init<>())
-        .def("Evaluate", &TimeDependantForceField::Evaluate)
         ;
 
     class_<BoundingBoxRule, SpaceTimeRule > (m, "BoundingBoxRule")
