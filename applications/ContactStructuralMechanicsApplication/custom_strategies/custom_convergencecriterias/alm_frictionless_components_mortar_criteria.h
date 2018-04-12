@@ -80,6 +80,8 @@ public:
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
     typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
+    
+    typedef std::size_t                                                        IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -158,7 +160,7 @@ public:
         BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
         
         // Defining the convergence
-        unsigned int is_converged = 0;
+        IndexType is_converged = 0;
         
 //         const double epsilon = rModelPart.GetProcessInfo()[INITIAL_PENALTY]; 
         const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR];

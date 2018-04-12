@@ -12,7 +12,7 @@ namespace Kratos {
     
     class SphericParticle;
 
-    class DEM_D_Linear_viscous_Coulomb : public DEMDiscontinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Linear_viscous_Coulomb : public DEMDiscontinuumConstitutiveLaw {
 
     public:
         

@@ -17,8 +17,8 @@ set( KRATOS_ALE_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosALEApplication SHARED ${KRATOS_ALE_APPLICATION_SOURCES})
-target_link_libraries(KratosALEApplication KratosCore )
+pybind11_add_module(KratosALEApplication MODULE ${KRATOS_ALE_APPLICATION_SOURCES})
+target_link_libraries(KratosALEApplication PRIVATE KratosCore )
 set_target_properties(KratosALEApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd

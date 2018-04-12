@@ -60,7 +60,7 @@ namespace Kratos
  * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree 
  * @author Vicente Mataix Ferrandiz
  */
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 class TreeContactSearch
 {
 public:
@@ -360,7 +360,7 @@ private:
         IndexType& rConditionId,
         Condition::Pointer pCondSlave,
         PointVector& rPointsFound,
-        const unsigned int NumberOfPointsFound,
+        const IndexType NumberOfPointsFound,
         IndexSet::Pointer IndexesSet
         );
     

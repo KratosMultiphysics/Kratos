@@ -80,6 +80,8 @@ public:
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
     typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
+    
+    typedef std::size_t                                                        IndexType;
 
     typedef std::size_t                                                        IndexType;
 

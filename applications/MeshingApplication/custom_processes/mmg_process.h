@@ -124,6 +124,9 @@ public:
     ///@name Type Definitions
     ///@{
     
+    /// Pointer definition of MmgProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
+    
     /// Conditions array size
     static constexpr unsigned int ConditionsArraySize = (TDim == 2) ? 1 : 2;
     

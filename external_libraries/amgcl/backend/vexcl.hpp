@@ -136,8 +136,8 @@ struct vexcl {
     static std::string name() { return "vexcl"; }
 
     // Copy matrix from builtin backend.
-    static boost::shared_ptr<matrix>
-    copy_matrix(boost::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
     {
         precondition(!prm.context().empty(), "Empty VexCL context!");
 
@@ -147,7 +147,7 @@ struct vexcl {
         const size_t m   = cols(*A);
         const size_t nnz = a.ptr[n];
 
-        return boost::make_shared<matrix>(prm.context(), n, m,
+        return std::make_shared<matrix>(prm.context(), n, m,
                 boost::make_iterator_range(a.ptr, a.ptr + n+1),
                 boost::make_iterator_range(a.col, a.col + nnz),
                 boost::make_iterator_range(a.val, a.val + nnz),
@@ -157,36 +157,36 @@ struct vexcl {
 
     // Copy vector from builtin backend.
     template <class T>
-    static boost::shared_ptr< vex::vector<T> >
+    static std::shared_ptr< vex::vector<T> >
     copy_vector(const std::vector<T> &x, const params &prm)
     {
         precondition(!prm.context().empty(), "Empty VexCL context!");
-        return boost::make_shared< vex::vector<T> >(prm.context(), x);
+        return std::make_shared< vex::vector<T> >(prm.context(), x);
     }
 
     template <class T>
-    static boost::shared_ptr< vex::vector<T> >
+    static std::shared_ptr< vex::vector<T> >
     copy_vector(const numa_vector<T> &x, const params &prm)
     {
         precondition(!prm.context().empty(), "Empty VexCL context!");
-        return boost::make_shared< vex::vector<T> >(prm.context(), x.size(), x.data());
+        return std::make_shared< vex::vector<T> >(prm.context(), x.size(), x.data());
     }
 
     // Copy vector from builtin backend.
     template <class T>
-    static boost::shared_ptr< vex::vector<T> >
-    copy_vector(boost::shared_ptr< numa_vector<T> > x, const params &prm)
+    static std::shared_ptr< vex::vector<T> >
+    copy_vector(std::shared_ptr< numa_vector<T> > x, const params &prm)
     {
         return copy_vector(*x, prm);
     }
 
     // Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params &prm)
     {
         precondition(!prm.context().empty(), "Empty VexCL context!");
 
-        return boost::make_shared<vector>(prm.context(), size);
+        return std::make_shared<vector>(prm.context(), size);
     }
 
     struct gather {
@@ -223,10 +223,10 @@ struct vexcl {
 
 
     // Create direct solver for coarse level
-    static boost::shared_ptr<direct_solver>
-    create_solver(boost::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
+    static std::shared_ptr<direct_solver>
+    create_solver(std::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
     {
-        return boost::make_shared<direct_solver>(A, prm);
+        return std::make_shared<direct_solver>(A, prm);
     }
 };
 

@@ -68,7 +68,7 @@ namespace Kratos
     ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream)
       : mNumberOfLines(1)
     {
-        // nullptr test can be confusing with boost::shared_ptr. Commented until we move to std::shared_ptr
+        // nullptr test can be confusing with Kratos::shared_ptr. Commented until we move to std::shared_ptr
         // if (Stream == nullptr)
         //    KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 

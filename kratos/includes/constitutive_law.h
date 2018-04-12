@@ -58,9 +58,10 @@ public:
         StrainMeasure_Hencky_Spatial,  //strain measure current   configuration
 
         // Deformation measures:
-        StrainMeasure_Deformation_Gradient, //deformation gradient as a strain measure
+        StrainMeasure_Deformation_Gradient, //material deformation gradient as a strain measure
         StrainMeasure_Right_CauchyGreen,    //right cauchy-green tensor as a strain measure
-        StrainMeasure_Left_CauchyGreen      //left  cauchy-green tensor as a strain measure
+        StrainMeasure_Left_CauchyGreen,     //left  cauchy-green tensor as a strain measure
+        //StrainMeasure_Velocity_Gradient     //spatial velocity gradient as a strain measure
     };
 
     enum StressMeasure

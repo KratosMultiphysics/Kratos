@@ -533,8 +533,8 @@ class ALMContactProcess(python_process.PythonProcess):
 
         mortar_mapping.Execute()
 
-        # Transfering the AUGMENTED_NORMAL_CONTACT_PRESSURE to NORMAL_CONTACT_STRESS
-        KM.VariableUtils().CopyScalarVar(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, KM.NORMAL_CONTACT_STRESS, interface_model_part.Nodes)
+        # Transfering the AUGMENTED_NORMAL_CONTACT_PRESSURE to LAGRANGE_MULTIPLIER_CONTACT_PRESSURE
+        KM.VariableUtils().CopyScalarVar(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, interface_model_part.Nodes)
 
         self._reset_search()
 
@@ -596,8 +596,8 @@ class ALMContactProcess(python_process.PythonProcess):
         if (self.main_model_part.Nodes[1].SolutionStepsDataHas(KM.VELOCITY_X) is True):
             gid_io.WriteNodalResults(KM.VELOCITY, self.main_model_part.Nodes, label, 0)
             gid_io.WriteNodalResults(KM.ACCELERATION, self.main_model_part.Nodes, label, 0)
-        if (self.main_model_part.Nodes[1].SolutionStepsDataHas(KM.NORMAL_CONTACT_STRESS) is True):
-            gid_io.WriteNodalResults(KM.NORMAL_CONTACT_STRESS, self.main_model_part.Nodes, label, 0)
+        if (self.main_model_part.Nodes[1].SolutionStepsDataHas(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) is True):
+            gid_io.WriteNodalResults(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, self.main_model_part.Nodes, label, 0)
         else:
             gid_io.WriteNodalResults(KM.VECTOR_LAGRANGE_MULTIPLIER, self.main_model_part.Nodes, label, 0)
         gid_io.WriteNodalResults(CSMA.WEIGHTED_GAP, self.main_model_part.Nodes, label, 0)
