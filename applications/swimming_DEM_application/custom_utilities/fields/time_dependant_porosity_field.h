@@ -186,6 +186,8 @@ class TimeDependantForceField: public VectorField<3>
 
 public:
 
+KRATOS_CLASS_POINTER_DEFINITION(TimeDependantForceField);
+
 TimeDependantForceField(const double max_time): mAlpha(max_time){}
 
 virtual ~TimeDependantForceField(){}

@@ -260,7 +260,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("Evaluate", &TimeDependantForceField::Evaluate)
         ;
 
-    class_<BoundingBoxRule, BoundingBoxRule::Pointer, SpaceTimeRule > (m, "BoundingBoxRule")
+    class_<BoundingBoxRule, SpaceTimeRule > (m, "BoundingBoxRule")
         .def(init<const double, const double, const double, const double, const double, const double, const double, const double>())
         .def("SetTimeBoundingInterval", &BoundingBoxRule::SetTimeBoundingInterval)
         .def("SetXBoundingInterval", &BoundingBoxRule::SetXBoundingInterval)
@@ -271,7 +271,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("Info", &BoundingBoxRule::Info)
         ;
 
-    class_<MoreThanRule, MoreThanRule::Pointer, SpaceTimeRule > (m, "MoreThanRule")
+    class_<MoreThanRule, SpaceTimeRule > (m, "MoreThanRule")
         .def(init<const double, RealField::Pointer>())
         .def(init<RealField::Pointer, RealField::Pointer>())
         .def("CheckIfRuleIsMet", &MoreThanRule::CheckIfRuleIsMet)
