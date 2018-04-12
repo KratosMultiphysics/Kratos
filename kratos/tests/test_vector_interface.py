@@ -67,28 +67,28 @@ class TestVectorInterface(KratosUnittest.TestCase):
 
         slice1 = v[1:4] # simple slice get
         self.assertEqual(len(slice1),3)
-        for i in range(len(slice1)):
-            self.assertEqual(slice1[i], i+1 )
+        for i,value in enumerate(slice1):
+            self.assertEqual(value, i+1 )
 
         slice2 = v[2:] # open slice get
         self.assertEqual(len(slice2),3)
-        for i in range(len(slice2)):
-            self.assertEqual(slice2[i], i+2 )
+        for i,value in enumerate(slice2):
+            self.assertEqual(value, i+2 )
 
         slice3 = v[:3] # open slice get
         self.assertEqual(len(slice3),3)
-        for i in range(len(slice3)):
-            self.assertEqual(slice3[i], i )
+        for i,value in enumerate(slice3):
+            self.assertEqual(value, i )
 
         slice4 = v[0::2] # slice get with step
         self.assertEqual(len(slice4),3)
-        for i in range(len(slice4)):
-            self.assertEqual(slice4[i], 2*i )
+        for i,value in enumerate(slice4):
+            self.assertEqual(value, 2*i )
 
         slice5 = v[::-1] # slice get with reverse step
         self.assertEqual(len(slice5),5)
-        for i in range(len(slice5)):
-            self.assertEqual(slice5[i], 4-i )
+        for i,value in enumerate(slice5):
+            self.assertEqual(value, 4-i )
 
         # slice set
         v[0:3] = [2*i for i in range(3)]
