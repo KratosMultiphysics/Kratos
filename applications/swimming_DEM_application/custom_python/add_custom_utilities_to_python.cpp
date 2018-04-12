@@ -249,7 +249,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CalculateLaplacian", &TimeDependantPorosityField::CalculateLaplacian)
         ;
 
-    class_<TimeDependantForceField, TimeDependantForceField::Pointer, RealField > (m, "TimeDependantForceField")
+    class_<TimeDependantForceField, TimeDependantForceField::Pointer, VectorField<3>> (m, "TimeDependantForceField")
         .def(init<const double&>())
         .def("Evaluate", &TimeDependantForceField::Evaluate)
         .def("GetPorosityField", &TimeDependantForceField::GetPorosityField)
