@@ -119,7 +119,7 @@ public:
 	 @param rLocalVector Local RHS vector
 	 @param rGeometry A reference to the element's (or condition's) geometry
 	 */
-	void Rotate(TLocalMatrixType& rLocalMatrix,
+	virtual void Rotate(TLocalMatrixType& rLocalMatrix,
 			TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
@@ -137,7 +137,7 @@ public:
 	}
 
 	/// RHS only version of Rotate
-	void Rotate(TLocalVectorType& rLocalVector,
+	virtual void Rotate(TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
 		//const unsigned int LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
@@ -241,7 +241,7 @@ public:
 	 and imposes that the normal velocity is equal to the mesh velocity in
 	 the normal direction.
 	 */
-	void ApplySlipCondition(TLocalMatrixType& rLocalMatrix,
+	virtual void ApplySlipCondition(TLocalMatrixType& rLocalMatrix,
 			TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
@@ -283,7 +283,7 @@ public:
 	}
 
 	/// RHS only version of ApplySlipCondition
-	void ApplySlipCondition(TLocalVectorType& rLocalVector,
+	virtual void ApplySlipCondition(TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
 		if (rLocalVector.size() > 0)
@@ -309,7 +309,7 @@ public:
 	}
 
 	/// Transform nodal velocities to the rotated coordinates (aligned with each node's normal)
-	void RotateVelocities(ModelPart& rModelPart) const
+	virtual void RotateVelocities(ModelPart& rModelPart) const
 	{
 		TLocalVectorType Vel(mDomainSize);
 		TLocalVectorType Tmp(mDomainSize);
@@ -348,7 +348,7 @@ public:
 	}
 
 	/// Transform nodal velocities from the rotated system to the original one
-	void RecoverVelocities(ModelPart& rModelPart) const
+	virtual void RecoverVelocities(ModelPart& rModelPart) const
 	{
 		TLocalVectorType Vel(mDomainSize);
 		TLocalVectorType Tmp(mDomainSize);
