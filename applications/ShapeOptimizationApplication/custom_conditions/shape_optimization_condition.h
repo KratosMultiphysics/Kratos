@@ -138,8 +138,6 @@ public:
     ///@{
     ///@}
 
-    std::string Info() const override; //fusseder needed for sensitivity analysis	
-
 protected:
     ///@name Protected static Member Variables
     ///@{
