@@ -69,6 +69,11 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /**
+     * Node type
+     */
+    typedef Node<3> NodeType;
+    
     /// Pointer definition of UniformRefineUtility
     KRATOS_CLASS_POINTER_DEFINITION(UniformRefineUtility);
 
@@ -208,8 +213,19 @@ private:
      * If the middle node does not exist, create a new one and returns a pointer to it
      */
     Node<3>::Pointer GetNodeBetween(
-        const Node<3>::Pointer pNode0,
-        const Node<3>::Pointer pNode1,
+        const NodeType::Pointer pNode0,
+        const NodeType::Pointer pNode1,
+        const int& rRefinementLevel
+        );
+
+    /**
+     * Get the node between node_a and node_b
+     * The two input nodes define an element edge
+     * If the middle node exist, returns a pointer to the existing node
+     * If the middle node does not exist, create a new one and returns a pointer to it
+     */
+    Node<3>::Pointer GetNodeInEdge(
+        const GeometriesArrayType ThisEdge,
         const int& rRefinementLevel
         );
 
@@ -219,9 +235,9 @@ private:
      * the origin nodes
      */
     void CalculateNodalStepData(
-        Node<3>::Pointer pNewNode,
-        const Node<3>::Pointer pNode0,
-        const Node<3>::Pointer pNode1
+        NodeType::Pointer pNewNode,
+        const NodeType::Pointer pNode0,
+        const NodeType::Pointer pNode1
         );
 
     /**
@@ -229,7 +245,7 @@ private:
      */
     void CreateElement(
         Element::Pointer pOriginElement,
-        std::vector<Node<3>::Pointer> ThisNodes,
+        std::vector<NodeType::Pointer> ThisNodes,
         const int& rRefinementLevel
         );
 
