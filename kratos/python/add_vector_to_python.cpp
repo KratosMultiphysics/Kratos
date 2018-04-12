@@ -78,13 +78,13 @@ namespace Python
                 self[start] = value[i]; start += step;
             }
         });
-        binder.def("__getitem__", [](const TVectorType &self, pybind11::slice this_slice) -> TVectorType* {
+        binder.def("__getitem__", [](const TVectorType &self, pybind11::slice this_slice) -> TVectorType {
             size_t start, stop, step, slicelength;
             if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
                 throw pybind11::error_already_set();
-            TVectorType *sliced_self = new TVectorType(slicelength);
+            TVectorType sliced_self(slicelength);
             for (size_t i = 0; i < slicelength; ++i) {
-                (*sliced_self)[i] = self[start]; start += step;
+                sliced_self[i] = self[start]; start += step;
             }
             return sliced_self;
         });
