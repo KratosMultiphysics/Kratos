@@ -199,17 +199,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const vector<double>&, vector<double>&, const int);
     CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
 
-<<<<<<< HEAD
 
     class_<VelocityField, VelocityField::Pointer, VectorField<3>> (m, "VelocityField")
         .def(init<>())
-=======
-    typedef void (VelocityField::*CalculateConvectiveDerivative)(const double, const vector<double>&, vector<double>&, const int);
-    CalculateConvectiveDerivative CalculateConvectiveDerivativeVector = &VelocityField::CalculateConvectiveDerivative;
-
-    class_<VelocityField, bases<VectorField<3> > > ("VelocityField", boost::python::no_init)
-        .def("Evaluate", EvaluateVector)
->>>>>>> master
         .def("CalculateTimeDerivative", CalculateTimeDerivativeVector)
         .def("CalculateGradient", CalculateGradientVector)
         .def("CalculateDivergence", CalculateDivergenceVector)
@@ -236,15 +228,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def(init<const double, const double>())
         ;
 
-<<<<<<< HEAD
     class_<PouliotFlowField, PouliotFlowField::Pointer, VelocityField > (m, "PouliotFlowField")
         .def(init<>())
-=======
-    class_<ProductOfSines, bases<VelocityField> > ("ProductOfSines",  init<const double>())
-        ;
-
-    class_<PouliotFlowField, bases<VelocityField> > ("PouliotFlowField", init<>())
->>>>>>> master
         ;
 
     class_<PouliotFlowField2D, PouliotFlowField2D::Pointer, VelocityField > (m, "PouliotFlowField2D")
@@ -386,13 +371,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 //    RecoverGradientScalar RecoverSuperconvergentGradientScalar = &DerivativeRecovery<3>::RecoverSuperconvergentGradient<std::size_t TDim, class TScalarVariable>;
 //    RecoverGradientComponent RecoverSuperconvergentGradientComponent = &DerivativeRecovery<3>::RecoverSuperconvergentGradient<std::size_t TDim, class TScalarVariable>;
 
-<<<<<<< HEAD
 
     class_<DerivativeRecovery <3> > (m, "DerivativeRecoveryTool3D")
         .def(init<ModelPart&>())
-=======
-    class_<DerivativeRecovery <3> > ("DerivativeRecoveryTool3D", init<ModelPart&, Parameters&>())
->>>>>>> master
         .def("AddTimeDerivativeComponent", &DerivativeRecovery <3>::AddTimeDerivativeComponent)
         .def("RecoverSuperconvergentGradient", &DerivativeRecovery <3>::RecoverSuperconvergentGradient< Variable<double> >)
         .def("RecoverSuperconvergentGradient", &DerivativeRecovery <3>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >)
