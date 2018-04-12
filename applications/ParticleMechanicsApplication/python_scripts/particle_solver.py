@@ -33,6 +33,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(POINT_LOAD)
     model_part.AddNodalSolutionStepVariable(LINE_LOAD)
     model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
+    model_part.AddNodalSolutionStepVariable(PRESSURE)
     #model_part.AddNodalSolutionStepVariable(POINT_TORQUE)
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)
@@ -61,7 +62,7 @@ def AddVariables(model_part, config=None):
         if hasattr(config, "PressureDofs"):
             if config.PressureDofs:
                 # add specific variables for the problem (pressure dofs)
-                model_part.AddNodalSolutionStepVariable(PRESSURE)
+                # model_part.AddNodalSolutionStepVariable(PRESSURE)
                 model_part.AddNodalSolutionStepVariable(PRESSURE_REACTION);
                 model_part.AddNodalSolutionStepVariable(NODAL_MPRESSURE)
                 model_part.AddNodalSolutionStepVariable(AUX_PRESSURE)
@@ -115,7 +116,7 @@ class ParticleSolver:
         self.number_particle = number_particle
 
         self.buffer_size = 3 #default buffer_size
-        self.linear_solver = SkylineLUFactorizationSolver()
+        #self.linear_solver = SkylineLUFactorizationSolver()
       
         self.move_mesh_flag = False
         
@@ -260,14 +261,32 @@ def CreateSolver(model_part1, model_part2, model_part3, new_element, config, geo
 
     # definition of the linear solver
     import linear_solver_factory
-    if(hasattr(config, "linear_solver_config")):
-        if(config.echo_level > 1):
-            print("::[Particle Solver]:: LINEAR SOLVER : ", config.linear_solver_config.solver_type)
-        structural_solver.linear_solver = linear_solver_factory.ConstructSolver(config.linear_solver_config)
+    params = Parameters( """ {
+                                       "solver_type" : "AMGCL",
+                                       "smoother_type":"damped_jacobi",
+                                       "krylov_type": "cg",
+                                       "coarsening_type": "aggregation",
+                                       "max_iteration": 200,
+                                       "provide_coordinates": false,
+                                       "gmres_krylov_space_dimension": 100,
+                                       "verbosity" : 2,
+                                       "tolerance": 1e-7,
+                                       "scaling": false,
+                                       "block_size": 3,
+                                       "use_block_matrices_if_possible" : true,
+                                       "coarse_enough" : 50
+                                   } """)
+    structural_solver.linear_solver = linear_solver_factory.ConstructSolver(params)      
+    structural_solver.block_builder = True           
 
-        if(config.linear_solver_config.solver_type == "AMGCL"):
-            structural_solver.block_builder = True
-        else:
-            structural_solver.block_builder = False
+    # if(hasattr(config, "linear_solver_config")):
+    #     if(config.echo_level > 1):
+    #         print("::[Particle Solver]:: LINEAR SOLVER : ", config.linear_solver_config.solver_type)
+    #     structural_solver.linear_solver = linear_solver_factory.ConstructSolver(config.linear_solver_config)
+
+    #     if(config.linear_solver_config.solver_type == "AMGCL"):
+    #         structural_solver.block_builder = True
+    #     else:
+    #         structural_solver.block_builder = False
 
     return structural_solver
