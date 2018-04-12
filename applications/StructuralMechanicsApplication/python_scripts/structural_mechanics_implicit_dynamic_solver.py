@@ -56,11 +56,6 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         self._add_dynamic_variables()
         self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "Variables ADDED")
 
-    def AddDofs(self):
-        super(ImplicitMechanicalSolver, self).AddDofs()
-        self._add_dynamic_dofs()
-        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "DOF's ADDED")
-
     #### Private functions ####
 
     def _create_solution_scheme(self):
