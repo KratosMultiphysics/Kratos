@@ -442,7 +442,7 @@ public:
             for (unsigned int i = 0; i < number_nodes; ++i) {
                 auto& this_node = this_geometry[i];
                 aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_node.Coordinates());
-                const array_1d<double, 3>& normal = this_geometry.UnitNormal(aux_coords);
+                const array_1d<double, 3> normal = this_geometry.UnitNormal(aux_coords);
                 auto& aux_normal = this_node.FastGetSolutionStepValue(NORMAL);
                 for (unsigned int index = 0; index < 3; ++index) {
                     #pragma omp atomic
