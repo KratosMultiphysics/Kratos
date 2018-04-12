@@ -62,13 +62,13 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def("ClearNeighbours",&PrismNeighboursProcess::ClearNeighbours)
         ;
 
-    class_<ShellToSolidShellProcess<3>, bases<ProcessBaseType>>(m, "TriangleShellToSolidShellProcess")
+    class_<ShellToSolidShellProcess<3>, Process>(m, "TriangleShellToSolidShellProcess")
         .def(init<ModelPart&>())
         .def(init< ModelPart&, Parameters >())
         .def("Execute",&ShellToSolidShellProcess<3>::Execute)
         ;
 
-    class_<ShellToSolidShellProcess<4>, bases<ProcessBaseType>>(m, "QuadrilateralShellToSolidShellProcess")
+    class_<ShellToSolidShellProcess<4>, Process>(m, "QuadrilateralShellToSolidShellProcess")
         .def(init<ModelPart&>())
         .def(init< ModelPart&, Parameters >())
         .def("Execute",&ShellToSolidShellProcess<4>::Execute)
