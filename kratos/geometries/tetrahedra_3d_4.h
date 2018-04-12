@@ -685,7 +685,7 @@ public:
 
       double vol = Volume();
 
-      return std::copysign(normFactor * std::pow(9 * vol * vol, 1.0 / 3.0) / (sa + sb + sc + sd + se + sf), vol);
+      return std::abs(normFactor * std::pow(9 * vol * vol, 1.0 / 3.0) / (sa + sb + sc + sd + se + sf)) * (vol < 0 ? -1 : 1);
     }
 
     /** Calculates the volume to average edge lenght quality metric.
