@@ -99,26 +99,61 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 		}
 
 		if (data.IsCut()) {
+
 			VectorType volumes;
 			VectorType signs(6); //ATTENTION: this shall be initialized of size 6
 			std::vector< MatrixType > DNenr;
 			MatrixType Nenr;
 			data.NumberOfDivisions = ComputeSplitting(data, shape_functions, volumes, signs,  DNenr, Nenr);
+
 			if (data.NumberOfDivisions == 1) {
 				//cases exist when the element is like not subdivided due to the characteristics of the provided distance
 				//in this cases the element is treated as AIR or FLUID depending on the side
 				array_1d<double,NumNodes> Ncenter;
 				for(unsigned int i=0; i<NumNodes; i++) Ncenter[i]=0.25;
 				const double dgauss = inner_prod(data.Distance, Ncenter);
-				if (dgauss > 0)
-					data.CalculateAirMaterialResponse();
-				else
-					this->CalculateMaterialResponse(data);
+				for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+					data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+						shape_derivatives[g]);
+					if (dgauss > 0.0)
+						data.CalculateAirMaterialResponse();
+					else
+						this->CalculateMaterialResponse(data);
+					//ojito con above, no se que me estoy perdiendo
 
-				//ojito con above, no se que me estoy perdiendo
+					this->AddTimeIntegratedSystem(
+						data, rLeftHandSideMatrix, rRightHandSideVector);
+				}
+			}
 
-				this->AddTimeIntegratedSystem(
-					data, rLeftHandSideMatrix, rRightHandSideVector);
+			else {
+				MatrixType Vtot;
+				MatrixType Htot;
+				MatrixType Kee_tot;
+				VectorType rhs_ee_tot;
+				Vtot.resize(NumNodes*(Dim + 1), NumNodes, false);
+				Htot.resize(NumNodes, NumNodes*(Dim + 1), false);
+				Kee_tot.resize(NumNodes, NumNodes, false);
+				rhs_ee_tot.resize(NumNodes, false);
+
+				for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+					data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+						shape_derivatives[g]);
+					const double dgauss = inner_prod(data.Distance, data.N);
+					if (dgauss > 0.0)
+						data.CalculateAirMaterialResponse();
+					else
+						this->CalculateMaterialResponse(data);
+					//ojito con above, no se que me estoy perdiendo
+
+					const array_1d<double,4> Nenriched = row(Nenr,g);
+					this->AddTimeIntegratedSystem(
+						data, rLeftHandSideMatrix, rRightHandSideVector);
+					//Nenriched, DNenr[g] hay que pasarlos
+					ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
+				}
+
+					CondenseEnrichment(rLeftHandSideMatrix,rRightHandSideVector,Htot,Vtot,Kee_tot, rhs_ee_tot, volumes, signs, data.Distance);
 
 			}
 		}
@@ -541,6 +576,138 @@ unsigned int TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeSplitt
 }
 
 template< class TElementData >
+void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
+	Matrix& rLeftHandSideMatrix,
+	VectorType& rRightHandSideVector,
+    MatrixType& Htot,
+	MatrixType& Vtot,
+	MatrixType& Kee_tot,
+	VectorType& rhs_ee_tot,
+    const Vector& volumes,
+    const Vector& signs,
+    const array_1d<double,4> distances)
+{
+    const double min_area_ratio = -1e-6;
+
+    double positive_volume = 0.0;
+    double negative_volume = 0.0;
+    for (unsigned int igauss = 0; igauss < volumes.size(); igauss++)
+    {
+        double wGauss = volumes[igauss];
+
+        if(signs[igauss] >= 0) //check positive and negative volume
+            positive_volume += wGauss;
+        else
+            negative_volume += wGauss;
+    }
+    const double Vol = positive_volume + negative_volume;
+
+
+
+    double max_diag = 0.0;
+    for(unsigned int k=0; k<Dim+1; k++)
+        if(fabs(Kee_tot(k,k) ) > max_diag) max_diag = fabs(Kee_tot(k,k) );
+    if(max_diag == 0) max_diag = 1.0;
+    
+
+
+    if(positive_volume/Vol < min_area_ratio)
+    {
+        for(unsigned int i=0; i<Dim+1; i++)
+        {
+            if(distances[i] >= 0.0)
+            {
+                Kee_tot(i,i) += 1000.0*max_diag;
+            }
+        }
+    }
+    if(negative_volume/Vol < min_area_ratio)
+    {
+        for(unsigned int i=0; i<Dim+1; i++)
+        {
+            if(distances[i] < 0.0)
+            {
+                Kee_tot(i,i) += 1000.0*max_diag;
+            }
+        }
+    }
+
+    //"weakly" impose continuity
+    for(unsigned int i=0; i<Dim; i++)
+    {
+        const double di = fabs(distances[i]);
+
+        for(unsigned int j=i+1; j<Dim+1; j++)
+        {
+            const double dj =  fabs(distances[j]);
+
+            if( distances[i]*distances[j] < 0.0) //cut edge
+            {
+                double sum_d = di+dj;
+                double Ni = dj/sum_d;
+                double Nj = di/sum_d;
+
+                double penalty_coeff = max_diag*0.001; // h/BDFVector[0];
+                Kee_tot(i,i) += penalty_coeff * Ni*Ni;
+                Kee_tot(i,j) -= penalty_coeff * Ni*Nj;
+                Kee_tot(j,i) -= penalty_coeff * Nj*Ni;
+                Kee_tot(j,j) += penalty_coeff * Nj*Nj;
+
+            }
+        }
+    }
+	//add to LHS enrichment contributions
+	MatrixType inverse_diag;
+	inverse_diag.resize(NumNodes, NumNodes, false);
+	bool inversion_successful = InvertMatrix<>(Kee_tot, inverse_diag);
+
+    if(!inversion_successful )
+    {
+        KRATOS_WATCH(distances)
+        KRATOS_WATCH(positive_volume/Vol)
+        KRATOS_WATCH(negative_volume/Vol)
+        KRATOS_WATCH(Kee_tot)
+        KRATOS_THROW_ERROR(std::logic_error,"error in the inversion of the enrichment matrix for element ",this->Id());
+    }
+
+    const boost::numeric::ublas::bounded_matrix<double,4,16> tmp = prod(inverse_diag,Htot);
+    noalias(rLeftHandSideMatrix) -= prod(Vtot,tmp);
+
+    const array_1d<double,4> tmp2 = prod(inverse_diag, rhs_ee_tot);
+    noalias(rRightHandSideVector) -= prod(Vtot,tmp2);
+
+}
+
+
+	
+template< class TElementData>
+template< class T>
+bool TwoFluidNavierStokes<TElementData>::InvertMatrix(const T& input, T& inverse)
+{
+    typedef permutation_matrix<std::size_t> pmatrix;
+
+    // create a working copy of the input
+    T A(input);
+
+    // create a permutation matrix for the LU-factorization
+    pmatrix pm(A.size1());
+
+    // perform LU-factorization
+    int res = lu_factorize(A, pm);
+    if (res != 0)
+        return false;
+
+    // create identity matrix of "inverse"
+    inverse.assign(identity_matrix<double> (A.size1()));
+
+    // backsubstitute to get the inverse
+    lu_substitute(A, pm, inverse);
+
+    return true;
+}
+
+
+template< class TElementData >
 void TwoFluidNavierStokes<TElementData>::save(Serializer& rSerializer) const
 {
 	using BaseType = FluidElement<TElementData>;
@@ -560,78 +727,6 @@ void TwoFluidNavierStokes<TElementData>::load(Serializer& rSerializer)
 template class TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >;
 template class TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> >;
 
-
-//void NavierStokesEnr2D::ComputeGaussPointEnrichmentContributions(
-//    boost::numeric::ublas::bounded_matrix<double,3,9>& H,
-//    boost::numeric::ublas::bounded_matrix<double,9,3>& V,
-//    boost::numeric::ublas::bounded_matrix<double,3,3>&  Kee,
-//    array_1d<double,3>& rhs_ee,
-//    const element_data<3,2>& data,
-//    const array_1d<double,3>& distances,
-//    const array_1d<double,3>& Nenr,
-//    const boost::numeric::ublas::bounded_matrix<double,3,3>& DNenr 
-//    )
-//    {
-//        const int nnodes = 3;
-//        const int dim = 2;
-//        const int strain_size = 3;
-//        
-//        const double rho = inner_prod(data.N, data.rho);        // Density
-//        const double nu = inner_prod(data.N, data.nu);          // Kinematic viscosity
-//        const double h = data.h;                                // Characteristic element size
-//
-//        const double& bdf0 = data.bdf0;
-//        const double& bdf1 = data.bdf1;
-//        const double& bdf2 = data.bdf2;
-//        const double& delta_t = data.delta_t;
-//        const double& dyn_tau_coeff = data.dyn_tau_coeff;
-//        const double& tau1_coeff = data.tau1_coeff;
-//
-//        const bounded_matrix<double,nnodes,dim>& v = data.v;
-//        const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-//        const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-//        const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-//        const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-//        const bounded_matrix<double,nnodes,dim>& f = data.f;
-//        const array_1d<double,nnodes>& p = data.p;
-//        const array_1d<double,strain_size>& stress = data.stress;
-//        
-//        // Get constitutive matrix 
-//        // const Matrix& C = data.C;
-//        
-//        // Get shape function values
-//        const array_1d<double,nnodes>& N = data.N;
-//        const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
-//        
-//        const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-//        
-//        const double vconv_norm = norm_2(vconv_gauss);
-//                
-//        // Stabilization parameters
-//        const double tau1 = tau1_coeff/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*rho*nu)/(h*h));
-//        // const double tau2 = (rho*nu) + 0.5*h*vconv_norm;
-//        
-//        // Auxiliary variables used in the calculation of the RHS
-//        const array_1d<double,dim> f_gauss = prod(trans(f), N);
-//        const array_1d<double,dim> grad_p = prod(trans(DN), p);
-//        //~ const double p_gauss = inner_prod(N,p);
-//        
-//        //~ array_1d<double,dim> accel_gauss = bdf0*v_gauss;
-//        //~ noalias(accel_gauss) += bdf1*prod(trans(vn), N);
-//        //~ noalias(accel_gauss) += bdf2*prod(trans(vnn), N);;
-//        
-//        array_1d<double,3> penr = ZeroVector(3); //penriched is considered to be zero as we do not want to store it
-//
-//        //substitute_enrichment_V
-//        
-//        //substitute_enrichment_H
-//        
-//        //substitute_enrichment_Kee
-//        
-//        //substitute_enrichment_rhs_ee
-//        
-//        
-//    }
 
 
 

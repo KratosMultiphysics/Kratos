@@ -706,6 +706,21 @@ private:
 		std::vector<MatrixType>& DNenr,
 		MatrixType& Nner);
 
+	void CondenseEnrichment(
+		Matrix& rLeftHandSideMatrix,
+		VectorType& rRightHandSideVector,
+		MatrixType& V,
+		MatrixType& H,
+		MatrixType& K_ee,
+		VectorType& rhs_ee,
+		const Vector& volumes,
+		const Vector& signs,
+		const array_1d<double, 4> distances);
+
+	template<class T>
+	bool InvertMatrix(const T& input, T& inverse);
+
+
     //// 3D tetrahedra shape functions values at Gauss points 
 
     //template< unsigned int TNumNodes, unsigned int TDim>    
