@@ -52,7 +52,7 @@
 #include "custom_elements/spring_damper_element_3D2N.hpp"
 
 /* Adding the SPRISM element */
-#include "custom_elements/solid_shell_element_sprism_3D6N.h"
+#include "custom_elements/SprismElement3D6N.hpp"
 
 /* Adding solid elements */
 #include "custom_elements/small_displacement.h"
@@ -280,7 +280,7 @@ private:
     const PrestressMembraneElement mPreStressMembraneElement3D4N;
     
     // Adding the SPRISM element 
-    const SolidShellElementSprism3D6N mSolidShellElementSprism3D6N;
+    const SprismElement3D6N mSprismElement3D6N;
     
     // Adding the nodal concentrated element 
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
