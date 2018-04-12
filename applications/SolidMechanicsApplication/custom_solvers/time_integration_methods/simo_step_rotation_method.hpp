@@ -231,17 +231,6 @@ namespace Kratos
   template<>
   void SimoStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
 
-  template<class TVariableType, class TValueType>
-  void SimoStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
-  {
-      KRATOS_TRY
-
-      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS in SimoStepRotationScheme " <<std::endl;
-	
-      KRATOS_CATCH( "" )
-  }
-
-
   ///@}
   ///@name Input and output
   ///@{

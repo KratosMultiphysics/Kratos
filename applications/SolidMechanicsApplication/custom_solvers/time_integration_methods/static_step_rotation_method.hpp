@@ -246,17 +246,7 @@ namespace Kratos
   
   template<>
   void StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
-
-  template<class TVariableType, class TValueType>
-  void StaticStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
-  {
-      KRATOS_TRY
-
-      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS in StaticStepRotationMethod " <<std::endl;
-	
-      KRATOS_CATCH( "" )
-  }
-
+  
   ///@}
   ///@name Input and output
   ///@{

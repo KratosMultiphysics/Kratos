@@ -19,6 +19,15 @@ namespace Kratos
 {
 
   // specilization to array_1d
+  template<class TVariableType, class TValueType>
+  void NewmarkStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
+  {
+      KRATOS_TRY
+
+      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS in NewmarkStepRotationMethod " <<std::endl;
+	
+      KRATOS_CATCH( "" )
+  }
   
   template<>
   void NewmarkStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode)
