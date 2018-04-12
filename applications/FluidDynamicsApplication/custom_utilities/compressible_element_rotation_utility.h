@@ -27,7 +27,7 @@
 
 namespace Kratos {
 
-///@addtogroup KratosCore
+///@addtogroup FluidDynamicsApplication
 ///@{
 
 ///@name Kratos Globals
