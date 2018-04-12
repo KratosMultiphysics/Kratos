@@ -124,7 +124,7 @@ namespace Kratos
                     typename ResidualBasedDerivativeRecoveryStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
                     ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > >
             (m,  "ResidualBasedDerivativeRecoveryStrategy")
-            .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool>());
+            .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool>())
             .def("GetResidualNorm", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
             .def("SetBuilderAndSolver", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
             ;
