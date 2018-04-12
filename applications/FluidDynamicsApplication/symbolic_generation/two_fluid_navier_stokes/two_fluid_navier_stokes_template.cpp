@@ -59,6 +59,92 @@ Element::Pointer TwoFluidNavierStokes<TElementData>::Create(IndexType NewId, Geo
     return Kratos::make_shared<TwoFluidNavierStokes>(NewId, pGeom, pProperties);
 }
 
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
+	MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+	ProcessInfo& rCurrentProcessInfo) {
+
+	// Resize and intialize output
+	if (rLeftHandSideMatrix.size1() != LocalSize)
+		rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+
+	if (rRightHandSideVector.size() != LocalSize)
+		rRightHandSideVector.resize(LocalSize, false);
+
+	noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+	noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+	//this->InitializeGeometryData(data);
+
+	if (TElementData::ElementManagesTimeIntegration) {
+		// Get Shape function data
+		Vector gauss_weights;
+		Matrix shape_functions;
+		ShapeFunctionDerivativesArrayType shape_derivatives;
+		this->CalculateGeometryData(
+			gauss_weights, shape_functions, shape_derivatives);
+		const unsigned int number_of_gauss_points = gauss_weights.size();
+
+		TElementData data;
+		data.Initialize(*this, rCurrentProcessInfo);
+
+		//ESTO SE PUEDE METER EN EL DATA
+		unsigned int npos=0, nneg=0;
+		for (unsigned int i = 0; i < NumNodes; i++)
+		{
+		    if(data.Distance[i] > 0)
+				data.NumPositiveNodes++;
+		    else
+				data.NumNegativeNodes++;
+		}
+
+		if (data.IsCut()) {
+			VectorType volumes;
+			VectorType signs(6); //ATTENTION: this shall be initialized of size 6
+			std::vector< MatrixType > DNenr;
+			MatrixType Nenr;
+			data.NumberOfDivisions = ComputeSplitting(data, shape_functions, volumes, signs,  DNenr, Nenr);
+			if (data.NumberOfDivisions == 1) {
+				//cases exist when the element is like not subdivided due to the characteristics of the provided distance
+				//in this cases the element is treated as AIR or FLUID depending on the side
+				array_1d<double,NumNodes> Ncenter;
+				for(unsigned int i=0; i<NumNodes; i++) Ncenter[i]=0.25;
+				const double dgauss = inner_prod(data.Distance, Ncenter);
+				if (dgauss > 0)
+					data.CalculateAirMaterialResponse();
+				else
+					this->CalculateMaterialResponse(data);
+
+				//ojito con above, no se que me estoy perdiendo
+
+				this->AddTimeIntegratedSystem(
+					data, rLeftHandSideMatrix, rRightHandSideVector);
+
+			}
+		}
+
+		else {
+			// Iterate over integration points to evaluate local contribution
+			for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+
+				data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+					shape_derivatives[g]);
+				if (data.IsAir())
+					data.CalculateAirMaterialResponse();
+				else
+					this->CalculateMaterialResponse(data);
+				//ojito con above, no se que me estoy perdiendo
+
+				this->AddTimeIntegratedSystem(
+					data, rLeftHandSideMatrix, rRightHandSideVector);
+			}
+
+		}
+
+		
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
 
@@ -120,16 +206,6 @@ void TwoFluidNavierStokes<TElementData>::AddTimeIntegratedRHS(
 }
 
 
-//EIIIIINNNNNNNNNNNNN???
-template <class TElementData>
-void TwoFluidNavierStokes<TElementData>::AddBoundaryIntegral(
-    TElementData& rData, const Vector& rUnitNormal, MatrixType& rLHS,
-    VectorType& rRHS)
-{
-
-}
-
-
 template <>
 void TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >::ComputeGaussPointLHSContribution(
 	TwoFluidNavierStokesData<2, 3>& rData, MatrixType& rLHS) {
@@ -137,7 +213,6 @@ void TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >::ComputeGaussPointLH
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
-    const double c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
@@ -174,7 +249,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
-    const double c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
@@ -212,7 +286,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
-    const double c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
@@ -257,7 +330,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
-    const double c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
@@ -305,7 +377,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
 	const double mu = rData.EffectiveViscosity;
 
 	const double h = rData.ElementSize;
-	const double c = rData.SoundVelocity;
 
 	const double dt = rData.DeltaTime;
 	const double bdf0 = rData.bdf0;
@@ -340,7 +411,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     auto& Kee = rData.Kee;
     auto& rhs_ee = rData.rhs_ee;
 
-	array_1d<double, 4> penr = ZeroVector(4); //penriched is considered to be zero as we do not want to store it
+	array_1d<double, NumNodes> penr = ZeroVector(NumNodes); //penriched is considered to be zero as we do not want to store it
 
     //substitute_enrichment_V_2D
 
@@ -369,7 +440,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
 	const double mu = rData.EffectiveViscosity;
 
 	const double h = rData.ElementSize;
-	const double c = rData.SoundVelocity;
 
 	const double dt = rData.DeltaTime;
 	const double bdf0 = rData.bdf0;
@@ -404,7 +474,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     auto& Kee = rData.Kee;
     auto& rhs_ee = rData.rhs_ee;
 
-	array_1d<double, 4> penr = ZeroVector(4); //penriched is considered to be zero as we do not want to store it
+	array_1d<double, NumNodes> penr = ZeroVector(NumNodes); //penriched is considered to be zero as we do not want to store it
 
     //substitute_enrichment_V_3D
 
@@ -418,6 +488,56 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     noalias(rH) += rData.Weight * H;
     noalias(rKee) += rData.Weight * Kee;
     noalias(rRHS_ee) += rData.Weight * rhs_ee;
+}
+
+template <>
+unsigned int TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeSplitting(
+	TwoFluidNavierStokesData<3, 4>& rData,
+	MatrixType& rShapeFunctions,
+	VectorType& rVolumes,
+	VectorType& rSigns,
+	std::vector< MatrixType>& rDNenr,
+	MatrixType& rNenr)
+{
+
+	MatrixType coords(NumNodes, Dim);
+
+	//fill coordinates
+	for (unsigned int i = 0; i < NumNodes; i++)
+	{
+	    const array_1d<double, 3 > & xyz = this->GetGeometry()[i].Coordinates();
+	    for (unsigned int j = 0; j < Dim; j++)
+	        coords(i, j) = xyz[j];
+	}
+
+	unsigned int ndivisions = 1; // EnrichmentUtilitiesDuplicateDofs::CalculateTetrahedraEnrichedShapeFuncions(coords, rData.DN_DX, rData, rVolumes, rShapeFunctions, rSigns, rDNenr, rNenr);
+	return ndivisions;
+
+}
+
+template <>
+unsigned int TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeSplitting(
+	TwoFluidNavierStokesData<2, 3>& rData,
+	MatrixType& rShapeFunctions,
+	VectorType& rVolumes,
+	VectorType& rSigns,
+	std::vector< MatrixType>& rDNenr,
+	MatrixType& rNenr)
+{
+
+	MatrixType coords(NumNodes, Dim);
+
+	//fill coordinates
+	for (unsigned int i = 0; i < NumNodes; i++)
+	{
+		const array_1d<double, 3 > & xyz = this->GetGeometry()[i].Coordinates();
+		for (unsigned int j = 0; j < Dim; j++)
+			coords(i, j) = xyz[j];
+	}
+
+	unsigned int ndivisions = 1; // EnrichmentUtilitiesDuplicateDofs::CalculateTetrahedraEnrichedShapeFuncions(coords, rData.DN_DX, rData, rVolumes, rShapeFunctions, rSigns, rDNenr, rNenr);
+	return ndivisions;
+
 }
 
 template< class TElementData >

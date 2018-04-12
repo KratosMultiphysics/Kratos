@@ -200,7 +200,9 @@ public:
     void PrintInfo(std::ostream& rOStream) const override;
 
     ///@}
-
+	void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+		VectorType& rRightHandSideVector,
+		ProcessInfo& rCurrentProcessInfo) override;
 
   //  void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
   //  {
@@ -677,12 +679,6 @@ protected:
         TElementData& rData,
         VectorType& rRHS) override;
 
-    void AddBoundaryIntegral(
-        TElementData& rData,
-        const Vector& rUnitNormal,
-        MatrixType& rLHS,
-        VectorType& rRHS) override;
-
     void ComputeGaussPointLHSContribution(
         TElementData& rData,
         MatrixType& rLHS);
@@ -699,21 +695,16 @@ protected:
 		VectorType& rRHS_ee);
 
 
-    //void ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const element_data<4,3>& data);
-    //void ComputeGaussPointRHSContribution(array_1d<double,16>& rhs,const element_data<4,3>& data);
-    //void ComputeGaussPointEnrichmentContributions(
-    //    boost::numeric::ublas::bounded_matrix<double,4,16>& H,
-    //    boost::numeric::ublas::bounded_matrix<double,16,4>& V,
-    //    boost::numeric::ublas::bounded_matrix<double,4,4>&  Kee,
-    //    array_1d<double,4>& rhs_ee,
-    //    const element_data<4,3>& data,
-    //    const array_1d<double,4>& distances,
-    //    const array_1d<double,4>& Nenr,
-    //    const boost::numeric::ublas::bounded_matrix<double,4,4>& DNenr
-    //);
-
 
 private:
+
+	unsigned int ComputeSplitting(
+		TElementData& data,
+		MatrixType& shape_functions,
+		VectorType& volumes,
+		VectorType& signs,
+		std::vector<MatrixType>& DNenr,
+		MatrixType& Nner);
 
     //// 3D tetrahedra shape functions values at Gauss points 
 
