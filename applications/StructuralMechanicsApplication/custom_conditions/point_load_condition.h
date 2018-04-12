@@ -96,9 +96,7 @@ public:
         IndexType NewId, 
         NodesArrayType const& ThisNodes,  
         PropertiesType::Pointer pProperties 
-        ) const override;
-
-    std::string Info() const override; //fusseder needed for sensitivity analysis    
+        ) const override;  
 
     ///@}
     ///@name Access
