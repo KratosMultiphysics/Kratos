@@ -208,7 +208,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CalculateRotational", CalculateRotationalVector)
         .def("CalculateLaplacian", CalculateLaplacianVector)
         .def("CalculateMaterialAcceleration", CalculateMaterialAccelerationVector)
-        .def("CalculateConvectiveDerivative", CalculateConvectiveDerivativeVector)
         ;
 
     class_<ConstantVelocityField, ConstantVelocityField::Pointer, VelocityField > (m, "ConstantVelocityField")
