@@ -371,7 +371,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
 
     class_<DerivativeRecovery <3> > (m, "DerivativeRecoveryTool3D")
-        .def(init<ModelPart&>())
+        .def(init<ModelPart&, Parameters&>())
         .def("AddTimeDerivativeComponent", &DerivativeRecovery <3>::AddTimeDerivativeComponent)
         .def("RecoverSuperconvergentGradient", &DerivativeRecovery <3>::RecoverSuperconvergentGradient< Variable<double> >)
         .def("RecoverSuperconvergentGradient", &DerivativeRecovery <3>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >)
