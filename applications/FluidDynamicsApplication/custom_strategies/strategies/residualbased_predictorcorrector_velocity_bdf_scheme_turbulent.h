@@ -110,9 +110,7 @@ namespace Kratos {
         :
           Scheme<TSparseSpace, TDenseSpace>(),
           mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0) // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
-        {
-            mpDofUpdater = TSparseSpace::CreateDofUpdater();
-        }
+        {}
 
         /** Constructor without a turbulence model
          */
@@ -122,9 +120,7 @@ namespace Kratos {
         :
           Scheme<TSparseSpace, TDenseSpace>(),
           mRotationTool(DomainSize,DomainSize+1,rSlipVar,0.0) // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
-        {
-            mpDofUpdater = TSparseSpace::CreateDofUpdater();
-        }
+        {}
 
         /** Constructor with a turbulence model
          */
@@ -135,9 +131,7 @@ namespace Kratos {
           Scheme<TSparseSpace, TDenseSpace>(),
           mpTurbulenceModel(pTurbulenceModel),
           mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0) // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs
-        {
-            mpDofUpdater = TSparseSpace::CreateDofUpdater();
-        }
+        {}
 
         /** Destructor.
          */
@@ -632,7 +626,7 @@ namespace Kratos {
         /**@name Member Variables */
         /*@{ */
 
-        typename TSparseSpace::DofUpdaterPointerType mpDofUpdater;
+        typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
 
         /*@} */
