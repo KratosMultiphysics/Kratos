@@ -1,14 +1,19 @@
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Import applications
 import KratosMultiphysics.HDF5Application as KratosHDF5
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 def Factory(settings, Model):
-    if not isinstance(settings, KratosMultiphysics.Parameters):
+    if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return EigenSolutionInputProcess(Model, settings["Parameters"])
 
 class EigenSolutionInputProcess(KratosMultiphysics.Process):
-    """A process for writing eigenvalue and eigenvector results."""
+    """A process for reading eigenvalue and eigenvector results."""
 
     def __init__(self, Model, settings):
         KratosMultiphysics.Process.__init__(self)
