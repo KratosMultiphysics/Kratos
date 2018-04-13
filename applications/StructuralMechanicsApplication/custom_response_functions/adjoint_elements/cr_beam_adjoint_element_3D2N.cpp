@@ -782,115 +782,65 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-		if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
-		{
-			KRATOS_ERROR <<
-				"The beam element works only in 3D and with 2 noded elements" << ""
-			<< std::endl;
-		}
+		KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
+		<< "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
 		//verify that the variables are correctly initialized
-		if (VELOCITY.Key() == 0) {
-			KRATOS_ERROR <<
-				"VELOCITY has Key zero! (check if the application is correctly registered" << ""
-				<< std::endl;
-		}
-		if (DISPLACEMENT.Key() == 0) {
-			KRATOS_ERROR <<
-				"DISPLACEMENT has Key zero! (check if the application is correctly registered"<< ""
-				<< std::endl;
-		}
-		if (ACCELERATION.Key() == 0) {
-			KRATOS_ERROR <<
-				"ACCELERATION has Key zero! (check if the application is correctly registered" << ""
-				<< std::endl;
-		}
-		if (DENSITY.Key() == 0) {
-			KRATOS_ERROR <<
-				"DENSITY has Key zero! (check if the application is correctly registered" << ""
-				<< std::endl;
-		}
-		if (CROSS_AREA.Key() == 0) {
-			KRATOS_ERROR <<
-				"CROSS_AREA has Key zero! (check if the application is correctly registered" << ""
-				<< std::endl;
-		}
+		KRATOS_ERROR_IF(VELOCITY.Key() == 0) <<
+		"VELOCITY has Key zero! (check if the application is correctly registered" << "" << std::endl;
+		KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0) <<
+		"DISPLACEMENT has Key zero! (check if the application is correctly registered"<< "" << std::endl;
+		KRATOS_ERROR_IF(ACCELERATION.Key() == 0) <<
+		"ACCELERATION has Key zero! (check if the application is correctly registered" << "" << std::endl;
+		KRATOS_ERROR_IF(DENSITY.Key() == 0) <<
+		"DENSITY has Key zero! (check if the application is correctly registered" << "" << std::endl;
+		KRATOS_ERROR_IF(CROSS_AREA.Key() == 0) <<
+		"CROSS_AREA has Key zero! (check if the application is correctly registered" << "" << std::endl;
+		
+		KRATOS_ERROR_IF(this->GetProperties().Has(CROSS_AREA) == false || this->GetProperties()[CROSS_AREA] == 0)
+		<< "CROSS_AREA not provided for this element" << this->Id() << std::endl;
 
-		if (this->GetProperties().Has(CROSS_AREA) == false ||
-			this->GetProperties()[CROSS_AREA] == 0)
-		{
-			KRATOS_ERROR << "CROSS_AREA not provided for this element" << this->Id()
-				<< std::endl;
-		}
+		KRATOS_ERROR_IF(this->GetProperties().Has(YOUNG_MODULUS) == false || this->GetProperties()[YOUNG_MODULUS] == 0)
+		<< "YOUNG_MODULUS not provided for this element" << this->Id() << std::endl;
 
-		if (this->GetProperties().Has(YOUNG_MODULUS) == false ||
-			this->GetProperties()[YOUNG_MODULUS] == 0)
-		{
-			KRATOS_ERROR << "YOUNG_MODULUS not provided for this element" << this->Id()
-				<< std::endl;
-		}
-		if (this->GetProperties().Has(DENSITY) == false)
-		{
-			KRATOS_ERROR << "DENSITY not provided for this element" << this->Id()
-				<< std::endl;
-		}
+		KRATOS_ERROR_IF_NOT( this->GetProperties().Has(DENSITY) )
+		<< "DENSITY not provided for this element" << this->Id() << std::endl;
 
-		if (this->GetProperties().Has(POISSON_RATIO) == false)
-		{
-			KRATOS_ERROR << "POISSON_RATIO not provided for this element" << this->Id()
-				<< std::endl;
-		}
+		KRATOS_ERROR_IF_NOT( this->GetProperties().Has(POISSON_RATIO) )
+		<< "POISSON_RATIO not provided for this element" << this->Id() << std::endl;
 
-		if (this->GetProperties().Has(TORSIONAL_INERTIA) == false)
-		{
-			KRATOS_ERROR << "TORSIONAL_INERTIA not provided for this element" << this->Id()
-				<< std::endl;
-		}
-		if (this->GetProperties().Has(I22) == false)
-		{
-			KRATOS_ERROR << "I22 not provided for this element" << this->Id()
-				<< std::endl;
-		}
-		if (this->GetProperties().Has(I33) == false)
-		{
-			KRATOS_ERROR << "I33 not provided for this element" << this->Id()
-				<< std::endl;
-		}
+		KRATOS_ERROR_IF_NOT( this->GetProperties().Has(TORSIONAL_INERTIA) )
+		<< "TORSIONAL_INERTIA not provided for this element" << this->Id() << std::endl;
+	
+		KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I22) )
+		<< "I22 not provided for this element" << this->Id() << std::endl;
 
-
+		KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I33) )
+		<< "I33 not provided for this element" << this->Id() << std::endl;
+	
 		//##################################################################################################
 		// Check for specific sensitivity analysis stuff
 		//##################################################################################################
-		if (ADJOINT_DISPLACEMENT.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                    "ADJOINT_DISPLACEMENT Key is 0. "
-                    "Check if the application was correctly registered.","");
+		KRATOS_ERROR_IF(ADJOINT_DISPLACEMENT.Key() == 0)
+            << "ADJOINT_DISPLACEMENT Key is 0. Check if the application was correctly registered." << std::endl;
 
-		if (ADJOINT_ROTATION.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                    "ADJOINT_ROTATION Key is 0. "
-                    "Check if the application was correctly registered.","");
+		KRATOS_ERROR_IF(ADJOINT_ROTATION.Key() == 0) 
+			<< "ADJOINT_ROTATION Key is 0. Check if the application was correctly registered." << std::endl;
 
 		 // Check if the nodes have adjoint dofs.
         for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
         {
-            if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_X) == false
+            KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_X) == false
                     || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Y) == false
                     || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Z) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                        "missing ADJOINT_DISPLACEMENT component degree of freedom on node ",
-                        this->GetGeometry()[iNode].Id());
+            << "missing ADJOINT_DISPLACEMENT component degree of freedom on node " << this->GetGeometry()[iNode].Id() << std::endl;
 
-			if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
+			KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
                     || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Y) == false
                     || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Z) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                        "missing ADJOINT_ROTATION component degree of freedom on node ",
-                        this->GetGeometry()[iNode].Id());
+            << "missing ADJOINT_ROTATION component degree of freedom on node " << this->GetGeometry()[iNode].Id() << std::endl;
 
-			if (this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                        "missing DISPLACEMENT variable on solution step data for node ",
-                        this->GetGeometry()[iNode].Id());
+			KRATOS_ERROR_IF_NOT( this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) )
+				<< "missing DISPLACEMENT variable on solution step data for node " << this->GetGeometry()[iNode].Id() << std::endl;
         }
 
 		return 0;

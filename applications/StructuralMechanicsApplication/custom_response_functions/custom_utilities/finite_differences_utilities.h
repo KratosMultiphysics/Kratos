@@ -97,7 +97,7 @@ public:
 
     virtual FiniteDifferencesUtilities::Pointer Clone() const
     {
-      KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for Clone", "");
+      KRATOS_ERROR << "Called the virtual function for Clone" << std::endl;
     }
 
 

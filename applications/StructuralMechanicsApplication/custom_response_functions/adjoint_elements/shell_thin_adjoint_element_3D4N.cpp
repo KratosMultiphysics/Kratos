@@ -148,46 +148,36 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-			GeometryType& geom = GetGeometry();
+		GeometryType& geom = GetGeometry();
 
 		// verify that the variables are correctly initialized
-		if (DISPLACEMENT.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"DISPLACEMENT has Key zero! (check if the application is correctly registered", "");
+		KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0)
+		<< "DISPLACEMENT has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		if (ROTATION.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"ROTATION has Key zero! (check if the application is correctly registered", "");
+		KRATOS_ERROR_IF(ROTATION.Key() == 0)
+		<< "ROTATION has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		if (VELOCITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"VELOCITY has Key zero! (check if the application is correctly registered", "");
+		KRATOS_ERROR_IF(VELOCITY.Key() == 0)
+		<< "VELOCITY has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		if (ACCELERATION.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"ACCELERATION has Key zero! (check if the application is correctly registered", "");
+		KRATOS_ERROR_IF(ACCELERATION.Key() == 0)
+		<< "ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		if (DENSITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"DENSITY has Key zero! (check if the application is correctly registered", "");
+		KRATOS_ERROR_IF(DENSITY.Key() == 0)
+		<< "DENSITY has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		if (SHELL_CROSS_SECTION.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"SHELL_CROSS_SECTION has Key zero! (check if the application is correctly registered", "");
+		KRATOS_ERROR_IF(SHELL_CROSS_SECTION.Key() == 0)
+		<< "SHELL_CROSS_SECTION has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		if (THICKNESS.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"THICKNESS has Key zero! (check if the application is correctly registered", "");
+		KRATOS_ERROR_IF(THICKNESS.Key() == 0)
+		<< "THICKNESS has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		if (CONSTITUTIVE_LAW.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,
-				"CONSTITUTIVE_LAW has Key zero! (check if the application is correctly registered", "");
+		KRATOS_ERROR_IF(CONSTITUTIVE_LAW.Key() == 0)
+		<< "CONSTITUTIVE_LAW has Key zero! (check if the application is correctly registered)" << std::endl;
 
 
 		// check properties
-		if (this->pGetProperties() == NULL)
-			KRATOS_THROW_ERROR(std::logic_error,
-				"Properties not provided for element ", this->Id());
+		KRATOS_ERROR_IF(this->pGetProperties() == NULL) << "Properties not provided for element " << this->Id() << std::endl;
 
 		const PropertiesType & props = this->GetProperties();
 
@@ -197,10 +187,7 @@ namespace Kratos
 
 			const ShellCrossSection::Pointer & section =
 				props[SHELL_CROSS_SECTION];
-			if (section == NULL)
-				KRATOS_THROW_ERROR(std::logic_error,
-					"SHELL_CROSS_SECTION not provided for element ",
-					this->Id());
+			KRATOS_ERROR_IF(section == NULL) << "SHELL_CROSS_SECTION not provided for element "  << this->Id() << std::endl;
 
 			section->Check(props, geom, rCurrentProcessInfo);
 		}
@@ -213,23 +200,14 @@ namespace Kratos
 			// ... allow the automatic creation of a homogeneous section from a
 			// material and a thickness
 
-			if (!props.Has(CONSTITUTIVE_LAW))
-				KRATOS_THROW_ERROR(std::logic_error,
-					"CONSTITUTIVE_LAW not provided for element ", this->Id());
-
+			KRATOS_ERROR_IF_NOT(props.Has(CONSTITUTIVE_LAW)) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
 			const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
 
-			if (claw == NULL)
-				KRATOS_THROW_ERROR(std::logic_error,
-					"CONSTITUTIVE_LAW not provided for element ", this->Id());
+			KRATOS_ERROR_IF(claw == NULL) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
 
-			if (!props.Has(THICKNESS))
-				KRATOS_THROW_ERROR(std::logic_error,
-					"THICKNESS not provided for element ", this->Id());
+			KRATOS_ERROR_IF_NOT(props.Has(THICKNESS)) << "THICKNESS not provided for element " <<  this->Id() << std::endl;
 
-			if (props[THICKNESS] <= 0.0)
-				KRATOS_THROW_ERROR(std::logic_error,
-					"wrong THICKNESS value provided for element ", this->Id());
+			KRATOS_ERROR_IF(props[THICKNESS] <= 0.0) << "wrong THICKNESS value provided for element " << this->Id() << std::endl;
 
 			ShellCrossSection::Pointer dummySection =
 				ShellCrossSection::Pointer(new ShellCrossSection());
@@ -244,37 +222,26 @@ namespace Kratos
 		//##################################################################################################
 		// Check for specific sensitivity analysis stuff
 		//##################################################################################################
-    	if (ADJOINT_DISPLACEMENT.Key() == 0)
-        	KRATOS_THROW_ERROR(std::invalid_argument,
-                "ADJOINT_DISPLACEMENT Key is 0. "
-                "Check if the application was correctly registered.","");
+    	KRATOS_ERROR_IF(ADJOINT_DISPLACEMENT.Key() == 0) << 
+			"ADJOINT_DISPLACEMENT Key is 0. Check if the application was correctly registered." << std::endl;
 
-		if (ADJOINT_ROTATION.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                    "ADJOINT_ROTATION Key is 0. "
-                    "Check if the application was correctly registered.","");
-
+		KRATOS_ERROR_IF(ADJOINT_ROTATION.Key() == 0) <<
+            "ADJOINT_ROTATION Key is 0. Check if the application was correctly registered." << std::endl;
 		// Check if the nodes have adjoint dofs.
     	for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
     	{
-        	if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_X) == false
+        	KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_X) == false
                 	|| this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Y) == false
-                	|| this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Z) == false)
-            	KRATOS_THROW_ERROR(std::invalid_argument,
-                    	"missing ADJOINT_DISPLACEMENT component degree of freedom on node ",
-                    	this->GetGeometry()[iNode].Id());
+                	|| this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Z) == false) <<
+			"missing ADJOINT_DISPLACEMENT component degree of freedom on node " << this->GetGeometry()[iNode].Id() << std::endl;
 
-			if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
+			KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
                 || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Y) == false
-                || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Z) == false)
-            	KRATOS_THROW_ERROR(std::invalid_argument,
-                    	"missing ADJOINT_ROTATION component degree of freedom on node ",
-                    	this->GetGeometry()[iNode].Id());	
+                || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Z) == false) << 
+			"missing ADJOINT_ROTATION component degree of freedom on node " << this->GetGeometry()[iNode].Id() << std::endl;	
 
-			if (this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) == false)
-            	KRATOS_THROW_ERROR(std::invalid_argument,
-                    "missing DISPLACEMENT variable on solution step data for node ",
-                    this->GetGeometry()[iNode].Id());					
+			KRATOS_ERROR_IF_NOT( this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) ) <<
+            "missing DISPLACEMENT variable on solution step data for node " << this->GetGeometry()[iNode].Id() << std::endl;				
     	}
 
 		return 0;

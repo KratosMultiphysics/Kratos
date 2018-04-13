@@ -145,8 +145,8 @@ public:
 		m_current_response_value = 0.0;
 
 		// Check if there are at the time of calling adjoint or primal elements
-		if(CurrentProcessInfo[IS_ADJOINT] == true)
-			KRATOS_ERROR << "Calculate value for strain energy response is not availible when using adjoint elements" << std::endl;
+		KRATOS_ERROR_IF( CurrentProcessInfo[IS_ADJOINT] )
+			 << "Calculate value for strain energy response is not availible when using adjoint elements" << std::endl;
 			
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
 		for (auto& elem_i : r_model_part.Elements())
@@ -325,8 +325,8 @@ protected:
 
 		rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
 
-		if (adjoint_variables.size() != rDerivativesMatrix.size2())
-			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
+		KRATOS_ERROR_IF(adjoint_variables.size() != rDerivativesMatrix.size2())
+			<< "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
 
 		if (rResponseGradient.size() != rDerivativesMatrix.size2())
 			rResponseGradient.resize(adjoint_variables.size(), false);
@@ -349,8 +349,8 @@ protected:
 
 		rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
 
-		if (adjoint_variables.size() != rDerivativesMatrix.size2())
-			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
+		KRATOS_ERROR_IF(adjoint_variables.size() != rDerivativesMatrix.size2())
+			 << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
 
 		if (rResponseGradient.size() != rDerivativesMatrix.size2())
 			rResponseGradient.resize(adjoint_variables.size(), false);

@@ -216,16 +216,14 @@ public:
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const unsigned int domain_size =
             static_cast<unsigned int>(r_current_process_info[DOMAIN_SIZE]);
-        if (domain_size != 2 && domain_size != 3)
-            KRATOS_ERROR << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
-        if (domain_size != working_space_dimension)
-            KRATOS_ERROR << "DOMAIN_SIZE != WorkingSpaceDimension()" << std::endl;
+        KRATOS_ERROR_IF(domain_size != 2 && domain_size != 3) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
+        KRATOS_ERROR_IF(domain_size != working_space_dimension) << "DOMAIN_SIZE != WorkingSpaceDimension()" << std::endl;
 
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_DISPLACEMENT) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_DISPLACEMENT << std::endl;
+        KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_DISPLACEMENT) )
+             << "Nodal solution steps data missing variable: " << ADJOINT_DISPLACEMENT << std::endl;
 
-        if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ROTATION) == false)
-            KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_ROTATION << std::endl;
+        KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ROTATION) )
+             << "Nodal solution steps data missing variable: " << ADJOINT_ROTATION << std::endl;
            // ---> but what is e.g. for solid elements, where no rotation dofs exist???????????????
 
         return BaseType::Check(rModelPart); // check elements and conditions

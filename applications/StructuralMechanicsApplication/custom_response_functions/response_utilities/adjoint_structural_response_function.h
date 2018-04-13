@@ -87,7 +87,7 @@ public:
 			mDelta = delta;
 		}
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
+			KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " <<  gradientMode << std::endl;
 
 
         KRATOS_CATCH("");
@@ -201,9 +201,8 @@ public:
 
         ModelPart& r_model_part = this->GetModelPart();
 
-        if (r_model_part.HasSubModelPart(mSensitivityModelPartName) == false)
-            KRATOS_ERROR << "No sub model part \"" << mSensitivityModelPartName
-                         << "\"" << std::endl;
+        KRATOS_ERROR_IF_NOT(r_model_part.HasSubModelPart(mSensitivityModelPartName))
+            << "No sub model part \"" << mSensitivityModelPartName << "\"" << std::endl;
 
         KRATOS_CATCH("");
     }

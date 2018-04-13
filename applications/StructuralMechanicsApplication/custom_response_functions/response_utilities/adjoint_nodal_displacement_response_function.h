@@ -112,29 +112,27 @@ public:
 		m_traced_pNode = r_model_part.pGetNode(m_id_of_traced_node);
 
 		// Check if variable for traced dof is valid
-		if( !(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(m_traced_dof_label)) )
-		{
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified traced DOF is not availible. Specified DOF: ", m_traced_dof_label);
-		}
+		if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(m_traced_dof_label)) )
+			KRATOS_ERROR << "Specified traced DOF is not availible. Specified DOF: " << m_traced_dof_label << std::endl;
 		else
 		{
 			const VariableComponentType& rTRACED_DOF =
             	KratosComponents<VariableComponentType>::Get(m_traced_dof_label);
-			if (m_traced_pNode->SolutionStepsDataHas(rTRACED_DOF) == false)
-				KRATOS_THROW_ERROR(std::invalid_argument, "Specified DOF is not availible at traced node.", "");
+			KRATOS_ERROR_IF_NOT( m_traced_pNode->SolutionStepsDataHas(rTRACED_DOF) )
+				<< "Specified DOF is not availible at traced node." << std::endl;
 		}
 
 		// Check if variable for traced adjoint dof is valid
 		if( !(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(std::string("ADJOINT_") + m_traced_dof_label)) )
 		{
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified traced adjoint DOF is not availible.", "");
+			KRATOS_ERROR << "Specified traced adjoint DOF is not availible." << std::endl;
 		}
 		else
 		{
 			const VariableComponentType& rTRACED_ADJOINT_DOF =
             	KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + m_traced_dof_label);
-			if (m_traced_pNode->SolutionStepsDataHas(rTRACED_ADJOINT_DOF) == false)
-				KRATOS_THROW_ERROR(std::invalid_argument, "Specified adjoint DOF is not availible at traced node.", "");
+			KRATOS_ERROR_IF_NOT( m_traced_pNode->SolutionStepsDataHas(rTRACED_ADJOINT_DOF) )
+				<< "Specified adjoint DOF is not availible at traced node." << std::endl;
 		}
 
 		m_displacement_value = 0.0;
@@ -186,8 +184,8 @@ public:
 			}
 			if(neighboring_element_found) { break; }
 		}
-		if(!neighboring_element_found)
-			KRATOS_ERROR << "No neighboring element is availible for the traced node." << std::endl;
+		KRATOS_ERROR_IF_NOT(neighboring_element_found)
+			 << "No neighboring element is availible for the traced node." << std::endl;
 
 		KRATOS_CATCH("");
 

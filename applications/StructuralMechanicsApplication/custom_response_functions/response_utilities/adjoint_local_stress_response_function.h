@@ -110,20 +110,17 @@ public:
 
 		// Tell traced element the stress type
 		TracedStressType traced_stress_type = p_stress_response_data->ConvertStressType(rParameters["stress_type"].GetString()); 
-		if(traced_stress_type == StressTypeNotAvailible)
-			KRATOS_ERROR << "Chosen stress type is not availible!" << std::endl;
+		KRATOS_ERROR_IF(traced_stress_type == StressTypeNotAvailible) << "Chosen stress type is not availible!" << std::endl;
 		mp_traced_pElement->SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress_type) );		
 
 		// Get info how and where to treat the stress
 		m_stress_treatment = p_stress_response_data->ConvertStressTreatment( rParameters["stress_treatment"].GetString() );
-		if(m_stress_treatment == StressTreatmentNotAvailible)
-			KRATOS_ERROR << "Chosen option for stress treatmeant is not availible! Chose 'GP','node' or 'mean'!" << std::endl;
+		KRATOS_ERROR_IF(m_stress_treatment == StressTreatmentNotAvailible) << "Chosen option for stress treatmeant is not availible! Chose 'GP','node' or 'mean'!" << std::endl;
 
 		if(m_stress_treatment == GP || m_stress_treatment == node)
 		{
 			m_id_of_location = rParameters["stress_location"].GetInt();
-			if(m_id_of_location < 1)
-				KRATOS_ERROR << "Chose a 'stress_location' > 0. Specified 'stress_location': " << m_id_of_location << std::endl;
+			KRATOS_ERROR_IF(m_id_of_location < 1) << "Chose a 'stress_location' > 0. Specified 'stress_location': " << m_id_of_location << std::endl;
 		}
 
 		m_stress_value = 0.0;
@@ -296,8 +293,8 @@ public:
 			int num_of_deriv = stress_displ_deriv.size2();
 			double stress_displ_deriv_value = 0.0;
 
-			if(rResponseGradient.size() != stress_displ_deriv.size1())
-				KRATOS_ERROR << "Size of stress displacement derivative does not fit!" << std::endl;
+			KRATOS_ERROR_IF(rResponseGradient.size() != stress_displ_deriv.size1())
+				 << "Size of stress displacement derivative does not fit!" << std::endl;
 
 			for (int dof_it = 0 ; dof_it < num_of_dofs; dof_it++)
 			{
@@ -375,8 +372,8 @@ protected:
 
 			if(rResponseGradient.size() != stress_DV_deriv.size1())
 				rResponseGradient.resize(stress_DV_deriv.size1(), false);
-			if(rResponseGradient.size() != rDerivativesMatrix.size1())
-				KRATOS_ERROR << "Size of partial stress design variable derivative does not fit!" << std::endl;
+			KRATOS_ERROR_IF(rResponseGradient.size() != rDerivativesMatrix.size1())
+				 << "Size of partial stress design variable derivative does not fit!" << std::endl;
 
 			for (int dv_it = 0 ; dv_it < num_of_DV; dv_it++)
 			{
@@ -461,8 +458,8 @@ protected:
 
 			if(rResponseGradient.size() != stress_DV_deriv.size1())
 				rResponseGradient.resize(stress_DV_deriv.size1(), false);
-			if(rResponseGradient.size() != rDerivativesMatrix.size1())
-				KRATOS_ERROR << "Size of partial stress design variable derivative does not fit!" << std::endl;
+			KRATOS_ERROR_IF(rResponseGradient.size() != rDerivativesMatrix.size1())
+				<< "Size of partial stress design variable derivative does not fit!" << std::endl;
 
 			for (int dv_it = 0 ; dv_it < num_of_DV; dv_it++)
 			{

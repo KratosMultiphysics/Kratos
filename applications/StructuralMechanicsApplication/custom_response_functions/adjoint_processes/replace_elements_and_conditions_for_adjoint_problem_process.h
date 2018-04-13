@@ -132,8 +132,8 @@ public:
                    element_name.erase(pos,adding_string.length());   
                 }
 
-                if( !KratosComponents< Element >::Has( element_name ) )
-                    KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", element_name);
+                KRATOS_ERROR_IF_NOT( KratosComponents< Element >::Has( element_name ) )
+                    << "Element name not found in KratosComponents< Element > -- name is " << element_name << std::endl;
                 const Element& rReferenceElement = KratosComponents<Element>::Get(element_name); 
 
                 Element::Pointer p_element = rReferenceElement.Create(it->Id(), it->GetGeometry().Points(), it->pGetProperties());
@@ -167,8 +167,8 @@ public:
                     auto pos = condition_name.find(adding_string);
                     condition_name.erase(pos,adding_string.length());
                 }
-                if( !KratosComponents< Condition >::Has( condition_name ) )
-                    KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", condition_name);
+                KRATOS_ERROR_IF_NOT( KratosComponents< Condition >::Has( condition_name ) )
+                    << "Condition name not found in KratosComponents< Condition > -- name is " << condition_name;
                 const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name); 
 
                 Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(),it->GetGeometry().Points(), it->pGetProperties());
