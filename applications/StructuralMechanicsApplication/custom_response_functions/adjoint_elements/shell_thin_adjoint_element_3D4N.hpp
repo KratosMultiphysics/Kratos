@@ -25,180 +25,180 @@
 
 namespace Kratos
 {
-	///@name Kratos Globals
-	///@{
-	///@}
+    ///@name Kratos Globals
+    ///@{
+    ///@}
 
-	///@name Type Definitions
-	///@{
-	///@}
+    ///@name Type Definitions
+    ///@{
+    ///@}
 
-	///@name  Enum's
-	///@{
-	///@}
+    ///@name  Enum's
+    ///@{
+    ///@}
 
-	///@name  Functions
-	///@{
-	///@}
+    ///@name  Functions
+    ///@{
+    ///@}
 
-	///@name Kratos Classes
-	///@{
+    ///@name Kratos Classes
+    ///@{
 
 
-	class ShellThinAdjointElement3D4N : public ShellThinElement3D4N
-	{
-	public:
+    class ShellThinAdjointElement3D4N : public ShellThinElement3D4N
+    {
+    public:
 
-		///@name Type Definitions
-		///@{
-		KRATOS_CLASS_POINTER_DEFINITION(ShellThinAdjointElement3D4N);
+        ///@name Type Definitions
+        ///@{
+        KRATOS_CLASS_POINTER_DEFINITION(ShellThinAdjointElement3D4N);
 
-     	typedef Element::PropertiesType PropertiesType;
+         typedef Element::PropertiesType PropertiesType;
 
-     	typedef Element::DofsArrayType DofsArrayType;
+         typedef Element::DofsArrayType DofsArrayType;
 
-		typedef Element::NodesArrayType NodesArrayType;
+        typedef Element::NodesArrayType NodesArrayType;
 
-		typedef Element::IndexType IndexType;
+        typedef Element::IndexType IndexType;
 
-		///@}
+        ///@}
 
-		///@name Life Cycle
-		///@{
-		ShellThinAdjointElement3D4N(IndexType NewId,
-			GeometryType::Pointer pGeometry,
-			bool NLGeom = false);
+        ///@name Life Cycle
+        ///@{
+        ShellThinAdjointElement3D4N(IndexType NewId,
+            GeometryType::Pointer pGeometry,
+            bool NLGeom = false);
 
-		ShellThinAdjointElement3D4N(IndexType NewId,
-			GeometryType::Pointer pGeometry,
-			PropertiesType::Pointer pProperties,
-			bool NLGeom = false);
+        ShellThinAdjointElement3D4N(IndexType NewId,
+            GeometryType::Pointer pGeometry,
+            PropertiesType::Pointer pProperties,
+            bool NLGeom = false);
 
-		ShellThinAdjointElement3D4N(IndexType NewId,
-			GeometryType::Pointer pGeometry,
-			PropertiesType::Pointer pProperties,
-			CoordinateTransformationBasePointerType pCoordinateTransformation);
+        ShellThinAdjointElement3D4N(IndexType NewId,
+            GeometryType::Pointer pGeometry,
+            PropertiesType::Pointer pProperties,
+            CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-		~ShellThinAdjointElement3D4N() override;
+        ~ShellThinAdjointElement3D4N() override;
 
-		///@}
+        ///@}
 
-		///@name Operations
-		///@{
-		// Basic
+        ///@name Operations
+        ///@{
+        // Basic
 
-		Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-		Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+        Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-		void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+        void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
+        void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
-		int Check(const ProcessInfo& rCurrentProcessInfo) override;
+        int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetValuesVector(Vector& values, int Step = 0) override;
+        void GetValuesVector(Vector& values, int Step = 0) override;
 
-		double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable);
+        double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable);
 
-		double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
+        double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
 
-    	void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
-											const ProcessInfo& rCurrentProcessInfo) override;
-	
-    	void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
-											const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
+                                            const ProcessInfo& rCurrentProcessInfo) override;
+    
+        void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
+                                            const ProcessInfo& rCurrentProcessInfo) override;
 
-    	void Calculate(const Variable<Vector >& rVariable, Vector& rOutput,
+        void Calculate(const Variable<Vector >& rVariable, Vector& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override;                                         
 
-		void Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
+        void Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override;   
 
-    	void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
+        void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);    
 
-    	void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
+        void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
                                         Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
-	
-    	void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable, 
+    
+        void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable, 
                                             const Variable<Vector>& rStressVariable,
                                              Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);                       
 
-		void CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;    
+        void CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;    
 
-		// Results calculation on integration points
-		void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-			std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-
-		void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-			std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-		///@}
-
-		///@name Public specialized Access - Temporary
-		///@{
-		///@}
-
-	protected:
-
-		///@name Protected Lyfe Cycle
-		///@{
-		/**
-		* Protected empty constructor
-		*/
-		ShellThinAdjointElement3D4N() : ShellThinElement3D4N()
-		{
-		}
-
-		///@}
-
-	private:
-
-		///@name Private Classes
-		///@{
+        // Results calculation on integration points
+        void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+            std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
-		///@}
+        void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+            std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-		///@name Private Operations
-		///@{
-		
+        ///@}
 
-		///@}
+        ///@name Public specialized Access - Temporary
+        ///@{
+        ///@}
 
-		///@name Static Member Variables
-		///@{
-		///@}
+    protected:
 
-		///@name Member Variables
-		///@{
+        ///@name Protected Lyfe Cycle
+        ///@{
+        /**
+        * Protected empty constructor
+        */
+        ShellThinAdjointElement3D4N() : ShellThinElement3D4N()
+        {
+        }
+
+        ///@}
+
+    private:
+
+        ///@name Private Classes
+        ///@{
 
 
-		///@}
+        ///@}
 
-		///@name Serialization
-		///@{
-		friend class Serializer;
+        ///@name Private Operations
+        ///@{
+        
 
-		void save(Serializer& rSerializer) const override;
+        ///@}
 
-		void load(Serializer& rSerializer) override;
+        ///@name Static Member Variables
+        ///@{
+        ///@}
 
-		///@}
+        ///@name Member Variables
+        ///@{
 
-		///@name Private  Access
-		///@{
-		///@}
 
-		///@name Private Inquiry
-		///@{
-		///@}
+        ///@}
 
-		///@name Un accessible methods
-		///@{
-		///@}
-	};
+        ///@name Serialization
+        ///@{
+        friend class Serializer;
+
+        void save(Serializer& rSerializer) const override;
+
+        void load(Serializer& rSerializer) override;
+
+        ///@}
+
+        ///@name Private  Access
+        ///@{
+        ///@}
+
+        ///@name Private Inquiry
+        ///@{
+        ///@}
+
+        ///@name Un accessible methods
+        ///@{
+        ///@}
+    };
 }
 #endif // SHELL_THIN_ADJOINT_ELEMENT_3D4N_H_INCLUDED

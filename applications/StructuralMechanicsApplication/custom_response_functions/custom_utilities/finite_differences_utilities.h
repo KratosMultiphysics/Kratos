@@ -123,12 +123,12 @@ public:
     void DisturbElementDesignVariable(Element& rTracedElement,std::string variable_label , double DisturbanceMeasure )
     {
         const Variable<double> & rDesignVariable =
-           	  KratosComponents<Variable<double> >::Get(variable_label);
+                 KratosComponents<Variable<double> >::Get(variable_label);
 
         if ( rTracedElement.GetProperties().Has(rDesignVariable) )
-		{
+        {
             mElementID = rTracedElement.Id();
-			// Save properties and its pointer
+            // Save properties and its pointer
             Properties& r_global_property= rTracedElement.GetProperties();
             mpGlobalProperties = rTracedElement.pGetProperties();
 
@@ -137,8 +137,8 @@ public:
             rTracedElement.SetProperties(p_local_property);
 
 
-			// Disturb the design variable
-			const double current_property_value = rTracedElement.GetProperties()[rDesignVariable];
+            // Disturb the design variable
+            const double current_property_value = rTracedElement.GetProperties()[rDesignVariable];
             p_local_property->SetValue(rDesignVariable, (current_property_value + DisturbanceMeasure));
         }
         else
@@ -165,48 +165,48 @@ public:
         Vector OutputVector;
         OutputVector.clear();
         if(location == "STRESS_ON_GP" || location == "STRESS_ON_NODE")
-		{
-			std::string traced_stress_type = stress_label;
+        {
+            std::string traced_stress_type = stress_label;
 
-    		const char item_1 = traced_stress_type.at(0);
-    		const char item_2 = traced_stress_type.at(1);
+            const char item_1 = traced_stress_type.at(0);
+            const char item_2 = traced_stress_type.at(1);
 
-    		int direction_1 = 0;
-    		std::vector< array_1d<double, 3 > > stress_vector;
+            int direction_1 = 0;
+            std::vector< array_1d<double, 3 > > stress_vector;
 
-    		if(item_1 == 'M')
-        		rTracedElement.GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
-    		else if(item_1 == 'F')
-        		rTracedElement.GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
-    		else
-        		KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;
+            if(item_1 == 'M')
+                rTracedElement.GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
+            else if(item_1 == 'F')
+                rTracedElement.GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
+            else
+                KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;
 
-    		if(item_2 == 'X')
-        		direction_1 = 0;
-    		else if(item_2 == 'Y')
-        		direction_1 = 1;
-    		else if(item_2 == 'Z')
-        		direction_1 = 2;
-    		else
-        		KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;
+            if(item_2 == 'X')
+                direction_1 = 0;
+            else if(item_2 == 'Y')
+                direction_1 = 1;
+            else if(item_2 == 'Z')
+                direction_1 = 2;
+            else
+                KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;
 
-			if(location == "STRESS_ON_GP")
-			{
-				const unsigned int&  GP_num = rTracedElement.GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+            if(location == "STRESS_ON_GP")
+            {
+                const unsigned int&  GP_num = rTracedElement.GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
 
-    			OutputVector.resize(GP_num);
-    			for(unsigned int i = 0; i < GP_num ; i++)
-    			{
-        			OutputVector(i) = stress_vector[i][direction_1];
-    			}
-			}
-			else if(location == "STRESS_ON_NODE")
-			{
-				OutputVector.resize(2);
-        		OutputVector(0) = 2 * stress_vector[0][direction_1] - stress_vector[1][direction_1];
-				OutputVector(1) = 2 * stress_vector[2][direction_1] - stress_vector[1][direction_1];
-			}
-		}
+                OutputVector.resize(GP_num);
+                for(unsigned int i = 0; i < GP_num ; i++)
+                {
+                    OutputVector(i) = stress_vector[i][direction_1];
+                }
+            }
+            else if(location == "STRESS_ON_NODE")
+            {
+                OutputVector.resize(2);
+                OutputVector(0) = 2 * stress_vector[0][direction_1] - stress_vector[1][direction_1];
+                OutputVector(1) = 2 * stress_vector[2][direction_1] - stress_vector[1][direction_1];
+            }
+        }
         return OutputVector;
 
     }
@@ -217,8 +217,8 @@ public:
         KRATOS_TRY;
 
         Vector OutputVector;
-	    if(location == "STRESS_ON_GP")
-	    {
+        if(location == "STRESS_ON_GP")
+        {
             std::string traced_stress_type = stress_label;
 
             const char item_1 = traced_stress_type.at(0);
@@ -272,45 +272,45 @@ public:
     }
 
     double GetNodalDisplacement(const int NodeId, std::string TracedDofLabel, ModelPart& rModelPart )
-	{
-		KRATOS_TRY;
+    {
+        KRATOS_TRY;
 
         typedef Node<3>::Pointer PointTypePointer;
         PointTypePointer traced_pNode = rModelPart.pGetNode(NodeId);
 
         typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
-		const VariableComponentType& rTRACED_DOF =
+        const VariableComponentType& rTRACED_DOF =
             KratosComponents<VariableComponentType>::Get(TracedDofLabel);
 
-		double displacement_value = traced_pNode->FastGetSolutionStepValue(rTRACED_DOF);
+        double displacement_value = traced_pNode->FastGetSolutionStepValue(rTRACED_DOF);
 
-		return displacement_value;
+        return displacement_value;
 
-		KRATOS_CATCH("");
-	}
+        KRATOS_CATCH("");
+    }
 
     double GetStrainEnergy( ModelPart& rModelPart )
     {
         KRATOS_TRY;
 
         ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
-		double strain_energy = 0.0;
+        double strain_energy = 0.0;
 
-		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
-		for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
-		{
-			Matrix LHS;
-			Vector RHS;
-			Vector u;
+        // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
+        for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
+        {
+            Matrix LHS;
+            Vector RHS;
+            Vector u;
 
-			// Get state solution relevant for energy calculation
-			elem_i->GetValuesVector(u,0);
+            // Get state solution relevant for energy calculation
+            elem_i->GetValuesVector(u,0);
 
-			elem_i->CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
+            elem_i->CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
 
-			// Compute strain energy
-			strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
-		}
+            // Compute strain energy
+            strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
+        }
 
         return strain_energy;
 

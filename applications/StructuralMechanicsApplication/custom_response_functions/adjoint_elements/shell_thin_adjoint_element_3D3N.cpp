@@ -277,15 +277,15 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     }
 
     //##################################################################################################
-	// Check for specific sensitivity analysis stuff
-	//##################################################################################################
+    // Check for specific sensitivity analysis stuff
+    //##################################################################################################
     KRATOS_ERROR_IF(ADJOINT_DISPLACEMENT.Key() == 0)
     << "ADJOINT_DISPLACEMENT Key is 0. Check if the application was correctly registered." << std::endl;
 
-	KRATOS_ERROR_IF(ADJOINT_ROTATION.Key() == 0)
+    KRATOS_ERROR_IF(ADJOINT_ROTATION.Key() == 0)
     << "ADJOINT_ROTATION Key is 0. Check if the application was correctly registered." << std::endl;
 
-	// Check if the nodes have adjoint dofs.
+    // Check if the nodes have adjoint dofs.
     for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
     {
         KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_X) == false
@@ -294,13 +294,13 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
                     "missing ADJOINT_DISPLACEMENT component degree of freedom on node " <<
                     this->GetGeometry()[iNode].Id() << std::endl;
 
-		KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
+        KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
                 || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Y) == false
                 || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Z) == false) << 
             "missing ADJOINT_ROTATION component degree of freedom on node " <<
             this->GetGeometry()[iNode].Id() << std::endl;
 
-		KRATOS_ERROR_IF_NOT( this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) )
+        KRATOS_ERROR_IF_NOT( this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) )
         << "missing DISPLACEMENT variable on solution step data for node " << this->GetGeometry()[iNode].Id() << std::endl;				
     }
 
@@ -336,71 +336,71 @@ void ShellThinAdjointElement3D3N::GetValuesVector(Vector& values, int Step)
 
 double ShellThinAdjointElement3D3N::GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rDesignVariable)
 {
-	KRATOS_TRY;
+    KRATOS_TRY;
 
     if ( this->GetProperties().Has(rDesignVariable) ) 
-	{
-		const double variable_value = this->GetProperties()[rDesignVariable];
-		return variable_value;
-	}
-	else
-		return 1.0;
+    {
+        const double variable_value = this->GetProperties()[rDesignVariable];
+        return variable_value;
+    }
+    else
+        return 1.0;
 
-	KRATOS_CATCH("")	
+    KRATOS_CATCH("")	
 }
 
 double ShellThinAdjointElement3D3N::GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
 {
-	KRATOS_TRY;
+    KRATOS_TRY;
 
-	if(rDesignVariable == SHAPE_SENSITIVITY) 
-	{
+    if(rDesignVariable == SHAPE_SENSITIVITY) 
+    {
         double dx, dy, dz, L = 0.0;
    
         dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-		dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-		dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-		L += sqrt(dx*dx + dy*dy + dz*dz);
+        dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
+        dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
+        L += sqrt(dx*dx + dy*dy + dz*dz);
         dx = this->GetGeometry()[2].X0() - this->GetGeometry()[1].X0();
-		dy = this->GetGeometry()[2].Y0() - this->GetGeometry()[1].Y0();
-		dz = this->GetGeometry()[2].Z0() - this->GetGeometry()[1].Z0();
-		L += sqrt(dx*dx + dy*dy + dz*dz);
+        dy = this->GetGeometry()[2].Y0() - this->GetGeometry()[1].Y0();
+        dz = this->GetGeometry()[2].Z0() - this->GetGeometry()[1].Z0();
+        L += sqrt(dx*dx + dy*dy + dz*dz);
         dx = this->GetGeometry()[2].X0() - this->GetGeometry()[0].X0();
-		dy = this->GetGeometry()[2].Y0() - this->GetGeometry()[0].Y0();
-		dz = this->GetGeometry()[2].Z0() - this->GetGeometry()[0].Z0();
-		L += sqrt(dx*dx + dy*dy + dz*dz);
+        dy = this->GetGeometry()[2].Y0() - this->GetGeometry()[0].Y0();
+        dz = this->GetGeometry()[2].Z0() - this->GetGeometry()[0].Z0();
+        L += sqrt(dx*dx + dy*dy + dz*dz);
         L /= 3.0;
         
-		return L;
-	}
-	else
-		return 1.0;
+        return L;
+    }
+    else
+        return 1.0;
 
-	KRATOS_CATCH("")
+    KRATOS_CATCH("")
 }
 
 void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
-											const ProcessInfo& rCurrentProcessInfo)
+                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
     // define working variables
-	Vector RHS_undist;
-	Vector RHS_dist;
-	ProcessInfo copy_process_info = rCurrentProcessInfo;
+    Vector RHS_undist;
+    Vector RHS_dist;
+    ProcessInfo copy_process_info = rCurrentProcessInfo;
 
     // Compute RHS before disturbing
-	this->CalculateRightHandSide(RHS_undist, copy_process_info); 
+    this->CalculateRightHandSide(RHS_undist, copy_process_info); 
     rOutput.resize(1,RHS_undist.size());
 
     // Get disturbance measure
     double delta = this->GetValue(DISTURBANCE_MEASURE); 	
     double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
-	delta *= correction_factor;
+    delta *= correction_factor;
 
-	if ( this->GetProperties().Has(rDesignVariable) ) 
-	{
-		// Save properties and its pointer
+    if ( this->GetProperties().Has(rDesignVariable) ) 
+    {
+        // Save properties and its pointer
         Properties& r_global_property = this->GetProperties(); 
         Properties::Pointer p_global_properties = this->pGetProperties(); 
 
@@ -408,132 +408,132 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<doub
         Properties::Pointer p_local_property(new Properties(r_global_property));
         this->SetProperties(p_local_property);
 
-		// Disturb the design variable
+        // Disturb the design variable
         const double current_property_value = this->GetProperties()[rDesignVariable];
         p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
      
         ShellThinElement3D3N::ResetSections();
         ShellThinElement3D3N::Initialize();
 
-		// Compute RHS after disturbance
-		this->CalculateRightHandSide(RHS_dist, copy_process_info); 
+        // Compute RHS after disturbance
+        this->CalculateRightHandSide(RHS_dist, copy_process_info); 
 
-		// Compute derivative of RHS w.r.t. design variable with finite differences
-		RHS_dist -= RHS_undist;
-		RHS_dist /= delta;
-		for(unsigned int i = 0; i < RHS_dist.size(); i++)
-			rOutput(0, i) = RHS_dist[i];
-	
+        // Compute derivative of RHS w.r.t. design variable with finite differences
+        RHS_dist -= RHS_undist;
+        RHS_dist /= delta;
+        for(unsigned int i = 0; i < RHS_dist.size(); i++)
+            rOutput(0, i) = RHS_dist[i];
+    
         // Give element original properties back
         this->SetProperties(p_global_properties);
         ShellThinElement3D3N::ResetSections();
         ShellThinElement3D3N::Initialize();
         this->CalculateRightHandSide(RHS_dist, copy_process_info);   	
-	}
+    }
     else
         rOutput.clear();
-	
-	KRATOS_CATCH("")
+    
+    KRATOS_CATCH("")
 
 }                                            
-	
+    
 void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
-											const ProcessInfo& rCurrentProcessInfo)
+                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-		// define working variables
-		Vector RHS_undist;
-		Vector RHS_dist;
-		ProcessInfo copy_process_info = rCurrentProcessInfo;
+        // define working variables
+        Vector RHS_undist;
+        Vector RHS_dist;
+        ProcessInfo copy_process_info = rCurrentProcessInfo;
 
-		// Get disturbance measure
+        // Get disturbance measure
         double delta= this->GetValue(DISTURBANCE_MEASURE); 	
         double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
-	    delta *= correction_factor;	
+        delta *= correction_factor;	
 
-		if(rDesignVariable == SHAPE_SENSITIVITY) 
-		{
-			const int number_of_nodes = GetGeometry().PointsNumber();
-			const int dimension = this->GetGeometry().WorkingSpaceDimension();
-			const int local_size = number_of_nodes * dimension * 2;
+        if(rDesignVariable == SHAPE_SENSITIVITY) 
+        {
+            const int number_of_nodes = GetGeometry().PointsNumber();
+            const int dimension = this->GetGeometry().WorkingSpaceDimension();
+            const int local_size = number_of_nodes * dimension * 2;
  
-			rOutput.resize(dimension * number_of_nodes, local_size);
+            rOutput.resize(dimension * number_of_nodes, local_size);
 
-			// compute RHS before disturbing
-			this->CalculateRightHandSide(RHS_undist, copy_process_info); 
+            // compute RHS before disturbing
+            this->CalculateRightHandSide(RHS_undist, copy_process_info); 
 
             //TODO: look that this works also for parallel computing
-			for(int j = 0; j < number_of_nodes; j++)
-			{
-				//begin: derive w.r.t. x-coordinate---------------------------------------------------
-				// disturb the design variable
-				this->GetGeometry()[j].X0() += delta;
+            for(int j = 0; j < number_of_nodes; j++)
+            {
+                //begin: derive w.r.t. x-coordinate---------------------------------------------------
+                // disturb the design variable
+                this->GetGeometry()[j].X0() += delta;
 
-				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, copy_process_info);
+                // compute RHS after disturbance
+                this->CalculateRightHandSide(RHS_dist, copy_process_info);
 
-				//compute derivative of RHS w.r.t. design variable with finite differences
-				RHS_dist -= RHS_undist;
-				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++)  
-					rOutput( (0 + j*dimension), i) = RHS_dist[i]; 
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                RHS_dist -= RHS_undist;
+                RHS_dist /= delta;
+                for(unsigned int i = 0; i < RHS_dist.size(); i++)  
+                    rOutput( (0 + j*dimension), i) = RHS_dist[i]; 
    
-				// Reset pertubed vector
-				RHS_dist = Vector(0);
+                // Reset pertubed vector
+                RHS_dist = Vector(0);
 
-				// undisturb the design variable
-				this->GetGeometry()[j].X0() -= delta;
-				//end: derive w.r.t. x-coordinate-----------------------------------------------------
+                // undisturb the design variable
+                this->GetGeometry()[j].X0() -= delta;
+                //end: derive w.r.t. x-coordinate-----------------------------------------------------
 
-				//begin: derive w.r.t. y-coordinate---------------------------------------------------
-				// disturb the design variable
-				this->GetGeometry()[j].Y0() += delta;
+                //begin: derive w.r.t. y-coordinate---------------------------------------------------
+                // disturb the design variable
+                this->GetGeometry()[j].Y0() += delta;
 
-				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, copy_process_info); 
+                // compute RHS after disturbance
+                this->CalculateRightHandSide(RHS_dist, copy_process_info); 
 
-				//compute derivative of RHS w.r.t. design variable with finite differences
-				RHS_dist -= RHS_undist;
-				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++) 
-					 rOutput((1 + j*dimension),i) = RHS_dist[i]; 
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                RHS_dist -= RHS_undist;
+                RHS_dist /= delta;
+                for(unsigned int i = 0; i < RHS_dist.size(); i++) 
+                     rOutput((1 + j*dimension),i) = RHS_dist[i]; 
 
-				// Reset pertubed vector
-				RHS_dist = Vector(0);
+                // Reset pertubed vector
+                RHS_dist = Vector(0);
 
-				// undisturb the design variable
-				this->GetGeometry()[j].Y0() -= delta;
-				//end: derive w.r.t. y-coordinate-----------------------------------------------------
+                // undisturb the design variable
+                this->GetGeometry()[j].Y0() -= delta;
+                //end: derive w.r.t. y-coordinate-----------------------------------------------------
 
-				//begin: derive w.r.t. z-coordinate---------------------------------------------------
-				// disturb the design variable
-				this->GetGeometry()[j].Z0() += delta;
+                //begin: derive w.r.t. z-coordinate---------------------------------------------------
+                // disturb the design variable
+                this->GetGeometry()[j].Z0() += delta;
 
-				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, copy_process_info);
+                // compute RHS after disturbance
+                this->CalculateRightHandSide(RHS_dist, copy_process_info);
 
-				//compute derivative of RHS w.r.t. design variable with finite differences
-				RHS_dist -= RHS_undist;
-				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++) 
-					rOutput((2 + j*dimension),i) = RHS_dist[i]; 
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                RHS_dist -= RHS_undist;
+                RHS_dist /= delta;
+                for(unsigned int i = 0; i < RHS_dist.size(); i++) 
+                    rOutput((2 + j*dimension),i) = RHS_dist[i]; 
 
-				// Reset pertubed vector
-				RHS_dist = Vector(0);
+                // Reset pertubed vector
+                RHS_dist = Vector(0);
 
-				// undisturb the design variable
-				this->GetGeometry()[j].Z0() -= delta;
-				//end: derive w.r.t. z-coordinate-----------------------------------------------------
+                // undisturb the design variable
+                this->GetGeometry()[j].Z0() -= delta;
+                //end: derive w.r.t. z-coordinate-----------------------------------------------------
 
                 this->CalculateRightHandSide(RHS_dist, copy_process_info);
 
-			}// end loop over element nodes
-		}
+            }// end loop over element nodes
+        }
         else
-			KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
+            KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
 
-		KRATOS_CATCH("")
+        KRATOS_CATCH("")
 
 }
 
@@ -543,8 +543,8 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Vector >& rVariable,
 {
     KRATOS_TRY;
 
-	if(rVariable == STRESS_ON_GP)
-	{
+    if(rVariable == STRESS_ON_GP)
+    {
         TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
 
         int direction_1 = 0;
@@ -701,8 +701,8 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Matrix >& rVariable, 
 {
     KRATOS_TRY;                           
            
-	if(rVariable == STRESS_DISP_DERIV_ON_GP)   
-	{
+    if(rVariable == STRESS_DISP_DERIV_ON_GP)   
+    {
        this->CalculateStressDisplacementDerivative(STRESS_ON_GP, rOutput, rCurrentProcessInfo);
     }
     else if(rVariable == STRESS_DV_DERIV_ON_GP)
@@ -723,9 +723,9 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Matrix >& rVariable, 
         }      
     }
     else
-	{
-		rOutput.clear();
-	}
+    {
+        rOutput.clear();
+    }
       
     KRATOS_CATCH("")
 }
@@ -738,48 +738,48 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
     Vector stress_vector_undist;
     Vector stress_vector_dist;
     ProcessInfo copy_process_info = rCurrentProcessInfo;
-	double initial_value_of_state_variable = 0.0;
-	const int num_nodes = this->GetGeometry().PointsNumber();
-	// Get disturbance measure
+    double initial_value_of_state_variable = 0.0;
+    const int num_nodes = this->GetGeometry().PointsNumber();
+    // Get disturbance measure
     double dist_measure = this->GetValue(DISTURBANCE_MEASURE); 	
 
     this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
     rOutput.resize(OPT_NUM_DOFS, OPT_NUM_GP);
-	rOutput.clear();
-    	
- 	// Built vector of variables containing the DOF-variables of the primal problem 
-	std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list; 
+    rOutput.clear();
+        
+     // Built vector of variables containing the DOF-variables of the primal problem 
+    std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list; 
     primal_solution_variable_list.push_back(DISPLACEMENT_X);       
-	primal_solution_variable_list.push_back(DISPLACEMENT_Y);       
-	primal_solution_variable_list.push_back(DISPLACEMENT_Z);       
-	primal_solution_variable_list.push_back(ROTATION_X);       
-	primal_solution_variable_list.push_back(ROTATION_Y);       
-	primal_solution_variable_list.push_back(ROTATION_Z);  
+    primal_solution_variable_list.push_back(DISPLACEMENT_Y);       
+    primal_solution_variable_list.push_back(DISPLACEMENT_Z);       
+    primal_solution_variable_list.push_back(ROTATION_X);       
+    primal_solution_variable_list.push_back(ROTATION_Y);       
+    primal_solution_variable_list.push_back(ROTATION_Z);  
 
-	int index = 0;
+    int index = 0;
     for (int i = 0; i < num_nodes; i++) 
-	{	
-		for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
-		{
-        	initial_value_of_state_variable = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
-				
-			this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable + dist_measure;
-				
-			this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
-			
-        	for(unsigned int k = 0; k < OPT_NUM_GP; k++)
-        	{
-            	stress_vector_dist[k] -= stress_vector_undist[k];
-            	stress_vector_dist[k] /= dist_measure;
-            	rOutput(index,k) = stress_vector_dist[k];
-        	}
+    {	
+        for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
+        {
+            initial_value_of_state_variable = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
+                
+            this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable + dist_measure;
+                
+            this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+            
+            for(unsigned int k = 0; k < OPT_NUM_GP; k++)
+            {
+                stress_vector_dist[k] -= stress_vector_undist[k];
+                stress_vector_dist[k] /= dist_measure;
+                rOutput(index,k) = stress_vector_dist[k];
+            }
 
-			this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable;
+            this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable;
 
-			stress_vector_dist.clear();
-			index++;
-		}
+            stress_vector_dist.clear();
+            index++;
+        }
     }
 
     KRATOS_CATCH("")
@@ -787,27 +787,27 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
 
 void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, 
                                                 const Variable<Vector>& rStressVariable, Matrix& rOutput, 
-											    const ProcessInfo& rCurrentProcessInfo) 
+                                                const ProcessInfo& rCurrentProcessInfo) 
 {
     KRATOS_TRY;
 
         // Define working variables
-		Vector stress_vector_undist;
-		Vector stress_vector_dist;
+        Vector stress_vector_undist;
+        Vector stress_vector_dist;
 
         // Compute stress on GP before disturbance
-		this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+        this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
         // Get disturbance measure
         double delta= this->GetValue(DISTURBANCE_MEASURE); 	
         double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
-	    delta *= correction_factor;	
+        delta *= correction_factor;	
 
         rOutput.resize(1, OPT_NUM_GP);
 
-		if( this->GetProperties().Has(rDesignVariable) ) 
-		{
-			// Save properties and its pointer
+        if( this->GetProperties().Has(rDesignVariable) ) 
+        {
+            // Save properties and its pointer
             Properties& r_global_property = this->GetProperties(); 
             Properties::Pointer p_global_properties = this->pGetProperties(); 
 
@@ -815,30 +815,30 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
             Properties::Pointer p_local_property(new Properties(r_global_property));
             this->SetProperties(p_local_property);
 
-			// Disturb the design variable
-			const double current_property_value = this->GetProperties()[rDesignVariable];
+            // Disturb the design variable
+            const double current_property_value = this->GetProperties()[rDesignVariable];
             p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
 
             ShellThinElement3D3N::ResetSections();
             ShellThinElement3D3N::Initialize();
 
-			// Compute stress on GP after disturbance
-		    this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+            // Compute stress on GP after disturbance
+            this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
-			// Compute derivative of stress w.r.t. design variable with finite differences
-			stress_vector_dist  -= stress_vector_undist;
-			stress_vector_dist  /= delta;
+            // Compute derivative of stress w.r.t. design variable with finite differences
+            stress_vector_dist  -= stress_vector_undist;
+            stress_vector_dist  /= delta;
 
-			for(size_t j = 0; j < OPT_NUM_GP; j++)
-			    rOutput(0, j) = stress_vector_dist[j];
-		
+            for(size_t j = 0; j < OPT_NUM_GP; j++)
+                rOutput(0, j) = stress_vector_dist[j];
+        
             // Give element original properties back
             this->SetProperties(p_global_properties);
 
             ShellThinElement3D3N::ResetSections();
             ShellThinElement3D3N::Initialize();
           
-		}
+        }
         else
          rOutput.clear();
 
@@ -852,94 +852,94 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
     KRATOS_TRY;
 
     // define working variables
-	Vector stress_vector_undist;
-	Vector stress_vector_dist;
-	
+    Vector stress_vector_undist;
+    Vector stress_vector_dist;
+    
     // Get disturbance measure
     double delta= this->GetValue(DISTURBANCE_MEASURE); 	
     double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
-	delta *= correction_factor;	
+    delta *= correction_factor;	
 
-	if(rDesignVariable == SHAPE_SENSITIVITY) 
-	{
-		const int number_of_nodes = GetGeometry().PointsNumber();
-		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+    if(rDesignVariable == SHAPE_SENSITIVITY) 
+    {
+        const int number_of_nodes = GetGeometry().PointsNumber();
+        const int dimension = this->GetGeometry().WorkingSpaceDimension();
  
-		rOutput.resize(dimension * number_of_nodes, OPT_NUM_GP);
+        rOutput.resize(dimension * number_of_nodes, OPT_NUM_GP);
      
-		// Compute stress on GP before disturbance
-	    this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+        // Compute stress on GP before disturbance
+        this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
         //TODO: look that this works also for parallel computing
-		for(int j = 0; j < number_of_nodes; j++)
-		{
-			//begin: derive w.r.t. x-coordinate---------------------------------------------------
-			// disturb the design variable
-			this->GetGeometry()[j].X0() += delta;
+        for(int j = 0; j < number_of_nodes; j++)
+        {
+            //begin: derive w.r.t. x-coordinate---------------------------------------------------
+            // disturb the design variable
+            this->GetGeometry()[j].X0() += delta;
 
-			// Compute stress on GP after disturbance
-			this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+            // Compute stress on GP after disturbance
+            this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
-			// Compute derivative of stress w.r.t. design variable with finite differences
-			stress_vector_dist  -= stress_vector_undist;
-			stress_vector_dist  /= delta;
+            // Compute derivative of stress w.r.t. design variable with finite differences
+            stress_vector_dist  -= stress_vector_undist;
+            stress_vector_dist  /= delta;
 
-			for(size_t i = 0; i < OPT_NUM_GP; i++)
-				rOutput( (0 + j*dimension), i) = stress_vector_dist[i]; 
+            for(size_t i = 0; i < OPT_NUM_GP; i++)
+                rOutput( (0 + j*dimension), i) = stress_vector_dist[i]; 
 
-			// Reset pertubed vector
-			stress_vector_dist = Vector(0);
+            // Reset pertubed vector
+            stress_vector_dist = Vector(0);
 
-			// undisturb the design variable
-			this->GetGeometry()[j].X0() -= delta;
-			//end: derive w.r.t. x-coordinate-----------------------------------------------------
+            // undisturb the design variable
+            this->GetGeometry()[j].X0() -= delta;
+            //end: derive w.r.t. x-coordinate-----------------------------------------------------
 
-			//begin: derive w.r.t. y-coordinate---------------------------------------------------
-			// disturb the design variable
-			this->GetGeometry()[j].Y0() += delta;
+            //begin: derive w.r.t. y-coordinate---------------------------------------------------
+            // disturb the design variable
+            this->GetGeometry()[j].Y0() += delta;
 
-			// Compute stress on GP after disturbance
-			this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+            // Compute stress on GP after disturbance
+            this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
-			// Compute derivative of stress w.r.t. design variable with finite differences
-			stress_vector_dist  -= stress_vector_undist;
-			stress_vector_dist  /= delta;
+            // Compute derivative of stress w.r.t. design variable with finite differences
+            stress_vector_dist  -= stress_vector_undist;
+            stress_vector_dist  /= delta;
 
-			for(size_t i = 0; i < OPT_NUM_GP; i++)
-				rOutput((1 + j*dimension),i) = stress_vector_dist[i]; 
+            for(size_t i = 0; i < OPT_NUM_GP; i++)
+                rOutput((1 + j*dimension),i) = stress_vector_dist[i]; 
 
-			// Reset pertubed vector
-			stress_vector_dist = Vector(0);
+            // Reset pertubed vector
+            stress_vector_dist = Vector(0);
 
-			// undisturb the design variable
-			this->GetGeometry()[j].Y0() -= delta;
-			//end: derive w.r.t. y-coordinate-----------------------------------------------------
+            // undisturb the design variable
+            this->GetGeometry()[j].Y0() -= delta;
+            //end: derive w.r.t. y-coordinate-----------------------------------------------------
 
-			//begin: derive w.r.t. z-coordinate---------------------------------------------------
-			// disturb the design variable
-			this->GetGeometry()[j].Z0() += delta;
+            //begin: derive w.r.t. z-coordinate---------------------------------------------------
+            // disturb the design variable
+            this->GetGeometry()[j].Z0() += delta;
 
-			// Compute stress on GP after disturbance
-			this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+            // Compute stress on GP after disturbance
+            this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
-			// Compute derivative of stress w.r.t. design variable with finite differences
-			stress_vector_dist  -= stress_vector_undist;
-			stress_vector_dist  /= delta;
+            // Compute derivative of stress w.r.t. design variable with finite differences
+            stress_vector_dist  -= stress_vector_undist;
+            stress_vector_dist  /= delta;
 
-			for(size_t i = 0; i < OPT_NUM_GP; i++)
-			    rOutput((2 + j*dimension),i) = stress_vector_dist[i]; 
+            for(size_t i = 0; i < OPT_NUM_GP; i++)
+                rOutput((2 + j*dimension),i) = stress_vector_dist[i]; 
 
-			// Reset pertubed vector
-			stress_vector_dist = Vector(0);
+            // Reset pertubed vector
+            stress_vector_dist = Vector(0);
 
-			// undisturb the design variable
-			this->GetGeometry()[j].Z0() -= delta;
-			//end: derive w.r.t. z-coordinate-----------------------------------------------------
+            // undisturb the design variable
+            this->GetGeometry()[j].Z0() -= delta;
+            //end: derive w.r.t. z-coordinate-----------------------------------------------------
 
-		}// end loop over element nodes
-	}
+        }// end loop over element nodes
+    }
     else
-		KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
+        KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
 
     KRATOS_CATCH("")
 }                                            
@@ -957,42 +957,42 @@ void ShellThinAdjointElement3D3N::CalculateLeftHandSide( MatrixType& rLeftHandSi
 // =====================================================================================
 
 void ShellThinAdjointElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-					      std::vector<double>& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector<double>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
 {
-	KRATOS_TRY;
-		
-	if(this->Has(rVariable))
-	{
-		// Get result value for output
-		double output_value = this->GetValue(rVariable);
+    KRATOS_TRY;
+        
+    if(this->Has(rVariable))
+    {
+        // Get result value for output
+        double output_value = this->GetValue(rVariable);
 
-		// Resize Output
+        // Resize Output
         if(rOutput.size() != OPT_NUM_GP)
             rOutput.resize(OPT_NUM_GP);
 
-		// Write scalar result value on all Gauss-Points
-		for(int i = 0; i < OPT_NUM_GP; i++)
-			rOutput[i] = output_value; 
+        // Write scalar result value on all Gauss-Points
+        for(int i = 0; i < OPT_NUM_GP; i++)
+            rOutput[i] = output_value; 
 
         OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rOutput);    
-	}
-	else
+    }
+    else
         KRATOS_ERROR << "Unsupported output variable." << std::endl;
 
 
 
-	KRATOS_CATCH("")
+    KRATOS_CATCH("")
 
 }
 
 void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-				    std::vector<double>& rValues,
-					const ProcessInfo& rCurrentProcessInfo)
+                    std::vector<double>& rValues,
+                    const ProcessInfo& rCurrentProcessInfo)
 {
-	KRATOS_TRY;
-	this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	KRATOS_CATCH("")
+    KRATOS_TRY;
+    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    KRATOS_CATCH("")
 }
 
 

@@ -162,7 +162,7 @@ namespace Kratos
     //************************************************************************************
 
     void PointLoadAdjointCondition::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-				       ProcessInfo& rCurrentProcessInfo)
+                       ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 

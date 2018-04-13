@@ -111,18 +111,18 @@ public:
 
     double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable);
 
-	double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
+    double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
 
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
-											const ProcessInfo& rCurrentProcessInfo) override;
-	
+                                            const ProcessInfo& rCurrentProcessInfo) override;
+    
     void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
-											const ProcessInfo& rCurrentProcessInfo) override;
+                                            const ProcessInfo& rCurrentProcessInfo) override;
 
     void Calculate(const Variable<Vector >& rVariable, Vector& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override;                                         
 
-	void Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
+    void Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override;   
 
     void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
@@ -130,7 +130,7 @@ public:
 
     void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
                                         Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
-	
+    
     void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable, 
                                             const Variable<Vector>& rStressVariable,
                                              Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);                       
@@ -140,7 +140,7 @@ public:
     // Results calculation on integration points
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput,
-					                    const ProcessInfo& rCurrentProcessInfo) override;
+                                        const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 

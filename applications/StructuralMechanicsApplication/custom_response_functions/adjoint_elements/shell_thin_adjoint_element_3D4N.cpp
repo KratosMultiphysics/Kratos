@@ -26,735 +26,329 @@
 namespace Kratos
 {
 
-	// =========================================================================
-	//
-	// Definitions
-	//
-	// =========================================================================
+    // =========================================================================
+    //
+    // Definitions
+    //
+    // =========================================================================
 
-	#define OPT_NUM_NODES 4
-	#define OPT_STRAIN_SIZE 6
-	#define OPT_NUM_DOFS 24
-	#define OPT_NUM_GP 4
-
-
-	// =========================================================================
-	//
-	// Class ShellThinAdjointElement3D4N
-	//
-	// =========================================================================
-
-	ShellThinAdjointElement3D4N::ShellThinAdjointElement3D4N(IndexType NewId,
-		GeometryType::Pointer pGeometry,
-		bool NLGeom)
-		: ShellThinElement3D4N(NewId, pGeometry, NLGeom)
-	{
-		
-	}
-
-	ShellThinAdjointElement3D4N::ShellThinAdjointElement3D4N(IndexType NewId,
-		GeometryType::Pointer pGeometry,
-		PropertiesType::Pointer pProperties,
-		bool NLGeom)
-		: ShellThinElement3D4N(NewId, pGeometry, pProperties, NLGeom)
-	{
-
-	}
-
-	ShellThinAdjointElement3D4N::ShellThinAdjointElement3D4N(IndexType NewId,
-		GeometryType::Pointer pGeometry,
-		PropertiesType::Pointer pProperties,
-		CoordinateTransformationBasePointerType pCoordinateTransformation)
-		: ShellThinElement3D4N(NewId, pGeometry, pProperties, pCoordinateTransformation)
-	{
-
-	}
-
-	ShellThinAdjointElement3D4N::~ShellThinAdjointElement3D4N()
-	{
-	}
-
-	//Basic methods
-
-	Element::Pointer ShellThinAdjointElement3D4N::Create(IndexType NewId,
-		NodesArrayType const& ThisNodes,
-		PropertiesType::Pointer pProperties) const
-	{
-		bool NLGeom = false; //--------------------------> hard coded linear shell element!!!
-    	GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
-    	return boost::make_shared< ShellThinAdjointElement3D4N >(NewId, newGeom, pProperties, NLGeom);
-	}
+    #define OPT_NUM_NODES 4
+    #define OPT_STRAIN_SIZE 6
+    #define OPT_NUM_DOFS 24
+    #define OPT_NUM_GP 4
 
 
-	Element::Pointer ShellThinAdjointElement3D4N::Create(IndexType NewId,
+    // =========================================================================
+    //
+    // Class ShellThinAdjointElement3D4N
+    //
+    // =========================================================================
+
+    ShellThinAdjointElement3D4N::ShellThinAdjointElement3D4N(IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        bool NLGeom)
+        : ShellThinElement3D4N(NewId, pGeometry, NLGeom)
+    {
+        
+    }
+
+    ShellThinAdjointElement3D4N::ShellThinAdjointElement3D4N(IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties,
+        bool NLGeom)
+        : ShellThinElement3D4N(NewId, pGeometry, pProperties, NLGeom)
+    {
+
+    }
+
+    ShellThinAdjointElement3D4N::ShellThinAdjointElement3D4N(IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties,
+        CoordinateTransformationBasePointerType pCoordinateTransformation)
+        : ShellThinElement3D4N(NewId, pGeometry, pProperties, pCoordinateTransformation)
+    {
+
+    }
+
+    ShellThinAdjointElement3D4N::~ShellThinAdjointElement3D4N()
+    {
+    }
+
+    //Basic methods
+
+    Element::Pointer ShellThinAdjointElement3D4N::Create(IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const
+    {
+        bool NLGeom = false; //--------------------------> hard coded linear shell element!!!
+        GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
+        return boost::make_shared< ShellThinAdjointElement3D4N >(NewId, newGeom, pProperties, NLGeom);
+    }
+
+
+    Element::Pointer ShellThinAdjointElement3D4N::Create(IndexType NewId,
             GeometryType::Pointer pGeom,
             PropertiesType::Pointer pProperties) const 
-	{
-    	KRATOS_TRY
+    {
+        KRATOS_TRY
 
-    	bool NLGeom = false; //------------------> hard coded linear shell element!!!
-    	return Element::Pointer(
+        bool NLGeom = false; //------------------> hard coded linear shell element!!!
+        return Element::Pointer(
                 new ShellThinAdjointElement3D4N(NewId, pGeom, pProperties, NLGeom));
     
-    	KRATOS_CATCH("")
-	}
+        KRATOS_CATCH("")
+    }
 
-	void ShellThinAdjointElement3D4N::EquationIdVector(EquationIdVectorType& rResult,
-		ProcessInfo& rCurrentProcessInfo)
-	{
-		if (rResult.size() != OPT_NUM_DOFS)
-			rResult.resize(OPT_NUM_DOFS, false);
+    void ShellThinAdjointElement3D4N::EquationIdVector(EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rResult.size() != OPT_NUM_DOFS)
+            rResult.resize(OPT_NUM_DOFS, false);
 
-		GeometryType & geom = this->GetGeometry();
+        GeometryType & geom = this->GetGeometry();
 
-		for (SizeType i = 0; i < geom.size(); i++)
-		{
-			int index = i * 6;
-			NodeType & iNode = geom[i];
+        for (SizeType i = 0; i < geom.size(); i++)
+        {
+            int index = i * 6;
+            NodeType & iNode = geom[i];
 
-			rResult[index] = iNode.GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
-			rResult[index + 1] = iNode.GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
-			rResult[index + 2] = iNode.GetDof(ADJOINT_DISPLACEMENT_Z).EquationId();
+            rResult[index] = iNode.GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
+            rResult[index + 1] = iNode.GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
+            rResult[index + 2] = iNode.GetDof(ADJOINT_DISPLACEMENT_Z).EquationId();
 
-			rResult[index + 3] = iNode.GetDof(ADJOINT_ROTATION_X).EquationId();
-			rResult[index + 4] = iNode.GetDof(ADJOINT_ROTATION_Y).EquationId();
-			rResult[index + 5] = iNode.GetDof(ADJOINT_ROTATION_Z).EquationId();
-		}
-	}
+            rResult[index + 3] = iNode.GetDof(ADJOINT_ROTATION_X).EquationId();
+            rResult[index + 4] = iNode.GetDof(ADJOINT_ROTATION_Y).EquationId();
+            rResult[index + 5] = iNode.GetDof(ADJOINT_ROTATION_Z).EquationId();
+        }
+    }
 
-	void ShellThinAdjointElement3D4N::GetDofList(DofsVectorType& ElementalDofList,
-		ProcessInfo& CurrentProcessInfo)
-	{
-		ElementalDofList.resize(0);
-		ElementalDofList.reserve(OPT_NUM_DOFS);
+    void ShellThinAdjointElement3D4N::GetDofList(DofsVectorType& ElementalDofList,
+        ProcessInfo& CurrentProcessInfo)
+    {
+        ElementalDofList.resize(0);
+        ElementalDofList.reserve(OPT_NUM_DOFS);
 
-		GeometryType & geom = this->GetGeometry();
+        GeometryType & geom = this->GetGeometry();
 
-		for (SizeType i = 0; i < geom.size(); i++)
-		{
-			NodeType & iNode = geom[i];
+        for (SizeType i = 0; i < geom.size(); i++)
+        {
+            NodeType & iNode = geom[i];
 
-			ElementalDofList.push_back(iNode.pGetDof(ADJOINT_DISPLACEMENT_X));
-			ElementalDofList.push_back(iNode.pGetDof(ADJOINT_DISPLACEMENT_Y));
-			ElementalDofList.push_back(iNode.pGetDof(ADJOINT_DISPLACEMENT_Z));
+            ElementalDofList.push_back(iNode.pGetDof(ADJOINT_DISPLACEMENT_X));
+            ElementalDofList.push_back(iNode.pGetDof(ADJOINT_DISPLACEMENT_Y));
+            ElementalDofList.push_back(iNode.pGetDof(ADJOINT_DISPLACEMENT_Z));
 
-			ElementalDofList.push_back(iNode.pGetDof(ADJOINT_ROTATION_X));
-			ElementalDofList.push_back(iNode.pGetDof(ADJOINT_ROTATION_Y));
-			ElementalDofList.push_back(iNode.pGetDof(ADJOINT_ROTATION_Z));
-		}
-	}
+            ElementalDofList.push_back(iNode.pGetDof(ADJOINT_ROTATION_X));
+            ElementalDofList.push_back(iNode.pGetDof(ADJOINT_ROTATION_Y));
+            ElementalDofList.push_back(iNode.pGetDof(ADJOINT_ROTATION_Z));
+        }
+    }
 
-	int ShellThinAdjointElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
+    int ShellThinAdjointElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
 
-		GeometryType& geom = GetGeometry();
+        GeometryType& geom = GetGeometry();
 
-		// verify that the variables are correctly initialized
-		KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0)
-		<< "DISPLACEMENT has Key zero! (check if the application is correctly registered)" << std::endl;
+        // verify that the variables are correctly initialized
+        KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0)
+        << "DISPLACEMENT has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		KRATOS_ERROR_IF(ROTATION.Key() == 0)
-		<< "ROTATION has Key zero! (check if the application is correctly registered)" << std::endl;
+        KRATOS_ERROR_IF(ROTATION.Key() == 0)
+        << "ROTATION has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		KRATOS_ERROR_IF(VELOCITY.Key() == 0)
-		<< "VELOCITY has Key zero! (check if the application is correctly registered)" << std::endl;
+        KRATOS_ERROR_IF(VELOCITY.Key() == 0)
+        << "VELOCITY has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		KRATOS_ERROR_IF(ACCELERATION.Key() == 0)
-		<< "ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
+        KRATOS_ERROR_IF(ACCELERATION.Key() == 0)
+        << "ACCELERATION has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		KRATOS_ERROR_IF(DENSITY.Key() == 0)
-		<< "DENSITY has Key zero! (check if the application is correctly registered)" << std::endl;
+        KRATOS_ERROR_IF(DENSITY.Key() == 0)
+        << "DENSITY has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		KRATOS_ERROR_IF(SHELL_CROSS_SECTION.Key() == 0)
-		<< "SHELL_CROSS_SECTION has Key zero! (check if the application is correctly registered)" << std::endl;
+        KRATOS_ERROR_IF(SHELL_CROSS_SECTION.Key() == 0)
+        << "SHELL_CROSS_SECTION has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		KRATOS_ERROR_IF(THICKNESS.Key() == 0)
-		<< "THICKNESS has Key zero! (check if the application is correctly registered)" << std::endl;
+        KRATOS_ERROR_IF(THICKNESS.Key() == 0)
+        << "THICKNESS has Key zero! (check if the application is correctly registered)" << std::endl;
 
-		KRATOS_ERROR_IF(CONSTITUTIVE_LAW.Key() == 0)
-		<< "CONSTITUTIVE_LAW has Key zero! (check if the application is correctly registered)" << std::endl;
+        KRATOS_ERROR_IF(CONSTITUTIVE_LAW.Key() == 0)
+        << "CONSTITUTIVE_LAW has Key zero! (check if the application is correctly registered)" << std::endl;
 
 
-		// check properties
-		KRATOS_ERROR_IF(this->pGetProperties() == NULL) << "Properties not provided for element " << this->Id() << std::endl;
+        // check properties
+        KRATOS_ERROR_IF(this->pGetProperties() == NULL) << "Properties not provided for element " << this->Id() << std::endl;
 
-		const PropertiesType & props = this->GetProperties();
+        const PropertiesType & props = this->GetProperties();
 
-		if (props.Has(SHELL_CROSS_SECTION))
-		{
-			// if the user specified a cross section...
+        if (props.Has(SHELL_CROSS_SECTION))
+        {
+            // if the user specified a cross section...
 
-			const ShellCrossSection::Pointer & section =
-				props[SHELL_CROSS_SECTION];
-			KRATOS_ERROR_IF(section == NULL) << "SHELL_CROSS_SECTION not provided for element "  << this->Id() << std::endl;
+            const ShellCrossSection::Pointer & section =
+                props[SHELL_CROSS_SECTION];
+            KRATOS_ERROR_IF(section == NULL) << "SHELL_CROSS_SECTION not provided for element "  << this->Id() << std::endl;
 
-			section->Check(props, geom, rCurrentProcessInfo);
-		}
-		else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
-		{
-			// perform orthotropic check later in shell_cross_section
-		}
-		else
-		{
-			// ... allow the automatic creation of a homogeneous section from a
-			// material and a thickness
+            section->Check(props, geom, rCurrentProcessInfo);
+        }
+        else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
+        {
+            // perform orthotropic check later in shell_cross_section
+        }
+        else
+        {
+            // ... allow the automatic creation of a homogeneous section from a
+            // material and a thickness
 
-			KRATOS_ERROR_IF_NOT(props.Has(CONSTITUTIVE_LAW)) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
-			const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
+            KRATOS_ERROR_IF_NOT(props.Has(CONSTITUTIVE_LAW)) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
+            const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
 
-			KRATOS_ERROR_IF(claw == NULL) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
+            KRATOS_ERROR_IF(claw == NULL) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
 
-			KRATOS_ERROR_IF_NOT(props.Has(THICKNESS)) << "THICKNESS not provided for element " <<  this->Id() << std::endl;
+            KRATOS_ERROR_IF_NOT(props.Has(THICKNESS)) << "THICKNESS not provided for element " <<  this->Id() << std::endl;
 
-			KRATOS_ERROR_IF(props[THICKNESS] <= 0.0) << "wrong THICKNESS value provided for element " << this->Id() << std::endl;
+            KRATOS_ERROR_IF(props[THICKNESS] <= 0.0) << "wrong THICKNESS value provided for element " << this->Id() << std::endl;
 
-			ShellCrossSection::Pointer dummySection =
-				ShellCrossSection::Pointer(new ShellCrossSection());
-			dummySection->BeginStack();
-			dummySection->AddPly(props[THICKNESS], 0.0, 5,
-				this->pGetProperties());
-			dummySection->EndStack();
-			dummySection->SetSectionBehavior(ShellCrossSection::Thin);
-			dummySection->Check(props, geom, rCurrentProcessInfo);
-		}
+            ShellCrossSection::Pointer dummySection =
+                ShellCrossSection::Pointer(new ShellCrossSection());
+            dummySection->BeginStack();
+            dummySection->AddPly(props[THICKNESS], 0.0, 5,
+                this->pGetProperties());
+            dummySection->EndStack();
+            dummySection->SetSectionBehavior(ShellCrossSection::Thin);
+            dummySection->Check(props, geom, rCurrentProcessInfo);
+        }
 
-		//##################################################################################################
-		// Check for specific sensitivity analysis stuff
-		//##################################################################################################
-    	KRATOS_ERROR_IF(ADJOINT_DISPLACEMENT.Key() == 0) << 
-			"ADJOINT_DISPLACEMENT Key is 0. Check if the application was correctly registered." << std::endl;
+        //##################################################################################################
+        // Check for specific sensitivity analysis stuff
+        //##################################################################################################
+        KRATOS_ERROR_IF(ADJOINT_DISPLACEMENT.Key() == 0) << 
+            "ADJOINT_DISPLACEMENT Key is 0. Check if the application was correctly registered." << std::endl;
 
-		KRATOS_ERROR_IF(ADJOINT_ROTATION.Key() == 0) <<
+        KRATOS_ERROR_IF(ADJOINT_ROTATION.Key() == 0) <<
             "ADJOINT_ROTATION Key is 0. Check if the application was correctly registered." << std::endl;
-		// Check if the nodes have adjoint dofs.
-    	for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
-    	{
-        	KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_X) == false
-                	|| this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Y) == false
-                	|| this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Z) == false) <<
-			"missing ADJOINT_DISPLACEMENT component degree of freedom on node " << this->GetGeometry()[iNode].Id() << std::endl;
+        // Check if the nodes have adjoint dofs.
+        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
+        {
+            KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_X) == false
+                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Y) == false
+                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Z) == false) <<
+            "missing ADJOINT_DISPLACEMENT component degree of freedom on node " << this->GetGeometry()[iNode].Id() << std::endl;
 
-			KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
+            KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
                 || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Y) == false
                 || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Z) == false) << 
-			"missing ADJOINT_ROTATION component degree of freedom on node " << this->GetGeometry()[iNode].Id() << std::endl;	
+            "missing ADJOINT_ROTATION component degree of freedom on node " << this->GetGeometry()[iNode].Id() << std::endl;	
 
-			KRATOS_ERROR_IF_NOT( this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) ) <<
+            KRATOS_ERROR_IF_NOT( this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) ) <<
             "missing DISPLACEMENT variable on solution step data for node " << this->GetGeometry()[iNode].Id() << std::endl;				
-    	}
+        }
 
-		return 0;
+        return 0;
 
-		KRATOS_CATCH("")
-	}
+        KRATOS_CATCH("")
+    }
 
-	
-	void ShellThinAdjointElement3D4N::GetValuesVector(Vector& values, int Step)
-	{
-		if (values.size() != 24)
-			values.resize(24, false);
+    
+    void ShellThinAdjointElement3D4N::GetValuesVector(Vector& values, int Step)
+    {
+        if (values.size() != 24)
+            values.resize(24, false);
 
-		const GeometryType & geom = GetGeometry();
+        const GeometryType & geom = GetGeometry();
 
-		for (int i = 0; i < 4; i++)
-		{
-			const NodeType & iNode = geom[i];
-			const array_1d<double, 3>& disp =
-				iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
-			const array_1d<double, 3>& rot =
-				iNode.FastGetSolutionStepValue(ADJOINT_ROTATION, Step);
+        for (int i = 0; i < 4; i++)
+        {
+            const NodeType & iNode = geom[i];
+            const array_1d<double, 3>& disp =
+                iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
+            const array_1d<double, 3>& rot =
+                iNode.FastGetSolutionStepValue(ADJOINT_ROTATION, Step);
 
-			int index = i * 6;
-			values[index] = disp[0];
-			values[index + 1] = disp[1];
-			values[index + 2] = disp[2];
+            int index = i * 6;
+            values[index] = disp[0];
+            values[index + 1] = disp[1];
+            values[index + 2] = disp[2];
 
-			values[index + 3] = rot[0];
-			values[index + 4] = rot[1];
-			values[index + 5] = rot[2];
-		}
-	}
+            values[index + 3] = rot[0];
+            values[index + 4] = rot[1];
+            values[index + 5] = rot[2];
+        }
+    }
 
-	double ShellThinAdjointElement3D4N::GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rDesignVariable)
-	{
-		KRATOS_TRY;
+    double ShellThinAdjointElement3D4N::GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rDesignVariable)
+    {
+        KRATOS_TRY;
 
-    	if ( this->GetProperties().Has(rDesignVariable) ) 
-		{
-			const double variable_value = this->GetProperties()[rDesignVariable];
-			return variable_value;
-		}
-		else
-			return 1.0;
+        if ( this->GetProperties().Has(rDesignVariable) ) 
+        {
+            const double variable_value = this->GetProperties()[rDesignVariable];
+            return variable_value;
+        }
+        else
+            return 1.0;
 
-		KRATOS_CATCH("")	
-	}
+        KRATOS_CATCH("")	
+    }
 
 
-	double ShellThinAdjointElement3D4N::GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
-	{
-		KRATOS_TRY;
+    double ShellThinAdjointElement3D4N::GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
+    {
+        KRATOS_TRY;
 
-		if(rDesignVariable == SHAPE_SENSITIVITY) 
-		{
-        	double dx, dy, dz, L = 0.0;
+        if(rDesignVariable == SHAPE_SENSITIVITY) 
+        {
+            double dx, dy, dz, L = 0.0;
    
-       		dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-			dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-			dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-			L += sqrt(dx*dx + dy*dy + dz*dz);
-        	dx = this->GetGeometry()[2].X0() - this->GetGeometry()[1].X0();
-			dy = this->GetGeometry()[2].Y0() - this->GetGeometry()[1].Y0();
-			dz = this->GetGeometry()[2].Z0() - this->GetGeometry()[1].Z0();
-			L += sqrt(dx*dx + dy*dy + dz*dz);
-			dx = this->GetGeometry()[3].X0() - this->GetGeometry()[2].X0();
-			dy = this->GetGeometry()[3].Y0() - this->GetGeometry()[2].Y0();
-			dz = this->GetGeometry()[3].Z0() - this->GetGeometry()[2].Z0();
-			L += sqrt(dx*dx + dy*dy + dz*dz);
-        	dx = this->GetGeometry()[3].X0() - this->GetGeometry()[0].X0();
-			dy = this->GetGeometry()[3].Y0() - this->GetGeometry()[0].Y0();
-			dz = this->GetGeometry()[3].Z0() - this->GetGeometry()[0].Z0();
-			L += sqrt(dx*dx + dy*dy + dz*dz);
-        	L /= 4.0;
+               dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
+            dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
+            dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
+            L += sqrt(dx*dx + dy*dy + dz*dz);
+            dx = this->GetGeometry()[2].X0() - this->GetGeometry()[1].X0();
+            dy = this->GetGeometry()[2].Y0() - this->GetGeometry()[1].Y0();
+            dz = this->GetGeometry()[2].Z0() - this->GetGeometry()[1].Z0();
+            L += sqrt(dx*dx + dy*dy + dz*dz);
+            dx = this->GetGeometry()[3].X0() - this->GetGeometry()[2].X0();
+            dy = this->GetGeometry()[3].Y0() - this->GetGeometry()[2].Y0();
+            dz = this->GetGeometry()[3].Z0() - this->GetGeometry()[2].Z0();
+            L += sqrt(dx*dx + dy*dy + dz*dz);
+            dx = this->GetGeometry()[3].X0() - this->GetGeometry()[0].X0();
+            dy = this->GetGeometry()[3].Y0() - this->GetGeometry()[0].Y0();
+            dz = this->GetGeometry()[3].Z0() - this->GetGeometry()[0].Z0();
+            L += sqrt(dx*dx + dy*dy + dz*dz);
+            L /= 4.0;
 
         
-		return L;
-	}
-	else
-		return 1.0;
+        return L;
+    }
+    else
+        return 1.0;
 
-	KRATOS_CATCH("")
-	}
+    KRATOS_CATCH("")
+    }
 
-	void ShellThinAdjointElement3D4N::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
-											const ProcessInfo& rCurrentProcessInfo)
-	{
-   		KRATOS_TRY;
+    void ShellThinAdjointElement3D4N::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
+                                            const ProcessInfo& rCurrentProcessInfo)
+    {
+           KRATOS_TRY;
 
-    	// define working variables
-		Vector RHS_undist;
-		Vector RHS_dist;
-		ProcessInfo copy_process_info = rCurrentProcessInfo;
+        // define working variables
+        Vector RHS_undist;
+        Vector RHS_dist;
+        ProcessInfo copy_process_info = rCurrentProcessInfo;
 
-    	// Compute RHS before disturbing
-		this->CalculateRightHandSide(RHS_undist, copy_process_info); 
-    	rOutput.resize(1,RHS_undist.size());
-
-    	// Get disturbance measure
-    	double delta = this->GetValue(DISTURBANCE_MEASURE); 	
-    	double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
-		delta *= correction_factor;
-
-		if ( this->GetProperties().Has(rDesignVariable) ) 
-		{
-			// Save properties and its pointer
-        	Properties& r_global_property = this->GetProperties(); 
-        	Properties::Pointer p_global_properties = this->pGetProperties(); 
-
-        	// Create new property and assign it to the element
-        	Properties::Pointer p_local_property(new Properties(r_global_property));
-        	this->SetProperties(p_local_property);
-
-			// Disturb the design variable
-        	const double current_property_value = this->GetProperties()[rDesignVariable];
-        	p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
-     
-        	ShellThinElement3D4N::ResetSections();
-        	ShellThinElement3D4N::Initialize();
-
-			// Compute RHS after disturbance
-			this->CalculateRightHandSide(RHS_dist, copy_process_info); 
-
-			// Compute derivative of RHS w.r.t. design variable with finite differences
-			RHS_dist -= RHS_undist;
-			RHS_dist /= delta;
-			for(unsigned int i = 0; i < RHS_dist.size(); i++)
-				rOutput(0, i) = RHS_dist[i];
-	
-        	// Give element original properties back
-        	this->SetProperties(p_global_properties);
-        	ShellThinElement3D4N::ResetSections();
-        	ShellThinElement3D4N::Initialize();
-        	this->CalculateRightHandSide(RHS_dist, copy_process_info); 
-       	
-		}
-   		else
-        	rOutput.clear();
-	
-		KRATOS_CATCH("")
-	} 
-
-	void ShellThinAdjointElement3D4N::CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
-											const ProcessInfo& rCurrentProcessInfo)
-	{
-    	KRATOS_TRY;
-
-		// define working variables
-		Vector RHS_undist;
-		Vector RHS_dist;
-		ProcessInfo copy_process_info = rCurrentProcessInfo;
-
-		// Get disturbance measure
-        double delta= this->GetValue(DISTURBANCE_MEASURE); 	
-        double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
-	    delta *= correction_factor;	
-
-		if(rDesignVariable == SHAPE_SENSITIVITY) 
-		{
-			const int number_of_nodes = GetGeometry().PointsNumber();
-			const int dimension = this->GetGeometry().WorkingSpaceDimension();
-			const int local_size = number_of_nodes * dimension * 2;
- 
-			rOutput.resize(dimension * number_of_nodes, local_size);
-
-			// compute RHS before disturbing
-			this->CalculateRightHandSide(RHS_undist, copy_process_info); 
-
-            //TODO: look that this works also for parallel computing
-			for(int j = 0; j < number_of_nodes; j++)
-			{
-				//begin: derive w.r.t. x-coordinate---------------------------------------------------
-				// disturb the design variable
-				this->GetGeometry()[j].X0() += delta;
-
-				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, copy_process_info);
-
-				//compute derivative of RHS w.r.t. design variable with finite differences
-				RHS_dist -= RHS_undist;
-				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++)  
-					rOutput( (0 + j*dimension), i) = RHS_dist[i]; 
-   
-				// Reset pertubed vector
-				RHS_dist = Vector(0);
-
-				// undisturb the design variable
-				this->GetGeometry()[j].X0() -= delta;
-				//end: derive w.r.t. x-coordinate-----------------------------------------------------
-
-				//begin: derive w.r.t. y-coordinate---------------------------------------------------
-				// disturb the design variable
-				this->GetGeometry()[j].Y0() += delta;
-
-				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, copy_process_info); 
-
-				//compute derivative of RHS w.r.t. design variable with finite differences
-				RHS_dist -= RHS_undist;
-				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++) 
-					 rOutput((1 + j*dimension),i) = RHS_dist[i]; 
-
-				// Reset pertubed vector
-				RHS_dist = Vector(0);
-
-				// undisturb the design variable
-				this->GetGeometry()[j].Y0() -= delta;
-				//end: derive w.r.t. y-coordinate-----------------------------------------------------
-
-				//begin: derive w.r.t. z-coordinate---------------------------------------------------
-				// disturb the design variable
-				this->GetGeometry()[j].Z0() += delta;
-
-				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, copy_process_info);
-
-				//compute derivative of RHS w.r.t. design variable with finite differences
-				RHS_dist -= RHS_undist;
-				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++) 
-					rOutput((2 + j*dimension),i) = RHS_dist[i]; 
-
-				// Reset pertubed vector
-				RHS_dist = Vector(0);
-
-				// undisturb the design variable
-				this->GetGeometry()[j].Z0() -= delta;
-				//end: derive w.r.t. z-coordinate-----------------------------------------------------
-
-                this->CalculateRightHandSide(RHS_dist, copy_process_info);
-
-			}// end loop over element nodes
-		}
-        else
-			KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
-
-		KRATOS_CATCH("")
-
-	}
-
-	void ShellThinAdjointElement3D4N::Calculate(const Variable<Vector >& rVariable,
-                           Vector& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
-	{
-    	KRATOS_TRY;
-
-		if(rVariable == STRESS_ON_GP)
-		{
-	    	TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
-
-        	int direction_1 = 0;
-        	int direction_2 = 0;   
-        	std::vector<Matrix> stress_vector;
-			bool stress_is_moment = true;
-  
-        	switch (traced_stress_type)  
-        	{ 
-            	case MXX:
-            	{
-                	direction_1 = 0; 
-                	direction_2 = 0; 
-                	break;
-            	}
-            	case MXY:
-            	{
-                	direction_1 = 0; 
-                	direction_2 = 1;
-                	break; 
-            	}
-            	case MXZ:
-            	{
-                	direction_1 = 0; 
-                	direction_2 = 2;
-                	break; 
-            	}
-            	case MYX:
-            	{
-                	direction_1 = 1; 
-               		direction_2 = 0; 
-                	break;
-            	}	
-            	case MYY :
-            	{
-                	direction_1 = 1; 
-                	direction_2 = 1; 
-                	break;
-            	}
-            	case MYZ:
-            	{
-                	direction_1 = 1; 
-                	direction_2 = 2; 
-                	break;
-            	}
-            	case MZX:
-            	{
-                	direction_1 = 2; 
-                	direction_2 = 0; 
-                	break;
-            	}
-            	case MZY:
-            	{
-                	direction_1 = 2; 
-                	direction_2 = 1; 
-                	break;
-            	}
-            	case MZZ :
-            	{
-                	direction_1 = 2; 
-                	direction_2 = 2; 
-                	break;
-            	}
-            	case FXX :
-            	{
-                	direction_1 = 0; 
-                	direction_2 = 0; 
-                	stress_is_moment = false;
-                	break;
-            	}
-            	case FXY:
-            	{
-                	direction_1 = 0; 
-                	direction_2 = 1;
-                	stress_is_moment = false;
-                	break; 
-            	}
-            	case FXZ:
-            	{
-                	direction_1 = 0; 
-                	direction_2 = 2;
-                	stress_is_moment = false;
-                	break; 
-            	}
-            	case FYX:
-            	{
-                	direction_1 = 1; 
-                	direction_2 = 0; 
-                	stress_is_moment = false;
-                	break;
-            	}
-            	case FYY:
-            	{
-                	direction_1 = 1; 
-                	direction_2 = 1; 
-                	stress_is_moment = false;
-                	break;
-            	}
-            	case FYZ:
-            	{
-                	direction_1 = 1; 
-                	direction_2 = 2; 
-                	stress_is_moment = false;
-                	break;
-            	}
-            	case FZX:
-            	{
-                	direction_1 = 2; 
-                	direction_2 = 0; 
-                	stress_is_moment = false;
-                	break;
-           		}
-            	case FZY:
-            	{
-                	direction_1 = 2; 
-                	direction_2 = 1; 
-                	stress_is_moment = false;
-                	break;
-            	}
-            	case FZZ:
-            	{
-                	direction_1 = 2; 
-                	direction_2 = 2; 
-                	stress_is_moment = false;
-                	break;
-            	}
-            	default:
-                	KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;  
-        	}
-
-        	if(stress_is_moment)
-            	ShellThinElement3D4N::GetValueOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector, rCurrentProcessInfo);
-        	else
-            	ShellThinElement3D4N::GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
-
-        	rOutput.resize(OPT_NUM_GP);   
-        	for(size_t i = 0; i < OPT_NUM_GP; i++)
-        	{
-            	rOutput(i) = stress_vector[i](direction_1, direction_2);
-        	}
- 		}
-    	else
-    	{
-        	rOutput.resize(OPT_NUM_GP);  
-        	rOutput.clear(); 
-    	}
-
-    	KRATOS_CATCH("")
-	}
-
-	void ShellThinAdjointElement3D4N::Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput, 
-                                                const ProcessInfo& rCurrentProcessInfo)
-	{
-   		KRATOS_TRY;
-   
-		if(rVariable == STRESS_DISP_DERIV_ON_GP)   
-		{
-       		this->CalculateStressDisplacementDerivative(STRESS_ON_GP, rOutput, rCurrentProcessInfo);
-    	}
-    	else if(rVariable == STRESS_DV_DERIV_ON_GP)
-    	{
-        	std::string design_variable_name = this->GetValue( DESIGN_VARIABLE_NAME );	
-
-        	if (KratosComponents<Variable<double>>::Has(design_variable_name) == true)
-        	{
-            	const Variable<double>& r_variable =
-                	KratosComponents<Variable<double>>::Get(design_variable_name);
-            	this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);
-        	}
-        	else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(design_variable_name) == true)
-        	{
-            	const Variable<array_1d<double, 3>>& r_variable =
-                	KratosComponents<Variable<array_1d<double, 3>>>::Get(design_variable_name);
-            	this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);    
-        	}      
-    	}
-    	else
-		{
-			rOutput.clear();
-		}
-      
-    	KRATOS_CATCH("")
-	}
-
-	void ShellThinAdjointElement3D4N::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable, 
-                                            Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
-	{
-    	KRATOS_TRY;
-
-    	Vector stress_vector_undist;
-    	Vector stress_vector_dist;
-    	ProcessInfo copy_process_info = rCurrentProcessInfo;
-		double initial_value_of_state_variable = 0.0;
-		const int num_nodes = this->GetGeometry().PointsNumber();
-		// Get disturbance measure
-    	double dist_measure = this->GetValue(DISTURBANCE_MEASURE); 	
-
-    	this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
-
-    	rOutput.resize(OPT_NUM_DOFS, OPT_NUM_GP);
-		rOutput.clear();
-    	
- 		// Built vector of variables containing the DOF-variables of the primal problem 
-		std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list; 
-        primal_solution_variable_list.push_back(DISPLACEMENT_X);       
-	 	primal_solution_variable_list.push_back(DISPLACEMENT_Y);       
-	  	primal_solution_variable_list.push_back(DISPLACEMENT_Z);       
-	 	primal_solution_variable_list.push_back(ROTATION_X);       
-		primal_solution_variable_list.push_back(ROTATION_Y);       
-	 	primal_solution_variable_list.push_back(ROTATION_Z);  
-
-		int index = 0;
-    	for (int i = 0; i < num_nodes; i++) 
-		{	
-			for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
-			{
-        		initial_value_of_state_variable = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
-				
-				this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable + dist_measure;
-				
-				this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
-			
-        		for(unsigned int k = 0; k < OPT_NUM_GP; k++)
-        		{
-            		stress_vector_dist[k] -= stress_vector_undist[k];
-            		stress_vector_dist[k] /= dist_measure;
-            		rOutput(index,k) = stress_vector_dist[k];
-        		}
-
-				this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable;
-
-				stress_vector_dist.clear();
-				index++;
-			}
-    	}
-		
-    	KRATOS_CATCH("")
-	}   
-
-	void ShellThinAdjointElement3D4N::CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, 
-                                                const Variable<Vector>& rStressVariable, Matrix& rOutput, 
-											    const ProcessInfo& rCurrentProcessInfo) 
-	{
-    	KRATOS_TRY;
-
-        // Define working variables
-		Vector stress_vector_undist;
-		Vector stress_vector_dist;
-
-        // Compute stress on GP before disturbance
-		this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+        // Compute RHS before disturbing
+        this->CalculateRightHandSide(RHS_undist, copy_process_info); 
+        rOutput.resize(1,RHS_undist.size());
 
         // Get disturbance measure
-        double delta= this->GetValue(DISTURBANCE_MEASURE); 	
+        double delta = this->GetValue(DISTURBANCE_MEASURE); 	
         double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
-	    delta *= correction_factor;	
+        delta *= correction_factor;
 
-        rOutput.resize(1, OPT_NUM_GP);
-
-		if( this->GetProperties().Has(rDesignVariable) ) 
-		{
-			// Save properties and its pointer
+        if ( this->GetProperties().Has(rDesignVariable) ) 
+        {
+            // Save properties and its pointer
             Properties& r_global_property = this->GetProperties(); 
             Properties::Pointer p_global_properties = this->pGetProperties(); 
 
@@ -762,204 +356,610 @@ namespace Kratos
             Properties::Pointer p_local_property(new Properties(r_global_property));
             this->SetProperties(p_local_property);
 
-			// Disturb the design variable
-			const double current_property_value = this->GetProperties()[rDesignVariable];
+            // Disturb the design variable
+            const double current_property_value = this->GetProperties()[rDesignVariable];
+            p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
+     
+            ShellThinElement3D4N::ResetSections();
+            ShellThinElement3D4N::Initialize();
+
+            // Compute RHS after disturbance
+            this->CalculateRightHandSide(RHS_dist, copy_process_info); 
+
+            // Compute derivative of RHS w.r.t. design variable with finite differences
+            RHS_dist -= RHS_undist;
+            RHS_dist /= delta;
+            for(unsigned int i = 0; i < RHS_dist.size(); i++)
+                rOutput(0, i) = RHS_dist[i];
+    
+            // Give element original properties back
+            this->SetProperties(p_global_properties);
+            ShellThinElement3D4N::ResetSections();
+            ShellThinElement3D4N::Initialize();
+            this->CalculateRightHandSide(RHS_dist, copy_process_info); 
+           
+        }
+           else
+            rOutput.clear();
+    
+        KRATOS_CATCH("")
+    } 
+
+    void ShellThinAdjointElement3D4N::CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
+                                            const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        // define working variables
+        Vector RHS_undist;
+        Vector RHS_dist;
+        ProcessInfo copy_process_info = rCurrentProcessInfo;
+
+        // Get disturbance measure
+        double delta= this->GetValue(DISTURBANCE_MEASURE); 	
+        double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
+        delta *= correction_factor;	
+
+        if(rDesignVariable == SHAPE_SENSITIVITY) 
+        {
+            const int number_of_nodes = GetGeometry().PointsNumber();
+            const int dimension = this->GetGeometry().WorkingSpaceDimension();
+            const int local_size = number_of_nodes * dimension * 2;
+ 
+            rOutput.resize(dimension * number_of_nodes, local_size);
+
+            // compute RHS before disturbing
+            this->CalculateRightHandSide(RHS_undist, copy_process_info); 
+
+            //TODO: look that this works also for parallel computing
+            for(int j = 0; j < number_of_nodes; j++)
+            {
+                //begin: derive w.r.t. x-coordinate---------------------------------------------------
+                // disturb the design variable
+                this->GetGeometry()[j].X0() += delta;
+
+                // compute RHS after disturbance
+                this->CalculateRightHandSide(RHS_dist, copy_process_info);
+
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                RHS_dist -= RHS_undist;
+                RHS_dist /= delta;
+                for(unsigned int i = 0; i < RHS_dist.size(); i++)  
+                    rOutput( (0 + j*dimension), i) = RHS_dist[i]; 
+   
+                // Reset pertubed vector
+                RHS_dist = Vector(0);
+
+                // undisturb the design variable
+                this->GetGeometry()[j].X0() -= delta;
+                //end: derive w.r.t. x-coordinate-----------------------------------------------------
+
+                //begin: derive w.r.t. y-coordinate---------------------------------------------------
+                // disturb the design variable
+                this->GetGeometry()[j].Y0() += delta;
+
+                // compute RHS after disturbance
+                this->CalculateRightHandSide(RHS_dist, copy_process_info); 
+
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                RHS_dist -= RHS_undist;
+                RHS_dist /= delta;
+                for(unsigned int i = 0; i < RHS_dist.size(); i++) 
+                     rOutput((1 + j*dimension),i) = RHS_dist[i]; 
+
+                // Reset pertubed vector
+                RHS_dist = Vector(0);
+
+                // undisturb the design variable
+                this->GetGeometry()[j].Y0() -= delta;
+                //end: derive w.r.t. y-coordinate-----------------------------------------------------
+
+                //begin: derive w.r.t. z-coordinate---------------------------------------------------
+                // disturb the design variable
+                this->GetGeometry()[j].Z0() += delta;
+
+                // compute RHS after disturbance
+                this->CalculateRightHandSide(RHS_dist, copy_process_info);
+
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                RHS_dist -= RHS_undist;
+                RHS_dist /= delta;
+                for(unsigned int i = 0; i < RHS_dist.size(); i++) 
+                    rOutput((2 + j*dimension),i) = RHS_dist[i]; 
+
+                // Reset pertubed vector
+                RHS_dist = Vector(0);
+
+                // undisturb the design variable
+                this->GetGeometry()[j].Z0() -= delta;
+                //end: derive w.r.t. z-coordinate-----------------------------------------------------
+
+                this->CalculateRightHandSide(RHS_dist, copy_process_info);
+
+            }// end loop over element nodes
+        }
+        else
+            KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
+
+        KRATOS_CATCH("")
+
+    }
+
+    void ShellThinAdjointElement3D4N::Calculate(const Variable<Vector >& rVariable,
+                           Vector& rOutput,
+                           const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        if(rVariable == STRESS_ON_GP)
+        {
+            TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+
+            int direction_1 = 0;
+            int direction_2 = 0;   
+            std::vector<Matrix> stress_vector;
+            bool stress_is_moment = true;
+  
+            switch (traced_stress_type)  
+            { 
+                case MXX:
+                {
+                    direction_1 = 0; 
+                    direction_2 = 0; 
+                    break;
+                }
+                case MXY:
+                {
+                    direction_1 = 0; 
+                    direction_2 = 1;
+                    break; 
+                }
+                case MXZ:
+                {
+                    direction_1 = 0; 
+                    direction_2 = 2;
+                    break; 
+                }
+                case MYX:
+                {
+                    direction_1 = 1; 
+                       direction_2 = 0; 
+                    break;
+                }	
+                case MYY :
+                {
+                    direction_1 = 1; 
+                    direction_2 = 1; 
+                    break;
+                }
+                case MYZ:
+                {
+                    direction_1 = 1; 
+                    direction_2 = 2; 
+                    break;
+                }
+                case MZX:
+                {
+                    direction_1 = 2; 
+                    direction_2 = 0; 
+                    break;
+                }
+                case MZY:
+                {
+                    direction_1 = 2; 
+                    direction_2 = 1; 
+                    break;
+                }
+                case MZZ :
+                {
+                    direction_1 = 2; 
+                    direction_2 = 2; 
+                    break;
+                }
+                case FXX :
+                {
+                    direction_1 = 0; 
+                    direction_2 = 0; 
+                    stress_is_moment = false;
+                    break;
+                }
+                case FXY:
+                {
+                    direction_1 = 0; 
+                    direction_2 = 1;
+                    stress_is_moment = false;
+                    break; 
+                }
+                case FXZ:
+                {
+                    direction_1 = 0; 
+                    direction_2 = 2;
+                    stress_is_moment = false;
+                    break; 
+                }
+                case FYX:
+                {
+                    direction_1 = 1; 
+                    direction_2 = 0; 
+                    stress_is_moment = false;
+                    break;
+                }
+                case FYY:
+                {
+                    direction_1 = 1; 
+                    direction_2 = 1; 
+                    stress_is_moment = false;
+                    break;
+                }
+                case FYZ:
+                {
+                    direction_1 = 1; 
+                    direction_2 = 2; 
+                    stress_is_moment = false;
+                    break;
+                }
+                case FZX:
+                {
+                    direction_1 = 2; 
+                    direction_2 = 0; 
+                    stress_is_moment = false;
+                    break;
+                   }
+                case FZY:
+                {
+                    direction_1 = 2; 
+                    direction_2 = 1; 
+                    stress_is_moment = false;
+                    break;
+                }
+                case FZZ:
+                {
+                    direction_1 = 2; 
+                    direction_2 = 2; 
+                    stress_is_moment = false;
+                    break;
+                }
+                default:
+                    KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;  
+            }
+
+            if(stress_is_moment)
+                ShellThinElement3D4N::GetValueOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector, rCurrentProcessInfo);
+            else
+                ShellThinElement3D4N::GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
+
+            rOutput.resize(OPT_NUM_GP);   
+            for(size_t i = 0; i < OPT_NUM_GP; i++)
+            {
+                rOutput(i) = stress_vector[i](direction_1, direction_2);
+            }
+         }
+        else
+        {
+            rOutput.resize(OPT_NUM_GP);  
+            rOutput.clear(); 
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void ShellThinAdjointElement3D4N::Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput, 
+                                                const ProcessInfo& rCurrentProcessInfo)
+    {
+           KRATOS_TRY;
+   
+        if(rVariable == STRESS_DISP_DERIV_ON_GP)   
+        {
+               this->CalculateStressDisplacementDerivative(STRESS_ON_GP, rOutput, rCurrentProcessInfo);
+        }
+        else if(rVariable == STRESS_DV_DERIV_ON_GP)
+        {
+            std::string design_variable_name = this->GetValue( DESIGN_VARIABLE_NAME );	
+
+            if (KratosComponents<Variable<double>>::Has(design_variable_name) == true)
+            {
+                const Variable<double>& r_variable =
+                    KratosComponents<Variable<double>>::Get(design_variable_name);
+                this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);
+            }
+            else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(design_variable_name) == true)
+            {
+                const Variable<array_1d<double, 3>>& r_variable =
+                    KratosComponents<Variable<array_1d<double, 3>>>::Get(design_variable_name);
+                this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);    
+            }      
+        }
+        else
+        {
+            rOutput.clear();
+        }
+      
+        KRATOS_CATCH("")
+    }
+
+    void ShellThinAdjointElement3D4N::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable, 
+                                            Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        Vector stress_vector_undist;
+        Vector stress_vector_dist;
+        ProcessInfo copy_process_info = rCurrentProcessInfo;
+        double initial_value_of_state_variable = 0.0;
+        const int num_nodes = this->GetGeometry().PointsNumber();
+        // Get disturbance measure
+        double dist_measure = this->GetValue(DISTURBANCE_MEASURE); 	
+
+        this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+
+        rOutput.resize(OPT_NUM_DOFS, OPT_NUM_GP);
+        rOutput.clear();
+        
+         // Built vector of variables containing the DOF-variables of the primal problem 
+        std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list; 
+        primal_solution_variable_list.push_back(DISPLACEMENT_X);       
+         primal_solution_variable_list.push_back(DISPLACEMENT_Y);       
+          primal_solution_variable_list.push_back(DISPLACEMENT_Z);       
+         primal_solution_variable_list.push_back(ROTATION_X);       
+        primal_solution_variable_list.push_back(ROTATION_Y);       
+         primal_solution_variable_list.push_back(ROTATION_Z);  
+
+        int index = 0;
+        for (int i = 0; i < num_nodes; i++) 
+        {	
+            for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
+            {
+                initial_value_of_state_variable = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
+                
+                this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable + dist_measure;
+                
+                this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+            
+                for(unsigned int k = 0; k < OPT_NUM_GP; k++)
+                {
+                    stress_vector_dist[k] -= stress_vector_undist[k];
+                    stress_vector_dist[k] /= dist_measure;
+                    rOutput(index,k) = stress_vector_dist[k];
+                }
+
+                this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable;
+
+                stress_vector_dist.clear();
+                index++;
+            }
+        }
+        
+        KRATOS_CATCH("")
+    }   
+
+    void ShellThinAdjointElement3D4N::CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, 
+                                                const Variable<Vector>& rStressVariable, Matrix& rOutput, 
+                                                const ProcessInfo& rCurrentProcessInfo) 
+    {
+        KRATOS_TRY;
+
+        // Define working variables
+        Vector stress_vector_undist;
+        Vector stress_vector_dist;
+
+        // Compute stress on GP before disturbance
+        this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+
+        // Get disturbance measure
+        double delta= this->GetValue(DISTURBANCE_MEASURE); 	
+        double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
+        delta *= correction_factor;	
+
+        rOutput.resize(1, OPT_NUM_GP);
+
+        if( this->GetProperties().Has(rDesignVariable) ) 
+        {
+            // Save properties and its pointer
+            Properties& r_global_property = this->GetProperties(); 
+            Properties::Pointer p_global_properties = this->pGetProperties(); 
+
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(new Properties(r_global_property));
+            this->SetProperties(p_local_property);
+
+            // Disturb the design variable
+            const double current_property_value = this->GetProperties()[rDesignVariable];
             p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
 
             ShellThinElement3D4N::ResetSections();
             ShellThinElement3D4N::Initialize();
 
-			// Compute stress on GP after disturbance
-		    this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+            // Compute stress on GP after disturbance
+            this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
-			// Compute derivative of stress w.r.t. design variable with finite differences
-			stress_vector_dist  -= stress_vector_undist;
-			stress_vector_dist  /= delta;
+            // Compute derivative of stress w.r.t. design variable with finite differences
+            stress_vector_dist  -= stress_vector_undist;
+            stress_vector_dist  /= delta;
 
-			for(size_t j = 0; j < OPT_NUM_GP; j++)
-			    rOutput(0, j) = stress_vector_dist[j];
-		
+            for(size_t j = 0; j < OPT_NUM_GP; j++)
+                rOutput(0, j) = stress_vector_dist[j];
+        
             // Give element original properties back
             this->SetProperties(p_global_properties);
 
             ShellThinElement3D4N::ResetSections();
             ShellThinElement3D4N::Initialize();
           
-		}
+        }
         else
-        	rOutput.clear();
+            rOutput.clear();
 
-    	KRATOS_CATCH("")
-	}
+        KRATOS_CATCH("")
+    }
 
-	void ShellThinAdjointElement3D4N::CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable, 
+    void ShellThinAdjointElement3D4N::CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable, 
                                             const Variable<Vector>& rStressVariable,
                                             Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
-	{
-    	KRATOS_TRY;
+    {
+        KRATOS_TRY;
 
-    	// define working variables
-		Vector stress_vector_undist;
-		Vector stress_vector_dist;
-	
-    	// Get disturbance measure
-    	double delta= this->GetValue(DISTURBANCE_MEASURE); 	
-    	double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
-		delta *= correction_factor;	
+        // define working variables
+        Vector stress_vector_undist;
+        Vector stress_vector_dist;
+    
+        // Get disturbance measure
+        double delta= this->GetValue(DISTURBANCE_MEASURE); 	
+        double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
+        delta *= correction_factor;	
 
-		if(rDesignVariable == SHAPE_SENSITIVITY) 
-		{
-			const int number_of_nodes = GetGeometry().PointsNumber();
-			const int dimension = this->GetGeometry().WorkingSpaceDimension();
+        if(rDesignVariable == SHAPE_SENSITIVITY) 
+        {
+            const int number_of_nodes = GetGeometry().PointsNumber();
+            const int dimension = this->GetGeometry().WorkingSpaceDimension();
  
-			rOutput.resize(dimension * number_of_nodes, OPT_NUM_GP);
+            rOutput.resize(dimension * number_of_nodes, OPT_NUM_GP);
      
-			// Compute stress on GP before disturbance
-	    	this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+            // Compute stress on GP before disturbance
+            this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
-        	//TODO: look that this works also for parallel computing
-			for(int j = 0; j < number_of_nodes; j++)
-			{
-				//begin: derive w.r.t. x-coordinate---------------------------------------------------
-				// disturb the design variable
-				this->GetGeometry()[j].X0() += delta;
+            //TODO: look that this works also for parallel computing
+            for(int j = 0; j < number_of_nodes; j++)
+            {
+                //begin: derive w.r.t. x-coordinate---------------------------------------------------
+                // disturb the design variable
+                this->GetGeometry()[j].X0() += delta;
 
-				// Compute stress on GP after disturbance
-				this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+                // Compute stress on GP after disturbance
+                this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
-				// Compute derivative of stress w.r.t. design variable with finite differences
-				stress_vector_dist  -= stress_vector_undist;
-				stress_vector_dist  /= delta;
+                // Compute derivative of stress w.r.t. design variable with finite differences
+                stress_vector_dist  -= stress_vector_undist;
+                stress_vector_dist  /= delta;
 
-				for(size_t i = 0; i < OPT_NUM_GP; i++)
-					rOutput( (0 + j*dimension), i) = stress_vector_dist[i]; 
+                for(size_t i = 0; i < OPT_NUM_GP; i++)
+                    rOutput( (0 + j*dimension), i) = stress_vector_dist[i]; 
 
-				// Reset pertubed vector
-				stress_vector_dist = Vector(0);
+                // Reset pertubed vector
+                stress_vector_dist = Vector(0);
 
-				// undisturb the design variable
-				this->GetGeometry()[j].X0() -= delta;
-				//end: derive w.r.t. x-coordinate-----------------------------------------------------
+                // undisturb the design variable
+                this->GetGeometry()[j].X0() -= delta;
+                //end: derive w.r.t. x-coordinate-----------------------------------------------------
 
-				//begin: derive w.r.t. y-coordinate---------------------------------------------------
-				// disturb the design variable
-				this->GetGeometry()[j].Y0() += delta;
+                //begin: derive w.r.t. y-coordinate---------------------------------------------------
+                // disturb the design variable
+                this->GetGeometry()[j].Y0() += delta;
 
-				// Compute stress on GP after disturbance
-				this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+                // Compute stress on GP after disturbance
+                this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
-				// Compute derivative of stress w.r.t. design variable with finite differences
-				stress_vector_dist  -= stress_vector_undist;
-				stress_vector_dist  /= delta;
+                // Compute derivative of stress w.r.t. design variable with finite differences
+                stress_vector_dist  -= stress_vector_undist;
+                stress_vector_dist  /= delta;
 
-				for(size_t i = 0; i < OPT_NUM_GP; i++)
-					rOutput((1 + j*dimension),i) = stress_vector_dist[i]; 
+                for(size_t i = 0; i < OPT_NUM_GP; i++)
+                    rOutput((1 + j*dimension),i) = stress_vector_dist[i]; 
 
-				// Reset pertubed vector
-				stress_vector_dist = Vector(0);
+                // Reset pertubed vector
+                stress_vector_dist = Vector(0);
 
-				// undisturb the design variable
-				this->GetGeometry()[j].Y0() -= delta;
-				//end: derive w.r.t. y-coordinate-----------------------------------------------------
+                // undisturb the design variable
+                this->GetGeometry()[j].Y0() -= delta;
+                //end: derive w.r.t. y-coordinate-----------------------------------------------------
 
-				//begin: derive w.r.t. z-coordinate---------------------------------------------------
-				// disturb the design variable
-				this->GetGeometry()[j].Z0() += delta;
+                //begin: derive w.r.t. z-coordinate---------------------------------------------------
+                // disturb the design variable
+                this->GetGeometry()[j].Z0() += delta;
 
-				// Compute stress on GP after disturbance
-				this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+                // Compute stress on GP after disturbance
+                this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
-				// Compute derivative of stress w.r.t. design variable with finite differences
-				stress_vector_dist  -= stress_vector_undist;
-				stress_vector_dist  /= delta;
+                // Compute derivative of stress w.r.t. design variable with finite differences
+                stress_vector_dist  -= stress_vector_undist;
+                stress_vector_dist  /= delta;
 
-				for(size_t i = 0; i < OPT_NUM_GP; i++)
-			    	rOutput((2 + j*dimension),i) = stress_vector_dist[i]; 
+                for(size_t i = 0; i < OPT_NUM_GP; i++)
+                    rOutput((2 + j*dimension),i) = stress_vector_dist[i]; 
 
-				// Reset pertubed vector
-				stress_vector_dist = Vector(0);
+                // Reset pertubed vector
+                stress_vector_dist = Vector(0);
 
-				// undisturb the design variable
-				this->GetGeometry()[j].Z0() -= delta;
-				//end: derive w.r.t. z-coordinate-----------------------------------------------------
+                // undisturb the design variable
+                this->GetGeometry()[j].Z0() -= delta;
+                //end: derive w.r.t. z-coordinate-----------------------------------------------------
 
-			}// end loop over element nodes
-		}
-    	else
-			KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
+            }// end loop over element nodes
+        }
+        else
+            KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
 
-    	KRATOS_CATCH("")
-	}  
+        KRATOS_CATCH("")
+    }  
 
-	void ShellThinAdjointElement3D4N::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, 
+    void ShellThinAdjointElement3D4N::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, 
         ProcessInfo& rCurrentProcessInfo)
-	{
-    	Vector dummy;
-    	ShellThinElement3D4N::CalculateLocalSystem(rLeftHandSideMatrix, dummy, rCurrentProcessInfo);
-	}                                           
-	
-	// =========================================================================
-	//
-	// Class ShellThinAdjointElement3D4N - Results on Gauss Points
-	//
-	// =========================================================================
+    {
+        Vector dummy;
+        ShellThinElement3D4N::CalculateLocalSystem(rLeftHandSideMatrix, dummy, rCurrentProcessInfo);
+    }                                           
+    
+    // =========================================================================
+    //
+    // Class ShellThinAdjointElement3D4N - Results on Gauss Points
+    //
+    // =========================================================================
 
-	void ShellThinAdjointElement3D4N::GetValueOnIntegrationPoints
-	(const Variable<double>& rVariable,
-		std::vector<double>& rValues,
-		const ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY;
-		this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-		KRATOS_CATCH("")
-	}
+    void ShellThinAdjointElement3D4N::GetValueOnIntegrationPoints
+    (const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        KRATOS_CATCH("")
+    }
 
-	void ShellThinAdjointElement3D4N::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo & rCurrentProcessInfo)
-	{
-		KRATOS_TRY;
+    void ShellThinAdjointElement3D4N::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo & rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
 
-		if(this->Has(rVariable))
-		{
-			// Get result value for output
-			double output_value = this->GetValue(rVariable);
+        if(this->Has(rVariable))
+        {
+            // Get result value for output
+            double output_value = this->GetValue(rVariable);
 
-			// Resize Output
-        	if(rValues.size() != OPT_NUM_GP)
-            	rValues.resize(OPT_NUM_GP);
+            // Resize Output
+            if(rValues.size() != OPT_NUM_GP)
+                rValues.resize(OPT_NUM_GP);
 
-			// Write scalar result value on all Gauss-Points
-			for(int i = 0; i < OPT_NUM_GP; i++)
-				rValues[i] = output_value;   
-		}
-		else
-        	KRATOS_ERROR << "Unsupported output variable." << std::endl;
+            // Write scalar result value on all Gauss-Points
+            for(int i = 0; i < OPT_NUM_GP; i++)
+                rValues[i] = output_value;   
+        }
+        else
+            KRATOS_ERROR << "Unsupported output variable." << std::endl;
 
-		KRATOS_CATCH("")
-	}
-	
-	// =========================================================================
-	//
-	// Class ShellThinAdjointElement3D4N - Private methods
-	//
-	// =========================================================================
+        KRATOS_CATCH("")
+    }
+    
+    // =========================================================================
+    //
+    // Class ShellThinAdjointElement3D4N - Private methods
+    //
+    // =========================================================================
 
 
 
-	// =========================================================================
-	//
-	// Class ShellThinAdjointElement3D4N - Serialization
-	//
-	// =========================================================================
+    // =========================================================================
+    //
+    // Class ShellThinAdjointElement3D4N - Serialization
+    //
+    // =========================================================================
 
-	void ShellThinAdjointElement3D4N::save(Serializer& rSerializer) const
-	{
-		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ShellThinElement3D4N);
+    void ShellThinAdjointElement3D4N::save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ShellThinElement3D4N);
 
-	}
+    }
 
-	void ShellThinAdjointElement3D4N::load(Serializer& rSerializer)
-	{
-		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ShellThinElement3D4N);
+    void ShellThinAdjointElement3D4N::load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ShellThinElement3D4N);
 
-	}
+    }
 }

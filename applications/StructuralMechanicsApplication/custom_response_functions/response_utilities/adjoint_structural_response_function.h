@@ -69,25 +69,25 @@ public:
         Parameters element_sensitivity_variables = rParameters["element_sensitivity_variables"];
         mElementSensitivityVariables.resize(element_sensitivity_variables.size());
         for (unsigned int i = 0; i < element_sensitivity_variables.size(); ++i)
-			mElementSensitivityVariables[i] = element_sensitivity_variables[i].GetString();
+            mElementSensitivityVariables[i] = element_sensitivity_variables[i].GetString();
 
-		Parameters condition_sensitivity_variables = rParameters["condition_sensitivity_variables"];
+        Parameters condition_sensitivity_variables = rParameters["condition_sensitivity_variables"];
         mConditionSensitivityVariables.resize(condition_sensitivity_variables.size());
         for (unsigned int i = 0; i < condition_sensitivity_variables.size(); ++i)
-			mConditionSensitivityVariables[i] = condition_sensitivity_variables[i].GetString();
+            mConditionSensitivityVariables[i] = condition_sensitivity_variables[i].GetString();
 
         // Set gradient mode
-		std::string gradient_mode = rParameters["gradient_mode"].GetString();
+        std::string gradient_mode = rParameters["gradient_mode"].GetString();
 
-		// Mode 1: semi-analytic sensitivities
-		if (gradient_mode.compare("semi_analytic") == 0)
-		{
-			mGradientMode = 1;
-			double delta = rParameters["step_size"].GetDouble();
-			mDelta = delta;
-		}
-		else
-			KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " <<  gradient_mode << std::endl;
+        // Mode 1: semi-analytic sensitivities
+        if (gradient_mode.compare("semi_analytic") == 0)
+        {
+            mGradientMode = 1;
+            double delta = rParameters["step_size"].GetDouble();
+            mDelta = delta;
+        }
+        else
+            KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " <<  gradient_mode << std::endl;
 
 
         KRATOS_CATCH("");
@@ -506,25 +506,25 @@ public:
         }
 
         // Elemental sensitivity variables e.g. 2nd moment of inertia---------------------------------
-		for (auto label : mElementSensitivityVariables)
+        for (auto label : mElementSensitivityVariables)
         {
-			//create label for output variable
-			std::string output_label = label + "_SENSITIVITY";
+            //create label for output variable
+            std::string output_label = label + "_SENSITIVITY";
 
             if (KratosComponents<Variable<double>>::Has(label) == true)
             {
                 const Variable<double>& r_variable =
                     KratosComponents<Variable<double>>::Get(label);
 
-				//check for output variable to save later the computed sensitivity
-				if( KratosComponents<Variable<double>>::Has(output_label) == true )
-				{
-					const Variable<double>& r_output_variable =
-                    	KratosComponents<Variable<double>>::Get(output_label);
-					this->UpdateElementSensitivities(r_variable, r_output_variable);
-				}
-				else
-                	KRATOS_ERROR << "Unsupported element variable for output: " << output_label << "." << std::endl;
+                //check for output variable to save later the computed sensitivity
+                if( KratosComponents<Variable<double>>::Has(output_label) == true )
+                {
+                    const Variable<double>& r_output_variable =
+                        KratosComponents<Variable<double>>::Get(output_label);
+                    this->UpdateElementSensitivities(r_variable, r_output_variable);
+                }
+                else
+                    KRATOS_ERROR << "Unsupported element variable for output: " << output_label << "." << std::endl;
 
 
             }
@@ -533,15 +533,15 @@ public:
                 const Variable<array_1d<double,3>>& r_variable =
                     KratosComponents<Variable<array_1d<double,3>>>::Get(label);
 
-				//check for output variable to save later the computed sensitivity
-				if (KratosComponents<Variable<array_1d<double,3>>>::Has(output_label) == true)
-				{
-					const Variable<array_1d<double,3>>& r_output_variable =
-                    	KratosComponents<Variable<array_1d<double,3>>>::Get(output_label);
-					this->UpdateElementSensitivities(r_variable, r_output_variable);
-				}
-				else
-                	KRATOS_ERROR << "Unsupported element variable for output: " << output_label << "." << std::endl;
+                //check for output variable to save later the computed sensitivity
+                if (KratosComponents<Variable<array_1d<double,3>>>::Has(output_label) == true)
+                {
+                    const Variable<array_1d<double,3>>& r_output_variable =
+                        KratosComponents<Variable<array_1d<double,3>>>::Get(output_label);
+                    this->UpdateElementSensitivities(r_variable, r_output_variable);
+                }
+                else
+                    KRATOS_ERROR << "Unsupported element variable for output: " << output_label << "." << std::endl;
 
 
             }
@@ -552,7 +552,7 @@ public:
         for (auto label : mConditionSensitivityVariables)
         {
             //create label for output variable
-			std::string output_label = label + "_SENSITIVITY";
+            std::string output_label = label + "_SENSITIVITY";
 
             if (KratosComponents<Variable<double>>::Has(label) == true)
             {
@@ -560,14 +560,14 @@ public:
                     KratosComponents<Variable<double>>::Get(label);
 
                 //check for output variable to save later the computed sensitivity
-				if( KratosComponents<Variable<double>>::Has(output_label) == true )
-				{
-					const Variable<double>& r_output_variable =
-                    	KratosComponents<Variable<double>>::Get(output_label);
+                if( KratosComponents<Variable<double>>::Has(output_label) == true )
+                {
+                    const Variable<double>& r_output_variable =
+                        KratosComponents<Variable<double>>::Get(output_label);
                     this->UpdateConditionSensitivities(r_variable, r_output_variable);
-				}
-				else
-                	KRATOS_ERROR << "Unsupported condition variable for output: " << output_label << "." << std::endl;
+                }
+                else
+                    KRATOS_ERROR << "Unsupported condition variable for output: " << output_label << "." << std::endl;
             }
             else if (KratosComponents<Variable<array_1d<double,3>>>::Has(label) == true)
             {
@@ -575,14 +575,14 @@ public:
                     KratosComponents<Variable<array_1d<double,3>>>::Get(label);
 
                 //check for output variable to save later the computed sensitivity
-				if (KratosComponents<Variable<array_1d<double,3>>>::Has(output_label) == true)
-				{
-					const Variable<array_1d<double,3>>& r_output_variable =
-                    	KratosComponents<Variable<array_1d<double,3>>>::Get(output_label);
+                if (KratosComponents<Variable<array_1d<double,3>>>::Has(output_label) == true)
+                {
+                    const Variable<array_1d<double,3>>& r_output_variable =
+                        KratosComponents<Variable<array_1d<double,3>>>::Get(output_label);
                     this->UpdateConditionSensitivities(r_variable, r_output_variable);
-				}
-				else
-                	KRATOS_ERROR << "Unsupported condition variable for output: " << output_label << "." << std::endl;
+                }
+                else
+                    KRATOS_ERROR << "Unsupported condition variable for output: " << output_label << "." << std::endl;
 
             }
             else
@@ -765,10 +765,10 @@ protected:
     //}
     template <typename TDataType>
     void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable)
-	{
-		KRATOS_TRY;
+    {
+        KRATOS_TRY;
 
-	    ModelPart& r_model_part = this->GetModelPart();
+        ModelPart& r_model_part = this->GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         //double delta_time = -r_process_info[DELTA_TIME];
         const int num_threads = 1; //OpenMPUtils::GetNumThreads();
@@ -832,15 +832,15 @@ protected:
                         *it, rSensitivityVariable, sensitivity_matrix[k],
                         response_gradient[k], r_process_info);
 
-			        // Get the adjoint displacement field
+                    // Get the adjoint displacement field
                     it->GetValuesVector(adjoint_vector[k]);
 
                     if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
                         sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
-			        // Compute the whole sensitivity
+                    // Compute the whole sensitivity
                     noalias(sensitivity_vector[k]) =
-                    			    /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                                    /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                     response_gradient[k]);
 
                     this->AssembleNodalSensitivityContribution(
@@ -885,22 +885,22 @@ protected:
                         *it, rSensitivityVariable, sensitivity_matrix[k],
                         response_gradient[k], r_process_info);
 
-			        // Get the adjoint displacement field
+                    // Get the adjoint displacement field
                     it->GetValuesVector(adjoint_vector[k]);
 
                     if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
                         sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
-			        // Compute the whole sensitivity
+                    // Compute the whole sensitivity
                     noalias(sensitivity_vector[k]) =
-                    			    /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                                    /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                         response_gradient[k]);
 
 
-			        /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
-			        {
-					    std::cout << ("SA result conditions = ") << i << sensitivity_vector[i] << std::endl;
-			        }*/
+                    /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
+                    {
+                        std::cout << ("SA result conditions = ") << i << sensitivity_vector[i] << std::endl;
+                    }*/
 
                     this->AssembleNodalSensitivityContribution(
                         rSensitivityVariable, sensitivity_vector[k], r_geom);	//----> check for correct output
@@ -910,14 +910,14 @@ protected:
 
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
-		KRATOS_CATCH("");
-	}
+        KRATOS_CATCH("");
+    }
 
-	// ==============================================================================
-	template <typename TDataType>
-	void UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)
-	{
-		KRATOS_TRY;
+    // ==============================================================================
+    template <typename TDataType>
+    void UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)
+    {
+        KRATOS_TRY;
 
         ModelPart& r_model_part = this->GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
@@ -930,7 +930,7 @@ protected:
 
 
         //std::cout << ("I compute now element sensitivities") << std::endl;
-	#pragma omp parallel
+    #pragma omp parallel
         {
             ModelPart::ElementIterator elements_begin;
             ModelPart::ElementIterator elements_end;
@@ -946,7 +946,7 @@ protected:
                 {
                     // Compute the pseudo load
                     it->CalculateSensitivityMatrix(
-            	        rSensitivityVariable, sensitivity_matrix[k], r_process_info);
+                        rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
                     if(sensitivity_matrix[k].size1() > 0)
                     {    
@@ -957,20 +957,20 @@ protected:
                                 response_gradient[k], r_process_info);
                     
                   
-			            // Get the adjoint displacement field
+                        // Get the adjoint displacement field
                         it->GetValuesVector(adjoint_vector[k]);
 
                         if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
                             sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
-			            // Compute the whole sensitivity
+                        // Compute the whole sensitivity
                         noalias(sensitivity_vector[k]) =
-                				    /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                                    /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                     response_gradient[k]);
 
-			            //std::cout << ("element sensitivty = ") << sensitivity_vector[0] << std::endl;
+                        //std::cout << ("element sensitivty = ") << sensitivity_vector[0] << std::endl;
                         this->AssembleElementSensitivityContribution(
-                  	            rOutputVariable, sensitivity_vector[k], *it);		//----> check for correct output
+                                  rOutputVariable, sensitivity_vector[k], *it);		//----> check for correct output
 
                         //std::cout <<  sensitivity_vector[k][0] << std::endl;
                     }
@@ -980,16 +980,16 @@ protected:
 
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
-		KRATOS_CATCH("");
-	}
+        KRATOS_CATCH("");
+    }
 
-	// ==============================================================================
-	template <typename TDataType>
+    // ==============================================================================
+    template <typename TDataType>
     void UpdateConditionSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)
-	{
-		KRATOS_TRY;
+    {
+        KRATOS_TRY;
 
-	    ModelPart& r_model_part = this->GetModelPart();
+        ModelPart& r_model_part = this->GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         //double delta_time = -r_process_info[DELTA_TIME];
         const int num_threads = OpenMPUtils::GetNumThreads();
@@ -998,7 +998,7 @@ protected:
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-	//         Assemble condition contributions.
+    //         Assemble condition contributions.
 #pragma omp parallel
         {
             ModelPart::ConditionIterator conditions_begin;
@@ -1024,25 +1024,25 @@ protected:
                             *it, rSensitivityVariable, sensitivity_matrix[k],
                             response_gradient[k], r_process_info);
 
-			            // Get the adjoint displacement field
+                        // Get the adjoint displacement field
                         it->GetValuesVector(adjoint_vector[k]);
 
                         if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
                             sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
-			            // Compute the whole sensitivity
+                        // Compute the whole sensitivity
                         noalias(sensitivity_vector[k]) =
-                    			/*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                                /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                     response_gradient[k]);
 
-			            /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
-			            {
-					        std::cout << ("SA result = ") << sensitivity_vector[i] << std::endl;
-			            }*/
+                        /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
+                        {
+                            std::cout << ("SA result = ") << sensitivity_vector[i] << std::endl;
+                        }*/
 
-		                Condition::GeometryType& r_geom = it->GetGeometry();
+                        Condition::GeometryType& r_geom = it->GetGeometry();
                         this->AssembleConditionSensitivityContribution(
-               		            rOutputVariable, sensitivity_vector[k], r_geom); //----> check for correct output
+                                   rOutputVariable, sensitivity_vector[k], r_geom); //----> check for correct output
                     }
                 }
             }
@@ -1050,8 +1050,8 @@ protected:
 
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
-		KRATOS_CATCH("");
-	}
+        KRATOS_CATCH("");
+    }
 
 
 
@@ -1170,17 +1170,17 @@ protected:
                                                 Vector const& rSensitivityVector,
                                                 Element& rElem)
     {
-		rElem.SetValue(rSensitivityVariable , rSensitivityVector[0]);
-		// attention: one has to ensure that element is able to print the variable type later on his Gauss-Points
-	}
+        rElem.SetValue(rSensitivityVariable , rSensitivityVector[0]);
+        // attention: one has to ensure that element is able to print the variable type later on his Gauss-Points
+    }
 
     void AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
                                                 Vector const& rSensitivityVector,
                                                 Element& rElem)
     {
-		rElem.SetValue(rSensitivityVariable , rSensitivityVector);
-		// attention: one has to ensure that element is able to print the variable type later on his Gauss-Points
-	}
+        rElem.SetValue(rSensitivityVariable , rSensitivityVector);
+        // attention: one has to ensure that element is able to print the variable type later on his Gauss-Points
+    }
 
     void AssembleConditionSensitivityContribution(Variable<double> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
@@ -1222,7 +1222,7 @@ private:
     std::string mSensitivityModelPartName;
     std::vector<std::string> mNodalSensitivityVariables;
     std::vector<std::string> mElementSensitivityVariables;
-	std::vector<std::string> mConditionSensitivityVariables;
+    std::vector<std::string> mConditionSensitivityVariables;
     unsigned int mGradientMode;
     double mDelta;
 

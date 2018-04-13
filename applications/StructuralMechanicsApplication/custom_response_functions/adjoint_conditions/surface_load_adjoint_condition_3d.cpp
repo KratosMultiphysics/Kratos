@@ -176,7 +176,7 @@ namespace Kratos
     //************************************************************************************
 
     void SurfaceLoadAdjointCondition3D::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-				       ProcessInfo& rCurrentProcessInfo)
+                       ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -227,95 +227,95 @@ namespace Kratos
         {
 
             // Define working variables
-		    Vector RHS_undist;
-		    Vector RHS_dist;
+            Vector RHS_undist;
+            Vector RHS_dist;
             Matrix dummy_LHS;
-		    ProcessInfo copy_process_info = rCurrentProcessInfo;
+            ProcessInfo copy_process_info = rCurrentProcessInfo;
 
-		    // Get disturbance measure
+            // Get disturbance measure
             double delta = this->GetValue(DISTURBANCE_MEASURE);
 
-		    const int number_of_nodes = GetGeometry().PointsNumber();
-		    const int dimension = this->GetGeometry().WorkingSpaceDimension();
+            const int number_of_nodes = GetGeometry().PointsNumber();
+            const int dimension = this->GetGeometry().WorkingSpaceDimension();
 
-			// compute RHS before disturbing
-			this->CalculateAll(dummy_LHS, RHS_undist, copy_process_info, false, true);
+            // compute RHS before disturbing
+            this->CalculateAll(dummy_LHS, RHS_undist, copy_process_info, false, true);
 
             rOutput.resize(dimension * number_of_nodes, RHS_undist.size());
 
             //TODO: look that this works also for parallel computing
-			for(int j = 0; j < number_of_nodes; j++)
-			{
-				//begin: derive w.r.t. x-coordinate---------------------------------------------------
+            for(int j = 0; j < number_of_nodes; j++)
+            {
+                //begin: derive w.r.t. x-coordinate---------------------------------------------------
 
-				// disturb the design variable
-				this->GetGeometry()[j].X0() += delta;
+                // disturb the design variable
+                this->GetGeometry()[j].X0() += delta;
 
-				// compute RHS after disturbance
-				this->CalculateAll(dummy_LHS, RHS_dist, copy_process_info, false, true);
+                // compute RHS after disturbance
+                this->CalculateAll(dummy_LHS, RHS_dist, copy_process_info, false, true);
 
-				//compute derivative of RHS w.r.t. design variable with finite differences
-				RHS_dist -= RHS_undist;
-				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++)
-					rOutput( (0 + j*dimension), i) = RHS_dist[i];
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                RHS_dist -= RHS_undist;
+                RHS_dist /= delta;
+                for(unsigned int i = 0; i < RHS_dist.size(); i++)
+                    rOutput( (0 + j*dimension), i) = RHS_dist[i];
 
-				// Reset pertubed vector
-				RHS_dist = Vector(0);
+                // Reset pertubed vector
+                RHS_dist = Vector(0);
 
-				// undisturb the design variable
-				this->GetGeometry()[j].X0() -= delta;
+                // undisturb the design variable
+                this->GetGeometry()[j].X0() -= delta;
 
-				//end: derive w.r.t. x-coordinate-----------------------------------------------------
+                //end: derive w.r.t. x-coordinate-----------------------------------------------------
 
-				//begin: derive w.r.t. y-coordinate---------------------------------------------------
+                //begin: derive w.r.t. y-coordinate---------------------------------------------------
 
-				// disturb the design variable
-				this->GetGeometry()[j].Y0() += delta;
+                // disturb the design variable
+                this->GetGeometry()[j].Y0() += delta;
 
-				// compute RHS after disturbance
-				this->CalculateAll(dummy_LHS, RHS_dist, copy_process_info, false, true);
+                // compute RHS after disturbance
+                this->CalculateAll(dummy_LHS, RHS_dist, copy_process_info, false, true);
 
-				//compute derivative of RHS w.r.t. design variable with finite differences
-				RHS_dist -= RHS_undist;
-				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++)
-					rOutput((1 + j*dimension),i) = RHS_dist[i];
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                RHS_dist -= RHS_undist;
+                RHS_dist /= delta;
+                for(unsigned int i = 0; i < RHS_dist.size(); i++)
+                    rOutput((1 + j*dimension),i) = RHS_dist[i];
 
-				// Reset pertubed vector
-				RHS_dist = Vector(0);
+                // Reset pertubed vector
+                RHS_dist = Vector(0);
 
-				// undisturb the design variable
-				this->GetGeometry()[j].Y0() -= delta;
+                // undisturb the design variable
+                this->GetGeometry()[j].Y0() -= delta;
 
-				//end: derive w.r.t. y-coordinate-----------------------------------------------------
+                //end: derive w.r.t. y-coordinate-----------------------------------------------------
 
-				//begin: derive w.r.t. z-coordinate---------------------------------------------------
+                //begin: derive w.r.t. z-coordinate---------------------------------------------------
 
-				// disturb the design variable
-				this->GetGeometry()[j].Z0() += delta;
+                // disturb the design variable
+                this->GetGeometry()[j].Z0() += delta;
 
-				// compute RHS after disturbance
-				this->CalculateAll(dummy_LHS, RHS_dist, copy_process_info, false, true);
+                // compute RHS after disturbance
+                this->CalculateAll(dummy_LHS, RHS_dist, copy_process_info, false, true);
 
-				//compute derivative of RHS w.r.t. design variable with finite differences
-				RHS_dist -= RHS_undist;
-				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++)
-					rOutput((2 + j*dimension),i) = RHS_dist[i];
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                RHS_dist -= RHS_undist;
+                RHS_dist /= delta;
+                for(unsigned int i = 0; i < RHS_dist.size(); i++)
+                    rOutput((2 + j*dimension),i) = RHS_dist[i];
 
-				// Reset pertubed vector
-				RHS_dist = Vector(0);
+                // Reset pertubed vector
+                RHS_dist = Vector(0);
 
-				// undisturb the design variable
-				this->GetGeometry()[j].Z0() -= delta;
+                // undisturb the design variable
+                this->GetGeometry()[j].Z0() -= delta;
 
-				// Compute RHS again in order to ensure that changed member variables get back their origin values
-				this->CalculateAll(dummy_LHS, RHS_dist, copy_process_info, false, true);
+                // Compute RHS again in order to ensure that changed member variables get back their origin values
+                this->CalculateAll(dummy_LHS, RHS_dist, copy_process_info, false, true);
 
-				//end: derive w.r.t. z-coordinate-----------------------------------------------------
+                //end: derive w.r.t. z-coordinate-----------------------------------------------------
 
-			}// end loop over element nodes
+            }// end loop over element nodes
 
         }
         else
