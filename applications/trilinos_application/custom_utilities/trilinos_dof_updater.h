@@ -108,8 +108,6 @@ public:
         DofsArrayType& rDofSet,
         const SystemVectorType& rDx) override
     {
-        KRATOS_WATCH("BEFROE")
-
         int system_size = TSparseSpace::Size(rDx);
         int number_of_dofs = rDofSet.size();
         std::vector< int > index_array(number_of_dofs);
@@ -148,7 +146,6 @@ public:
         mpDofImport.swap(p_dof_import);
 
         mImportIsInitialized = true;
-        KRATOS_WATCH("AFTER")
     }
 
     /// Free internal storage to reset the instance and/or optimize memory consumption.
@@ -174,7 +171,6 @@ public:
         if (!mImportIsInitialized)
             this->Initialize(rDofSet,rDx);
 
-        KRATOS_WATCH("Continuing")
         int system_size = TSparseSpace::Size(rDx);
 
         // defining a temporary vector to gather all of the values needed
@@ -200,7 +196,6 @@ public:
             }
         }
 
-        KRATOS_WATCH("ENDING")
         KRATOS_CATCH("");
     }
 
