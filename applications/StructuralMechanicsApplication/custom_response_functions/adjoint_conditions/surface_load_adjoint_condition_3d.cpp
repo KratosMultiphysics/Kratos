@@ -329,29 +329,21 @@ namespace Kratos
 
     int SurfaceLoadAdjointCondition3D::Check( const ProcessInfo& rCurrentProcessInfo )
     {
-        if ( ADJOINT_DISPLACEMENT.Key() == 0 )
-        {
-            KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-        }
-        if ( DISPLACEMENT.Key() == 0 )
-        {
-            KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-        }
+        KRATOS_ERROR_IF( ADJOINT_DISPLACEMENT.Key() == 0 )
+        <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
+        KRATOS_ERROR_IF( DISPLACEMENT.Key() == 0 )
+        <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
 
         //verify that the dofs exist
         for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
         {
-            if ( this->GetGeometry()[i].SolutionStepsDataHas( ADJOINT_DISPLACEMENT ) == false )
-            {
-                KRATOS_ERROR << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
-            }
+            KRATOS_ERROR_IF( this->GetGeometry()[i].SolutionStepsDataHas( ADJOINT_DISPLACEMENT ) == false )
+            << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
 
-            if ( this->GetGeometry()[i].HasDofFor( ADJOINT_DISPLACEMENT_X ) == false ||
+            KRATOS_ERROR_IF( this->GetGeometry()[i].HasDofFor( ADJOINT_DISPLACEMENT_X ) == false ||
                  this->GetGeometry()[i].HasDofFor( ADJOINT_DISPLACEMENT_Y ) == false ||
                  this->GetGeometry()[i].HasDofFor( ADJOINT_DISPLACEMENT_Z ) == false )
-            {
-                KRATOS_ERROR << "missing one of the dofs for the variable ADJOINT_DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
-            }
+            << "missing one of the dofs for the variable ADJOINT_DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
         }
 
         return 0;
