@@ -221,7 +221,7 @@ class PreUtilities
         outputfile << "PARTICLE_DENSITY 2550.0\n";
         outputfile << "YOUNG_MODULUS 35e9\n";
         outputfile << "POISSON_RATIO 0.20\n";
-        outputfile << "PARTICLE_FRICTION 0.5773502691896257\n";
+        outputfile << "FRICTION 0.5773502691896257\n";
         outputfile << "PARTICLE_COHESION 0.0\n";
         outputfile << "COEFFICIENT_OF_RESTITUTION 0.2\n";
         outputfile << "PARTICLE_MATERIAL 1\n";
