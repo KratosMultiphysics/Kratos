@@ -13,9 +13,8 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
@@ -34,48 +33,62 @@ namespace Kratos
 
 namespace Python
 {
+using namespace pybind11;
 
-void AddCustomProcessesToPython()
+void AddCustomProcessesToPython(pybind11::module& m)
 {
-	using namespace boost::python;
 
-	
 	/*
 	 * ApplyChimeraProcess for 2d and 3d
 	 */
-	class_<ApplyChimeraProcess<2>,bases<Process> >("ApplyChimeraProcess2d", init< ModelPart&, Parameters >())
-			.def("ApplyMpcConstraint", &ApplyChimeraProcess<2>::ApplyMpcConstraint)
-			.def("FormulateChimera2D", &ApplyChimeraProcess<2>::FormulateChimera)
-			.def("SetOverlapDistance",&ApplyChimeraProcess<2>::SetOverlapDistance)
-			.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcess<2>::CalculateNodalAreaAndNodalMass)
-			.def("SetType",&ApplyChimeraProcess<2>::SetType);
+	class_<ApplyChimeraProcess<2>, Process>(m, "ApplyChimeraProcess2d")
+		.def(init< ModelPart&, Parameters >())
+		.def("ApplyMpcConstraint", &ApplyChimeraProcess<2>::ApplyMpcConstraint)
+		.def("FormulateChimera2D", &ApplyChimeraProcess<2>::FormulateChimera)
+		.def("SetOverlapDistance",&ApplyChimeraProcess<2>::SetOverlapDistance)
+		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcess<2>::CalculateNodalAreaAndNodalMass)
+		.def("SetType",&ApplyChimeraProcess<2>::SetType)
+		;
+
+	class_<ApplyChimeraProcess<3>, Process>(m, "ApplyChimeraProcess3d")
+		.def(init< ModelPart&, Parameters >())
+		.def("ApplyMpcConstraint", &ApplyChimeraProcess<3>::ApplyMpcConstraint)
+		.def("FormulateChimera2D", &ApplyChimeraProcess<3>::FormulateChimera)
+		.def("SetOverlapDistance",&ApplyChimeraProcess<3>::SetOverlapDistance)
+		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcess<3>::CalculateNodalAreaAndNodalMass)
+		.def("SetType",&ApplyChimeraProcess<3>::SetType)
+		;
 
 
-	class_<ApplyChimeraProcess<3>,bases<Process> >("ApplyChimeraProcess3d", init< ModelPart&, Parameters >())
-			.def("ApplyMpcConstraint", &ApplyChimeraProcess<3>::ApplyMpcConstraint)		
+	/* class_<ApplyChimeraProcess<3>,bases<Process> >("ApplyChimeraProcess3d", init< ModelPart&, Parameters >())
+			.def("ApplyMpcConstraint", &ApplyChimeraProcess<3>::ApplyMpcConstraint)
 			.def("FormulateChimera3D", &ApplyChimeraProcess<3>::FormulateChimera)
 			.def("SetOverlapDistance",&ApplyChimeraProcess<3>::SetOverlapDistance)
 			.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcess<3>::CalculateNodalAreaAndNodalMass)
 
 			.def("SetType",&ApplyChimeraProcess<3>::SetType);
+ */
 
-    class_< RotateRegionProcess, bases<Process>, boost::noncopyable >
-    ("RotateRegionProcess",init<ModelPart&, Parameters& >())
-	.def("SetCentreOfRotation", &RotateRegionProcess::SetCentreOfRotation);
+    class_< RotateRegionProcess, Process >(m, "RotateRegionProcess")
+		.def(init< ModelPart&, Parameters >())
+		.def("SetCentreOfRotation", &RotateRegionProcess::SetCentreOfRotation)
+		;
 
-	class_<CustomCalculateSignedDistanceProcess<2>>("SignedDistanceProcess2d", init< >())
-			.def("CalculateSignedDistance", &CustomCalculateSignedDistanceProcess<2>::CalculateSignedDistance);
-	
+	class_<CustomCalculateSignedDistanceProcess<2>>(m, "SignedDistanceProcess2d")
+		.def(init<>())
+		.def("CalculateSignedDistance", &CustomCalculateSignedDistanceProcess<2>::CalculateSignedDistance)
+		;
 
-
-	class_<CustomCalculateSignedDistanceProcess<3>>("SignedDistanceProcess3d", init<>())
-			.def("CalculateSignedDistance", &CustomCalculateSignedDistanceProcess<3>::CalculateSignedDistance)	;	
+	class_<CustomCalculateSignedDistanceProcess<3>>(m, "SignedDistanceProcess3d")
+		.def(init<>())
+		.def("CalculateSignedDistance", &CustomCalculateSignedDistanceProcess<3>::CalculateSignedDistance)
+		;
 
 	/* typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-		
+
    class_< SpalartAllmarasTurbulenceModelForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
     ("SpalartAllmarasTurbulenceModelForChimera", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
     .def("ActivateDES", &SpalartAllmarasTurbulenceModelForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)

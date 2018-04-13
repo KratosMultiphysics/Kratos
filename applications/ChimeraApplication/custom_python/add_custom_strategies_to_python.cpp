@@ -14,13 +14,9 @@
 
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
 
@@ -52,9 +48,9 @@ namespace Kratos
 
 namespace Python
 {
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddCustomStrategiesToPython()
+void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -78,10 +74,15 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
-    class_< ResidualBasedBlockBuilderAndSolverWithMpcChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+    /* class_< ResidualBasedBlockBuilderAndSolverWithMpcChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >,
                 bases< ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >,
                 boost::noncopyable >
-                ("ResidualBasedBlockBuilderAndSolverWithMpcChimera", init<LinearSolverType::Pointer>());
+                ("ResidualBasedBlockBuilderAndSolverWithMpcChimera", init<LinearSolverType::Pointer>()); */
+
+    class_< ResidualBasedBlockBuilderAndSolverWithMpcChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+     typename ResidualBasedBlockBuilderAndSolverWithMpcChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
+                ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >(m,"ResidualBasedBlockBuilderAndSolverWithMpcChimera")
+                .def(init<LinearSolverType::Pointer>());
 }
 
 }  // namespace Python.

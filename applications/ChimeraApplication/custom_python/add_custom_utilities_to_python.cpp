@@ -12,11 +12,9 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -58,13 +56,11 @@ void AuxCreateThermalBoundaryFaces(InterpolationUtility<TDim>& ThisUtility, Mode
 
 namespace Python
 {
+    using namespace pybind11;
 
 
-  void  AddCustomUtilitiesToPython()
-  {
-    
-    
-    using namespace boost::python;
+    void  AddCustomUtilitiesToPython(pybind11::module& m)
+    {
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -77,43 +73,47 @@ namespace Python
       .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcessChimera::AddMasterSlaveRelation)
       .def("PrintData", &ApplyMultipointConstraintsProcessChimera::PrintData);*/
 
-      class_<VtkOutput, boost::noncopyable>("VtkOutput", init< ModelPart&, std::string, Parameters >())
-      .def("PrintOutput", &VtkOutput::PrintOutput)
-      .def("PrintOutput", &VtkOutput::PrintOutputSubModelPart);      
+      class_<VtkOutput>(m, "VtkOutput")
+        .def(init< ModelPart&, std::string, Parameters >())
+        .def("PrintOutput", &VtkOutput::PrintOutput)
+        .def("PrintOutput", &VtkOutput::PrintOutputSubModelPart)
+        ;
 
-      class_ < InterpolationUtility<2>, boost::noncopyable >( "InterpolationUtility2D", init<>() )
-              .def("Test", &InterpolationUtility<2>::Test )
-              //.def("DirichletBoundaryCalculation", &InterpolationUtility < 2 > ::DirichletBoundaryCalculation<double>)
-              .def("Projection_Flux", &InterpolationUtility < 2 > ::Projection_Flux<double>)
-              //.def("DirichletBoundaryCalculationKreis", &InterpolationUtility < 2 > ::DirichletBoundaryCalculationKreis<double>)
-              //.def("NeumannBoundaryCalculationRechteck", &InterpolationUtility < 2 > ::NeumannBoundaryCalculationRechteck<double>)
-              //.def("DirichletBoundaryCalculationRechteck", &InterpolationUtility < 2 > ::DirichletBoundaryCalculationRechteck<double>)
-              .def("CreateFluidBoundaryFaces", AuxCreateFluidBoundaryFaces<2>)
-              .def("CreateThermalBoundaryFaces", AuxCreateThermalBoundaryFaces<2>)
-              //.def("DirichletBoundaryCalculationFlag", &InterpolationUtility < 2 > ::DirichletBoundaryCalculationFlag<double>)
-              .def("Projection_Vector", &InterpolationUtility < 2 > ::Projection_Vector< array_1d<double,3> >)
-              .def("Projection_Scalar", &InterpolationUtility < 2 > ::Projection_Vector< double >)
-              .def("Projection_Traction", &InterpolationUtility < 2 > ::Projection_Traction)
-              .def("Projection_Traction_Cavity", &InterpolationUtility < 2 > ::Projection_Traction_Cavity)
-              .def("Projection_Traction_Nodal", &InterpolationUtility < 2 > ::Projection_Traction_Nodal)
-              .def("Projection_Flux_Gauss", &InterpolationUtility < 2 > :: Projection_Flux_Gauss)
-              ;
+      class_ < InterpolationUtility<2>>(m, "InterpolationUtility2D")
+        .def( init<>() )
+        .def("Test", &InterpolationUtility<2>::Test )
+        //.def("DirichletBoundaryCalculation", &InterpolationUtility < 2 > ::DirichletBoundaryCalculation<double>)
+        .def("Projection_Flux", &InterpolationUtility < 2 > ::Projection_Flux<double>)
+        //.def("DirichletBoundaryCalculationKreis", &InterpolationUtility < 2 > ::DirichletBoundaryCalculationKreis<double>)
+        //.def("NeumannBoundaryCalculationRechteck", &InterpolationUtility < 2 > ::NeumannBoundaryCalculationRechteck<double>)
+        //.def("DirichletBoundaryCalculationRechteck", &InterpolationUtility < 2 > ::DirichletBoundaryCalculationRechteck<double>)
+        .def("CreateFluidBoundaryFaces", AuxCreateFluidBoundaryFaces<2>)
+        .def("CreateThermalBoundaryFaces", AuxCreateThermalBoundaryFaces<2>)
+        //.def("DirichletBoundaryCalculationFlag", &InterpolationUtility < 2 > ::DirichletBoundaryCalculationFlag<double>)
+        .def("Projection_Vector", &InterpolationUtility < 2 > ::Projection_Vector< array_1d<double,3> >)
+        .def("Projection_Scalar", &InterpolationUtility < 2 > ::Projection_Vector< double >)
+        .def("Projection_Traction", &InterpolationUtility < 2 > ::Projection_Traction)
+        .def("Projection_Traction_Cavity", &InterpolationUtility < 2 > ::Projection_Traction_Cavity)
+        .def("Projection_Traction_Nodal", &InterpolationUtility < 2 > ::Projection_Traction_Nodal)
+        .def("Projection_Flux_Gauss", &InterpolationUtility < 2 > :: Projection_Flux_Gauss)
+        ;
 
-      class_ < InterpolationUtility<3>, boost::noncopyable >( "InterpolationUtility3D", init<>() )
-              .def("Test", &InterpolationUtility<3>::Test )
-              //.def("DirichletBoundaryCalculation", &InterpolationUtility < 2 > ::DirichletBoundaryCalculation<double>)
+      class_ < InterpolationUtility<3>>(m, "InterpolationUtility3D")
+        .def(init<>() )
+        .def("Test", &InterpolationUtility<3>::Test )
+        //.def("DirichletBoundaryCalculation", &InterpolationUtility < 2 > ::DirichletBoundaryCalculation<double>)
 
-              //.def("DirichletBoundaryCalculationKreis", &InterpolationUtility < 2 > ::DirichletBoundaryCalculationKreis<double>)
-              //.def("NeumannBoundaryCalculationRechteck", &InterpolationUtility < 2 > ::NeumannBoundaryCalculationRechteck<double>)
-              //.def("DirichletBoundaryCalculationRechteck", &InterpolationUtility < 2 > ::DirichletBoundaryCalculationRechteck<double>)
-              //.def("CreateBoundaryFaces", &InterpolationUtility < 3 > ::CreateBoundaryFaces)
-              //.def("DirichletBoundaryCalculationFlag", &InterpolationUtility < 2 > ::DirichletBoundaryCalculationFlag<double>)
-              .def("Projection_Vector", &InterpolationUtility < 3 > ::Projection_Vector< array_1d<double,3> >)
-              .def("Projection_Scalar", &InterpolationUtility < 3 > ::Projection_Vector< double >)
-              .def("Projection_Traction", &InterpolationUtility < 3 > ::Projection_Traction)
-              .def("ExtractBoundaryFaces",&InterpolationUtility < 3 >::ExtractBoundaryFaces)
-               ;
-             
+        //.def("DirichletBoundaryCalculationKreis", &InterpolationUtility < 2 > ::DirichletBoundaryCalculationKreis<double>)
+        //.def("NeumannBoundaryCalculationRechteck", &InterpolationUtility < 2 > ::NeumannBoundaryCalculationRechteck<double>)
+        //.def("DirichletBoundaryCalculationRechteck", &InterpolationUtility < 2 > ::DirichletBoundaryCalculationRechteck<double>)
+        //.def("CreateBoundaryFaces", &InterpolationUtility < 3 > ::CreateBoundaryFaces)
+        //.def("DirichletBoundaryCalculationFlag", &InterpolationUtility < 2 > ::DirichletBoundaryCalculationFlag<double>)
+        .def("Projection_Vector", &InterpolationUtility < 3 > ::Projection_Vector< array_1d<double,3> >)
+        .def("Projection_Scalar", &InterpolationUtility < 3 > ::Projection_Vector< double >)
+        .def("Projection_Traction", &InterpolationUtility < 3 > ::Projection_Traction)
+        .def("ExtractBoundaryFaces",&InterpolationUtility < 3 >::ExtractBoundaryFaces)
+        ;
+
   // Periodic boundary conditions utilities
     typedef void (PeriodicConditionUtilitiesForChimera::*AddDoubleVariableType)(Properties&,Variable<double>&);
     typedef void (PeriodicConditionUtilitiesForChimera::*AddVariableComponentType)(Properties&,VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > >&);
@@ -121,24 +121,26 @@ namespace Python
     AddDoubleVariableType AddDoubleVariable = &PeriodicConditionUtilitiesForChimera::AddPeriodicVariable;
     AddVariableComponentType AddVariableComponent = &PeriodicConditionUtilitiesForChimera::AddPeriodicVariable;
 
-    class_<PeriodicConditionUtilitiesForChimera>("PeriodicConditionUtilitiesForChimera", init<ModelPart&,unsigned int>())
+    class_<PeriodicConditionUtilitiesForChimera>(m, "PeriodicConditionUtilitiesForChimera")
+        .def(init<ModelPart&,unsigned int>())
         .def("SetUpSearchStructure",&PeriodicConditionUtilitiesForChimera::SetUpSearchStructure)
         .def("DefinePeriodicBoundary",&PeriodicConditionUtilitiesForChimera::DefinePeriodicBoundary)
         .def("AddPeriodicVariable",AddDoubleVariable)
         .def("AddPeriodicVariable",AddVariableComponent)
-    ;  
+    ;
 
 
- // Base settings 
+ // Base settings
     typedef SolverSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType> BaseSettingsType;
 
-    class_ < BaseSettingsType, boost::noncopyable >( "BaseSettingsType",no_init );
+    class_ < BaseSettingsType >(m, "BaseSettingsType");
 
     // Fractional step settings
-    enum_<FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel>("StrategyLabel")
+    enum_<FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel>(m,"StrategyLabel")
         .value("Velocity",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::Velocity)
         .value("Pressure",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::Pressure)
-        //.value("EddyViscosity",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
+        //.value("EddyViscosity",FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
+        ;
     ;
 
     /* enum_<FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel>("TurbulenceModelLabel")
@@ -152,14 +154,15 @@ namespace Python
     //BuildTurbModelType SetTurbModel_Build = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;
     //PassTurbModelType SetTurbModel_Pass = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;
 
-    class_< FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>,bases<BaseSettingsType>, boost::noncopyable>
-        ("FractionalStepSettingsForChimera",init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
+    class_< FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>, BaseSettingsType>
+        (m, "FractionalStepSettingsForChimera")
+        .def(init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
         .def("SetStrategy",ThisSetStrategyOverload)
         //.def("SetTurbulenceModel",SetTurbModel_Build)
         //.def("SetTurbulenceModel",SetTurbModel_Pass)
         .def("GetStrategy",&FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::pGetStrategy)
         .def("SetEchoLevel",&FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
-    ; 
+    ;
   }
 
 
