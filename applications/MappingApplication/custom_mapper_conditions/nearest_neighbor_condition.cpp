@@ -44,13 +44,6 @@ namespace Kratos
 ///@{
 
 /**
- * Constructor.
- */
-NearestNeighborCondition::NearestNeighborCondition(IndexType NewId)
-    : Condition(NewId) {
-}
-
-/**
  * Constructor using an array of nodes
  */
 NearestNeighborCondition::NearestNeighborCondition(IndexType NewId, const NodesArrayType& ThisNodes)
@@ -217,124 +210,6 @@ void NearestNeighborCondition::CalculateRightHandSide(VectorType& rRightHandSide
 }
 
 /**
- * this is called during the assembling process in order
- * to calculate the first derivatives contributions for the LHS and RHS
- * @param rLeftHandSideMatrix: the condition left hand side matrix
- * @param rRightHandSideVector: the condition right hand side
- * @param rCurrentProcessInfo: the current process info instance
- */
-void NearestNeighborCondition::CalculateFirstDerivativesContributions(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
-
-  if (rLeftHandSideMatrix.size1() != 0)
-    rLeftHandSideMatrix.resize(0, 0, false);
-  if (rRightHandSideVector.size() != 0)
-    rRightHandSideVector.resize(0, false);
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the condition left hand side matrix for the first derivatives constributions
- * @param rLeftHandSideMatrix: the condition left hand side matrix
- * @param rCurrentProcessInfo: the current process info instance
- */
-void NearestNeighborCondition::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) {
-  if (rLeftHandSideMatrix.size1() != 0)
-    rLeftHandSideMatrix.resize(0, 0, false);
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the condition right hand side vector for the first derivatives constributions
- * @param rRightHandSideVector: the condition right hand side vector
- * @param rCurrentProcessInfo: the current process info instance
- */
-void NearestNeighborCondition::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
-  if (rRightHandSideVector.size() != 0)
-    rRightHandSideVector.resize(0, false);
-}
-
-/**
- * CONDITION inherited from this class must implement this methods
- * if they need to add dynamic condition contributions
- * note: second derivatives means the accelerations if the displacements are the dof of the analysis
- * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
- * CalculateSecondDerivativesContributions,
- * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
- */
-
-
-/**
- * this is called during the assembling process in order
- * to calculate the second derivative contributions for the LHS and RHS
- * @param rLeftHandSideMatrix: the condition left hand side matrix
- * @param rRightHandSideVector: the condition right hand side
- * @param rCurrentProcessInfo: the current process info instance
- */
-void NearestNeighborCondition::CalculateSecondDerivativesContributions(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
-
-  if (rLeftHandSideMatrix.size1() != 0)
-    rLeftHandSideMatrix.resize(0, 0, false);
-  if (rRightHandSideVector.size() != 0)
-    rRightHandSideVector.resize(0, false);
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the condition left hand side matrix for the second derivatives constributions
- * @param rLeftHandSideMatrix: the condition left hand side matrix
- * @param rCurrentProcessInfo: the current process info instance
- */
-void NearestNeighborCondition::CalculateSecondDerivativesLHS(
-    MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo) {
-
-  if (rLeftHandSideMatrix.size1() != 0)
-    rLeftHandSideMatrix.resize(0, 0, false);
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the condition right hand side vector for the second derivatives constributions
- * @param rRightHandSideVector: the condition right hand side vector
- * @param rCurrentProcessInfo: the current process info instance
- */
-void NearestNeighborCondition::CalculateSecondDerivativesRHS(
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
-
-  if (rRightHandSideVector.size() != 0)
-    rRightHandSideVector.resize(0, false);
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the condition mass matrix
- * @param rMassMatrix: the condition mass matrix
- * @param rCurrentProcessInfo: the current process info instance
- */
-void NearestNeighborCondition::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) {
-  if (rMassMatrix.size1() != 0)
-    rMassMatrix.resize(0, 0, false);
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the condition damping matrix
- * @param rDampingMatrix: the condition damping matrix
- * @param rCurrentProcessInfo: the current process info instance
- */
-void NearestNeighborCondition::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) {
-  if (rDampingMatrix.size1() != 0)
-    rDampingMatrix.resize(0, 0, false);
-}
-
-/**
  * This method provides the place to perform checks on the completeness of the input
  * and the compatibility with the problem options as well as the contitutive laws selected
  * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -349,11 +224,6 @@ int NearestNeighborCondition::Check(const ProcessInfo& rCurrentProcessInfo) {
 
   if (this->Id() < 1) {
     KRATOS_THROW_ERROR(std::logic_error, "NearestNeighborCondition found with Id 0 or negative","")
-  }
-
-  if (this->GetGeometry().Area() <= 0) {
-    std::cout << "error on NearestNeighborCondition -> " << this->Id() << std::endl;
-    KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0","")
   }
 
   return 0;

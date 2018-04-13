@@ -128,6 +128,8 @@ void  AddCustomMappersToPython(pybind11::module& m)
             .def("Map",              pMapVectorOptions)
             .def("InverseMap",       pInverseMapScalarOptions)
             .def("InverseMap",       pInverseMapVectorOptions)
+
+            .def("__repr__",         &Mapper::Info)
             ;
 
     // Adding the flags that can be used while mapping

@@ -490,16 +490,6 @@ private:
 
 }; // Class Mapper
 
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                const Mapper& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 
 }  // namespace Kratos.
 

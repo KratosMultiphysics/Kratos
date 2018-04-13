@@ -19,8 +19,8 @@
 // System includes
 
 // External includes
-// #include "mpi.h"// included in "trilinos_space"
 #include "Epetra_FEVector.h"
+// #include "mpi.h"// included in "trilinos_space"
 // #include "Epetra_FECrsMatrix.h" // included in "trilinos_space"
 
 // Project includes
