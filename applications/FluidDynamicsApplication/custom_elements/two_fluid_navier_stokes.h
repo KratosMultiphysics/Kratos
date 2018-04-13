@@ -714,6 +714,8 @@ private:
 		MatrixType& K_ee,
 		VectorType& rhs_ee);
 
+	void CalculateMaterialPropertiesAtGaussPoint(TElementData& data);
+
 	template<class T>
 	bool InvertMatrix(const T& input, T& inverse);
 

@@ -75,8 +75,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 	noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 	noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-	//this->InitializeGeometryData(data);
-
 	if (TElementData::ElementManagesTimeIntegration) {
 		// Get Shape function data
 		Vector gauss_weights;
@@ -89,8 +87,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 		TElementData data;
 		data.Initialize(*this, rCurrentProcessInfo);
 
-		//ESTO SE PUEDE METER EN EL DATA
-		unsigned int npos=0, nneg=0;
 		for (unsigned int i = 0; i < NumNodes; i++)
 		{
 		    if(data.Distance[i] > 0)
@@ -101,9 +97,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
 		if (data.IsCut()) {
 
-			//array_1d<double, NumNodes> volumes;
-			//array_1d<double, NumNodes> signs(6); //ATTENTION: this shall be initialized of size 6
-			//move all this to element data
 			std::vector< MatrixType > enriched_shape_derivatives;
 			MatrixType enriched_shape_functions;
 			data.NumberOfDivisions = ComputeSplitting(data, shape_functions, shape_derivatives, enriched_shape_derivatives, enriched_shape_functions);
@@ -118,10 +111,13 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 					data.UpdateGeometryValues(gauss_weights[g],
 						row(shape_functions, g),
 						shape_derivatives[g]);
+
+					this->CalculateMaterialPropertiesAtGaussPoint(data);
+
 					if (dgauss > 0.0)
 						data.CalculateAirMaterialResponse();
 					else
-						this->CalculateMaterialResponse(data);
+						this->CalculateMaterialResponse(data);				
 
 					this->AddTimeIntegratedSystem(
 						data, rLeftHandSideMatrix, rRightHandSideVector);
@@ -145,15 +141,17 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 						row(enriched_shape_functions, g),
 						enriched_shape_derivatives[g]);
 					const double dgauss = inner_prod(data.Distance, data.N);
+
+					this->CalculateMaterialPropertiesAtGaussPoint(data);
+
 					if (dgauss > 0.0)
 						data.CalculateAirMaterialResponse();
 					else
 						this->CalculateMaterialResponse(data);
-					//ojito con above, no se que me estoy perdiendo
 
 					this->AddTimeIntegratedSystem(
 						data, rLeftHandSideMatrix, rRightHandSideVector);
-					//Nenriched, DNenr[g] hay que pasarlos
+
 					ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
 				}
 
@@ -168,11 +166,13 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
 				data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
 					shape_derivatives[g]);
+
+				this->CalculateMaterialPropertiesAtGaussPoint(data);
+
 				if (data.IsAir())
 					data.CalculateAirMaterialResponse();
 				else
 					this->CalculateMaterialResponse(data);
-				//ojito con above, no se que me estoy perdiendo
 
 				this->AddTimeIntegratedSystem(
 					data, rLeftHandSideMatrix, rRightHandSideVector);
@@ -249,7 +249,7 @@ template <>
 void TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >::ComputeGaussPointLHSContribution(
 	TwoFluidNavierStokesData<2, 3>& rData, MatrixType& rLHS) {
     const double rho = rData.Density;
-    const double mu = rData.DynamicViscosity;
+    const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
 
@@ -489,7 +489,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
 	TwoFluidNavierStokesData<3, 4>& rData, MatrixType& rLHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.DynamicViscosity;
+    const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
 
@@ -1112,7 +1112,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
 	TwoFluidNavierStokesData<2, 3>& rData, VectorType& rRHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.DynamicViscosity;
+    const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
 
@@ -1189,7 +1189,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
 	TwoFluidNavierStokesData<3, 4>& rData, VectorType& rRHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.DynamicViscosity;
+    const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
 
@@ -1290,7 +1290,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
 	VectorType& rRHS_ee) {
 
 	const double rho = rData.Density;
-	const double mu = rData.DynamicViscosity;
+	const double mu = rData.EffectiveViscosity;
 
 	const double h = rData.ElementSize;
 
@@ -1456,7 +1456,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
 	VectorType& rRHS_ee) {
 
 	const double rho = rData.Density;
-	const double mu = rData.DynamicViscosity;
+	const double mu = rData.EffectiveViscosity;
 
 	const double h = rData.ElementSize;
 
@@ -1975,7 +1975,88 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::CondenseEnrichment(
 
 }
 
-	
+
+template<>
+void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::CalculateMaterialPropertiesAtGaussPoint(TwoFluidNavierStokesData<2, 3>& rData)
+{
+	double dist = 0.0;
+	for (unsigned int i = 0; i < NumNodes; i++)
+		dist += rData.N[i] * rData.Distance[i];
+
+	double navg = 0.0;
+	double density = 0.0;
+	double viscosity = 0.0;
+	for (unsigned int i = 0; i < NumNodes; i++)
+	{
+		if (dist * rData.Distance[i])
+		{
+			navg += 1.0;
+			density += this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
+			viscosity += this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+		}
+	}
+
+	rData.Density = density / navg;
+	rData.DynamicViscosity = viscosity / navg;
+
+	const double c_smag = this->GetValue(C_SMAGORINSKY);
+	if (c_smag > 0.0)
+	{
+		unsigned int strain_size = 3;
+
+		rData.ComputeStrain(strain_size);
+		Vector& S = rData.StrainRate;
+		double strain_rate_norm = std::sqrt(2.*S[0] * S[0] + 2.*S[1] * S[1] + S[2] * S[2]);
+
+		double length_scale = c_smag*rData.ElementSize;
+		length_scale *= length_scale; // square
+		rData.EffectiveViscosity = rData.DynamicViscosity + 2.0*length_scale*strain_rate_norm;
+	}
+	else rData.EffectiveViscosity = rData.DynamicViscosity;
+
+}
+template<>
+void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::CalculateMaterialPropertiesAtGaussPoint(TwoFluidNavierStokesData<3, 4>& rData)
+{
+
+	double dist = 0.0;
+	for (unsigned int i = 0; i < NumNodes; i++)
+		dist += rData.N[i] * rData.Distance[i];
+
+	double navg = 0.0;
+	double density = 0.0;
+	double viscosity = 0.0;
+	for (unsigned int i = 0; i < NumNodes; i++)
+	{
+		if (dist * rData.Distance[i])
+		{
+			navg += 1.0;
+			density += this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
+			viscosity += this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+		}
+	}
+
+	rData.Density = density / navg;
+	rData.DynamicViscosity = viscosity / navg;
+
+	const double c_smag = this->GetValue(C_SMAGORINSKY);
+	if (c_smag > 0.0)
+	{
+		unsigned int strain_size = 6;
+
+		rData.ComputeStrain(strain_size);
+		Vector& S = rData.StrainRate;
+		double strain_rate_norm = std::sqrt(2.*S[0] * S[0] + 2.*S[1] * S[1] + 2.*S[2] * S[2] +
+				S[3] * S[3] + S[4] * S[4] + S[5] * S[5]);
+
+		double length_scale = c_smag*rData.ElementSize;
+		length_scale *= length_scale; // square
+		rData.EffectiveViscosity = rData.DynamicViscosity + 2.0*length_scale*strain_rate_norm;
+	}
+	else rData.EffectiveViscosity = rData.DynamicViscosity;
+}
+
+
 template< class TElementData>
 template< class T>
 bool TwoFluidNavierStokes<TElementData>::InvertMatrix(const T& input, T& inverse)

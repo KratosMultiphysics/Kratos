@@ -56,8 +56,9 @@ NodalScalarData Distance;
 
 double Density;
 double DynamicViscosity;
-double DeltaTime;      // Time increment
-double DynamicTau;     // Dynamic tau considered in ASGS stabilization coefficients
+double EffectiveViscosity; // Includes smagorinsky contribution
+double DeltaTime;		   // Time increment
+double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 
 double bdf0;
 double bdf1;
@@ -102,8 +103,8 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
     this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1); //BORRAR
     this->FillFromHistoricalNodalData(Pressure_OldStep2,PRESSURE,r_geometry,2); //BORRAR
-    this->FillFromProperties(Density,DENSITY,r_properties);
-    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties);
+    //this->FillFromProperties(Density,DENSITY,r_properties);
+    //this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
 
@@ -123,6 +124,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 	NumNegativeNodes = 0;
 	NumberOfDivisions = 1;
 	PartitionsSigns.resize(6, false);
+
 }
 
 void UpdateGeometryValues(
@@ -210,7 +212,6 @@ void CalculateAirMaterialResponse() {
 		ShearStress[0] = StrainRate[0];
 		ShearStress[1] = StrainRate[1];
 		ShearStress[2] = StrainRate[2];
-
 	}
 
 	else
@@ -255,6 +256,8 @@ void ComputeStrain(const unsigned int& strain_size)
     }
 }
 ///@}
+
+
 
 };
 
