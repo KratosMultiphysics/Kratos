@@ -23,13 +23,13 @@
 // Project includes
 #include "includes/define.h"
 
-// Std::vecotr << operator
+// Std::vector << operator
 template<class T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T> & data) {
 
     std::cout << "[";
     std::copy(data.begin(), data.end(), std::ostream_iterator<T>(std::cout, ", "));
-    std::cout << "[";
+    std::cout << "]";
     
     return os;
 }
