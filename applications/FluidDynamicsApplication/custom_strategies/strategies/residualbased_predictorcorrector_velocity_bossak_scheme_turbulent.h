@@ -795,81 +795,72 @@ namespace Kratos {
          */
         void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
         {
-            if (mrPeriodicIdVar.Key() != 0)
-            {
-                for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
-                {
-                    ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
-                    if (rGeom.PointsNumber() == 2)
+            const int num_nodes = rModelPart.NumberOfNodes();
+            const int num_conditions = rModelPart.NumberOfConditions();
+
+            #pragma omp parallel for
+            for (int i = 0; i < num_nodes; i++) {
+                auto it_node = rModelPart.NodesBegin() + i;
+
+                it_node->GetValue(NODAL_AREA) = 0.0;
+                it_node->GetValue(ADVPROJ) = array_1d<double,3>(3,0.0);
+                it_node->GetValue(DIVPROJ) = 0.0;
+            }
+
+            #pragma omp parallel for
+            for (int i = 0; i < num_conditions; i++) {
+                auto it_cond = rModelPart.ConditionsBegin() + i;
+
+                if(it_cond->Is(PERIODIC)) {
+                    ModelPart::ConditionType::GeometryType& rGeom = it_cond->GetGeometry();
+                    unsigned int nodes_in_cond = rGeom.PointsNumber();
+
+                    double NodalArea = 0.0;
+                    array_1d<double,3> AdvProj(3,0.0);
+                    double DivProj = 0.0;
+                    for ( unsigned int i = 0; i < nodes_in_cond; i++ )
                     {
-                        Node<3>& rNode0 = rGeom[0];
-                        int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
-
-                        Node<3>& rNode1 = rGeom[1];
-                        int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
-
-                        // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
-                        if ( ( static_cast<int>(rNode0.Id()) == Node1Pair ) && (static_cast<int>(rNode1.Id()) == Node0Pair ) )
-                        {
-                            double NodalArea = rNode0.FastGetSolutionStepValue(NODAL_AREA) + rNode1.FastGetSolutionStepValue(NODAL_AREA);
-                            array_1d<double,3> AdvProj = rNode0.FastGetSolutionStepValue(ADVPROJ) + rNode1.FastGetSolutionStepValue(ADVPROJ);
-                            double DivProj = rNode0.FastGetSolutionStepValue(DIVPROJ) + rNode1.FastGetSolutionStepValue(DIVPROJ);
-
-                            rNode0.GetValue(NODAL_AREA) = NodalArea;
-                            rNode0.GetValue(ADVPROJ) = AdvProj;
-                            rNode0.GetValue(DIVPROJ) = DivProj;
-
-                            rNode1.GetValue(NODAL_AREA) = NodalArea;
-                            rNode1.GetValue(ADVPROJ) = AdvProj;
-                            rNode1.GetValue(DIVPROJ) = DivProj;
-                        }
+                        NodalArea += rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
+                        AdvProj += rGeom[i].FastGetSolutionStepValue(ADVPROJ);
+                        DivProj += rGeom[i].FastGetSolutionStepValue(DIVPROJ);
                     }
-                    else if (rGeom.PointsNumber() == 4)
+
+                    for ( unsigned int i = 0; i < nodes_in_cond; i++ )
                     {
-                        double NodalArea = 0.0;
-                        array_1d<double,3> AdvProj(3,0.0);
-                        double DivProj = 0.0;
-                        for ( unsigned int i = 0; i < 4; i++ )
-                        {
-                            NodalArea += rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
-                            AdvProj += rGeom[i].FastGetSolutionStepValue(ADVPROJ);
-                            DivProj += rGeom[i].FastGetSolutionStepValue(DIVPROJ);
-                        }
-
-                        for ( unsigned int i = 0; i < 4; i++ )
-                        {
-                            rGeom[i].GetValue(NODAL_AREA) = NodalArea;
-                            rGeom[i].GetValue(ADVPROJ) = AdvProj;
-                            rGeom[i].GetValue(DIVPROJ) = DivProj;
-                        }
-
-                    }
-                }
-
-                rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
-                rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
-                rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
-
-                for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
-                {
-                    if (itNode->GetValue(NODAL_AREA) != 0.0)
-                    {
-                        itNode->FastGetSolutionStepValue(NODAL_AREA) = itNode->GetValue(NODAL_AREA);
-                        itNode->FastGetSolutionStepValue(ADVPROJ) = itNode->GetValue(ADVPROJ);
-                        itNode->FastGetSolutionStepValue(DIVPROJ) = itNode->GetValue(DIVPROJ);
-
-                        // reset for next iteration
-                        itNode->GetValue(NODAL_AREA) = 0.0;
-                        itNode->GetValue(ADVPROJ) = array_1d<double,3>(3,0.0);
-                        itNode->GetValue(DIVPROJ) = 0.0;
+                        /* Note that it is assumed that each node belongs to a single periodic link,
+                         * if this lock is necessary, the algorithm will not work anyways.
+                         * I'm leaving it here to prevent locking issues, though (JC)
+                         */
+                        rGeom[i].SetLock();
+                        rGeom[i].GetValue(NODAL_AREA) = NodalArea;
+                        rGeom[i].GetValue(ADVPROJ) = AdvProj;
+                        rGeom[i].GetValue(DIVPROJ) = DivProj;
+                        rGeom[i].UnSetLock();
                     }
                 }
             }
+
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
+
+            #pragma omp parallel for
+            for (int i = 0; i < num_nodes; i++) {
+                auto it_node = rModelPart.NodesBegin() + i;
+
+                if (it_node->GetValue(NODAL_AREA) != 0.0)
+                {
+                    it_node->FastGetSolutionStepValue(NODAL_AREA) = it_node->GetValue(NODAL_AREA);
+                    it_node->FastGetSolutionStepValue(ADVPROJ) = it_node->GetValue(ADVPROJ);
+                    it_node->FastGetSolutionStepValue(DIVPROJ) = it_node->GetValue(DIVPROJ);
+
+                    // reset for next iteration
+                    it_node->GetValue(NODAL_AREA) = 0.0;
+                    it_node->GetValue(ADVPROJ) = array_1d<double,3>(3,0.0);
+                    it_node->GetValue(DIVPROJ) = 0.0;
+                }
+            }
         }
-
-
-
-
 
 
         //*********************************************************************************

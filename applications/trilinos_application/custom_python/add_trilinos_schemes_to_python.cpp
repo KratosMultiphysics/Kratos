@@ -58,7 +58,6 @@
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/schemes/trilinos_residualbased_predictorcorrector_velocity_bdf_scheme.h"
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
-#include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/schemes/trilinos_residualbased_predictorcorrector_velocity_bossak_scheme_dpg_enriched.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
 
@@ -193,20 +192,12 @@ void  AddSchemes(pybind11::module& m)
 
     typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TurbulentBossakBaseType;
 
-    class_ < TurbulentBossakBaseType, typename TurbulentBossakBaseType::Pointer,
-           TrilinosBaseSchemeType >
-           (
-               m,"TurbulentBossakBaseType").def(init<double, double, unsigned int, Process::Pointer >()
-           );
-
-    class_ <
-        TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TurbulentBossakBaseType > (m,"TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent")
-            .def(init<double, double, unsigned int, Process::Pointer >())
-            .def(init<double,double,unsigned int >())// constructor without a turbulence model
-            .def(init<double,double,unsigned int, const Variable<int>&>())
-           ;
+    class_ < TurbulentBossakBaseType, typename TurbulentBossakBaseType::Pointer,TrilinosBaseSchemeType >
+        (m,"TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent")
+        .def(init<double, double, unsigned int, Process::Pointer >())
+        .def(init<double,double,unsigned int >())
+        .def(init<double,double,unsigned int, const Variable<int>&>())
+        ;
 
     class_ <
         ResidualBasedPredictorCorrectorBDFSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
