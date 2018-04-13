@@ -73,7 +73,7 @@ namespace Kratos
 
 /// Short class definition.
 
-template <unsigned int TDim>
+template <std::size_t TDim>
 
 class ApplyChimeraProcess : public Process
 {
@@ -88,7 +88,7 @@ class ApplyChimeraProcess : public Process
 	typedef ProcessInfo::Pointer ProcessInfoPointerType;
 	typedef typename BinBasedFastPointLocator<TDim>::Pointer BinBasedPointLocatorPointerType;
 	typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-	typedef std::pair<unsigned int, unsigned int> SlavePairType;
+	typedef std::pair<std::size_t, std::size_t> SlavePairType;
 	typedef Kratos::MpcData::MasterDofWeightMapType MasterDofWeightMapType;
 	typedef ProcessInfo ProcessInfoType;
 	typedef MpcData::Pointer MpcDataPointerType;
@@ -96,7 +96,7 @@ class ApplyChimeraProcess : public Process
 	typedef Dof<double> DofType;
 	typedef std::vector<DofType> DofVectorType;
 	typedef MpcData::VariableComponentType VariableComponentType;
-	typedef unsigned int IndexType;
+	typedef std::size_t IndexType;
 	typedef MpcData::VariableType VariableType;
 	typedef Node<3> NodeType;
 
@@ -122,7 +122,7 @@ class ApplyChimeraProcess : public Process
 									"type" : "nearest_element",
 									"IsWeak" : true
                                   },
-					"pressure_coupling_node" : 0.0,			  
+					"pressure_coupling_node" : 0.0,
                     "patch_boundary_model_part_name":"GENERIC_patchBoundary",
                     "overlap_distance":0.045
             })");
@@ -131,6 +131,7 @@ class ApplyChimeraProcess : public Process
 		m_patch_model_part_name = m_parameters["patch"]["model_part_name"].GetString();
 		m_patch_boundary_model_part_name = m_parameters["patch_boundary_model_part_name"].GetString();
 		m_type_patch = m_parameters["patch"]["type"].GetString();
+		m_solution_strategy_name = m_parameters["solution_strategy"].GetString();
 		m_type_background = m_parameters["background"]["type"].GetString();
 		m_overlap_distance = m_parameters["overlap_distance"].GetDouble();
 
@@ -143,19 +144,54 @@ class ApplyChimeraProcess : public Process
 
 		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
 		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
-		this->pMpcPatch = MpcDataPointerType(new MpcData(m_type_patch));
-		this->pMpcBackground = MpcDataPointerType(new MpcData(m_type_background));
-		this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
-		this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
 
-		this->pMpcPatch->SetName(m_patch_model_part_name);
-		this->pMpcBackground->SetName(m_background_model_part_name);
-		this->pMpcPatch->SetActive(true);
-		this->pMpcBackground->SetActive(true);
+		if(m_solution_strategy_name=="monolithic")
+		{
 
-		MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
-		(*mpcDataVector).push_back(pMpcPatch);
-		(*mpcDataVector).push_back(pMpcBackground);
+
+			std::cout<<"Rishith: Solution strategy recieved from chimera parameters "<<m_solution_strategy_name<<std::endl;
+
+			this->pMpcPatch = MpcDataPointerType(new MpcData(m_type_patch));
+			this->pMpcBackground = MpcDataPointerType(new MpcData(m_type_background));
+			this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
+			this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
+
+			this->pMpcPatch->SetName(m_patch_model_part_name);
+			this->pMpcBackground->SetName(m_background_model_part_name);
+			this->pMpcPatch->SetActive(true);
+			this->pMpcBackground->SetActive(true);
+
+			MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
+			(*mpcDataVector).push_back(pMpcPatch);
+			(*mpcDataVector).push_back(pMpcBackground);
+		}
+		else
+		{
+
+			std::cout<<"Solution strategy recieved from chimera parameters is "<<m_solution_strategy_name<<"And you havent implemented it yet "<<std::endl;
+
+			/* this->pMpcPatchVelocity = MpcDataPointerType(new MpcData(m_type_patch));
+			this->pMpcPatchPressure = MpcDataPointerType(new MpcData(m_type_patch));
+			this->pMpcBackgroundVelocity = MpcDataPointerType(new MpcData(m_type_background));
+			this->pMpcBackgroundPressure = MpcDataPointerType(new MpcData(m_type_background));
+			this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
+			this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
+
+			this->pMpcPatch->SetName(m_patch_model_part_name+"Velocity");
+			this->pMpcPatch->SetName(m_patch_model_part_name+"Pressure");
+			this->pMpcBackground->SetName(m_background_model_part_name+"Velocity");
+			this->pMpcBackground->SetName(m_background_model_part_name+"Pressure");
+			this->pMpcPatchVelocity->SetActive(true);
+			this->pMpcPatchPressure->SetActive(true);
+			this->pMpcBackgroundVelocity->SetActive(true);
+			this->pMpcBackgroundPressure->SetActive(true);
+
+			MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
+			(*mpcDataVector).push_back(pMpcPatchVelocity);
+			(*mpcDataVector).push_back(pMpcPatchPressure);
+			(*mpcDataVector).push_back(pMpcBackgroundVelocity);
+			(*mpcDataVector).push_back(pMpcBackgroundPressure); */
+		}
 	}
 
 	/// Destructor.
@@ -231,7 +267,7 @@ class ApplyChimeraProcess : public Process
 		typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 		const int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
 
-		unsigned int counter = 0;
+		std::size_t counter = 0;
 
 #pragma omp parallel for firstprivate(results, N)
 		//MY NEW LOOP: reset the visited flag
@@ -271,7 +307,7 @@ class ApplyChimeraProcess : public Process
 			{
 				Geometry<Node<3>> &geom = pElement->GetGeometry();
 
-				for (unsigned int i = 0; i < geom.size(); i++)
+				for (std::size_t i = 0; i < geom.size(); i++)
 				{
 					//Interpolation of velocity
 					p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_X).GetSolutionStepValue(0) * N[i];
@@ -327,7 +363,7 @@ class ApplyChimeraProcess : public Process
 
 			else
 			{
-				unsigned int node_num = m_parameters["pressure_coupling_node"].GetDouble();
+				std::size_t node_num = m_parameters["pressure_coupling_node"].GetDouble();
 
 				p_boundary_node = rBoundaryModelPart.pGetNode(node_num);
 			}
@@ -345,7 +381,7 @@ class ApplyChimeraProcess : public Process
 			if (is_found == true)
 			{
 				Geometry<Node<3>> &geom = pElement->GetGeometry();
-				for (unsigned int i = 0; i < geom.size(); i++)
+				for (std::size_t i = 0; i < geom.size(); i++)
 				{
 					// Interpolation of pressure
 					p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
@@ -383,7 +419,7 @@ class ApplyChimeraProcess : public Process
 		{
 			double Minode = inode->FastGetSolutionStepValue(NODAL_MASS);
 
-			for (unsigned int i = 0; i < TDim; i++)
+			for (std::size_t i = 0; i < TDim; i++)
 			{
 
 				double rIdof = inode->FastGetSolutionStepValue(NORMAL)[i];
@@ -518,7 +554,7 @@ class ApplyChimeraProcess : public Process
 
 		array_1d<double, 3> zero;
 		array_1d<double, 3> centre;
-		unsigned int n_nodes = rBoundaryModelPart.Nodes().size();
+		std::size_t n_nodes = rBoundaryModelPart.Nodes().size();
 
 		zero[0] = 0.0;
 		zero[1] = 0.0;
@@ -532,7 +568,7 @@ class ApplyChimeraProcess : public Process
 			 it != rConditions.end(); it++)
 		{
 			Element::GeometryType &rNodes = it->GetGeometry();
-			for (unsigned int in = 0; in < rNodes.size(); in++)
+			for (std::size_t in = 0; in < rNodes.size(); in++)
 			{
 				noalias((rNodes[in]).GetSolutionStepValue(NORMAL)) = zero;
 			}
@@ -579,7 +615,7 @@ class ApplyChimeraProcess : public Process
 			const array_1d<double, 3> &normal = it->GetValue(NORMAL);
 			double nodal_mass = MathUtils<double>::Norm3(normal);
 
-			for (unsigned int i = 0; i < pGeometry.size(); i++)
+			for (std::size_t i = 0; i < pGeometry.size(); i++)
 			{
 				noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * normal;
 				pGeometry[i].FastGetSolutionStepValue(NODAL_MASS) += coeff * nodal_mass;
@@ -648,10 +684,10 @@ class ApplyChimeraProcess : public Process
 	{
 
 		double nodalMass;
-		unsigned int slaveNodeId;
-		unsigned int slaveNodeIdOther;
-		unsigned int slaveDofKey;
-		unsigned int slaveDofKeyOther;
+		std::size_t slaveNodeId;
+		std::size_t slaveNodeIdOther;
+		std::size_t slaveDofKey;
+		std::size_t slaveDofKeyOther;
 		double slaveDofValueOther;
 		SlavePairType slaveDofMap;
 		SlavePairType slaveDofMapOther;
@@ -660,7 +696,7 @@ class ApplyChimeraProcess : public Process
 		double NodalNormalComponentOther;
 		//std::cout << " RtMinvR " << RtMinvR << std::endl;
 		std::vector<double> VectorOfconstants;
-		unsigned int slaveIndex = 0;
+		std::size_t slaveIndex = 0;
 
 		for (auto slaveMasterDofMap : pMpc->mDofConstraints)
 		{
@@ -701,7 +737,7 @@ class ApplyChimeraProcess : public Process
 			slaveDofKey = slaveDofMap.second;
 			Node<3> &slaveNode = r_model_part.Nodes()[slaveNodeId];
 			Node<3>::DofsContainerType::iterator idof = slaveNode.GetDofs().find(slaveDofKey);
-			unsigned int slaveEquationId = idof->EquationId();
+			std::size_t slaveEquationId = idof->EquationId();
 
 			pMpc->mSlaveEquationIdConstantsMap[slaveEquationId] = VectorOfconstants[slaveIndex];
 
@@ -719,11 +755,11 @@ class ApplyChimeraProcess : public Process
 		for (auto slaveMasterDofMap : pMpc->mDofConstraints)
 		{
 			SlavePairType slaveDofMap = slaveMasterDofMap.first;
-			unsigned int slaveNodeId = slaveDofMap.first;
-			unsigned int slaveDofKey = slaveDofMap.second;
+			std::size_t slaveNodeId = slaveDofMap.first;
+			std::size_t slaveDofKey = slaveDofMap.second;
 			NodeType &node = r_model_part.Nodes()[slaveNodeId];
 			Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
-			unsigned int slaveEquationId = it->EquationId();
+			std::size_t slaveEquationId = it->EquationId();
 
 			it->GetSolutionStepValue(0) += pMpc->mSlaveEquationIdConstantsMap[slaveEquationId];
 			it->GetSolutionStepValue(1) += pMpc->mSlaveEquationIdConstantsMap[slaveEquationId];
@@ -736,9 +772,9 @@ class ApplyChimeraProcess : public Process
 
 	/**
 		Applies the MPC condition using two nodes, one as master and other as slave, and with the given weight
-		@arg MasterNode 
-        @arg MasterVariable 
-        @arg SlaveNode 
+		@arg MasterNode
+        @arg MasterVariable
+        @arg SlaveNode
         @arg SlaveVariable
         @arg weight
 		*/
@@ -782,8 +818,8 @@ class ApplyChimeraProcess : public Process
 	// Default functions
 	/**
 		Applies the MPC condition using DOFs, one as master and other as slave, and with the given weight
-		@arg slaveDOF 
-        @arg masterDOF 
+		@arg slaveDOF
+        @arg masterDOF
         @arg weight
 		*/
 	void AddMasterSlaveRelationWithDofs(MpcDataPointerType pMpc, DofType slaveDOF, DofType masterDOF, double masterWeight, double constant = 0.0)
@@ -821,7 +857,7 @@ class ApplyChimeraProcess : public Process
 		myfile << "Coordinates" << std::endl;
 		myfile << "# node number coordinate_x coordinate_y coordinate_z  " << std::endl;
 
-		for (unsigned int i = 0; i < rmodel_part.Nodes().size(); i++)
+		for (std::size_t i = 0; i < rmodel_part.Nodes().size(); i++)
 		{
 			ModelPart::NodesContainerType::iterator iparticle = rmodel_part.NodesBegin() + i;
 			Node<3>::Pointer p_node = *(iparticle.base());
@@ -837,7 +873,7 @@ class ApplyChimeraProcess : public Process
 		{
 
 			myfile << it->Id() << "  ";
-			for (unsigned int i = 0; i < it->GetGeometry().PointsNumber(); i++)
+			for (std::size_t i = 0; i < it->GetGeometry().PointsNumber(); i++)
 				myfile << (it->GetGeometry()[i]).Id() << "  ";
 
 			myfile << std::endl;
@@ -929,6 +965,7 @@ class ApplyChimeraProcess : public Process
 	std::string m_patch_model_part_name;
 	std::string m_type_patch;
 	std::string m_type_background;
+	std::string m_solution_strategy_name;
 
 	// epsilon
 	//static const double epsilon;

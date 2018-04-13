@@ -164,6 +164,7 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
                                                                     self.settings["move_mesh_flag"].GetBool(),
                                                                     self.settings["reform_dofs_at_each_step"].GetBool())
 
+
         self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         self.solver_settings.SetStrategy(KratosCFD.StrategyLabel.Velocity,

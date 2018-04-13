@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Navaneeth K Narayanan
-//                   
+//
 //
 
 #if !defined(KRATOS_CALCULATE_SIGNED_DISTANCE_CONDITION_2D_PROCESS_H_INCLUDED)
@@ -135,7 +135,7 @@ class DistanceSpatialContainersConditionConfigure2d
         rHighPoint = rObject->GetGeometry().GetPoint(0);
         rLowPoint = rObject->GetGeometry().GetPoint(0);
 
-        for (unsigned int point = 0; point < rObject->GetGeometry().PointsNumber(); point++)
+        for (std::size_t point = 0; point < rObject->GetGeometry().PointsNumber(); point++)
         {
             for (std::size_t i = 0; i < 3; i++)
             {
@@ -154,7 +154,7 @@ class DistanceSpatialContainersConditionConfigure2d
             rHighPoint[i] = rObject->GetGeometry().GetPoint(0)[i];
         }
 
-        for (unsigned int point = 0; point < rObject->GetGeometry().PointsNumber(); point++)
+        for (std::size_t point = 0; point < rObject->GetGeometry().PointsNumber(); point++)
         {
             for (std::size_t i = 0; i < 3; i++)
             {
@@ -263,8 +263,8 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
     {
         array_1d<double, 3> Coordinates;
         array_1d<double, 3> StructElemNormal;
-        unsigned int EdgeNode1;
-        unsigned int EdgeNode2;
+        std::size_t EdgeNode1;
+        std::size_t EdgeNode2;
     } IntersectionNodeStruct;
     typedef struct
     {
@@ -313,7 +313,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
 
         DistanceFluidStructure();
-        //unsigned int max_level = 100;
+        //std::size_t max_level = 100;
         //double max_distance = 200;
 
         //          ------------------------------------------------------------------
@@ -378,7 +378,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
             Geometry<Node<3> >& geom = elem->GetGeometry();
             array_1d<double,3> coords;
-            unsigned int numOfPointsInside = 0;
+            std::size_t numOfPointsInside = 0;
 			for (int j = 0 ; j < geom.size(); j++){
 				coords = elem->GetGeometry()[j].Coordinates();
 
@@ -443,7 +443,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         InitializeDistances();
 
         // Initialize index table that defines line Edges of fluid Element
-        bounded_matrix<unsigned int, 3, 2> TriangleEdgeIndexTable;
+        bounded_matrix<std::size_t, 3, 2> TriangleEdgeIndexTable;
         SetIndexTable(TriangleEdgeIndexTable);
 
 // loop over all fluid Elements
@@ -456,7 +456,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
         ModelPart::ElementsContainerType &pElements = mrFluidModelPart.Elements();
 
-        vector<unsigned int> Element_partition;
+        vector<std::size_t> Element_partition;
         CreatePartition(number_of_threads, pElements.size(), Element_partition);
 
 #pragma omp parallel for
@@ -524,7 +524,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void SetIndexTable(bounded_matrix<unsigned int, 3, 2> &TriangleEdgeIndexTable)
+    void SetIndexTable(bounded_matrix<std::size_t, 3, 2> &TriangleEdgeIndexTable)
     {
         // Initialize index table to define line Edges of fluid Element
         TriangleEdgeIndexTable(0, 0) = 0;
@@ -539,11 +539,11 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
     ///******************************************************************************************************************
 
     void CalcNodalDistancesOfTriangleNodes(ModelPart::ElementsContainerType::iterator &i_fluidElement,
-                                           bounded_matrix<unsigned int, 3, 2> TriangleEdgeIndexTable)
+                                           bounded_matrix<std::size_t, 3, 2> TriangleEdgeIndexTable)
     {
         std::vector<QuadtreeType::cell_type *> leaves;
         std::vector<TriangleEdgeStruct> IntersectedTriangleEdges;
-        unsigned int NumberIntersectionsOnTriangleCorner = 0;
+        std::size_t NumberIntersectionsOnTriangleCorner = 0;
 
         // Get leaves of quadtree intersecting with fluid Element
         mpQuadtree->GetIntersectedLeaves(*(i_fluidElement).base(), leaves);
@@ -553,7 +553,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         int intersection_counter = 0;
 
         // Loop over all 6 line Edges of the triangle
-        for (unsigned int i_triangleEdge = 0;
+        for (std::size_t i_triangleEdge = 0;
              i_triangleEdge < 3;
              i_triangleEdge++)
         {
@@ -574,22 +574,22 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
     ///******************************************************************************************************************
 
     void IdentifyIntersectionNodes(ModelPart::ElementsContainerType::iterator &i_fluidElement,
-                                   unsigned int i_triangleEdge,
+                                   std::size_t i_triangleEdge,
                                    std::vector<QuadtreeType::cell_type *> &leaves,
                                    std::vector<TriangleEdgeStruct> &IntersectedTriangleEdges,
-                                   unsigned int &NumberIntersectionsOnTriangleCorner,
-                                   bounded_matrix<unsigned int, 3, 2> TriangleEdgeIndexTable,
+                                   std::size_t &NumberIntersectionsOnTriangleCorner,
+                                   bounded_matrix<std::size_t, 3, 2> TriangleEdgeIndexTable,
                                    int &intersection_counter)
 
     {
-        std::vector<unsigned int> IntersectingStructCondID;
+        std::vector<std::size_t> IntersectingStructCondID;
 
         TriangleEdgeStruct NewTriangleEdge;
-        unsigned int NumberIntersectionsOnTriangleCornerCurrentEdge = 0;
+        std::size_t NumberIntersectionsOnTriangleCornerCurrentEdge = 0;
 
         // Get nodes of line Edge
-        unsigned int EdgeStartIndex = TriangleEdgeIndexTable(i_triangleEdge, 0);
-        unsigned int EdgeEndIndex = TriangleEdgeIndexTable(i_triangleEdge, 1);
+        std::size_t EdgeStartIndex = TriangleEdgeIndexTable(i_triangleEdge, 0);
+        std::size_t EdgeEndIndex = TriangleEdgeIndexTable(i_triangleEdge, 1);
 
         PointType &P1 = i_fluidElement->GetGeometry()[EdgeStartIndex];
         PointType &P2 = i_fluidElement->GetGeometry()[EdgeEndIndex];
@@ -598,7 +598,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         double EdgeNode2[3] = {P2.X(), P2.Y(), P2.Z()};
 
         // loop over all quadtree cells which are intersected by the fluid Element
-        for (unsigned int i_cell = 0; i_cell < leaves.size(); i_cell++)
+        for (std::size_t i_cell = 0; i_cell < leaves.size(); i_cell++)
         {
             // Structural Element contained in one cell of the quadtree
 
@@ -696,11 +696,11 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    bool StructuralElementNotYetConsidered(unsigned int IDCurrentStructCond,
-                                           std::vector<unsigned int> &IntersectingStructCondID)
+    bool StructuralElementNotYetConsidered(std::size_t IDCurrentStructCond,
+                                           std::vector<std::size_t> &IntersectingStructCondID)
     {
         // check if the structural Element was already considered as intersecting Element
-        for (unsigned int k = 0; k < IntersectingStructCondID.size(); k++)
+        for (std::size_t k = 0; k < IntersectingStructCondID.size(); k++)
         {
             if (IDCurrentStructCond == IntersectingStructCondID[k])
                 return false;
@@ -758,12 +758,12 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
     {
         array_1d<double, 3> DiffVector;
         double NormDiffVector = 0;
-        unsigned int NumberIntNodes = 0;
+        std::size_t NumberIntNodes = 0;
 
-        for (unsigned int i_TriangleEdge = 0; i_TriangleEdge < IntersectedTriangleEdges.size(); i_TriangleEdge++)
+        for (std::size_t i_TriangleEdge = 0; i_TriangleEdge < IntersectedTriangleEdges.size(); i_TriangleEdge++)
         {
             NumberIntNodes = IntersectedTriangleEdges[i_TriangleEdge].IntNodes.size();
-            for (unsigned int i_IntNode = 0; i_IntNode < NumberIntNodes; i_IntNode++)
+            for (std::size_t i_IntNode = 0; i_IntNode < NumberIntNodes; i_IntNode++)
             {
                 DiffVector[0] = NewIntersectionNode.Coordinates[0] - IntersectedTriangleEdges[i_TriangleEdge].IntNodes[i_IntNode].Coordinates[0];
                 DiffVector[1] = NewIntersectionNode.Coordinates[1] - IntersectedTriangleEdges[i_TriangleEdge].IntNodes[i_IntNode].Coordinates[1];
@@ -827,7 +827,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
     void CalcDistanceTo2DSkin(std::vector<TriangleEdgeStruct> &IntersectedTriangleEdges,
                               ModelPart::ElementsContainerType::iterator &i_fluid_Element,
-                              unsigned int NumberIntersectionsOnTriangleCorner)
+                              std::size_t NumberIntersectionsOnTriangleCorner)
     {
         std::vector<IntersectionNodeStruct> NodesOfApproximatedStructure;
         array_1d<double, 3> ElementalDistances;
@@ -863,7 +863,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
             {
                 std::cout<<"CalcSignedDistancesToTwoEdgeIntNodes"<<"ED "<<ElementalDistances[0]<<","<<ElementalDistances[1]<<","<<ElementalDistances[2]<<std::endl;
-         
+
                 std::cout<<"Normal1 "<<NodesOfApproximatedStructure[0].StructElemNormal<<"Normal2 "<<NodesOfApproximatedStructure[1].StructElemNormal<<std::endl;
                 std::exit(-1);
 
@@ -899,13 +899,13 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
     void FillIntNodesContainer(std::vector<TriangleEdgeStruct> &IntersectedTriangleEdges,
                                std::vector<IntersectionNodeStruct> &NodesOfApproximatedStructure)
     {
-        const unsigned int NumberCutEdges = IntersectedTriangleEdges.size();
+        const std::size_t NumberCutEdges = IntersectedTriangleEdges.size();
 
-        for (unsigned int i_TriangleEdge = 0; i_TriangleEdge < NumberCutEdges; i_TriangleEdge++)
+        for (std::size_t i_TriangleEdge = 0; i_TriangleEdge < NumberCutEdges; i_TriangleEdge++)
         {
-            unsigned int NumberIntNodes = IntersectedTriangleEdges[i_TriangleEdge].IntNodes.size();
+            std::size_t NumberIntNodes = IntersectedTriangleEdges[i_TriangleEdge].IntNodes.size();
 
-            for (unsigned int i_IntNode = 0; i_IntNode < NumberIntNodes; i_IntNode++)
+            for (std::size_t i_IntNode = 0; i_IntNode < NumberIntNodes; i_IntNode++)
             {
                 NodesOfApproximatedStructure.push_back(IntersectedTriangleEdges[i_TriangleEdge].IntNodes[i_IntNode]);
             }
@@ -927,7 +927,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         array_1d<double, 3> &Normal = NodesOfApproximatedStructure[0].StructElemNormal;
 
         // Compute distance values for all triangle-nodes
-        for (unsigned int i_TriangleNode = 0; i_TriangleNode < 3; i_TriangleNode++)
+        for (std::size_t i_TriangleNode = 0; i_TriangleNode < 3; i_TriangleNode++)
         {
             ElementalDistances[i_TriangleNode] = PointDistanceToLine(P1, Normal, rFluidGeom[i_TriangleNode]);
         }
@@ -968,7 +968,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
             Normal *= -1;
 
         // Compute distance values for all triangle-nodes
-        for (unsigned int i_TriangleNode = 0; i_TriangleNode < 3; i_TriangleNode++)
+        for (std::size_t i_TriangleNode = 0; i_TriangleNode < 3; i_TriangleNode++)
         {
             ElementalDistances[i_TriangleNode] = PointDistanceToLine(P1, Normal, rFluidGeom[i_TriangleNode]);
         }
@@ -1009,7 +1009,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
             Normal *= -1;
 
         // Compute distance values for all triangle-nodes
-        for (unsigned int i_TriangleNode = 0; i_TriangleNode < 3; i_TriangleNode++)
+        for (std::size_t i_TriangleNode = 0; i_TriangleNode < 3; i_TriangleNode++)
         {
             ElementalDistances[i_TriangleNode] = PointDistanceToLine(P1, Normal, rFluidGeom[i_TriangleNode]);
         }
@@ -1023,12 +1023,12 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
                                                   array_1d<double, 3> &ElementalDistances,
                                                   std::vector<TriangleEdgeStruct> &IntersectedTriangleEdges)
     {
-        unsigned int numberCutEdges = NodesOfApproximatedStructure.size();
+        std::size_t numberCutEdges = NodesOfApproximatedStructure.size();
 
         // Compute average of the intersection nodes which is a node on the line we look for
         Point P_mean;
-        for (unsigned int k = 0; k < numberCutEdges; k++)
-            for (unsigned int i = 0; i < 2; i++)
+        for (std::size_t k = 0; k < numberCutEdges; k++)
+            for (std::size_t i = 0; i < 2; i++)
                 P_mean.Coordinates()[i] += NodesOfApproximatedStructure[k].Coordinates[i];
 
         P_mean.Coordinates()[2] = 0.0;
@@ -1036,23 +1036,23 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         std::cout<<"Element Id "<<i_fluid_Element->Id()<<std::endl;
         std::cout<<"Number of cut edges "<<NodesOfApproximatedStructure.size()<<std::endl;*/
         //nav
-        /*for(unsigned int k=0; k<numberCutEdges; k++)
+        /*for(std::size_t k=0; k<numberCutEdges; k++)
             {
-            
-                std::cout<<"Coordinate "<< k <<" "<< NodesOfApproximatedStructure[k].Coordinates[0]<<","<<NodesOfApproximatedStructure[k].Coordinates[1]<<","<<NodesOfApproximatedStructure[k].Coordinates[2]<<std::endl; 
+
+                std::cout<<"Coordinate "<< k <<" "<< NodesOfApproximatedStructure[k].Coordinates[0]<<","<<NodesOfApproximatedStructure[k].Coordinates[1]<<","<<NodesOfApproximatedStructure[k].Coordinates[2]<<std::endl;
 
                 std::cout<<"Normal "<< k <<" "<< NodesOfApproximatedStructure[k].StructElemNormal[0]<<","<<NodesOfApproximatedStructure[k].StructElemNormal[1]<<","<<NodesOfApproximatedStructure[k].StructElemNormal[2]<<std::endl;
             }*/
 
-        for (unsigned int i = 0; i < 2; i++)
+        for (std::size_t i = 0; i < 2; i++)
             P_mean.Coordinates()[i] /= numberCutEdges;
 
         // Compute normal for the best-fitted plane
         array_1d<double, 3> N_mean;
 
         Matrix coordinates(numberCutEdges, 2);
-        for (unsigned int i = 0; i < numberCutEdges; i++)
-            for (unsigned int j = 0; j < 2; j++)
+        for (std::size_t i = 0; i < numberCutEdges; i++)
+            for (std::size_t j = 0; j < 2; j++)
                 coordinates(i, j) = NodesOfApproximatedStructure[i].Coordinates[j] - P_mean[j];
 
         Matrix A = prod(trans(coordinates), coordinates);
@@ -1063,10 +1063,10 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         EigenVectors(A, V, lambda);
 
         // Look for the minimal eigenvalue all lambdas
-        unsigned int min_pos = 0;
+        std::size_t min_pos = 0;
         double min_lambda = lambda[min_pos];
 
-        for (unsigned int i = 1; i < 2; i++)
+        for (std::size_t i = 1; i < 2; i++)
             if (min_lambda > lambda[i])
             {
                 min_lambda = lambda[i];
@@ -1074,7 +1074,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
             }
 
         // the normal equals to the eigenvector which corresponds to the minimal eigenvalue
-        for (unsigned int i = 0; i < 2; i++)
+        for (std::size_t i = 0; i < 2; i++)
             N_mean[i] = V(min_pos, i);
 
         N_mean[2] = 0.0;
@@ -1098,19 +1098,19 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
             N_mean *= -1;
 
         // Determine about the minimal distance by considering the distances to both triangles
-        for (unsigned int i_TriangleNode = 0; i_TriangleNode < 3; i_TriangleNode++)
+        for (std::size_t i_TriangleNode = 0; i_TriangleNode < 3; i_TriangleNode++)
         {
             ElementalDistances[i_TriangleNode] = PointDistanceToLine(P_mean, N_mean, i_fluid_Element->GetGeometry()[i_TriangleNode]);
         }
 
         // #################################################
-        unsigned int numberDoubleCutEdges = 0;
-        unsigned int indexDoubleCutEdge = 0;
+        std::size_t numberDoubleCutEdges = 0;
+        std::size_t indexDoubleCutEdge = 0;
 
         // figure out the edges which are cut more than once
-        for (unsigned int i_TriangleEdge = 0; i_TriangleEdge < IntersectedTriangleEdges.size(); i_TriangleEdge++)
+        for (std::size_t i_TriangleEdge = 0; i_TriangleEdge < IntersectedTriangleEdges.size(); i_TriangleEdge++)
         {
-            unsigned int NumberIntNodes = IntersectedTriangleEdges[i_TriangleEdge].IntNodes.size();
+            std::size_t NumberIntNodes = IntersectedTriangleEdges[i_TriangleEdge].IntNodes.size();
             if (NumberIntNodes == 2)
             {
                 numberDoubleCutEdges++;
@@ -1148,7 +1148,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
             }
 
             // Based on N_mean and P_mean compute the distances to that plane
-            for (unsigned int i_TriangleNode = 0; i_TriangleNode < 3; i_TriangleNode++)
+            for (std::size_t i_TriangleNode = 0; i_TriangleNode < 3; i_TriangleNode++)
             {
                 ElementalDistances[i_TriangleNode] = PointDistanceToLine(P_mean, N_mean, i_fluid_Element->GetGeometry()[i_TriangleNode]);
             }
@@ -1198,7 +1198,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
             const Vector &ElementalDistances = i_fluid_Element->GetValue(ELEMENTAL_DISTANCES);
 
             // Assign distances to the single nodes, if a smaller value is found
-            for (unsigned int i_TriangleNode = 0; i_TriangleNode < 3; i_TriangleNode++)
+            for (std::size_t i_TriangleNode = 0; i_TriangleNode < 3; i_TriangleNode++)
             {
                 double currentNodeDist = geom[i_TriangleNode].GetSolutionStepValue(DISTANCE);
                 double nodeInElemDist = ElementalDistances[i_TriangleNode];
@@ -1227,7 +1227,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         //double dist_limit = 1e-5;*/
         bool distChangedToLimit = false; //variable to indicate that a distance value < tolerance is set to a limit distance = tolerance
                                          /*
-        for (unsigned int i_node = 0; i_node < 3; i_node++)
+        for (std::size_t i_node = 0; i_node < 3; i_node++)
         {
             if (fabs(ElementalDistances[i_node]) < dist_limit)
             {
@@ -1237,9 +1237,9 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         }*/
 
         // Check, if this approach changes the split-flag (might be, that Element is not cut anymore if node with zero distance gets a positive limit distance value
-        unsigned int numberNodesPositiveDistance = 0;
+        std::size_t numberNodesPositiveDistance = 0;
 
-        for (unsigned int i_node = 0; i_node < 3; i_node++)
+        for (std::size_t i_node = 0; i_node < 3; i_node++)
         {
             double &di = ElementalDistances[i_node];
             if (fabs(di) < dist_limit)
@@ -1248,7 +1248,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
                 /*if (di >= 0)
                 {
                     di = dist_limit;
-                    
+
                 }
 
                 else
@@ -1259,7 +1259,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
             }
         }
 
-        for (unsigned int i_node = 0; i_node < 3; i_node++)
+        for (std::size_t i_node = 0; i_node < 3; i_node++)
         {
             if ((ElementalDistances[i_node]) > 0)
                 numberNodesPositiveDistance++;
@@ -1292,8 +1292,8 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
     }
     void GenerateSkinModelPart(ModelPart &mrNewSkinModelPart)
     {
-        unsigned int id_node = 1;
-        unsigned int id_condition = 1;
+        std::size_t id_node = 1;
+        std::size_t id_condition = 1;
 
         mrNewSkinModelPart.Nodes().reserve(mrFluidModelPart.Nodes().size());
         mrNewSkinModelPart.Conditions().reserve(mrFluidModelPart.Elements().size());
@@ -1313,9 +1313,9 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
                 edge_points.reserve(2);
 
                 // loop over all 6 edges of the triangle
-                for (unsigned int i = 0; i < 2; i++)
+                for (std::size_t i = 0; i < 2; i++)
                 {
-                    for (unsigned int j = i + 1; j < 3; j++) // go through the edges 01, 02, 03, 12
+                    for (std::size_t j = i + 1; j < 3; j++) // go through the edges 01, 02, 03, 12
                     {
                         double di = distances[i];
                         double dj = distances[j];
@@ -1383,9 +1383,9 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
                     double max_angle = 0.0;
                     double min_angle = 0.0;
-                    unsigned int min_pos = 1;
-                    unsigned int max_pos = 1;
-                    for (unsigned int i = 1; i < 3; i++)
+                    std::size_t min_pos = 1;
+                    std::size_t max_pos = 1;
+                    for (std::size_t i = 1; i < 3; i++)
                     {
                         if (angles[i] < min_angle)
                         {
@@ -1400,8 +1400,8 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
                     }
 
                     //find the pos of the center node
-                    unsigned int center_pos = 0;
-                    for (unsigned int i = 1; i < 4; i++)
+                    std::size_t center_pos = 0;
+                    for (std::size_t i = 1; i < 4; i++)
                     {
                         if ((i != min_pos) && (i != max_pos))
                         {
@@ -2441,7 +2441,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
         Matrix unity = ZeroMatrix(Help.size1(), Help.size2());
 
-        for (unsigned int i = 0; i < Help.size1(); i++)
+        for (std::size_t i = 0; i < Help.size1(); i++)
             unity(i, i) = 1.0;
 
         Matrix V = unity;
@@ -2457,13 +2457,13 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
             double a = 0.0;
 
-            unsigned int index1 = 0;
+            std::size_t index1 = 0;
 
-            unsigned int index2 = 1;
+            std::size_t index2 = 1;
 
-            for (unsigned int i = 0; i < Help.size1(); i++)
+            for (std::size_t i = 0; i < Help.size1(); i++)
             {
-                for (unsigned int j = (i + 1); j < Help.size2(); j++)
+                for (std::size_t j = (i + 1); j < Help.size2(); j++)
                 {
                     if ((fabs(Help(i, j)) > a) && (fabs(Help(i, j)) > zero_tolerance))
                     {
@@ -2512,7 +2512,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
             HelpDummy(index1, index2) = 0.0;
             HelpDummy(index2, index1) = 0.0;
 
-            for (unsigned int i = 0; i < Help.size1(); i++)
+            for (std::size_t i = 0; i < Help.size1(); i++)
             {
                 if ((i != index1) && (i != index2))
                 {
@@ -2537,11 +2537,11 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
             VDummy = ZeroMatrix(Help.size1(), Help.size2());
 
-            for (unsigned int i = 0; i < Help.size1(); i++)
+            for (std::size_t i = 0; i < Help.size1(); i++)
             {
-                for (unsigned int j = 0; j < Help.size1(); j++)
+                for (std::size_t j = 0; j < Help.size1(); j++)
                 {
-                    for (unsigned int k = 0; k < Help.size1(); k++)
+                    for (std::size_t k = 0; k < Help.size1(); k++)
                     {
                         VDummy(i, j) += V(i, k) * Rotation(k, j);
                     }
@@ -2557,27 +2557,27 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
             std::cout << "########################################################" << std::endl;
         }
 
-        for (unsigned int i = 0; i < Help.size1(); i++)
+        for (std::size_t i = 0; i < Help.size1(); i++)
         {
-            for (unsigned int j = 0; j < Help.size1(); j++)
+            for (std::size_t j = 0; j < Help.size1(); j++)
             {
                 vectors(i, j) = V(j, i);
             }
         }
 
-        for (unsigned int i = 0; i < Help.size1(); i++)
+        for (std::size_t i = 0; i < Help.size1(); i++)
             lambda(i) = Help(i, i);
 
         return;
     }
 
-    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int> &partitions)
+    inline void CreatePartition(std::size_t number_of_threads, const int number_of_rows, vector<std::size_t> &partitions)
     {
         partitions.resize(number_of_threads + 1);
         int partition_size = number_of_rows / number_of_threads;
         partitions[0] = 0;
         partitions[number_of_threads] = number_of_rows;
-        for (unsigned int i = 1; i < number_of_threads; i++)
+        for (std::size_t i = 1; i < number_of_threads; i++)
             partitions[i] = partitions[i - 1] + partition_size;
     }
 

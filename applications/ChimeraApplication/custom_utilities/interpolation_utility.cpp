@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main author:     Sonja Schneider
@@ -32,7 +32,7 @@ void InterpolationUtility<TDim>::ExtractBoundaryFaces(ModelPart &rModelPart, Mod
     {
         Condition::NodesArrayType Nodes = Condition::NodesArrayType();
         Geometry< Node<3> >& rGeom = itElem->GetGeometry();
-        for( unsigned int i = 0; i != rGeom.PointsNumber(); i++)
+        for( std::size_t i = 0; i != rGeom.PointsNumber(); i++)
         {
             if (rGeom[i].FastGetSolutionStepValue(FLAG_VARIABLE) == 1.0)
             {

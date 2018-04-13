@@ -7,7 +7,7 @@ A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, 
+Pooyan Dadvand, Riccardo Rossi,
 pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 
@@ -74,11 +74,11 @@ class MpcData
     typedef Dof<double> DofType;
     typedef VariableData VariableDataType;
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
-    typedef unsigned int IndexType;
+    typedef std::size_t IndexType;
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
-    typedef std::unordered_map<unsigned int, double> MasterIdWeightMapType;
-    typedef std::pair<unsigned int, unsigned int> SlavePairType;
-    typedef std::tuple<unsigned int, unsigned int, int> key_tupple;
+    typedef std::unordered_map<std::size_t, double> MasterIdWeightMapType;
+    typedef std::pair<std::size_t, std::size_t> SlavePairType;
+    typedef std::tuple<std::size_t, std::size_t, int> key_tupple;
     typedef Kratos::Variable<double> VariableType;
 
     struct key_hash_tuple : public std::unary_function<key_tupple, std::size_t>
@@ -128,7 +128,7 @@ class MpcData
     //friend bool operator == (MpcData &obj1, MpcData &obj2);
 
     typedef std::unordered_map<const key_tupple, double, key_hash_tuple, key_equal_tuple> MasterDofWeightMapType;
-    //typedef std::unordered_map<std::tuple<unsigned int, VariableComponentType, int>, double> ;
+    //typedef std::unordered_map<std::tuple<std::size_t, VariableComponentType, int>, double> ;
 
     ///@name Life Cycle
     ///@{
@@ -183,15 +183,15 @@ class MpcData
     }
 
     /**
-		Adds a constraints between the given slave and master with a weight. 		
+		Adds a constraints between the given slave and master with a weight.
 		*/
 
     // Takes in a slave dof equationId and a master dof equationId
-    void AddConstraint(unsigned int SlaveDofEquationId, unsigned int MasterDofEquationId, double weight, double constant = 0.0)
+    void AddConstraint(std::size_t SlaveDofEquationId, std::size_t MasterDofEquationId, double weight, double constant = 0.0)
     {
-        mEquationIdToWeightsMap[SlaveDofEquationId].insert(std::pair<unsigned int, double>(MasterDofEquationId, weight));
-        mSlaveEquationIdConstantsMap.insert(std::pair<unsigned int, double>(SlaveDofEquationId, constant));
-        mSlaveEquationIdConstantsUpdate.insert(std::pair<unsigned int, double>(SlaveDofEquationId, constant));
+        mEquationIdToWeightsMap[SlaveDofEquationId].insert(std::pair<std::size_t, double>(MasterDofEquationId, weight));
+        mSlaveEquationIdConstantsMap.insert(std::pair<std::size_t, double>(SlaveDofEquationId, constant));
+        mSlaveEquationIdConstantsUpdate.insert(std::pair<std::size_t, double>(SlaveDofEquationId, constant));
         //mDofConstraints[std::make_pair(SlaveDof.Id(), slaveVariableKey)][std::tie(MasterNodeId, MasterVariableKey, PartitionId)] += weight;
     }
 
@@ -201,9 +201,9 @@ class MpcData
         //here we can get the dof since we are sure that such dof exist
         //auto &slave_dof = mp_model_part.Nodes(SlaveNodeId).GetDof(SlaveVariable);
         IndexType MasterNodeId = MasterDof.Id();
-        unsigned int MasterVariableKey = (MasterDof).GetVariable().Key();
+        std::size_t MasterVariableKey = (MasterDof).GetVariable().Key();
 
-        unsigned int slaveVariableKey = SlaveDof.GetVariable().Key();
+        std::size_t slaveVariableKey = SlaveDof.GetVariable().Key();
 
         mDofConstraints[std::make_pair(SlaveDof.Id(), slaveVariableKey)][std::tie(MasterNodeId, MasterVariableKey, constant)] += weight;
     }
@@ -216,13 +216,13 @@ class MpcData
         if (MasterDofsVector.size() != weightsVector.size())
             assert(false);
 
-        unsigned int slaveNodeId = SlaveDof.Id();
-        unsigned int slaveVariableKey = SlaveDof.GetVariable().Key();
-        unsigned int index = 0;
+        std::size_t slaveNodeId = SlaveDof.Id();
+        std::size_t slaveVariableKey = SlaveDof.GetVariable().Key();
+        std::size_t index = 0;
         for (auto MasterDof : MasterDofsVector)
         {
             IndexType MasterNodeId = (*MasterDof).Id();
-            unsigned int MasterVariableKey = (*MasterDof).GetVariable().Key(); // TODO :: Check why do we need a mastervariable ... is a master key not enough ?
+            std::size_t MasterVariableKey = (*MasterDof).GetVariable().Key(); // TODO :: Check why do we need a mastervariable ... is a master key not enough ?
             double constant = 0.0;
             if (ConstantVector.size() == 0.0)
                 constant = 0.0;
@@ -238,12 +238,12 @@ class MpcData
     void AddNodalNormalToSlaveDof(DofType &SlaveDof, double nodalNormalComponent = 0.0)
     {
 
-        unsigned int slaveVariableKey = SlaveDof.GetVariable().Key();
+        std::size_t slaveVariableKey = SlaveDof.GetVariable().Key();
 
         mSlaveDofToNodalNormalMap.insert({std::make_pair(SlaveDof.Id(), slaveVariableKey), nodalNormalComponent});
     }
 
-    void AddNodalNormalToSlaveDof(unsigned int SlaveDofEquationId, double nodalNormalComponent = 0.0)
+    void AddNodalNormalToSlaveDof(std::size_t SlaveDofEquationId, double nodalNormalComponent = 0.0)
     {
 
         mSlaveEquationIdToNodalNormalMap.insert({SlaveDofEquationId, nodalNormalComponent});
@@ -259,20 +259,20 @@ class MpcData
 		Get the Total number of MasterDOFs for a given slave dof
 		@return Total number of MasterDOFs for a given slave dof
 		 */
-    unsigned int GetNumbeOfMasterDofsForSlave(const DofType &SlaveDof)
+    std::size_t GetNumbeOfMasterDofsForSlave(const DofType &SlaveDof)
     {
         return mDofConstraints[std::make_pair(SlaveDof.Id(), SlaveDof.GetVariable().Key())].size();
     }
 
     /**
-		Set the name for the current set of constraints. 
+		Set the name for the current set of constraints.
 		 */
     void SetName(const std::string name)
     {
         mName = name;
     }
     /**
-		Get the name for the current set of constraints. 
+		Get the name for the current set of constraints.
 		 */
     std::string GetName()
     {
@@ -280,7 +280,7 @@ class MpcData
     }
 
     /**
-		Set the activeness for current set of constraints. 
+		Set the activeness for current set of constraints.
 		 */
     void SetActive(const bool isActive)
     {
@@ -350,14 +350,14 @@ class MpcData
 
     //this stores a much simpler "map of maps" of EquationIds vs EquationId & weight
     // This is to be formulated inside the builder and solver before build() function ideally in initialize solution step
-    std::unordered_map<unsigned int,
-                       std::unordered_map<unsigned int, double>>
+    std::unordered_map<std::size_t,
+                       std::unordered_map<std::size_t, double>>
         mEquationIdToWeightsMap;
 
     std::unordered_map<SlavePairType, double, pair_hash> mSlaveDofToNodalNormalMap;
-    std::unordered_map<unsigned int, double> mSlaveEquationIdToNodalNormalMap;
-    std::unordered_map<unsigned int, double> mSlaveEquationIdConstantsMap;
-    std::unordered_map<unsigned int, double> mSlaveEquationIdConstantsUpdate;
+    std::unordered_map<std::size_t, double> mSlaveEquationIdToNodalNormalMap;
+    std::unordered_map<std::size_t, double> mSlaveEquationIdConstantsMap;
+    std::unordered_map<std::size_t, double> mSlaveEquationIdConstantsUpdate;
     double RtMinvR;
     bool mActive;
     std::string mName;
@@ -385,7 +385,7 @@ class MpcData
 ///@name Input/Output funcitons
 ///@{
 
-/*bool operator== (MpcData &obj1, MpcData &obj2) 
+/*bool operator== (MpcData &obj1, MpcData &obj2)
 {
         return obj1.GetName() == obj2.GetName();
 }    */

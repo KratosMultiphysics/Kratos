@@ -55,6 +55,7 @@ void FractionalStep<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     default:
     {
         KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",r_process_info[FRACTIONAL_STEP]);
+        std::cout<<"Rishith;test 1"<<std::endl;
     }
     }
 

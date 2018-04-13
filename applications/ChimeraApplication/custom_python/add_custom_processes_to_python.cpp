@@ -90,7 +90,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
 
    class_< SpalartAllmarasTurbulenceModelForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
-    ("SpalartAllmarasTurbulenceModelForChimera", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
+    ("SpalartAllmarasTurbulenceModelForChimera", init < ModelPart&, LinearSolverType::Pointer, std::size_t, double, std::size_t, bool, std::size_t>())
     .def("ActivateDES", &SpalartAllmarasTurbulenceModelForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
     .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModelForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >::AdaptForFractionalStep)
     ; */

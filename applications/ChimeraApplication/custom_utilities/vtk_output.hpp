@@ -76,9 +76,9 @@ class VtkOutput
 
         return kratos_id_to_vtk;
     }
-    unsigned int determineVtkCellListSize(ModelPart &model_part)
+    std::size_t determineVtkCellListSize(ModelPart &model_part)
     {
-        unsigned int vtk_cell_list_size = 0;
+        std::size_t vtk_cell_list_size = 0;
 
         for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
         {
@@ -164,10 +164,10 @@ class VtkOutput
         for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
         {
             ModelPart::ConditionType::GeometryType &elem_geometry = elem_i->GetGeometry();
-            const unsigned int numberOfNodes = elem_geometry.size();
+            const std::size_t numberOfNodes = elem_geometry.size();
 
             outputFile << numberOfNodes;
-            for (unsigned int i = 0; i < numberOfNodes; i++)
+            for (std::size_t i = 0; i < numberOfNodes; i++)
                 outputFile << " " << mKratosIdToVtkId[elem_geometry[i].Id()];
 
             outputFile << "\n";
@@ -177,10 +177,10 @@ class VtkOutput
         for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
         {
             ModelPart::ConditionType::GeometryType &condition_geometry = condition_i->GetGeometry();
-            const unsigned int numberOfNodes = condition_geometry.size();
+            const std::size_t numberOfNodes = condition_geometry.size();
 
             outputFile << numberOfNodes;
-            for (unsigned int i = 0; i < numberOfNodes; i++)
+            for (std::size_t i = 0; i < numberOfNodes; i++)
                 outputFile << " " << mKratosIdToVtkId[condition_geometry[i].Id()];
             outputFile << "\n";
         }
@@ -200,8 +200,8 @@ class VtkOutput
         // write elements types
         for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
         {
-            const unsigned int numberOfNodes = elem_i->GetGeometry().size();
-            unsigned int element_type;
+            const std::size_t numberOfNodes = elem_i->GetGeometry().size();
+            std::size_t element_type;
 
             if (numberOfNodes == 3)
                 element_type = 5;
@@ -225,8 +225,8 @@ class VtkOutput
         // write conditions types
         for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
         {
-            const unsigned int numberOfNodes = condition_i->GetGeometry().size();
-            unsigned int element_type;
+            const std::size_t numberOfNodes = condition_i->GetGeometry().size();
+            std::size_t element_type;
 
             if (numberOfNodes == 3)
                 element_type = 5;
@@ -259,11 +259,11 @@ class VtkOutput
         Parameters nodalResults = this->mrOutputSettings["result_file_configuration"]["nodal_results"];
         outputFile << "POINT_DATA " << model_part.NumberOfNodes() << "\n";
 
-        for (unsigned int entry = 0; entry < nodalResults.size(); entry++)
+        for (std::size_t entry = 0; entry < nodalResults.size(); entry++)
         {
             // write nodal results variable header
             std::string nodalResultName = nodalResults[entry].GetString();
-            unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
+            std::size_t dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
             if (KratosComponents<Variable<double>>::Has(nodalResultName))
             {
                 dataCharacteristic = 1;
@@ -331,11 +331,11 @@ class VtkOutput
                     outputFile << "1\n";
             }
 
-            for (unsigned int entry = 0; entry < elementResults.size(); entry++)
+            for (std::size_t entry = 0; entry < elementResults.size(); entry++)
             {
 
                 std::string elementResultName = elementResults[entry];
-                unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
+                std::size_t dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
 
                 if (KratosComponents<Variable<double>>::Has(elementResultName))
                 {
@@ -460,13 +460,13 @@ class VtkOutput
 
             ModelPart::ConditionType::GeometryType &elem_geometry = elem_i->GetGeometry();
 
-            unsigned int numberOfNodes = elem_geometry.size();
+            std::size_t numberOfNodes = elem_geometry.size();
 
             force_big_endian((unsigned char *)&numberOfNodes);
 
-            outputFile.write((char *)(&numberOfNodes), sizeof(unsigned int));
+            outputFile.write((char *)(&numberOfNodes), sizeof(std::size_t));
 
-            for (unsigned int i = 0; i < elem_geometry.size(); i++)
+            for (std::size_t i = 0; i < elem_geometry.size(); i++)
             {
                 int nodenum = mKratosIdToVtkId[elem_geometry[i].Id()];
                 force_big_endian((unsigned char *)&nodenum);
@@ -478,12 +478,12 @@ class VtkOutput
         for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
         {
             ModelPart::ConditionType::GeometryType &condition_geometry = condition_i->GetGeometry();
-            unsigned int numberOfNodes = condition_geometry.size();
+            std::size_t numberOfNodes = condition_geometry.size();
 
             force_big_endian((unsigned char *)&numberOfNodes);
-            outputFile.write((char *)(&numberOfNodes), sizeof(unsigned int));
+            outputFile.write((char *)(&numberOfNodes), sizeof(std::size_t));
 
-            for (unsigned int i = 0; i < condition_geometry.size(); i++)
+            for (std::size_t i = 0; i < condition_geometry.size(); i++)
             {
 
                 int nodenum = mKratosIdToVtkId[condition_geometry[i].Id()];
@@ -507,8 +507,8 @@ class VtkOutput
         // write elements types
         for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
         {
-            const unsigned int numberOfNodes = elem_i->GetGeometry().size();
-            unsigned int element_type;
+            const std::size_t numberOfNodes = elem_i->GetGeometry().size();
+            std::size_t element_type;
 
             if (numberOfNodes == 3)
                 element_type = 5;
@@ -533,8 +533,8 @@ class VtkOutput
         // write conditions types
         for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
         {
-            const unsigned int numberOfNodes = condition_i->GetGeometry().size();
-            unsigned int element_type;
+            const std::size_t numberOfNodes = condition_i->GetGeometry().size();
+            std::size_t element_type;
 
             if (numberOfNodes == 3)
                 element_type = 5;
@@ -568,11 +568,11 @@ class VtkOutput
         Parameters nodalResults = this->mrOutputSettings["result_file_configuration"]["nodal_results"];
         outputFile << "\nPOINT_DATA " << model_part.NumberOfNodes() << "\n";
 
-        for (unsigned int entry = 0; entry < nodalResults.size(); entry++)
+        for (std::size_t entry = 0; entry < nodalResults.size(); entry++)
         {
             // write nodal results variable header
             std::string nodalResultName = nodalResults[entry].GetString();
-            unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
+            std::size_t dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
             if (KratosComponents<Variable<double>>::Has(nodalResultName))
             {
                 dataCharacteristic = 1;
@@ -652,11 +652,11 @@ class VtkOutput
                 }
             }
 
-            for (unsigned int entry = 0; entry < elementResults.size(); entry++)
+            for (std::size_t entry = 0; entry < elementResults.size(); entry++)
             {
 
                 std::string elementResultName = elementResults[entry];
-                unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
+                std::size_t dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
 
                 if (KratosComponents<Variable<double>>::Has(elementResultName))
                 {
@@ -811,10 +811,10 @@ class VtkOutput
     std::string mOutputFilename;
 
     Parameters mrOutputSettings;
-    unsigned int mDefaultPrecision;
+    std::size_t mDefaultPrecision;
     std::map<int, int> mKratosIdToVtkId;
-    unsigned int mVtkCellListSize;
-    unsigned int step;
+    std::size_t mVtkCellListSize;
+    std::size_t step;
     bool mDoneTest;
     bool mShouldSwap;
 

@@ -213,4 +213,5 @@ class NavierStokesBaseSolver(object):
         return condition_num_nodes
 
     def _IsPrintingRank(self):
+        return 0
         return self._is_printing_rank

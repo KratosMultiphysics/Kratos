@@ -78,12 +78,12 @@ class CustomHoleCuttingProcess
 	// Needed structures for the ExtractSurfaceMesh operation
 	struct KeyComparor
 	{
-		bool operator()(const vector<unsigned int> &lhs, const vector<unsigned int> &rhs) const
+		bool operator()(const vector<std::size_t> &lhs, const vector<std::size_t> &rhs) const
 		{
 			if (lhs.size() != rhs.size())
 				return false;
 
-			for (unsigned int i = 0; i < lhs.size(); i++)
+			for (std::size_t i = 0; i < lhs.size(); i++)
 			{
 				if (lhs[i] != rhs[i])
 					return false;
@@ -145,12 +145,12 @@ class CustomHoleCuttingProcess
 		// Extracting mesh elements which are only above the threshold value
 		std::cout << "  Extracting elements between " << lLimit << " and " << uLimit << std::endl;
 		Element::Pointer pElem;
-		std::vector<unsigned int> vector_of_node_ids;
+		std::vector<std::size_t> vector_of_node_ids;
 		for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
 		{
 			double elementDistance = 0.0;
 			int numPointsInside = 0;
-			unsigned int j = 0;
+			std::size_t j = 0;
 			for (j = 0; j < it->GetGeometry().PointsNumber(); j++)
 			{
 				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
@@ -172,7 +172,7 @@ class CustomHoleCuttingProcess
 		}
 
 		//sorting and making unique list of node ids
-		std::set<unsigned int> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
+		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
 		vector_of_node_ids.assign(s.begin(), s.end());
 
 		// Add unique nodes in the ModelPart
@@ -190,7 +190,7 @@ class CustomHoleCuttingProcess
 		KRATOS_TRY;
 
 		std::cout << "\n::[Creating Hole]::" << std::endl;
-		std::vector<unsigned int> vector_of_node_ids;
+		std::vector<std::size_t> vector_of_node_ids;
 		//For signed distance
 		distance *= -1;
 
@@ -198,8 +198,8 @@ class CustomHoleCuttingProcess
 		{
 
 			double elementDistance = 0.0;
-			unsigned int numPointsOutside = 0;
-			unsigned int j = 0;
+			std::size_t numPointsOutside = 0;
+			std::size_t j = 0;
 			Geometry<Node<3>> &geom = it->GetGeometry();
 
 			for (j = 0; j < geom.size(); j++)
@@ -216,7 +216,7 @@ class CustomHoleCuttingProcess
 			{
 				it->Set(ACTIVE, false);
 				Element::Pointer pElem = *(it.base());
-				unsigned int numNodesPerElem = pElem->GetGeometry().PointsNumber();
+				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
 				rExtractedModelPart.Elements().push_back(pElem);
 				//Adding node all the node Ids of the elements satisfying the condition
 				for (j = 0; j <numNodesPerElem; j++){
@@ -230,7 +230,7 @@ class CustomHoleCuttingProcess
 					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(1) = 0.0;
 					if(numNodesPerElem-1 > 2)
 						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(1) = 0.0;
-					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(1) = 0.0;					
+					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(1) = 0.0;
 
 					vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
 				}
@@ -239,7 +239,7 @@ class CustomHoleCuttingProcess
 
 		//sorting and making unique list of node ids
 
-		std::set<unsigned int> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
+		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
 		vector_of_node_ids.assign(s.begin(), s.end());
 
 		// Add unique nodes in the ModelPart
@@ -251,7 +251,7 @@ class CustomHoleCuttingProcess
 			rExtractedModelPart.AddNode(pnode);
 		}
 
-		unsigned int n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
+		std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
 
 		if (n_nodes == 3)
 		{
@@ -278,8 +278,8 @@ class CustomHoleCuttingProcess
 		std::cout << "::[Surface Mesh Extraction]::" << std::endl;
 
 		// Some type-definitions
-		typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor> hashmap;
-		typedef boost::unordered_map<vector<unsigned int>, vector<unsigned int>, KeyHasher, KeyComparor> hashmap_vec;
+		typedef boost::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
+		typedef boost::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparor> hashmap_vec;
 
 		// Create map to ask for number of faces for the given set of node ids representing on face in the model part
 		hashmap n_faces_map;
@@ -289,13 +289,13 @@ class CustomHoleCuttingProcess
 		{
 			Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
 
-			for (unsigned int face = 0; face < faces.size(); face++)
+			for (std::size_t face = 0; face < faces.size(); face++)
 			{
 				// Create vector that stores all node is of current face
-				vector<unsigned int> ids(faces[face].size());
+				vector<std::size_t> ids(faces[face].size());
 
 				// Store node ids
-				for (unsigned int i = 0; i < faces[face].size(); i++)
+				for (std::size_t i = 0; i < faces[face].size(); i++)
 					ids[i] = faces[face][i].Id();
 
 				//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
@@ -315,14 +315,14 @@ class CustomHoleCuttingProcess
 		{
 			Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
 
-			for (unsigned int face = 0; face < faces.size(); face++)
+			for (std::size_t face = 0; face < faces.size(); face++)
 			{
 				// Create vector that stores all node is of current face
-				vector<unsigned int> ids(faces[face].size());
-				vector<unsigned int> unsorted_ids(faces[face].size());
+				vector<std::size_t> ids(faces[face].size());
+				vector<std::size_t> unsorted_ids(faces[face].size());
 
 				// Store node ids
-				for (unsigned int i = 0; i < faces[face].size(); i++)
+				for (std::size_t i = 0; i < faces[face].size(); i++)
 				{
 					ids[i] = faces[face][i].Id();
 					unsorted_ids[i] = faces[face][i].Id();
@@ -336,12 +336,12 @@ class CustomHoleCuttingProcess
 			}
 		}
 		// First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
-		unsigned int id_condition = 1;
+		std::size_t id_condition = 1;
 		//rExtractedSurfaceModelPart.Nodes() = rExtractedVolumeModelPart.Nodes();
 
 		// Add skin faces as triangles to skin-model-part (loop over all node sets)
 		std::cout << "  Extracting surface mesh and computing normals" << std::endl;
-		std::vector<unsigned int> vector_of_node_ids;
+		std::vector<std::size_t> vector_of_node_ids;
 		for (typename hashmap::const_iterator it = n_faces_map.begin(); it != n_faces_map.end(); it++)
 		{
 			// If given node set represents face that is not overlapping with a face of another element, add it as skin element
@@ -351,7 +351,7 @@ class CustomHoleCuttingProcess
 				if (it->first.size() == 3)
 				{
 					// Getting original order is important to properly reproduce skin face including its normal orientation
-					vector<unsigned int> original_nodes_order = ordered_skin_face_nodes_map[it->first];
+					vector<std::size_t> original_nodes_order = ordered_skin_face_nodes_map[it->first];
 					Node<3>::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
 					Node<3>::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
 					Node<3>::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
@@ -372,7 +372,7 @@ class CustomHoleCuttingProcess
 				if (it->first.size() == 4)
 				{
 					// Getting original order is important to properly reproduce skin including its normal orientation
-					vector<unsigned int> original_nodes_order = ordered_skin_face_nodes_map[it->first];
+					vector<std::size_t> original_nodes_order = ordered_skin_face_nodes_map[it->first];
 
 					Node<3>::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
 					Node<3>::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
@@ -401,7 +401,7 @@ class CustomHoleCuttingProcess
 
 		//sorting and making unique list of node ids
 
-		std::set<unsigned int> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
+		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
 		vector_of_node_ids.assign(s.begin(), s.end());
 
 		for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
@@ -424,8 +424,8 @@ class CustomHoleCuttingProcess
 		std::cout << "::[Boundary Mesh Extraction]::" << std::endl;
 
 		// Some type-definitions
-		typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor> hashmap;
-		typedef boost::unordered_map<vector<unsigned int>, vector<unsigned int>, KeyHasher, KeyComparor> hashmap_vec;
+		typedef boost::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
+		typedef boost::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparor> hashmap_vec;
 
 		// Create map to ask for number of edges for the given set of node ids representing on edge in the model part
 		hashmap n_edges_map;
@@ -435,13 +435,13 @@ class CustomHoleCuttingProcess
 		{
 			Element::GeometryType::GeometriesArrayType edges = itElem->GetGeometry().Edges();
 
-			for (unsigned int edge = 0; edge < edges.size(); edge++)
+			for (std::size_t edge = 0; edge < edges.size(); edge++)
 			{
 				// Create vector that stores all node is of current edge
-				vector<unsigned int> ids(edges[edge].size());
+				vector<std::size_t> ids(edges[edge].size());
 
 				// Store node ids
-				for (unsigned int i = 0; i < edges[edge].size(); i++)
+				for (std::size_t i = 0; i < edges[edge].size(); i++)
 					ids[i] = edges[edge][i].Id();
 
 				//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
@@ -461,14 +461,14 @@ class CustomHoleCuttingProcess
 		{
 			Element::GeometryType::GeometriesArrayType edges = itElem->GetGeometry().Edges();
 
-			for (unsigned int edge = 0; edge < edges.size(); edge++)
+			for (std::size_t edge = 0; edge < edges.size(); edge++)
 			{
 				// Create vector that stores all node is of current edge
-				vector<unsigned int> ids(edges[edge].size());
-				vector<unsigned int> unsorted_ids(edges[edge].size());
+				vector<std::size_t> ids(edges[edge].size());
+				vector<std::size_t> unsorted_ids(edges[edge].size());
 
 				// Store node ids
-				for (unsigned int i = 0; i < edges[edge].size(); i++)
+				for (std::size_t i = 0; i < edges[edge].size(); i++)
 				{
 					ids[i] = edges[edge][i].Id();
 					unsorted_ids[i] = edges[edge][i].Id();
@@ -482,12 +482,12 @@ class CustomHoleCuttingProcess
 			}
 		}
 		// First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
-		unsigned int id_condition = 1;
+		std::size_t id_condition = 1;
 		//rExtractedBoundaryModelPart.Nodes() = rSurfaceModelPart.Nodes();
 
 		// Add skin edges as triangles to skin-model-part (loop over all node sets)
 		std::cout << "  Extracting boundary mesh and computing normals" << std::endl;
-		std::vector<unsigned int> vector_of_node_ids;
+		std::vector<std::size_t> vector_of_node_ids;
 		for (typename hashmap::const_iterator it = n_edges_map.begin(); it != n_edges_map.end(); it++)
 		{
 			// If given node set represents edge that is not overlapping with a edge of another element, add it as skin element
@@ -498,7 +498,7 @@ class CustomHoleCuttingProcess
 				if (it->first.size() == 2)
 				{
 					// Getting original order is important to properly reproduce skin edge including its normal orientation
-					vector<unsigned int> original_nodes_order = ordered_skin_edge_nodes_map[it->first];
+					vector<std::size_t> original_nodes_order = ordered_skin_edge_nodes_map[it->first];
 
 					//std::cout<<"First Node: "<<original_nodes_order[0]<<std::endl;
 					//std::cout<<"Second Node: "<<original_nodes_order[1]<<std::endl;
@@ -523,7 +523,7 @@ class CustomHoleCuttingProcess
 
 		//sorting and making unique list of node ids
 
-		std::set<unsigned int> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
+		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
 		vector_of_node_ids.assign(s.begin(), s.end());
 
 		for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)

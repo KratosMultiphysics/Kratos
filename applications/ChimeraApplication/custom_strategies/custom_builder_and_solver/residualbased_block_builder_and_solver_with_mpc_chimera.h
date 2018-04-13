@@ -417,8 +417,8 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
             }
         }
         //count the row sizes
-        unsigned int nnz = 0;
-        for (unsigned int i = 0; i < indices.size(); i++)
+        std::size_t nnz = 0;
+        for (std::size_t i = 0; i < indices.size(); i++)
             nnz += indices[i].size();
 
         A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
@@ -435,9 +435,9 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
 #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(A.size1()); i++)
         {
-            const unsigned int row_begin = Arow_indices[i];
-            const unsigned int row_end = Arow_indices[i + 1];
-            unsigned int k = row_begin;
+            const std::size_t row_begin = Arow_indices[i];
+            const std::size_t row_end = Arow_indices[i + 1];
+            std::size_t k = row_begin;
             for (auto it = indices[i].begin(); it != indices[i].end(); it++)
             {
                 Acol_indices[k] = *it;
@@ -466,7 +466,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                                          Element::EquationIdVectorType &EquationId,
                                          ProcessInfo &CurrentProcessInfo)
     {
-        const unsigned int number_of_nodes = rCurrentElement->GetGeometry().PointsNumber();
+        const std::size_t number_of_nodes = rCurrentElement->GetGeometry().PointsNumber();
         MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
 
         for (auto mpcData : (*mpcDataVector))
@@ -474,7 +474,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
             if (mpcData->IsActive())
             {
                 // For each node check if it is a slave or not If it is .. we change the Transformation matrix
-                for (unsigned int j = 0; j < number_of_nodes; j++)
+                for (std::size_t j = 0; j < number_of_nodes; j++)
                 {
                     DofsVectorType elementDofs;
                     rCurrentElement->GetDofList(elementDofs, CurrentProcessInfo);
@@ -482,7 +482,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                     if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
                     { //temporary, will be checked once at the beginning only
                         // Necessary data for iterating and modifying the matrix
-                        unsigned int slaveEquationId;
+                        std::size_t slaveEquationId;
                         int startPositionNodeDofs = numDofsPerNode * (j);
                         for (int i = 0; i < numDofsPerNode; i++)
                         {
@@ -510,14 +510,14 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                                            ProcessInfo &CurrentProcessInfo)
     {
 
-        const unsigned int number_of_nodes = rCurrentCondition->GetGeometry().PointsNumber();
+        const std::size_t number_of_nodes = rCurrentCondition->GetGeometry().PointsNumber();
         MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
         for (auto mpcData : (*mpcDataVector))
         {
             if (mpcData->IsActive())
             {
                 // For each node check if it is a slave or not If it is .. we change the Transformation matrix
-                for (unsigned int j = 0; j < number_of_nodes; j++)
+                for (std::size_t j = 0; j < number_of_nodes; j++)
                 {
                     DofsVectorType conditionDofs;
                     rCurrentCondition->GetDofList(conditionDofs, CurrentProcessInfo);
@@ -525,7 +525,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                     if (rCurrentCondition->GetGeometry()[j].Is(SLAVE))
                     { //temporary, will be checked once at the beginning only
                         // Necessary data for iterating and modifying the matrix
-                        unsigned int slaveEquationId;
+                        std::size_t slaveEquationId;
                         int startPositionNodeDofs = numDofsPerNode * (j);
                         for (int i = 0; i < numDofsPerNode; i++)
                         {
@@ -559,8 +559,8 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
         KRATOS_TRY
         bool slaveFound = false;
         Element::NodesArrayType nodesArray = rCurrentElement->GetGeometry();
-        const unsigned int number_of_nodes = rCurrentElement->GetGeometry().PointsNumber();
-        for (unsigned int j = 0; j < number_of_nodes; j++)
+        const std::size_t number_of_nodes = rCurrentElement->GetGeometry().PointsNumber();
+        for (std::size_t j = 0; j < number_of_nodes; j++)
         {
             if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
@@ -599,7 +599,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                 std::sort(localEquationIds.begin(), localEquationIds.end());
                 std::sort(localSlaveEquationIds.begin(), localSlaveEquationIds.end());
                 std::set_difference(localEquationIds.begin(), localEquationIds.end(), localSlaveEquationIds.begin(), localSlaveEquationIds.end(), std::back_inserter(localInternEquationIds));
-                for (unsigned int j = 0; j < number_of_nodes; ++j)
+                for (std::size_t j = 0; j < number_of_nodes; ++j)
                 { // Loop over the nodes
                     std::vector<int> slaveEquationIds;
                     int totalNumberOfSlaves = 0;
@@ -611,7 +611,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                     if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
                     { // If the node has a slave DOF
                         int startPositionNodeDofs = numDofsPerNode * (j);
-                        unsigned int slaveEquationId;
+                        std::size_t slaveEquationId;
                         for (int i = 0; i < numDofsPerNode; i++)
                         {
                             slaveEquationId = elementDofs[startPositionNodeDofs + i]->EquationId();
@@ -730,11 +730,11 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                         if (!(mpcData->IsWeak()))
                         {
 
-                            for (unsigned int localMasterIndex = 0; localMasterIndex < localMasterEquationIds.size(); localMasterIndex++)
+                            for (std::size_t localMasterIndex = 0; localMasterIndex < localMasterEquationIds.size(); localMasterIndex++)
 
                             {
 
-                                for (unsigned int localMasterIndexOther = 0; localMasterIndexOther < localMasterEquationIds.size(); localMasterIndexOther++)
+                                for (std::size_t localMasterIndexOther = 0; localMasterIndexOther < localMasterEquationIds.size(); localMasterIndexOther++)
                                 {
 
                                     LHS_Contribution(localMasterEquationIds[localMasterIndex], localMasterEquationIds[localMasterIndexOther]) += WeightsCorrespondingToMasters[localMasterIndex] * LHS_Contribution(SlavesCorrespondingToMasters[localMasterIndex], SlavesCorrespondingToMasters[localMasterIndexOther]) * WeightsCorrespondingToMasters[localMasterIndexOther];
@@ -758,10 +758,10 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                 // K(s,s) =  I
                 for (auto localSlaveEqId : localSlaveEquationIds)
                 {
-                
+
                     for (auto localSlaveEqIdOther : localSlaveEquationIds)
                     {
-                       
+
                         LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) = 0.0;
                     }
                     LHS_Contribution(localSlaveEqId, localSlaveEqId) = 1.0;
@@ -781,8 +781,8 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
         KRATOS_TRY
         bool slaveFound = false;
         Element::NodesArrayType nodesArray = rCurrentElement->GetGeometry();
-        const unsigned int number_of_nodes = rCurrentElement->GetGeometry().PointsNumber();
-        for (unsigned int j = 0; j < number_of_nodes; j++)
+        const std::size_t number_of_nodes = rCurrentElement->GetGeometry().PointsNumber();
+        for (std::size_t j = 0; j < number_of_nodes; j++)
         {
             if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
@@ -819,7 +819,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                 std::sort(localEquationIds.begin(), localEquationIds.end());
                 std::sort(localSlaveEquationIds.begin(), localSlaveEquationIds.end());
                 std::set_difference(localEquationIds.begin(), localEquationIds.end(), localSlaveEquationIds.begin(), localSlaveEquationIds.end(), std::back_inserter(localInternEquationIds));
-                for (unsigned int j = 0; j < number_of_nodes; ++j)
+                for (std::size_t j = 0; j < number_of_nodes; ++j)
                 { // Loop over the nodes
                     std::vector<int> slaveEquationIds;
                     int totalNumberOfSlaves = 0;
@@ -831,7 +831,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                     if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
                     { // If the node has a slave DOF
                         int startPositionNodeDofs = numDofsPerNode * (j);
-                        unsigned int slaveEquationId;
+                        std::size_t slaveEquationId;
                         for (int i = 0; i < numDofsPerNode; i++)
                         {
                             slaveEquationId = elementDofs[startPositionNodeDofs + i]->EquationId();
@@ -922,11 +922,11 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                         if (!(mpcData->IsWeak()))
                         {
 
-                            for (unsigned int localMasterIndex = 0; localMasterIndex < localMasterEquationIds.size(); localMasterIndex++)
+                            for (std::size_t localMasterIndex = 0; localMasterIndex < localMasterEquationIds.size(); localMasterIndex++)
 
                             {
 
-                                for (unsigned int localMasterIndexOther = 0; localMasterIndexOther < localMasterEquationIds.size(); localMasterIndexOther++)
+                                for (std::size_t localMasterIndexOther = 0; localMasterIndexOther < localMasterEquationIds.size(); localMasterIndexOther++)
                                 {
 
                                     LHS_Contribution(localMasterEquationIds[localMasterIndex], localMasterEquationIds[localMasterIndexOther]) += WeightsCorrespondingToMasters[localMasterIndex] * LHS_Contribution(SlavesCorrespondingToMasters[localMasterIndex], SlavesCorrespondingToMasters[localMasterIndexOther]) * WeightsCorrespondingToMasters[localMasterIndexOther];
@@ -971,25 +971,25 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                     {
                         SlavePairType slaveDofMap = slaveMasterDofMap.first;
                         MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
-                        unsigned int slaveNodeId = slaveDofMap.first;
-                        unsigned int slaveDofKey = slaveDofMap.second;
+                        std::size_t slaveNodeId = slaveDofMap.first;
+                        std::size_t slaveDofKey = slaveDofMap.second;
                         NodeType &node = r_model_part.Nodes()[slaveNodeId];
                         Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
-                        unsigned int slaveEquationId = it->EquationId();
+                        std::size_t slaveEquationId = it->EquationId();
 
                         for (auto masterDofMapElem : masterDofMap)
                         {
-                            unsigned int masterNodeId;
-                            unsigned int PartitionId;
-                            unsigned int masterEquationId;
-                            unsigned int masterDofKey;
+                            std::size_t masterNodeId;
+                            std::size_t PartitionId;
+                            std::size_t masterEquationId;
+                            std::size_t masterDofKey;
                             double weight = masterDofMapElem.second;
                             std::tie(masterNodeId, masterDofKey, PartitionId) = masterDofMapElem.first;
                             NodeType &masterNode = r_model_part.Nodes()[masterNodeId];
                             Node<3>::DofsContainerType::iterator it = masterNode.GetDofs().find(masterDofKey);
                             masterEquationId = it->EquationId();
                             //
-                            mpcData->mEquationIdToWeightsMap[slaveEquationId].insert(std::pair<unsigned int, double>(masterEquationId, weight));
+                            mpcData->mEquationIdToWeightsMap[slaveEquationId].insert(std::pair<std::size_t, double>(masterEquationId, weight));
                         }
                     }
                 }
@@ -1004,8 +1004,8 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
         TSystemVectorType &b)
     {
 
-        unsigned int n_nodes = r_model_part.Nodes().size();
-        //unsigned int counter = 0; // for debug
+        std::size_t n_nodes = r_model_part.Nodes().size();
+        //std::size_t counter = 0; // for debug
         ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
         MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
 
@@ -1015,7 +1015,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
 
             {
 
-                for (unsigned int i = 0; i < n_nodes; i++)
+                for (std::size_t i = 0; i < n_nodes; i++)
                 {
                     ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin() + i;
                     Node<3>::Pointer p_node = *(inode.base());
@@ -1023,7 +1023,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                     if (p_node->Is(SLAVE))
                     {
                         Node<3>::DofsContainerType nodeDofs = p_node->GetDofs();
-                        unsigned int slaveEquationId;
+                        std::size_t slaveEquationId;
                         //std::cout << "Node " << p_node->Id() << std::endl; //debug
                         for (auto dof : nodeDofs)
                         {
@@ -1078,10 +1078,10 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                 if (mpcData->mType == "conservative")
                 {
                     double nodalMass;
-                    unsigned int slaveNodeId;
-                    unsigned int slaveNodeIdOther;
-                    unsigned int slaveDofKey;
-                    unsigned int slaveDofKeyOther;
+                    std::size_t slaveNodeId;
+                    std::size_t slaveNodeIdOther;
+                    std::size_t slaveDofKey;
+                    std::size_t slaveDofKeyOther;
                     double slaveDofValueOther;
                     SlavePairType slaveDofMap;
                     SlavePairType slaveDofMapOther;
@@ -1090,7 +1090,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                     double NodalNormalComponentOther;
                     //std::cout << " RtMinvR " << RtMinvR << std::endl;
                     std::vector<double> VectorOfconstants;
-                    unsigned int slaveIndex = 0;
+                    std::size_t slaveIndex = 0;
                     double norm = 0;
 
                     for (auto slaveMasterDofMap : mpcData->mDofConstraints)
@@ -1122,9 +1122,9 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
 
                             for (auto masterDofMapElem : masterDofMap)
                             {
-                                unsigned int masterNodeId;
+                                std::size_t masterNodeId;
                                 double constant;
-                                unsigned int masterDofKey;
+                                std::size_t masterDofKey;
                                 double weight = masterDofMapElem.second;
                                 std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
                                 NodeType &masterNode = r_model_part.Nodes()[masterNodeId];
@@ -1155,7 +1155,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                         slaveDofKey = slaveDofMap.second;
                         Node<3> &slaveNode = r_model_part.Nodes()[slaveNodeId];
                         Node<3>::DofsContainerType::iterator idof = slaveNode.GetDofs().find(slaveDofKey);
-                        unsigned int slaveEquationId = idof->EquationId();
+                        std::size_t slaveEquationId = idof->EquationId();
                         mpcData->mSlaveEquationIdConstantsMap[slaveEquationId] = VectorOfconstants[slaveIndex];
 
                         slaveIndex++;
@@ -1190,19 +1190,19 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                 {
                     SlavePairType slaveDofMap = slaveMasterDofMap.first;
                     MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
-                    unsigned int slaveNodeId = slaveDofMap.first;
-                    unsigned int slaveDofKey = slaveDofMap.second;
+                    std::size_t slaveNodeId = slaveDofMap.first;
+                    std::size_t slaveDofKey = slaveDofMap.second;
                     NodeType &node = r_model_part.Nodes()[slaveNodeId];
                     Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
-                    unsigned int slaveEquationId = it->EquationId();
+                    std::size_t slaveEquationId = it->EquationId();
                     double slaveDofValue = it->GetSolutionStepValue();
                     double slaveDofValueCalc = 0.0;
 
                     for (auto masterDofMapElem : masterDofMap)
                     {
-                        unsigned int masterNodeId;
+                        std::size_t masterNodeId;
                         double constant;
-                        unsigned int masterDofKey;
+                        std::size_t masterDofKey;
                         double weight = masterDofMapElem.second;
                         std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
                         NodeType &masterNode = r_model_part.Nodes()[masterNodeId];

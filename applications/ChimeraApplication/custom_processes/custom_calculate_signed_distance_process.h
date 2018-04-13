@@ -66,7 +66,7 @@ namespace Kratos
 ///@{
 
 /// Short class definition.
-template <unsigned int TDim>
+template <std::size_t TDim>
 class CustomCalculateSignedDistanceProcess
 {
   public:
@@ -136,21 +136,21 @@ class CustomCalculateSignedDistanceProcess
 			distance = 0.0;
 		}
 
-		unsigned int max_level = 100;
+		std::size_t max_level = 100;
 		double max_distance = 1000;
 
 		this->pDistanceCalculator->CalculateDistancesLagrangianSurface(fromPatchModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
 
 		//For signed distance
-		/*unsigned int n_patch_nodes = fromPatchModelPart.Nodes().size();
+		/*std::size_t n_patch_nodes = fromPatchModelPart.Nodes().size();
 		for(int i = 0; i < n_patch_nodes; i++ ) {
 
 			ModelPart::NodesContainerType::iterator it=patchBoundaryModelPart.NodesBegin()+i;
-			
+
             double& distance = it->FastGetSolutionStepValue(DISTANCE);
 			distance = -distance;
-			
-			
+
+
 		}*/
 
 		/*
@@ -217,13 +217,13 @@ class CustomCalculateSignedDistanceProcess
 			distance = 0.0;
 		}
 
-		unsigned int max_level = 100;
+		std::size_t max_level = 100;
 		double max_distance = 1000;
 
 		this->pDistanceCalculator->CalculateDistancesLagrangianSurface(fromPatchModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
-		
+
 		//For signed distance
-		unsigned int n_patch_nodes = fromPatchModelPart.Nodes().size();
+		std::size_t n_patch_nodes = fromPatchModelPart.Nodes().size();
 		for (int i = 0; i < n_patch_nodes; i++)
 		{
 
@@ -232,7 +232,7 @@ class CustomCalculateSignedDistanceProcess
 			double &distance = it->FastGetSolutionStepValue(DISTANCE);
 			distance = -distance;
 		}
-		
+
 	}
 
 	void CalculateSignedDistance(ModelPart &toBackgroundModelPart, ModelPart &patchBoundaryModelPart)
@@ -243,7 +243,7 @@ class CustomCalculateSignedDistanceProcess
 			// Implemented in the custom_processes
 			p2DSignedDistanceCalculator = CalculateSignedDistanceTo2DConditionSkinProcess::Pointer(new CalculateSignedDistanceTo2DConditionSkinProcess(patchBoundaryModelPart, toBackgroundModelPart));
 			p2DSignedDistanceCalculator->Execute();
-		
+
 			std::cout << "2Signeddistance is called nav" << std::endl;
 		}
 
@@ -252,13 +252,13 @@ class CustomCalculateSignedDistanceProcess
 			// From Core ?? Improve performance and algorithm based on CalculateSignedDistanceToSkinProcess
 			std::cout << "Inside the distance function" << std::endl;
 			p3DSignedDistanceCalculator = CalculateSignedDistanceTo3DConditionSkinProcess::Pointer(new CalculateSignedDistanceTo3DConditionSkinProcess(patchBoundaryModelPart, toBackgroundModelPart));
-		
+
 			std::cout << "Distance calculation initialised" << std::endl;
 			p3DSignedDistanceCalculator->Execute();
 			std::cout << "Distance calculations finished" << std::endl;
 		}
 
-		unsigned int max_level = 100;
+		std::size_t max_level = 100;
 		double max_distance = 200;
 //nav
 		pDistanceCalculator->CalculateDistances(toBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
@@ -275,7 +275,7 @@ class CustomCalculateSignedDistanceProcess
 		}
 	}
 
-	
+
 
 	///@}
 	///@name Access

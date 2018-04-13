@@ -1297,7 +1297,7 @@ class QuadtreeBinary
 
         triverts.resize(size);
 
-        for (unsigned int i = 0; i < size; i++)
+        for (std::size_t i = 0; i < size; i++)
         {
             triverts[i] = geom_1.GetPoint(i);
         }
@@ -1499,7 +1499,7 @@ class QuadtreeBinary
 
     /*======================== Z-tests ========================*/
 
-    inline unsigned int AxisTest_Z12(double &a, double &b,
+    inline std::size_t AxisTest_Z12(double &a, double &b,
                                      double &fa, double &fb,
                                      double &p1, double &p2,
                                      double &min, double &max, double &rad,
@@ -1529,7 +1529,7 @@ class QuadtreeBinary
             return 1;
     }
 
-    inline unsigned int AxisTest_Z0(double &a, double &b,
+    inline std::size_t AxisTest_Z0(double &a, double &b,
                                     double &fa, double &fb,
                                     double &p0, double &p1,
                                     double &min, double &max, double &rad,

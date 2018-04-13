@@ -51,7 +51,7 @@ class RotateRegionProcess : public Process
             {
                 "movement_name":"default",
                 "sub_model_part_name":"default",
-                "sub_model_part_boundary_name":"default",          
+                "sub_model_part_boundary_name":"default",
                 "center_of_rotation":[],
                 "angular_velocity_radians":0.0,
                 "axis_of_rotation":[],
@@ -72,10 +72,10 @@ class RotateRegionProcess : public Process
 
         // normalizing the axis of roatation
         double norm = 0.0;
-        for (unsigned int d = 0; d < 3; ++d)
+        for (std::size_t d = 0; d < 3; ++d)
             norm += mAxisOfRoationVector[d] * mAxisOfRoationVector[d];
         norm = sqrt(norm);
-        for (unsigned int d = 0; d < 3; ++d)
+        for (std::size_t d = 0; d < 3; ++d)
             mAxisOfRoationVectorNormalized.push_back(mAxisOfRoationVector[d] / norm);
 
         mTheta = 0.0;
@@ -282,10 +282,10 @@ class RotateRegionProcess : public Process
         //std::cout<<"############## HERE"<<std::endl;
         // normalizing the axis of roatation
         double norm = 0.0;
-        for (unsigned int d = 0; d < 3; ++d)
+        for (std::size_t d = 0; d < 3; ++d)
             norm += mAxisOfRoationVector[d] * mAxisOfRoationVector[d];
         norm = sqrt(norm);
-        for (unsigned int d = 0; d < 3; ++d)
+        for (std::size_t d = 0; d < 3; ++d)
             U[d] = mAxisOfRoationVector[d] / norm;
 
         // Constructing the transformation matrix

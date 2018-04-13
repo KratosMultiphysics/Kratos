@@ -37,7 +37,7 @@
 namespace Kratos
 {
 
-template< unsigned int TDim >
+template< std::size_t TDim >
 void AuxCreateFluidBoundaryFaces(InterpolationUtility<TDim>& ThisUtility, ModelPart& rBackground)
 {
     std::string ConditionName("ChimeraFluidCouplingCondition2D");
@@ -46,7 +46,7 @@ void AuxCreateFluidBoundaryFaces(InterpolationUtility<TDim>& ThisUtility, ModelP
 }
 
 
-template< unsigned int TDim >
+template< std::size_t TDim >
 void AuxCreateThermalBoundaryFaces(InterpolationUtility<TDim>& ThisUtility, ModelPart& rBackground)
 {
     std::string ConditionName("ChimeraThermalCouplingCondition2D");
@@ -122,7 +122,7 @@ namespace Python
     AddVariableComponentType AddVariableComponent = &PeriodicConditionUtilitiesForChimera::AddPeriodicVariable;
 
     class_<PeriodicConditionUtilitiesForChimera>(m, "PeriodicConditionUtilitiesForChimera")
-        .def(init<ModelPart&,unsigned int>())
+        .def(init<ModelPart&,std::size_t>())
         .def("SetUpSearchStructure",&PeriodicConditionUtilitiesForChimera::SetUpSearchStructure)
         .def("DefinePeriodicBoundary",&PeriodicConditionUtilitiesForChimera::DefinePeriodicBoundary)
         .def("AddPeriodicVariable",AddDoubleVariable)
@@ -147,8 +147,8 @@ namespace Python
         .value("SpalartAllmaras",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SpalartAllmaras)
     ;
  */
-    typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*SetStrategyByParamsType)(FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel const&,LinearSolverType::Pointer,const double,const unsigned int);
-    //typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*BuildTurbModelType)(FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel const&, LinearSolverType::Pointer, const double, const unsigned int);
+    typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*SetStrategyByParamsType)(FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel const&,LinearSolverType::Pointer,const double,const std::size_t);
+    //typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*BuildTurbModelType)(FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel const&, LinearSolverType::Pointer, const double, const std::size_t);
     //typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*PassTurbModelType)(Process::Pointer);
     SetStrategyByParamsType ThisSetStrategyOverload = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetStrategy;
     //BuildTurbModelType SetTurbModel_Build = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;

@@ -1,5 +1,5 @@
-#ifndef KRATOS_FRACTIONAL_STEP_SETTINGS_H
-#define KRATOS_FRACTIONAL_STEP_SETTINGS_H
+#ifndef KRATOS_FRACTIONAL_STEP_SETTINGS_FOR_CHIMERA_H
+#define KRATOS_FRACTIONAL_STEP_SETTINGS_FOR_CHIMERA_H
 
 // System includes
 #include <string>
@@ -23,7 +23,7 @@
 #include "processes/process.h"
 
 // Application includes
-#include "custom_processes/spalart_allmaras_turbulence_model_for_chimera.h"
+//#include "custom_processes/spalart_allmaras_turbulence_model_for_chimera.h"
 #include "custom_utilities/solver_settings_for_chimera.h"
 #include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_mpc_chimera.h"
 
@@ -72,7 +72,7 @@ public:
     typedef typename BaseType::ProcessPointerType ProcessPointerType;
 
     typedef typename BaseType::StrategyLabel StrategyLabel;
-    typedef typename BaseType::TurbulenceModelLabel TurbulenceModelLabel;
+    //typedef typename BaseType::TurbulenceModelLabel TurbulenceModelLabel;
 
     ///@}
     ///@name Life Cycle
@@ -80,8 +80,8 @@ public:
 
     /// Constructor.
     FractionalStepSettingsForChimera(ModelPart& rModelPart,
-                   const unsigned int ThisDomainSize,
-                   const unsigned int ThisTimeOrder,
+                   const std::size_t ThisDomainSize,
+                   const std::size_t ThisTimeOrder,
                    const bool UseSlip,
                    const bool MoveMeshFlag,
                    const bool ReformDofSet):
@@ -107,7 +107,7 @@ public:
     void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
-                             const unsigned int MaxIter) override
+                             const std::size_t MaxIter) override
     {
         KRATOS_TRY;
 
@@ -124,8 +124,8 @@ public:
         bool UseSlip = BaseType::UseSlipConditions();
         // Modification of the DofSet is managed by the fractional step strategy, not the auxiliary velocity and pressure strategies.
         bool ReformDofSet = false; //BaseType::GetReformDofSet();
-        unsigned int EchoLevel = BaseType::GetEchoLevel();
-        unsigned int StrategyEchoLevel = (EchoLevel > 0) ? (EchoLevel-1) : 0;
+        std::size_t EchoLevel = BaseType::GetEchoLevel();
+        std::size_t StrategyEchoLevel = (EchoLevel > 0) ? (EchoLevel-1) : 0;
 
         if ( rStrategyLabel == BaseType::Velocity )
         {
@@ -133,11 +133,13 @@ public:
             BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolverWithMpcChimera<TSparseSpace, TDenseSpace, TLinearSolver >
                                                                                 (pLinearSolver));
 
+            std::cout<<"Test Velcoity"<<std::endl;
+
             SchemePointerType pScheme;
             //initializing fractional velocity solution step
             if (UseSlip)
             {
-                unsigned int DomainSize = BaseType::GetDomainSize();
+                std::size_t DomainSize = BaseType::GetDomainSize();
                 SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace > (DomainSize,DomainSize));
                 pScheme.swap(Temp);
             }
@@ -176,18 +178,18 @@ public:
         KRATOS_CATCH("");
     }
 
-    void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
+    /* void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,
                                     const double Tolerance,
-                                    const unsigned int MaxIter) override
+                                    const std::size_t MaxIter) override
     {
         KRATOS_TRY;
 
         BaseType::mHaveTurbulenceModel = true;
 
         ModelPart& rModelPart = BaseType::GetModelPart();
-        unsigned int DomainSize = BaseType::GetDomainSize();
-        unsigned int TimeOrder = BaseType::GetTimeOrder();
+        std::size_t DomainSize = BaseType::GetDomainSize();
+        std::size_t TimeOrder = BaseType::GetTimeOrder();
         bool ReformDofSet = BaseType::GetReformDofSet();
 
         if (rTurbulenceModel == BaseType::SpalartAllmaras)
@@ -206,7 +208,7 @@ public:
     void SetTurbulenceModel(ProcessPointerType pTurbulenceModel) override
     {
         BaseType::SetTurbulenceModel(pTurbulenceModel);
-    }
+    } */
 
     ///@}
     ///@name Inquiry
@@ -359,4 +361,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FRACTIONAL_STEP_SETTINGS_H
+#endif // KRATOS_FRACTIONAL_STEP_SETTINGS_FOR_CHIMERA_H

@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.ChimeraApplication as KratosChimera
 
 # Check that applications were imported in the main script
 KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
@@ -156,16 +157,15 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
 
         else:
             if (self.settings["implementation"].GetString() == "MPC"):
-                self.solver_settings = KratosCFD.FractionalStepSettingsForChimera(self.computing_model_part,
+                self.solver_settings = KratosChimera.FractionalStepSettingsForChimera(self.computing_model_part,
                                                                         self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                         self.settings["time_order"].GetInt(),
                                                                         self.settings["use_slip_conditions"].GetBool(),
                                                                         self.settings["move_mesh_flag"].GetBool(),
                                                                         self.settings["reform_dofs_at_each_step"].GetBool())
-            else
-                
+            else:
                 print("Yes am here ...................")
-                self.solver_settings = KratosCFD.FractionalStepSettings(self.computing_model_part,
+                self.solver_settings = KratosChimera.FractionalStepSettingsForChimera(self.computing_model_part,
                                                                         self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                         self.settings["time_order"].GetInt(),
                                                                         self.settings["use_slip_conditions"].GetBool(),

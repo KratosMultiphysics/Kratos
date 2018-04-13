@@ -64,7 +64,7 @@ public:
 
     enum StrategyLabel { Velocity, Pressure, /*EddyViscosity,*/ NumLabels };
 
-    enum TurbulenceModelLabel { SpalartAllmaras, NumTurbModels };
+    //enum TurbulenceModelLabel { SpalartAllmaras, NumTurbModels };
 
     ///@}
     ///@name Life Cycle
@@ -72,13 +72,13 @@ public:
 
     /// Constructor.
     SolverSettingsForChimera(ModelPart& rModelPart,
-                   const unsigned int ThisDomainSize,
-                   const unsigned int ThisTimeOrder,
+                   const std::size_t ThisDomainSize,
+                   const std::size_t ThisTimeOrder,
                    const bool UseSlip,
                    const bool MoveMeshFlag,
                    const bool ReformDofSet):
         mStrategies(),
-        mHaveTurbulenceModel(false),
+        //mHaveTurbulenceModel(false),
         mrModelPart(rModelPart),
         mDomainSize(ThisDomainSize),
         mTimeOrder(ThisTimeOrder),
@@ -118,12 +118,12 @@ public:
     virtual void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
-                             const unsigned int MaxIter) = 0;
+                             const std::size_t MaxIter) = 0;
 
-    virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
+    /* virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,
                                     const double Tolerance,
-                                    const unsigned int MaxIter) = 0;
+                                    const std::size_t MaxIter) = 0;
 
     virtual void SetTurbulenceModel(ProcessPointerType pTurbulenceModel)
     {
@@ -141,13 +141,13 @@ public:
 
         return mHaveTurbulenceModel;
     }
-
-    virtual unsigned int GetDomainSize() const
+ */
+    virtual std::size_t GetDomainSize() const
     {
         return mDomainSize;
     }
 
-    virtual unsigned int GetTimeOrder() const
+    virtual std::size_t GetTimeOrder() const
     {
         return mTimeOrder;
     }
@@ -190,9 +190,9 @@ public:
     }
 
     virtual bool FindMaxIter(StrategyLabel const& rStrategyLabel,
-                             unsigned int& rMaxIter)
+                             std::size_t& rMaxIter)
     {
-        typename std::map< StrategyLabel,unsigned int >::iterator itMaxIter = mMaxIter.find(rStrategyLabel);
+        typename std::map< StrategyLabel,std::size_t >::iterator itMaxIter = mMaxIter.find(rStrategyLabel);
         if ( itMaxIter != mMaxIter.end() )
         {
             rMaxIter = itMaxIter->second;
@@ -202,14 +202,14 @@ public:
             return false;
     }
 
-    virtual void SetEchoLevel(unsigned int EchoLevel)
+    virtual void SetEchoLevel(std::size_t EchoLevel)
     {
         mEchoLevel = EchoLevel;
         for (typename std::map< StrategyLabel, StrategyPointerType>::iterator itStrategy = mStrategies.begin(); itStrategy != mStrategies.end(); ++itStrategy)
             (itStrategy->second)->SetEchoLevel(mEchoLevel);
     }
 
-    virtual unsigned int GetEchoLevel()
+    virtual std::size_t GetEchoLevel()
     {
         return mEchoLevel;
     }
@@ -282,11 +282,11 @@ protected:
 
     std::map< StrategyLabel, double > mTolerances;
 
-    std::map< StrategyLabel, unsigned int > mMaxIter;
+    std::map< StrategyLabel, std::size_t > mMaxIter;
 
-    ProcessPointerType mpTurbulenceModel;
+    //ProcessPointerType mpTurbulenceModel;
 
-    bool mHaveTurbulenceModel;
+    //bool mHaveTurbulenceModel;
 
     ///@}
     ///@name Protected Inquiry
@@ -311,11 +311,11 @@ private:
 
     ModelPart& mrModelPart;
 
-    unsigned int mDomainSize;
+    std::size_t mDomainSize;
 
-    unsigned int mTimeOrder;
+    std::size_t mTimeOrder;
 
-    unsigned int mEchoLevel;
+    std::size_t mEchoLevel;
 
     bool mUseSlip;
 

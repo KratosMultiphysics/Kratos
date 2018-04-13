@@ -99,11 +99,11 @@ public:
     SpalartAllmarasTurbulenceModelForChimera(
         ModelPart& rModelPart,
         typename TLinearSolver::Pointer pLinearSolver,
-        unsigned int DomainSize,
+        std::size_t DomainSize,
         double NonLinearTol,
-        unsigned int MaxIter,
+        std::size_t MaxIter,
         bool ReformDofSet,
-        unsigned int TimeOrder)
+        std::size_t TimeOrder)
         : mr_model_part(rModelPart), mdomain_size(DomainSize), mtol(NonLinearTol), mmax_it(MaxIter), mtime_order(TimeOrder),madapt_for_fractional_step(false)
     {
         //************************************************************************************************
@@ -243,7 +243,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    void SetMaxIterations(unsigned int max_it)
+    void SetMaxIterations(std::size_t max_it)
     {
         KRATOS_TRY
 
@@ -355,10 +355,10 @@ protected:
 
     ModelPart& mr_model_part;
     ModelPart mspalart_model_part;
-    unsigned int mdomain_size;
+    std::size_t mdomain_size;
     double mtol;
-    unsigned int mmax_it;
-    unsigned int mtime_order;
+    std::size_t mmax_it;
+    std::size_t mtime_order;
     bool madapt_for_fractional_step;
     typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
 
@@ -449,7 +449,7 @@ private:
 
 
 
-//            unsigned int iter = 0;
+//            std::size_t iter = 0;
 //            double ratio;
 //            bool is_converged = false;
 //            double dT_norm = 0.0;

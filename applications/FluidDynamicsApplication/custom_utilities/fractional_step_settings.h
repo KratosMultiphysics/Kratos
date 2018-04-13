@@ -132,6 +132,8 @@ public:
             BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver >
                                                                                 (pLinearSolver));
 
+            std::cout<<"Test Velcoity"<<std::endl;
+
             SchemePointerType pScheme;
             //initializing fractional velocity solution step
             if (UseSlip)

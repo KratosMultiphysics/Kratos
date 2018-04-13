@@ -257,7 +257,7 @@ public:
         PointType ImageNode;
 
         // Spatial search, create new conditions with results
-        unsigned int ConditionCount = 0;
+        std::size_t ConditionCount = 0;
         for(PointVector::iterator itNode = mCandidateNodes.begin(); itNode != mCandidateNodes.end(); itNode++)
         {
             this->MoveNode(**itNode,ImageNode,MovementRef); // * for iterator + * for pointer

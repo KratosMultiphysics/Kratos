@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main author:     Sonja Schneider
@@ -162,7 +162,7 @@ namespace Kratos
 
           // Create an Array to store the border Ids
           std::vector< Node<3>::Pointer > list_of_element_nodes;
-          unsigned int nr_of_elements = background.NumberOfElements();
+          std::size_t nr_of_elements = background.NumberOfElements();
           list_of_element_nodes.reserve(nr_of_elements);
           std::vector< Condition::NodesArrayType > list_of_node_pairs; //????
           list_of_node_pairs.reserve(nr_of_elements);
@@ -213,7 +213,7 @@ namespace Kratos
           //const Condition& rReferenceCondition = KratosComponents<Condition>::Get(ConditionName);
           Properties::Pointer prop = background.ConditionsBegin()->pGetProperties();
 
-          unsigned int ConditonId = background.NumberOfConditions();
+          std::size_t ConditonId = background.NumberOfConditions();
           for (int i=0 ; i< size_of_list ;i++)
           {
               Condition::Pointer pCondition = rReferenceCondition.Create(++ConditonId,list_of_node_pairs[i],prop);
@@ -286,7 +286,7 @@ namespace Kratos
                                }
 
                       }
-                      
+
   */
 
                       int size = geom.size();
@@ -301,8 +301,8 @@ namespace Kratos
 
                       }
 
-                      
-                      
+
+
                   }
 
                 //*******************************************************************
@@ -336,12 +336,12 @@ namespace Kratos
                 //finishing calculating time of construction of the kdtree
 
                 //create a spatial database with the list of new nodes
-                unsigned int bucket_size = 20;
+                std::size_t bucket_size = 20;
                 tree nodes_tree(list_of_new_nodes.begin(),list_of_new_nodes.end(),bucket_size);
 
                 //work arrays
                 Node<3> work_point(0,0.0,0.0,0.0);
-                unsigned int MaximumNumberOfResults = 10000;
+                std::size_t MaximumNumberOfResults = 10000;
                 PointVector Results(MaximumNumberOfResults);
                 DistanceVector ResultsDistances(MaximumNumberOfResults);
 
@@ -439,7 +439,7 @@ namespace Kratos
 
                 // Mark the boundary faces with a flag interface
                 // Get the connectivity of the face
-                unsigned int FaceTotal = 0;
+                std::size_t FaceTotal = 0;
                 for(ModelPart::ConditionIterator itCond = rDestination_ModelPart.ConditionsBegin(); itCond != rDestination_ModelPart.ConditionsEnd(); itCond++)
                 {
                     //getting the connectivity of the face
@@ -475,7 +475,7 @@ namespace Kratos
                         // Obtain integration points on the condition
                         Geometry< Node<3> >& rGeom = itCond->GetGeometry();
                         const GeometryData::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(itCond->GetIntegrationMethod());
-                        const unsigned int NumGauss = IntegrationPoints.size();
+                        const std::size_t NumGauss = IntegrationPoints.size();
                         Matrix NCond = rGeom.ShapeFunctionsValues(itCond->GetIntegrationMethod());
 
                         // Calculate elemental normal
@@ -484,13 +484,13 @@ namespace Kratos
 
                         // Normalizing the Normals
                         double length = 0.0;
-                        for(unsigned int i=0;i<TDim;i++)
+                        for(std::size_t i=0;i<TDim;i++)
                         {
                             length = length + Normal[i]*Normal[i];
                         }
                         length = sqrt(length);
 
-                        for(unsigned int i=0;i<TDim;i++)
+                        for(std::size_t i=0;i<TDim;i++)
                         {
                             Normal[i] = Normal[i]/length;
                         }
@@ -502,11 +502,11 @@ namespace Kratos
 
                         double FluxAtGaussPoint;
                         bool Found = false;
-                        for (unsigned int g = 0; g < NumGauss; g++)
+                        for (std::size_t g = 0; g < NumGauss; g++)
                         {
                             // Obtain coordinates of integration point
                             array_1d<double,3> Coordinates(3,0.0);
-                            for (unsigned int i = 0; i < rGeom.PointsNumber(); i++)
+                            for (std::size_t i = 0; i < rGeom.PointsNumber(); i++)
                                 Coordinates += NCond(g,i)*rGeom[i].Coordinates();
 
                             //KRATOS_WATCH(Coordinates)
@@ -532,7 +532,7 @@ namespace Kratos
 
 
                         itCond->GetValueOnIntegrationPoints(flux,OldValue,rProcessInfo);
-                        for (unsigned int g = 0; g < NumGauss; g++)
+                        for (std::size_t g = 0; g < NumGauss; g++)
                         {
                             InterpolatedValue[g] = Omega * InterpolatedValue[g] + (1.0-Omega) * OldValue[g];
                         }
@@ -635,12 +635,12 @@ namespace Kratos
                       //finishing calculating time of construction of the kdtree
 
                       //create a spatial database with the list of new nodes
-                      unsigned int bucket_size = 20;
+                      std::size_t bucket_size = 20;
                       tree nodes_tree(list_of_new_nodes.begin(),list_of_new_nodes.end(),bucket_size);
 
                       //work arrays
                       Node<3> work_point(0,0.0,0.0,0.0);
-                      unsigned int MaximumNumberOfResults = 10000;
+                      std::size_t MaximumNumberOfResults = 10000;
                       PointVector Results(MaximumNumberOfResults);
                       DistanceVector ResultsDistances(MaximumNumberOfResults);
 
@@ -781,7 +781,7 @@ namespace Kratos
                         // Obtain integration points on the condition
                         Geometry< Node<3> >& rGeom = itCond->GetGeometry();
                         const GeometryData::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(itCond->GetIntegrationMethod());
-                        const unsigned int NumGauss = IntegrationPoints.size();
+                        const std::size_t NumGauss = IntegrationPoints.size();
                         Matrix NCond = rGeom.ShapeFunctionsValues(itCond->GetIntegrationMethod());
 
                         // Calculate elemental normal
@@ -790,13 +790,13 @@ namespace Kratos
 
                         // Normalizing the Normals
                         double length = 0.0;
-                        for(unsigned int i=0;i<TDim;i++)
+                        for(std::size_t i=0;i<TDim;i++)
                         {
                             length = length + Normal[i]*Normal[i];
                         }
                         length = sqrt(length);
 
-                        for(unsigned int i=0;i<TDim;i++)
+                        for(std::size_t i=0;i<TDim;i++)
                         {
                             Normal[i] = Normal[i]/length;
                         }
@@ -804,11 +804,11 @@ namespace Kratos
                         std::vector<array_1d<double, 3 > > InterpolatedValues;
                         array_1d<double,3> traction_result(3,0.0);
                         bool Found = false;
-                        for (unsigned int g = 0; g < NumGauss; g++)
+                        for (std::size_t g = 0; g < NumGauss; g++)
                         {
                             // Obtain coordinates of integration point
                             array_1d<double,3> Coordinates(3,0.0);
-                            for (unsigned int i = 0; i < rGeom.PointsNumber(); i++)
+                            for (std::size_t i = 0; i < rGeom.PointsNumber(); i++)
                                 Coordinates += NCond(g,i)*rGeom[i].Coordinates();
 
                             // Find element containing the integration point
@@ -828,7 +828,7 @@ namespace Kratos
                         std::vector< array_1d<double,3> > OldValues;
                         //itCond->GetValueOnIntegrationPoints(traction,OldValues,rProcessInfo);
                         itCond->GetValueOnIntegrationPoints(traction,OldValues,rProcessInfo);
-                        for (unsigned int g = 0; g < NumGauss; g++)
+                        for (std::size_t g = 0; g < NumGauss; g++)
                         {
                             InterpolatedValues[g] = Omega * InterpolatedValues[g] + (1.0-Omega) * OldValues[g];
                         }
@@ -836,7 +836,7 @@ namespace Kratos
                         // Store results on condition
                         itCond->SetValueOnIntegrationPoints(traction,InterpolatedValues,rProcessInfo);
 /* The following can be used to apply Dirchlet BC on the inflow and Neumann on the outflow
-                        for (unsigned int n = 0; n < rGeom.size(); n++)
+                        for (std::size_t n = 0; n < rGeom.size(); n++)
                         {
                             const array_1d<double,3>& Coordinates = rGeom[n].Coordinates();
                             Element::Pointer pElem;
@@ -851,12 +851,12 @@ namespace Kratos
                                 //getting the data of the solution step
 //                                array_1d<double,3>& step_data = rGeom[n].FastGetSolutionStepValue(VELOCITY); // Corresponds to vx
 //                                step_data = NElem[0] * ElemGeom[0].FastGetSolutionStepValue(VELOCITY);
-//                                for (unsigned int i = 1; i < ElemGeom.size(); i++)
+//                                for (std::size_t i = 1; i < ElemGeom.size(); i++)
 //                                    step_data += NElem[i] * ElemGeom[i].FastGetSolutionStepValue(VELOCITY);
 
 
                                 array_1d<double,3> step_data = NElem[0] * ElemGeom[0].FastGetSolutionStepValue(VELOCITY);
-                                for (unsigned int i = 1; i < ElemGeom.size(); i++)
+                                for (std::size_t i = 1; i < ElemGeom.size(); i++)
                                     step_data += NElem[i] * ElemGeom[i].FastGetSolutionStepValue(VELOCITY);
 
                                 rGeom[n].FastGetSolutionStepValue(VELOCITY) = step_data;
@@ -951,7 +951,7 @@ namespace Kratos
                         // Obtain integration points on the condition
                         Geometry< Node<3> >& rGeom = itCond->GetGeometry();
                         const GeometryData::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(itCond->GetIntegrationMethod());
-                        const unsigned int NumGauss = IntegrationPoints.size();
+                        const std::size_t NumGauss = IntegrationPoints.size();
                         Matrix NCond = rGeom.ShapeFunctionsValues(itCond->GetIntegrationMethod());
 
                         // Calculate elemental normal
@@ -960,13 +960,13 @@ namespace Kratos
 
                         // Normalizing the Normals
                         double length = 0.0;
-                        for(unsigned int i=0;i<TDim;i++)
+                        for(std::size_t i=0;i<TDim;i++)
                         {
                             length = length + Normal[i]*Normal[i];
                         }
                         length = sqrt(length);
 
-                        for(unsigned int i=0;i<TDim;i++)
+                        for(std::size_t i=0;i<TDim;i++)
                         {
                             Normal[i] = Normal[i]/length;
                         }
@@ -974,11 +974,11 @@ namespace Kratos
                         std::vector<array_1d<double, 3 > > InterpolatedValues;
                         array_1d<double,3> traction_result(3,0.0);
                         bool Found = false;
-                        for (unsigned int g = 0; g < NumGauss; g++)
+                        for (std::size_t g = 0; g < NumGauss; g++)
                         {
                             // Obtain coordinates of integration point
                             array_1d<double,3> Coordinates(3,0.0);
-                            for (unsigned int i = 0; i < rGeom.PointsNumber(); i++)
+                            for (std::size_t i = 0; i < rGeom.PointsNumber(); i++)
                                 Coordinates += NCond(g,i)*rGeom[i].Coordinates();
 
                             // Find element containing the integration point
@@ -998,7 +998,7 @@ namespace Kratos
                         std::vector< array_1d<double,3> > OldValues;
                         //itCond->GetValueOnIntegrationPoints(traction,OldValues,rProcessInfo);
                         itCond->GetValueOnIntegrationPoints(traction,OldValues,rProcessInfo);
-                        for (unsigned int g = 0; g < NumGauss; g++)
+                        for (std::size_t g = 0; g < NumGauss; g++)
                         {
                             InterpolatedValues[g] = Omega * InterpolatedValues[g] + (1.0-Omega) * OldValues[g];
                         }
@@ -1006,7 +1006,7 @@ namespace Kratos
                         // Store results on condition
                         itCond->SetValueOnIntegrationPoints(traction,InterpolatedValues,rProcessInfo);
 // The following can be used to apply Dirchlet BC on the inflow and Neumann on the outflow
-                        for (unsigned int n = 0; n < rGeom.size(); n++)
+                        for (std::size_t n = 0; n < rGeom.size(); n++)
                         {
                             const array_1d<double,3>& Coordinates = rGeom[n].Coordinates();
                             Element::Pointer pElem;
@@ -1021,12 +1021,12 @@ namespace Kratos
                                 //getting the data of the solution step
 //                                array_1d<double,3>& step_data = rGeom[n].FastGetSolutionStepValue(VELOCITY); // Corresponds to vx
 //                                step_data = NElem[0] * ElemGeom[0].FastGetSolutionStepValue(VELOCITY);
-//                                for (unsigned int i = 1; i < ElemGeom.size(); i++)
+//                                for (std::size_t i = 1; i < ElemGeom.size(); i++)
 //                                    step_data += NElem[i] * ElemGeom[i].FastGetSolutionStepValue(VELOCITY);
 
 
                                 array_1d<double,3> step_data = NElem[0] * ElemGeom[0].FastGetSolutionStepValue(VELOCITY);
-                                for (unsigned int i = 1; i < ElemGeom.size(); i++)
+                                for (std::size_t i = 1; i < ElemGeom.size(); i++)
                                     step_data += NElem[i] * ElemGeom[i].FastGetSolutionStepValue(VELOCITY);
 
                                 rGeom[n].FastGetSolutionStepValue(VELOCITY) = step_data;
@@ -1136,12 +1136,12 @@ namespace Kratos
           //finishing calculating time of construction of the kdtree
 
           //create a spatial database with the list of new nodes
-          unsigned int bucket_size = 20;
+          std::size_t bucket_size = 20;
           tree nodes_tree(list_of_new_nodes.begin(),list_of_new_nodes.end(),bucket_size);
 
           //work arrays
           Node<3> work_point(0,0.0,0.0,0.0);
-          unsigned int MaximumNumberOfResults = 10000;
+          std::size_t MaximumNumberOfResults = 10000;
           PointVector Results(MaximumNumberOfResults);
           DistanceVector ResultsDistances(MaximumNumberOfResults);
           array_1d<double,TDim+1> N; //Shape functions vector//
@@ -1543,9 +1543,9 @@ namespace Kratos
               //Geometry element of the rOrigin_ModelPart
               Geometry< Node<3> >& geom = el_it->GetGeometry();
 
-              unsigned int buffer_size = pnode->GetBufferSize();
+              std::size_t buffer_size = pnode->GetBufferSize();
 
-              for(unsigned int step = 0; step<buffer_size; step++)
+              for(std::size_t step = 0; step<buffer_size; step++)
               {
                   //getting the data of the solution step
                   array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable , step);
@@ -1555,7 +1555,7 @@ namespace Kratos
                   const array_1d<double,3>& node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable , step);
 
                   //copying this data in the position of the vector we are interested in
-                  for(unsigned int j= 0; j< TDim; j++)
+                  for(std::size_t j= 0; j< TDim; j++)
                   {
                       step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
                   }
@@ -1577,9 +1577,9 @@ namespace Kratos
               //Geometry element of the rOrigin_ModelPart
               Geometry< Node<3> >& geom = el_it->GetGeometry();
 
-              unsigned int buffer_size = pnode->GetBufferSize();
+              std::size_t buffer_size = pnode->GetBufferSize();
               //facendo un loop sugli step temporali step_data come salva i dati al passo anteriore? Cioś dove passiamo l'informazione ai nodi???
-              for(unsigned int step = 0; step<buffer_size; step++)
+              for(std::size_t step = 0; step<buffer_size; step++)
               {
                   //getting the data of the solution step
                   double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable , step);
@@ -1608,13 +1608,13 @@ namespace Kratos
               //Geometry element of the rOrigin_ModelPart
               Geometry< Node<3> >& geom = el_it->GetGeometry();
 
-              unsigned int buffer_size = pnode->GetBufferSize();
-              for(unsigned int step = 0; step<buffer_size; step++)
+              std::size_t buffer_size = pnode->GetBufferSize();
+              for(std::size_t step = 0; step<buffer_size; step++)
               {
                   //getting the data of the solution step
                   TDataType& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable , step); // Corresponds to vx
                   step_data *= (1.0-Omega);
-                  for (unsigned int i = 0; i < N.size(); i++)
+                  for (std::size_t i = 0; i < N.size(); i++)
                       step_data += Omega * N[i] * geom[i].FastGetSolutionStepValue(rOriginVariable , step);
               }
           }
@@ -1665,7 +1665,7 @@ namespace Kratos
 
               //copying this data in the position of the vector we are interested in
               //array_1d<double,TDim> Gradient;
-              for(unsigned int i=0; i<TDim; i++)
+              for(std::size_t i=0; i<TDim; i++)
               {
                   for(int j=0; j<NumNodes; j++)
                   {
@@ -1714,7 +1714,7 @@ namespace Kratos
 
               //copying this data in the position of the vector we are interested in
               //array_1d<double,TDim> Gradient;
-              for(unsigned int i=0; i<TDim; i++)
+              for(std::size_t i=0; i<TDim; i++)
               {
                   for(int j=0; j<NumNodes; j++)
                   {
@@ -1722,7 +1722,7 @@ namespace Kratos
                   }
               }
 
-              for(unsigned int i=0; i<TDim; i++)
+              for(std::size_t i=0; i<TDim; i++)
               {
                   flux += Gradient[i]*Normal[i];
               }
@@ -1888,8 +1888,8 @@ namespace Kratos
                   // Velocities vx of the nodes of the triangles
                   const array_1d<double,3> & v_node = geom[n].FastGetSolutionStepValue(velocity);
                   //KRATOS_WATCH(v_node)
-                  for (unsigned int i = 0; i < TDim; i++)
-                      for (unsigned int j = 0; j < TDim; j++)
+                  for (std::size_t i = 0; i < TDim; i++)
+                      for (std::size_t j = 0; j < TDim; j++)
                           Gradient(i,j) += DNDX(n,j)*v_node[i];
               }
 
@@ -1901,7 +1901,7 @@ namespace Kratos
 
               // Multiplication of the interpolated pressure value with the normal vector
               array_1d<double,3> press_norm(3,0.0);
-              for(unsigned int i=0; i<TDim; i++)
+              for(std::size_t i=0; i<TDim; i++)
               {
                   press_norm[i] = pressure * Normal[i];
               }
@@ -1919,9 +1919,9 @@ namespace Kratos
 
               // Multiplication with symmetric velocity gradient with normals and coefficient nu
               array_1d<double,3> vel_norm(3,0.0);
-              for(unsigned int i=0; i<TDim; i++)
+              for(std::size_t i=0; i<TDim; i++)
               {
-                  for(unsigned int j=0;j<TDim;j++)
+                  for(std::size_t j=0;j<TDim;j++)
                   {
                       vel_norm[i] = vel_norm[i] + matrix_der_sym(i,j) * Normal[j];
                   }
@@ -1929,7 +1929,7 @@ namespace Kratos
 
               // Calculate the traction forces
 
-              for(unsigned int i=0; i<TDim; i++)
+              for(std::size_t i=0; i<TDim; i++)
               {
                   traction[i] = -press_norm[i] + viscosity * density * vel_norm[i];
               }
@@ -1941,7 +1941,7 @@ namespace Kratos
               }
 
               double prod = 0.0;
-              for (unsigned int d = 0; d < TDim; d++)
+              for (std::size_t d = 0; d < TDim; d++)
                   prod += Normal[d]*Vgauss[d];
 
               traction -= 0.5*density*prod*Vgauss;
@@ -1954,9 +1954,9 @@ namespace Kratos
 
       inline void Clear(ModelPart::NodesContainerType::iterator node_it,  int step_data_size )
           {
-              unsigned int buffer_size = node_it->GetBufferSize();
+              std::size_t buffer_size = node_it->GetBufferSize();
 
-              for(unsigned int step = 0; step<buffer_size; step++)
+              for(std::size_t step = 0; step<buffer_size; step++)
               {
                   //getting the data of the solution step
                   double* step_data = (node_it)->SolutionStepData().Data(step);

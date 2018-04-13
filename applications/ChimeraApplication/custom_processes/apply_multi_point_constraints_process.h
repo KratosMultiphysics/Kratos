@@ -46,7 +46,7 @@ class ApplyMultipointConstraintsProcess : public Process
     typedef MpcData::VariableComponentType VariableComponentType;
     typedef ProcessInfo ProcessInfoType;
     typedef ProcessInfo::Pointer ProcessInfoPointerType;
-    typedef unsigned int IndexType;
+    typedef std::size_t IndexType;
     typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
     typedef MpcData::VariableType VariableType;
     typedef ModelPart::NodeIterator NodeIterator;
@@ -60,10 +60,10 @@ class ApplyMultipointConstraintsProcess : public Process
             {
                 "constraint_set_name":"default",
                 "master_sub_model_part_name":"default_master",
-                "slave_sub_model_part_name":"default_slave",                
+                "slave_sub_model_part_name":"default_slave",
                 "variable_names":[""],
                 "interpolation_type":"nearest_node",
-                "reform_every_step":false   
+                "reform_every_step":false
             }  )");
 
         ProcessInfoPointerType info = mr_model_part.pGetProcessInfo();
@@ -107,9 +107,9 @@ class ApplyMultipointConstraintsProcess : public Process
 
     /**
 		Applies the MPC condition using two nodes, one as master and other as slave, and with the given weight
-		@arg MasterNode 
-        @arg MasterVariable 
-        @arg SlaveNode 
+		@arg MasterNode
+        @arg MasterVariable
+        @arg SlaveNode
         @arg SlaveVariable
         @arg weight
 		*/
@@ -153,8 +153,8 @@ class ApplyMultipointConstraintsProcess : public Process
     // Default functions
     /**
 		Applies the MPC condition using DOFs, one as master and other as slave, and with the given weight
-		@arg slaveDOF 
-        @arg masterDOF 
+		@arg slaveDOF
+        @arg masterDOF
         @arg weight
 		*/
     void AddMasterSlaveRelationWithDofs(DofType slaveDOF, DofType masterDOF, double masterWeight, double constant = 0.0)
