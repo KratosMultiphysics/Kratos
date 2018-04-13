@@ -1,15 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ilaria Iaconeta
 //
 //
 
 // System includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <cstring>
 
 // External includes
@@ -38,14 +40,14 @@ namespace Kratos
 
   namespace Python
   {
-    using namespace boost::python;
+    using namespace pybind11;
 
     typedef Condition                            ConditionBaseType;
     typedef Geometry<Node<3> >                        GeometryType;
     typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
     typedef GeometryType::PointsArrayType           NodesArrayType;
 
-    void  AddCustomConditionsToPython()
+    void  AddCustomConditionsToPython(pybind11::module& m)
     {
 
     }

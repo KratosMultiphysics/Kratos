@@ -57,12 +57,12 @@ class dummy {
                 const params& = params(),
                 const backend_params &bprm = backend_params()
                 )
-            : A(Backend::copy_matrix(boost::make_shared<build_matrix>(M), bprm))
+            : A(Backend::copy_matrix(std::make_shared<build_matrix>(M), bprm))
         {
         }
 
         dummy(
-                boost::shared_ptr<build_matrix> M,
+                std::shared_ptr<build_matrix> M,
                 const params& = params(),
                 const backend_params &bprm = backend_params()
                 )
@@ -87,7 +87,7 @@ class dummy {
             return *A;
         }
     private:
-        boost::shared_ptr<matrix>   A;
+        std::shared_ptr<matrix>   A;
 
         friend std::ostream& operator<<(std::ostream &os, const dummy &p) {
             os << "identity matrix as preconditioner" << std::endl;

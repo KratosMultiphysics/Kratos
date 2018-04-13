@@ -12,6 +12,7 @@
 // Kratos includes
 #include "includes/define.h"
 #include "spaces/ublas_space.h"
+#include "spatial_containers/search_structure.h"
 
 // Project includes
 #include "fd_application.h"

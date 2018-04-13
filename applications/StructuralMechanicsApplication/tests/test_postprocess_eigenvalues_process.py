@@ -46,6 +46,7 @@ def GetEigenVectorMatrix(num_eigenvalues, node_id):
 class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
     def tearDown(self):
         kratos_utils.DeleteFileIfExisting("Structure_EigenResults_0.post.msh")
+        kratos_utils.DeleteFileIfExisting("Structure_EigenResults_0.post.res") # usually this is deleted by the check process but not if it fails
 
 
     def test_PostprocessEigenvaluesProcess(self):

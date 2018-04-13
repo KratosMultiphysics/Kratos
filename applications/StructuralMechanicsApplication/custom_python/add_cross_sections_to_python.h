@@ -12,6 +12,7 @@
 #if !defined(ADD_CROSS_SECTIONS_TO_PYTHON_H_INCLUDED)
 #define ADD_CROSS_SECTIONS_TO_PYTHON_H_INCLUDED
 
+#include <pybind11/pybind11.h>
 
 namespace Kratos
 {
@@ -19,7 +20,7 @@ namespace Kratos
 namespace Python
 {
 
-void AddCrossSectionsToPython();
+void AddCrossSectionsToPython(pybind11::module& m);
 
 }
 
