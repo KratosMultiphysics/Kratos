@@ -269,12 +269,12 @@ public:
     {
         KRATOS_TRY;
 
-        LocalSystemVectorType RHS_Contribution;
+        LocalSystemVectorType RHS_contribution;
 
-        RHS_Contribution.resize(rLHS_Contribution.size1(), false);
+        RHS_contribution.resize(rLHS_Contribution.size1(), false);
 
         CalculateSystemContributions(
-            pCurrentElement, rLHS_Contribution, RHS_Contribution, rEquationId, rCurrentProcessInfo);
+            pCurrentElement, rLHS_Contribution, RHS_contribution, rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
@@ -316,12 +316,12 @@ public:
                                                ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
-        LocalSystemVectorType RHS_Contribution;
+        LocalSystemVectorType RHS_contribution;
 
-        RHS_Contribution.resize(rLHS_Contribution.size1(), false);
+        RHS_contribution.resize(rLHS_Contribution.size1(), false);
 
         Condition_CalculateSystemContributions(
-             pCurrentCondition, rLHS_Contribution, RHS_Contribution, rEquationId, rCurrentProcessInfo);
+             pCurrentCondition, rLHS_Contribution, RHS_contribution, rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
