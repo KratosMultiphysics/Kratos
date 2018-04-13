@@ -119,7 +119,7 @@ void UniformRefineUtility<TDim>::Refine()
 
 /// Execute the refinement once
 template< unsigned int TDim>
-void UniformRefineUtility<TDim>::RefineLevel(const int& ThisLevel)
+void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
 {
     // Initialize the entities Id lists
     std::vector<int> elements_id;
@@ -131,7 +131,11 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& ThisLevel)
     for (int i = 0; i < n_elements; i++)
     {
         ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
-        elements_id.push_back(ielement->Id());
+
+        // Check the refinement level of the origin elements
+        int step_refine_level = ielement->GetValue(REFINEMENT_LEVEL);
+        if (step_refine_level == rThisLevel)
+            elements_id.push_back(ielement->Id());
     }
 
     // Get the conditions id
@@ -139,7 +143,11 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& ThisLevel)
     for (int i = 0; i < n_conditions; i++)
     {
         ModelPart::ConditionsContainerType::iterator icondition = mrModelPart.ConditionsBegin() + i;
-        conditions_id.push_back(icondition->Id());
+
+        // Check the refinement level of the origin conditions
+        int step_refine_level = icondition->GetValue(REFINEMENT_LEVEL);
+        if (step_refine_level == rThisLevel)
+            conditions_id.push_back(icondition->Id());
     }
 
     // Loop the origin elements. Get the middle node on each edge and create the nodes
@@ -148,65 +156,61 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& ThisLevel)
         // Get the element
         Element::Pointer p_element = mrModelPart.Elements()(id);
 
-        // Check the refinement level of the origin element
-        int step_refine_level = p_element->GetValue(REFINEMENT_LEVEL);
-        if (step_refine_level == ThisLevel)
+        // Get the refinement level of the origin element
+        int step_refine_level = rThisLevel + 1;
+
+        // Get the geometry
+        Geometry<NodeType>& geom = p_element->GetGeometry();
+
+        if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
         {
-            step_refine_level++;
-            // Get the geometry
-            Geometry<NodeType>& geom = p_element->GetGeometry();
+            // FIRST: Create the nodes
+            // Loop the edges of the father element and get the nodes
+            std::array<NodeType::Pointer, 3> middle_nodes;
+            middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
+            middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
+            middle_nodes[2] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(2), step_refine_level );
 
-            if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
+            // SECOND: create the sub elements
+            std::vector<NodeType::Pointer> sub_element_nodes(3);
+
+            for (int position = 0; position < 4; position++)
             {
-                // FIRST: Create the nodes
-                // Loop the edges of the father element and get the nodes
-                std::array<NodeType::Pointer, 3> middle_nodes;
-                middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
-                middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
-                middle_nodes[2] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(2), step_refine_level );
-
-                // SECOND: create the sub elements
-                std::vector<NodeType::Pointer> sub_element_nodes(3);
-
-                for (int position = 0; position < 4; position++)
-                {
-                    sub_element_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
-                    CreateElement(p_element, sub_element_nodes, step_refine_level);
-                }
+                sub_element_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
+                CreateElement(p_element, sub_element_nodes, step_refine_level);
             }
-            else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
-            {
-                // FIRST: Create the nodes
-                // Loop the edges of the father element and get the nodes
-                std::array<NodeType::Pointer, 5> middle_nodes;
-                middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
-                middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
-                middle_nodes[2] = GetNodeBetween( geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
-                middle_nodes[3] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(3), step_refine_level );
-                middle_nodes[4] = GetNodeInFace( geom.pGetPoint(0), geom.pGetPoint(1), geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
-
-                // SECOND: create the sub elements
-                std::vector<NodeType::Pointer> sub_element_nodes(4);
-
-                for (int position = 0; position < 4; position++)
-                {
-                    sub_element_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
-                    CreateElement(p_element, sub_element_nodes, step_refine_level);
-                }
-
-            }
-            else
-            {
-                KRATOS_WARNING("UniformRefineUtility") << "WARNING: YOUR GEOMETRY CONTAINS " << geom.PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
-            }
-            // Encontrar el lugar para ejecutar SubModelPartsColors
-
-            // Once we have created all the sub elements
-            p_element->Set(TO_ERASE, true);
-            //mrModelPart.RemoveElement(id);
         }
+        else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
+        {
+            // FIRST: Create the nodes
+            // Loop the edges of the father element and get the nodes
+            std::array<NodeType::Pointer, 5> middle_nodes;
+            middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
+            middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
+            middle_nodes[2] = GetNodeBetween( geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
+            middle_nodes[3] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(3), step_refine_level );
+            middle_nodes[4] = GetNodeInFace( geom.pGetPoint(0), geom.pGetPoint(1), geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
+
+            // SECOND: create the sub elements
+            std::vector<NodeType::Pointer> sub_element_nodes(4);
+
+            for (int position = 0; position < 4; position++)
+            {
+                sub_element_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
+                CreateElement(p_element, sub_element_nodes, step_refine_level);
+            }
+
+        }
+        else
+        {
+            KRATOS_WARNING("UniformRefineUtility") << "WARNING: YOUR GEOMETRY CONTAINS " << geom.PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+        }
+        // Encontrar el lugar para ejecutar SubModelPartsColors
+
+        // Once we have created all the sub elements
+        p_element->Set(TO_ERASE, true);
     }
-    mrModelPart.RemoveElements(TO_ERASE);
+    
     mrModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
     // Loop the origin conditions
@@ -216,14 +220,11 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& ThisLevel)
         Condition::Pointer p_condition = mrModelPart.Conditions()(id);
 
         // Check the refinement level of the origin condition
-        int step_refine_level = p_condition->GetValue(REFINEMENT_LEVEL);
-        if (step_refine_level == ThisLevel)
-        {
-            // THIRD: Create the conditions
+        int step_refine_level = rThisLevel + 1;
+        // THIRD: Create the conditions
 
-            /* Do some stuff here */
+        /* Do some stuff here */
 
-        }
     }
 
 }
