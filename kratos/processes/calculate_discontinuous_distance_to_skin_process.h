@@ -143,11 +143,22 @@ namespace Kratos
       const Element::NodeType& rEdgePoint2, 
       Point& rIntersectionPoint);
 
+    void ComputeIntersectionNormal(
+      Element::GeometryType& rGeometry,
+      const Vector& rElementalDistances,
+      array_1d<double,3> &rNormal);
+
     void ComputePlaneApproximation(
       const Element& rElement1,
       const std::vector< array_1d<double,3> >& rPointsCoord,
       array_1d<double,3>& rPlaneBasePointCoords,
       array_1d<double,3>& rPlaneNormal);
+
+    void CorrectDistanceOrientation(
+      Element::GeometryType& rGeometry,
+      const PointerVector<GeometricalObject>& rIntersectedObjects,
+      Vector& rElementalDistances
+    );
 
       ///@}
 

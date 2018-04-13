@@ -148,28 +148,31 @@ namespace Kratos
 			// If there are more than 3 intersected edges, compute the least squares plane approximation
 			// by using the ComputePlaneApproximation utility. Otherwise, the distance is computed using
 			// the plane defined by the 3 intersection points.
-			const bool do_plane_approx = (n_cut_edges == rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
+			auto &r_geometry = rElement1.GetGeometry();
+			const bool do_plane_approx = (n_cut_edges == r_geometry.WorkingSpaceDimension()) ? false : true;
 
 			if (do_plane_approx){
 				// Call the plane optimization utility
 				array_1d<double,3> base_pt, normal;
-				std::vector<array_1d <double,3> > approx_pts;
-				approx_pts.insert(approx_pts.end(), int_pts_vector.begin(), int_pts_vector.end());
-				// approx_pts.insert(approx_pts.end(), comp_pts_vector.begin(), comp_pts_vector.end());
-				ComputePlaneApproximation(rElement1, approx_pts, base_pt, normal);
+				ComputePlaneApproximation(rElement1, int_pts_vector, base_pt, normal);
+
 				// Compute the distance to the approximation plane
 				Plane3D approximation_plane(normal, base_pt);
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
-					elemental_distances[i] = approximation_plane.CalculateSignedDistance(rElement1.GetGeometry()[i]);
+					elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
 				}
 			} else {
 				// Create a plane with the 3 intersection points
 				Plane3D plane(int_pts_vector[0], int_pts_vector[1], int_pts_vector[2]);
+
 				// Compute the distance to the intersection plane
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
-					elemental_distances[i] = plane.CalculateSignedDistance(rElement1.GetGeometry()[i]);
+					elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
 				}
 			}
+
+			// Correct the distance values orientation
+			CorrectDistanceOrientation(r_geometry, rIntersectedObjects, elemental_distances);
 		}
 
 		// Check if the element is split and set the TO_SPLIT flag accordingly
@@ -228,7 +231,7 @@ namespace Kratos
 			for (const auto &r_int_obj : rIntersectedObjects){
 				// Call the compute intersection method
 				Point int_pt;
-				auto &r_int_obj_geom = r_int_obj.GetGeometry();
+				const auto &r_int_obj_geom = r_int_obj.GetGeometry();
 				const int int_id = ComputeEdgeIntersection(r_int_obj_geom, r_edges_container[i_edge][0], r_edges_container[i_edge][1], int_pt);
 				
 				// There is intersection
@@ -291,6 +294,25 @@ namespace Kratos
 		return intersection_flag;
 	}
 
+	void CalculateDiscontinuousDistanceToSkinProcess::ComputeIntersectionNormal(
+		Element::GeometryType& rGeometry,
+		const Vector& rElementalDistances,
+		array_1d<double,3>& rNormal){
+
+		double volume;
+		array_1d<double,4> N;
+		bounded_matrix<double,4,3> DN_DX;
+		GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, volume);
+
+		rNormal = ZeroVector(3);
+		for (std::size_t comp = 0; comp < 3; ++comp){
+			for (std::size_t i_node = 0; i_node < rGeometry.PointsNumber(); ++i_node){
+				rNormal(comp) += DN_DX(i_node,comp)*rElementalDistances[i_node];
+			}
+		}
+		rNormal /= norm_2(rNormal);		
+	}
+
 	void CalculateDiscontinuousDistanceToSkinProcess::ComputePlaneApproximation(
 		const Element& rElement1, 
 		const std::vector< array_1d<double,3> >& rPointsCoord,
@@ -306,4 +328,40 @@ namespace Kratos
 			KRATOS_ERROR << "Working space dimension value equal to " << work_dim << ". Check your skin geometry implementation." << std::endl;
 		}
 	}
+
+	void CalculateDiscontinuousDistanceToSkinProcess::CorrectDistanceOrientation(
+		Element::GeometryType& rGeometry,
+		const PointerVector<GeometricalObject>& rIntersectedObjects,
+		Vector& rElementalDistances){
+
+		// Check the obtained intersection orientation (normal as distance gradient)
+		array_1d<double,3> distance_normal;
+		ComputeIntersectionNormal(rGeometry, rElementalDistances, distance_normal);
+
+		// Vote the intersection orientation using the intersecting entities normals
+		unsigned int n_pos = 0;
+		unsigned int n_neg = 0;
+
+		for (const auto &r_int_obj : rIntersectedObjects){
+			const auto &r_int_obj_geom = r_int_obj.GetGeometry();
+
+			array_1d<double, 3> r_int_obj_normal;
+			MathUtils<double>::CrossProduct(r_int_obj_normal, r_int_obj_geom[1]-r_int_obj_geom[0], r_int_obj_geom[2]-r_int_obj_geom[0]);
+			r_int_obj_normal /= norm_2(r_int_obj_normal);
+			
+			if (inner_prod(r_int_obj_normal, distance_normal) < 0.0){
+				n_neg++;
+			} else {
+				n_pos++;
+			}
+		}
+
+		// Negative votes win. Switch the distance values
+		if (n_neg > n_pos){
+			for (std::size_t i_node = 0; i_node < 4; ++i_node){
+				rElementalDistances[i_node] *= -1.0;
+			}
+		}
+	}
+
 }  // namespace Kratos.
