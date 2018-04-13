@@ -387,10 +387,10 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<doub
     // define working variables
 	Vector RHS_undist;
 	Vector RHS_dist;
-	ProcessInfo testProcessInfo = rCurrentProcessInfo;
+	ProcessInfo copy_process_info = rCurrentProcessInfo;
 
     // Compute RHS before disturbing
-	this->CalculateRightHandSide(RHS_undist, testProcessInfo); 
+	this->CalculateRightHandSide(RHS_undist, copy_process_info); 
     rOutput.resize(1,RHS_undist.size());
 
     // Get disturbance measure
@@ -416,7 +416,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<doub
         ShellThinElement3D3N::Initialize();
 
 		// Compute RHS after disturbance
-		this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
+		this->CalculateRightHandSide(RHS_dist, copy_process_info); 
 
 		// Compute derivative of RHS w.r.t. design variable with finite differences
 		RHS_dist -= RHS_undist;
@@ -428,7 +428,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<doub
         this->SetProperties(p_global_properties);
         ShellThinElement3D3N::ResetSections();
         ShellThinElement3D3N::Initialize();
-        this->CalculateRightHandSide(RHS_dist, testProcessInfo);   	
+        this->CalculateRightHandSide(RHS_dist, copy_process_info);   	
 	}
     else
         rOutput.clear();
@@ -445,7 +445,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
 		// define working variables
 		Vector RHS_undist;
 		Vector RHS_dist;
-		ProcessInfo testProcessInfo = rCurrentProcessInfo;
+		ProcessInfo copy_process_info = rCurrentProcessInfo;
 
 		// Get disturbance measure
         double delta= this->GetValue(DISTURBANCE_MEASURE); 	
@@ -461,7 +461,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
 			rOutput.resize(dimension * number_of_nodes, local_size);
 
 			// compute RHS before disturbing
-			this->CalculateRightHandSide(RHS_undist, testProcessInfo); 
+			this->CalculateRightHandSide(RHS_undist, copy_process_info); 
 
             //TODO: look that this works also for parallel computing
 			for(int j = 0; j < number_of_nodes; j++)
@@ -471,7 +471,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
 				this->GetGeometry()[j].X0() += delta;
 
 				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+				this->CalculateRightHandSide(RHS_dist, copy_process_info);
 
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
@@ -491,7 +491,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
 				this->GetGeometry()[j].Y0() += delta;
 
 				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
+				this->CalculateRightHandSide(RHS_dist, copy_process_info); 
 
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
@@ -511,7 +511,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
 				this->GetGeometry()[j].Z0() += delta;
 
 				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+				this->CalculateRightHandSide(RHS_dist, copy_process_info);
 
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
@@ -526,7 +526,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
 				this->GetGeometry()[j].Z0() -= delta;
 				//end: derive w.r.t. z-coordinate-----------------------------------------------------
 
-                this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+                this->CalculateRightHandSide(RHS_dist, copy_process_info);
 
 			}// end loop over element nodes
 		}

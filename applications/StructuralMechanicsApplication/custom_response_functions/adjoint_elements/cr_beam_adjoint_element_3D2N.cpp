@@ -154,10 +154,10 @@ namespace Kratos
         // define working variables
 		Vector RHS_undist;
 		Vector RHS_dist;
-		ProcessInfo testProcessInfo = rCurrentProcessInfo;
+		ProcessInfo copy_of_process_info = rCurrentProcessInfo;
 
 		// Compute RHS before disturbing
-		this->CalculateRightHandSide(RHS_undist, testProcessInfo);
+		this->CalculateRightHandSide(RHS_undist, copy_of_process_info);
 
 		rOutput.resize(1,RHS_undist.size());
 
@@ -181,7 +181,7 @@ namespace Kratos
             p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
 
 			// Compute RHS after disturbance
-			this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+			this->CalculateRightHandSide(RHS_dist, copy_of_process_info);
 
 			rOutput.resize(1,RHS_dist.size());
 
@@ -195,7 +195,7 @@ namespace Kratos
             this->SetProperties(p_global_properties);
 
 			// Compute RHS again in order to ensure that changed member variables like mLHS get back their origin values
-			this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+			this->CalculateRightHandSide(RHS_dist, copy_of_process_info);
 		}
 		else
 		{
@@ -214,7 +214,7 @@ namespace Kratos
 		// define working variables
 		Vector RHS_undist;
 		Vector RHS_dist;
-		ProcessInfo testProcessInfo = rCurrentProcessInfo;
+		ProcessInfo copy_of_process_info = rCurrentProcessInfo;
 
 		// Get disturbance measure
         double delta = this->GetValue(DISTURBANCE_MEASURE);
@@ -230,7 +230,7 @@ namespace Kratos
 			rOutput.resize(dimension * number_of_nodes, local_size);
 
 			// compute RHS before disturbing
-			this->CalculateRightHandSide(RHS_undist, testProcessInfo);
+			this->CalculateRightHandSide(RHS_undist, copy_of_process_info);
 
             //TODO: look that this works also for parallel computing
 			for(int j = 0; j < number_of_nodes; j++)
@@ -243,7 +243,7 @@ namespace Kratos
 				this->CalculateInitialLocalCS();
 
 				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+				this->CalculateRightHandSide(RHS_dist, copy_of_process_info);
 
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
@@ -267,7 +267,7 @@ namespace Kratos
 				this->CalculateInitialLocalCS();
 
 				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+				this->CalculateRightHandSide(RHS_dist, copy_of_process_info);
 
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
@@ -291,7 +291,7 @@ namespace Kratos
 				this->CalculateInitialLocalCS();
 
 				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+				this->CalculateRightHandSide(RHS_dist, copy_of_process_info);
 
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
@@ -308,7 +308,7 @@ namespace Kratos
 				this->CalculateInitialLocalCS();
 
 				// Compute RHS again in order to ensure that changed member variables like mLHS get back their origin values
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
+				this->CalculateRightHandSide(RHS_dist, copy_of_process_info);
 
 				//end: derive w.r.t. z-coordinate-----------------------------------------------------
 
