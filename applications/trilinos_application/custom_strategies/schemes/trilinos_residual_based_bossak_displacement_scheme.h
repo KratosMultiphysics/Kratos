@@ -16,7 +16,6 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 #include "Epetra_Import.h"
 
 /* Project includes */

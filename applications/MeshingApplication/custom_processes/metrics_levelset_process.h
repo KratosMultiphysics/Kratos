@@ -37,11 +37,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
     
-    #if !defined(INTERPOLATION_METRIC)
-    #define INTERPOLATION_METRIC
-        enum Interpolation {Constant = 0, Linear = 1, Exponential = 2};
-    #endif
-    
 ///@}
 ///@name  Functions
 ///@{
@@ -50,8 +45,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-//// This class is can be used to compute the metrics of the model part with a level set approach
-
+/**
+ * @class ComputeLevelSetSolMetricProcess
+ * @ingroup MeshingApplication
+ * @brief This class is can be used to compute the metrics of the model part with a level set approach
+ * @author Vicente Mataix Ferrandiz
+ */
 template<unsigned int TDim>  
 class ComputeLevelSetSolMetricProcess 
     : public Process
@@ -65,13 +64,22 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ComputeLevelSetSolMetricProcess);
     
     ///@}
+    ///@name  Enum's
+    ///@{
+    
+    /**
+     * @brief This enums allows to differentiate the interpolation types
+     */
+    enum class Interpolation {CONSTANT = 0, LINEAR = 1, EXPONENTIAL = 2};
+    
+    ///@}
     ///@name Life Cycle
     ///@{
      
     // Constructor
     
     /**
-     * This is the default constructor
+     * @brief This is the default constructor
      * @param rThisModelPart The model part to be computed
      * @param rVariableGradient The gradient variable
      * @param ThisParameters The input parameters
@@ -100,9 +108,8 @@ public:
     ///@{
     
     /**
-     * We initialize the metrics of the MMG sol using a level set approach
+     * @brief We initialize the metrics of the MMG sol using a level set approach
      */
-    
     void Execute() override;
        
     ///@}
@@ -181,13 +188,13 @@ private:
     ///@name Private member Variables
     ///@{
 
-    ModelPart& mThisModelPart;                      // The model part to compute
-    Variable<array_1d<double,3>> mVariableGradient; // The gradient variable
-    double mMinSize;                                // The minimal size of the elements
-    bool mEnforceCurrent;                           // With this we choose if we inforce the current nodal size (NODAL_H)
-    double mAnisotropicRatio;                       // The minimal anisotropic ratio (0 < ratio < 1)
-    double mBoundLayer;                             // The boundary layer limit Distance
-    Interpolation mInterpolation;                   // The interpolation type
+    ModelPart& mThisModelPart;                      /// The model part to compute
+    Variable<array_1d<double,3>> mVariableGradient; /// The gradient variable
+    double mMinSize;                                /// The minimal size of the elements
+    bool mEnforceCurrent;                           /// With this we choose if we inforce the current nodal size (NODAL_H)
+    double mAnisotropicRatio;                       /// The minimal anisotropic ratio (0 < ratio < 1)
+    double mBoundLayer;                             /// The boundary layer limit Distance
+    Interpolation mInterpolation;                   /// The interpolation type
     
     ///@}
     ///@name Private Operators
@@ -198,7 +205,7 @@ private:
     ///@{
     
     /**
-     * It calculates the tensor of the scalar, necessary to get the solution before remeshing
+     * @brief It calculates the tensor of the scalar, necessary to get the solution before remeshing
      * @param GradientValue The gradient of the scalar to remesh
      * @param Ratio The alpha parameter used to remesh
      * @param ElementSize The minimum size of the elements
@@ -211,17 +218,26 @@ private:
         const double ElementSize
         );
 
-    
     /**
-     * This converts the interpolation string to an enum
-     * @param str The string that you want to comvert in the equivalent enum
+     * @brief This converts the interpolation string to an enum
+     * @param Str The string that you want to comvert in the equivalent enum
      * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */
         
-    Interpolation ConvertInter(const std::string& str);
+    Interpolation ConvertInter(const std::string& Str)
+    {
+        if(Str == "Constant" || Str == "CONSTANT") 
+            return Interpolation::CONSTANT;
+        else if(Str == "Linear" || Str == "LINEAR") 
+            return Interpolation::LINEAR;
+        else if(Str == "Exponential" || Str == "EXPONENTIAL") 
+            return Interpolation::EXPONENTIAL;
+        else
+            return Interpolation::LINEAR;
+    }
         
     /**
-     * This calculates the anisotropic ratio
+     * @brief This calculates the anisotropic ratio
      * @param Distance Distance parameter
      * @param AnisotropicRatio The anisotropic ratio
      * @param BoundLayer The boundary layer limit

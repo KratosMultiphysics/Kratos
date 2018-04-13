@@ -132,13 +132,13 @@ class GiDOutputProcess(Process):
         gidpost_flags = result_file_configuration["gidpost_flags"]
         gidpost_flags.ValidateAndAssignDefaults(self.defaults["result_file_configuration"]["gidpost_flags"])
 
-        self.__initialize_gidio(gidpost_flags,gidpost_flags)
+        self._InitializeGiDIO(gidpost_flags,gidpost_flags)
 
         # Process nodal and gauss point output
-        self.nodal_variables = self.__generate_variable_list_from_input(result_file_configuration["nodal_results"])
-        self.gauss_point_variables = self.__generate_variable_list_from_input(result_file_configuration["gauss_point_results"])
-        self.nodal_nonhistorical_variables = self.__generate_variable_list_from_input(result_file_configuration["nodal_nonhistorical_results"])
-        self.nodal_flags = self.__generate_flags_list_from_input(result_file_configuration["nodal_flags_results"])
+        self.nodal_variables = self._GenerateVariableListFromInput(result_file_configuration["nodal_results"])
+        self.gauss_point_variables = self._GenerateVariableListFromInput(result_file_configuration["gauss_point_results"])
+        self.nodal_nonhistorical_variables = self._GenerateVariableListFromInput(result_file_configuration["nodal_nonhistorical_results"])
+        self.nodal_flags = self._GenerateFlagsListFromInput(result_file_configuration["nodal_flags_results"])
         self.nodal_flags_names =[]
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
@@ -306,7 +306,7 @@ class GiDOutputProcess(Process):
         del self.cut_io
 
 
-    def __initialize_gidio(self,gidpost_flags,param):
+    def _InitializeGiDIO(self,gidpost_flags,param):
         '''Initialize GidIO objects (for volume and cut outputs) and related data.'''
         self.volume_file_name = self.base_file_name
         self.cut_file_name = self.volume_file_name+"_cuts"
@@ -454,7 +454,7 @@ class GiDOutputProcess(Process):
                                         self.output_surface_index,
                                         0.01)
 
-    def __generate_variable_list_from_input(self,param):
+    def _GenerateVariableListFromInput(self,param):
         '''Parse a list of variables from input.'''
         # At least verify that the input is a string
         if not param.IsArray():
@@ -463,7 +463,7 @@ class GiDOutputProcess(Process):
         # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
         return [ KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
 
-    def __generate_flags_list_from_input(self,param):
+    def _GenerateFlagsListFromInput(self,param):
         '''Parse a list of variables from input.'''
         # At least verify that the input is a string
         if not param.IsArray():
@@ -651,7 +651,7 @@ class GiDOutputProcess(Process):
                 if(os.path.exists(f)):
                     try:
                         os.remove(f)
-                    except WindowsError:
+                    except OSError:
                         pass
 
     #
@@ -696,5 +696,5 @@ class GiDOutputProcess(Process):
                 if(os.path.exists(f)):
                     try:
                         os.remove(f)
-                    except WindowsError:
+                    except OSError:
                         pass

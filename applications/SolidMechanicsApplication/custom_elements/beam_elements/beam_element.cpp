@@ -25,8 +25,6 @@ namespace Kratos
    */
   KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_RHS_VECTOR,                 0 );
   KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_LHS_MATRIX,                 1 );
-  KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-  KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 
   //******************************CONSTRUCTOR*******************************************

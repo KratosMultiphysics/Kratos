@@ -145,10 +145,11 @@ namespace Kratos
 		  ElementalVolume = 0;
 		}
 		double CriticalVolume=0.01*ModelPartVolume/double(mrModelPart.Elements().size());
-		if(ElementalVolume<CriticalVolume && ElementalVolume>0){
+		// if(ElementalVolume<CriticalVolume && ElementalVolume>0){
+		 if(ElementalVolume<CriticalVolume){
 		  sliverEliminationCriteria=true;
-		  // std::cout<<"RESET ACTIVE FOR THIS SLIVER! \t";
-		  // std::cout<<"its volume is "<<ElementalVolume<<" vs CriticalVolume "<<CriticalVolume<<std::endl;
+		  std::cout<<"RESET ACTIVE FOR THIS SLIVER! \t";
+		  std::cout<<"its volume is "<<ElementalVolume<<" vs CriticalVolume "<<CriticalVolume<<std::endl;
 		}
 	      }
 	      
