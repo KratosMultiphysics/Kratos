@@ -62,7 +62,6 @@
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
 
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/gear_scheme.h"
-#include "custom_strategies/schemes/trilinos_gear_scheme.h"
 
 // AdjointFluidApplication
 #include "../../AdjointFluidApplication/custom_utilities/response_function.h"
@@ -230,9 +229,10 @@ void  AddSchemes(pybind11::module& m)
     typedef GearScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> GearSchemeBaseType;
 
     class_ < GearSchemeBaseType, typename GearSchemeBaseType::Pointer, TrilinosBaseSchemeType >( m,"TrilinosGearScheme")
-            .def(init<Process::Pointer >() );
+            .def(init<Process::Pointer >() )
             .def(init<>()) // constructor without a turbulence model
             .def(init<const Variable<int>&>()) // constructor for periodic conditions
+    ;
 
     class_<
         AdjointSteadyVelocityPressureScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
