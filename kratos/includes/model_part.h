@@ -263,7 +263,7 @@ public:
     ///@{
 
     /// Assignment operator.
-    ModelPart & operator=(ModelPart const& rOther);
+    ModelPart & operator=(ModelPart const& rOther) = delete;
 
     ///@}
     ///@name Solution Steps
