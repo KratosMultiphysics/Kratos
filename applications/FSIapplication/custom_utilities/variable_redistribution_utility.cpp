@@ -140,7 +140,7 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
         node_iter->FastGetSolutionStepValue(rPointVariable) = Zero;
     }
 
-    boost::numeric::ublas::bounded_matrix<double,TPointNumber,TPointNumber> MassMatrix;
+    bounded_matrix<double,TPointNumber,TPointNumber> MassMatrix;
     ConsistentMassMatrix<TFamily,TPointNumber>(MassMatrix);
 
     const int number_of_conditions = rModelPart.NumberOfConditions();
@@ -177,7 +177,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
 {
     ComputeNodalSizes(rModelPart);
 
-    boost::numeric::ublas::bounded_matrix< double, TPointNumber, TPointNumber > mass_matrix;
+    bounded_matrix< double, TPointNumber, TPointNumber > mass_matrix;
     ConsistentMassMatrix<TFamily,TPointNumber>(mass_matrix);
 
     const int number_of_nodes_in_model_part = rModelPart.NumberOfNodes();
@@ -246,7 +246,7 @@ void VariableRedistributionUtility::ComputeNodalSizes(ModelPart& rModelPart)
 
 template<>
 void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_Linear, 2 >(
-    boost::numeric::ublas::bounded_matrix<double, 2, 2>& rMassMatrix)
+    bounded_matrix<double, 2, 2>& rMassMatrix)
 {
     // First row
     rMassMatrix(0, 0) = 2.0/6.0;
@@ -260,7 +260,7 @@ void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_L
  
 template<>
 void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_Triangle, 3 >(
-    boost::numeric::ublas::bounded_matrix<double, 3, 3>& rMassMatrix)
+    bounded_matrix<double, 3, 3>& rMassMatrix)
 {
     // First row
     rMassMatrix(0, 0) = 1.0/ 6.0;
@@ -283,7 +283,7 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
     ModelPart& rModelPart,
     const Variable< TValueType >& rPointVariable,
     const Variable< TValueType >& rDistributedVariable,
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>& rMassMatrix)
+    bounded_matrix<double, TNumNodes, TNumNodes>& rMassMatrix)
 {
     const Variable<TValueType>& rhs_variable = GetRHSVariable(rDistributedVariable);
     const TValueType rhs_zero = rhs_variable.Zero(); // something of the correct type to initialize our values to zero

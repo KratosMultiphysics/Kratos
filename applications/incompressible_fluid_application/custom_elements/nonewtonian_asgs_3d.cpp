@@ -126,7 +126,7 @@ void NoNewtonianASGS3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Ve
 
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
     //getting data for the given geometry
@@ -201,7 +201,7 @@ void NoNewtonianASGS3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo
     rMassMatrix = ZeroMatrix(MatSize, MatSize);
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
     //getting data for the given geometry
@@ -235,7 +235,7 @@ void NoNewtonianASGS3D::CalculateLocalVelocityContribution(MatrixType& rDampingM
     if (rDampingMatrix.size1() != matsize)
         rDampingMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
     noalias(rDampingMatrix) = ZeroMatrix(matsize, matsize);
@@ -295,7 +295,7 @@ void NoNewtonianASGS3D::CalculateLocalVelocityContribution(MatrixType& rDampingM
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const int it_num, const double m_coef, const double volume)
+void NoNewtonianASGS3D::CalculateViscousTerm(MatrixType& K, const bounded_matrix<double, 4, 3 > & DN_DX, const int it_num, const double m_coef, const double volume)
 {
     KRATOS_TRY
     double mu;
@@ -303,9 +303,9 @@ void NoNewtonianASGS3D::CalculateViscousTerm(MatrixType& K, const boost::numeric
     int dof = 3;
     double density;
     calculatedensity(GetGeometry(), density, mu);
-    boost::numeric::ublas::bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
-    boost::numeric::ublas::bounded_matrix<double, 6, 6 > C = ZeroMatrix(6, 6);
-    boost::numeric::ublas::bounded_matrix<double, 12, 12 > temp = ZeroMatrix(12, 12);
+    bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
+    bounded_matrix<double, 6, 6 > C = ZeroMatrix(6, 6);
+    bounded_matrix<double, 12, 12 > temp = ZeroMatrix(12, 12);
 
     double app_mu;
     double app_mu_derivative;
@@ -427,7 +427,7 @@ void NoNewtonianASGS3D::CalculateViscousTerm(MatrixType& K, const boost::numeric
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double tauone, const double tautwo, const double time, const double volume)
+void NoNewtonianASGS3D::CalculateAdvectiveTerm(MatrixType& K, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double tauone, const double tautwo, const double time, const double volume)
 {
     KRATOS_TRY
 
@@ -454,8 +454,8 @@ void NoNewtonianASGS3D::CalculateAdvectiveTerm(MatrixType& K, const boost::numer
     int dof = 3;
     int matsize = dof*nodes_number;
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
-    boost::numeric::ublas::bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
+    bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
+    bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
 
     for (int ii = 0; ii < nodes_number; ii++)
     {
@@ -468,7 +468,7 @@ void NoNewtonianASGS3D::CalculateAdvectiveTerm(MatrixType& K, const boost::numer
         shape_func(column + 1, 1) = shape_func(column, 0);
         shape_func(column + 2, 2) = shape_func(column, 0);
     }
-    boost::numeric::ublas::bounded_matrix<double, 12, 12 > temp_convterm = ZeroMatrix(matsize, matsize);
+    bounded_matrix<double, 12, 12 > temp_convterm = ZeroMatrix(matsize, matsize);
     temp_convterm = prod(shape_func, conv_opr);
     temp_convterm *= volume * density;
     for (int ii = 0; ii < nodes_number; ii++)
@@ -492,7 +492,7 @@ void NoNewtonianASGS3D::CalculateAdvectiveTerm(MatrixType& K, const boost::numer
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::CalculatePressureTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double time, const double volume)
+void NoNewtonianASGS3D::CalculatePressureTerm(MatrixType& K, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double time, const double volume)
 {
     KRATOS_TRY
     int nodes_number = 4;
@@ -530,14 +530,14 @@ void NoNewtonianASGS3D::CalculatePressureTerm(MatrixType& K, const boost::numeri
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::CalculateDivStblTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const double tautwo, const double volume)
+void NoNewtonianASGS3D::CalculateDivStblTerm(MatrixType& K, const bounded_matrix<double, 4, 3 > & DN_DX, const double tautwo, const double volume)
 {
     KRATOS_TRY
     int nodes_number = 4;
     int dof = 3;
     int matsize = dof*nodes_number;
 
-    boost::numeric::ublas::bounded_matrix<double, 1, 12 > div_opr = ZeroMatrix(1, matsize);
+    bounded_matrix<double, 1, 12 > div_opr = ZeroMatrix(1, matsize);
     for (int ii = 0; ii < nodes_number; ii++)
     {
         int index = dof*ii;
@@ -552,7 +552,7 @@ void NoNewtonianASGS3D::CalculateDivStblTerm(MatrixType& K, const boost::numeric
     calculatedensity(GetGeometry(), density, mu);
 
 
-    boost::numeric::ublas::bounded_matrix<double, 12, 12 > temp_div = ZeroMatrix(matsize, matsize);
+    bounded_matrix<double, 12, 12 > temp_div = ZeroMatrix(matsize, matsize);
     temp_div = tautwo * prod(trans(div_opr), div_opr);
     temp_div *= volume * density;
     for (int ii = 0; ii < nodes_number; ii++)
@@ -584,7 +584,7 @@ void NoNewtonianASGS3D::CalculateDivStblTerm(MatrixType& K, const boost::numeric
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double tauone, const double time, const double volume)
+void NoNewtonianASGS3D::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double tauone, const double time, const double volume)
 {
     KRATOS_TRY
     const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
@@ -609,8 +609,8 @@ void NoNewtonianASGS3D::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, c
     int dof = 3;
     int matsize = dof*nodes_number;
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
-    boost::numeric::ublas::bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
+    bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
+    bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
 
     for (int ii = 0; ii < nodes_number; ii++)
     {
@@ -625,7 +625,7 @@ void NoNewtonianASGS3D::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, c
     }
 
     //build (a.grad V)(ro*a.grad U) stabilization term & assemble
-    boost::numeric::ublas::bounded_matrix<double, 12, 12 > adv_stblterm = ZeroMatrix(matsize, matsize);
+    bounded_matrix<double, 12, 12 > adv_stblterm = ZeroMatrix(matsize, matsize);
     adv_stblterm = tauone * prod(trans(conv_opr), conv_opr);
 
 
@@ -658,7 +658,7 @@ void NoNewtonianASGS3D::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, c
     }
 
     //build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
-    boost::numeric::ublas::bounded_matrix<double, 12, 4 > grad_stblterm = ZeroMatrix(matsize, nodes_number);
+    bounded_matrix<double, 12, 4 > grad_stblterm = ZeroMatrix(matsize, nodes_number);
     grad_stblterm = tauone * prod(trans(conv_opr), trans(DN_DX));
 
     for (int ii = 0; ii < nodes_number; ii++)
@@ -709,7 +709,7 @@ void NoNewtonianASGS3D::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, c
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::CalculateAdvMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double tauone, const double volume)
+void NoNewtonianASGS3D::CalculateAdvMassStblTerms(MatrixType& M, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double tauone, const double volume)
 {
     KRATOS_TRY
 
@@ -740,8 +740,8 @@ void NoNewtonianASGS3D::CalculateAdvMassStblTerms(MatrixType& M, const boost::nu
     double mu;
     calculatedensity(GetGeometry(), density, mu);
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
-    boost::numeric::ublas::bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
+    bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
+    bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
 
     for (int ii = 0; ii < nodes_number; ii++)
     {
@@ -756,7 +756,7 @@ void NoNewtonianASGS3D::CalculateAdvMassStblTerms(MatrixType& M, const boost::nu
     }
 
     //tau1*ro*Nacc.(1.0*a.grad V)
-    boost::numeric::ublas::bounded_matrix<double, 12, 12 > temp_convterm = ZeroMatrix(matsize, matsize);
+    bounded_matrix<double, 12, 12 > temp_convterm = ZeroMatrix(matsize, matsize);
     temp_convterm = prod(shape_func, conv_opr);
 
     double fac = tauone*density * volume;
@@ -782,7 +782,7 @@ void NoNewtonianASGS3D::CalculateAdvMassStblTerms(MatrixType& M, const boost::nu
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double,4>& N, const double time, const double tauone, const double volume)
+void NoNewtonianASGS3D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double,4>& N, const double time, const double tauone, const double volume)
 {
     KRATOS_TRY
     int nodes_number = 4;
@@ -793,7 +793,7 @@ void NoNewtonianASGS3D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, 
     calculatedensity(GetGeometry(), density, mu);
 
     //build 1*(grad q . grad p) stabilization term & assemble
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
+    bounded_matrix<double, 4, 4 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
     gard_opr = tauone * prod(DN_DX, trans(DN_DX));
 
     for (int ii = 0; ii < nodes_number; ii++)
@@ -837,7 +837,7 @@ void NoNewtonianASGS3D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, 
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::CalculateGradMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double,4>& N, const double tauone, const double volume)
+void NoNewtonianASGS3D::CalculateGradMassStblTerms(MatrixType& M, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double,4>& N, const double tauone, const double volume)
 {
     KRATOS_TRY
     int nodes_number = 4;
@@ -872,7 +872,7 @@ void NoNewtonianASGS3D::CalculateGradMassStblTerms(MatrixType& M, const boost::n
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double, 4 > & N, const double time, const double volume, const double tauone, const double tautwo)
+void NoNewtonianASGS3D::AddBodyForceAndMomentum(VectorType& F,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double, 4 > & N, const double time, const double volume, const double tauone, const double tautwo)
 {
     KRATOS_TRY
     int nodes_number = 4;
@@ -903,7 +903,7 @@ void NoNewtonianASGS3D::AddBodyForceAndMomentum(VectorType& F,const boost::numer
 }
 //************************************************************************************
 //************************************************************************************
-void NoNewtonianASGS3D::CalculateResidual(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const MatrixType& K, VectorType& F, const double m_coef, const double volume)
+void NoNewtonianASGS3D::CalculateResidual(const bounded_matrix<double,4,3>& DN_DX, const MatrixType& K, VectorType& F, const double m_coef, const double volume)
 {
     KRATOS_TRY
 
@@ -925,8 +925,8 @@ void NoNewtonianASGS3D::CalculateResidual(const boost::numeric::ublas::bounded_m
     double density;
     calculatedensity(GetGeometry(), density, mu);
 
-    boost::numeric::ublas::bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
-// 		boost::numeric::ublas::bounded_matrix<double, 6, 6 > C = ZeroMatrix(6, 6);
+    bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
+// 		bounded_matrix<double, 6, 6 > C = ZeroMatrix(6, 6);
     array_1d<double, 12 > auxDevStressVector = ZeroVector(12);
     array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
     double app_mu;
@@ -978,7 +978,7 @@ void NoNewtonianASGS3D::CalculateResidual(const boost::numeric::ublas::bounded_m
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::ComputeProjections(array_1d<double, 12 > & adv_proj, array_1d<double, 4 > & div_proj, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const double tauone, const double tautwo, const array_1d<double, 4 > & N, const double volume, const double time)
+void NoNewtonianASGS3D::ComputeProjections(array_1d<double, 12 > & adv_proj, array_1d<double, 4 > & div_proj, const bounded_matrix<double, 4, 3 > & DN_DX, const double tauone, const double tautwo, const array_1d<double, 4 > & N, const double volume, const double time)
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dim = 3;
@@ -1102,7 +1102,7 @@ void NoNewtonianASGS3D::ComputeProjections(array_1d<double, 12 > & adv_proj, arr
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const double volume, const double tauone, const double tautwo)
+void NoNewtonianASGS3D::AddProjectionForces(VectorType& F, const bounded_matrix<double, 4, 3 > & DN_DX, const double volume, const double tauone, const double tautwo)
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dim = 3;
@@ -1223,8 +1223,8 @@ void NoNewtonianASGS3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo
 //************************************************************************************
 
 void NoNewtonianASGS3D::CalculateB(
-    boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,
-    const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX)
+    bounded_matrix<double, 6, 12 > & B,
+    const bounded_matrix<double, 4, 3 > & DN_DX)
 {
     KRATOS_TRY
     unsigned int dim = 3;
@@ -1274,7 +1274,7 @@ void NoNewtonianASGS3D::CalculateB(
 //************************************************************************************
 
 void NoNewtonianASGS3D::CalculateGradSymVel(array_1d<double, 6 > & grad_sym_vel, double & gamma_dot,
-        const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B)
+        const bounded_matrix<double, 6, 12 > & B)
 {
     KRATOS_TRY
     unsigned int dim = 3;
@@ -1316,7 +1316,7 @@ void NoNewtonianASGS3D::CalculateGradSymVel(array_1d<double, 6 > & grad_sym_vel,
 
 void NoNewtonianASGS3D::CalculateApparentViscosity(double & app_mu, double & app_mu_derivative,
         array_1d<double, 6 >&  grad_sym_vel, double & gamma_dot,
-        const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,
+        const bounded_matrix<double, 6, 12 > & B,
         const double & mu, const double & m_coef)
 {
     KRATOS_TRY
@@ -1426,7 +1426,7 @@ void NoNewtonianASGS3D::CalculateApparentViscosity(double & app_mu, double & app
 
 //     void NoNewtonianASGS3D::CalculateApparentViscosityStbl(double & app_mu, double & app_mu_derivative,
 // 	    array_1d<double, 6 >&  grad_sym_vel, double & gamma_dot,
-// 	    const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,
+// 	    const bounded_matrix<double, 6, 12 > & B,
 // 	    const double & mu) {
 // 	KRATOS_TRY
 // 	app_mu = 0.0;
@@ -1500,7 +1500,7 @@ void NoNewtonianASGS3D::Calculate(const Variable<array_1d<double, 3 > >& rVariab
     array_1d<double, 4 > div_proj = ZeroVector(4);
 
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
     //getting data for the given geometry
@@ -1570,7 +1570,7 @@ void NoNewtonianASGS3D::calculatedensity(Geometry< Node < 3 > > geom, double& de
 //*************************************************************************************
 //*************************************************************************************
 
-void NoNewtonianASGS3D::CalculateTau(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,double& tauone, double& tautwo, const double time, const double volume, const ProcessInfo& rCurrentProcessInfo)
+void NoNewtonianASGS3D::CalculateTau(const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,double& tauone, double& tautwo, const double time, const double volume, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     //calculate mean advective velocity and taus
@@ -1614,7 +1614,7 @@ void NoNewtonianASGS3D::CalculateTau(const boost::numeric::ublas::bounded_matrix
     calculatedensity(GetGeometry(), density, mu);
 
 
-    boost::numeric::ublas::bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
+    bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
     array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
     double app_mu_derivative;
 
@@ -1694,8 +1694,8 @@ void NoNewtonianASGS3D::GetValueOnIntegrationPoints(const Variable<double>& rVar
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
     const double m_coef = rCurrentProcessInfo[M];
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
-    boost::numeric::ublas::bounded_matrix<double, 6, 12> B = ZeroMatrix(6, 12);
+    bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 6, 12> B = ZeroMatrix(6, 12);
     array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
     array_1d<double, 4 > N;
 
@@ -1746,7 +1746,7 @@ void NoNewtonianASGS3D::GetValueOnIntegrationPoints(const Variable<double>& rVar
     }
     if (rVariable == EQ_STRAIN_RATE)  //gamma dot
     {
-        boost::numeric::ublas::bounded_matrix<double, 6, 12> B = ZeroMatrix(6, 12);
+        bounded_matrix<double, 6, 12> B = ZeroMatrix(6, 12);
         array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
         double gamma_dot = 0.0;
 
@@ -1763,7 +1763,7 @@ void NoNewtonianASGS3D::GetValueOnIntegrationPoints(const Variable<double>& rVar
     }
     if (rVariable == MU)  //app mu
     {
-// 	  boost::numeric::ublas::bounded_matrix<double, 6, 12> B = ZeroMatrix(6, 12);
+// 	  bounded_matrix<double, 6, 12> B = ZeroMatrix(6, 12);
 // 	  array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
 // 	  double mu;
 // 	  double density;
@@ -1792,7 +1792,7 @@ void NoNewtonianASGS3D::GetValueOnIntegrationPoints(const Variable<double>& rVar
         }
     }
 // 	if (rVariable == TEMPERATURE) {//1st component of 2*app_mu*grad_sym_vel
-// 	  boost::numeric::ublas::bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
+// 	  bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
 // 	  array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
 // 	  double gamma_dot = 0.0;
 // 	  double mu;
@@ -1813,7 +1813,7 @@ void NoNewtonianASGS3D::GetValueOnIntegrationPoints(const Variable<double>& rVar
 //         }
     if (rVariable == MU)  //app mu
     {
-        boost::numeric::ublas::bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
+        bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
         array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
 // 	  double gamma_dot = 0.0;
         double mu;

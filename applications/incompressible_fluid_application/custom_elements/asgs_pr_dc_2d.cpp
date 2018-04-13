@@ -98,7 +98,7 @@ ASGSPRDC2D::~ASGSPRDC2D()
 
 //************************************************************************************
 //************************************************************************************
-void ASGSPRDC2D::ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const 			boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double tauone,const double tautwo,const array_1d<double,3>& N,const double area, const double time)
+void ASGSPRDC2D::ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const 			bounded_matrix<double,3,2>& DN_DX,const double tauone,const double tautwo,const array_1d<double,3>& N,const double area, const double time)
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dim = 2;

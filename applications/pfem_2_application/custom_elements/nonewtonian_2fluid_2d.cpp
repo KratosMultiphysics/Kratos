@@ -28,7 +28,7 @@ namespace Kratos
 	
 	//with matrixtype, constant coefficient
 	void NoNewtonianMonolithicPFEM22D::AddViscousTerm(MatrixType& OutputMatrix,
-                         const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rShapeDeriv,
+                         const bounded_matrix<double, 3, 2 >& rShapeDeriv,
                          double& Viscosity, const double Area)
 	{
 		double theta = 0.0;
@@ -36,7 +36,7 @@ namespace Kratos
 
         double base_viscosity = Viscosity;
         
-		boost::numeric::ublas::bounded_matrix<double, 6, 3 > B_matrix = ZeroMatrix(6,3);
+		bounded_matrix<double, 6, 3 > B_matrix = ZeroMatrix(6,3);
 		for (unsigned int i=0; i!=3; i++) //i node
 		{
 				B_matrix(i*2,0)=rShapeDeriv(i,0);
@@ -46,7 +46,7 @@ namespace Kratos
 				B_matrix(i*2+1,2)=rShapeDeriv(i,0);
 		}
 		
-		boost::numeric::ublas::bounded_matrix<double, 3, 3 > C_matrix = ZeroMatrix(3,3);
+		bounded_matrix<double, 3, 3 > C_matrix = ZeroMatrix(3,3);
 		
 		C_matrix(0,0)=2.0;
 		C_matrix(1,1)=2.0;
@@ -89,8 +89,8 @@ namespace Kratos
 
 		C_matrix *= Viscosity*Area;
 		
-		boost::numeric::ublas::bounded_matrix<double, 3, 6 > temp_matrix = prod(C_matrix,trans(B_matrix));
-		boost::numeric::ublas::bounded_matrix<double, 6, 6 > viscosity_matrix = prod(B_matrix, temp_matrix );
+		bounded_matrix<double, 3, 6 > temp_matrix = prod(C_matrix,trans(B_matrix));
+		bounded_matrix<double, 6, 6 > viscosity_matrix = prod(B_matrix, temp_matrix );
 
 		
 		for (unsigned int i=0; i!=3; i++) //i node
@@ -114,7 +114,7 @@ namespace Kratos
 
 	double NoNewtonianMonolithicPFEM22D::EffectiveViscosity(double DynamicViscosity,
 									  double YieldStress,
-                                      const boost::numeric::ublas::bounded_matrix<double, 2+1, 2> &rDN_DX)
+                                      const bounded_matrix<double, 2+1, 2> &rDN_DX)
     {
 	
         // Read the viscosity for the fluidified phase from the nodes
@@ -140,13 +140,13 @@ namespace Kratos
         return OutputDynamicViscosity;
     }
 	
-	double NoNewtonianMonolithicPFEM22D::EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double, 2+1, 2> &rDN_DX) // TDim+1,TDim 
+	double NoNewtonianMonolithicPFEM22D::EquivalentStrainRate(const bounded_matrix<double, 2+1, 2> &rDN_DX) // TDim+1,TDim 
 	{
 		const int TDim=2;
 		const GeometryType& rGeom = this->GetGeometry();
 		const unsigned int NumNodes = rGeom.PointsNumber();
 		// Calculate Symetric gradient
-		boost::numeric::ublas::bounded_matrix<double,TDim,TDim> S = ZeroMatrix(TDim,TDim);
+		bounded_matrix<double,TDim,TDim> S = ZeroMatrix(TDim,TDim);
 		for (unsigned int n = 0; n < NumNodes; ++n)
 		{
 			const array_1d<double,3>& rVel = rGeom[n].FastGetSolutionStepValue(VELOCITY); 

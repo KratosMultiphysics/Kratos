@@ -513,7 +513,7 @@ void PrestressMembraneElement::ClearNodalForces()
 //***********************************************************************************
 
 void PrestressMembraneElement::CalculateQ(
-    boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+    bounded_matrix<double, 3, 3>& Q,
     Matrix& mG)
 
 {
@@ -538,7 +538,7 @@ void PrestressMembraneElement::CalculateQ(
 
 void PrestressMembraneElement::CalculateB(
     Matrix& B,
-    boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+    bounded_matrix<double, 3, 3>& Q,
     const Matrix& DN_De,
     const array_1d<double, 3>& g1,
     const array_1d<double, 3>& g2)
@@ -711,7 +711,7 @@ void PrestressMembraneElement::CalculateAll(
     }
 
     // Initializing the Nodal coordinates
-    // change to: boost::numeric::ublas::bounded_matrix
+    // change to: bounded_matrix
     Matrix xyz_reference;   // Nodal coordinates in the reference configuration
     Matrix xyz_actual;      // Nodal coordinates in the actual configuration
 
@@ -873,7 +873,7 @@ void PrestressMembraneElement::CalculateSecondVariationStrain(Matrix DN_De,
     Matrix & Strain_locCartesian11,
     Matrix & Strain_locCartesian22,
     Matrix & Strain_locCartesian12,
-    boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+    bounded_matrix<double, 3, 3>& Q,
     array_1d<double, 3>& g1,
     array_1d<double, 3>& g2)
 {
@@ -1478,8 +1478,8 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
         double lg_contravariant_2 = norm_2(Gab_contravariant_2);
         array_1d<double, 3> E2 = Gab_contravariant_2 / lg_contravariant_2;
 
-        boost::numeric::ublas::bounded_matrix<double, 2, 2> mG;
-        //boost::numeric::ublas::bounded_matrix<double, 2, 3> mG;
+        bounded_matrix<double, 2, 2> mG;
+        //bounded_matrix<double, 2, 3> mG;
         mG(0, 0) = inner_prod(E1, Gab_contravariant_1);
         mG(0, 1) = inner_prod(E1, Gab_contravariant_2);
         mG(1, 0) = inner_prod(E2, Gab_contravariant_1);

@@ -122,7 +122,7 @@ void SUPGConv2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
 
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+    bounded_matrix<double, 3, 2 > DN_DX;
     array_1d<double, 3 > N;
 
     //getting data for the given geometry
@@ -179,14 +179,14 @@ void SUPGConv2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     double dt_inv = 1.0 / delta_t;
 
     //INERTIA CONTRIBUTION
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > msMassFactors = 0.333333333333333333333333* IdentityMatrix(3, 3);
+    bounded_matrix<double, 3, 3 > msMassFactors = 0.333333333333333333333333* IdentityMatrix(3, 3);
     noalias(rLeftHandSideMatrix) = dt_inv * msMassFactors;
 
 
     //Advective term
     array_1d<double, 3 > a_dot_grad;
     noalias(a_dot_grad) = prod(DN_DX, ms_vel_gauss);
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Advective_Matrix = outer_prod(N, a_dot_grad);
+    bounded_matrix<double, 3, 3 > Advective_Matrix = outer_prod(N, a_dot_grad);
     noalias(rLeftHandSideMatrix) += (1.0 - cr_nk) * Advective_Matrix;
 
     //stabilization terms
@@ -223,10 +223,10 @@ void SUPGConv2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
 //        noalias(rLeftHandSideMatrix) += Kiso * prod(DN_DX,trans(DN_DX));
 
 //     double kaniso = Kiso/(inner_prod(ms_vel_gauss,ms_vel_gauss)+1e-12);
-//     boost::numeric::ublas::bounded_matrix<double, 3, 3 > aux33 = Kiso*IdentityMatrix(3, 3);
+//     bounded_matrix<double, 3, 3 > aux33 = Kiso*IdentityMatrix(3, 3);
 //     noalias(aux33) -= kaniso*outer_prod(ms_vel_gauss,ms_vel_gauss);
 // 
-//     boost::numeric::ublas::bounded_matrix<double, 3, 4 > aux34 = prod(aux33,trans(DN_DX));
+//     bounded_matrix<double, 3, 4 > aux34 = prod(aux33,trans(DN_DX));
 //     noalias(rLeftHandSideMatrix) += prod(DN_DX,aux34);
 
     //Add N_mass terms
@@ -239,7 +239,7 @@ void SUPGConv2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     // 	noalias(rRightHandSideVector) -= cr_nk * conductivity * prod(Laplacian_Matrix, step_unknown);
 
     //Add all n_step terms
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > old_step_matrix = dt_inv*msMassFactors;
+    bounded_matrix<double, 3, 3 > old_step_matrix = dt_inv*msMassFactors;
     old_step_matrix -= (cr_nk * Advective_Matrix);
     noalias(rRightHandSideVector) = prod(old_step_matrix, step_unknown);
 

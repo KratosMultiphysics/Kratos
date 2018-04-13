@@ -885,7 +885,7 @@ public:
 //                    std::cout << i_node << "rhs =" << rhs_i << "after stab" << std::endl;
 
                     //add tau2 term
-//                             boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& LL = edge_ij.LaplacianIJ;
+//                             bounded_matrix<double,TDim,TDim>& LL = edge_ij.LaplacianIJ;
 //                             for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
 //                             {
 //                                 double aaa = 0.0;

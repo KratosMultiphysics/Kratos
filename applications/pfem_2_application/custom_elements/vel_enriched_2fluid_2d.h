@@ -99,11 +99,11 @@ namespace Kratos
                                                                                                                      
                                 
         virtual void AddViscousTerm(MatrixType& rDampMatrix,
-                                       const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
+                                       const bounded_matrix<double, 3, 2>& rShapeDeriv,
                                        double Viscosity,const double Area);                        
                            
-		void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 17, 17 > & output,
-						  boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
+		void AddViscousTerm(bounded_matrix<double, 17, 17 > & output,
+						  bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
 						  array_1d<double,3>&  distances,
                           std::vector< Matrix >& gauss_gradients, 
 						  array_1d<double,3>&  viscosities,
@@ -111,8 +111,8 @@ namespace Kratos
 						  array_1d<double,3>&  volumes ,
 						  const unsigned int ndivisions);			
 						  
-				void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 12, 12 > & output,
-						  boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
+				void AddViscousTerm(bounded_matrix<double, 12, 12 > & output,
+						  bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
 						  array_1d<double,3>&  distances,
                           std::vector< Matrix >& gauss_gradients, 
 						  array_1d<double,3>&  viscosities,
@@ -148,7 +148,7 @@ bool InvertMatrix(const T& input, T& inverse)  ;
     /// Copy constructor.
     VelocityEnrichedPFEM22D(VelocityEnrichedPFEM22D const& rOther);
     
-    void CalculateInterfaceNormal(boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rPoints, array_1d<double,3>&  rDistances, array_1d<double,2>&  normal, double & interface_area, array_1d<double,3>&  Ninterface, boost::numeric::ublas::bounded_matrix<double, 2, 2 >& rInterfacePoints);
+    void CalculateInterfaceNormal(bounded_matrix<double, 3, 2 >& rPoints, array_1d<double,3>&  rDistances, array_1d<double,2>&  normal, double & interface_area, array_1d<double,3>&  Ninterface, bounded_matrix<double, 2, 2 >& rInterfacePoints);
     inline void CalculatePosition(const bounded_matrix<double, 3, 3 > & coordinates, const double xc, const double yc, const double zc, array_1d<double, 3 > & N);
     inline double CalculateVol(const double x0, const double y0,const double x1, const double y1, const double x2, const double y2 );
 

@@ -101,7 +101,7 @@ BinghamNonNewtonianASGS3D::~BinghamNonNewtonianASGS3D()
 
 void BinghamNonNewtonianASGS3D::CalculateApparentViscosity(double & app_mu, double & app_mu_derivative,
         array_1d<double, 6 >&  grad_sym_vel, double & gamma_dot,
-        const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,
+        const bounded_matrix<double, 6, 12 > & B,
         const double & mu, const double & m_coef)
 {
     KRATOS_TRY

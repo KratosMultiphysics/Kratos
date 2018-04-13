@@ -178,7 +178,7 @@ public:
         DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
         array_1d<double, TDim + 1 > N; //Shape functions vector//
         array_1d<double, TDim + 1 > pressures; //Shape functions vector//
-        boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+        bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
         array_1d<double, TDim> gradp;
         array_1d<double, 3 > acc_particle;
@@ -409,7 +409,7 @@ public:
         DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
         array_1d<double, TDim + 1 > N; //Shape functions vector//
         array_1d<double, TDim + 1 > pressures; //Shape functions vector//
-        boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+        bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
         //create a spatial database with the list of new nodes
         unsigned int bucket_size = 20;
@@ -785,11 +785,11 @@ public:
         }
 
 #ifdef USE_FEW_PARTICLES
-        boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > pos;
-        boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > N;
+        bounded_matrix<double, TDim + 2, TDim + 1 > pos;
+        bounded_matrix<double, TDim + 2, TDim + 1 > N;
 #else
-        boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
-        boost::numeric::ublas::bounded_matrix<double, 16, 3 > N;
+        bounded_matrix<double, 16, 3 > pos;
+        bounded_matrix<double, 16, 3 > N;
 #endif
         for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
                 el_it != rEulerianModelPart.ElementsEnd(); el_it++)
@@ -917,11 +917,11 @@ public:
 
         //now do reseed
 #ifdef USE_FEW_PARTICLES
-        boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > pos;
-        boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > Nnew;
+        bounded_matrix<double, TDim + 2, TDim + 1 > pos;
+        bounded_matrix<double, TDim + 2, TDim + 1 > Nnew;
 #else
-        boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
-        boost::numeric::ublas::bounded_matrix<double, 16, 3 > Nnew;
+        bounded_matrix<double, 16, 3 > pos;
+        bounded_matrix<double, 16, 3 > Nnew;
 #endif
         //if there are less than the number of particles we decide, reseed the element
         for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
@@ -1458,7 +1458,7 @@ private:
         return detJ * 0.1666666666666666666667;
     }
 
-    void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 4, 3 > & pos, boost::numeric::ublas::bounded_matrix<double, 4, 3 > & N)
+    void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, bounded_matrix<double, 4, 3 > & pos, bounded_matrix<double, 4, 3 > & N)
     {
         double one_third = 1.0 / 3.0;
         double one_sixt = 1.0 / 6.0;
@@ -1500,7 +1500,7 @@ private:
 
     }
 
-    void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 16, 3 > & pos, boost::numeric::ublas::bounded_matrix<double, 16, 3 > & N)
+    void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, bounded_matrix<double, 16, 3 > & pos, bounded_matrix<double, 16, 3 > & N)
     {
         //lower diagonal terms
         double ypos = 1.0 / 12.0;
@@ -1557,7 +1557,7 @@ private:
         }
     }
 
-    void ConsistentMassMatrix(const double A, boost::numeric::ublas::bounded_matrix<double, 3, 3 > & M)
+    void ConsistentMassMatrix(const double A, bounded_matrix<double, 3, 3 > & M)
     {
         double c1 = A / 12.0;
         double c2 = 2.0 * c1;

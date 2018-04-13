@@ -75,12 +75,12 @@ protected:
     
     void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 
-    void CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& rRotationMatrix,
+    void CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, bounded_matrix<double,TDim,TDim>& rRotationMatrix,
                             const double& MinimumJointWidth, const GeometryType& Geom);
 
-    void CalculateJointWidth( double& rJointWidth, const boost::numeric::ublas::bounded_matrix<double,TDim,TDim*TNumNodes>& Nu,
+    void CalculateJointWidth( double& rJointWidth, const bounded_matrix<double,TDim,TDim*TNumNodes>& Nu,
                                 const array_1d<double,TDim*TNumNodes>& DisplacementVector, array_1d<double,TDim>& rRelDispVector,
-                                const boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& RotationMatrix,
+                                const bounded_matrix<double,TDim,TDim>& RotationMatrix,
                                 array_1d<double,TDim>& rLocalRelDispVector, const double& MinimumJointWidth, const unsigned int& GPoint );
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth);

@@ -177,7 +177,7 @@ protected:
     //                                 );
 
     //const double ComputeDiscontinuityCapturingDiffusion(
-    //    const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& DN_DX,
+    //    const bounded_matrix<double, 4, 3 >& DN_DX,
     //    const array_1d<double,3>& gradT,
     //    const double& norm_gradT,
     //    const double& residual,

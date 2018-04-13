@@ -218,8 +218,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-//		static boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors;
-//		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+//		static bounded_matrix<double,3,3> msMassFactors;
+//		static bounded_matrix<double,3,2> msDN_DX;
 //  		static array_1d<double,3> msN; //dimension = number of nodes
     //static Matrix msDN_DX;
     //static Matrix msMassFactors;
@@ -265,8 +265,8 @@ private:
     void FinalFractionalStep(const ProcessInfo&);
     void ComputeTimeStep(double CFLNumber);
 
-    inline double CalculateH(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, double Volume);
-    inline double CalculateTau(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, array_1d<double, 3 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo);
+    inline double CalculateH(bounded_matrix<double, 4, 3 > & DN_DX, double Volume);
+    inline double CalculateTau(bounded_matrix<double, 4, 3 > & DN_DX, array_1d<double, 3 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo);
 
 
     //void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
@@ -274,7 +274,7 @@ private:
 
 
     //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Area)
-//	  inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area);
+//	  inline void CalculateGeometryData(bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area);
 
     ///@}
     ///@name Private Operations

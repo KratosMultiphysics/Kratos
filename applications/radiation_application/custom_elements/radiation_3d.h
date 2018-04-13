@@ -100,7 +100,7 @@ namespace Kratos
 
       void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-      inline double CalculateH(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, double Volume);
+      inline double CalculateH(bounded_matrix<double, 4, 3 > & DN_DX, double Volume);
       ///@}
       ///@name Access
       ///@{ 
@@ -172,8 +172,8 @@ namespace Kratos
     private:
       ///@name Static Member Variables 
       ///@{ 
-// 		static boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors;
-// 		static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
+// 		static bounded_matrix<double,4,4> msMassFactors;
+// 		static bounded_matrix<double,4,3> msDN_DX;
 //   		static array_1d<double,4> msN; //dimension = number of nodes
 // 		static array_1d<double,3> ms_vel_gauss; //dimesion coincides with space dimension
 //   		static array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes
@@ -213,7 +213,7 @@ namespace Kratos
     
     void qi( const unsigned int ndivisionsp, std::vector< Matrix > edges_tauxp, std::vector< Matrix > nodes_auxp , std::vector< Matrix > rGradientauxp,  array_1d<double,6> conductivitiesp, Matrix& Kaux1p,Matrix& Lenrichaux1p);
 
-    void Heat_Source(VectorType& rRightHandSideVector,const int ndivisionsp, array_1d<double,6>& volumesp,array_1d<double,6>& conductivitiesp,boost::numeric::ublas::bounded_matrix<double,6, 8 >& Ngaussnewp, const double heatp);   
+    void Heat_Source(VectorType& rRightHandSideVector,const int ndivisionsp, array_1d<double,6>& volumesp,array_1d<double,6>& conductivitiesp,bounded_matrix<double,6, 8 >& Ngaussnewp, const double heatp);   
  
 
       ///@} 

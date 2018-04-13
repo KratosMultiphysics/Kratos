@@ -84,7 +84,7 @@ public:
     {
         KRATOS_TRY;
 
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+        bounded_matrix<double,4,3> DN_DX;
         array_1d<double,6> sigma;
         array_1d<double,4> N;
         array_1d<double,3> aux;
@@ -92,7 +92,7 @@ public:
         array_1d<double,3> aux_conv_proj;
         array_1d<double,3> vconv;
         const array_1d<double,3> zero3 = ZeroVector(3);
-        boost::numeric::ublas::bounded_matrix<double,3,3> dv_dx;
+        bounded_matrix<double,3,3> dv_dx;
         array_1d<double,4> ms_u_DN;
         const int nnodes = 4;
         int dim = 3;
@@ -244,7 +244,7 @@ public:
     {
         KRATOS_TRY;
 
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        bounded_matrix<double,3,2> DN_DX;
         array_1d<double,3> sigma;
         array_1d<double,3> N;
         array_1d<double,3> aux;
@@ -252,7 +252,7 @@ public:
         array_1d<double,3> aux_conv_proj;
         array_1d<double,2> vconv;
         const array_1d<double,3> zero3 = ZeroVector(3);
-        boost::numeric::ublas::bounded_matrix<double,2,2> dv_dx;
+        bounded_matrix<double,2,2> dv_dx;
         array_1d<double,3> ms_u_DN;
         const int nnodes = 3;
         int dim = 2;
@@ -399,7 +399,7 @@ public:
     {
         KRATOS_TRY;
 
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        bounded_matrix<double,3,2> DN_DX;
         array_1d<double,3> sigma;
         array_1d<double,3> N;
         array_1d<double,3> aux;
@@ -407,7 +407,7 @@ public:
         array_1d<double,3> aux_conv_proj;
         array_1d<double,2> vconv;
         const array_1d<double,3> zero3 = ZeroVector(3);
-        boost::numeric::ublas::bounded_matrix<double,2,2> dv_dx;
+        bounded_matrix<double,2,2> dv_dx;
         array_1d<double,3> ms_u_DN;
         const int nnodes = 3;
         int dim = 2;

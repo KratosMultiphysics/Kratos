@@ -339,7 +339,7 @@ void ExplicitASGSCOMPPRDC3D::Calculate( const Variable<double>& rVariable, doubl
     Output = 100.0;
     double volume;
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX = ZeroMatrix(3, 2);
+    bounded_matrix<double, 4, 3 > DN_DX = ZeroMatrix(3, 2);
     array_1d<double, 4 > N = ZeroVector(4); //dimension = number of nodes
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, volume);
 
@@ -431,7 +431,7 @@ void ExplicitASGSCOMPPRDC3D::CalculateTau(const array_1d<double,4>& N,double& ta
 }
 //*************************************************************************************
 //*************************************************************************************
-void ExplicitASGSCOMPPRDC3D::CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double time,const double tautwo,const double volume)
+void ExplicitASGSCOMPPRDC3D::CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double time,const double tautwo,const double volume)
 {
     KRATOS_TRY
     //tau*div(V).P_dot
@@ -480,7 +480,7 @@ void ExplicitASGSCOMPPRDC3D::CalculateDivPdotStblTerms(MatrixType& K,VectorType&
 }
 //************************************************************************************
 //************************************************************************************
-void ExplicitASGSCOMPPRDC3D::CalculateArtifitialViscosity(double& Vel_art_visc,double& Pr_art_visc ,const boost::numeric::ublas::bounded_matrix<double,4,3>&DN_DX)
+void ExplicitASGSCOMPPRDC3D::CalculateArtifitialViscosity(double& Vel_art_visc,double& Pr_art_visc ,const bounded_matrix<double,4,3>&DN_DX)
 {
     KRATOS_TRY
 
@@ -518,7 +518,7 @@ void ExplicitASGSCOMPPRDC3D::CalculateArtifitialViscosity(double& Vel_art_visc,d
 }
 //************************************************************************************
 //************************************************************************************
-void ExplicitASGSCOMPPRDC3D::CalculateCharectristicLength(double& ch_length, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,double& norm_grad )
+void ExplicitASGSCOMPPRDC3D::CalculateCharectristicLength(double& ch_length, const bounded_matrix<double,4,3>& DN_DX,double& norm_grad )
 {
     KRATOS_TRY
 
@@ -615,7 +615,7 @@ void ExplicitASGSCOMPPRDC3D::Calculate(const Variable<array_1d<double, 3 > >& rV
 // 	  double volume = GetGeometry().Volume();
     //getting data for the given geometry
     double volume;
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX = ZeroMatrix(4, 3);
+    bounded_matrix<double, 4, 3 > DN_DX = ZeroMatrix(4, 3);
     array_1d<double, 4 > N = ZeroVector(4); //dimension = number of nodes
 
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, volume);

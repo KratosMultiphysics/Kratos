@@ -563,10 +563,10 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
     if (dimension == 2) // 2D case
     {
         // Interpolation matrix obtention
-        boost::numeric::ublas::bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/2 * MCons
-        boost::numeric::ublas::bounded_matrix<double,2,2> MInterp;
-        boost::numeric::ublas::bounded_matrix<double,2,2> aux_GPPos;
-        boost::numeric::ublas::bounded_matrix<double,2,2> inv_aux_GPPos;
+        bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/2 * MCons
+        bounded_matrix<double,2,2> MInterp;
+        bounded_matrix<double,2,2> aux_GPPos;
+        bounded_matrix<double,2,2> inv_aux_GPPos;
 
         MCons(0, 0) = 2.0/3.0;
         MCons(0, 1) = 1.0/3.0;
@@ -864,10 +864,10 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
     if (dimension == 2)
     {
         // Interpolation matrix obtention
-        boost::numeric::ublas::bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/2 * MCons
-        boost::numeric::ublas::bounded_matrix<double,2,2> MInterp;
-        boost::numeric::ublas::bounded_matrix<double,2,2> aux_GPPos;
-        boost::numeric::ublas::bounded_matrix<double,2,2> inv_aux_GPPos;
+        bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/2 * MCons
+        bounded_matrix<double,2,2> MInterp;
+        bounded_matrix<double,2,2> aux_GPPos;
+        bounded_matrix<double,2,2> inv_aux_GPPos;
 
         MCons(0, 0) = 2.0/3.0;
         MCons(0, 1) = 1.0/3.0;
@@ -1223,10 +1223,10 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
     {
 
         // Interpolation matrix obtention
-        boost::numeric::ublas::bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/6 * MCons
-        boost::numeric::ublas::bounded_matrix<double,2,2> MInterp;
-        boost::numeric::ublas::bounded_matrix<double,2,2> aux_GPPos;
-        boost::numeric::ublas::bounded_matrix<double,2,2> inv_aux_GPPos;
+        bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/6 * MCons
+        bounded_matrix<double,2,2> MInterp;
+        bounded_matrix<double,2,2> aux_GPPos;
+        bounded_matrix<double,2,2> inv_aux_GPPos;
 
         MCons(0, 0) = 2.0/3.0; MCons(0, 1) = 1.0/3.0;
         MCons(1, 0) = 1.0/3.0; MCons(1, 1) = 2.0/3.0;
@@ -1496,10 +1496,10 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
     if (dimension == 2) // 2D case
     {
         // Interpolation matrix obtention
-        boost::numeric::ublas::bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/2 * MCons
-        boost::numeric::ublas::bounded_matrix<double,2,2> MInterp;
-        boost::numeric::ublas::bounded_matrix<double,2,2> aux_GPPos;
-        boost::numeric::ublas::bounded_matrix<double,2,2> inv_aux_GPPos;
+        bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/2 * MCons
+        bounded_matrix<double,2,2> MInterp;
+        bounded_matrix<double,2,2> aux_GPPos;
+        bounded_matrix<double,2,2> inv_aux_GPPos;
 
         MCons(0, 0) = 2.0/3.0; MCons(0, 1) = 1.0/3.0;
         MCons(1, 0) = 1.0/3.0; MCons(1, 1) = 2.0/3.0;

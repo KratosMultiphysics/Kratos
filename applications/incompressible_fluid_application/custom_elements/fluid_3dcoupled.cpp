@@ -65,9 +65,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 //static variables
-boost::numeric::ublas::bounded_matrix<double,4,4> Fluid3DCoupled::msaux_matrix;
-boost::numeric::ublas::bounded_matrix<double,4,4> Fluid3DCoupled::msMassFactors;
-boost::numeric::ublas::bounded_matrix<double,4,3> Fluid3DCoupled::msDN_DX;
+bounded_matrix<double,4,4> Fluid3DCoupled::msaux_matrix;
+bounded_matrix<double,4,4> Fluid3DCoupled::msMassFactors;
+bounded_matrix<double,4,3> Fluid3DCoupled::msDN_DX;
 array_1d<double,4> Fluid3DCoupled::msN; //dimension = number of nodes
 array_1d<double,3> Fluid3DCoupled::ms_aux; //dimension coincides with space dimension
 array_1d<double,3> Fluid3DCoupled::ms_vel_gauss; //dimesion coincides with space dimension
@@ -674,7 +674,7 @@ void Fluid3DCoupled::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& Cu
 
 //************************************************************************************
 //************************************************************************************
-void Fluid3DCoupled::CalculateViscousMatrix(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double& nu)
+void Fluid3DCoupled::CalculateViscousMatrix(MatrixType& K, const bounded_matrix<double,4,3>& DN_DX, const double& nu)
 {
     //horrorful ... just to make sure it works
     Matrix B(6,12);
@@ -866,7 +866,7 @@ void Fluid3DCoupled::CalculateViscousMatrix(MatrixType& K, const boost::numeric:
 //size "dimension" ADDING to the destination matrix
 inline void  Fluid3DCoupled::ExpandAndAddReducedMatrix(
     MatrixType& Destination,
-    boost::numeric::ublas::bounded_matrix<double,4,4>& ReducedMatrix,
+    bounded_matrix<double,4,4>& ReducedMatrix,
     const unsigned int dimension)
 {
     KRATOS_TRY

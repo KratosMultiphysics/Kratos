@@ -88,18 +88,18 @@ namespace Kratos
     unsigned int matsize = number_of_points *dim;
     
     //getting data for the given geometry
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-    boost::numeric::ublas::bounded_matrix<double,12,12> msMass= ZeroMatrix(12,12);
+    bounded_matrix<double,4,3> msDN_DX;
+    bounded_matrix<double,12,12> msMass= ZeroMatrix(12,12);
     //msMass=ZeroMatrix(12,12);
     
     array_1d<double,4> msN; //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,12,12> rDampMatrix = ZeroMatrix(12,12);
+    bounded_matrix<double,12,12> rDampMatrix = ZeroMatrix(12,12);
 
-    boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12); 
-    boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
+    bounded_matrix<double,6,12> msB = ZeroMatrix(6,12); 
+    bounded_matrix<double,6,6> ms_constitutive_matrix;
     array_1d<double,4> temp_vec_np;
     
-    boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
+    bounded_matrix<double,6,12> ms_temp;
     double Volume;
 
 
@@ -247,7 +247,7 @@ namespace Kratos
     //getting data for the given geometry
     double Volume;
     array_1d<double, 4 > N;
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
     
     const array_1d<double, 3 > & fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
@@ -373,8 +373,8 @@ namespace Kratos
 	//unsigned int matsize = number_of_points *dim;
 	
 	//getting data for the given geometry
-	boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-	//boost::numeric::ublas::bounded_matrix<double,12,12> msMass= ZeroMatrix(12,12);
+	bounded_matrix<double,4,3> msDN_DX;
+	//bounded_matrix<double,12,12> msMass= ZeroMatrix(12,12);
 	//msMass=ZeroMatrix(12,12);
 
 	array_1d<double,12> GalerkinRHS = ZeroVector(12); //dimension = number of nodes
@@ -468,7 +468,7 @@ namespace Kratos
 	
     	double Area;
     	array_1d<double, 4 > msN;
-    	boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    	bounded_matrix<double, 4, 3 > DN_DX;
 	
         //double Area;
         GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,msN,Area);
@@ -564,7 +564,7 @@ namespace Kratos
       {
     	array_1d<double,4> temp_vec_np; //dimension = number of nodes
         array_1d<double,4> GalerkinRHS = ZeroVector(4); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX; // = ZeroMatrix(3,2);
+        bounded_matrix<double,4,3> msDN_DX; // = ZeroMatrix(3,2);
         array_1d<double,4> msN = ZeroVector(4); //dimension = number of nodes
 	
 	
@@ -758,7 +758,7 @@ namespace Kratos
       }
   }
 
-  void QFluid3D::CalculateViscousMatrix(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double& nu,const double& dtt )
+  void QFluid3D::CalculateViscousMatrix(MatrixType& K, const bounded_matrix<double,4,3>& DN_DX, const double& nu,const double& dtt )
   {
   
     double viscosity=nu;
@@ -777,12 +777,12 @@ namespace Kratos
     const unsigned int number_of_nodes = 4;
     const unsigned int dim = 3;
   
-    boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12);
-    boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
-    boost::numeric::ublas::bounded_matrix<double,6,6> msCapx;
-    boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
-    boost::numeric::ublas::bounded_matrix<double,12,12> rDampMatrix;
-    boost::numeric::ublas::bounded_matrix<double,6,12> B;
+    bounded_matrix<double,6,12> msB = ZeroMatrix(6,12);
+    bounded_matrix<double,6,6> ms_constitutive_matrix;
+    bounded_matrix<double,6,6> msCapx;
+    bounded_matrix<double,6,12> ms_temp;
+    bounded_matrix<double,12,12> rDampMatrix;
+    bounded_matrix<double,6,12> B;
     
   
     //unsigned int start;
@@ -904,7 +904,7 @@ namespace Kratos
   //size "dimension" ADDING to the destination matrix
   inline void  QFluid3D::ExpandAndAddReducedMatrix(
 						   MatrixType& Destination,
-						   boost::numeric::ublas::bounded_matrix<double,4,4>& ReducedMatrix,
+						   bounded_matrix<double,4,4>& ReducedMatrix,
 						   const unsigned int dimension)
   {
     KRATOS_TRY

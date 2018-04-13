@@ -538,7 +538,7 @@ public:
         array_1d <double, 3 + 1> N;
 
         // Shape function derivatives
-        boost::numeric::ublas::bounded_matrix <double, 3 + 1, 3> dN_dx;
+        bounded_matrix <double, 3 + 1, 3> dN_dx;
 
         // Volume
         double volume;
@@ -547,7 +547,7 @@ public:
         double weighting_factor = 1.0 / static_cast <double> (3 + 1);
 
         // Elemental matrices
-        boost::numeric::ublas::bounded_matrix <double, 3 + 1, 3 + 1> mass_consistent;
+        bounded_matrix <double, 3 + 1, 3 + 1> mass_consistent;
 
         array_1d <double, 3 + 1> mass_lumped;
 
@@ -1121,7 +1121,7 @@ public:
     //
     // Function to set up elemental mass matrices
 
-    void CalculateMassMatrix(boost::numeric::ublas::bounded_matrix <double, 3, 3> &mass_consistent, double volume)
+    void CalculateMassMatrix(bounded_matrix <double, 3, 3> &mass_consistent, double volume)
     {
         for (unsigned int i_node = 0; i_node <= 3; i_node++)
         {
@@ -1145,7 +1145,7 @@ public:
     //
     // Function to set up elemental mass matrices
 
-    void CalculateMassMatrix(boost::numeric::ublas::bounded_matrix<double, 4, 4> &mass_consistent, double volume)
+    void CalculateMassMatrix(bounded_matrix<double, 4, 4> &mass_consistent, double volume)
     {
         for (unsigned int i_node = 0; i_node <= 3; i_node++)
         {

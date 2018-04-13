@@ -67,9 +67,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 //static variables
-boost::numeric::ublas::bounded_matrix<double,3,3> Fluid2DCoupled::msaux_matrix;
-boost::numeric::ublas::bounded_matrix<double,3,3> Fluid2DCoupled::msMassFactors;
-boost::numeric::ublas::bounded_matrix<double,3,2> Fluid2DCoupled::msDN_DX;
+bounded_matrix<double,3,3> Fluid2DCoupled::msaux_matrix;
+bounded_matrix<double,3,3> Fluid2DCoupled::msMassFactors;
+bounded_matrix<double,3,2> Fluid2DCoupled::msDN_DX;
 array_1d<double,3> Fluid2DCoupled::msN; //dimension = number of nodes
 array_1d<double,2> Fluid2DCoupled::ms_vel_gauss; //dimesion coincides with space dimension
 array_1d<double,3> Fluid2DCoupled::ms_temp_vec_np; //dimension = number of nodes
@@ -210,8 +210,8 @@ void Fluid2DCoupled::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightH
 
     //VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
     // rLeftHandSideMatrix += Laplacian * nu;
-    /*		boost::numeric::ublas::bounded_matrix<double,3,6> B;
-    		boost::numeric::ublas::bounded_matrix<double,3,3> constitutive_matrix;
+    /*		bounded_matrix<double,3,6> B;
+    		bounded_matrix<double,3,3> constitutive_matrix;
 
     			//filling matrix B
     			for (unsigned int i=0;i<number_of_points;i++)
@@ -230,7 +230,7 @@ void Fluid2DCoupled::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightH
 
 
     			//calculating viscous contributions
-    			boost::numeric::ublas::bounded_matrix<double,3,6> temp = prod( constitutive_matrix , B);
+    			bounded_matrix<double,3,6> temp = prod( constitutive_matrix , B);
     			noalias(rLeftHandSideMatrix) = prod( trans(B) , temp);
     */
     //performs Btrans * D * B without writing any of the matrices
@@ -645,7 +645,7 @@ void Fluid2DCoupled::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& Cu
 
 //************************************************************************************
 //************************************************************************************
-void Fluid2DCoupled::CalculateViscousMatrix(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu)
+void Fluid2DCoupled::CalculateViscousMatrix(MatrixType& K, const bounded_matrix<double,3,2>& DN_DX, const double& nu)
 {
     K(0,0) = 2.0 * pow(DN_DX(0,0), 2) * nu + nu * pow(DN_DX(0,1), 2);
     K(0,1) = DN_DX(0,1) * nu * DN_DX(0,0);
@@ -696,7 +696,7 @@ void Fluid2DCoupled::CalculateViscousMatrix(MatrixType& K, const boost::numeric:
 //size "dimension" ADDING to the destination matrix
 inline void  Fluid2DCoupled::ExpandAndAddReducedMatrix(
     MatrixType& Destination,
-    boost::numeric::ublas::bounded_matrix<double,3,3>& ReducedMatrix,
+    bounded_matrix<double,3,3>& ReducedMatrix,
     const unsigned int dimension)
 {
     KRATOS_TRY

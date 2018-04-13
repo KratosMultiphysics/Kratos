@@ -65,20 +65,20 @@ namespace Kratos
       const unsigned int number_of_points = GetGeometry().size();
     
     //KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
-    boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
-    boost::numeric::ublas::bounded_matrix<double,4,4> NN =  ZeroMatrix(4,4);
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3);
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX_aux = ZeroMatrix(4,3);
+    bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
+    bounded_matrix<double,4,4> NN =  ZeroMatrix(4,4);
+    bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3);
+    bounded_matrix<double,4,3> msDN_DX_aux = ZeroMatrix(4,3);
     array_1d<double,4> msN = ZeroVector(4); //dimension = number of nodes
     array_1d<double,3> ms_vel_gauss = ZeroVector(3); //dimesion coincides with space dimension
     array_1d<double,4> ms_temp_vec_np = ZeroVector(4); //dimension = number of nodes
     array_1d<double,4> ms_u_DN = ZeroVector(4); //dimension = number of nodes
     array_1d<double,3> grad_g = ZeroVector(3); //dimesion coincides with space dimension
     array_1d<double,3> aux_var= ZeroVector(3); //dimesion coincides with space dimension
-    boost::numeric::ublas::bounded_matrix<double,4,1> msShapeFunc = ZeroMatrix(4,1);
+    bounded_matrix<double,4,1> msShapeFunc = ZeroMatrix(4,1);
     array_1d<double,4> msAuxVec; // = ZeroVector(4); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,4,4> msAuxMat = ZeroMatrix(4,4);
-    boost::numeric::ublas::bounded_matrix<double,4,4> msAux = ZeroMatrix(4,4);
+    bounded_matrix<double,4,4> msAuxMat = ZeroMatrix(4,4);
+    bounded_matrix<double,4,4> msAux = ZeroMatrix(4,4);
     
     mThisIntegrationMethod= GeometryData::GI_GAUSS_2;
     // mThisIntegrationMethod= GeometryData::GI_GAUSS_3;
@@ -105,10 +105,10 @@ namespace Kratos
     absorptioncoefficient = 75.0;
     
     
-    boost::numeric::ublas::bounded_matrix<double,4, 3 > coords;
+    bounded_matrix<double,4, 3 > coords;
     array_1d<double,4> distances;
     array_1d<double,6>  volumes(6);
-    boost::numeric::ublas::bounded_matrix<double,6, 4 > Ngauss;
+    bounded_matrix<double,6, 4 > Ngauss;
     array_1d<double,6>  signs(6);
     std::vector< Matrix > gauss_gradients(6);
     
@@ -424,7 +424,7 @@ namespace Kratos
     
   }
   
-  inline double Rad3D::CalculateH(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, double Volume)
+  inline double Rad3D::CalculateH(bounded_matrix<double, 4, 3 > & DN_DX, double Volume)
   {
     
     double inv_h_max = 0.0;
@@ -560,7 +560,7 @@ namespace Kratos
 	  }
   }
 
-  void Rad3D::Heat_Source(VectorType& rRightHandSideVector, const int ndivisionsp, array_1d<double,6>& volumesp, array_1d<double,6>& conductivitiesp, boost::numeric::ublas::bounded_matrix<double,6, 8 >& Ngaussnewp, const double heatp)
+  void Rad3D::Heat_Source(VectorType& rRightHandSideVector, const int ndivisionsp, array_1d<double,6>& volumesp, array_1d<double,6>& conductivitiesp, bounded_matrix<double,6, 8 >& Ngaussnewp, const double heatp)
   {
     double coefficientaux=0.0;
     double heat_flux=0.0;

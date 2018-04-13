@@ -150,9 +150,9 @@ protected:
 
     void InitializeEulerianElement(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>& rDN_DX, double& rVolume);
+    void CalculateGeometry(bounded_matrix<double,TNumNodes,TDim>& rDN_DX, double& rVolume);
 
-    double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>& rDN_DX);
+    double ComputeH(bounded_matrix<double,TNumNodes,TDim>& rDN_DX);
 
     void GetNodalValues(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
 

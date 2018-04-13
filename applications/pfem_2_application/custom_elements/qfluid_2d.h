@@ -119,8 +119,8 @@ namespace Kratos
     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
     //void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
-    //void CalculateViscousMatrix(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu);
-    void CalculateViscousMatrix(MatrixType& K  , const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu, const double& deltat, const double& bulk); //, const double& k);
+    //void CalculateViscousMatrix(MatrixType& K, const bounded_matrix<double,3,2>& DN_DX, const double& nu);
+    void CalculateViscousMatrix(MatrixType& K  , const bounded_matrix<double,3,2>& DN_DX, const double& nu, const double& deltat, const double& bulk); //, const double& k);
 
 
 
@@ -219,8 +219,8 @@ namespace Kratos
     ///@{
     void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);//, unsigned int ComponentIndex);
     void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-    // inline double CalculateTau(boost::numeric::ublas::bounded_matrix<double, 3,2 > & DN_DX, array_1d<double, 2 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo);
-    double ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX,
+    // inline double CalculateTau(bounded_matrix<double, 3,2 > & DN_DX, array_1d<double, 2 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo);
+    double ComputeSmagorinskyViscosity(const bounded_matrix<double, 3, 2 > & DN_DX,
                                        const double& h,
                                        const double& C,
                                        const double nu

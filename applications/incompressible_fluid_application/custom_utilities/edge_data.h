@@ -82,10 +82,10 @@ namespace Kratos
 // 	{
 // 		public:
 // 			array_1d<double, TDim+1> N;
-// 			boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim> dN_dx;
+// 			bounded_matrix <double, TDim+1,TDim> dN_dx;
 // 			double volume;
 // 			double weighting_factor = 1.0 / static_cast<double>(TDim+1);
-// 			boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim+1> mass_consistent;
+// 			bounded_matrix <double, TDim+1,TDim+1> mass_consistent;
 // 			array_1d<double, TDim+1> mass_lumped;
 // 			array_1d<unsigned int, TDim+1> nodal_indices;
 // 			array_1d<double, TDim+1> heights;
@@ -102,7 +102,7 @@ public:
     double Mass;
     //components kl of the laplacian matrix of edge ij (L = dNi/dxk * dNj/dxl * dOmega)
     //double Laplacian;
-    boost::numeric::ublas::bounded_matrix<double, TDim, TDim> LaplacianIJ;
+    bounded_matrix<double, TDim, TDim> LaplacianIJ;
     //components k of the gradient matrix of edge ij (G = Ni * dNj/dxl * dOmega)
     array_1d<double, TDim> Ni_DNj;
     //components k of the transposed gradient matrix of edge ij (GT = dNi/dxl * Nj * dOmega)
@@ -708,14 +708,14 @@ public:
         //shape functions
         array_1d<double, TDim + 1 > N;
         //shape function derivatives
-        boost::numeric::ublas::bounded_matrix <double, TDim + 1, TDim> dN_dx;
+        bounded_matrix <double, TDim + 1, TDim> dN_dx;
         //volume
         double volume;
         //weighting factor
         double weighting_factor = 1.0 / static_cast<double> (TDim + 1);
         //elemental matrices
-        boost::numeric::ublas::bounded_matrix <double, TDim + 1, TDim + 1 > mass_consistent;
-        //boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim+1> laplacian;
+        bounded_matrix <double, TDim + 1, TDim + 1 > mass_consistent;
+        //bounded_matrix <double, TDim+1,TDim+1> laplacian;
         array_1d<double, TDim + 1 > mass_lumped;
         //global indices of elemental nodes
         array_1d<unsigned int, TDim + 1 > nodal_indices;
@@ -805,7 +805,7 @@ public:
                         //contribution to edge laplacian
                         /*OLD DATA STRUCTURE
                         mNonzeroEdgeValues[csr_index].Laplacian = laplacian(ie_node,je_node);*/
-                        boost::numeric::ublas::bounded_matrix <double, TDim, TDim>& laplacian = mNonzeroEdgeValues[csr_index].LaplacianIJ;
+                        bounded_matrix <double, TDim, TDim>& laplacian = mNonzeroEdgeValues[csr_index].LaplacianIJ;
                         for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                             for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
                                 laplacian(l_comp, k_comp) += dN_dx(ie_node, l_comp) * dN_dx(je_node, k_comp) * volume;
@@ -1296,7 +1296,7 @@ private:
     //*******************************************
     //functions to set up elemental mass matrices
 
-    void CalculateMassMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & mass_consistent, double volume)
+    void CalculateMassMatrix(bounded_matrix<double, 3, 3 > & mass_consistent, double volume)
     {
         for (unsigned int i_node = 0; i_node <= TDim; i_node++)
         {
@@ -1313,7 +1313,7 @@ private:
         }
     }
 
-    void CalculateMassMatrix(boost::numeric::ublas::bounded_matrix<double, 4, 4 > & mass_consistent, double volume)
+    void CalculateMassMatrix(bounded_matrix<double, 4, 4 > & mass_consistent, double volume)
     {
         for (unsigned int i_node = 0; i_node <= TDim; i_node++)
         {

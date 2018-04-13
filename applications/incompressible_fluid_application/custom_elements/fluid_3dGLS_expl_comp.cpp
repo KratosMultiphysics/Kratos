@@ -139,17 +139,17 @@ void Fluid3DGLS_expl_comp::CalculateGalerkinMomentumResidual(VectorType& Galerki
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,12,12> msAuxMat;
-    boost::numeric::ublas::bounded_matrix<double,12,12> msAuxMat1;
-    boost::numeric::ublas::bounded_matrix<double,12,3> msAuxMat2;
-    boost::numeric::ublas::bounded_matrix<double,3,3> msGrad_ug;
+    bounded_matrix<double,12,12> msAuxMat;
+    bounded_matrix<double,12,12> msAuxMat1;
+    bounded_matrix<double,12,3> msAuxMat2;
+    bounded_matrix<double,3,3> msGrad_ug;
     array_1d<double,12> msAuxVec;
     array_1d<double,12> msStabMomRes;
-    boost::numeric::ublas::bounded_matrix<double,4,4> msWorkMatrix;
-    boost::numeric::ublas::bounded_matrix<double,12,3> msShapeFunc;
-    boost::numeric::ublas::bounded_matrix<double,3,12> msConvOp;
-    boost::numeric::ublas::bounded_matrix<double,12,4> msGradOp;
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
+    bounded_matrix<double,4,4> msWorkMatrix;
+    bounded_matrix<double,12,3> msShapeFunc;
+    bounded_matrix<double,3,12> msConvOp;
+    bounded_matrix<double,12,4> msGradOp;
+    bounded_matrix<double,4,3> msDN_DX;
     array_1d<double,3> ms_adv_vel;
     array_1d<double,4> msN;
     array_1d<double,3> ms_vel_gauss;
@@ -352,17 +352,17 @@ void Fluid3DGLS_expl_comp::CalculateRHSVector(VectorType& Galerkin_RHS, double& 
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,12,12> msAuxMat;
-    boost::numeric::ublas::bounded_matrix<double,12,12> msAuxMat1;
-    boost::numeric::ublas::bounded_matrix<double,12,3> msAuxMat2;
-    boost::numeric::ublas::bounded_matrix<double,3,3> msGrad_ug;
+    bounded_matrix<double,12,12> msAuxMat;
+    bounded_matrix<double,12,12> msAuxMat1;
+    bounded_matrix<double,12,3> msAuxMat2;
+    bounded_matrix<double,3,3> msGrad_ug;
     array_1d<double,12> msAuxVec;
     array_1d<double,12> msStabMomRes;
-    boost::numeric::ublas::bounded_matrix<double,4,4> msWorkMatrix;
-    boost::numeric::ublas::bounded_matrix<double,12,3> msShapeFunc;
-    boost::numeric::ublas::bounded_matrix<double,3,12> msConvOp;
-    boost::numeric::ublas::bounded_matrix<double,12,4> msGradOp;
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
+    bounded_matrix<double,4,4> msWorkMatrix;
+    bounded_matrix<double,12,3> msShapeFunc;
+    bounded_matrix<double,3,12> msConvOp;
+    bounded_matrix<double,12,4> msGradOp;
+    bounded_matrix<double,4,3> msDN_DX;
     array_1d<double,3> ms_adv_vel;
     array_1d<double,4> msN;
     array_1d<double,3> ms_vel_gauss;
@@ -584,17 +584,17 @@ void Fluid3DGLS_expl_comp::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,12,12> msAuxMat= ZeroMatrix(12,12);
-    boost::numeric::ublas::bounded_matrix<double,12,12> msAuxMat1= ZeroMatrix(12,12);
-    boost::numeric::ublas::bounded_matrix<double,12,3> msAuxMat2= ZeroMatrix(12,3);
-    boost::numeric::ublas::bounded_matrix<double,3,3> msGrad_ug= ZeroMatrix(3,3);
+    bounded_matrix<double,12,12> msAuxMat= ZeroMatrix(12,12);
+    bounded_matrix<double,12,12> msAuxMat1= ZeroMatrix(12,12);
+    bounded_matrix<double,12,3> msAuxMat2= ZeroMatrix(12,3);
+    bounded_matrix<double,3,3> msGrad_ug= ZeroMatrix(3,3);
     array_1d<double,12> msAuxVec= ZeroVector(12);
     array_1d<double,12> msStabMomRes= ZeroVector(12);
-    boost::numeric::ublas::bounded_matrix<double,4,4> msWorkMatrix= ZeroMatrix(4,4);
-    boost::numeric::ublas::bounded_matrix<double,12,3> msShapeFunc= ZeroMatrix(12,3);
-    boost::numeric::ublas::bounded_matrix<double,3,12> msConvOp= ZeroMatrix(3,12);
-    boost::numeric::ublas::bounded_matrix<double,12,4> msGradOp= ZeroMatrix(12,4);
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX= ZeroMatrix(4,3);
+    bounded_matrix<double,4,4> msWorkMatrix= ZeroMatrix(4,4);
+    bounded_matrix<double,12,3> msShapeFunc= ZeroMatrix(12,3);
+    bounded_matrix<double,3,12> msConvOp= ZeroMatrix(3,12);
+    bounded_matrix<double,12,4> msGradOp= ZeroMatrix(12,4);
+    bounded_matrix<double,4,3> msDN_DX= ZeroMatrix(4,3);
     array_1d<double,3> ms_adv_vel= ZeroVector(3);
     array_1d<double,4> msN= ZeroVector(4);
     array_1d<double,3> ms_vel_gauss= ZeroVector(3);
@@ -830,8 +830,8 @@ void Fluid3DGLS_expl_comp::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
     //RHS+=-Dv
     /*
-    boost::numeric::ublas::bounded_matrix<double,3,6> D = ZeroMatrix(3,6);
-    boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
+    bounded_matrix<double,3,6> D = ZeroMatrix(3,6);
+    bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
     for (int ii = 0; ii< 3; ii++)
         {
     	int column = ii*2;
@@ -1039,7 +1039,7 @@ void Fluid3DGLS_expl_comp::GetDofList(DofsVectorType& ElementalDofList,ProcessIn
     KRATOS_CATCH("");
 }
 
-inline double Fluid3DGLS_expl_comp::CalculateH(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, double Volume)
+inline double Fluid3DGLS_expl_comp::CalculateH(bounded_matrix<double, 4, 3 > & DN_DX, double Volume)
 {
 //         double h = pow(6.00 * Volume, 0.3333333);
 
@@ -1061,7 +1061,7 @@ inline double Fluid3DGLS_expl_comp::CalculateH(boost::numeric::ublas::bounded_ma
 //************************************************************************************
 //************************************************************************************
 
-inline double Fluid3DGLS_expl_comp::CalculateTau(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, array_1d<double, 3 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
+inline double Fluid3DGLS_expl_comp::CalculateTau(bounded_matrix<double, 4, 3 > & DN_DX, array_1d<double, 3 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
 {
 
     //viscous parts

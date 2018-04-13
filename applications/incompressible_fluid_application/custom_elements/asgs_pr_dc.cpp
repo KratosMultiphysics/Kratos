@@ -120,7 +120,7 @@ void ASGSPRDC::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType&
 
     double delta_t= rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+    bounded_matrix<double,3,2> DN_DX;
     array_1d<double,3> N;
     array_1d<double,2> ms_adv_vel;
 
@@ -191,7 +191,7 @@ void ASGSPRDC::CalculateResidual(const MatrixType& K, VectorType& F)
 }
 //************************************************************************************
 //************************************************************************************
-void ASGSPRDC::ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const 			boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double tauone,const double tautwo,const array_1d<double,3>& N,const double area, const double time)
+void ASGSPRDC::ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const 			bounded_matrix<double,3,2>& DN_DX,const double tauone,const double tautwo,const array_1d<double,3>& N,const double area, const double time)
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dim = 2;

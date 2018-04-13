@@ -195,11 +195,11 @@ protected:
 
     virtual void CalculateResidual(const MatrixType& K, VectorType& F);
 
-    virtual void CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double thawone,const double volume, const double density);
-    virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double thawone,const double volume, const double density);
+    virtual void CalculateAdvMassStblTerms(MatrixType& M,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double thawone,const double volume, const double density);
+    virtual void CalculateGradMassStblTerms(MatrixType& M,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double thawone,const double volume, const double density);
     //Pavel
     virtual void CalculateEnrichmentTerms(MatrixType& DampingMatrix, VectorType& rRightHandSideVector, const double dt);
-    virtual void CalculateEnrichmentOperators(boost::numeric::ublas::bounded_matrix<double, 1, 12 > & Dstar, boost::numeric::ublas::bounded_matrix<double, 12, 1 > & Gstar,  boost::numeric::ublas::bounded_matrix<double, 1, 4 > & Lap_star, boost::numeric::ublas::bounded_matrix<double, 1, 4 > & N_Nstar, double & f_star, double & Lap, double & Mstar, const double delta_t );
+    virtual void CalculateEnrichmentOperators(bounded_matrix<double, 1, 12 > & Dstar, bounded_matrix<double, 12, 1 > & Gstar,  bounded_matrix<double, 1, 4 > & Lap_star, bounded_matrix<double, 1, 4 > & N_Nstar, double & f_star, double & Lap, double & Mstar, const double delta_t );
     virtual void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
     virtual void FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo );
 	
@@ -248,22 +248,22 @@ protected:
     virtual void CalculateMassContribution(MatrixType& K, const array_1d<double,4>& partition_N, const double volume, const double density, const double sound_vel);
 
     //Pavel: below is changed for several gauss points
-    virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double partition_volume, const double nu, const double rho);
+    virtual void CalculateViscousTerm(MatrixType& K,const bounded_matrix<double,4,3>& DN_DX, const double partition_volume, const double nu, const double rho);
     //Pavel: below is changed for several gauss points
-    virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& partition_N, const double partition_volume, const double density);
+    virtual void CalculateAdvectiveTerm(MatrixType& K,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& partition_N, const double partition_volume, const double density);
 
     //Pavel: below is changed for several gauss points
-    virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& partition_N,const double partition_volume, const double density, const double sound_vel);
+    virtual void CalculatePressureTerm(MatrixType& K,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& partition_N,const double partition_volume, const double density, const double sound_vel);
 
     //Pavel: below is changed for several gauss points
-    virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double tau, const double volume, const double density);
+    virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double tau, const double volume, const double density);
 
-    virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double tau, const double volume, const double density);
+    virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double tau, const double volume, const double density);
     virtual void AddBodyForceAndMomentum(VectorType& F, const array_1d<double,4>& N, const double volume, const double density);
 
     //Pavel: below is changed for several gauss points
     virtual void CalculateTau(const array_1d<double,4>& N, double& thawone, double& tautwo, const double time,const double partition_volume, const double density, const double viscosity);
-	virtual void CalculateDivStblTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double tautwo, const double Volume, const double density);
+	virtual void CalculateDivStblTerm(MatrixType& K, const bounded_matrix<double,4,3>& DN_DX, const double tautwo, const double Volume, const double density);
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 	virtual void ChangeLumpedToConsistPressMassMatrix(VectorType& rRightHandSideVector, const double sound_vel, const double Volume, const double delta_t, const double density);
 private:

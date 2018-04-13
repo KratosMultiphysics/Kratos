@@ -118,13 +118,13 @@ namespace Kratos
         this->InitializeEulerianElement(Variables,rCurrentProcessInfo);
 
         // Compute the geometry
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim> DN_DX;
+        bounded_matrix<double,TNumNodes, TDim> DN_DX;
         array_1d<double,TNumNodes > N;
         double Volume;
         this-> CalculateGeometry(DN_DX,Volume);
 
         // Getting the values of shape functions on Integration Points
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
         const GeometryType& Geom = this->GetGeometry();
         Ncontainer = Geom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
 
@@ -142,8 +142,8 @@ namespace Kratos
         }
 
         //Some auxilary definitions
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
+        bounded_matrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
+        bounded_matrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
         bounded_matrix<double,TNumNodes, TDim> tmp;
 
         // Gauss points and Number of nodes coincides in this case.
@@ -222,7 +222,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::CalculateGeometry(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>& rDN_DX, double& rVolume)
+    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::CalculateGeometry(bounded_matrix<double,TNumNodes,TDim>& rDN_DX, double& rVolume)
     {
 
         const GeometryType& Geom = this->GetGeometry();
@@ -241,7 +241,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    double EulerianConvectionDiffusionElement< TDim, TNumNodes >::ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim >& DN_DX)
+    double EulerianConvectionDiffusionElement< TDim, TNumNodes >::ComputeH(bounded_matrix<double,TNumNodes,TDim >& DN_DX)
     {
         double h=0.0;
 

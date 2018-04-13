@@ -93,7 +93,7 @@ namespace Kratos
 				{
 					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 					double Area;
-					boost::numeric::ublas::bounded_matrix<double, (TDim+1), TDim > DN_DX;
+					bounded_matrix<double, (TDim+1), TDim > DN_DX;
 					array_1d<double, (TDim+1) > N;
 					Geometry<Node<3> >& geom = ielem->GetGeometry();
 					GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
@@ -119,10 +119,10 @@ namespace Kratos
 						}
 						
 						
-						boost::numeric::ublas::bounded_matrix<double,3*(TDim-1), 2> Nenriched;
+						bounded_matrix<double,3*(TDim-1), 2> Nenriched;
 						array_1d<double,(3*(TDim-1))> volumes;
-						boost::numeric::ublas::bounded_matrix<double,(TDim+1), TDim > coords;
-						boost::numeric::ublas::bounded_matrix<double, 3*(TDim-1), (TDim+1) > Ngauss;
+						bounded_matrix<double,(TDim+1), TDim > coords;
+						bounded_matrix<double, 3*(TDim-1), (TDim+1) > Ngauss;
 						array_1d<double,(3*(TDim-1))> signs;
 						std::vector< Matrix > gauss_gradients(3*(TDim-1));
 						//fill coordinates
@@ -386,7 +386,7 @@ namespace Kratos
 						array_1d<bool, 4 > is_node_fixed; //i position belongs to i node of the element
 						unsigned int number_of_fixed_nodes=0;
 						//bool boundary_element=false;	
-						boost::numeric::ublas::bounded_matrix<double, 4, 3 > velocities = ZeroMatrix(4, 3);
+						bounded_matrix<double, 4, 3 > velocities = ZeroMatrix(4, 3);
 							
 						for (unsigned int i = 0; i < (TDim+1); i++)
 						{

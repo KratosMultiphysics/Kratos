@@ -138,12 +138,12 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 {
     KRATOS_TRY
     ///////////////////////NECESSARY LOCALS///////////////////////////////////////////
-    boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+    bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
+    bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
     array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
-    boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
-    boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
+    bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
+    bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
+    bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
     array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
@@ -294,23 +294,23 @@ void Fluid2DGLS_expl::CalculateRHSVector(VectorType& Galerkin_RHS, double& dt)
 {
     KRATOS_TRY
     ///////////////////////NECESSARY LOCALS///////////////////////////////////////////
-    boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+    bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
+    bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
     array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
-    boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
-    boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
+    bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
+    bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
+    bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
     array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
-    boost::numeric::ublas::bounded_matrix<double,6,3> msAuxMat2 = ZeroMatrix(6,3);
-    boost::numeric::ublas::bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
+    bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
+    bounded_matrix<double,6,3> msAuxMat2 = ZeroMatrix(6,3);
+    bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
     array_1d<double,6> msStabMomRes = ZeroVector(6); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,3> msGradOp = ZeroMatrix(6,3);
+    bounded_matrix<double,6,3> msGradOp = ZeroMatrix(6,3);
     ///////////////////////////////////////////////////////////////////////////////////
 
     //first we compute  the force term and pressure gradient terms:
@@ -484,23 +484,23 @@ void Fluid2DGLS_expl::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vect
     KRATOS_TRY
 
     ///////////////////////NECESSARY LOCALS///////////////////////////////////////////
-    boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+    bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
+    bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
     array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
-    boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
-    boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
+    bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
+    bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
+    bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
     array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
-    boost::numeric::ublas::bounded_matrix<double,6,3> msAuxMat2 = ZeroMatrix(6,3);
-    boost::numeric::ublas::bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
+    bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
+    bounded_matrix<double,6,3> msAuxMat2 = ZeroMatrix(6,3);
+    bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
     array_1d<double,6> msStabMomRes = ZeroVector(6); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,3> msGradOp = ZeroMatrix(6,3);
+    bounded_matrix<double,6,3> msGradOp = ZeroMatrix(6,3);
     ///////////////////////////////////////////////////////////////////////////////////
 
     if(rRightHandSideVector.size() != 3)
@@ -620,8 +620,8 @@ void Fluid2DGLS_expl::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vect
 
     //RHS+=-Dv
     /*
-    boost::numeric::ublas::bounded_matrix<double,3,6> D = ZeroMatrix(3,6);
-    boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
+    bounded_matrix<double,3,6> D = ZeroMatrix(3,6);
+    bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
     for (int ii = 0; ii< 3; ii++)
         {
     	int column = ii*2;

@@ -198,10 +198,10 @@ namespace Kratos
     ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
     DomainBox.GetVertices( BoxVertices, CurrentProcessInfo[TIME], dimension );
 
-    boost::numeric::ublas::matrix<unsigned int> Faces(6,4);
+    matrix<unsigned int> Faces(6,4);
     DomainBox.GetQuadrilateralFaces(Faces, dimension);
 
-    //boost::numeric::ublas::matrix<unsigned int> Faces(12,3);
+    //matrix<unsigned int> Faces(12,3);
     //DomainBox.GetTriangularFaces(Faces, dimension);
 
     

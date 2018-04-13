@@ -197,7 +197,7 @@ void MeshlessShellElement::Initialize()
 	double lg_contravariant_2 = norm_2(gab_contravariant_2);
 	array_1d<double, 3> e2 = gab_contravariant_2 / lg_contravariant_2;
 
-	boost::numeric::ublas::bounded_matrix<double, 2, 2> mG;
+	bounded_matrix<double, 2, 2> mG;
 	mG(0, 0) = inner_prod(e1, gab_contravariant_1);
 	mG(0, 1) = inner_prod(e1, gab_contravariant_2);
 	mG(1, 0) = inner_prod(e2, gab_contravariant_1);
@@ -295,9 +295,9 @@ void MeshlessShellElement::CalculateOnIntegrationPoints(
 	//J = GetGeometry().Jacobian(J);
 
 	////auxiliary terms
-	//boost::numeric::ublas::bounded_matrix<double, 2, 2> j;
-	//boost::numeric::ublas::bounded_matrix<double, 2, 2> g;
-	//boost::numeric::ublas::bounded_matrix<double, 2, 2> C;
+	//bounded_matrix<double, 2, 2> j;
+	//bounded_matrix<double, 2, 2> g;
+	//bounded_matrix<double, 2, 2> C;
 	//array_1d<double, 3> ge;
 	//array_1d<double, 3> gn;
 	//array_1d<double, 3> v3;
@@ -327,7 +327,7 @@ void MeshlessShellElement::CalculateOnIntegrationPoints(
 	//	noalias(g) = prod(trans(j), j);
 
 	//	// calculation of the Right Cauchy-Green Tensor C = Gtrans*g*G
-	//	boost::numeric::ublas::bounded_matrix<double, 2, 2> tmp;
+	//	bounded_matrix<double, 2, 2> tmp;
 	//	tmp = prod(g, mG_Vector[PointNumber]);
 	//	noalias(C) = prod(trans(mG_Vector[PointNumber]), tmp);
 
@@ -386,7 +386,7 @@ void MeshlessShellElement::CalculateOnIntegrationPoints(
 	//		//             if(Output[PointNumber].size2() != 6)
 	//		//                 Output[PointNumber].resize(1,6);
 
-	//		boost::numeric::ublas::bounded_matrix<double, 2, 2> F;
+	//		bounded_matrix<double, 2, 2> F;
 	//		noalias(F) = tmp; //VM
 	//		Vector CauchyStressVector = StressVector;
 	//		double detF = MathUtils<double>::Det(F);
@@ -627,7 +627,7 @@ void MeshlessShellElement::CalculateAndAddNonlinearKm(
 //***********************************************************************************
 
 void MeshlessShellElement::CalculateQ(
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+	bounded_matrix<double, 3, 3>& Q,
 	Matrix& mG)
 
 {
@@ -653,7 +653,7 @@ void MeshlessShellElement::CalculateQ(
 */
 void MeshlessShellElement::CalculateBMembrane(
 	Matrix& B,
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+	bounded_matrix<double, 3, 3>& Q,
 	const Matrix& DN_De,
 	const array_1d<double, 3>& g1,
 	const array_1d<double, 3>& g2)
@@ -692,7 +692,7 @@ void MeshlessShellElement::CalculateBMembrane(
 
 void MeshlessShellElement::CalculateBCurvature(
 	Matrix& B,
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+	bounded_matrix<double, 3, 3>& Q,
 	const Matrix& DN_De,
 	const array_1d<double, 3>& g1,
 	const array_1d<double, 3>& g2)
@@ -877,7 +877,7 @@ void MeshlessShellElement::CalculateSecondVariationStrainCurvature(Matrix DN_De,
 	Matrix& Curvature_curvilinear11,
 	Matrix& Curvature_curvilinear22,
 	Matrix& Curvature_curvilinear12,
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+	bounded_matrix<double, 3, 3>& Q,
 	array_1d<double, 3>& g1,
 	array_1d<double, 3>& g2)
 {
@@ -1078,7 +1078,7 @@ void MeshlessShellElement::CalculateAll(
 	array_1d<double, 3> curvature;
 
 	// Transformation Vector Q
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>  Q = ZeroMatrix(3, 3);
+	bounded_matrix<double, 3, 3>  Q = ZeroMatrix(3, 3);
 	CalculateQ(Q, mG_Vector);
 
 	// basis vectors in deformed system

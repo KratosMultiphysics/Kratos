@@ -101,7 +101,7 @@ public:
     }
 
     static inline void Comp_Orthonor_Base(
-            boost::numeric::ublas::bounded_matrix<double, 3, 3 > & t,
+            bounded_matrix<double, 3, 3 > & t,
             array_1d<double, 3 > & t1g,
             array_1d<double, 3 > & t2g,
             array_1d<double, 3 > & t3g,

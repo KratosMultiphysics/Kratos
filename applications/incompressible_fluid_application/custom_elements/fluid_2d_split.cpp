@@ -97,7 +97,7 @@ Fluid2DSplit::~Fluid2DSplit()
 }
 
 //************************************************************************************
-//***************************************boost::numeric::ublas::bounded_matrix<double,4,2> *********************************************
+//***************************************bounded_matrix<double,4,2> *********************************************
 void Fluid2DSplit::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -118,7 +118,7 @@ void Fluid2DSplit::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorT
 
     double delta_t= rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+    bounded_matrix<double,3,2> DN_DX;
     array_1d<double,3> N;
     array_1d<double,2> ms_adv_vel;
     array_1d<double,3> conv_opr;
@@ -133,9 +133,9 @@ void Fluid2DSplit::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorT
 
     if(GetValue(IS_DIVIDED) == 1.0)
     {
-        boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
+        bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
         array_1d<double,4> A_on_agp = ZeroVector(4);
-        boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
+        bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
         array_1d<double,4> dist_on_agp = ZeroVector(4);
 
         DivideElemUtils::DivideElement_2D(GetGeometry(),  aux_gp, A_on_agp, N_on_agp, dist_on_agp);
@@ -238,7 +238,7 @@ void Fluid2DSplit::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCu
     rMassMatrix = ZeroMatrix(MatSize,MatSize);
     double delta_t= rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+    bounded_matrix<double,3,2> DN_DX;
     array_1d<double,3> N;
     array_1d<double,2> ms_adv_vel;
     array_1d<double,3> conv_opr;
@@ -263,14 +263,14 @@ void Fluid2DSplit::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCu
         double dp;
         CalculateDensity(GetGeometry(), density, mu, eps, dp);
 
-        boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
+        bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
         array_1d<double,4> A_on_agp = ZeroVector(4);
-        boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
+        bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
         array_1d<double,4> dist_on_agp = ZeroVector(4);
 
         DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
 
-        boost::numeric::ublas::bounded_matrix<double,3,3> temp_MassMatr = ZeroMatrix(dof + 1, dof +1);
+        bounded_matrix<double,3,3> temp_MassMatr = ZeroMatrix(dof + 1, dof +1);
 
         for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
         {
@@ -359,7 +359,7 @@ void Fluid2DSplit::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix
 
     double delta_t= rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+    bounded_matrix<double,3,2> DN_DX;
     array_1d<double,3> N;
     array_1d<double,2> ms_adv_vel;
     array_1d<double,3> conv_opr;
@@ -373,9 +373,9 @@ void Fluid2DSplit::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix
 
     if(GetValue(IS_DIVIDED) == 1.0)
     {
-        boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
+        bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
         array_1d<double,4> A_on_agp = ZeroVector(4);
-        boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
+        bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
         array_1d<double,4> dist_on_agp = ZeroVector(4);
 
         DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
@@ -453,7 +453,7 @@ void Fluid2DSplit::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix
 
 //************************************************************************************
 //************************************************************************************
-void Fluid2DSplit::CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area)
+void Fluid2DSplit::CalculateViscousTerm(MatrixType& K,const bounded_matrix<double,3,2>& DN_DX, const double area)
 {
     KRATOS_TRY
     double mu;
@@ -483,7 +483,7 @@ void Fluid2DSplit::CalculateViscousTerm(MatrixType& K,const boost::numeric::ubla
 }
 //************************************************************************************
 //************************************************************************************
-void Fluid2DSplit::CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>&  N, const double tauone, const double tautwo, const double time,const double area)
+void Fluid2DSplit::CalculateAdvectiveTerm(MatrixType& K,const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>&  N, const double tauone, const double tautwo, const double time,const double area)
 {
     KRATOS_TRY
 
@@ -518,7 +518,7 @@ void Fluid2DSplit::CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ub
     {
         conv_opr[ii] = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
     }
-    boost::numeric::ublas::bounded_matrix<double,3,3> temp_convterm;
+    bounded_matrix<double,3,3> temp_convterm;
 
     noalias(temp_convterm) = outer_prod(N, conv_opr);
 
@@ -589,7 +589,7 @@ void Fluid2DSplit::CalculateDarcyTerm_SubElem(MatrixType& K, const array_1d<doub
 
     */
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> temp_sfprod = ZeroMatrix(dof +1,dof +1);
+    bounded_matrix<double,3,3> temp_sfprod = ZeroMatrix(dof +1,dof +1);
     noalias(temp_sfprod) = area * outer_prod(N,N);
 
     // Lumped form
@@ -678,7 +678,7 @@ void Fluid2DSplit::CalculateDarcyTerm(MatrixType& K, const double area)
 //************************************************************************************
 //************************************************************************************
 //Calculate the divergence and the gradient operators
-void Fluid2DSplit::CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>&  N, const double time,const double area)
+void Fluid2DSplit::CalculatePressureTerm(MatrixType& K,const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>&  N, const double time,const double area)
 {
     KRATOS_TRY
     int nodes_number = 3;
@@ -698,7 +698,7 @@ void Fluid2DSplit::CalculatePressureTerm(MatrixType& K,const boost::numeric::ubl
 // KRATOS_WATCH(nodal_eps)
     //Pj mean point of the edge ik
     //N_on_meanp(i,j) = shape function od the node i calculated on the point Pj
-    boost::numeric::ublas::bounded_matrix<double,3,3> N_on_meanp = ZeroMatrix(3,3);
+    bounded_matrix<double,3,3> N_on_meanp = ZeroMatrix(3,3);
     N_on_meanp(0,0) = 0.0;
     N_on_meanp(0,1) = 0.5;
     N_on_meanp(0,2) = 0.5;
@@ -711,7 +711,7 @@ void Fluid2DSplit::CalculatePressureTerm(MatrixType& K,const boost::numeric::ubl
 
 
     // the matrix l_n contain the product of edge lengh l_jk*n_i (1st column x-comp, 2nd column y-comp, i = row index).
-    boost::numeric::ublas::bounded_matrix<double,3,2> l_n = ZeroMatrix(3,2);
+    bounded_matrix<double,3,2> l_n = ZeroMatrix(3,2);
     noalias(l_n) = -2.0 * area *DN_DX;
 
 
@@ -741,7 +741,7 @@ void Fluid2DSplit::CalculatePressureTerm(MatrixType& K,const boost::numeric::ubl
 }
 //************************************************************************************
 //************************************************************************************
-void Fluid2DSplit::CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double tautwo,const double area)
+void Fluid2DSplit::CalculateDivStblTerm(MatrixType& K,const bounded_matrix<double,3,2>& DN_DX, const double tautwo,const double area)
 {
     KRATOS_TRY
     int nodes_number = 3;
@@ -768,7 +768,7 @@ void Fluid2DSplit::CalculateDivStblTerm(MatrixType& K,const boost::numeric::ubla
         nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
     }
 
-    boost::numeric::ublas::bounded_matrix<double,6,6> temp_div = ZeroMatrix(matsize,matsize);
+    bounded_matrix<double,6,6> temp_div = ZeroMatrix(matsize,matsize);
     noalias(temp_div) = tautwo * outer_prod(div_opr,div_opr);
 
     for ( int ii = 0; ii < nodes_number; ii++)
@@ -795,7 +795,7 @@ void Fluid2DSplit::CalculateDivStblTerm(MatrixType& K,const boost::numeric::ubla
 }
 //************************************************************************************
 //************************************************************************************
-void Fluid2DSplit::CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double tauone,const double time,const double area)
+void Fluid2DSplit::CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double tauone,const double time,const double area)
 {
 
     KRATOS_TRY
@@ -831,7 +831,7 @@ void Fluid2DSplit::CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const bo
     }
 
     //build (a.grad V)(ro*a.grad U) stabilization term & assemble
-    boost::numeric::ublas::bounded_matrix<double,3,3> adv_stblterm = ZeroMatrix(dof+1,dof +1);
+    bounded_matrix<double,3,3> adv_stblterm = ZeroMatrix(dof+1,dof +1);
     adv_stblterm = tauone * outer_prod(conv_opr,conv_opr);
     array_1d<double,3> nodal_eps = ZeroVector(3);
     for (int i = 0; i < nodes_number; i++)
@@ -885,7 +885,7 @@ void Fluid2DSplit::CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const bo
         darcy_opr[ii] += N[ii] * fac_nonlinear * nodal_eps[ii];
     }
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> darcy_stblterm = ZeroMatrix(dof +1,dof +1);
+    bounded_matrix<double,3,3> darcy_stblterm = ZeroMatrix(dof +1,dof +1);
 
     darcy_stblterm = tauone * outer_prod(conv_opr,darcy_opr);
 
@@ -909,7 +909,7 @@ void Fluid2DSplit::CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const bo
 // 		  nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
 // 		  }
 // 		//build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
-    boost::numeric::ublas::bounded_matrix<double,6,3> grad_stblterm = ZeroMatrix(matsize,nodes_number);
+    bounded_matrix<double,6,3> grad_stblterm = ZeroMatrix(matsize,nodes_number);
     for ( int ii = 0; ii < nodes_number; ii++)
     {
         int row = ii*dof;
@@ -975,7 +975,7 @@ void Fluid2DSplit::CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const bo
 }
 //************************************************************************************
 //************************************************************************************
-void Fluid2DSplit::CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double tauone,const double area)
+void Fluid2DSplit::CalculateAdvMassStblTerms(MatrixType& M,const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double tauone,const double area)
 {
     KRATOS_TRY
     const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
@@ -1012,7 +1012,7 @@ void Fluid2DSplit::CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric:
     {
         conv_opr[ii] = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
     }
-    boost::numeric::ublas::bounded_matrix<double,3,3> temp_convterm;
+    bounded_matrix<double,3,3> temp_convterm;
 
 
     //tau1*rho*Nacc.(1.0*a.grad V)
@@ -1037,7 +1037,7 @@ void Fluid2DSplit::CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric:
 }
 //************************************************************************************
 //************************************************************************************
-void Fluid2DSplit::CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double time,const double tauone,const double area)
+void Fluid2DSplit::CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double time,const double tauone,const double area)
 {
     KRATOS_TRY
     int nodes_number = 3;
@@ -1054,7 +1054,7 @@ void Fluid2DSplit::CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const b
         nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
     }
     //build 1*(grad q . grad p) stabilization term & assemble
-    boost::numeric::ublas::bounded_matrix<double,3,3> gard_opr = ZeroMatrix(nodes_number,nodes_number);
+    bounded_matrix<double,3,3> gard_opr = ZeroMatrix(nodes_number,nodes_number);
     gard_opr = tauone * area * prod(DN_DX,trans(DN_DX));
 
 // 	 array_1d<double,3> nodal_eps = ZeroVector(3);
@@ -1145,7 +1145,7 @@ void Fluid2DSplit::CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const b
 }
 //************************************************************************************
 //************************************************************************************
-void Fluid2DSplit::CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double tauone,const double area)
+void Fluid2DSplit::CalculateGradMassStblTerms(MatrixType& M,const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double tauone,const double area)
 {
     KRATOS_TRY
     int nodes_number = 3;
@@ -1225,7 +1225,7 @@ void Fluid2DSplit::AddBodyForceAndMomentum(VectorType& F,const array_1d<double,3
 }
 //************************************************************************************
 //************************************************************************************
-void Fluid2DSplit::AddVolumeCorrection(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double time,const double area)
+void Fluid2DSplit::AddVolumeCorrection(VectorType& F,const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double time,const double area)
 {
     KRATOS_TRY
     int nodes_number = 3;
@@ -1349,7 +1349,7 @@ void Fluid2DSplit::GetValueOnIntegrationPoints(const Variable<double>& rVariable
 
     double delta_t= rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+    bounded_matrix<double,3,2> DN_DX;
     array_1d<double,3> N;
 
 

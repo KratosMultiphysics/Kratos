@@ -89,7 +89,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
         rRightHandSideVector.resize(matsize,false);
   //KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
   
-  boost::numeric::ublas::bounded_matrix<double, 3, 3 > WorkMatrix;
+  bounded_matrix<double, 3, 3 > WorkMatrix;
   
   array_1d<double, 3 > N;
   array_1d<double, 2 > vel_gauss;
@@ -99,9 +99,9 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
   array_1d<double, 3 > aux1;
   array_1d<double, 3 > aux2;
   
-  //boost::numeric::ublas::bounded_matrix<double,3,3> msaux_matrix;
-  boost::numeric::ublas::bounded_matrix<double,6,6> msMassFactors;
-  boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+  //bounded_matrix<double,3,3> msaux_matrix;
+  bounded_matrix<double,6,6> msMassFactors;
+  bounded_matrix<double,3,2> msDN_DX;
   array_1d<double,3> msN; //dimension = number of nodes
   array_1d<double,2> ms_vel_gauss; //dimesion coincides with space dimension
   //array_1d<double,3> temp_vec_np; //dimension = number of nodes
@@ -162,7 +162,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
   
   //Matrix msMassFactors(6,6);
   //    Matrix msaux_matrix(3,3);
-  boost::numeric::ublas::bounded_matrix<double,3,3> msaux_matrix;
+  bounded_matrix<double,3,3> msaux_matrix;
   
   msMassFactors(0,0) = 1.00/3.00;
   msMassFactors(0,1) = 0.00;
@@ -287,25 +287,25 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     KRATOS_TRY
       
       ///////////////////////NECESSARY LOCALS///////////////////////////////////////////
-      boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+      bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
+    bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
     array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
-    boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
-    boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
+    bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
+    bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
+    bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
     array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,3> temp_vec_np = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
-    boost::numeric::ublas::bounded_matrix<double,6,3> msAuxMat2 = ZeroMatrix(6,3);
-    boost::numeric::ublas::bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
+    bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
+    bounded_matrix<double,6,3> msAuxMat2 = ZeroMatrix(6,3);
+    bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
     array_1d<double,6> msStabMomRes = ZeroVector(6); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,3> msGradOp = ZeroMatrix(6,3);
+    bounded_matrix<double,6,3> msGradOp = ZeroMatrix(6,3);
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix1 = ZeroMatrix(3,3);
+    bounded_matrix<double,3,3> msWorkMatrix1 = ZeroMatrix(3,3);
     ///////////////////////////////////////////////////////////////////////////////////
 
     if(rRightHandSideVector.size() != 3)
@@ -443,31 +443,31 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     KRATOS_TRY
       
       ///////////////////////NECESSARY LOCALS///////////////////////////////////////////
-      boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+      bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
+    bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
     array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
-    boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
-    boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
+    bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
+    bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
+    bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
     array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,3> temp_vec_np = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
-    boost::numeric::ublas::bounded_matrix<double,6,3> msAuxMat2 = ZeroMatrix(6,3);
-    boost::numeric::ublas::bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
+    bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
+    bounded_matrix<double,6,3> msAuxMat2 = ZeroMatrix(6,3);
+    bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
     array_1d<double,6> msStabMomRes = ZeroVector(6); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,6,3> msGradOp = ZeroMatrix(6,3);
+    bounded_matrix<double,6,3> msGradOp = ZeroMatrix(6,3);
     array_1d<double, 2 > vel_gauss;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Tres = ZeroMatrix(3,3);
-    boost::numeric::ublas::bounded_matrix<double,3,3> msResta = IdentityMatrix(3,3);
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > msMassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
+    bounded_matrix<double,3,3> Tres = ZeroMatrix(3,3);
+    bounded_matrix<double,3,3> msResta = IdentityMatrix(3,3);
+    bounded_matrix<double, 3, 3 > msMassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
     array_1d<double,3> ms_aux2 = ZeroVector(3); //dimension = number of nodes
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> aux_matrix = ZeroMatrix(3,3);
-    boost::numeric::ublas::bounded_matrix<double,3,3> aux_matrix1 = ZeroMatrix(3,3);
+    bounded_matrix<double,3,3> aux_matrix = ZeroMatrix(3,3);
+    bounded_matrix<double,3,3> aux_matrix1 = ZeroMatrix(3,3);
     
     mThisIntegrationMethod= GeometryData::GI_GAUSS_1;
 
@@ -484,11 +484,11 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     KRATOS_TRY
       
       int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > MassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > WorkMatrix;
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+    bounded_matrix<double, 3, 3 > MassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
+    bounded_matrix<double, 3, 3 > WorkMatrix;
+    bounded_matrix<double, 3, 2 > DN_DX;
     
-    boost::numeric::ublas::bounded_matrix<double, 6, 6 > rDampMatrix;
+    bounded_matrix<double, 6, 6 > rDampMatrix;
 
     
     array_1d<double, 3 > N;
@@ -507,19 +507,19 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
       {
         //KRATOS_ERROR(std::logic_error, "method not implemented", "");
         ///////////////////////NECESSARY LOCALS///////////////////////////////////////////
-        boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
+        bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
         array_1d<double,6> GalerkinRHS = ZeroVector(6); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+        bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
         array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
-        boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
-        boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
+        bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
+        bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
+        bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
         array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
         array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
         array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
-	boost::numeric::ublas::bounded_matrix<double,3,6> msB;
-        boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;
-        boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;
+	bounded_matrix<double,3,6> msB;
+        bounded_matrix<double,3,3> ms_constitutive_matrix;
+        bounded_matrix<double,3,6> ms_temp;
 	//double dt = CurrentProcessInfo[DELTA_TIME];
 	double Area;
         GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
@@ -658,13 +658,13 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     else if (FractionalStepNumber == 6) //calculation of velocities
       {
 	///////////////////////NECESSARY LOCALS///////////////////////////////////////////
-        boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
+        bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
         array_1d<double,6> GalerkinRHS = ZeroVector(6); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+        bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
         array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
-        boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
-        boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
+        bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
+        bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
+        bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
         array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
         array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
         array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
@@ -715,13 +715,13 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     else if (FractionalStepNumber == 7) 
       {
 	///////////////////////NECESSARY LOCALS///////////////////////////////////////////
-        boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
+        bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
         array_1d<double,6> GalerkinRHS = ZeroVector(3); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+        bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
         array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
-        boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
-        boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
+        bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
+        bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
+        bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
         array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
         array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
         array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
@@ -894,13 +894,13 @@ void QFluid2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& Curr
   }
   
   
-  double QFluid2D::ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX,
+  double QFluid2D::ComputeSmagorinskyViscosity(const bounded_matrix<double, 3, 2 > & DN_DX,
 					       const double& h,
 					       const double& C,
 					       const double nu
 					       )
   {
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > dv_dx = ZeroMatrix(2, 2);
+    bounded_matrix<double, 2, 2 > dv_dx = ZeroMatrix(2, 2);
     
     // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled
     for (unsigned int k = 0; k < 3; ++k)
@@ -929,7 +929,7 @@ void QFluid2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& Curr
     return 2.0 * C * C * h * h * NormS;
   }
   
-  void QFluid2D::CalculateViscousMatrix( MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu, const double& dt, const double& kk)//,const double& bulk )
+  void QFluid2D::CalculateViscousMatrix( MatrixType& K, const bounded_matrix<double,3,2>& DN_DX, const double& nu, const double& dt, const double& kk)//,const double& bulk )
 {
   
   //double deltat = dt;

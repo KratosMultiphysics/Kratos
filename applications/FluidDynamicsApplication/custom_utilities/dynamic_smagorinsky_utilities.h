@@ -191,8 +191,8 @@ public:
                 LocalCoarseVel.resize(9);
                 LocalMassMatrix.resize(9,9,false);
                 array_1d<double,3> N;
-                boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
-                boost::numeric::ublas::bounded_matrix<double,2,2> dv_dx;
+                bounded_matrix<double,3,2> DN_DX;
+                bounded_matrix<double,2,2> dv_dx;
 
                 // Evaluate the N-S and model terms in each coarse element
                 for( ModelPart::ElementsContainerType::iterator itElem = CoarseElemBegin; itElem != CoarseElemEnd; ++itElem)
@@ -224,8 +224,8 @@ public:
                 LocalCoarseVel.resize(16);
                 LocalMassMatrix.resize(16,16,false);
                 array_1d<double,4> N;
-                boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
-                boost::numeric::ublas::bounded_matrix<double,3,3> dv_dx;
+                bounded_matrix<double,4,3> DN_DX;
+                bounded_matrix<double,3,3> dv_dx;
 
                 // Evaluate the N-S and model terms in each coarse element
                 for( ModelPart::ElementsContainerType::iterator itElem = CoarseElemBegin; itElem != CoarseElemEnd; ++itElem)
@@ -405,8 +405,8 @@ private:
     /// Return the Galerkin (+stabilization) and Model terms for this element (2D version)
     void GermanoTerms2D(Element& rElem,
                         array_1d<double,3>& rShapeFunc,
-                        boost::numeric::ublas::bounded_matrix<double,3,2>& rShapeDeriv,
-                        boost::numeric::ublas::bounded_matrix<double,2,2>& rGradient,
+                        bounded_matrix<double,3,2>& rShapeDeriv,
+                        bounded_matrix<double,2,2>& rGradient,
                         Vector& rNodalResidualContainer,
                         Vector& rNodalVelocityContainer,
                         Matrix& rMassMatrix,
@@ -476,8 +476,8 @@ private:
     /// Return the Galerkin (+stabilization) and Model terms for this element (3D version)
     void GermanoTerms3D(Element& rElem,
                         array_1d<double,4>& rShapeFunc,
-                        boost::numeric::ublas::bounded_matrix<double,4,3>& rShapeDeriv,
-                        boost::numeric::ublas::bounded_matrix<double,3,3>& rGradient,
+                        bounded_matrix<double,4,3>& rShapeDeriv,
+                        bounded_matrix<double,3,3>& rGradient,
                         Vector& rNodalResidualContainer,
                         Vector& rNodalVelocityContainer,
                         Matrix& rMassMatrix,

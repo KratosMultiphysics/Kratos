@@ -1127,14 +1127,14 @@ const double crhs61 =             C(3,5)*DN(3,0);
     
                             
 void Stokes3DTwoFluid::ComputeGaussPointEnrichmentContributions(
-    boost::numeric::ublas::bounded_matrix<double,4,16>& H,
-    boost::numeric::ublas::bounded_matrix<double,16,4>& V,
-    boost::numeric::ublas::bounded_matrix<double,4,4>&  Kee,
+    bounded_matrix<double,4,16>& H,
+    bounded_matrix<double,16,4>& V,
+    bounded_matrix<double,4,4>&  Kee,
     array_1d<double,4>& rhs_ee,
     const element_data<4,3>& data,
     const array_1d<double,4>& distances,
     const array_1d<double,4>& Nenr,
-    const boost::numeric::ublas::bounded_matrix<double,4,4>& DNenr
+    const bounded_matrix<double,4,4>& DNenr
     )
     {
         const int nnodes = 4;

@@ -96,7 +96,7 @@ public:
     */
     static void GetStrainMatrix(
         const ShapeDerivatives2DType& rDNDX,
-        boost::numeric::ublas::bounded_matrix<double, VoigtVector2DSize, 3 * TNumNodes>& rStrainMatrix);
+        bounded_matrix<double, VoigtVector2DSize, 3 * TNumNodes>& rStrainMatrix);
 
     /**
     * Auxiliary function that writes the strain matrix (B) relating nodal degrees of freedom and the symmetric gradient of velocity.
@@ -107,7 +107,7 @@ public:
     */
     static void GetStrainMatrix(
         const ShapeDerivatives3DType& rDNDX,
-        boost::numeric::ublas::bounded_matrix<double, VoigtVector3DSize, 4 * TNumNodes>& rStrainMatrix);
+        bounded_matrix<double, VoigtVector3DSize, 4 * TNumNodes>& rStrainMatrix);
 
     /**
     * Auxiliary function that writes the constitutive matrix (C) for a Newtonian fluid using the given dynamic viscosity (mu).
@@ -117,7 +117,7 @@ public:
     */  
     static void GetNewtonianConstitutiveMatrix(
         const double DynamicViscosity,
-        boost::numeric::ublas::bounded_matrix<double, VoigtVector2DSize, VoigtVector2DSize>& rConstitutiveMatrix);
+        bounded_matrix<double, VoigtVector2DSize, VoigtVector2DSize>& rConstitutiveMatrix);
   
     /**
     * Auxiliary function that writes the constitutive matrix (C) for a Newtonian fluid using the given dynamic viscosity (mu).
@@ -127,7 +127,7 @@ public:
     */
     static void GetNewtonianConstitutiveMatrix(
         const double DynamicViscosity,
-        boost::numeric::ublas::bounded_matrix<double, VoigtVector3DSize, VoigtVector3DSize>& rConstitutiveMatrix);
+        bounded_matrix<double, VoigtVector3DSize, VoigtVector3DSize>& rConstitutiveMatrix);
 
     /**
      * This function transforms a vector n into a matrix P that can be used to compute
@@ -139,7 +139,7 @@ public:
      */
     static void VoigtTransformForProduct(
         const array_1d<double,3>& rVector,
-        boost::numeric::ublas::bounded_matrix<double, 2, VoigtVector2DSize>& rVoigtMatrix);
+        bounded_matrix<double, 2, VoigtVector2DSize>& rVoigtMatrix);
 
     /**
      * This function transforms a vector n into a matrix P that can be used to compute
@@ -151,7 +151,7 @@ public:
      */
     static void VoigtTransformForProduct(
         const array_1d<double,3>& rVector,
-        boost::numeric::ublas::bounded_matrix<double, 3, VoigtVector3DSize>& rVoigtMatrix);
+        bounded_matrix<double, 3, VoigtVector3DSize>& rVoigtMatrix);
 
     /**
      * This function sets the normal projection matrix as the given unit normal outer product.
@@ -160,7 +160,7 @@ public:
      */
     static void SetNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
-        boost::numeric::ublas::bounded_matrix<double, 2, 2>& rNormalProjMatrix);
+        bounded_matrix<double, 2, 2>& rNormalProjMatrix);
 
     /**
      * This function sets the normal projection matrix as the given unit normal outer product.
@@ -169,7 +169,7 @@ public:
      */
     static void SetNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& rNormalProjMatrix);
+        bounded_matrix<double, 3, 3>& rNormalProjMatrix);
 
     /**
      * This function sets the tangential projection matrix as the identity matrix minus the given unit normal outer product.
@@ -178,7 +178,7 @@ public:
      */
     static void SetTangentialProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
-        boost::numeric::ublas::bounded_matrix<double, 2, 2>& rTangProjMatrix);
+        bounded_matrix<double, 2, 2>& rTangProjMatrix);
 
     /**
      * This function sets the tangential projection matrix as the identity matrix minus the given unit normal outer product.
@@ -187,7 +187,7 @@ public:
      */
     static void SetTangentialProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& rTangProjMatrix);
+        bounded_matrix<double, 3, 3>& rTangProjMatrix);
 
     ///@}
 

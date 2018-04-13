@@ -784,7 +784,7 @@ public:
             array_1d<double, 2 > temp, proj_aux;
             array_1d<double, 3 > pressures;
             array_1d<double, 3 > elemental_stabilization;
-            boost::numeric::ublas::bounded_matrix <double, 3, 2 > DN_DX;
+            bounded_matrix <double, 3, 2 > DN_DX;
             array_1d<double, 3 > vg;
             for (ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin();
                     i != BaseType::GetModelPart().ElementsEnd(); ++i)

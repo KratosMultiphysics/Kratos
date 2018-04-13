@@ -130,7 +130,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3AreaJaccobi, KratosCoreGeometriesFastSuite) {
 		auto geom = GenerateNodesRightTriangle2D3();
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+    bounded_matrix<double,3,2> DN_DX;
     array_1d<double,3> N;
     double Area;
 
@@ -245,7 +245,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint1, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateNodesRightTriangle2D3();
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+    bounded_matrix<double,3,2> DN_DX;
     array_1d<double,3> N;
     double ExpectedArea;
 
@@ -261,7 +261,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint2, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateNodesRightTriangle2D3();
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+    bounded_matrix<double,3,2> DN_DX;
     array_1d<double,3> N;
     double ExpectedArea;
 
@@ -277,7 +277,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint3, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateNodesRightTriangle2D3();
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+    bounded_matrix<double,3,2> DN_DX;
     array_1d<double,3> N;
     double ExpectedArea;
 
@@ -293,7 +293,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint4, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateNodesRightTriangle2D3();
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+    bounded_matrix<double,3,2> DN_DX;
     array_1d<double,3> N;
     double ExpectedArea;
 
@@ -309,7 +309,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint5, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateNodesRightTriangle2D3();
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+    bounded_matrix<double,3,2> DN_DX;
     array_1d<double,3> N;
     double ExpectedArea;
 

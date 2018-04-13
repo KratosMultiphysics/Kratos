@@ -181,9 +181,9 @@ protected:
     ///@{
     virtual void CalculateApparentViscosity(double & app_mu, double & app_mu_derivative,
         array_1d<double, 3 >&  grad_sym_vel, double & gamma_dot,
-        const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
+        const bounded_matrix<double, 3, 6 > & B,
         const double & mu, const double & m_coef);
-// //        virtual void CalculateApparentViscosityStbl(double & ApparentViscosity, double & ApparentViscosityDerivative , array_1d<double,3> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B, const double & mu);
+// //        virtual void CalculateApparentViscosityStbl(double & ApparentViscosity, double & ApparentViscosityDerivative , array_1d<double,3> & grad_sym_vel, double & gamma_dot, const bounded_matrix<double, 3, 6 > & B, const double & mu);
     ///@name Protected Operators
     ///@{
 

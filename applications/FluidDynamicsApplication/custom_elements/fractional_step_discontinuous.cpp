@@ -269,7 +269,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         const Vector& distances = this->GetValue(ELEMENTAL_DISTANCES);
 
         double Volume_tot;
-        boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DXcontinuous;
+        bounded_matrix<double, 4, 3 > DN_DXcontinuous;
         array_1d<double, 4 > Ncontinuous;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DXcontinuous, Ncontinuous, Volume_tot);
 
@@ -526,14 +526,14 @@ void FractionalStepDiscontinuous<TDim>::CalculateGeometryData(ShapeFunctionDeriv
 
         if (nneg != 0 && npos != 0)
         {
-            boost::numeric::ublas::bounded_matrix<double, 3 * (TDim - 1), (TDim + 1) > Nenriched;
+            bounded_matrix<double, 3 * (TDim - 1), (TDim + 1) > Nenriched;
             array_1d<double, (3 * (TDim - 1)) > volumes;
-            boost::numeric::ublas::bounded_matrix<double, (TDim + 1), TDim > coords;
-            boost::numeric::ublas::bounded_matrix<double, 3 * (TDim - 1), (TDim + 1) > Ngauss;
+            bounded_matrix<double, (TDim + 1), TDim > coords;
+            bounded_matrix<double, 3 * (TDim - 1), (TDim + 1) > Ngauss;
             array_1d<double, (3 * (TDim - 1)) > signs;
             std::vector< Matrix > gauss_gradients(3 * (TDim - 1));
 
-            boost::numeric::ublas::bounded_matrix<double, (TDim + 1), TDim > DN_DX;
+            bounded_matrix<double, (TDim + 1), TDim > DN_DX;
             array_1d<double, (TDim + 1) > N;
 
 
@@ -643,7 +643,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
         {
 
             double Volume_tot;
-            boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DXcontinuous;
+            bounded_matrix<double, 4, 3 > DN_DXcontinuous;
             array_1d<double, 4 > Ncontinuous;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DXcontinuous, Ncontinuous, Volume_tot);
 

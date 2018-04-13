@@ -100,7 +100,7 @@ KRATOS_TRY
 
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
     //getting data for the given geometry
@@ -158,14 +158,14 @@ KRATOS_TRY
     double dt_inv = 1.0 / delta_t;
 
     //INERTIA CONTRIBUTION
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > msMassFactors = 0.25* IdentityMatrix(4, 4);
+    bounded_matrix<double, 4, 4 > msMassFactors = 0.25* IdentityMatrix(4, 4);
     noalias(rLeftHandSideMatrix) = dt_inv * msMassFactors;
 
 
     //Advective term
     array_1d<double, 4 > a_dot_grad;
     noalias(a_dot_grad) = prod(DN_DX, ms_vel_gauss);
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
+    bounded_matrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
     noalias(rLeftHandSideMatrix) += (1.0 - cr_nk) * Advective_Matrix;
 
     //stabilization terms
@@ -200,7 +200,7 @@ KRATOS_TRY
     h = 0.666666667 * h * 1.732;
 
     //Add all n_step terms
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > old_step_matrix = dt_inv*msMassFactors;
+    bounded_matrix<double, 4, 4 > old_step_matrix = dt_inv*msMassFactors;
     old_step_matrix -= (cr_nk * Advective_Matrix);
     noalias(rRightHandSideVector) = prod(old_step_matrix, step_unknown);
 
@@ -244,7 +244,7 @@ void SUPGConvLevelSet::CalculatePenalty(VectorType& penalty)
 KRATOS_TRY
 	//std::cout << "Inside Calculating Penalty" << std::endl;
     //compute geometrical data of the element
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > Ncenter;
     double Volume;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, Ncenter, Volume);
@@ -276,7 +276,7 @@ KRATOS_TRY
 	//grad_D.resize(3);
 	//std::cout << "Inside Calculating Penalty" << std::endl;
     //compute geometrical data of the element
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > Ncenter;
     double Volume;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, Ncenter, Volume);

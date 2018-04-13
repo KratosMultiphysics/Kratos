@@ -22,7 +22,7 @@ FluidElementUtilities<TNumNodes>::~FluidElementUtilities() {}
 template < std::size_t TNumNodes  >
 void FluidElementUtilities<TNumNodes>::GetStrainMatrix(
     const ShapeDerivatives2DType& rDNDX,
-    boost::numeric::ublas::bounded_matrix<double, VoigtVector2DSize, 3*TNumNodes>& rStrainMatrix) {
+    bounded_matrix<double, VoigtVector2DSize, 3*TNumNodes>& rStrainMatrix) {
 
     rStrainMatrix.clear();
     for (std::size_t i = 0; i < TNumNodes; i++) {
@@ -37,7 +37,7 @@ void FluidElementUtilities<TNumNodes>::GetStrainMatrix(
 template < std::size_t TNumNodes >
 void FluidElementUtilities<TNumNodes>::GetStrainMatrix(
     const ShapeDerivatives3DType& rDNDX,
-    boost::numeric::ublas::bounded_matrix<double, VoigtVector3DSize, 4*TNumNodes>& rStrainMatrix) {
+    bounded_matrix<double, VoigtVector3DSize, 4*TNumNodes>& rStrainMatrix) {
 
     rStrainMatrix.clear();
     for (std::size_t i = 0; i < TNumNodes; i++) {
@@ -57,7 +57,7 @@ void FluidElementUtilities<TNumNodes>::GetStrainMatrix(
 template < std::size_t TNumNodes >
 void FluidElementUtilities<TNumNodes>::GetNewtonianConstitutiveMatrix(
     const double DynamicViscosity,
-    boost::numeric::ublas::bounded_matrix<double, VoigtVector2DSize, VoigtVector2DSize>& rConstitutiveMatrix) {
+    bounded_matrix<double, VoigtVector2DSize, VoigtVector2DSize>& rConstitutiveMatrix) {
 
     constexpr double two_thirds = 2./3.;
     constexpr double four_thirds = 4./3.;
@@ -76,7 +76,7 @@ void FluidElementUtilities<TNumNodes>::GetNewtonianConstitutiveMatrix(
 template < std::size_t TNumNodes >
 void FluidElementUtilities<TNumNodes>::GetNewtonianConstitutiveMatrix(
     const double DynamicViscosity,
-    boost::numeric::ublas::bounded_matrix<double, VoigtVector3DSize, VoigtVector3DSize>& rConstitutiveMatrix) {
+    bounded_matrix<double, VoigtVector3DSize, VoigtVector3DSize>& rConstitutiveMatrix) {
 
     rConstitutiveMatrix.clear();
     
@@ -104,7 +104,7 @@ void FluidElementUtilities<TNumNodes>::GetNewtonianConstitutiveMatrix(
 template< std::size_t TNumNodes >
 void FluidElementUtilities<TNumNodes>::VoigtTransformForProduct(
     const array_1d<double,3>& rVector,
-    boost::numeric::ublas::bounded_matrix<double, 2, VoigtVector2DSize>& rVoigtMatrix) {
+    bounded_matrix<double, 2, VoigtVector2DSize>& rVoigtMatrix) {
 
     rVoigtMatrix.clear();
 
@@ -117,7 +117,7 @@ void FluidElementUtilities<TNumNodes>::VoigtTransformForProduct(
 template< std::size_t TNumNodes >
 void FluidElementUtilities<TNumNodes>::VoigtTransformForProduct(
     const array_1d<double,3>& rVector,
-    boost::numeric::ublas::bounded_matrix<double, 3, VoigtVector3DSize>& rVoigtMatrix) {
+    bounded_matrix<double, 3, VoigtVector3DSize>& rVoigtMatrix) {
 
     rVoigtMatrix.clear();
 
@@ -135,7 +135,7 @@ void FluidElementUtilities<TNumNodes>::VoigtTransformForProduct(
 template < std::size_t TNumNodes>
 void FluidElementUtilities<TNumNodes>::SetNormalProjectionMatrix(
     const array_1d<double, 3>& rUnitNormal,
-    boost::numeric::ublas::bounded_matrix<double, 2, 2>& rNormalProjMatrix) {
+    bounded_matrix<double, 2, 2>& rNormalProjMatrix) {
 
     rNormalProjMatrix.clear();
     rNormalProjMatrix(0,0) = rUnitNormal(0)*rUnitNormal(0);
@@ -147,7 +147,7 @@ void FluidElementUtilities<TNumNodes>::SetNormalProjectionMatrix(
 template < std::size_t TNumNodes>
 void FluidElementUtilities<TNumNodes>::SetNormalProjectionMatrix(
     const array_1d<double, 3>& rUnitNormal,
-    boost::numeric::ublas::bounded_matrix<double, 3, 3>& rNormalProjMatrix) {
+    bounded_matrix<double, 3, 3>& rNormalProjMatrix) {
 
     noalias(rNormalProjMatrix) = outer_prod(rUnitNormal, rUnitNormal);
 }
@@ -155,7 +155,7 @@ void FluidElementUtilities<TNumNodes>::SetNormalProjectionMatrix(
 template < std::size_t TNumNodes>
 void FluidElementUtilities<TNumNodes>::SetTangentialProjectionMatrix(
     const array_1d<double, 3>& rUnitNormal,
-    boost::numeric::ublas::bounded_matrix<double, 2, 2>& rTangProjMatrix) {
+    bounded_matrix<double, 2, 2>& rTangProjMatrix) {
 
     rTangProjMatrix(0,0) = 1.0 - rUnitNormal(0)*rUnitNormal(0);
     rTangProjMatrix(0,1) = - rUnitNormal(0)*rUnitNormal(1);
@@ -166,7 +166,7 @@ void FluidElementUtilities<TNumNodes>::SetTangentialProjectionMatrix(
 template < std::size_t TNumNodes>
 void FluidElementUtilities<TNumNodes>::SetTangentialProjectionMatrix(
     const array_1d<double, 3>& rUnitNormal,
-    boost::numeric::ublas::bounded_matrix<double, 3, 3>& rTangProjMatrix) {
+    bounded_matrix<double, 3, 3>& rTangProjMatrix) {
 
     identity_matrix<double> id_matrix(3);
     noalias(rTangProjMatrix) = id_matrix - outer_prod(rUnitNormal, rUnitNormal);

@@ -577,7 +577,7 @@ private:
         }
 
         //now loop on all elements, identify the nodes which are too close to the boundary and mark them for removal
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        bounded_matrix<double,3,2> DN_DX;
         array_1d<double,3> N;
 //            for (ModelPart::ElementsContainerType::iterator ie = ThisModelPart.ElementsBegin();
 //                    ie != ThisModelPart.ElementsEnd(); ie++)

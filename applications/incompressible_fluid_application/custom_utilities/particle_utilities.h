@@ -366,11 +366,11 @@ public:
           }*/
 
 #ifdef USE_FEW_PARTICLES
-        boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > pos;
-        boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > N;
+        bounded_matrix<double, TDim + 2, TDim + 1 > pos;
+        bounded_matrix<double, TDim + 2, TDim + 1 > N;
 #else
-        boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
-        boost::numeric::ublas::bounded_matrix<double, 16, 3 > N;
+        bounded_matrix<double, 16, 3 > pos;
+        bounded_matrix<double, 16, 3 > N;
 #endif
         for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
                 el_it != rEulerianModelPart.ElementsEnd(); el_it++)
@@ -545,8 +545,8 @@ public:
             PointerVectorSet<Node<3>, IndexedObject> & list=aux[k];
             //KRATOS_WATCH(k);
 
-            boost::numeric::ublas::bounded_matrix<double, 4, 3 > pos;
-            boost::numeric::ublas::bounded_matrix<double, 4, 3 > Nnew;
+            bounded_matrix<double, 4, 3 > pos;
+            bounded_matrix<double, 4, 3 > Nnew;
 
 
 
@@ -1216,7 +1216,7 @@ public:
         array_1d<double,3> N = ZeroVector(3);
         array_1d<double,3> aux = ZeroVector(3); //dimension = number of nodes
         array_1d<double,3> vel = ZeroVector(3); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
+        bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
         array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
 
         //initialize it with given value
@@ -1781,7 +1781,7 @@ private:
         return detJ * 0.1666666666666666666667;
     }
 
-    void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 4, 3 > & pos, boost::numeric::ublas::bounded_matrix<double, 4, 3 > & N)
+    void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, bounded_matrix<double, 4, 3 > & pos, bounded_matrix<double, 4, 3 > & N)
     {
         double one_third = 1.0 / 3.0;
         double one_sixt = 1.0 / 6.0;
@@ -1823,7 +1823,7 @@ private:
 
     }
 
-    void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 16, 3 > & pos, boost::numeric::ublas::bounded_matrix<double, 16, 3 > & N)
+    void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, bounded_matrix<double, 16, 3 > & pos, bounded_matrix<double, 16, 3 > & N)
     {
         //lower diagonal terms
         double ypos = 1.0 / 12.0;
@@ -1880,7 +1880,7 @@ private:
         }
     }
 
-    void ConsistentMassMatrix(const double A, boost::numeric::ublas::bounded_matrix<double, 3, 3 > & M)
+    void ConsistentMassMatrix(const double A, bounded_matrix<double, 3, 3 > & M)
     {
         double c1 = A / 12.0;
         double c2 = 2.0 * c1;

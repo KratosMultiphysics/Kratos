@@ -141,7 +141,7 @@ void Fluid3D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSide
 
     //getting data for the given geometry
     double Volume;
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
     //CalculateGeometryData(DN_DX,N,Volume);
@@ -237,7 +237,7 @@ void Fluid3D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSide
 
     //INERTIA CONTRIBUTION
     //  rLeftHandSideMatrix += M*BDFcoeffs[0]
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > MassFactors = 0.25 * IdentityMatrix(4, 4);
+    bounded_matrix<double, 4, 4 > MassFactors = 0.25 * IdentityMatrix(4, 4);
     noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * MassFactors;
 
     //multiplication by the Volume
@@ -348,7 +348,7 @@ void Fluid3D::Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSide
     //getting data for the given geometry
     double Volume;
     array_1d<double, 4 > N;
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
 
     const array_1d<double, 3 > & fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
@@ -537,7 +537,7 @@ void Fluid3D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
     //getting data for the given geometry
     double Volume;
     array_1d<double, 4 > N;
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
     //CalculateGeometryData(DN_DX,N,Volume);
 
@@ -815,7 +815,7 @@ void Fluid3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentP
 
 }
 
-inline double Fluid3D::CalculateH(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, double Volume)
+inline double Fluid3D::CalculateH(bounded_matrix<double, 4, 3 > & DN_DX, double Volume)
 {
 //         double h = pow(6.00 * Volume, 0.3333333);
 
@@ -837,7 +837,7 @@ inline double Fluid3D::CalculateH(boost::numeric::ublas::bounded_matrix<double, 
 //************************************************************************************
 //************************************************************************************
 
-inline double Fluid3D::CalculateTau(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, array_1d<double, 3 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
+inline double Fluid3D::CalculateTau(bounded_matrix<double, 4, 3 > & DN_DX, array_1d<double, 3 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
 {
     /*        const double c1 = 4.00;
             const double c2 = 2.00;
@@ -879,7 +879,7 @@ inline double Fluid3D::CalculateTau(boost::numeric::ublas::bounded_matrix<double
     const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
     double tau = 1.00 / (dyn_st_beta * inv_dt_coeff + viscous_part + conv_part);
 
-    // 	      boost::numeric::ublas::bounded_matrix<double,4,3> aux;
+    // 	      bounded_matrix<double,4,3> aux;
     // 	      for(unsigned int i=0; i<4; i++)
     // 	      {
     // 		array_1d<double,3>& vv = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
@@ -887,7 +887,7 @@ inline double Fluid3D::CalculateTau(boost::numeric::ublas::bounded_matrix<double
     // 		aux(i,1) = vv[1];
     //  		aux(i,2) = vv[2];
     // 	      }
-    // 	      boost::numeric::ublas::bounded_matrix<double,3,3> grad_u = prod(trans(DN_DX),aux);
+    // 	      bounded_matrix<double,3,3> grad_u = prod(trans(DN_DX),aux);
     // 	      array_1d<double,3> uDu = prod(grad_u, vel_gauss);
     // 	      double uDu_norm = norm_2(uDu);
     //
@@ -938,7 +938,7 @@ void Fluid3D::Calculate(const Variable<double >& rVariable,
     {
         double Volume;
         array_1d<double, 4 > N;
-        boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+        bounded_matrix<double, 4, 3 > DN_DX;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
 
         //getting the velocity vector on the nodes
@@ -1043,13 +1043,13 @@ void Fluid3D::Calculate(const Variable<double >& rVariable,
 //************************************************************************************
 //************************************************************************************
 
-double Fluid3D::ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX,
+double Fluid3D::ComputeSmagorinskyViscosity(const bounded_matrix<double, 4, 3 > & DN_DX,
         const double& h,
         const double& C,
         const double nu
                                            )
 {
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > dv_dx = ZeroMatrix(3, 3);
+    bounded_matrix<double, 3, 3 > dv_dx = ZeroMatrix(3, 3);
 
     const unsigned int nnodes = 4;
     // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled

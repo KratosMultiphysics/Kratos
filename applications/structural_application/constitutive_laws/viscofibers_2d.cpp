@@ -743,7 +743,7 @@ Calculate the contribution of two families of fibers
 				double J_23 = pow(J,(-2.0/3.0));
 				//KRATOS_WATCH (J_23);
 				//I don't need below! (the modified deformation gradient)
-				boost::numeric::ublas::bounded_matrix<double,2,2> Fbar; // Fbar = J_onethird* F, modified deformation gradient
+				bounded_matrix<double,2,2> Fbar; // Fbar = J_onethird* F, modified deformation gradient
 				//Fbar=J_onethird*DeformationGradient;
 				noalias(Fbar)=DeformationGradient;
 				//KRATOS_WATCH (Fbar);
@@ -1402,8 +1402,8 @@ void Viscofibers2D::CalculateCauchyStresses(
     double J = MathUtils<double>::Det2( rF );
     //KRATOS_WATCH("MATRIZ F em HYP2D")
     //KRATOS_WATCH (J);
-    boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
-    boost::numeric::ublas::bounded_matrix<double,2,2> msaux;
+    bounded_matrix<double,2,2> mstemp;
+    bounded_matrix<double,2,2> msaux;
 
 
     noalias(mstemp) = prod(rF,S);

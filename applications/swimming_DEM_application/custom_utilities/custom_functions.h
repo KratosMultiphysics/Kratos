@@ -67,7 +67,7 @@ void CalculatePressureGradient(ModelPart& r_model_part)
     array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
     array_1d <double, TDim + 1 > elemental_pressures;
     array_1d <double, TDim + 1 > N; // shape functions vector
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+    bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         // computing the shape function derivatives

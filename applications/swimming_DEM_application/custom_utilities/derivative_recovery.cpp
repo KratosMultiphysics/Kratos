@@ -71,7 +71,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
     array_1d <double, 3> grad = ZeroVector(3);
     array_1d <double, TDim + 1 > elemental_values;
     array_1d <double, TDim + 1 > N; // shape functions vector
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+    bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
     for (unsigned int j = 0; j < TDim; ++j){ // for each component of the original vector value
 
@@ -314,7 +314,7 @@ void DerivativeRecovery<TDim>::CalculateGradient(ModelPart& r_model_part, TScala
     array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
     array_1d <double, TDim + 1 > elemental_values;
     array_1d <double, TDim + 1 > N; // shape functions vector
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+    bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
 
@@ -359,7 +359,7 @@ void DerivativeRecovery<TDim>::SmoothVectorField(ModelPart& r_model_part, Variab
     }
 
     array_1d <double, TDim + 1 > N; // shape functions vector
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+    bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         // computing the shape function derivatives
@@ -680,8 +680,8 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
     array_1d <double, 3> grad = ZeroVector(3);
     array_1d <double, TDim + 1 > elemental_values;
     array_1d <double, TDim + 1 > N; // shape functions vector
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> elemental_vectors; // They carry the nodal gradients of the corresponding component v_j
+    bounded_matrix<double, TDim + 1, TDim> DN_DX;
+    bounded_matrix<double, TDim + 1, TDim> elemental_vectors; // They carry the nodal gradients of the corresponding component v_j
     const double nodal_area_share = 1.0 / static_cast<double>(TDim + 1);
 
     for (unsigned int j = 0; j < TDim; ++j){ // for each component of the original vector value
@@ -733,7 +733,7 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
                 }
             }
 
-            boost::numeric::ublas::bounded_matrix<double, TDim, TDim> grad_aux = prod(trans(DN_DX), elemental_vectors); // its dimension may be 2
+            bounded_matrix<double, TDim, TDim> grad_aux = prod(trans(DN_DX), elemental_vectors); // its dimension may be 2
             double divergence_of_vi = 0.0;
 
             for (unsigned int k = 0; k < TDim; ++k){ // the divergence is the trace of the gradient

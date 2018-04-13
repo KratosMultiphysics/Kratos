@@ -75,7 +75,7 @@ void SigmaUElement::Initialize()
 //        KRATOS_WATCH("ln114")
     if (dim == 2)
     {
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+        bounded_matrix<double, 3, 2 > DN_DX;
         array_1d<double, 3 > N;
 
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, mArea0);
@@ -84,7 +84,7 @@ void SigmaUElement::Initialize()
     }
     else
     {
-        boost::numeric::ublas::bounded_matrix<double, 4,3 > DN_DX;
+        bounded_matrix<double, 4,3 > DN_DX;
         array_1d<double, 4 > N;
 
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, mArea0);

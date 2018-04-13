@@ -101,7 +101,7 @@ BinghamNonNewtonianASGS2D::~BinghamNonNewtonianASGS2D()
 
 void BinghamNonNewtonianASGS2D::CalculateApparentViscosity(double & app_mu, double & app_mu_derivative,
         array_1d<double, 3 >&  grad_sym_vel, double & gamma_dot,
-        const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
+        const bounded_matrix<double, 3, 6 > & B,
         const double & mu, const double & m_coef)
 {
     KRATOS_TRY
@@ -150,7 +150,7 @@ void BinghamNonNewtonianASGS2D::CalculateApparentViscosity(double & app_mu, doub
 
 //     void BinghamNonNewtonianASGS2D::CalculateApparentViscosityStbl(double & app_mu, double & app_mu_derivative,
 // 	    array_1d<double, 3 >&  grad_sym_vel, double & gamma_dot,
-//             const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
+//             const bounded_matrix<double, 3, 6 > & B,
 //             const double & mu) {
 //         KRATOS_TRY
 //         app_mu = 0.0;

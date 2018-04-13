@@ -160,7 +160,7 @@ void PlaneStressJ2::InitializeMaterial(const Properties& props,
 /**
  *	TO BE TESTED!!!
  */
-void PlaneStressJ2::CalculateElasticMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & C)
+void PlaneStressJ2::CalculateElasticMatrix(bounded_matrix<double, 3, 3 > & C)
 {
     double c1 = mE / (1.00 - mNU * mNU);
     double c2 = c1 * mNU;
@@ -177,7 +177,7 @@ void PlaneStressJ2::CalculateElasticMatrix(boost::numeric::ublas::bounded_matrix
     C(2, 2) = c3;
 }
 
-void PlaneStressJ2::CalculateInverseElasticMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & Cinv)
+void PlaneStressJ2::CalculateInverseElasticMatrix(bounded_matrix<double, 3, 3 > & Cinv)
 {
     double c1 = 1.0 / mE;
     double c2 = -mNU * c1;
@@ -194,7 +194,7 @@ void PlaneStressJ2::CalculateInverseElasticMatrix(boost::numeric::ublas::bounded
     Cinv(2, 2) = c3;
 }
 
-void PlaneStressJ2::CalculateP(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & P)
+void PlaneStressJ2::CalculateP(bounded_matrix<double, 3, 3 > & P)
 {
     P(0, 0) = 0.6666666666666667;
     P(0, 1) = -0.3333333333333333;
@@ -240,7 +240,7 @@ void PlaneStressJ2::CalculateMaterialResponse(const Vector& StrainVector,
     //        KRATOS_WATCH(StrainVector);
     //        KRATOS_WATCH(mOldPlasticStrain);
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > C, Cinv, P;
+    bounded_matrix<double, 3, 3 > C, Cinv, P;
     CalculateElasticMatrix(C);
     CalculateInverseElasticMatrix(Cinv);
     CalculateP(P);
@@ -284,7 +284,7 @@ void PlaneStressJ2::CalculateMaterialResponse(const Vector& StrainVector,
 
         //calculate XImat
         //note that here i reuse the C as auxiliary variable as i don't need it anymore
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 > XImat;
+        bounded_matrix<double, 3, 3 > XImat;
         noalias(C) = Cinv;
         noalias(C) += (dgamma / (1.0 + ccc)) * P;
         double detC;
@@ -353,8 +353,8 @@ void PlaneStressJ2::CalculateMaterialResponse(const Vector& StrainVector,
 //***********************************************************************************************
 //***********************************************************************************************
 
-void PlaneStressJ2::InvertMatrix(const boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InputMatrix,
-                                 boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InvertedMatrix,
+void PlaneStressJ2::InvertMatrix(const bounded_matrix<double, 3, 3 > & InputMatrix,
+                                 bounded_matrix<double, 3, 3 > & InvertedMatrix,
                                  double& InputMatrixDet) //VERIFIED!!!
 {
     //filling the inverted matrix with the algebraic complements

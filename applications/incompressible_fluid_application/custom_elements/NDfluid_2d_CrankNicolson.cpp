@@ -68,9 +68,9 @@ namespace Kratos
 {
 namespace NDFluid2DCrankNicolsonauxiliaries
 {
-boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = 1.0/3.0*IdentityMatrix(3,3);
+bounded_matrix<double,3,3> msMassFactors = 1.0/3.0*IdentityMatrix(3,3);
 
-boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
 
 array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
 
@@ -746,7 +746,7 @@ void NDFluid2DCrankNicolson::GetDofList(DofsVectorType& ElementalDofList,Process
 
 //************************************************************************************
 //************************************************************************************
-/*	inline void NDFluid2DCrankNicolson::CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area)
+/*	inline void NDFluid2DCrankNicolson::CalculateGeometryData(bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area)
 	{
 		double det_J = GetGeometry()[1].X() * GetGeometry()[2].Y()
 	               - GetGeometry()[1].X() * GetGeometry()[0].Y()

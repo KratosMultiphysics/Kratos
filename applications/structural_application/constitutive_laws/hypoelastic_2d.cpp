@@ -263,8 +263,8 @@ void Hypoelastic2D::CalculateCauchyStresses(
     Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
     double J = MathUtils<double>::Det2( rF );
-    boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
-    boost::numeric::ublas::bounded_matrix<double,2,2> msaux;
+    bounded_matrix<double,2,2> mstemp;
+    bounded_matrix<double,2,2> msaux;
 
     noalias(mstemp) = prod(rF,S);
     noalias(msaux) = prod(mstemp,trans(rF));

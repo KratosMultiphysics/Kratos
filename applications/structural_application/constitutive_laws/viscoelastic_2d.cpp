@@ -845,8 +845,8 @@ void Viscoelastic2D::CalculateCauchyStresses(
     double J = MathUtils<double>::Det2( rF );
     //KRATOS_WATCH("MATRIZ F em HYP2D")
     //KRATOS_WATCH (J);
-    boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
-    boost::numeric::ublas::bounded_matrix<double,2,2> msaux;
+    bounded_matrix<double,2,2> mstemp;
+    bounded_matrix<double,2,2> msaux;
 
 
     noalias(mstemp) = prod(rF,S);

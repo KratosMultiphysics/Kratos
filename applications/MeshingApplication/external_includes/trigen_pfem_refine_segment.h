@@ -1180,8 +1180,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    boost::numeric::ublas::bounded_matrix<double,2,2> mJ; //local jacobian
-    boost::numeric::ublas::bounded_matrix<double,2,2> mJinv; //inverse jacobian
+    bounded_matrix<double,2,2> mJ; //local jacobian
+    bounded_matrix<double,2,2> mJinv; //inverse jacobian
     array_1d<double,2> mC; //center pos
     array_1d<double,2> mRhs; //center pos
     //NodeEraseProcess* mpNodeEraseProcess;

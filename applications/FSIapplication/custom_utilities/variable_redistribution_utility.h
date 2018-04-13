@@ -252,14 +252,14 @@ namespace Kratos
       static void ComputeNodalSizes(ModelPart& rModelPart);
 
       template< GeometryData::KratosGeometryFamily TFamily, unsigned int TNumNodes >
-      static void ConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>& rMassMatrix);
+      static void ConsistentMassMatrix(bounded_matrix<double, TNumNodes, TNumNodes>& rMassMatrix);
 
       template< unsigned int TNumNodes, class TValueType >
       static void UpdateDistributionRHS(
           ModelPart& rModelPart,
           const Variable< TValueType >& rPointVariable,
           const Variable< TValueType >& rDistributedVariable,
-          boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>& rMassMatrix);
+          bounded_matrix<double, TNumNodes, TNumNodes>& rMassMatrix);
 
       template< class TValueType >
       static double SolveDistributionIteration(

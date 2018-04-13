@@ -41,14 +41,14 @@ namespace Kratos
   public:
     
     //2D with information on the interfase
-    static int CalculateEnrichedShapeFuncions(boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX,array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, boost::numeric::ublas::bounded_matrix<double,3*(2-1), (2)>& NEnriched,array_1d<double,(3)>&  rGPShapeFunctionValues_in_interfase, array_1d<double,(3)>&  NEnriched_in_interfase, double & InterfaseArea) 
+    static int CalculateEnrichedShapeFuncions(bounded_matrix<double,(2+1), 2 >& rPoints, bounded_matrix<double, (2+1), 2 >& DN_DX,array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, bounded_matrix<double,3*(2-1), (2)>& NEnriched,array_1d<double,(3)>&  rGPShapeFunctionValues_in_interfase, array_1d<double,(3)>&  NEnriched_in_interfase, double & InterfaseArea) 
     {
       KRATOS_TRY
 	
 	const double one_third=1.0/3.0;
-      boost::numeric::ublas::bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
-      boost::numeric::ublas::bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
-      boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
+      bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
+      bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
+      bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
       
       double most_common_sign=0; //the side of the cut in which two nodes are found (same sign) will be the ones that remains unchanged when builing the discontinuity
       double Area;//area of the complete element
@@ -56,7 +56,7 @@ namespace Kratos
       Area = CalculateVolume2D( rPoints );
       array_1d<bool,3> cut_edges;
       array_1d<double,3> aux_nodes_relative_locations;
-      boost::numeric::ublas::bounded_matrix<int,3,2> aux_nodes_father_nodes;
+      bounded_matrix<int,3,2> aux_nodes_father_nodes;
       
       //to begin with we must check whether our element is cut or not by the interfase.
       if( (rDistances(0)*rDistances(1))>0.0 && (rDistances(0)*rDistances(2))>0.0 ) //it means that this element IS NOT cut by the interfase. we must return data of a normal, non-enriched element
@@ -237,7 +237,7 @@ namespace Kratos
 	{	 
 	  unsigned int j_aux = i + 2;
 	  if (j_aux>2) j_aux -= 3; 
-	  boost::numeric::ublas::bounded_matrix<int,3,2> partition_father_nodes;
+	  bounded_matrix<int,3,2> partition_father_nodes;
 	  array_1d<double,3> N;
 	  if (i<3)
 	    {
@@ -383,14 +383,14 @@ namespace Kratos
     }
     
     
-    static int CalculateEnrichedShapeFuncionsExtendedmodified(boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX, array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues, array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, boost::numeric::ublas::bounded_matrix<double,3*(2-1), (5)>& NEnriched,boost::numeric::ublas::bounded_matrix<double,10, 2>& rGradientpositive,boost::numeric::ublas::bounded_matrix<double,10, 2>& rGradientnegative ,boost::numeric::ublas::bounded_matrix<int,3,3>& father_nodes) 
+    static int CalculateEnrichedShapeFuncionsExtendedmodified(bounded_matrix<double,(2+1), 2 >& rPoints, bounded_matrix<double, (2+1), 2 >& DN_DX, array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues, array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, bounded_matrix<double,3*(2-1), (5)>& NEnriched,bounded_matrix<double,10, 2>& rGradientpositive,bounded_matrix<double,10, 2>& rGradientnegative ,bounded_matrix<int,3,3>& father_nodes) 
     {
       KRATOS_TRY
 	
 	const double one_third=1.0/3.0;
-      boost::numeric::ublas::bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
-      boost::numeric::ublas::bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
-      boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
+      bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
+      bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
+      bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
       
       double most_common_sign=0; //the side of the cut in which two nodes are found (same sign) will be the ones that remains unchanged when builing the discontinuity
       double Area;//area of the complete element
@@ -398,7 +398,7 @@ namespace Kratos
       Area = CalculateVolume2D( rPoints );
       array_1d<bool,3> cut_edges;
       array_1d<double,3> aux_nodes_relative_locations;
-      boost::numeric::ublas::bounded_matrix<int,3,2> aux_nodes_father_nodes;
+      bounded_matrix<int,3,2> aux_nodes_father_nodes;
       
       //to begin with we must check whether our element is cut or not by the interfase.
       if( (rDistances(0)*rDistances(1))>0.0 && (rDistances(0)*rDistances(2))>0.0 ) //it means that this element IS NOT cut by the interfase. we must return data of a normal, non-enriched element
@@ -606,7 +606,7 @@ namespace Kratos
 	  
 	  int j_aux = i + 2;
 	  if (j_aux>2) j_aux -= 3; 
-	  boost::numeric::ublas::bounded_matrix<int,3,2> partition_father_nodes;
+	  bounded_matrix<int,3,2> partition_father_nodes;
 	  array_1d<double,3> N; //bool useful=false;
 	  
 	  int useful_node_for_N0star=-1;
@@ -896,15 +896,15 @@ namespace Kratos
 
     
     //2D: 2 enrichment functions for capturing weak discontinities. All the shape functions follow the criteria of Partition of Unity.  
-    static int CalculateEnrichedShapeFuncionsExtendedmodified_gausspoints(Geometry< Node<3> >& trianglegeom,boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX,array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues, array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, boost::numeric::ublas::bounded_matrix<double,3*(2-1), (5)>& NEnriched,boost::numeric::ublas::bounded_matrix<double,10, 2>& rGradientpositive,boost::numeric::ublas::bounded_matrix<double,10, 2>& rGradientnegative ,boost::numeric::ublas::bounded_matrix<int,3,3>& father_nodes,std::vector<Matrix>& PRUEBA, array_1d<double,6>& weight)
+    static int CalculateEnrichedShapeFuncionsExtendedmodified_gausspoints(Geometry< Node<3> >& trianglegeom,bounded_matrix<double,(2+1), 2 >& rPoints, bounded_matrix<double, (2+1), 2 >& DN_DX,array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues, array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, bounded_matrix<double,3*(2-1), (5)>& NEnriched,bounded_matrix<double,10, 2>& rGradientpositive,bounded_matrix<double,10, 2>& rGradientnegative ,bounded_matrix<int,3,3>& father_nodes,std::vector<Matrix>& PRUEBA, array_1d<double,6>& weight)
     {
       KRATOS_TRY
 	    
 	const double one_third=1.0/3.0;
-      boost::numeric::ublas::bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
-      boost::numeric::ublas::bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
-      boost::numeric::ublas::bounded_matrix<double, 3, 2 > coord_subdomain_aux;
-      boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
+      bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
+      bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
+      bounded_matrix<double, 3, 2 > coord_subdomain_aux;
+      bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
 	  
       double most_common_sign=0; //the side of the cut in which two nodes are found (same sign) will be the ones that remains unchanged when builing the discontinuity
       double Area;//area of the complete element
@@ -912,8 +912,8 @@ namespace Kratos
       Area = CalculateVolume2D( rPoints );
       array_1d<bool,3> cut_edges;
       array_1d<double,3> aux_nodes_relative_locations;
-      boost::numeric::ublas::bounded_matrix<int,3,2> aux_nodes_father_nodes;
-      boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomainaux_1aux; //used to retrieve derivatives
+      bounded_matrix<int,3,2> aux_nodes_father_nodes;
+      bounded_matrix<double,3,2> DN_DX_subdomainaux_1aux; //used to retrieve derivatives
 	  
       //to begin with we must check whether our element is cut or not by the interfase.
       if( (rDistances(0)*rDistances(1))>0.0 && (rDistances(0)*rDistances(2))>0.0 ) //it means that this element IS NOT cut by the interfase. we must return data of a normal, non-enriched element
@@ -1109,7 +1109,7 @@ namespace Kratos
 	    
 	  int j_aux = i + 2;
 	  if (j_aux>2) j_aux -= 3; 
-	  boost::numeric::ublas::bounded_matrix<int,3,2> partition_father_nodes;
+	  bounded_matrix<int,3,2> partition_father_nodes;
 	  array_1d<double,3> N; //bool useful=false;
 	    	      
 	  int useful_node_for_N0star=-1;
@@ -1488,7 +1488,7 @@ namespace Kratos
     }
 
     //for 3D
-    static int CalculateEnrichedShapeFuncions_Simplified(Geometry< Node<3> >& rGeom,boost::numeric::ublas::bounded_matrix<double,(3+1), 3 >& rPoints, boost::numeric::ublas::bounded_matrix<double, (3+1), 3 >& DN_DX, array_1d<double,(3+1)>& rDistances, array_1d<double,(3*(3-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(3-1), (3+1) >& rShapeFunctionValues,array_1d<double,(3*(3-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, std::vector<Matrix>& rGradientsValueaux,     boost::numeric::ublas::bounded_matrix<double,3*(3-1), (2)>& NEnriched,int& number_interface_elements,boost::numeric::ublas::bounded_matrix<double, 2, 3 >& coord_interface_nodes, array_1d<double,6>& area_interface, array_1d<double,6>& area_inter, array_1d<double,6>& N_Star, bool& switch_off_e, std::vector<Matrix>&  edges_t,std::vector<Matrix>&  nodes,std::vector<Matrix>&  original_edges, std::vector<Matrix>& rGradientaux1, int& totalnodes, std::vector<Matrix>& interface_nodes, boost::numeric::ublas::bounded_matrix<double, 3*(3-1), 8 >& Ngauss_new, std::vector<Matrix>& Tres, std::vector<Matrix>& PRUEBA, array_1d<double,6>& weight)
+    static int CalculateEnrichedShapeFuncions_Simplified(Geometry< Node<3> >& rGeom,bounded_matrix<double,(3+1), 3 >& rPoints, bounded_matrix<double, (3+1), 3 >& DN_DX, array_1d<double,(3+1)>& rDistances, array_1d<double,(3*(3-1))>& rVolumes, bounded_matrix<double, 3*(3-1), (3+1) >& rShapeFunctionValues,array_1d<double,(3*(3-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, std::vector<Matrix>& rGradientsValueaux,     bounded_matrix<double,3*(3-1), (2)>& NEnriched,int& number_interface_elements,bounded_matrix<double, 2, 3 >& coord_interface_nodes, array_1d<double,6>& area_interface, array_1d<double,6>& area_inter, array_1d<double,6>& N_Star, bool& switch_off_e, std::vector<Matrix>&  edges_t,std::vector<Matrix>&  nodes,std::vector<Matrix>&  original_edges, std::vector<Matrix>& rGradientaux1, int& totalnodes, std::vector<Matrix>& interface_nodes, bounded_matrix<double, 3*(3-1), 8 >& Ngauss_new, std::vector<Matrix>& Tres, std::vector<Matrix>& PRUEBA, array_1d<double,6>& weight)
     {
       KRATOS_TRY
 	
@@ -1776,8 +1776,8 @@ namespace Kratos
 	  number_of_partitions = nel;
 	}
       
-      boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX_subdomainaux1; //used to retrieve derivatives
-      boost::numeric::ublas::bounded_matrix<double, 4, 3 > coord_subdomainaux1; 
+      bounded_matrix<double,4,3> DN_DX_subdomainaux1; //used to retrieve derivatives
+      bounded_matrix<double, 4, 3 > coord_subdomainaux1; 
       double temp_areaaux1=0.0;
       
 
@@ -1825,11 +1825,11 @@ namespace Kratos
 	  area_interface= ZeroVector(6);
 	  area_inter=ZeroVector(6);
 	  
-	  boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX_subdomainaux; //used to retrieve derivatives
-	  boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX_subdomainaux_1; //used to retrieve derivatives
-	  boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX_subdomainaux_1aux; //used to retrieve derivatives
-	  boost::numeric::ublas::bounded_matrix<double, 4, 3 > coord_subdomainaux; 
-	  boost::numeric::ublas::bounded_matrix<double, 4, 3 > coord_subdomainaux_aux; 
+	  bounded_matrix<double,4,3> DN_DX_subdomainaux; //used to retrieve derivatives
+	  bounded_matrix<double,4,3> DN_DX_subdomainaux_1; //used to retrieve derivatives
+	  bounded_matrix<double,4,3> DN_DX_subdomainaux_1aux; //used to retrieve derivatives
+	  bounded_matrix<double, 4, 3 > coord_subdomainaux; 
+	  bounded_matrix<double, 4, 3 > coord_subdomainaux_aux; 
 	  double temp_areaaux=0.0;
 	  int local=0;
 
@@ -1862,8 +1862,8 @@ namespace Kratos
 	      int i0, i1, i2, i3; //indices of the subtetrahedra
 	      TetrahedraSplit::TetrahedraGetNewConnectivityGID(i, t, split_edge, &i0, &i1, &i2, &i3);
 	      
-	      boost::numeric::ublas::bounded_matrix<double, 4, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc                					boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX_subdomain; //used to retrieve derivatives
-	      boost::numeric::ublas::bounded_matrix<double, 4, 3 > coord_xg; //use
+	      bounded_matrix<double, 4, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc                					bounded_matrix<double,4,3> DN_DX_subdomain; //used to retrieve derivatives
+	      bounded_matrix<double, 4, 3 > coord_xg; //use
 	      
 	      coord_xg=ZeroMatrix(4,3);
 	      
@@ -1913,7 +1913,7 @@ namespace Kratos
 	
 	      
 	      array_1d<double, 4 > msN;
-              boost::numeric::ublas::bounded_matrix<double, 4, 3 > msDN_DX;
+              bounded_matrix<double, 4, 3 > msDN_DX;
 	      //double Area=0.0;
 
 	      Geometry< Node<3> >::PointsArrayType NewPoints;
@@ -2260,7 +2260,7 @@ namespace Kratos
   private:
     
     
-    static void ComputeElementCoordinates(array_1d<double, 4 > & N, const array_1d<double, 3 > & center_position, boost::numeric::ublas::bounded_matrix<double, 4, 3 > &  rPoints, const double vol)
+    static void ComputeElementCoordinates(array_1d<double, 4 > & N, const array_1d<double, 3 > & center_position, bounded_matrix<double, 4, 3 > &  rPoints, const double vol)
     {
       double x0 = rPoints(0, 0); //geom[0].X();
       double y0 = rPoints(0, 1); //geom[0].Y();
@@ -2310,7 +2310,7 @@ namespace Kratos
     }
     
     //2d
-    static inline void CalculateGeometryData(const bounded_matrix<double, 3, 3 > & coordinates,boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,array_1d<double,3>& N,double& Area)
+    static inline void CalculateGeometryData(const bounded_matrix<double, 3, 3 > & coordinates,bounded_matrix<double,3,2>& DN_DX,array_1d<double,3>& N,double& Area)
     {
       double x10 = coordinates(1,0) - coordinates(0,0);
       double y10 = coordinates(1,1) - coordinates(0,1);
@@ -2389,7 +2389,7 @@ namespace Kratos
       return 0.5 * ((x1 - x0)*(y2 - y0)- (y1 - y0)*(x2 - x0));
     }
         
-    static inline void CalculateGeometryData(const bounded_matrix<double, 3, 3 > & coordinates,boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, double& Area)
+    static inline void CalculateGeometryData(const bounded_matrix<double, 3, 3 > & coordinates,bounded_matrix<double,3,2>& DN_DX, double& Area)
     {
       double x10 = coordinates(1,0) - coordinates(0,0);
       double y10 = coordinates(1,1) - coordinates(0,1);
@@ -2418,7 +2418,7 @@ namespace Kratos
     }
 		
 		
-    static inline void CalculateGeometryData( boost::numeric::ublas::bounded_matrix<double, 4, 3 > & coordinates, boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,double& Volume)
+    static inline void CalculateGeometryData( bounded_matrix<double, 4, 3 > & coordinates, bounded_matrix<double,4,3>& DN_DX,double& Volume)
     {
       double x10 = coordinates(1,0) - coordinates(0,0);
       double y10 = coordinates(1,1) - coordinates(0,1);

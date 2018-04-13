@@ -159,15 +159,15 @@ public:
 
         double deltatime_new;
         double deltatime = dt_max;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim+1> aux;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim+1> aux_ac;
+        bounded_matrix<double,TDim,TDim+1> aux;
+        bounded_matrix<double,TDim,TDim+1> aux_ac;
         //this is for 2D only
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Dv_dx;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Da_dx;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> J;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> I = IdentityMatrix(TDim,TDim);
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Zero = ZeroMatrix(TDim,TDim);
+        bounded_matrix<double,TDim+1,TDim> DN_DX;
+        bounded_matrix<double,TDim,TDim> Dv_dx;
+        bounded_matrix<double,TDim,TDim> Da_dx;
+        bounded_matrix<double,TDim,TDim> J;
+        bounded_matrix<double,TDim,TDim> I = IdentityMatrix(TDim,TDim);
+        bounded_matrix<double,TDim,TDim> Zero = ZeroMatrix(TDim,TDim);
         array_1d<double,TDim+1> N;
         double Area;
         double detJ;

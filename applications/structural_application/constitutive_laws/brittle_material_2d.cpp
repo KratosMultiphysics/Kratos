@@ -231,7 +231,7 @@ void BrittleMaterial2D::FinalizeSolutionStep( const Properties& props,
 //***********************************************************************************************
 
 
-void BrittleMaterial2D::CalculateElasticMatrix(boost::numeric::ublas::bounded_matrix<double,4,4>& C)
+void BrittleMaterial2D::CalculateElasticMatrix(bounded_matrix<double,4,4>& C)
 {
 
     // plane strain and axial symmetric
@@ -582,8 +582,8 @@ void BrittleMaterial2D::CalculateCauchyStresses(
     Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
     double J = MathUtils<double>::Det2( rF );
-    boost::numeric::ublas::bounded_matrix<double,2,2> temp;
-    boost::numeric::ublas::bounded_matrix<double,2,2> aux;
+    bounded_matrix<double,2,2> temp;
+    bounded_matrix<double,2,2> aux;
     noalias(temp) = prod(rF,S);
     noalias(aux) = prod(temp,trans(rF));
     aux *= J;

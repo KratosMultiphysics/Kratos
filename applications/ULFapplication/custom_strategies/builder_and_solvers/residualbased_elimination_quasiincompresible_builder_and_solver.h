@@ -1226,7 +1226,7 @@ public:
         //array_1d<double,TDim+1> rhs_contribution;
 
 #ifndef _OPENMP
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        bounded_matrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N;
         array_1d<unsigned int ,TDim+1> local_indices;
         double Volume;
@@ -1342,7 +1342,7 @@ public:
         #pragma omp parallel for
         for (int k = 0; k < number_of_threads; k++)
         {
-            boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+            bounded_matrix<double,TDim+1,TDim> DN_DX;
             array_1d<double,TDim+1> N;
             array_1d<unsigned int ,TDim+1> local_indices;
             //array_1d<double,TDim+1> rhs_contribution;
@@ -1487,7 +1487,7 @@ public:
     			//KRATOS_WATCH("BUILDING AUXILIARY MATRIX D")
 
 
-    			boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+    			bounded_matrix<double,TDim+1,TDim> DN_DX;
     			array_1d<double,TDim+1> N;
     			array_1d<unsigned int ,TDim+1> local_indices;
     			//array_1d<double,TDim+1> rhs_contribution;
@@ -1581,7 +1581,7 @@ public:
     #pragma omp parallel for
     for (int k = 0; k < number_of_threads; k++)
                 {
-    boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+    bounded_matrix<double,TDim+1,TDim> DN_DX;
     			array_1d<double,TDim+1> N;
     			array_1d<unsigned int ,TDim+1> local_indices;
     			//array_1d<double,TDim+1> rhs_contribution;
@@ -1682,7 +1682,7 @@ public:
         //first we assemble the diagonal mass matrix
         KRATOS_TRY
         //KRATOS_WATCH("BUILDING MASS MATRICES ")
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        bounded_matrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N;
         array_1d<unsigned int ,TDim+1> local_indices;
         //array_1d<double,TDim+1> rhs_contribution;
@@ -2125,7 +2125,7 @@ public:
         KRATOS_TRY
 //	double aaa=0.0;
         double dt = model_part.GetProcessInfo()[DELTA_TIME];
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        bounded_matrix<double,3,2> DN_DX;
         array_1d<double,3> N;
         array_1d<double,3> aux0, aux1, aux2; //this are sized to 3 even in 2D!!
 
@@ -2164,8 +2164,8 @@ public:
             //pres_inc*=0.5;
 
             //Gradient operator G:
-            boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
-            boost::numeric::ublas::bounded_matrix<double,6,3> G = ZeroMatrix(6,3);
+            bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
+            bounded_matrix<double,6,3> G = ZeroMatrix(6,3);
             for (int ii = 0; ii< 3; ii++)
             {
                 int column = ii*2;
@@ -2401,7 +2401,7 @@ public:
 
         for (typename ElementsArrayType::iterator im=r_model_part.ElementsBegin(); im!=r_model_part.ElementsEnd(); ++im)
         {
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        bounded_matrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N;
         array_1d<unsigned int ,TDim+1> local_indices;
 

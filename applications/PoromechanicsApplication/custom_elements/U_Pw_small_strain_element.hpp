@@ -91,7 +91,7 @@ protected:
         double Density;
         double BiotCoefficient;
         double BiotModulusInverse;
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> PermeabilityMatrix;
+        bounded_matrix<double,TDim, TDim> PermeabilityMatrix;
         
         ///ProcessInfo variables
         double VelocityCoefficient;
@@ -109,7 +109,7 @@ protected:
         
         ///Variables computed at each GP
         Matrix B;
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu;
+        bounded_matrix<double,TDim, TNumNodes*TDim> Nu;
         array_1d<double,TDim> BodyAcceleration;
         double IntegrationCoefficient;
         ///Constitutive Law parameters
@@ -121,12 +121,12 @@ protected:
         Matrix F;
         double detF;
         ///Auxiliary Variables
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes*TDim> PUMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> PMatrix;
+        bounded_matrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
+        bounded_matrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
+        bounded_matrix<double,TNumNodes,TNumNodes*TDim> PUMatrix;
+        bounded_matrix<double,TNumNodes,TNumNodes> PMatrix;
         Matrix UVoigtMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> PDimMatrix;
+        bounded_matrix<double,TNumNodes,TDim> PDimMatrix;
         array_1d<double,TNumNodes*TDim> UVector;
         array_1d<double,TNumNodes> PVector;
     };

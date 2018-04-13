@@ -371,8 +371,8 @@ public:
             in->FastGetSolutionStepValue(NODAL_MASS) = 0.00;
         }
 
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim+1> elemental_stabilization;
+        bounded_matrix<double,TDim+1,TDim> DN_DX;
+        bounded_matrix<double,TDim+1,TDim+1> elemental_stabilization;
         array_1d<double,TDim+1> N;
         array_1d<unsigned int ,TDim+1> local_indices;
         array_1d<double,3> vel;

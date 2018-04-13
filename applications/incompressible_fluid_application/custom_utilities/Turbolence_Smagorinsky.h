@@ -87,10 +87,10 @@ public:
 
 
 
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        bounded_matrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> dv_dx;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> S;
+        bounded_matrix<double,TDim,TDim> dv_dx;
+        bounded_matrix<double,TDim,TDim> S;
         const unsigned int nnodes = TDim+1;
         //unsigned int dim = TDim;
         double lumping_coeff = 1.0/double(TDim+1);

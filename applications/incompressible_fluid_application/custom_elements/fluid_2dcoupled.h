@@ -213,9 +213,9 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    static boost::numeric::ublas::bounded_matrix<double,3,3> msaux_matrix;
-    static boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors;
-    static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+    static bounded_matrix<double,3,3> msaux_matrix;
+    static bounded_matrix<double,3,3> msMassFactors;
+    static bounded_matrix<double,3,2> msDN_DX;
     static array_1d<double,3> msN; //dimension = number of nodes
     //static Matrix msDN_DX;
     //static Matrix msMassFactors;
@@ -244,9 +244,9 @@ private:
     void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
 
-    void CalculateViscousMatrix(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu);
+    void CalculateViscousMatrix(MatrixType& K, const bounded_matrix<double,3,2>& DN_DX, const double& nu);
 
-    inline void  ExpandAndAddReducedMatrix(MatrixType& Destination,	boost::numeric::ublas::bounded_matrix<double,3,3>& ReducedMatrix, const unsigned int dimension);
+    inline void  ExpandAndAddReducedMatrix(MatrixType& Destination,	bounded_matrix<double,3,3>& ReducedMatrix, const unsigned int dimension);
 
     ///@}
     ///@name Private Operations

@@ -145,7 +145,7 @@ public:
 		reference_point(1)=ReferenceTableY(time);
 		reference_point(2)=ReferenceTableZ(time);
 
-		boost::numeric::ublas::bounded_matrix<double, 3, 3 > rotation_matrix;
+		bounded_matrix<double, 3, 3 > rotation_matrix;
 		const double c1=cos(rotation(0));
 		const double c2=cos(rotation(1));
 		const double c3=cos(rotation(2));

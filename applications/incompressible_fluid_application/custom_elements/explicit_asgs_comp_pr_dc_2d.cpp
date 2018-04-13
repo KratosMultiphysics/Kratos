@@ -327,7 +327,7 @@ void ExplicitASGSCOMPPRDC2D::Calculate( const Variable<double>& rVariable, doubl
     Output = 100.0;
     double Area = 0.0;
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX = ZeroMatrix(3, 2);
+    bounded_matrix<double, 3, 2 > DN_DX = ZeroMatrix(3, 2);
     array_1d<double, 3 > N = ZeroVector(3); //dimension = number of nodes
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 
@@ -349,7 +349,7 @@ void ExplicitASGSCOMPPRDC2D::Calculate( const Variable<double>& rVariable, doubl
 }
 //*************************************************************************************
 //*************************************************************************************
-void ExplicitASGSCOMPPRDC2D::CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double time,const double tautwo,const double area)
+void ExplicitASGSCOMPPRDC2D::CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double time,const double tautwo,const double area)
 {
     KRATOS_TRY
     //tau*div(V).P_dot
@@ -395,7 +395,7 @@ void ExplicitASGSCOMPPRDC2D::CalculateDivPdotStblTerms(MatrixType& K,VectorType&
 }
 //************************************************************************************
 //************************************************************************************
-void ExplicitASGSCOMPPRDC2D::CalculateArtifitialViscosity(double& Vel_art_visc ,double& Pr_art_visc ,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX)
+void ExplicitASGSCOMPPRDC2D::CalculateArtifitialViscosity(double& Vel_art_visc ,double& Pr_art_visc ,const bounded_matrix<double,3,2>& DN_DX)
 {
     KRATOS_TRY
 
@@ -433,7 +433,7 @@ void ExplicitASGSCOMPPRDC2D::CalculateArtifitialViscosity(double& Vel_art_visc ,
 }
 //************************************************************************************
 //************************************************************************************
-void ExplicitASGSCOMPPRDC2D::CalculateCharectristicLength(double& ch_length, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,double& norm_grad )
+void ExplicitASGSCOMPPRDC2D::CalculateCharectristicLength(double& ch_length, const bounded_matrix<double,3,2>& DN_DX,double& norm_grad )
 {
     KRATOS_TRY
     GeometryType::JacobiansType J;

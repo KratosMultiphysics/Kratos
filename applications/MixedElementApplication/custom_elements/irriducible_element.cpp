@@ -75,7 +75,7 @@ void IrriducibleElement::Initialize()
     {
         nintegration_points = 1;
 
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+        bounded_matrix<double, 3, 2 > DN_DX;
         array_1d<double, 3 > N;
 
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, mArea0);
@@ -86,7 +86,7 @@ void IrriducibleElement::Initialize()
     {
         nintegration_points = 1;
 
-        boost::numeric::ublas::bounded_matrix<double, 4,3 > DN_DX;
+        bounded_matrix<double, 4,3 > DN_DX;
         array_1d<double, 4 > N;
 
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, mArea0);

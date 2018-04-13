@@ -114,7 +114,7 @@ namespace Kratos {
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+        bounded_matrix<double, 3, 2 > DN_DX;
         array_1d<double, 3 > N; 
 
         //getting data for the given geometry
@@ -264,7 +264,7 @@ namespace Kratos {
 		rMassMatrix = ZeroMatrix(MatSize, MatSize);
 		double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-		boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+		bounded_matrix<double, 3, 2 > DN_DX;
 		array_1d<double, 3 > N; 
 		
 	
@@ -308,7 +308,7 @@ namespace Kratos {
 		noalias(rDampingMatrix) = ZeroMatrix(matsize, matsize);
 		double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-		boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+		bounded_matrix<double, 3, 2 > DN_DX;
 		array_1d<double, 3 > N; 
 	
 		//getting data for the given geometry
@@ -349,7 +349,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void VP_PRECOND2D::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double area, const ProcessInfo& CurrentProcessInfo) {
+    void VP_PRECOND2D::CalculateViscousTerm(MatrixType& K, const bounded_matrix<double, 3, 2 > & DN_DX, const double area, const ProcessInfo& CurrentProcessInfo) {
         KRATOS_TRY
         
 	double mu;        
@@ -379,7 +379,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void VP_PRECOND2D::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double tauone, const double tautwo, const double time, const double area) {
+    void VP_PRECOND2D::CalculateAdvectiveTerm(MatrixType& K, const bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double tauone, const double tautwo, const double time, const double area) {
         KRATOS_TRY
 
 	array_1d<double, 2 > ms_adv_vel;
@@ -409,8 +409,8 @@ namespace Kratos {
         int dof = 2;
         int matsize = dof*nodes_number;
 
-        boost::numeric::ublas::bounded_matrix<double, 2, 6 > conv_opr = ZeroMatrix(dof, matsize);
-        boost::numeric::ublas::bounded_matrix<double, 6, 2 > shape_func = ZeroMatrix(matsize, dof);
+        bounded_matrix<double, 2, 6 > conv_opr = ZeroMatrix(dof, matsize);
+        bounded_matrix<double, 6, 2 > shape_func = ZeroMatrix(matsize, dof);
 
         for (int ii = 0; ii < nodes_number; ii++) {
             int column = ii*dof;
@@ -420,7 +420,7 @@ namespace Kratos {
             shape_func(column, 0) = N[ii];
             shape_func(column + 1, 1) = shape_func(column, 0);
         }
-        boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp_convterm = ZeroMatrix(matsize, matsize);
+        bounded_matrix<double, 6, 6 > temp_convterm = ZeroMatrix(matsize, matsize);
         temp_convterm = prod(shape_func, conv_opr);
 
         //double fac = tauone/time;
@@ -445,7 +445,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void VP_PRECOND2D::CalculatePressureTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double time, const double area, const ProcessInfo& CurrentProcessInfo) {
+    void VP_PRECOND2D::CalculatePressureTerm(MatrixType& K, const bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double time, const double area, const ProcessInfo& CurrentProcessInfo) {
         KRATOS_TRY
                 int nodes_number = 3;
         int dof = 2;
@@ -473,13 +473,13 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void VP_PRECOND2D::CalculateDivStblTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double tautwo, const double area) {
+    void VP_PRECOND2D::CalculateDivStblTerm(MatrixType& K, const bounded_matrix<double, 3, 2 > & DN_DX, const double tautwo, const double area) {
         KRATOS_TRY
                 int nodes_number = 3;
         int dof = 2;
         int matsize = dof*nodes_number;
 
-        boost::numeric::ublas::bounded_matrix<double, 1, 6 > div_opr = ZeroMatrix(1, matsize);
+        bounded_matrix<double, 1, 6 > div_opr = ZeroMatrix(1, matsize);
         for (int ii = 0; ii < nodes_number; ii++) {
             int index = dof*ii;
             div_opr(0, index) = DN_DX(ii, 0);
@@ -491,7 +491,7 @@ namespace Kratos {
         double mu;
         calculatedensity(GetGeometry(), density, mu);
 
-        boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp_div = ZeroMatrix(matsize, matsize);
+        bounded_matrix<double, 6, 6 > temp_div = ZeroMatrix(matsize, matsize);
         temp_div = tautwo * prod(trans(div_opr), div_opr);
 
         for (int ii = 0; ii < nodes_number; ii++) {
@@ -513,7 +513,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void VP_PRECOND2D::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double tauone, const double time, const double area, const ProcessInfo& CurrentProcessInfo) {
+    void VP_PRECOND2D::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double tauone, const double time, const double area, const ProcessInfo& CurrentProcessInfo) {
         KRATOS_TRY
 
         //unsigned int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
@@ -537,8 +537,8 @@ namespace Kratos {
         int dof = 2;
         int matsize = dof*nodes_number;
 
-        boost::numeric::ublas::bounded_matrix<double, 2, 6 > conv_opr = ZeroMatrix(dof, matsize);
-        boost::numeric::ublas::bounded_matrix<double, 6, 2 > shape_func = ZeroMatrix(matsize, dof);
+        bounded_matrix<double, 2, 6 > conv_opr = ZeroMatrix(dof, matsize);
+        bounded_matrix<double, 6, 2 > shape_func = ZeroMatrix(matsize, dof);
 
         for (int ii = 0; ii < nodes_number; ii++) {
             int column = ii*dof;
@@ -550,7 +550,7 @@ namespace Kratos {
         }
 
         //build (a.grad V)(ro*a.grad U) stabilization term & assemble
-        boost::numeric::ublas::bounded_matrix<double, 6, 6 > adv_stblterm = ZeroMatrix(matsize, matsize);
+        bounded_matrix<double, 6, 6 > adv_stblterm = ZeroMatrix(matsize, matsize);
         adv_stblterm = tauone * prod(trans(conv_opr), conv_opr);
 
 
@@ -574,7 +574,7 @@ namespace Kratos {
         }
 
         //build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
-        boost::numeric::ublas::bounded_matrix<double, 6, 3 > grad_stblterm = ZeroMatrix(matsize, nodes_number);
+        bounded_matrix<double, 6, 3 > grad_stblterm = ZeroMatrix(matsize, nodes_number);
         grad_stblterm = tauone * prod(trans(conv_opr), trans(DN_DX));
 
         for (int ii = 0; ii < nodes_number; ii++) {
@@ -621,7 +621,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void VP_PRECOND2D::CalculateAdvMassStblTerms(MatrixType& M, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double tauone, const double area, const ProcessInfo& CurrentProcessInfo) {
+    void VP_PRECOND2D::CalculateAdvMassStblTerms(MatrixType& M, VectorType& F, const bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double tauone, const double area, const ProcessInfo& CurrentProcessInfo) {
         KRATOS_TRY
         
 	array_1d<double, 2 > ms_adv_vel;
@@ -649,8 +649,8 @@ namespace Kratos {
         double mu;
         calculatedensity(GetGeometry(), density, mu);
 
-        boost::numeric::ublas::bounded_matrix<double, 2, 6 > conv_opr = ZeroMatrix(dof, matsize);
-        boost::numeric::ublas::bounded_matrix<double, 6, 2 > shape_func = ZeroMatrix(matsize, dof);
+        bounded_matrix<double, 2, 6 > conv_opr = ZeroMatrix(dof, matsize);
+        bounded_matrix<double, 6, 2 > shape_func = ZeroMatrix(matsize, dof);
 
         for (int ii = 0; ii < nodes_number; ii++) {
             int column = ii*dof;
@@ -663,7 +663,7 @@ namespace Kratos {
 
 
         //tau1*ro*Nacc.(1.0*a.grad V)
-        boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp_convterm = ZeroMatrix(matsize, matsize);
+        bounded_matrix<double, 6, 6 > temp_convterm = ZeroMatrix(matsize, matsize);
         temp_convterm = prod(trans(conv_opr), trans(shape_func));
 
         double fac = tauone*density;
@@ -680,7 +680,7 @@ namespace Kratos {
 	if (FractionalStepNumber==2)
 		factor=1.0/delta_t;
 
-	boost::numeric::ublas::bounded_matrix<double, 9, 9 > TEMP = ZeroMatrix(9, 9);
+	bounded_matrix<double, 9, 9 > TEMP = ZeroMatrix(9, 9);
 	
         for (int ii = 0; ii < nodes_number; ii++) {
             int row = ii * (dof + 1);
@@ -719,7 +719,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void VP_PRECOND2D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double,3>& N, const double time, const double tauone, const double area) {
+    void VP_PRECOND2D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double,3>& N, const double time, const double tauone, const double area) {
         KRATOS_TRY
                 int nodes_number = 3;
         int dof = 2;
@@ -729,7 +729,7 @@ namespace Kratos {
         calculatedensity(GetGeometry(), density, mu);
 	
         //build 1*(grad q . grad p) stabilization term & assemble
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
+        bounded_matrix<double, 3, 3 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
         gard_opr = 1.0 * tauone * prod(DN_DX, trans(DN_DX));
 
         for (int ii = 0; ii < nodes_number; ii++) {
@@ -774,7 +774,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void VP_PRECOND2D::CalculateGradMassStblTerms(MatrixType& M, VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double tauone,const double area, const ProcessInfo& CurrentProcessInfo) {
+    void VP_PRECOND2D::CalculateGradMassStblTerms(MatrixType& M, VectorType& F, const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double tauone,const double area, const ProcessInfo& CurrentProcessInfo) {
         KRATOS_TRY
                 int nodes_number = 3;
         int dof = 2;
@@ -798,7 +798,7 @@ namespace Kratos {
 	if (FractionalStepNumber==2)
 		factor=1.0/(delta_t);
 
-	boost::numeric::ublas::bounded_matrix<double, 9, 9 > TEMP = ZeroMatrix(9,9);
+	bounded_matrix<double, 9, 9 > TEMP = ZeroMatrix(9,9);
 
         for (int ii = 0; ii < nodes_number; ii++) {
             int row = ii * (dof + 1);
@@ -839,7 +839,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void VP_PRECOND2D::AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX,  const array_1d<double, 3 > & N, const double time, const double area, const double tauone, const double tautwo) {
+    void VP_PRECOND2D::AddBodyForceAndMomentum(VectorType& F,const bounded_matrix<double, 3, 2 > & DN_DX,  const array_1d<double, 3 > & N, const double time, const double area, const double tauone, const double tautwo) {
         KRATOS_TRY
                 int nodes_number = 3;
         int dof = 2;
@@ -853,7 +853,7 @@ namespace Kratos {
 
         //for Arhenious
         int matsize = dof*nodes_number;
-        boost::numeric::ublas::bounded_matrix<double, 1, 6 > div_opr = ZeroMatrix(1, matsize);
+        bounded_matrix<double, 1, 6 > div_opr = ZeroMatrix(1, matsize);
         for (int ii = 0; ii < nodes_number; ii++) {
             int index = dof*ii;
             div_opr(0, index) = DN_DX(ii, 0);
@@ -966,7 +966,7 @@ namespace Kratos {
 
         array_1d<double, 6 > adv_proj = ZeroVector(6);
         array_1d<double, 3 > div_proj = ZeroVector(3);
-	boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+	bounded_matrix<double, 3, 2 > DN_DX;
         array_1d<double, 3 > N;
 	
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
@@ -990,7 +990,7 @@ namespace Kratos {
     void VP_PRECOND2D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) {
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
-	boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+	bounded_matrix<double, 3, 2 > DN_DX;
         array_1d<double, 3 > N;
 	
         //getting data for the given geometry

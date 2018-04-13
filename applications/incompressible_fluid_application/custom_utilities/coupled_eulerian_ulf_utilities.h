@@ -1253,8 +1253,8 @@ public:
 private:
 
     //aux vars
-    static boost::numeric::ublas::bounded_matrix<double,3,3> msJ; //local jacobian
-    static boost::numeric::ublas::bounded_matrix<double,3,3> msJinv; //inverse jacobian
+    static bounded_matrix<double,3,3> msJ; //local jacobian
+    static bounded_matrix<double,3,3> msJinv; //inverse jacobian
     static array_1d<double,3> msc; //center pos
     static array_1d<double,3> ms_rhs; //center pos
 

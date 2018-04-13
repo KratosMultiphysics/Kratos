@@ -80,7 +80,7 @@ protected:
         ///Variables computed at each GP
         Vector Np;
         Vector NormalVector;
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu;
+        bounded_matrix<double,TDim, TNumNodes*TDim> Nu;
 		double IntegrationCoefficient;
 		
 		///Nodal variables
@@ -88,8 +88,8 @@ protected:
         Vector AccelerationVector;
 
         ///Auxiliary Variables
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes*TDim> PUMatrix;
+        bounded_matrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
+        bounded_matrix<double,TNumNodes,TNumNodes*TDim> PUMatrix;
         array_1d<double,TNumNodes*TDim> UVector;
         array_1d<double,TNumNodes> PVector;
     };

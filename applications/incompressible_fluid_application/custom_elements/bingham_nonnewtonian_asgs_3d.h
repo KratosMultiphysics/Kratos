@@ -180,7 +180,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative , array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B, const double & mu, const double & m_coef);
+    virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative , array_1d<double,6> & grad_sym_vel, double & gamma_dot, const bounded_matrix<double, 6, 12 > & B, const double & mu, const double & m_coef);
 
     ///@}
     ///@name Protected Operators

@@ -217,8 +217,8 @@ public:
         //**********************************
         //BUILD PHASE
         //**********************************
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim+1> lhs_contribution;
+        bounded_matrix<double,TDim+1,TDim> DN_DX;
+        bounded_matrix<double,TDim+1,TDim+1> lhs_contribution;
         array_1d<double,TDim+1> N;
         array_1d<unsigned int ,TDim+1> local_indices;
         array_1d<double,TDim+1> rhs_contribution;
@@ -373,7 +373,7 @@ public:
         //**********************************
         //BUILD PHASE
         //**********************************
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        bounded_matrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N;
         array_1d<double,TDim> vel_gauss;
         array_1d<double,TDim+1> temp_vec_np;
@@ -473,7 +473,7 @@ private:
     //**************************************************************************
     void AssembleLHS(
         TSystemMatrixType& A,
-        const boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim+1>& LHS_Contribution,
+        const bounded_matrix<double,TDim+1,TDim+1>& LHS_Contribution,
         const array_1d<unsigned int,TDim+1>& EquationId
     )
     {

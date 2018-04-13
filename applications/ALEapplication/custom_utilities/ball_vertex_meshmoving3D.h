@@ -165,7 +165,7 @@ public:
 
     //           double aaa = 1.0/double(TDim+1.0);
 
-    boost::numeric::ublas::bounded_matrix<double, (TDim + 1) * TDim,
+    bounded_matrix<double, (TDim + 1) * TDim,
                                           (TDim + 1) * TDim>
         K_matrix;
     array_1d<double, (TDim + 1) * TDim> rhs_vector;
@@ -279,7 +279,7 @@ private:
   //**************************************************************************
   void AssembleLHS(
       TSystemMatrixType &A,
-      const boost::numeric::ublas::bounded_matrix<
+      const bounded_matrix<
           double, (TDim + 1) * TDim, (TDim + 1) * TDim> &LHS_Contribution,
       const array_1d<unsigned int, (TDim + 1) * TDim> &EquationId) {
     unsigned int local_size = LHS_Contribution.size1();
@@ -316,7 +316,7 @@ private:
   //*****************************************************************************
   void BallVertex3D(
       const Geometry<Node<3>> &geom,
-      boost::numeric::ublas::bounded_matrix<double, (TDim + 1) * TDim,
+      bounded_matrix<double, (TDim + 1) * TDim,
                                             (TDim + 1) * TDim> &K_matrix) {
 
     array_1d<double, 4> x, y, z;
@@ -336,7 +336,7 @@ private:
 
     noalias(K_matrix) = ZeroMatrix(12, 12);
 
-    boost::numeric::ublas::bounded_matrix<int, 6, 2> index;
+    bounded_matrix<int, 6, 2> index;
     index(0, 0) = 0;
     index(0, 1) = 1;
     index(1, 0) = 0;
@@ -350,7 +350,7 @@ private:
     index(5, 0) = 2;
     index(5, 1) = 3;
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> vij_mat;
+    bounded_matrix<double, 3, 3> vij_mat;
     double invlijq;
     double invlij;
     int i;
@@ -441,7 +441,7 @@ private:
     n1p[2] = v24[0] * v23[1] - v24[1] * v23[0];
     n1p = n1p / sqrt(pow(n1p[0], 2) + pow(n1p[1], 2) + pow(n1p[2], 2));
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> n1p_mat;
+    bounded_matrix<double, 3, 3> n1p_mat;
 
     n1p_mat(0, 0) = pow(n1p[0], 2);
     n1p_mat(0, 1) = (n1p[0] * n1p[1]);
@@ -460,7 +460,7 @@ private:
     zp = z[0] - (n1p_mat(2, 0) * (x[0] - x[1]) + n1p_mat(2, 1) * (y[0] - y[1]) +
                  n1p_mat(2, 2) * (z[0] - z[1]));
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> v1p_mat;
+    bounded_matrix<double, 3, 3> v1p_mat;
     v1p_mat(0, 0) = pow((xp - x[0]), 2);
     v1p_mat(0, 1) = ((xp - x[0]) * (yp - y[0]));
     v1p_mat(0, 2) = ((xp - x[0]) * (zp - z[0]));
@@ -508,7 +508,7 @@ private:
     n2r[2] = v14[0] * v13[1] - v14[1] * v13[0];
     n2r = n2r / sqrt(pow(n2r[0], 2) + pow(n2r[1], 2) + pow(n2r[2], 2));
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> n2r_mat;
+    bounded_matrix<double, 3, 3> n2r_mat;
 
     n2r_mat(0, 0) = pow(n2r[0], 2);
     n2r_mat(0, 1) = (n2r[0] * n2r[1]);
@@ -527,7 +527,7 @@ private:
     zr = z[1] - (n2r_mat(2, 0) * (x[1] - x[0]) + n2r_mat(2, 1) * (y[1] - y[0]) +
                  n2r_mat(2, 2) * (z[1] - z[0]));
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> v2r_mat;
+    bounded_matrix<double, 3, 3> v2r_mat;
     v2r_mat(0, 0) = pow((xr - x[1]), 2);
     v2r_mat(0, 1) = ((xr - x[1]) * (yr - y[1]));
     v2r_mat(0, 2) = ((xr - x[1]) * (zr - z[1]));
@@ -571,7 +571,7 @@ private:
     n3s[2] = v12[0] * v14[1] - v12[1] * v14[0];
     n3s = n3s / sqrt(pow(n3s[0], 2) + pow(n3s[1], 2) + pow(n3s[2], 2));
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> n3s_mat;
+    bounded_matrix<double, 3, 3> n3s_mat;
 
     n3s_mat(0, 0) = pow(n3s[0], 2);
     n3s_mat(0, 1) = (n3s[0] * n3s[1]);
@@ -590,7 +590,7 @@ private:
     zs = z[2] - (n3s_mat(2, 0) * (x[2] - x[0]) + n3s_mat(2, 1) * (y[2] - y[0]) +
                  n3s_mat(2, 2) * (z[2] - z[0]));
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> v3s_mat;
+    bounded_matrix<double, 3, 3> v3s_mat;
     v3s_mat(0, 0) = pow((xs - x[2]), 2);
     v3s_mat(0, 1) = ((xs - x[2]) * (ys - y[2]));
     v3s_mat(0, 2) = ((xs - x[2]) * (zs - z[2]));
@@ -638,7 +638,7 @@ private:
     n4t[2] = v32[0] * v31[1] - v32[1] * v31[0];
     n4t = n4t / sqrt(pow(n4t[0], 2) + pow(n4t[1], 2) + pow(n4t[2], 2));
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> n4t_mat;
+    bounded_matrix<double, 3, 3> n4t_mat;
 
     n4t_mat(0, 0) = pow(n4t[0], 2);
     n4t_mat(0, 1) = (n4t[0] * n4t[1]);
@@ -657,7 +657,7 @@ private:
     zt = z[3] - (n4t_mat(2, 0) * (x[3] - x[2]) + n4t_mat(2, 1) * (y[3] - y[2]) +
                  n4t_mat(2, 2) * (z[3] - z[2]));
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> v4t_mat;
+    bounded_matrix<double, 3, 3> v4t_mat;
     v4t_mat(0, 0) = pow((xt - x[3]), 2);
     v4t_mat(0, 1) = ((xt - x[3]) * (yt - y[3]));
     v4t_mat(0, 2) = ((xt - x[3]) * (zt - z[3]));

@@ -117,7 +117,7 @@ void ASGSCompressible3D::CalculateLocalVelocityContribution(MatrixType& rDamping
 
     //getting data for the given geometry
     double Volume;
-    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
+    bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
     array_1d<double,4> N = ZeroVector(4);
     GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Volume);
 
@@ -234,7 +234,7 @@ void ASGSCompressible3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInf
 
     //getting data for the given geometry
     double Volume;
-    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
+    bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
     array_1d<double,4> N = ZeroVector(4);
     GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Volume);
 
@@ -261,7 +261,7 @@ void ASGSCompressible3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInf
 }
 //************************************************************************************
 //************************************************************************************
-void ASGSCompressible3D::CalculatePressureTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double time, const double volume)
+void ASGSCompressible3D::CalculatePressureTerm(MatrixType& K, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double time, const double volume)
 {
     KRATOS_TRY
     int nodes_number = 4;
@@ -380,7 +380,7 @@ void ASGSCompressible3D::CalculateSoundVelocity(Geometry< Node<3> > geom, double
 }
 //*************************************************************************************
 //*************************************************************************************
-void ASGSCompressible3D::CalculateCompressibleStblTerms(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,array_1d<double,4> N,const double tautwo,const double volume)
+void ASGSCompressible3D::CalculateCompressibleStblTerms(MatrixType& K,const bounded_matrix<double,4,3>& DN_DX,array_1d<double,4> N,const double tautwo,const double volume)
 {
 
     // double VC2;
@@ -547,7 +547,7 @@ void ASGSCompressible3D::CalculateLCSMassContribution(VectorType& rhs,const doub
     int nodes_number = 4;
     int dof = 3;
 
-    boost::numeric::ublas::bounded_matrix<double,4,4> CLSMass = ZeroMatrix(4,4);
+    bounded_matrix<double,4,4> CLSMass = ZeroMatrix(4,4);
     for ( int nd = 0; nd< nodes_number; nd++)
     {
 

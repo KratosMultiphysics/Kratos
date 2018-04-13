@@ -300,8 +300,8 @@ void PlaneStress::CalculateCauchyStresses(
     Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
     double J = MathUtils<double>::Det2( rF );
-    boost::numeric::ublas::bounded_matrix<double,2,2> temp;
-    boost::numeric::ublas::bounded_matrix<double,2,2> aux;
+    bounded_matrix<double,2,2> temp;
+    bounded_matrix<double,2,2> aux;
     noalias(temp) = prod(rF,S);
     noalias(aux) = prod(temp,trans(rF));
     aux *= J;

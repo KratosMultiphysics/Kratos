@@ -874,7 +874,7 @@ private:
         TSystemMatrixType WorkMatrix(reduced_dim,reduced_dim);
         //KRATOS_WATCH(WorkMatrix)
 
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        bounded_matrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N;
         array_1d<unsigned int ,TDim+1> local_indices;
         //array_1d<double,TDim+1> rhs_contribution;

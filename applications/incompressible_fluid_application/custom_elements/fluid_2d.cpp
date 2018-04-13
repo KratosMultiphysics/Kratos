@@ -142,11 +142,11 @@ void Fluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSide
     if (rRightHandSideVector.size() != number_of_points)
         rRightHandSideVector.resize(number_of_points, false); //false says not to preserve existing storage!!
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > MassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
+    bounded_matrix<double, 3, 3 > MassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
     //AssignConsistentMassMatrixCoefficients(MassFactors);
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > WorkMatrix;
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+    bounded_matrix<double, 3, 3 > WorkMatrix;
+    bounded_matrix<double, 3, 2 > DN_DX;
     array_1d<double, 3 > N;
     array_1d<double, 2 > vel_gauss;
     array_1d<double, 3 > temp_vec_np;
@@ -439,9 +439,9 @@ void Fluid2D::Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSide
         rRightHandSideVector.resize(number_of_points, false);
 
 
-    //boost::numeric::ublas::bounded_matrix<double,3,3> MassFactors = 1.0/3.0*IdentityMatrix(3,3);
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > WorkMatrix;
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+    //bounded_matrix<double,3,3> MassFactors = 1.0/3.0*IdentityMatrix(3,3);
+    bounded_matrix<double, 3, 3 > WorkMatrix;
+    bounded_matrix<double, 3, 2 > DN_DX;
     array_1d<double, 3 > N;
     array_1d<double, 2 > vel_gauss;
     array_1d<double, 3 > temp_vec_np;
@@ -571,11 +571,11 @@ void Fluid2D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
     int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
-//        boost::numeric::ublas::bounded_matrix<double, 3, 3 > MassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
+//        bounded_matrix<double, 3, 3 > MassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
 //		AssignConsistentMassMatrixCoefficients(MassFactors);
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > WorkMatrix;
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+    bounded_matrix<double, 3, 3 > WorkMatrix;
+    bounded_matrix<double, 3, 2 > DN_DX;
     array_1d<double, 3 > N;
     array_1d<double, 2 > vel_gauss;
     array_1d<double, 3 > temp_vec_np;
@@ -864,7 +864,7 @@ void Fluid2D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentP
 
 //************************************************************************************
 //************************************************************************************
-double Fluid2D::CalculateTau(boost::numeric::ublas::bounded_matrix<double, 3,2> & DN_DX, array_1d<double, 2 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
+double Fluid2D::CalculateTau(bounded_matrix<double, 3,2> & DN_DX, array_1d<double, 2 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
 {
 
 //	double temp=0.0;
@@ -902,13 +902,13 @@ double Fluid2D::CalculateTau(boost::numeric::ublas::bounded_matrix<double, 3,2> 
 //************************************************************************************
 //************************************************************************************
 
-double Fluid2D::ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX,
+double Fluid2D::ComputeSmagorinskyViscosity(const bounded_matrix<double, 3, 2 > & DN_DX,
         const double& h,
         const double& C,
         const double nu
                                            )
 {
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > dv_dx = ZeroMatrix(2, 2);
+    bounded_matrix<double, 2, 2 > dv_dx = ZeroMatrix(2, 2);
 
     // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled
     for (unsigned int k = 0; k < 3; ++k)
@@ -950,7 +950,7 @@ void Fluid2D::Calculate(const Variable<double >& rVariable,
     {
         double Volume;
         array_1d<double, 3 > N;
-        boost::numeric::ublas::bounded_matrix<double, 3,2 > DN_DX;
+        bounded_matrix<double, 3,2 > DN_DX;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
 
         //getting the velocity vector on the nodes
@@ -1054,7 +1054,7 @@ int Fluid2D::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("");
 }
 
-inline double Fluid2D::CalculateH(boost::numeric::ublas::bounded_matrix<double, 3,2 > & DN_DX, double Volume)
+inline double Fluid2D::CalculateH(bounded_matrix<double, 3,2 > & DN_DX, double Volume)
 {
     double inv_h_max = 0.0;
     for(unsigned int i=0; i<3; i++)
@@ -1071,7 +1071,7 @@ inline double Fluid2D::CalculateH(boost::numeric::ublas::bounded_matrix<double, 
     return h ;
 }
 
-void Fluid2D::AssignConsistentMassMatrixCoefficients(boost::numeric::ublas::bounded_matrix<double, 3,3 >& m)
+void Fluid2D::AssignConsistentMassMatrixCoefficients(bounded_matrix<double, 3,3 >& m)
 {
     const double one_sixt = 1.0/6.0;
     const double one_third = 1.0/3.0;

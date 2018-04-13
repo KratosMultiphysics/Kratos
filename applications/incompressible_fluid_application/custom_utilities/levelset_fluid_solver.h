@@ -817,7 +817,7 @@ public:
                 //other part of the residual
 #if !defined(SPLIT_OSS)
                 array_1d<double, TDim>& a_j = mA[j_neighbour];
-                boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& L = edge_ij.LaplacianIJ;
+                bounded_matrix<double,TDim,TDim>& L = edge_ij.LaplacianIJ;
                 for(unsigned int i = 0; i<TDim; i++)
                     for(unsigned int j = 0; j<TDim; j++)
                         rhs_i -= edge_tau * a_i[j] * L(i,j) * (U_j_curr[j] - U_i_curr[j]);

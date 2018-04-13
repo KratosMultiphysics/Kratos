@@ -208,11 +208,11 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    /*		static boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors;
-    		static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX; //cartesian coords
-    		static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_De; //local coords
-    		static boost::numeric::ublas::bounded_matrix<double,3,3> msJ; //local jacobian
-    		static boost::numeric::ublas::bounded_matrix<double,3,3> msJinv; //inverse jacobian
+    /*		static bounded_matrix<double,4,4> msMassFactors;
+    		static bounded_matrix<double,4,3> msDN_DX; //cartesian coords
+    		static bounded_matrix<double,4,3> msDN_De; //local coords
+    		static bounded_matrix<double,3,3> msJ; //local jacobian
+    		static bounded_matrix<double,3,3> msJinv; //inverse jacobian
       		static array_1d<double,4> msN; //dimension = number of nodes
     		static array_1d<double,3> ms_aux; //dimesion coincides with space dimension
     		static array_1d<double,3> ms_vel_gauss; //dimesion coincides with space dimension
@@ -259,7 +259,7 @@ private:
 
 
     //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Volume)
-    //inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, array_1d<double,4>& N, double& Volume);
+    //inline void CalculateGeometryData(bounded_matrix<double,4,3>& DN_DX, array_1d<double,4>& N, double& Volume);
 
     ///@}
     ///@name Private Operations

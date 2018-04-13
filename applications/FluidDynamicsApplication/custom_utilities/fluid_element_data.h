@@ -41,11 +41,11 @@ public:
 
     using NodalScalarData = array_1d<double,TNumNodes>;
 
-    using NodalVectorData = boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>;
+    using NodalVectorData = bounded_matrix<double,TNumNodes,TDim>;
 
     using ShapeFunctionsType = array_1d<double,TNumNodes>;
 
-    using ShapeDerivativesType = boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>;
+    using ShapeDerivativesType = bounded_matrix<double,TNumNodes,TDim>;
 
     /// Physical space dimension for the problem.
     constexpr static unsigned int Dim = TDim;
@@ -85,7 +85,7 @@ public:
 
     virtual void UpdateGeometryValues(double NewWeight,
         const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX);
+        const bounded_matrix<double, TNumNodes, TDim>& rDN_DX);
 
     ///@}
     ///@name Public Members

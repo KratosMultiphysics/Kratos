@@ -121,7 +121,7 @@ void ExplicitASGSCompressible3D::CalculateLocalSystem(MatrixType& rLeftHandSideM
 
     //getting data for the given geometry
     double Volume;
-    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
+    bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
     array_1d<double,4> N = ZeroVector(4);
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
 
@@ -155,7 +155,7 @@ void ExplicitASGSCompressible3D::CalculateLocalVelocityContribution(MatrixType& 
 
     //getting data for the given geometry
     double Volume;
-    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
+    bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
     array_1d<double,4> N = ZeroVector(4);
     GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Volume);
 
@@ -258,7 +258,7 @@ void ExplicitASGSCompressible3D::CalculateMassMatrix(MatrixType& rMassMatrix, Pr
 
     //getting data for the given geometry
     double Volume;
-    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
+    bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
     array_1d<double,4> N = ZeroVector(4);
     GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Volume);
 
@@ -285,7 +285,7 @@ void ExplicitASGSCompressible3D::CalculateMassMatrix(MatrixType& rMassMatrix, Pr
 }
 //************************************************************************************
 //************************************************************************************
-void ExplicitASGSCompressible3D::CalculatePressureTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double time, const double volume)
+void ExplicitASGSCompressible3D::CalculatePressureTerm(MatrixType& K, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double time, const double volume)
 {
     KRATOS_TRY
     int nodes_number = 4;
@@ -324,7 +324,7 @@ void ExplicitASGSCompressible3D::CalculatePressureTerm(MatrixType& K, const boos
 //************************************************************************************
 //************************************************************************************
 
-void ExplicitASGSCompressible3D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX,const array_1d<double,4>& N, const double time, const double tauone, const double volume)
+void ExplicitASGSCompressible3D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const bounded_matrix<double, 4, 3 > & DN_DX,const array_1d<double,4>& N, const double time, const double tauone, const double volume)
 {
     KRATOS_TRY
     int nodes_number = 4;
@@ -335,7 +335,7 @@ void ExplicitASGSCompressible3D::CalculateGradStblAllTerms(MatrixType& K, Vector
     calculatedensity(GetGeometry(), density, mu);
 
     //build 1*(grad q . grad p) stabilization term & assemble
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
+    bounded_matrix<double, 4, 4 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
     gard_opr = prod(DN_DX, trans(DN_DX));
 
     for (int ii = 0; ii < nodes_number; ii++)
@@ -386,7 +386,7 @@ void ExplicitASGSCompressible3D::CalculateGradStblAllTerms(MatrixType& K, Vector
 }
 //*************************************************************************************
 //*************************************************************************************
-void ExplicitASGSCompressible3D::CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double time,const double tautwo,const double volume)
+void ExplicitASGSCompressible3D::CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double time,const double tautwo,const double volume)
 {
     KRATOS_TRY
     //tau*div(V).P_dot
@@ -714,7 +714,7 @@ void ExplicitASGSCompressible3D::calculatedensity(Geometry< Node<3> > geom, doub
 //************************************************************************************
 //************************************************************************************
 
-void ExplicitASGSCompressible3D::AddBodyForceAndMomentum(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double, 4 > & N, const double time, const double volume, const double tauone, const double tautwo)
+void ExplicitASGSCompressible3D::AddBodyForceAndMomentum(VectorType& F, const bounded_matrix<double,4,3>& DN_DX,const array_1d<double, 4 > & N, const double time, const double volume, const double tauone, const double tautwo)
 {
     KRATOS_TRY
     int nodes_number = 4;
@@ -785,7 +785,7 @@ void ExplicitASGSCompressible3D::Calculate(const Variable<array_1d<double, 3 > >
 // 	  double volume = GetGeometry().Volume();
     //getting data for the given geometry
     double volume;
-    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
+    bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
     array_1d<double,4> N = ZeroVector(4);
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, volume);
 
@@ -812,7 +812,7 @@ void ExplicitASGSCompressible3D::Calculate( const Variable<double>& rVariable, d
     Output = 100.0;
     double volume;
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX = ZeroMatrix(4, 3);
+    bounded_matrix<double, 4, 3 > DN_DX = ZeroMatrix(4, 3);
     array_1d<double, 4 > N = ZeroVector(4); //dimension = number of nodes
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, volume);
 
@@ -834,7 +834,7 @@ void ExplicitASGSCompressible3D::Calculate( const Variable<double>& rVariable, d
 
 //************************************************************************************
 //************************************************************************************
-void ExplicitASGSCompressible3D::CalcualteDCOperatior(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double area)
+void ExplicitASGSCompressible3D::CalcualteDCOperatior(MatrixType& K,const bounded_matrix<double,4,3>& DN_DX, const double area)
 {
     KRATOS_TRY
     int nodes_number = 4;
@@ -851,7 +851,7 @@ void ExplicitASGSCompressible3D::CalcualteDCOperatior(MatrixType& K,const boost:
     double Vel_fac = Vel_art_visc * density * area;
     double Pr_fac = Pr_art_visc*area;
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
+    bounded_matrix<double, 4, 4 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
     gard_opr =  prod(DN_DX, trans(DN_DX));
 
     //nu = nu/density;
@@ -888,7 +888,7 @@ void ExplicitASGSCompressible3D::CalcualteDCOperatior(MatrixType& K,const boost:
 }
 //************************************************************************************
 //************************************************************************************
-void ExplicitASGSCompressible3D::CalculateArtifitialViscosity(double& Vel_art_visc,double& Pr_art_visc ,const boost::numeric::ublas::bounded_matrix<double,4,3>&DN_DX)
+void ExplicitASGSCompressible3D::CalculateArtifitialViscosity(double& Vel_art_visc,double& Pr_art_visc ,const bounded_matrix<double,4,3>&DN_DX)
 {
     KRATOS_TRY
 
@@ -926,7 +926,7 @@ void ExplicitASGSCompressible3D::CalculateArtifitialViscosity(double& Vel_art_vi
 }
 //************************************************************************************
 //************************************************************************************
-void ExplicitASGSCompressible3D::CalculateCharectristicLength(double& ch_length, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,double& norm_grad )
+void ExplicitASGSCompressible3D::CalculateCharectristicLength(double& ch_length, const bounded_matrix<double,4,3>& DN_DX,double& norm_grad )
 {
     KRATOS_TRY
 
@@ -1015,7 +1015,7 @@ void ExplicitASGSCompressible3D::GetValueOnIntegrationPoints(const Variable<doub
 {
 
     /*        double delta_t = rCurrentProcessInfo[DELTA_TIME];*/
-// 	boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+// 	bounded_matrix<double, 4, 3 > DN_DX;
 //         array_1d<double, 4 > N;
 
     //getting data for the given geometry

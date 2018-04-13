@@ -456,7 +456,7 @@ private:
         for( WeakPointerVector< Element >::iterator iel = neighbor_els.begin(); iel != neighbor_els.end(); iel++)
         {
             Geometry< Node<3> >& geom = iel->GetGeometry();
-            boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim> DN_DX;
+            bounded_matrix<double, TDim+1, TDim> DN_DX;
             array_1d<double,TDim+1> N;
             double volume;
 
@@ -511,7 +511,7 @@ private:
             for( WeakPointerVector< Element >::iterator iel = neighbor_els.begin(); iel != neighbor_els.end(); iel++)
             {
                 Geometry< Node<3> >& geom = iel->GetGeometry();
-                boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim> DN_DX;
+                bounded_matrix<double, TDim+1, TDim> DN_DX;
                 array_1d<double,TDim+1> N;
                 double volume;
 
@@ -565,7 +565,7 @@ private:
                 //bulding volumetric stiffness for each element
                 std::vector< double> B;
                 B.reserve(patchsize);
-//		boost::numeric::ublas::bounded_matrix<double, TDim*(TDim+1),TDim*(TDim+1)> element_volumetric_K;
+//		bounded_matrix<double, TDim*(TDim+1),TDim*(TDim+1)> element_volumetric_K;
                 Matrix element_volumetric_K;
 
                 element_volumetric_K.resize(patchsize, patchsize);
@@ -809,7 +809,7 @@ private:
     void CalculateCorrectionForce(ModelPart::ElementsContainerType::iterator& ielem,ModelPart& r_model_part)
     {
         Geometry< Node<3> >& geom = ielem->GetGeometry();
-        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim> DN_DX;
+        bounded_matrix<double, TDim+1, TDim> DN_DX;
         array_1d<double,TDim+1> N;
         double volume;
 
@@ -846,7 +846,7 @@ private:
     void CalculateBPV(
         Matrix& BPV,
         const array_1d<double,TDim+1> N,
-        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim> DN_DX)
+        bounded_matrix<double, TDim+1, TDim> DN_DX)
 
     {
 

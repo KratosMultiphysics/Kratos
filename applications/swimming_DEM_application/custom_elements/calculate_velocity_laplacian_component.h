@@ -317,7 +317,7 @@ private:
 
     void AddIntegrationPointRHSContribution(VectorType& F,
                          const array_1d<double,TNumNodes>& rShapeFunc,
-                         const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                         const bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
                          const double Weight) override;
 
 //    Variable<array_1d<double, 3> > GetCurrentVariable();

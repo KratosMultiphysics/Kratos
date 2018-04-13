@@ -328,9 +328,9 @@ void MeshlessShellElement::CalculateOnIntegrationPoints(
 	//J = GetGeometry().Jacobian(J);
 
 	////auxiliary terms
-	//boost::numeric::ublas::bounded_matrix<double, 2, 2> j;
-	//boost::numeric::ublas::bounded_matrix<double, 2, 2> g;
-	//boost::numeric::ublas::bounded_matrix<double, 2, 2> C;
+	//bounded_matrix<double, 2, 2> j;
+	//bounded_matrix<double, 2, 2> g;
+	//bounded_matrix<double, 2, 2> C;
 	//array_1d<double, 3> ge;
 	//array_1d<double, 3> gn;
 	//array_1d<double, 3> v3;
@@ -360,7 +360,7 @@ void MeshlessShellElement::CalculateOnIntegrationPoints(
 	//	noalias(g) = prod(trans(j), j);
 
 	//	// calculation of the Right Cauchy-Green Tensor C = Gtrans*g*G
-	//	boost::numeric::ublas::bounded_matrix<double, 2, 2> tmp;
+	//	bounded_matrix<double, 2, 2> tmp;
 	//	tmp = prod(g, mG_Vector[PointNumber]);
 	//	noalias(C) = prod(trans(mG_Vector[PointNumber]), tmp);
 
@@ -419,7 +419,7 @@ void MeshlessShellElement::CalculateOnIntegrationPoints(
 	//		//             if(Output[PointNumber].size2() != 6)
 	//		//                 Output[PointNumber].resize(1,6);
 
-	//		boost::numeric::ublas::bounded_matrix<double, 2, 2> F;
+	//		bounded_matrix<double, 2, 2> F;
 	//		noalias(F) = tmp; //VM
 	//		Vector CauchyStressVector = StressVector;
 	//		double detF = MathUtils<double>::Det(F);
@@ -682,7 +682,7 @@ void MeshlessShellElement::CalculateAndAddKm(
 
 void MeshlessShellElement::CalculateAndAddKg(
 	Matrix& K,
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+	bounded_matrix<double, 3, 3>& Q,
 	const Matrix& DN_De,
 	Vector& StressVector,
 	double weight)
@@ -738,9 +738,9 @@ void MeshlessShellElement::CalculateAndSubKp(
 {
 	KRATOS_TRY
 
-	boost::numeric::ublas::bounded_matrix<double, 3, 3> Kij;
-	boost::numeric::ublas::bounded_matrix<double, 3, 3> Cross_ge;
-	boost::numeric::ublas::bounded_matrix<double, 3, 3> Cross_gn;
+	bounded_matrix<double, 3, 3> Kij;
+	bounded_matrix<double, 3, 3> Cross_ge;
+	bounded_matrix<double, 3, 3> Cross_gn;
 	double coeff;
 	unsigned int number_of_nodes = GetGeometry().size();
 
@@ -880,7 +880,7 @@ void MeshlessShellElement::AddExplicitContribution(const VectorType& rRHSVector,
 
 
 void MeshlessShellElement::MakeCrossMatrix(
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
+	bounded_matrix<double, 3, 3>& M,
 	array_1d<double, 3>& U)
 
 {
@@ -942,7 +942,7 @@ void  MeshlessShellElement::ExpandReducedMatrix(
 
 void  MeshlessShellElement::SubtractMatrix(
 	MatrixType& Destination,
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+	bounded_matrix<double, 3, 3>& InputMatrix,
 	int InitialRow,
 	int InitialCol)
 
@@ -960,7 +960,7 @@ void  MeshlessShellElement::SubtractMatrix(
 //***********************************************************************************
 
 void MeshlessShellElement::CalculateQ(
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+	bounded_matrix<double, 3, 3>& Q,
 	Matrix& mG)
 
 {
@@ -981,7 +981,7 @@ void MeshlessShellElement::CalculateQ(
 
 void MeshlessShellElement::CalculateB(
 	Matrix& B,
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+	bounded_matrix<double, 3, 3>& Q,
 	const Matrix& DN_De,
 	array_1d<double, 3>& ge,
 	array_1d<double, 3>& gn)
@@ -1046,7 +1046,7 @@ void MeshlessShellElement::Hessian(Matrix& Hessian, const Matrix DN_De)
 
 void MeshlessShellElement::CalculateCurvatureB(
 	Matrix& B,
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+	bounded_matrix<double, 3, 3>& Q,
 	const Matrix& DN_De,
 	array_1d<double, 3>& ge,
 	array_1d<double, 3>& gn)
@@ -1163,7 +1163,7 @@ void MeshlessShellElement::CalculateBMatrix(const Matrix BMembrane, const Matrix
 //***********************************************************************************
 
 void MeshlessShellElement::CalculateJ(
-	boost::numeric::ublas::bounded_matrix<double, 2, 2>& j,
+	bounded_matrix<double, 2, 2>& j,
 	array_1d<double, 3>& ge,
 	array_1d<double, 3>& gn,
 	array_1d<double, 3>& v3)
@@ -1187,7 +1187,7 @@ void MeshlessShellElement::CalculateJ(
 
 void MeshlessShellElement::CalculateStrain(
 	Vector& StrainVector,
-	boost::numeric::ublas::bounded_matrix<double, 2, 2>& C)
+	bounded_matrix<double, 2, 2>& C)
 
 {
 	KRATOS_TRY
@@ -1288,9 +1288,9 @@ void MeshlessShellElement::CalculateAll(
 	Matrix B = ZeroMatrix(3,MatSize);
 	Vector StrainVector(3);
 	Vector StressVector(3);
-	boost::numeric::ublas::bounded_matrix<double, 2, 2>  C = ZeroMatrix(2, 2);
+	bounded_matrix<double, 2, 2>  C = ZeroMatrix(2, 2);
 	Matrix D = ZeroMatrix(3, 3);
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>  Q = ZeroMatrix(3, 3);
+	bounded_matrix<double, 3, 3>  Q = ZeroMatrix(3, 3);
 
 	//resizing as needed the LHS
 	if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
@@ -1339,15 +1339,15 @@ void MeshlessShellElement::CalculateAll(
 	gn[2] = J0(2, 1);
 
 	CrossProduct(v3, ge, gn);
-	boost::numeric::ublas::bounded_matrix<double, 2, 2> j;
+	bounded_matrix<double, 2, 2> j;
 	CalculateJ(j, ge, gn, v3);
 
 	// calculation of matrix g = jtrans*j;
-	boost::numeric::ublas::bounded_matrix<double, 2, 2> g;
+	bounded_matrix<double, 2, 2> g;
 	noalias(g) = prod(trans(j), j);
 
 	// calculation of the Right Cauchy-Green Tensor C = Gtrans*g*G
-	boost::numeric::ublas::bounded_matrix<double, 2, 2> tmp;
+	bounded_matrix<double, 2, 2> tmp;
 	tmp = prod(g, mG_Vector[0]);
 	noalias(C) = prod(trans(mG_Vector[0]), tmp);
 

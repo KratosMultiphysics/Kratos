@@ -161,11 +161,11 @@ class MembraneElement
 		///@name Static Member Variables 
 
 // 		static Matrix                                             msB;
-// 		static boost::numeric::ublas::bounded_matrix<double,3,3>  msQ;
+// 		static bounded_matrix<double,3,3>  msQ;
 // 		static Matrix											  msD;
 // 		static Vector				                  msStrainVector;
 // 		static Vector				                  msStressVector;
-// 		static boost::numeric::ublas::bounded_matrix<double,2,2>  msC;
+// 		static bounded_matrix<double,2,2>  msC;
 // 		static Matrix											  msDN_DX;
 
 		/// privat variables
@@ -213,7 +213,7 @@ class MembraneElement
 
 		void CalculateAndAddKg(
 			Matrix& K,
-			boost::numeric::ublas::bounded_matrix<double,3,3>& msQ,
+			bounded_matrix<double,3,3>& msQ,
 			const Matrix& DN_De,
 			Vector& msStressVector,
 			double weight);
@@ -228,7 +228,7 @@ class MembraneElement
 			double weight);
 
 		void MakeCrossMatrix(
-			boost::numeric::ublas::bounded_matrix<double,3,3>& M,
+			bounded_matrix<double,3,3>& M,
 			array_1d<double,3>& U);
 
 		void CrossProduct(
@@ -238,7 +238,7 @@ class MembraneElement
 
 		void SubtractMatrix(
 			MatrixType& Destination,
-			boost::numeric::ublas::bounded_matrix<double,3,3>& InputMatrix, 
+			bounded_matrix<double,3,3>& InputMatrix, 
 			int InitialRow,
 			int InitialCol);
 
@@ -247,25 +247,25 @@ class MembraneElement
 			Matrix& ReducedMatrix);
 
 		void CalculateQ(
-			boost::numeric::ublas::bounded_matrix<double,3,3>& msQ,
+			bounded_matrix<double,3,3>& msQ,
 			Matrix& msG);
 
 		void CalculateB(
 			Matrix& msB,
-			boost::numeric::ublas::bounded_matrix<double,3,3>& msQ,
+			bounded_matrix<double,3,3>& msQ,
 			const Matrix& DN_De,
 			array_1d<double,3>& ge,
 			array_1d<double,3>& gn);
 
 		void CalculateJ(
-			boost::numeric::ublas::bounded_matrix<double,2,2>& j,
+			bounded_matrix<double,2,2>& j,
 			array_1d<double,3>& ge,
 			array_1d<double,3>& gn,
 			array_1d<double,3>& v3);
 
 		void CalculateStrain(
 			Vector& StrainVector,
-			boost::numeric::ublas::bounded_matrix<double,2,2>& C);
+			bounded_matrix<double,2,2>& C);
 
 		void CalculateAndAdd_BodyForce(
 			const Vector& N,

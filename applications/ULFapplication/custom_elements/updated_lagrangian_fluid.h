@@ -223,8 +223,8 @@ private:
     ///@name Static Member Variables
     ///@{
     /*
-    static boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors;
-    static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_Dx;
+    static bounded_matrix<double,3,3> msMassFactors;
+    static bounded_matrix<double,3,2> msDN_Dx;
     static array_1d<double,3> msN; //dimension = number of nodes
     //static Matrix msDN_DX;
     //static Matrix msMassFactors;
@@ -233,9 +233,9 @@ private:
     static array_1d<double,3> ms_u_DN;
 
 
-    static boost::numeric::ublas::bounded_matrix<double,3,6> msB;
-    static boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;
-    static boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;
+    static bounded_matrix<double,3,6> msB;
+    static bounded_matrix<double,3,3> ms_constitutive_matrix;
+    static bounded_matrix<double,3,6> ms_temp;
     static array_1d<double,6> ms_temp_vec;
     */
 
@@ -276,7 +276,7 @@ private:
     void MeshMovingStep(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
 
     //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Area)
-    inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area);
+    inline void CalculateGeometryData(bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area);
 
     ///@}
     ///@name Private Operations

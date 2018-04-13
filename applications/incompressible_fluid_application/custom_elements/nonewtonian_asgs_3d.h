@@ -236,39 +236,39 @@ protected:
     ///Evaluates the elemental density, and (fluid) viscosity
     virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
     ///Evaluates the residual of the solution system including the viscous contribution \f$ rhs = -lhs  u - B^{T} \tau  \f$
-    virtual void CalculateResidual(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const MatrixType& K, VectorType& F, const double m, const double volume);
+    virtual void CalculateResidual(const bounded_matrix<double,4,3>& DN_DX,const MatrixType& K, VectorType& F, const double m, const double volume);
     ///Compute the projection in case OSS stabilization thechnique is chosen (OSS_SWITCH should be set = 1.0);
-    virtual void ComputeProjections(array_1d<double,12>& adv_proj , array_1d<double,4>& div_proj, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,4>& N,const double volume, const double time);
+    virtual void ComputeProjections(array_1d<double,12>& adv_proj , array_1d<double,4>& div_proj, const bounded_matrix<double,4,3>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,4>& N,const double volume, const double time);
     ///Evaluates the following stabilization terms:  \f$  (a \cdot \nabla w, \partial_{t} u) \f$
-    virtual void CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double thawone,const double volume);
+    virtual void CalculateAdvMassStblTerms(MatrixType& M,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double thawone,const double volume);
     ///Evaluates the following stabilization terms:  \f$  (\nabla q, \partial_{t} u) \f$
-    virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double thawone,const double volume);
+    virtual void CalculateGradMassStblTerms(MatrixType& M,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double thawone,const double volume);
     ///Calculate the mass contribution to the K global matrix
     virtual void CalculateMassContribution(MatrixType& K,const double time,const double volume);
     ///Calculate the linearized viscous contribution ONLY to the LHS @todo Make linearization works quadratically
-    virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const int it_num, const double m, const double volume);
+    virtual void CalculateViscousTerm(MatrixType& K,const bounded_matrix<double,4,3>& DN_DX, const int it_num, const double m, const double volume);
     ///Calculate the advective contribution to the lhs
-    virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double, 4 > & N, const double thawone, const double thawtwo, const double time,const double volume);
+    virtual void CalculateAdvectiveTerm(MatrixType& K,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double, 4 > & N, const double thawone, const double thawtwo, const double time,const double volume);
     ///Calculate the pressure contribution to the lhs and divergence term as well
-    virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double time ,const double volume);
+    virtual void CalculatePressureTerm(MatrixType& K,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double time ,const double volume);
     ///Calculate the following stabilization terms:  \f$  (a \nabla w, \nabla \cdot u) \f$
-    virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double thawtwo,const double volume);
+    virtual void CalculateDivStblTerm(MatrixType& K,const bounded_matrix<double,4,3>& DN_DX, const double thawtwo,const double volume);
     ///Calculate the following stabilization terms:  \f$  (a \nabla w, a \nabla w \nabla p + f) \f$  and \f$  (\nabla q, a \nabla u ) \f$
-    virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double thawone,const double time,const double volume);
+    virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double thawone,const double time,const double volume);
     ///Calculate the following stabilization terms:  \f$  (\nabla q, \nabla p + f) \f$
-    virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double thawone,const double volume);
+    virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double thawone,const double volume);
     ///Add body forces to the lhs
-    virtual void AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double volume,const double thawone,const double thawtwo);
+    virtual void AddBodyForceAndMomentum(VectorType& F,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double volume,const double thawone,const double thawtwo);
     ///Calculate stabilization parameter
-    virtual void CalculateTau(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateTau(const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
     ///Add the projection in case OSS stabilization thechnique is chosen (OSS_SWITCH should be set = 1.0);
-    virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double volume,const double thawone,const double thawtwo);
+    virtual void AddProjectionForces(VectorType& F, const bounded_matrix<double,4,3>& DN_DX, const double volume,const double thawone,const double thawtwo);
     ///Calcualte the mass contributions
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
     ///Calculate the shape function derivatives matrix
-    virtual void CalculateB(	 boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX);
+    virtual void CalculateB(	 bounded_matrix<double, 6, 12 > & B,const bounded_matrix<double, 4, 3 > & DN_DX);
     ///Calculate the symmetric gradient of velocity
-    virtual void CalculateGradSymVel(array_1d<double, 6> & grad_sym_vel, double & gamma_dot,const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B);
+    virtual void CalculateGradSymVel(array_1d<double, 6> & grad_sym_vel, double & gamma_dot,const bounded_matrix<double, 6, 12 > & B);
 // 	virtual void CalculateApparentViscosity(double & ApparentViscosity, const double & grad_sym_vel_norm, const double & mu, const double & YeldStress, const double mcoef);
     ///Evaluates the viscosity of the nodes variable in function of the rate of strain
     /**
@@ -279,8 +279,8 @@ protected:
     * @param B: Matrix 3x6 of the shape function derivatives
     * @param mu: fluid minimum viscosity possible
     */
-    virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12  > & B, const double & mu, const double & m_coef);
-//        virtual void CalculateApparentViscosityStbl(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B, const double & mu);
+    virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,6> & grad_sym_vel, double & gamma_dot, const bounded_matrix<double, 6, 12  > & B, const double & mu, const double & m_coef);
+//        virtual void CalculateApparentViscosityStbl(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,6> & grad_sym_vel, double & gamma_dot, const bounded_matrix<double, 6, 12 > & B, const double & mu);
     ///@}
     ///@name Protected Operators
     ///@{

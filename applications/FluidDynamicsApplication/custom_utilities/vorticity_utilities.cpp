@@ -30,7 +30,7 @@ void VorticityUtilities<TDim>::CalculateQValue(
         rQValues.resize(integration_point_number);
     }
 
-    boost::numeric::ublas::bounded_matrix<double,TDim,TDim> velocity_gradients;
+    bounded_matrix<double,TDim,TDim> velocity_gradients;
 
     // Loop on integration points
     for (unsigned int g = 0; g < integration_point_number; g++) {

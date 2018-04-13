@@ -138,7 +138,7 @@ public:
     /// Calculates the temperature convective projection
     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-/*    double ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX,const double& h,const double& C, const double nu);*/
+/*    double ComputeSmagorinskyViscosity(const bounded_matrix<double, 4, 3 > & DN_DX,const double& h,const double& C, const double nu);*/
 
 
 
@@ -213,8 +213,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-// 		static boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors;
-// 		static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
+// 		static bounded_matrix<double,4,4> msMassFactors;
+// 		static bounded_matrix<double,4,3> msDN_DX;
 //   		static array_1d<double,4> msN; //dimension = number of nodes
 // 		static array_1d<double,3> ms_vel_gauss; //dimesion coincides with space dimension
 //   		static array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes

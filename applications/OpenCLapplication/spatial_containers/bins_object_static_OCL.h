@@ -392,7 +392,7 @@ private:
 
     //************************************************************************
 
-    void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 16, 3 > & pos, boost::numeric::ublas::bounded_matrix<double, 16, 3 > & N)
+    void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, bounded_matrix<double, 16, 3 > & pos, bounded_matrix<double, 16, 3 > & N)
     {
         //lower diagonal terms
         double ypos = 1.0 / 12.0;
@@ -449,7 +449,7 @@ private:
         }
     }
 
-    void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 4, 3 > & pos, boost::numeric::ublas::bounded_matrix<double, 4, 3 > & N)
+    void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, bounded_matrix<double, 4, 3 > & pos, bounded_matrix<double, 4, 3 > & N)
     {
         double one_third = 1.0 / 3.0;
         double one_sixt = 1.0 / 6.0;
@@ -1637,11 +1637,11 @@ public:
 
             ModelPart::ElementsContainerType::iterator el_it = mStaticMesh->ElementsBegin();
 
-// 		boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
-// 		boost::numeric::ublas::bounded_matrix<double, 16, 3 > Nnew;
+// 		bounded_matrix<double, 16, 3 > pos;
+// 		bounded_matrix<double, 16, 3 > Nnew;
 
-            boost::numeric::ublas::bounded_matrix<double, 4, 3 > pos;
-            boost::numeric::ublas::bounded_matrix<double, 4, 3 > Nnew;
+            bounded_matrix<double, 4, 3 > pos;
+            bounded_matrix<double, 4, 3 > Nnew;
 
             int id = (mParticMesh->NodesEnd() - 1)->Id();
 

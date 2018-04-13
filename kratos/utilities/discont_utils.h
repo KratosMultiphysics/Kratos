@@ -71,12 +71,12 @@ public:
 
     //3D
     static int CalculateDiscontinuousShapeFunctions(
-        boost::numeric::ublas::bounded_matrix<double,(3+1), 3 >& rPoints,
-        boost::numeric::ublas::bounded_matrix<double, (3+1), 3 >& DN_DX,
+        bounded_matrix<double,(3+1), 3 >& rPoints,
+        bounded_matrix<double, (3+1), 3 >& DN_DX,
         array_1d<double,(3+1)>& rDistances, array_1d<double,(3*(3-1))>& rVolumes,
-        boost::numeric::ublas::bounded_matrix<double, 3*(3-1), (3+1) >& rShapeFunctionValues,
+        bounded_matrix<double, 3*(3-1), (3+1) >& rShapeFunctionValues,
         array_1d<double,(3*(3-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue,
-        boost::numeric::ublas::bounded_matrix<double,3*(3-1), (3+1)>& Nenriched,
+        bounded_matrix<double,3*(3-1), (3+1)>& Nenriched,
 		array_1d<double,6>& edge_areas
 		)
     {
@@ -329,8 +329,8 @@ public:
 
                 AddToEdgeAreas<3>(edge_areas,exact_distance,local_subtet_indices,sub_volume);
 
-                boost::numeric::ublas::bounded_matrix<double, 4, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
-                boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX_subdomain; //used to retrieve derivatives
+                bounded_matrix<double, 4, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
+                bounded_matrix<double,4,3> DN_DX_subdomain; //used to retrieve derivatives
 
                 array_1d<int,4> partition_nodes;
                 double temp_area;
@@ -674,25 +674,25 @@ public:
 
     //2D IN LOCAL AXIS
     static int CalculateDiscontinuousShapeFunctionsInLocalAxis(
-        boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rOriginalPoints,
-        boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rRotatedPoints,
-        boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX_original,
+        bounded_matrix<double,(2+1), 2 >& rOriginalPoints,
+        bounded_matrix<double,(2+1), 2 >& rRotatedPoints,
+        bounded_matrix<double, (2+1), 2 >& DN_DX_original,
         array_1d<double,(2+1)>& rDistances,
         array_1d<double,(3*(2-1))>& rVolumes,
-        boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
+        bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
         array_1d<double,(3*(2-1))>& rPartitionsSign,
         std::vector<Matrix>& rGradientsValue,
-        boost::numeric::ublas::bounded_matrix<double,3*(2-1), (2+1)>& Nenriched,
-        boost::numeric::ublas::bounded_matrix<double,(2), 2 >& rRotationMatrix,
-        boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX_in_local_axis )
+        bounded_matrix<double,3*(2-1), (2+1)>& Nenriched,
+        bounded_matrix<double,(2), 2 >& rRotationMatrix,
+        bounded_matrix<double, (2+1), 2 >& DN_DX_in_local_axis )
     {
         KRATOS_TRY
 
         double temp_area;
         const double one_third=1.0/3.0;
-        boost::numeric::ublas::bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
+        bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
+        bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
+        bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
 
         rGPShapeFunctionValues(0,0)=one_third;
         rGPShapeFunctionValues(0,1)=one_third;
@@ -704,7 +704,7 @@ public:
                                          rOriginalPoints(2,0), rOriginalPoints(2,1));
         array_1d<bool,3> cut_edges;
         array_1d<double,3> aux_nodes_relative_locations;
-        boost::numeric::ublas::bounded_matrix<int,3,2> aux_nodes_father_nodes;
+        bounded_matrix<int,3,2> aux_nodes_father_nodes;
 
         //to begin with we must check whether our element is cut or not by the interfase.
         if( (rDistances(0)*rDistances(1))>0.0 && (rDistances(0)*rDistances(2))>0.0 ) //it means that this element IS NOT cut by the interfase. we must return data of a normal, non-enriched element
@@ -854,7 +854,7 @@ public:
             {
                 unsigned int j_aux = i + 2;
                 if (j_aux>2) j_aux -= 3;
-                boost::numeric::ublas::bounded_matrix<int,3,2> partition_father_nodes;
+                bounded_matrix<int,3,2> partition_father_nodes;
                 array_1d<double,3> N;
                 if (i<3)
                 {

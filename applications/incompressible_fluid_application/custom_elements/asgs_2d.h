@@ -238,19 +238,19 @@ protected:
     * @return adv_proj: projection due to divergence
            * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,3>& N,const double area, const double time);
+    virtual void ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const bounded_matrix<double,3,2>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,3>& N,const double area, const double time);
 
     /// To Calculate stabilization of the form (a.grad(U) , U_dot)
     /**
     It is assembeled directly to LHS and RHS
     */
-    virtual void CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double thawone,const double area);
+    virtual void CalculateAdvMassStblTerms(MatrixType& M,const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double thawone,const double area);
 
     /// To Calculate stabilization of the form (grad(q) , U_dot)
     /**
     It is assembeled directly to LHS and RHS
     */
-    virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double thawone,const double area);
+    virtual void CalculateGradMassStblTerms(MatrixType& M,const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double thawone,const double area);
 
     ///@name Protected Operators
     ///@{
@@ -289,20 +289,20 @@ protected:
     /**
     It is assembeled directly to LHS
     */
-    virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area);
+    virtual void CalculateViscousTerm(MatrixType& K,const bounded_matrix<double,3,2>& DN_DX, const double area);
 
     /// To Calculate advective term
     /**
     It is assembeled directly to LHS
     */
-    virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double thawone, const double thawtwo, const double time,const double area);
+    virtual void CalculateAdvectiveTerm(MatrixType& K,const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double thawone, const double thawtwo, const double time,const double area);
 
 
     /// To Calculate Pressure term, (Div(V), p) and (q, Div(U))
     /**
     It is assembeled directly to LHS
     */
-    virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
+    virtual void CalculatePressureTerm(MatrixType& K,const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
 
 
 
@@ -310,25 +310,25 @@ protected:
     /**
     It is assembeled directly to LHS and is scaled by Tau2
     */
-    virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawtwo,const double area);
+    virtual void CalculateDivStblTerm(MatrixType& K,const bounded_matrix<double,3,2>& DN_DX, const double thawtwo,const double area);
 
     /// To Calculate stabilization of the form ( a.grad(V) , a.grad(U) )
     /**
     It is assembeled directly to LHS and is scaled by Tau1
     */
-    virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double thawone,const double time,const double area);
+    virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double thawone,const double time,const double area);
 
     /// To Calculate stabilization of the form ( grad(q),grad(p) )
     /**
     It is assembeled directly to LHS and is scaled by Tau1
     */
-    virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double thawone,const double area);
+    virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double thawone,const double area);
 
     /// To add body force
     /**
     It is assembeled directly to RHS and is scaled by Tau1
     */
-    virtual void AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double area,const double thawone,const double thawtwo);
+    virtual void AddBodyForceAndMomentum(VectorType& F,const bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double area,const double thawone,const double thawtwo);
 
     /// To Calculate tau1 & tau2
     /**
@@ -341,7 +341,7 @@ protected:
     /**
           This function is called by Calculate and assemble explicitly the projection forces to the RHS
     */
-    virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double area,const double thawone,const double thawtwo);
+    virtual void AddProjectionForces(VectorType& F, const bounded_matrix<double,3,2>& msDN_DX, const double area,const double thawone,const double thawtwo);
 
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 private:

@@ -109,7 +109,7 @@ public:
             array_1d<double,3> N = ZeroVector(3);
             array_1d<double,3> aux = ZeroVector(3); //dimension = number of nodes
             array_1d<double,3> vel = ZeroVector(3); //dimension = number of nodes
-            boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
+            bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
 
             //initialize it with given value
             glob_min_dt=max_dt;
@@ -143,7 +143,7 @@ public:
             array_1d<double,4> N = ZeroVector(4); //dimension = number of nodes
             array_1d<double,3> aux = ZeroVector(3); //dimension = space dim
             array_1d<double,3> vel = ZeroVector(3); //dimension = space dim
-            boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
+            bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
 
             //initialize it with given value
             glob_min_dt=max_dt;

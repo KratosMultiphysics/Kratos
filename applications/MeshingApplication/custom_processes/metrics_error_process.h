@@ -283,7 +283,7 @@ private:
         
         const double AverageNodalError = mThisModelPart.GetProcessInfo()[AVERAGE_NODAL_ERROR];
         
-        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> MetricMatrix = ZeroMatrix(TDim, TDim);
+        bounded_matrix<double, TDim, TDim> MetricMatrix = ZeroMatrix(TDim, TDim);
         
         const double NewNodalH = OldNodalH * AverageNodalError/NodalError;
         

@@ -129,7 +129,7 @@ public:
         array_1d<double, TDim + 1 > N;
         array_1d<double, TDim> avg;
         double lumping_factor = 1.0 / double(TDim + 1);
-        boost::numeric::ublas::bounded_matrix <double, TDim + 1, TDim> DN_DX;
+        bounded_matrix <double, TDim + 1, TDim> DN_DX;
         int elem_size = rmodel_part.Elements().size();
         for (unsigned int level = 0; level < max_levels; level++)
         {
@@ -264,7 +264,7 @@ public:
         array_1d<double, TDim + 1 > N;
         double avg;
         double lumping_factor = 1.0 / double(TDim + 1);
-        boost::numeric::ublas::bounded_matrix <double, TDim + 1, TDim> DN_DX;
+        bounded_matrix <double, TDim + 1, TDim> DN_DX;
         int elem_size = rmodel_part.Elements().size();
         for (unsigned int level = 0; level < max_levels; level++)
         {
@@ -441,7 +441,7 @@ public:
         array_1d<double, TDim + 1 > N;
         array_1d<double, TDim> avg;
         double lumping_factor = 1.0 / double(TDim + 1);
-        boost::numeric::ublas::bounded_matrix <double, TDim + 1, TDim> DN_DX;
+        bounded_matrix <double, TDim + 1, TDim> DN_DX;
 
         for (unsigned int level = 0; level < max_levels; level++)
         {
@@ -689,7 +689,7 @@ public:
         array_1d<double, TDim> grad_d;
         array_1d<double, TDim + 1 > N;
         double lumping_factor = 1.0 / double(TDim + 1);
-        boost::numeric::ublas::bounded_matrix <double, TDim + 1, TDim> DN_DX;
+        bounded_matrix <double, TDim + 1, TDim> DN_DX;
 
         //now deselect all of the nodes of the divided elements
         #pragma omp parallel for private(dist,N,DN_DX)
@@ -871,7 +871,7 @@ protected:
 
     //*******************************************************************
 
-    void ComputeExactDistances(const boost::numeric::ublas::bounded_matrix <double, TDim + 1, TDim>& DN_DX,
+    void ComputeExactDistances(const bounded_matrix <double, TDim + 1, TDim>& DN_DX,
                                const double& Area,
                                Geometry<Node < 3 > >& geom,
                                const array_1d<double, TDim + 1 > & distances,

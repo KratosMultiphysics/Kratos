@@ -92,7 +92,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
     //getting data for the given geometry
@@ -121,8 +121,8 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
 
     //compute common matrix terms ( Laplacian, mass)
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > Laplacian_Matrix = prod(DN_DX , trans(DN_DX));
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > msMassFactors = 1.0 / 4.0 * IdentityMatrix(4, 4);
+    bounded_matrix<double, 4, 4 > Laplacian_Matrix = prod(DN_DX , trans(DN_DX));
+    bounded_matrix<double, 4, 4 > msMassFactors = 1.0 / 4.0 * IdentityMatrix(4, 4);
     //Take N_value terms
     array_1d<double, 4 > step_unknown;
     for (unsigned int iii = 0; iii < nodes_number; iii++)
@@ -133,7 +133,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	double solid_T = rCurrentProcessInfo[SOLID_TEMPERATURE];
     double fluid_T = rCurrentProcessInfo[FLUID_TEMPERATURE];
 	array_1d<double, 4 > phase_change_vec = ZeroVector(4);
-	boost::numeric::ublas::bounded_matrix<double, 4, 4 > tan_phase_change =ZeroMatrix(matsize, matsize);
+	bounded_matrix<double, 4, 4 > tan_phase_change =ZeroMatrix(matsize, matsize);
 	double mid_T = 0.5*(solid_T + fluid_T);
 
     //4GP integration rule
@@ -223,7 +223,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	//Advective term
 	array_1d<double, 4 > a_dot_grad;
 	noalias(a_dot_grad) = prod(DN_DX, ms_vel_gauss);
-	boost::numeric::ublas::bounded_matrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
+	bounded_matrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
 	noalias(rLeftHandSideMatrix) += (1.0-cr_nk) * density * specific_heat * Advective_Matrix;
 
 	//stabilization terms
@@ -245,7 +245,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     // 	noalias(rRightHandSideVector) -= cr_nk * conductivity * prod(Laplacian_Matrix, step_unknown);
 
 	//Add all n_step terms
-	boost::numeric::ublas::bounded_matrix<double, 4, 4 > old_step_matrix = dt_inv * density * specific_heat * msMassFactors ;
+	bounded_matrix<double, 4, 4 > old_step_matrix = dt_inv * density * specific_heat * msMassFactors ;
 	old_step_matrix -= ( cr_nk * density * specific_heat * Advective_Matrix + cr_nk * conductivity * Laplacian_Matrix);
 	noalias(rRightHandSideVector) += prod(old_step_matrix, step_unknown);
 
@@ -396,7 +396,7 @@ void SUPGConvDiff3D::CalculateTau(array_1d<double, 3 >& ms_adv_vel, double& tau,
 //*************************************************************************************
 //*************************************************************************************
 void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,  
-						      boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, 
+						      bounded_matrix<double, 4, 3 > DN_DX, 
 						      array_1d<double, 3 > ms_vel_gauss,
 						      const Variable<double>& temperature,
 						      const double volume,
@@ -494,7 +494,7 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 //{
 //
 //    /*        double delta_t = rCurrentProcessInfo[DELTA_TIME];*/
-//    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+//    bounded_matrix<double, 4, 3 > DN_DX;
 //    array_1d<double, 4 > N;
 //    //getting data for the given geometry
 //    double volume;

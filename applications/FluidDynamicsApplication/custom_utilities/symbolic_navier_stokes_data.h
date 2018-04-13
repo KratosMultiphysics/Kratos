@@ -64,7 +64,7 @@ double bdf1;
 double bdf2;
 
 // Auxiliary containers for the symbolically-generated matrices
-boost::numeric::ublas::bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
+bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
 array_1d<double,TNumNodes*(TDim+1)> rhs;
 
 double ElementSize;
@@ -106,7 +106,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 void UpdateGeometryValues(
     double NewWeight,
     const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
-    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX) override
+    const bounded_matrix<double, TNumNodes, TDim>& rDN_DX) override
 {
     FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(NewWeight,rN,rDN_DX);
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);

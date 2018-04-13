@@ -174,7 +174,7 @@ void DSS_FIC<TDim>::CalculateTauGrad(array_1d<double,3> &TauGrad)
     rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX,GeometryData::GI_GAUSS_1);
     ShapeFunctionDerivativesType& rDN_DX = DN_DX[0];
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> Gradient = ZeroMatrix(3,3);
+    bounded_matrix<double,3,3> Gradient = ZeroMatrix(3,3);
     for (unsigned int n = 0; n < NumNodes; n++)
     {
         const array_1d<double,3>& rU = rGeom[n].FastGetSolutionStepValue(VELOCITY);

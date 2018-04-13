@@ -72,14 +72,14 @@ namespace Kratos
       rRightHandSideVector.resize(number_of_points,false);
 
     
-    boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = 1.0/3.0*IdentityMatrix(3,3);
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+    bounded_matrix<double,3,3> msMassFactors = 1.0/3.0*IdentityMatrix(3,3);
+    bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
     array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
     array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,3,3> msAuxMat = ZeroMatrix(3,3);
+    bounded_matrix<double,3,3> msAuxMat = ZeroMatrix(3,3);
     array_1d<double,3> msAuxVec = ZeroVector(3); //dimension = number of nodes
-    boost::numeric::ublas::bounded_matrix<double,3,3> msAux = ZeroMatrix(3,3);
+    bounded_matrix<double,3,3> msAux = ZeroMatrix(3,3);
     
     //getting data for the given geometry
     double Area;

@@ -312,7 +312,7 @@ class AdvancedNMPointsMapper
     typedef Tree< KDTreePartition<BucketType> > tree;
 
     // Auxiliar matrix 3x3 for 3D cases
-    typedef boost::numeric::ublas::bounded_matrix<double, 3, 3> MatrixVar;
+    typedef bounded_matrix<double, 3, 3> MatrixVar;
 
 public:
     ///@}

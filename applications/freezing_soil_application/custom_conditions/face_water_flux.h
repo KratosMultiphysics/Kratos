@@ -167,7 +167,7 @@ namespace Kratos
 // 			double weight);
 
 // 		void MakeCrossMatrix(
-// 			boost::numeric::ublas::bounded_matrix<double,3,3>& M,
+// 			bounded_matrix<double,3,3>& M,
 // 			array_1d<double,3>& U);
 
 // 		void CrossProduct(
@@ -177,7 +177,7 @@ namespace Kratos
 // 
 // 		void SubtractMatrix(
 // 			MatrixType& Destination,
-// 			boost::numeric::ublas::bounded_matrix<double,3,3>& InputMatrix, 
+// 			bounded_matrix<double,3,3>& InputMatrix, 
 // 			int InitialRow,
 // 			int InitialCol);
 // 

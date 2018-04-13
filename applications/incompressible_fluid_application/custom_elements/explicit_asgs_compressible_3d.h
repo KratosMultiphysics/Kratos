@@ -193,13 +193,13 @@ protected:
     virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
     virtual void CalculateTau(const array_1d<double,4>& N,double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
     virtual void CalculateResidual(const MatrixType& K, VectorType& F);
-    virtual void AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double time,const double area,const double thawone,const double thawtwo);
-    virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& msDN_DX,const array_1d<double,4>& N, const double time,const double thawone,const double volume);
-    virtual void CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& msDN_DX,const array_1d<double,4>& N, const double time,const double thawone,const double volume);
-    virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double time ,const double volume);
-    virtual void CalcualteDCOperatior(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double volume);
-    virtual void CalculateArtifitialViscosity(double& art_visc,double& Pr_art_visc ,const boost::numeric::ublas::bounded_matrix<double,4,3>&DN_DX);
-    virtual void CalculateCharectristicLength(double& ch_length, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,double& norm_grad );
+    virtual void AddBodyForceAndMomentum(VectorType& F,const bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double time,const double area,const double thawone,const double thawtwo);
+    virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,4,3>& msDN_DX,const array_1d<double,4>& N, const double time,const double thawone,const double volume);
+    virtual void CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,4,3>& msDN_DX,const array_1d<double,4>& N, const double time,const double thawone,const double volume);
+    virtual void CalculatePressureTerm(MatrixType& K,const bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double time ,const double volume);
+    virtual void CalcualteDCOperatior(MatrixType& K,const bounded_matrix<double,4,3>& DN_DX, const double volume);
+    virtual void CalculateArtifitialViscosity(double& art_visc,double& Pr_art_visc ,const bounded_matrix<double,4,3>&DN_DX);
+    virtual void CalculateCharectristicLength(double& ch_length, const bounded_matrix<double,4,3>& DN_DX,double& norm_grad );
 
     ///@}
     ///@name Protected Operators

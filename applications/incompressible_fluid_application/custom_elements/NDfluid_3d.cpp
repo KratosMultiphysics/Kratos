@@ -67,10 +67,10 @@ namespace Kratos
 //space defined to allow parallelism
 namespace NDFluid3DAuxiliaries
 {
-boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
+bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
 //         #pragma omp threadprivate(msMassFactors)
 
-boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3);
+bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3);
 //         #pragma omp threadprivate(msDN_DX)
 
 array_1d<double,4> msN = ZeroVector(4); //dimension = number of nodes
@@ -735,7 +735,7 @@ void NDFluid3D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& Current
 
 //************************************************************************************
 //************************************************************************************
-/*	inline void NDFluid3D::CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, array_1d<double,4>& N, double& Volume)
+/*	inline void NDFluid3D::CalculateGeometryData(bounded_matrix<double,4,3>& DN_DX, array_1d<double,4>& N, double& Volume)
 	{
 		double x0 = GetGeometry()[0].X();
 		double x1 = GetGeometry()[1].X();

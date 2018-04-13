@@ -122,7 +122,7 @@ void Poisson3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType
 //         noalias(rRightHandSideVector) = ZeroVector(matsize);
 
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    bounded_matrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
     //getting data for the given geometry
@@ -159,7 +159,7 @@ void Poisson3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType
   
 
     //viscous term
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > Laplacian_Matrix = prod(DN_DX , trans(DN_DX));
+    bounded_matrix<double, 4, 4 > Laplacian_Matrix = prod(DN_DX , trans(DN_DX));
     noalias(rLeftHandSideMatrix) =  conductivity * Laplacian_Matrix;
 
 
@@ -297,7 +297,7 @@ void Poisson3D::CalculateTau(array_1d<double, 3 >& ms_adv_vel, double& tau,const
 //*************************************************************************************
 //*************************************************************************************
 void Poisson3D::CalculateArtifitialViscosity(double& art_visc,  
-						      boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, 
+						      bounded_matrix<double, 4, 3 > DN_DX, 
 						      array_1d<double, 3 > ms_vel_gauss,
 						      const Variable<double>& temperature,
 						      const double volume,
@@ -359,7 +359,7 @@ void Poisson3D::CalculateArtifitialViscosity(double& art_visc,
 //{
 //
 //    /*        double delta_t = rCurrentProcessInfo[DELTA_TIME];*/
-//    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+//    bounded_matrix<double, 4, 3 > DN_DX;
 //    array_1d<double, 4 > N;
 //    //getting data for the given geometry
 //    double volume;

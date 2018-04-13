@@ -63,8 +63,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 //static variables
-boost::numeric::ublas::bounded_matrix<double,3,3> ConvDiffChangeOfPhase2D::msMassFactors;
-boost::numeric::ublas::bounded_matrix<double,3,2> ConvDiffChangeOfPhase2D::msDN_DX;
+bounded_matrix<double,3,3> ConvDiffChangeOfPhase2D::msMassFactors;
+bounded_matrix<double,3,2> ConvDiffChangeOfPhase2D::msDN_DX;
 array_1d<double,3> ConvDiffChangeOfPhase2D::msN; //dimension = number of nodes
 array_1d<double,2> ConvDiffChangeOfPhase2D::ms_vel_gauss; //dimesion coincides with space dimension
 array_1d<double,3> ConvDiffChangeOfPhase2D::ms_temp_vec_np; //dimension = number of nodes

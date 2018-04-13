@@ -81,9 +81,9 @@ namespace Kratos
 
 namespace Hyperelastic3DAuxiliaries
 {
-//         boost::numeric::ublas::bounded_matrix<double,3,3> mstemp;
+//         bounded_matrix<double,3,3> mstemp;
 //         #pragma omp threadprivate(mstemp)
-//         boost::numeric::ublas::bounded_matrix<double,3,3> msaux;
+//         bounded_matrix<double,3,3> msaux;
 //         #pragma omp threadprivate(msaux)
 // 		/// NEW ///
 // 		Vector E1; // variables for pertubation method
@@ -605,8 +605,8 @@ void Hyperelastic3D::CalculateCauchyStresses(
 
     double J = MathUtils<double>::Det3( rF ); // computing determinant of F
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> mstemp;
-    boost::numeric::ublas::bounded_matrix<double,3,3> msaux;
+    bounded_matrix<double,3,3> mstemp;
+    bounded_matrix<double,3,3> msaux;
 
     noalias(mstemp) = prod(rF,S); //computing temporary matrix F*S
     noalias(msaux) = prod(mstemp,trans(rF));

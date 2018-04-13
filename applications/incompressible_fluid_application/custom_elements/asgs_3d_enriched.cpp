@@ -124,7 +124,7 @@ void ASGS3D_ENR::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     ///////////////////////////////////////////////////////////////PAVEL//////////////////////////////////////////////////////
     Matrix Points(4,3);
     double Volume;								   //
-    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;		   //
+    bounded_matrix<double,4,3> DN_DX;		   //
     array_1d<double,4> N;							   //
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);	   //
     array_1d<double,4> Distances;
@@ -147,7 +147,7 @@ void ASGS3D_ENR::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     }
 
     array_1d<double,6> edge_areas;
-    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	
+    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	
                                 Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions,edge_areas );
     array_1d<double,4> N_at_igauss = ZeroVector(4);
 
@@ -189,8 +189,8 @@ void ASGS3D_ENR::CalculateRightHandSide(VectorType& rRightHandSideVector, Proces
 void ASGS3D_ENR::CalculateMassContribution(MatrixType& K, const array_1d<double, 4 > & N_at_igauss, const double volume, const double density)
 {
     KRATOS_TRY
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > ConsistentMass = ZeroMatrix(4, 4);
-    boost::numeric::ublas::bounded_matrix<double, 16, 16 > ConsistentMassFull = ZeroMatrix(16, 16);
+    bounded_matrix<double, 4, 4 > ConsistentMass = ZeroMatrix(4, 4);
+    bounded_matrix<double, 16, 16 > ConsistentMassFull = ZeroMatrix(16, 16);
 
     ConsistentMass=volume*density*outer_prod(N_at_igauss, trans(N_at_igauss));
 
@@ -261,7 +261,7 @@ void ASGS3D_ENR::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurr
     ///////////////////////////////////////////////////////////////PAVEL//////////////////////////////////////////////////////
     Matrix Points(4,3);
     double Volume;								   //
-    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;		   //
+    bounded_matrix<double,4,3> DN_DX;		   //
     array_1d<double,4> N;							   //
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);	   //
     array_1d<double,4> Distances;
@@ -284,12 +284,12 @@ void ASGS3D_ENR::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurr
     }
 
     array_1d<double,6> edge_areas;
-    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	
+    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	
                                 Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions,edge_areas );
     array_1d<double,4> N_at_igauss = ZeroVector(4);
 
 
-    boost::numeric::ublas::bounded_matrix<double, 16, 16 > ConsistentMass = ZeroMatrix(16, 16);
+    bounded_matrix<double, 16, 16 > ConsistentMass = ZeroMatrix(16, 16);
     //this loops is in progress
     for(unsigned int igauss=0; igauss<n_subdivisions; igauss++)
     {
@@ -341,7 +341,7 @@ void ASGS3D_ENR::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, 
     ///////////////////////////////////////////////////////////////PAVEL//////////////////////////////////////////////////////
     Matrix Points(4,3);
     double Volume;								   //
-    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;		   //
+    bounded_matrix<double,4,3> DN_DX;		   //
     array_1d<double,4> N;							   //
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);	   //
     array_1d<double,4> Distances;
@@ -364,7 +364,7 @@ void ASGS3D_ENR::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, 
     }
 
     array_1d<double,6> edge_areas;
-    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	
+    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	
                                     Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions,edge_areas );
     array_1d<double,4> N_at_igauss = ZeroVector(4);
 
@@ -413,7 +413,7 @@ void ASGS3D_ENR::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, 
 //************************************************************************************
 //************************************************************************************
 
-void ASGS3D_ENR::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const double volume, const double nu, const double rho)
+void ASGS3D_ENR::CalculateViscousTerm(MatrixType& K, const bounded_matrix<double, 4, 3 > & DN_DX, const double volume, const double nu, const double rho)
 {
 
     KRATOS_TRY
@@ -440,7 +440,7 @@ void ASGS3D_ENR::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas
 //************************************************************************************
 //************************************************************************************
 
-void ASGS3D_ENR::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double volume, const double density)
+void ASGS3D_ENR::CalculateAdvectiveTerm(MatrixType& K, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double volume, const double density)
 {
     KRATOS_TRY
     //calculate mean advective velocity and taus
@@ -470,8 +470,8 @@ void ASGS3D_ENR::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ubl
     int dof = 3;
     int matsize = dof*nodes_number;
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
-    boost::numeric::ublas::bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
+    bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
+    bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
 
 
     for (int ii = 0; ii < nodes_number; ii++)
@@ -485,7 +485,7 @@ void ASGS3D_ENR::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ubl
         shape_func(column + 1, 1) = shape_func(column, 0);
         shape_func(column + 2, 2) = shape_func(column, 0);
     }
-    boost::numeric::ublas::bounded_matrix<double, 12, 12 > temp_convterm = ZeroMatrix(matsize, matsize);
+    bounded_matrix<double, 12, 12 > temp_convterm = ZeroMatrix(matsize, matsize);
     temp_convterm = prod(shape_func, conv_opr);
 
     for (int ii = 0; ii < nodes_number; ii++)
@@ -509,7 +509,7 @@ void ASGS3D_ENR::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ubl
 //************************************************************************************
 //************************************************************************************
 
-void ASGS3D_ENR::CalculatePressureTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double volume, const double density)
+void ASGS3D_ENR::CalculatePressureTerm(MatrixType& K, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double volume, const double density)
 {
     KRATOS_TRY
     int nodes_number = 4;
@@ -559,7 +559,7 @@ void ASGS3D_ENR::CalculatePressureTerm(MatrixType& K, const boost::numeric::ubla
 //************************************************************************************
 //************************************************************************************
 
-void ASGS3D_ENR::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double tauone, const double volume, const double density)
+void ASGS3D_ENR::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double tauone, const double volume, const double density)
 {
     KRATOS_TRY
     const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
@@ -581,8 +581,8 @@ void ASGS3D_ENR::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const bo
     int dof = 3;
     int matsize = dof*nodes_number;
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
-    boost::numeric::ublas::bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
+    bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
+    bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
 
     for (int ii = 0; ii < nodes_number; ii++)
     {
@@ -597,7 +597,7 @@ void ASGS3D_ENR::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const bo
     }
 
     //build (a.grad V)(ro*a.grad U) stabilization term & assemble
-    boost::numeric::ublas::bounded_matrix<double, 12, 12 > adv_stblterm = ZeroMatrix(matsize, matsize);
+    bounded_matrix<double, 12, 12 > adv_stblterm = ZeroMatrix(matsize, matsize);
     adv_stblterm = tauone * prod(trans(conv_opr), conv_opr);
     //Pavel: due to using tau divided by rho, must multiply it here
     adv_stblterm*=density;
@@ -626,7 +626,7 @@ void ASGS3D_ENR::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const bo
     }
 
     //build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
-    boost::numeric::ublas::bounded_matrix<double, 12, 4 > grad_stblterm = ZeroMatrix(matsize, nodes_number);
+    bounded_matrix<double, 12, 4 > grad_stblterm = ZeroMatrix(matsize, nodes_number);
     grad_stblterm = tauone * prod(trans(conv_opr), trans(DN_DX));
     //Pavel: due to using tau divided by rho, must multiply it here - only the first one:tau1*(a.grad V)(grad P)
     grad_stblterm*=density;
@@ -687,7 +687,7 @@ void ASGS3D_ENR::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const bo
 //************************************************************************************
 //************************************************************************************
 
-void ASGS3D_ENR::CalculateAdvMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double tauone, const double volume, const double density)
+void ASGS3D_ENR::CalculateAdvMassStblTerms(MatrixType& M, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double tauone, const double volume, const double density)
 {
     KRATOS_TRY
 
@@ -710,8 +710,8 @@ void ASGS3D_ENR::CalculateAdvMassStblTerms(MatrixType& M, const boost::numeric::
     int dof = 3;
     int matsize = dof*nodes_number;
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
-    boost::numeric::ublas::bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
+    bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
+    bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
 
     for (int ii = 0; ii < nodes_number; ii++)
     {
@@ -726,7 +726,7 @@ void ASGS3D_ENR::CalculateAdvMassStblTerms(MatrixType& M, const boost::numeric::
     }
 
     //tau1*ro*Nacc.(1.0*a.grad V)
-    boost::numeric::ublas::bounded_matrix<double, 12, 12 > temp_convterm = ZeroMatrix(matsize, matsize);
+    bounded_matrix<double, 12, 12 > temp_convterm = ZeroMatrix(matsize, matsize);
     temp_convterm = prod(shape_func, conv_opr);
 
     double fac = tauone*density;
@@ -754,7 +754,7 @@ void ASGS3D_ENR::CalculateAdvMassStblTerms(MatrixType& M, const boost::numeric::
 //************************************************************************************
 //************************************************************************************
 
-void ASGS3D_ENR::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double,4>& N, const double tauone, const double volume, const double density)
+void ASGS3D_ENR::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double,4>& N, const double tauone, const double volume, const double density)
 {
     KRATOS_TRY
 
@@ -763,7 +763,7 @@ void ASGS3D_ENR::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const b
 
 
     //build 1*(grad q . grad p) stabilization term & assemble
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
+    bounded_matrix<double, 4, 4 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
     gard_opr = 1.0 * tauone * prod(DN_DX, trans(DN_DX));
 
     for (int ii = 0; ii < nodes_number; ii++)
@@ -807,7 +807,7 @@ void ASGS3D_ENR::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const b
 //************************************************************************************
 //************************************************************************************
 //checked
-void ASGS3D_ENR::CalculateGradMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double,4>& N,  const double tauone, const double volume, const double density)
+void ASGS3D_ENR::CalculateGradMassStblTerms(MatrixType& M, const bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double,4>& N,  const double tauone, const double volume, const double density)
 {
     KRATOS_TRY
 
@@ -1111,10 +1111,10 @@ void ASGS3D_ENR::CalculateEnrichmentTerms(MatrixType& DampingMatrix, VectorType&
         /////////////////////////////////////////////////////////////////////////////
         //if the element is cut, we get the information of the subdivision	   //
 
-        //boost::numeric::ublas::bounded_matrix<double, 4, 3 > Points;		   //
+        //bounded_matrix<double, 4, 3 > Points;		   //
         Matrix Points(4,3);
         double Volume;								   //
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;		   //
+        bounded_matrix<double,4,3> DN_DX;		   //
         //Matrix DN_DX (4,3);
         array_1d<double,4> N;							   //
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);	   //
@@ -1140,25 +1140,25 @@ void ASGS3D_ENR::CalculateEnrichmentTerms(MatrixType& DampingMatrix, VectorType&
         }
 
         array_1d<double,6> edge_areas;
-        unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	
+        unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	
                                     Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions,edge_areas );
         double Lap = 0.0;	//laplacian is a 1x1 matrix since we have one enrichment shape fct per element
-        boost::numeric::ublas::bounded_matrix<double,3,3> Grad_u; //gradient of velocity
-        boost::numeric::ublas::bounded_matrix<double, 1, 4 >Lap_star = ZeroMatrix(1,4);  //gradN* gradN
-        boost::numeric::ublas::bounded_matrix<double, 4, 1 >Lap_starT = ZeroMatrix(4,1);  //gradN gradN*
-        boost::numeric::ublas::bounded_matrix<double, 4, 4 >Lap_starT_Lap_star = ZeroMatrix(4,4);
-        boost::numeric::ublas::bounded_matrix<double, 4, 1 >Lap_starT_f_star = ZeroMatrix(4,1);
+        bounded_matrix<double,3,3> Grad_u; //gradient of velocity
+        bounded_matrix<double, 1, 4 >Lap_star = ZeroMatrix(1,4);  //gradN* gradN
+        bounded_matrix<double, 4, 1 >Lap_starT = ZeroMatrix(4,1);  //gradN gradN*
+        bounded_matrix<double, 4, 4 >Lap_starT_Lap_star = ZeroMatrix(4,4);
+        bounded_matrix<double, 4, 1 >Lap_starT_f_star = ZeroMatrix(4,1);
 
-        boost::numeric::ublas::bounded_matrix<double, 12, 4 > Gstar_Lap_star = ZeroMatrix(12, 4);
+        bounded_matrix<double, 12, 4 > Gstar_Lap_star = ZeroMatrix(12, 4);
         //the one below is not necessary- it is a transpose of the one above
-        boost::numeric::ublas::bounded_matrix<double, 4, 12 > Lap_starT_Dstar = ZeroMatrix(4, 12);
+        bounded_matrix<double, 4, 12 > Lap_starT_Dstar = ZeroMatrix(4, 12);
 
-        boost::numeric::ublas::bounded_matrix<double, 1, 12 > temp = ZeroMatrix(1, 12);
-        boost::numeric::ublas::bounded_matrix<double, 1, 12 > Dstar = ZeroMatrix(1, 12);
-        boost::numeric::ublas::bounded_matrix<double, 12, 1 > Gstar = ZeroMatrix(12, 1);
-        boost::numeric::ublas::bounded_matrix<double, 12, 12 > Gstar_Dstar = ZeroMatrix(12, 12);
-        boost::numeric::ublas::bounded_matrix<double, 12, 1 > Gstar_fstar = ZeroMatrix(12, 1);
-        boost::numeric::ublas::bounded_matrix<double, 1, 3 > Grad_at_igauss = ZeroMatrix(1, 3);
+        bounded_matrix<double, 1, 12 > temp = ZeroMatrix(1, 12);
+        bounded_matrix<double, 1, 12 > Dstar = ZeroMatrix(1, 12);
+        bounded_matrix<double, 12, 1 > Gstar = ZeroMatrix(12, 1);
+        bounded_matrix<double, 12, 12 > Gstar_Dstar = ZeroMatrix(12, 12);
+        bounded_matrix<double, 12, 1 > Gstar_fstar = ZeroMatrix(12, 1);
+        bounded_matrix<double, 1, 3 > Grad_at_igauss = ZeroMatrix(1, 3);
 
         array_1d<double,4> N_at_igauss = ZeroVector(4);
         

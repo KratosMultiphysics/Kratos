@@ -132,13 +132,13 @@ namespace Kratos
                                 ProcessInfo& rCurrentProcessInfo);  
                                 
         void AddViscousTerm(MatrixType& rDampMatrix,
-                                       const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
+                                       const bounded_matrix<double, 3, 2>& rShapeDeriv,
                                        double Viscosity,const double Area);                        
                                        
                          
                          
-       void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 13, 13 > & output,
-						  boost::numeric::ublas::bounded_matrix<double, (3), 2 >& rShapeDeriv,
+       void AddViscousTerm(bounded_matrix<double, 13, 13 > & output,
+						  bounded_matrix<double, (3), 2 >& rShapeDeriv,
 						  array_1d<double,3>&  distances,
                           std::vector< Matrix >& gauss_gradients, 
 						  array_1d<double,3>&  viscosities,

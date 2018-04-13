@@ -177,7 +177,7 @@ private:
 
 
 	void CalculateQ(
-		boost::numeric::ublas::bounded_matrix<double, 3, 3>& msQ,
+		bounded_matrix<double, 3, 3>& msQ,
 		Matrix& msG);
 
 	void CalculateMetricDeformed(Matrix DN_De,
@@ -188,14 +188,14 @@ private:
 
 	void CalculateBMembrane(
 		Matrix& B,
-		boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+		bounded_matrix<double, 3, 3>& Q,
 		const Matrix& DN_De,
 		const array_1d<double, 3>& g1,
 		const array_1d<double, 3>& g2);
 
 	void CalculateBCurvature(
 		Matrix& B,
-		boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+		bounded_matrix<double, 3, 3>& Q,
 		const Matrix& DN_De,
 		const array_1d<double, 3>& g1,
 		const array_1d<double, 3>& g2);
@@ -207,7 +207,7 @@ private:
 		Matrix& Curvature_curvature11,
 		Matrix& Curvature_curvature22,
 		Matrix& Curvature_curvature12,
-		boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+		bounded_matrix<double, 3, 3>& Q,
 		array_1d<double, 3>& g1,
 		array_1d<double, 3>& g2);
 

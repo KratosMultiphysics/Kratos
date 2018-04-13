@@ -174,7 +174,7 @@ public:
 	  // Calculate this element's geometric parameters
 	  double Area;
 	  array_1d<double, TNumNodes> N;
-	  boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+	  bounded_matrix<double, TNumNodes, TDim> DN_DX;
 	  GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 	  //get position of the cut surface
 	  Vector distances(TNumNodes);
@@ -275,7 +275,7 @@ public:
 	  // Calculate this element's geometric parameters
 	  double Area;
 	  array_1d<double, TNumNodes> N;
-	  boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+	  bounded_matrix<double, TNumNodes, TDim> DN_DX;
 	  GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 	  //get position of the cut surface
 	  Vector distances(TNumNodes);
@@ -361,7 +361,7 @@ public:
         // Get the element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        bounded_matrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
         //get position of the cut surface
         Vector distances(TNumNodes);
@@ -468,11 +468,11 @@ public:
 	    // Get this element's geometric properties
 	    double Volume;
 	    array_1d<double, TNumNodes> N;
-	    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+	    bounded_matrix<double, TNumNodes, TDim> DN_DX;
 	    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);	
 	    
 	    
-	    boost::numeric::ublas::bounded_matrix<double, 16, 16 > boundary_damp_matrix;
+	    bounded_matrix<double, 16, 16 > boundary_damp_matrix;
 	    noalias(boundary_damp_matrix) = ZeroMatrix(16,16); 
 	    array_1d<double,3> face_normal;
 	    face_normal[0] = -DN_DX(inside_index,0);
@@ -546,7 +546,7 @@ public:
         double Area;
         array_1d<double, TNumNodes> N;
 	
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        bounded_matrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
         //get position of the cut surface
         Vector distances(TNumNodes);
@@ -818,7 +818,7 @@ public:
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            bounded_matrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
             array_1d< double, 3 > ElementalMomRes(3, 0.0);
             double ElementalMassRes(0);
@@ -885,7 +885,7 @@ public:
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            bounded_matrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
             array_1d< double, 3 > ElementalMomRes(3, 0.0);
             double ElementalMassRes(0);
@@ -988,7 +988,7 @@ public:
 	  {
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            bounded_matrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             array_1d<double, 3 > AdvVel;
@@ -1283,7 +1283,7 @@ protected:
                           const array_1d<double, 3 > & rAdvVel,
                           const double TauOne,
                           const array_1d<double, TNumNodes>& rShapeFunc,
-                          const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                          const bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
                           const double Weight,
 			  const Matrix gauss_enriched_gradients)
     {
@@ -1340,7 +1340,7 @@ protected:
             const double TauOne,
             const double TauTwo,
             const array_1d< double, TNumNodes >& rShapeFunc,
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+            const bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
             const double Weight,
             const double gauss_N_en,
 	    Matrix& gauss_enriched_gradients)
@@ -1505,8 +1505,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-void AddBoundaryTerm(boost::numeric::ublas::bounded_matrix<double, 16, 16 >& rDampingMatrix,
-                              const boost::numeric::ublas::bounded_matrix<double,4,3>& rShapeDeriv,
+void AddBoundaryTerm(bounded_matrix<double, 16, 16 >& rDampingMatrix,
+                              const bounded_matrix<double,4,3>& rShapeDeriv,
 		              const array_1d<double, 4>& N_shape,
 			      const array_1d<double,3>& nn,
                               const double& Weight,

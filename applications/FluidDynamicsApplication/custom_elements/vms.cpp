@@ -236,7 +236,7 @@ void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
 
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        bounded_matrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
@@ -249,7 +249,7 @@ void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
     {
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        bounded_matrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         array_1d<double,3> AdvVel;
@@ -316,7 +316,7 @@ void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
 
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        bounded_matrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
@@ -331,7 +331,7 @@ void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
     {
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        bounded_matrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         array_1d<double,3> AdvVel;
@@ -380,7 +380,7 @@ void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
 
 
 template <>
-double VMS<2,3>::EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double,3,2> &rDN_DX) const
+double VMS<2,3>::EquivalentStrainRate(const bounded_matrix<double,3,2> &rDN_DX) const
 {
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -400,7 +400,7 @@ double VMS<2,3>::EquivalentStrainRate(const boost::numeric::ublas::bounded_matri
 
 
 template <>
-double VMS<3,4>::EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double,4,3> &rDN_DX) const
+double VMS<3,4>::EquivalentStrainRate(const bounded_matrix<double,4,3> &rDN_DX) const
 {
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -426,8 +426,8 @@ double VMS<3,4>::EquivalentStrainRate(const boost::numeric::ublas::bounded_matri
  * See VMS::CalculateB
  */
 template <>
-void VMS<2,3>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 3, 6 >& rB,
-                           const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rShapeDeriv)
+void VMS<2,3>::CalculateB( bounded_matrix<double, 3, 6 >& rB,
+                           const bounded_matrix<double, 3, 2 >& rShapeDeriv)
 {
     for (unsigned int i = 0; i < 3; i++)
     {
@@ -446,8 +446,8 @@ void VMS<2,3>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 3, 6 >&
  * See VMS::CalculateB
  */
 template <>
-void VMS<3,4>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 6, 12 >& rB,
-                           const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv)
+void VMS<3,4>::CalculateB( bounded_matrix<double, 6, 12 >& rB,
+                           const bounded_matrix<double, 4, 3 >& rShapeDeriv)
 {
     const unsigned int Dim = 3;
     const unsigned int NumNodes = 4;
@@ -481,7 +481,7 @@ void VMS<3,4>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 6, 12 >
  * See VMS::CalculateC
  */
 template <>
-void VMS<2,3>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & rC,
+void VMS<2,3>::CalculateC(bounded_matrix<double, 3, 3 > & rC,
                           const double Viscosity)
 {
     rC(0, 0) =  Viscosity*(1.3333333333333333333333333333333);
@@ -499,7 +499,7 @@ void VMS<2,3>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 3, 3 > &
  * See VMS::CalculateC
  */
 template <>
-void VMS<3,4>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 6,6 > & rC,
+void VMS<3,4>::CalculateC(bounded_matrix<double, 6,6 > & rC,
                           const double Viscosity)
 {
     noalias(rC) = ZeroMatrix(6,6);
@@ -534,7 +534,7 @@ void VMS<3,4>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 6,6 > & 
  */
 template <>
 void VMS<2,3>::AddViscousTerm(MatrixType& rDampingMatrix,
-                              const boost::numeric::ublas::bounded_matrix<double,3,2>& rShapeDeriv,
+                              const bounded_matrix<double,3,2>& rShapeDeriv,
                               const double Weight)
 {
     const unsigned int NumNodes = 3;
@@ -569,7 +569,7 @@ void VMS<2,3>::AddViscousTerm(MatrixType& rDampingMatrix,
  */
 template <>
 void VMS<3,4>::AddViscousTerm(MatrixType& rDampingMatrix,
-                              const boost::numeric::ublas::bounded_matrix<double,4,3>& rShapeDeriv,
+                              const bounded_matrix<double,4,3>& rShapeDeriv,
                               const double Weight)
 {
     const unsigned int NumNodes = 4;

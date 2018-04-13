@@ -207,8 +207,8 @@ public:
         //**********************************
         //BUILD PHASE
         //**********************************
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim+1> lhs_contribution;
+        bounded_matrix<double,TDim+1,TDim> DN_DX;
+        bounded_matrix<double,TDim+1,TDim+1> lhs_contribution;
         array_1d<double,TDim+1> N;
         array_1d<unsigned int ,TDim+1> local_indices;
         array_1d<double,TDim+1> rhs_contribution;
@@ -245,9 +245,9 @@ public:
 // 			//check if divided
 // 			bool is_divided = false;
 // 			double toll = 0.01;
-// 			boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
+// 			bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
 // 			array_1d<double,4> A_on_agp = ZeroVector(4);
-// 			boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
+// 			bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
 // 			array_1d<double,4> dist_on_agp = ZeroVector(4);
 //
 // 			DivideElemUtils::DivideElement_2D(geom, toll, is_divided, aux_gp, A_on_agp, N_on_agp, dist_on_agp);
@@ -419,7 +419,7 @@ public:
         //**********************************
         //BUILD PHASE
         //**********************************
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        bounded_matrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N;
         array_1d<double,TDim> vel_gauss;
         array_1d<double,TDim+1> temp_vec_np;
@@ -519,7 +519,7 @@ private:
     //**************************************************************************
     void AssembleLHS(
         TSystemMatrixType& A,
-        const boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim+1>& LHS_Contribution,
+        const bounded_matrix<double,TDim+1,TDim+1>& LHS_Contribution,
         const array_1d<unsigned int,TDim+1>& EquationId
     )
     {

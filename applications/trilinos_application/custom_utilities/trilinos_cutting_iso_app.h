@@ -1059,7 +1059,7 @@ public:
                 for (int j = 0; j < 3; j++) //we reset the value to zero
                     gradient(j) = 0.0;
                 double Volume;
-                boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
+                bounded_matrix<double, 4, 3> DN_DX;
                 array_1d<double, 4 > N;
                 Geometry< Node < 3 > >& geom = it->GetGeometry();
                 GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);

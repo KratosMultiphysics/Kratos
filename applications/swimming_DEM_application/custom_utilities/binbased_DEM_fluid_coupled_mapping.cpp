@@ -1670,7 +1670,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
     // Geometry of the element of the origin model part
     Geometry<Node<3> >& geom = p_elem->GetGeometry();
     array_1d <double, TDim + 1> Ng;
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+    bounded_matrix<double, TDim + 1, TDim> DN_DX;
     double elemental_volume;
     GeometryUtils::CalculateGeometryData(geom, DN_DX, Ng, elemental_volume);
     const double& radius         = p_node->FastGetSolutionStepValue(RADIUS);
@@ -1692,7 +1692,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
 //    array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
 //    array_1d <double, TDim + 1> elemental_fluid_fractions;
 //    array_1d <double, TDim + 1> N; // shape functions vector
-//    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+//    bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
 //    for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
 //        // computing the shape function derivatives

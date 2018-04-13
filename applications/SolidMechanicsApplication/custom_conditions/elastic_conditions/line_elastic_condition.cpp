@@ -276,8 +276,8 @@ namespace Kratos
 	    
 	    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 	
-	    boost::numeric::ublas::bounded_matrix<double, 2, 2 > Kij;
-	    boost::numeric::ublas::bounded_matrix<double, 2, 2 > SkewSymmMatrix;
+	    bounded_matrix<double, 2, 2 > Kij;
+	    bounded_matrix<double, 2, 2 > SkewSymmMatrix;
 	
 	    //Compute the K sub matrix
 	    SkewSymmMatrix( 0, 0 ) =  0.0;

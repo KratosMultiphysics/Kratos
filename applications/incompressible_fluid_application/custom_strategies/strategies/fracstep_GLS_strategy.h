@@ -312,7 +312,7 @@ public:
 
             {
                 //get the list of nodes of the element
-                boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+                bounded_matrix<double,3,2> DN_DX;
                 array_1d<double,3> N;
                 Geometry< Node<3> >& geom = i->GetGeometry();
                 array_1d<double, 2 > vel_gauss;

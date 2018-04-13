@@ -271,8 +271,8 @@ void Umat::CalculateCauchyStresses(
     Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
     double J = MathUtils<double>::Det3( rF );
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> mstemp;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> msaux;
+    bounded_matrix<double, 3, 3> mstemp;
+    bounded_matrix<double, 3, 3> msaux;
 
     noalias( mstemp ) = prod( rF, S );
     noalias( msaux ) = prod( mstemp, trans( rF ) );

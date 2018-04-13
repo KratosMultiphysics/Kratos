@@ -179,7 +179,7 @@ public:
         array_1d<double,3> p0;
 
         //array_1d<double,3> Ng;
-       // boost::numeric::ublas::bounded_matrix<double,3,3> M = ZeroMatrix(3,3);
+       // bounded_matrix<double,3,3> M = ZeroMatrix(3,3);
         Matrix M = ZeroMatrix(3,3);
 
         Matrix Bg(3,Coordinates.size1());
@@ -187,8 +187,8 @@ public:
         Matrix DBg_Dy(3,Coordinates.size1());
         array_1d<double,3> p;
 
-        boost::numeric::ublas::bounded_matrix<double,3,3> DM_Dx = ZeroMatrix(3,3);
-        boost::numeric::ublas::bounded_matrix<double,3,3> DM_Dy = ZeroMatrix(3,3);
+        bounded_matrix<double,3,3> DM_Dx = ZeroMatrix(3,3);
+        bounded_matrix<double,3,3> DM_Dy = ZeroMatrix(3,3);
 
 
         p0[0] = 1;

@@ -955,8 +955,8 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		///@} 
 		///@name Member Variables 
 		///@{ 
-		boost::numeric::ublas::bounded_matrix<double,3,3> mJ; //local jacobian
-		boost::numeric::ublas::bounded_matrix<double,3,3> mJinv; //inverse jacobian
+		bounded_matrix<double,3,3> mJ; //local jacobian
+		bounded_matrix<double,3,3> mJinv; //inverse jacobian
 		array_1d<double,3> mc; //center pos
 		array_1d<double,3> mRhs; //center pos
 

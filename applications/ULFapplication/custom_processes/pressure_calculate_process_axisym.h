@@ -168,7 +168,7 @@ public:
         /*		//
         		if(mdomain_size == 2)
         		{
-        			boost::numeric::ublas::bounded_matrix<double,3,2> DN_Dx;
+        			bounded_matrix<double,3,2> DN_Dx;
         			array_1d<double,3> N;
 
         			for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;

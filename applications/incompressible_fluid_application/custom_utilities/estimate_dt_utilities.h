@@ -128,7 +128,7 @@ public:
 
             double Area;
             array_1d<double, NumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, NumNodes, TDim> DN_DX;
+            bounded_matrix<double, NumNodes, TDim> DN_DX;
 
             for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
             {
@@ -206,7 +206,7 @@ public:
 
             double Area;
             array_1d<double, NumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, NumNodes, TDim> DN_DX;
+            bounded_matrix<double, NumNodes, TDim> DN_DX;
 
             for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
             {

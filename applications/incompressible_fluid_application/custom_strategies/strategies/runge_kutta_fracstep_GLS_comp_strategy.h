@@ -598,7 +598,7 @@ public:
         if (TDim==2)
         {
             //allocation of work space
-            boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+            bounded_matrix<double,3,2> DN_DX;
             array_1d<double,3> N;
             array_1d<double,3> aux0, aux1, aux2; //this are sized to 3 even in 2D!!
             //double lumping_factor = 0.33333333333333;
@@ -622,8 +622,8 @@ public:
                 pres_inc*=0.5;
 
                 //Gradient operator G:
-                boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
-                boost::numeric::ublas::bounded_matrix<double,6,3> G = ZeroMatrix(6,3);
+                bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
+                bounded_matrix<double,6,3> G = ZeroMatrix(6,3);
                 for (int ii = 0; ii< 3; ii++)
                 {
                     int column = ii*2;
@@ -661,9 +661,9 @@ public:
             KRATOS_WATCH("Last step in 3D")
 
             array_1d<double,4> pres_inc;
-            boost::numeric::ublas::bounded_matrix<double,12,3> shape_func = ZeroMatrix(12, 3);
-            boost::numeric::ublas::bounded_matrix<double,12,4> G = ZeroMatrix(12,4);
-            boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+            bounded_matrix<double,12,3> shape_func = ZeroMatrix(12, 3);
+            bounded_matrix<double,12,4> G = ZeroMatrix(12,4);
+            bounded_matrix<double,4,3> DN_DX;
             array_1d<double,4> N;
             //array_1d<double,3> aux0, aux1, aux2, aux3; //this are sized to 3 even in 2D!!
             for (typename ModelPart::ElementsContainerType::iterator it=model_part.ElementsBegin(); it!=model_part.ElementsEnd(); ++it)

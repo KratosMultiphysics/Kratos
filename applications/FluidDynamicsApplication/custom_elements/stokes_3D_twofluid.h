@@ -532,9 +532,9 @@ public:
             }
             else
             {
-                boost::numeric::ublas::bounded_matrix<double, MatrixSize, NumNodes > Vtot, V;
-                boost::numeric::ublas::bounded_matrix<double, NumNodes, MatrixSize > Htot, H;
-                boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> Kee_tot, Kee;
+                bounded_matrix<double, MatrixSize, NumNodes > Vtot, V;
+                bounded_matrix<double, NumNodes, MatrixSize > Htot, H;
+                bounded_matrix<double, NumNodes, NumNodes> Kee_tot, Kee;
                 array_1d<double, NumNodes> rhs_ee_tot, rhs_ee;
                 Vtot.clear();
                 Htot.clear();
@@ -636,14 +636,14 @@ public:
     void ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const element_data<4,3>& data);
     void ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const element_data<4,3>& data);
     void ComputeGaussPointEnrichmentContributions(
-        boost::numeric::ublas::bounded_matrix<double,4,16>& H,
-        boost::numeric::ublas::bounded_matrix<double,16,4>& V,
-        boost::numeric::ublas::bounded_matrix<double,4,4>&  Kee,
+        bounded_matrix<double,4,16>& H,
+        bounded_matrix<double,16,4>& V,
+        bounded_matrix<double,4,4>&  Kee,
         array_1d<double,4>& rhs_ee,
         const element_data<4,3>& data,
         const array_1d<double,4>& distances,
         const array_1d<double,4>& Nenr,
-        const boost::numeric::ublas::bounded_matrix<double,4,4>& DNenr
+        const bounded_matrix<double,4,4>& DNenr
     );
 
     ///@}
@@ -685,9 +685,9 @@ public:
     }
 
     void CondenseEnrichment(Matrix& rLeftHandSideMatrix,Vector& rRightHandSideVector,
-                            const boost::numeric::ublas::bounded_matrix<double,4,16>& Htot,
-                            const boost::numeric::ublas::bounded_matrix<double,16,4>& Vtot,
-                            boost::numeric::ublas::bounded_matrix<double,4,4>& Kee_tot,
+                            const bounded_matrix<double,4,16>& Htot,
+                            const bounded_matrix<double,16,4>& Vtot,
+                            bounded_matrix<double,4,4>& Kee_tot,
                             array_1d<double,4>& Renr,
                             const Vector& volumes,
                             const Vector& signs,
@@ -762,7 +762,7 @@ public:
         }
 
         //add to LHS enrichment contributions
-        boost::numeric::ublas::bounded_matrix<double,4,4> inverse_diag;
+        bounded_matrix<double,4,4> inverse_diag;
         bool inversion_successful = InvertMatrix<>(Kee_tot,inverse_diag);
 
         if(!inversion_successful )
@@ -774,7 +774,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error,"error in the inversion of the enrichment matrix for element ",this->Id());
         }
 
-        const boost::numeric::ublas::bounded_matrix<double,4,16> tmp = prod(inverse_diag,Htot);
+        const bounded_matrix<double,4,16> tmp = prod(inverse_diag,Htot);
         noalias(rLeftHandSideMatrix) -= prod(Vtot,tmp);
 
         const array_1d<double,4> tmp2 = prod(inverse_diag,Renr);

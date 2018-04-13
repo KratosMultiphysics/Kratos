@@ -154,7 +154,7 @@ public:
 
     //           double aaa = 1.0/double(TDim+1.0);
 
-    boost::numeric::ublas::bounded_matrix<double, (TDim + 1) * TDim,
+    bounded_matrix<double, (TDim + 1) * TDim,
                                           (TDim + 1) * TDim>
         K_matrix;
     array_1d<double, (TDim + 1) * TDim> rhs_vector;
@@ -281,7 +281,7 @@ private:
   //**************************************************************************
   void AssembleLHS(
       TSystemMatrixType &A,
-      const boost::numeric::ublas::bounded_matrix<
+      const bounded_matrix<
           double, (TDim + 1) * TDim, (TDim + 1) * TDim> &LHS_Contribution,
       const array_1d<unsigned int, (TDim + 1) * TDim> &EquationId) {
     unsigned int local_size = LHS_Contribution.size1();
@@ -318,7 +318,7 @@ private:
   //*****************************************************************************
   void BallVertex2D(
       const Geometry<Node<3>> &geom,
-      boost::numeric::ublas::bounded_matrix<double, (TDim + 1) * TDim,
+      bounded_matrix<double, (TDim + 1) * TDim,
                                             (TDim + 1) * TDim> &K_matrix) {
 
     array_1d<double, 3> x, y;
@@ -332,7 +332,7 @@ private:
 
     noalias(K_matrix) = ZeroMatrix(6, 6);
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> v12_mat;
+    bounded_matrix<double, 2, 2> v12_mat;
 
     // edge 12 e 21
 
@@ -347,7 +347,7 @@ private:
     v12_mat = v12_mat * invl12q;
 
     // edge 13 e 31
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> v13_mat;
+    bounded_matrix<double, 2, 2> v13_mat;
 
     double invl13q = 1.0 / (pow((x[2] - x[0]), 2) + pow((y[2] - y[0]), 2));
     double invl13 = 1.0 / sqrt(pow((x[2] - x[0]), 2) + pow((y[2] - y[0]), 2));
@@ -360,7 +360,7 @@ private:
     v13_mat = v13_mat * invl13q;
 
     // edge 23 e 32
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> v23_mat;
+    bounded_matrix<double, 2, 2> v23_mat;
 
     double invl23q = 1.0 / (pow((x[2] - x[1]), 2) + pow((y[2] - y[1]), 2));
     double invl23 = 1.0 / sqrt(pow((x[2] - x[1]), 2) + pow((y[2] - y[1]), 2));
@@ -430,7 +430,7 @@ private:
     double L1 = sqrt(pow((x[2] - xp), 2) + pow((y[2] - yp), 2)) * invl23;
     double LL1 = 1.0 - L1;
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> v1p_mat;
+    bounded_matrix<double, 2, 2> v1p_mat;
 
     double invl1pq = 1.0 / (pow((xp - x[0]), 2) + pow((yp - y[0]), 2));
     double invl1p = 1.0 / sqrt(pow((xp - x[0]), 2) + pow((yp - y[0]), 2));
@@ -453,7 +453,7 @@ private:
     double L2 = sqrt(pow((x[0] - xr), 2) + pow((y[0] - yr), 2)) * invl13;
     double LL2 = 1.0 - L2;
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> v2r_mat;
+    bounded_matrix<double, 2, 2> v2r_mat;
 
     double invl2rq = 1.0 / (pow((xr - x[1]), 2) + pow((yr - y[1]), 2));
     double invl2r = 1.0 / sqrt(pow((xr - x[1]), 2) + pow((yr - y[1]), 2));
@@ -476,7 +476,7 @@ private:
     double L3 = sqrt(pow((x[1] - xs), 2) + pow((y[1] - ys), 2)) * invl12;
     double LL3 = 1.0 - L3;
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> v3s_mat;
+    bounded_matrix<double, 2, 2> v3s_mat;
 
     double invl3sq = 1.0 / (pow((xs - x[2]), 2) + pow((ys - y[2]), 2));
     double invl3s = 1.0 / sqrt(pow((xs - x[2]), 2) + pow((ys - y[2]), 2));

@@ -71,13 +71,13 @@ namespace Kratos
 namespace UlfFrac3D_auxiliaries
 {
 
-boost::numeric::ublas::bounded_matrix<double,6,12> msB; //
-boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix; //
-boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp; //
+bounded_matrix<double,6,12> msB; //
+bounded_matrix<double,6,6> ms_constitutive_matrix; //
+bounded_matrix<double,6,12> ms_temp; //
 array_1d<double,6> ms_temp_vec;
 
-	boost::numeric::ublas::bounded_matrix<double,4,4> msWorkMatrix = ZeroMatrix(4,4); //
-	boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3); //
+	bounded_matrix<double,4,4> msWorkMatrix = ZeroMatrix(4,4); //
+	bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3); //
 
 	array_1d<double,4> ms_temp_vec_np = ZeroVector(4); //dimension = number of nodes //
 	array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of space dimensions //
@@ -170,7 +170,7 @@ void UlfFrac3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Process
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX; // = ZeroMatrix(4,3);
+    bounded_matrix<double,4,3> msDN_DX; // = ZeroMatrix(4,3);
     array_1d<double,4> msN; // = ZeroVector(4);
     //KRATOS_WATCH("Current FRACTIONAL STEP IS (CalcRightHandSide)!!!!!!!!!!!!!!!!!!")
 
@@ -274,10 +274,10 @@ void UlfFrac3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurre
 void UlfFrac3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    boost::numeric::ublas::bounded_matrix<double,6,12> msB; // = ZeroMatrix(6,12); //
-    boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix; // = ZeroMatrix(6,6); //
-    boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;// (6,12); //
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX; // = ZeroMatrix(4,3); //
+    bounded_matrix<double,6,12> msB; // = ZeroMatrix(6,12); //
+    bounded_matrix<double,6,6> ms_constitutive_matrix; // = ZeroMatrix(6,6); //
+    bounded_matrix<double,6,12> ms_temp;// (6,12); //
+    bounded_matrix<double,4,3> msDN_DX; // = ZeroMatrix(4,3); //
     array_1d<double,4> msN;// = ZeroVector(4);//
 
 
@@ -527,7 +527,7 @@ void UlfFrac3D::VelocityStep(MatrixType& rLeftHandSideMatrix, VectorType& rRight
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;// = ZeroMatrix(4,3); //
+    bounded_matrix<double,4,3> msDN_DX;// = ZeroMatrix(4,3); //
     array_1d<double,4> msN;// = ZeroVector(4);//
     //KRATOS_WATCH("Velocity step!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     const double& density = 0.25*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
@@ -601,11 +601,11 @@ void UlfFrac3D::PressureStep(MatrixType& rLeftHandSideMatrix, VectorType& rRight
     KRATOS_TRY
 
 
-    //boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp; //
+    //bounded_matrix<double,6,12> ms_temp; //
     //array_1d<double,6> ms_temp_vec;
 
-    boost::numeric::ublas::bounded_matrix<double,4,4> msWorkMatrix;// = ZeroMatrix(4,4); //
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;// = ZeroMatrix(4,3); //
+    bounded_matrix<double,4,4> msWorkMatrix;// = ZeroMatrix(4,4); //
+    bounded_matrix<double,4,3> msDN_DX;// = ZeroMatrix(4,3); //
 
     array_1d<double,4> ms_temp_vec_np;// = ZeroVector(4); //dimension = number of nodes //
     array_1d<double,3> ms_aux0;// = ZeroVector(3); //dimension = number of space dimensions //

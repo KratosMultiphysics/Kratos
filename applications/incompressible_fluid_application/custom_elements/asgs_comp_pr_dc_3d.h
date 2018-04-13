@@ -222,18 +222,18 @@ private:
       ///@name Private Operators
       ///@{
         void CalculateMassContribution(MatrixType& K,const double time,const double area);
-    void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area);
-    void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, double& thawone, double& thawtwo, const double time,const double area);
-    void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
+    void CalculateViscousTerm(MatrixType& K,const bounded_matrix<double,3,2>& DN_DX, const double area);
+    void CalculateAdvectiveTerm(MatrixType& K,const bounded_matrix<double,3,2>& DN_DX, double& thawone, double& thawtwo, const double time,const double area);
+    void CalculatePressureTerm(MatrixType& K,const bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
 
-    void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawtwo,const double area);
-    void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double thawone,const double time,const double area);
-    void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double time,const double thawone,const double area);
+    void CalculateDivStblTerm(MatrixType& K,const bounded_matrix<double,3,2>& DN_DX, const double thawtwo,const double area);
+    void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double thawone,const double time,const double area);
+    void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const bounded_matrix<double,3,2>& msDN_DX, const double time,const double thawone,const double area);
     void AddBodyForceAndMomentum(VectorType& F, const array_1d<double,3>& N, const double time,const double area);
 
 
 
-    void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double area);
+    void AddProjectionForces(VectorType& F, const bounded_matrix<double,3,2>& msDN_DX, const double area);
     */
     ///@}
     ///@name Private Operations
