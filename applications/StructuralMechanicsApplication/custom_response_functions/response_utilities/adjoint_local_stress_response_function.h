@@ -102,19 +102,19 @@ public:
 	{
 		ModelPart& r_model_part = this->GetModelPart();
 
-		ResponseData::Pointer p_stress_response_data(new ResponseData());
+		ResponseData stress_response_data;
 
 		// Get traced element
 		mIdOfTracedElement = rParameters["traced_element"].GetInt();
 		mpTracedElement = r_model_part.pGetElement(mIdOfTracedElement);
 
 		// Tell traced element the stress type
-		TracedStressType traced_stress_type = p_stress_response_data->ConvertStressType(rParameters["stress_type"].GetString()); 
+		TracedStressType traced_stress_type = stress_response_data.ConvertStressType(rParameters["stress_type"].GetString()); 
 		KRATOS_ERROR_IF(traced_stress_type == StressTypeNotAvailible) << "Chosen stress type is not availible!" << std::endl;
 		mpTracedElement->SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress_type) );		
 
 		// Get info how and where to treat the stress
-		mStressTreatment = p_stress_response_data->ConvertStressTreatment( rParameters["stress_treatment"].GetString() );
+		mStressTreatment = stress_response_data.ConvertStressTreatment( rParameters["stress_treatment"].GetString() );
 		KRATOS_ERROR_IF(mStressTreatment == StressTreatmentNotAvailible) << "Chosen option for stress treatmeant is not availible! Chose 'GP','node' or 'mean'!" << std::endl;
 
 		if(mStressTreatment == GP || mStressTreatment == node)
