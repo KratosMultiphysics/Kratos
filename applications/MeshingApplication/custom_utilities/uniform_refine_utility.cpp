@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "uniform_refine_utility.h"
+#include "utilities/sub_model_parts_list_utility.h"
 
 
 namespace Kratos
@@ -65,6 +66,7 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
 
     mStepDataSize = mrModelPart.GetNodalSolutionStepDataSize();
     mBufferSize = mrModelPart.GetBufferSize();
+    mDofs = mrModelPart.NodesBegin()->GetDofs();
 }
 
 
@@ -149,9 +151,34 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         if (step_refine_level == rThisLevel)
             conditions_id.push_back(icondition->Id());
     }
+    // Loop the origin elements to create the middle nodes
+    for (int id : elements_id)
+    {
+        // Get the element
+        Element::Pointer p_element = mrModelPart.Elements()(id);
 
-    // Loop the origin elements. Get the middle node on each edge and create the nodes
-    for (const int id : elements_id)
+        // Get the refinement level of the origin element
+        int step_refine_level = rThisLevel + 1;
+
+        // Get the geometry
+        Geometry<NodeType>& geom = p_element->GetGeometry();
+
+        // Loop the edges of the father element and get the nodes
+        for (auto edge : geom.Edges())
+            CreateNodeInEdge(edge, step_refine_level);
+        
+        if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
+            CreateNodeInFace( geom, step_refine_level );
+
+        // Encontrar el lugar para ejecutar SubModelPartsColors
+
+        // Once we have created all the sub elements
+        p_element->Set(TO_ERASE, true);
+    }
+
+    // TODO: add OMP
+    // Create the elements
+    for (int id : elements_id)
     {
         // Get the element
         Element::Pointer p_element = mrModelPart.Elements()(id);
@@ -164,16 +191,14 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
 
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
         {
-            // FIRST: Create the nodes
             // Loop the edges of the father element and get the nodes
+            int i_edge = 0;
             std::array<NodeType::Pointer, 3> middle_nodes;
-            middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
-            middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
-            middle_nodes[2] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(2), step_refine_level );
+            for (auto edge : geom.Edges())
+                middle_nodes[i_edge++] = GetNodeInEdge(edge);
 
-            // SECOND: create the sub elements
+            // Create the sub elements
             std::vector<NodeType::Pointer> sub_element_nodes(3);
-
             for (int position = 0; position < 4; position++)
             {
                 sub_element_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
@@ -182,34 +207,88 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         }
         else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
         {
-            // FIRST: Create the nodes
             // Loop the edges of the father element and get the nodes
+            int i_edge = 0;
             std::array<NodeType::Pointer, 5> middle_nodes;
-            middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
-            middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
-            middle_nodes[2] = GetNodeBetween( geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
-            middle_nodes[3] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(3), step_refine_level );
+            for (auto edge : geom.Edges())
+                middle_nodes[i_edge++] = GetNodeInEdge(edge);
             middle_nodes[4] = GetNodeInFace( geom.pGetPoint(0), geom.pGetPoint(1), geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
 
-            // SECOND: create the sub elements
+            // Create the sub elements
             std::vector<NodeType::Pointer> sub_element_nodes(4);
-
             for (int position = 0; position < 4; position++)
             {
                 sub_element_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
                 CreateElement(p_element, sub_element_nodes, step_refine_level);
             }
-
         }
         else
         {
-            KRATOS_WARNING("UniformRefineUtility") << "WARNING: YOUR GEOMETRY CONTAINS " << geom.PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+            KRATOS_ERROR << "Your geometry contains " << geom.GetGeometryType() <<" which cannot be remeshed" << std::endl;
         }
-        // Encontrar el lugar para ejecutar SubModelPartsColors
 
-        // Once we have created all the sub elements
-        p_element->Set(TO_ERASE, true);
     }
+
+    // Loop the origin elements. Get the middle node on each edge and create the nodes
+    // for (const int id : elements_id)
+    // {
+    //     // Get the element
+    //     Element::Pointer p_element = mrModelPart.Elements()(id);
+
+    //     // Get the refinement level of the origin element
+    //     int step_refine_level = rThisLevel + 1;
+
+    //     // Get the geometry
+    //     Geometry<NodeType>& geom = p_element->GetGeometry();
+
+    //     if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
+    //     {
+    //         // FIRST: Create the nodes
+    //         // Loop the edges of the father element and get the nodes
+    //         std::array<NodeType::Pointer, 3> middle_nodes;
+    //         middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
+    //         middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
+    //         middle_nodes[2] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(2), step_refine_level );
+
+    //         // SECOND: create the sub elements
+    //         std::vector<NodeType::Pointer> sub_element_nodes(3);
+
+    //         for (int position = 0; position < 4; position++)
+    //         {
+    //             sub_element_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
+    //             CreateElement(p_element, sub_element_nodes, step_refine_level);
+    //         }
+    //     }
+    //     else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
+    //     {
+    //         // FIRST: Create the nodes
+    //         // Loop the edges of the father element and get the nodes
+    //         std::array<NodeType::Pointer, 5> middle_nodes;
+    //         middle_nodes[0] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(1), step_refine_level );
+    //         middle_nodes[1] = GetNodeBetween( geom.pGetPoint(1), geom.pGetPoint(2), step_refine_level );
+    //         middle_nodes[2] = GetNodeBetween( geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
+    //         middle_nodes[3] = GetNodeBetween( geom.pGetPoint(0), geom.pGetPoint(3), step_refine_level );
+    //         middle_nodes[4] = GetNodeInFace( geom.pGetPoint(0), geom.pGetPoint(1), geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
+
+    //         // SECOND: create the sub elements
+    //         std::vector<NodeType::Pointer> sub_element_nodes(4);
+
+    //         for (int position = 0; position < 4; position++)
+    //         {
+    //             sub_element_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
+    //             CreateElement(p_element, sub_element_nodes, step_refine_level);
+    //         }
+
+    //     }
+    //     else
+    //     {
+    //         KRATOS_ERROR << "Your geometry contains " << geom.GetGeometryType() <<" which cannot be remeshed" << std::endl;
+    //     }
+    //     // Encontrar el lugar para ejecutar SubModelPartsColors
+
+    //     // Once we have created all the sub elements
+    //     p_element->Set(TO_ERASE, true);
+    // }
     
     mrModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
@@ -220,13 +299,77 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         Condition::Pointer p_condition = mrModelPart.Conditions()(id);
 
         // Check the refinement level of the origin condition
-        int step_refine_level = rThisLevel + 1;
+        // int step_refine_level = rThisLevel + 1;
         // THIRD: Create the conditions
 
         /* Do some stuff here */
 
     }
 
+}
+
+
+/// Create a middle node on an edge. If the node does not exist, it creates one
+template <unsigned int TDim>
+void UniformRefineUtility<TDim>::CreateNodeInEdge(
+    const EdgeType& rEdge,
+    const int& rRefinementLevel
+    )
+{
+    // Get the middle node key
+    std::pair<int, int> node_key;
+    node_key = std::minmax(rEdge(0)->Id(), rEdge(1)->Id());
+
+    // Check if the node is not yet created
+    auto search = mNodesMap.find(node_key);
+    if (search == mNodesMap.end() )
+    {
+        // Create the new node
+        double new_x = 0.5*rEdge(0)->X() + 0.5*rEdge(1)->X();
+        double new_y = 0.5*rEdge(0)->Y() + 0.5*rEdge(1)->Y();
+        double new_z = 0.5*rEdge(0)->Z() + 0.5*rEdge(1)->Z();
+        NodeType::Pointer middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
+
+        // Store the node key in the map
+        mNodesMap.insert( std::pair< std::pair<int, int>, int > (node_key, middle_node->Id()) );
+
+        // interpolate the variables
+        CalculateNodalStepData(middle_node, rEdge(0), rEdge(1));
+
+        // Set the refinement level
+        int& this_node_level = middle_node->GetValue(REFINEMENT_LEVEL);
+        this_node_level = rRefinementLevel;
+
+        // Set the DoF's
+        for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+            middle_node->pAddDof(*it_dof);
+    }
+}
+
+
+/// Get the middle node on an edge
+template <unsigned int TDim>
+Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeInEdge(const EdgeType& rEdge)
+{
+    // Initialize the output
+    NodeType::Pointer middle_node;
+
+    // Get the middle node key
+    std::pair<int, int> node_key;
+    node_key = std::minmax(rEdge(0)->Id(), rEdge(1)->Id());
+
+    // Check if the node exist
+    auto search = mNodesMap.find(node_key);
+    if (search != mNodesMap.end() )
+    {
+        middle_node = mrModelPart.Nodes()(search->second);
+    }
+    else
+    {
+        KRATOS_WARNING("UniformRefineProcess") << "Middle node not found in edge" << rEdge << std::endl;
+    }
+
+    return middle_node;
 }
 
 
@@ -272,6 +415,38 @@ Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeBetween(
     }
 
     return middle_node;
+}
+
+
+/// Get the middle node on a face defined by four nodes. If the node does not exist, it creates one
+template< unsigned int TDim>
+void UniformRefineUtility<TDim>::CreateNodeInFace(
+    const FaceType& rFace,
+    const int& rRefinementLevel
+    )
+{
+    
+    // TODO: check the previous existance of the node
+
+    // Create the new node
+    double new_x = 0.25*rFace(0)->X() + 0.25*rFace(1)->X() + 0.25*rFace(2)->X() + 0.25*rFace(3)->X();
+    double new_y = 0.25*rFace(0)->Y() + 0.25*rFace(1)->Y() + 0.25*rFace(2)->Y() + 0.25*rFace(3)->Y();
+    double new_z = 0.25*rFace(0)->Z() + 0.25*rFace(1)->Z() + 0.25*rFace(2)->Z() + 0.25*rFace(3)->Z();
+    Node<3>::Pointer middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
+
+    // // Store the node key in the map
+    // mNodesMap.insert( std::pair< std::pair<int, int>, int > (node_key, middle_node->Id()) );
+
+    // interpolate the variables
+    CalculateNodalStepData(middle_node, rFace(0), rFace(1));
+
+    // Set the refinement level
+    int& this_node_level = middle_node->GetValue(REFINEMENT_LEVEL);
+    this_node_level = rRefinementLevel;
+
+    // Set the DoF's
+    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+        middle_node->pAddDof(*it_dof);
 }
 
 

@@ -30,6 +30,9 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/model_part.h"
+#include "geometries/line_3d_2.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/quadrilateral_3d_4.h"
 
 
 namespace Kratos
@@ -73,6 +76,16 @@ public:
      * Node type
      */
     typedef Node<3> NodeType;
+
+    /**
+     * Type of edge geometry
+     */
+    typedef Line3D2<NodeType> EdgeType;
+
+    /**
+     * Type of face geometry
+     */
+    typedef Quadrilateral3D4<NodeType> FaceType;
     
     /// Pointer definition of UniformRefineUtility
     KRATOS_CLASS_POINTER_DEFINITION(UniformRefineUtility);
@@ -189,6 +202,7 @@ private:
     unsigned int mLastCondId;               /// The condition Id
     unsigned int mStepDataSize;             /// The size of the database
     unsigned int mBufferSize;               /// The size of the buffer
+    NodeType::DofsContainerType mDofs;      /// Storage for the dof of the node
 
 
     ///@}
@@ -207,6 +221,22 @@ private:
     void RefineLevel(const int& ThisLevel);
 
     /**
+     * Create a node at the middle point of an edge
+     * If the middle node is created before, do nothing
+     * If the middle node does not exist, create a new one
+     */
+    void CreateNodeInEdge(
+        const EdgeType& rEdge,
+        const int& rRefinementLevel
+        );
+
+    /**
+     * Get the middle node on an edge and return a pointer to it
+     * CreateNodeInEdge should be executed before to ensure the node existance
+     */
+    Node<3>::Pointer GetNodeInEdge(const EdgeType& rEdge);
+
+    /**
      * Get the node between node_a and node_b
      * The two input nodes define an element edge
      * If the middle node exist, returns a pointer to the existing node
@@ -215,6 +245,16 @@ private:
     Node<3>::Pointer GetNodeBetween(
         const NodeType::Pointer pNode0,
         const NodeType::Pointer pNode1,
+        const int& rRefinementLevel
+        );
+
+    /**
+     * Create a node at the middle point of a face
+     * If the middle node is created before, do nothing
+     * If the middle node does not exist, create a new one
+     */
+    void CreateNodeInFace(
+        const FaceType& rFace,
         const int& rRefinementLevel
         );
 
