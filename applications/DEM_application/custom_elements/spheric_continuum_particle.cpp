@@ -230,6 +230,9 @@ namespace Kratos {
                                                                  double& RollingResistance)
     {
         KRATOS_TRY
+
+        NodeType& this_node = this->GetGeometry()[0];
+        DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mMyCoors, this_node)
         
         const int time_steps = r_process_info[TIME_STEPS];
         const int& search_control = r_process_info[SEARCH_CONTROL];
@@ -242,7 +245,7 @@ namespace Kratos {
         int NeighbourSize = mNeighbourElements.size();
         GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_SIZE) = NeighbourSize;
 
-        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+        for (int i = 0; data_buffer.SetNextNeighbourOrExit(i); ++i) {
 
             if (mNeighbourElements[i] == NULL) continue;
             if (this->Is(NEW_ENTITY) && mNeighbourElements[i]->Is(NEW_ENTITY)) continue;
@@ -289,7 +292,7 @@ namespace Kratos {
             double calculation_area = 0.0;
             const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
 
-            if (i < mContinuumInitialNeighborsSize) {
+            if (i < (int)mContinuumInitialNeighborsSize) {
                 mContinuumConstitutiveLawArray[i]->GetContactArea(GetRadius(), other_radius, cont_ini_neigh_area, i, calculation_area); //some Constitutive Laws get a value, some others calculate the value.
                 mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area, this, neighbour_iterator); 
             }
@@ -334,7 +337,7 @@ namespace Kratos {
             double LocalRelVel[3] = {0.0};
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
 
-            if (i < mContinuumInitialNeighborsSize) {
+            if (i < (int)mContinuumInitialNeighborsSize) {
 
                 mContinuumConstitutiveLawArray[i]->CheckFailure(i, this, neighbour_iterator);
                 
@@ -381,7 +384,7 @@ namespace Kratos {
             double LocalContactForce[3] = {0.0};
             double GlobalContactForce[3] = {0.0};
             
-            if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it.
+            if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < (int)mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it.
                 mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor, this, neighbour_iterator, r_process_info, i, indentation);
             }
 
@@ -393,7 +396,7 @@ namespace Kratos {
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMoments(LocalContactForce[2], TotalGlobalElasticContactForce, RollingResistance, LocalCoordSystem[2], data_buffer.mpOtherParticle, indentation);
-                if (i < mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
+                if (i < (int)mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
                     mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, data_buffer.mDistance, calculation_area,
                                                                                         LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
                 }
@@ -401,7 +404,7 @@ namespace Kratos {
                 AddUpMomentsAndProject(LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             }
 
-            if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
+            if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
                 double total_local_elastic_contact_force[3] = {0.0};
                 total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
                 total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
