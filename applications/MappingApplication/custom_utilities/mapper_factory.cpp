@@ -52,11 +52,12 @@ namespace Kratos
         else
         {
             std::stringstream err_msg;
-            err_msg << "The requested Mapper \"" << mapper_name <<"\" is not registered! The following mappers are registered:" << std::endl;
+            err_msg << "The requested Mapper \"" << mapper_name <<"\" is not not available!\n"
+                    << "The following Mappers are available:" << std::endl;
+
             for (auto const& registered_mapper : mapper_list)
-            {
-                err_msg << registered_mapper.first << ", ";
-            }
+                err_msg << "\t" << registered_mapper.first << "\n";
+
             KRATOS_ERROR << err_msg.str() << std::endl;
         }
     }

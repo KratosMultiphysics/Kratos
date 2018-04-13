@@ -131,15 +131,15 @@ namespace Kratos
             << "in a serial compilation!" << std::endl;
 #endif
 
-        ValidateParameters(MapperSettings);
-        mEchoLevel = MapperSettings["echo_level"].GetInt();
+        // ValidateParameters(MapperSettings);
+        // mEchoLevel = MapperSettings["echo_level"].GetInt();
 
-        mpInterfaceModelPart = Kratos::make_shared<ModelPart>("Mapper-Interface");
-        mpInterfacePreprocessor = Kratos::make_shared<InterfacePreprocessor>(mrModelPartDestination,
-                                                                             mpInterfaceModelPart);
+        // mpInterfaceModelPart = Kratos::make_shared<ModelPart>("Mapper-Interface");
+        // mpInterfacePreprocessor = Kratos::make_shared<InterfacePreprocessor>(mrModelPartDestination,
+        //                                                                      mpInterfaceModelPart);
 
-        GenerateInterfaceModelPart();
-        Initialize();
+        // GenerateInterfaceModelPart();
+        // Initialize();
     }
 
     void Mapper::Initialize()

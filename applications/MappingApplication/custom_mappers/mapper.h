@@ -481,7 +481,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    Mapper& operator=(Mapper const& rOther);
+    // Mapper& operator=(Mapper const& rOther) {}
 
     /// Copy constructor.
     //Mapper(Mapper const& rOther);
@@ -489,6 +489,17 @@ private:
     ///@}
 
 }; // Class Mapper
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                const Mapper& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 
 }  // namespace Kratos.
 

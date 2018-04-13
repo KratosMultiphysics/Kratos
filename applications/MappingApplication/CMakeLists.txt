@@ -38,6 +38,11 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
 set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS "")
 ## If we have mpi support, use it
 if(${MPI_NEEDED} MATCHES ON )
+
+    include_directories( ${CMAKE_SOURCE_DIR}/applications/trilinos_application )
+    find_package(TRILINOS REQUIRED)
+    include_directories(${TRILINOS_INCLUDE_DIR})
+
     set( KRATOS_MAPPING_APPLICATION_SOURCES_MPI
         # Searching
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure_mpi.cpp

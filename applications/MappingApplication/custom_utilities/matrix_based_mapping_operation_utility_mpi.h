@@ -19,9 +19,13 @@
 // System includes
 
 // External includes
+// #include "mpi.h"// included in "trilinos_space"
+#include "Epetra_FEVector.h"
+// #include "Epetra_FECrsMatrix.h" // included in "trilinos_space"
 
 // Project includes
 #include "includes/define.h"
+#include "trilinos_space.h"
 #include "mapping_operation_utility.h"
 
 
@@ -63,6 +67,8 @@ class MatrixBasedMappingOperationUtilityMPI : public MappingOperationUtility
 
     using BaseType = MappingOperationUtility;
     using ModelPartPointerType = BaseType::ModelPartPointerType;
+
+    using SparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
 
     ///@}
     ///@name Life Cycle
