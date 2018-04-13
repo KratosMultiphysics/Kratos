@@ -365,7 +365,7 @@ protected:
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     virtual InterfaceCommunicatorPointerType CreateMPIInterfaceCommunicator(
-        ModelPart& rModelPartOrigin, ModelPartPointerType, pInterfaceModelPart) const
+        ModelPart& rModelPartOrigin, ModelPartPointerType pInterfaceModelPart) const
     {
         return Kratos::make_shared<InterfaceCommunicatorMPI>(rModelPartOrigin, pInterfaceModelPart);
     }
@@ -373,7 +373,7 @@ protected:
     virtual MappingOperationUtilityPointerType CreateMPIMappingOperationUtility(
         ModelPartPointerType pInterfaceModelPart) const
     {   // here we could return the MatrixFree variant in the future
-        return Kratos::make_shared<MappingOperationUtilityMPI>(pInterfaceModelPart);
+        return Kratos::make_shared<MatrixBasedMappingOperationUtilityMPI>(pInterfaceModelPart);
     }
 #endif
 

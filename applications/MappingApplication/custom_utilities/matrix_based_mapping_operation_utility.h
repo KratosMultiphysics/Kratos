@@ -65,6 +65,8 @@ class MatrixBasedMappingOperationUtility : public MappingOperationUtility
     using BaseType = MappingOperationUtility;
     using ModelPartPointerType = BaseType::ModelPartPointerType;
 
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+
     ///@}
     ///@name Life Cycle
     ///@{

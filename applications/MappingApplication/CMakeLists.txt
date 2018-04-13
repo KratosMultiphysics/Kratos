@@ -5,43 +5,6 @@ message("**** configuring KratosMappingApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 # generate variables with the sources
-set( KRATOS_MAPPING_APPLICATION_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/mapping_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/mapping_application_variables.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/mapping_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_mappers_to_python.cpp
-    # Mappers
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/mapper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_neighbor_mapper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_element_mapper.cpp
-    # # Mapper Conditions
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mapper_conditions/nearest_neighbor_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mapper_conditions/nearest_element_condition.cpp
-    # # Searching
-    # ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/mapper_bounding_box.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/mapper_axis_aligned_bounding_box.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_object.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_node.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_geometry_object.cpp
-    # # Utilities
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_communicator.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_operation_utility.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocessor.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_factory.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_flags.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities.cpp
-
-    if(${MPI_NEEDED} MATCHES ON ) # MPI-Parallel compilation
-    #     # Searching
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure_mpi.cpp
-    #     # Utilities
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_communicator_mpi.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility_mpi.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities_mpi.cpp
-    endif(${MPI_NEEDED} MATCHES ON )
-)
 
 set( KRATOS_MAPPING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/mapping_application.cpp
@@ -75,7 +38,7 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
 set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS "")
 ## If we have mpi support, use it
 if(${MPI_NEEDED} MATCHES ON )
-    set( KRATOS_MAPPING_APPLICATION_SOURCES
+    set( KRATOS_MAPPING_APPLICATION_SOURCES_MPI
         # Searching
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure_mpi.cpp
         # Utilities
@@ -88,7 +51,7 @@ if(${MPI_NEEDED} MATCHES ON )
 endif(${MPI_NEEDED} MATCHES ON )
 
 # define library Kratos which defines the basic python interface
-pybind11_add_module(KratosMappingApplication MODULE ${KRATOS_MAPPING_APPLICATION_SOURCES})
+pybind11_add_module(KratosMappingApplication MODULE ${KRATOS_MAPPING_APPLICATION_SOURCES} ${KRATOS_MAPPING_APPLICATION_SOURCES_MPI})
 target_link_libraries(KratosMappingApplication PRIVATE KratosCore ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS})
 set_target_properties(KratosMappingApplication PROPERTIES PREFIX "")
 install(TARGETS KratosMappingApplication DESTINATION libs )
