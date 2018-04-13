@@ -18,14 +18,17 @@
 // External includes
 
 // Project includes
-#include "mapper_utilities_mpi.h"
+#include "mapper_axis_aligned_bounding_box.h"
 
 namespace Kratos
 {
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
+    MapperAxisAlignedBoundingBox::MapperAxisAlignedBoundingBox()
+    {
 
+    }
 
     /***********************************************************************************/
     /* PROTECTED Methods */

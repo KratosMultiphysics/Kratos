@@ -13,8 +13,8 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPING_OPERATION_UTILITY_H)
-#define  KRATOS_MAPPING_OPERATION_UTILITY_H
+#if !defined(KRATOS_MAPPER_BOUNDING_BOX_H)
+#define  KRATOS_MAPPER_BOUNDING_BOX_H
 
 // System includes
 
@@ -22,7 +22,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
 
 
 namespace Kratos
@@ -52,28 +51,24 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class MappingOperationUtility
+class MapperBoundingBox
 {
     public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of MappingOperationUtility
-    KRATOS_CLASS_POINTER_DEFINITION(MappingOperationUtility);
-
-    using ModelPartPointerType = ModelPart::Pointer;
-    using SizeType = std::size_t;
-    using IndexType = std::size_t;
+    /// Pointer definition of MapperBoundingBox
+    KRATOS_CLASS_POINTER_DEFINITION(MapperBoundingBox);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MappingOperationUtility(ModelPartPointerType pInterfaceModelPart);
+    MapperBoundingBox();
 
     /// Destructor.
-    virtual ~MappingOperationUtility() {}
+    virtual ~MapperBoundingBox() {}
 
 
     ///@}
@@ -84,25 +79,6 @@ class MappingOperationUtility
     ///@}
     ///@name Operations
     ///@{
-
-    virtual double GetMappingMatrixEntry(const IndexType RowIndex, const IndexType ColumnIndex)
-    {
-        return 1234.5;
-    }
-
-    virtual void ExecuteMapping(const Variable<double>& rOriginVariable,
-                                const Variable<double>& rDestinationVariable,
-                                Kratos::Flags MappingOptions)
-    {
-
-    }
-
-    virtual void ExecuteMapping(const Variable<array_1d<double, 3>>& rOriginVariable,
-                                const Variable<array_1d<double, 3>>& rDestinationVariable,
-                                Kratos::Flags MappingOptions)
-    {
-
-    }
 
 
     ///@}
@@ -122,14 +98,14 @@ class MappingOperationUtility
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "MappingOperationUtility";
+        return "MapperBoundingBox";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const {}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const{}
 
 
     ///@}
@@ -211,14 +187,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    // MappingOperationUtility& operator=(MappingOperationUtility const& rOther) {}
+    // MapperBoundingBox& operator=(MapperBoundingBox const& rOther){}
 
     /// Copy constructor.
-    MappingOperationUtility(MappingOperationUtility const& rOther) {}
+    MapperBoundingBox(MapperBoundingBox const& rOther){}
+
 
     ///@}
 
-    }; // Class MappingOperationUtility
+}; // Class MapperBoundingBox
 
 ///@}
 
@@ -231,10 +208,11 @@ private:
 ///@{
 
 
+
 ///@}
 
 ///@} addtogroup block
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MAPPING_OPERATION_UTILITY_H  defined
+#endif // KRATOS_MAPPER_BOUNDING_BOX_H  defined

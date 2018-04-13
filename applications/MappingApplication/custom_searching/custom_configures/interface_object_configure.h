@@ -32,8 +32,9 @@
 #include "containers/pointer_vector_set.h"
 #include "utilities/indexed_object.h"
 #include "utilities/contact_pair.h"
+// TODO check which includes are necessary!
 
-#include "custom_utilities/interface_object.h"
+#include "custom_searching/interface_object.h"
 
 namespace Kratos
 {

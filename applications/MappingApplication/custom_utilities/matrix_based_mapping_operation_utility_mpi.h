@@ -22,206 +22,197 @@
 
 // Project includes
 #include "includes/define.h"
+#include "mapping_operation_utility.h"
 
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class MatrixBasedMappingOperationUtilityMPI
-    {
+/// Short class definition.
+/** Detail class definition.
+*/
+class MatrixBasedMappingOperationUtilityMPI : public MappingOperationUtility
+{
     public:
-      ///@name Type Definitions
-      ///@{
+    ///@name Type Definitions
+    ///@{
 
-      /// Pointer definition of MatrixBasedMappingOperationUtilityMPI
-      KRATOS_CLASS_POINTER_DEFINITION(MatrixBasedMappingOperationUtilityMPI);
+    /// Pointer definition of MatrixBasedMappingOperationUtilityMPI
+    KRATOS_CLASS_POINTER_DEFINITION(MatrixBasedMappingOperationUtilityMPI);
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+    using BaseType = MappingOperationUtility;
+    using ModelPartPointerType = BaseType::ModelPartPointerType;
 
-      /// Default constructor.
-      MatrixBasedMappingOperationUtilityMPI();
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-      /// Destructor.
-      virtual ~MatrixBasedMappingOperationUtilityMPI();
+    /// Default constructor.
+    MatrixBasedMappingOperationUtilityMPI(ModelPartPointerType pInterfaceModelPart);
 
-
-      ///@}
-      ///@name Operators
-      ///@{
+    /// Destructor.
+    virtual ~MatrixBasedMappingOperationUtilityMPI() {}
 
 
-      ///@}
-      ///@name Operations
-      ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-      ///@}
-      ///@name Access
-      ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
 
-      ///@}
-      ///@name Inquiry
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
 
-      ///@}
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const;
-
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-      ///@}
-      ///@name Friends
-      ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "MatrixBasedMappingOperationUtilityMPI";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override {}
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override {}
+
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-      ///@}
+    ///@}
 
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected member Variables
-      ///@{
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operators
-      ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operations
-      ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-      ///@}
-      ///@name Protected  Access
-      ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-      ///@}
-
-    private:
-      ///@name Static Member Variables
-      ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-      ///@}
-      ///@name Member Variables
-      ///@{
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Private Operators
-      ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Private Operations
-      ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-      ///@}
-      ///@name Private  Access
-      ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-      ///@}
-      ///@name Private Inquiry
-      ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-      ///@}
-      ///@name Un accessible methods
-      ///@{
-
-      /// Assignment operator.
-      MatrixBasedMappingOperationUtilityMPI& operator=(MatrixBasedMappingOperationUtilityMPI const& rOther);
-
-      /// Copy constructor.
-      MatrixBasedMappingOperationUtilityMPI(MatrixBasedMappingOperationUtilityMPI const& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-      ///@}
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    // MatrixBasedMappingOperationUtilityMPI& operator=(MatrixBasedMappingOperationUtilityMPI const& rOther) {}
+
+    /// Copy constructor.
+    // MatrixBasedMappingOperationUtilityMPI(MatrixBasedMappingOperationUtilityMPI const& rOther) {}
+
+    ///@}
 
     }; // Class MatrixBasedMappingOperationUtilityMPI
 
-  ///@}
+///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@name Type Definitions
+///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    MatrixBasedMappingOperationUtilityMPI& rThis);
+///@}
+///@name Input and output
+///@{
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const MatrixBasedMappingOperationUtilityMPI& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
 
-      return rOStream;
-    }
-  ///@}
+///@}
 
-  ///@} addtogroup block
+///@} addtogroup block
 
 }  // namespace Kratos.
 

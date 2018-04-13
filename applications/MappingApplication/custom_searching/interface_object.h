@@ -13,7 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_INTERFACE_OBJECT_INCLUDED_H_INCLUDED )
+#if !defined(KRATOS_INTERFACE_OBJECT_INCLUDED_H_INCLUDED)
 #define  KRATOS_INTERFACE_OBJECT_INCLUDED_H_INCLUDED
 
 // System includes
@@ -23,8 +23,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
-#include "mapper_utilities.h"
-#include "../mapping_application_variables.h"
+#include "custom_utilities/mapper_utilities.h"
+#include "mapping_application_variables.h"
 
 
 namespace Kratos

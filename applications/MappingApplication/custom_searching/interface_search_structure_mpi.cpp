@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "interface_node.h"
+#include "interface_search_structure_mpi.h"
 
 namespace Kratos
 {
@@ -38,5 +38,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_FLAGS_CPP_INCLUDED  defined

@@ -22,206 +22,197 @@
 
 // Project includes
 #include "includes/define.h"
+#include "interface_communicator.h"
 
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class InterfaceCommunicatorMPI
-    {
+/// Short class definition.
+/** Detail class definition.
+*/
+class InterfaceCommunicatorMPI : public InterfaceCommunicator
+{
     public:
-      ///@name Type Definitions
-      ///@{
+    ///@name Type Definitions
+    ///@{
 
-      /// Pointer definition of InterfaceCommunicatorMPI
-      KRATOS_CLASS_POINTER_DEFINITION(InterfaceCommunicatorMPI);
+    /// Pointer definition of InterfaceCommunicatorMPI
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceCommunicatorMPI);
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-      /// Default constructor.
-      InterfaceCommunicatorMPI();
+    /// Default constructor.
+    InterfaceCommunicatorMPI(ModelPart& rModelPartOrigin,
+                             ModelPart::Pointer mpInterfaceModelPart);
 
-      /// Destructor.
-      virtual ~InterfaceCommunicatorMPI();
-
-
-      ///@}
-      ///@name Operators
-      ///@{
+    /// Destructor.
+    virtual ~InterfaceCommunicatorMPI() {}
 
 
-      ///@}
-      ///@name Operations
-      ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-      ///@}
-      ///@name Access
-      ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
 
-      ///@}
-      ///@name Inquiry
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
 
-      ///@}
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const;
-
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-      ///@}
-      ///@name Friends
-      ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-
-      ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operators
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operations
-      ///@{
-
-
-      ///@}
-      ///@name Protected  Access
-      ///@{
-
-
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
-
-
-      ///@}
-
-    private:
-      ///@name Static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Private Operators
-      ///@{
-
-
-      ///@}
-      ///@name Private Operations
-      ///@{
-
-
-      ///@}
-      ///@name Private  Access
-      ///@{
-
-
-      ///@}
-      ///@name Private Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Un accessible methods
-      ///@{
-
-      /// Assignment operator.
-      InterfaceCommunicatorMPI& operator=(InterfaceCommunicatorMPI const& rOther);
-
-      /// Copy constructor.
-      InterfaceCommunicatorMPI(InterfaceCommunicatorMPI const& rOther);
-
-
-      ///@}
-
-    }; // Class InterfaceCommunicatorMPI
-
-  ///@}
-
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
-
-
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    InterfaceCommunicatorMPI& rThis);
-
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const InterfaceCommunicatorMPI& rThis)
+    /// Turn back information as a string.
+    virtual std::string Info() const override
     {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
+        return "InterfaceCommunicatorMPI";
     }
-  ///@}
 
-  ///@} addtogroup block
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const override {}
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const override {}
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    // InterfaceCommunicatorMPI& operator=(InterfaceCommunicatorMPI const& rOther) {}
+
+    /// Copy constructor.
+    // InterfaceCommunicatorMPI(InterfaceCommunicatorMPI const& rOther) {}
+
+
+    ///@}
+
+}; // Class InterfaceCommunicatorMPI
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///@}
+
+///@} addtogroup block
 
 }  // namespace Kratos.
 

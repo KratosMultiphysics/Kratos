@@ -24,6 +24,8 @@
 #include "includes/define.h"
 #include "custom_utilities/interface_communicator.h"
 #include "custom_utilities/matrix_based_mapping_operation_utility.h"
+#include "custom_utilities/interface_preprocessor.h"
+#include "includes/kratos_parameters.h"
 // #include "custom_utilities/mapper_utilities.h"
 #include "custom_utilities/mapper_flags.h"
 
@@ -84,6 +86,10 @@ public:
 
     using InterfaceCommunicatorPointerType = InterfaceCommunicator::Pointer;
     using MappingOperationUtilityPointerType = MappingOperationUtility::Pointer;
+    using InterfacePreprocessorPointerType = InterfacePreprocessor::Pointer;
+    using ModelPartPointerType = ModelPart::Pointer;
+    using SizeType = std::size_t;
+    using IndexType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -138,20 +144,20 @@ public:
     // Developer function only being used if this class needs to be accessed from outside!
     InterfaceCommunicatorPointerType pGetInterfaceCommunicator()
     {
-        return mpInterfaceCommunicator
+        return mpInterfaceCommunicator;
     }
 
     // Developer function only being used if this class needs to be accessed from outside!
     MappingOperationUtilityPointerType pGetMappingOperatinUtility()
     {
-        return mpMappingOperationUtility
+        return mpMappingOperationUtility;
     }
 
     // Developer function only being used if this class needs to be accessed from outside!
     // can be overridden in case it is needed (e.g. for Mortar where Mdd != I !)
     virtual double GetMappingMatrixEntry(const IndexType RowIndex, const IndexType ColumnIndex)
     {
-        return mpMappingOperationUtility->GetMappingMatrixValue(RowIndex, ColumnIndex)
+        return mpMappingOperationUtility->GetMappingMatrixEntry(RowIndex, ColumnIndex);
     }
 
     ///@}
@@ -215,6 +221,8 @@ protected:
     MappingOperationUtilityPointerType mpMappingOperationUtility;
     InterfacePreprocessorPointerType mpInterfacePreprocessor;
     ModelPartPointerType mpInterfaceModelPart;
+
+    Mapper::Pointer mpInverseMapper;
 
     // global, aka of the entire submodel-parts
     // int mNumConditionsOrigin;
@@ -308,7 +316,7 @@ protected:
         {
             mpMappingOperationUtility->ExecuteMapping(rOriginVariable,
                                                       rDestinationVariable,
-                                                      MappingOptions)
+                                                      MappingOptions);
         }
     }
 
@@ -344,7 +352,7 @@ protected:
     }
 
     virtual InterfaceCommunicatorPointerType CreateInterfaceCommunicator(
-        ModelPart& rModelPartOrigin, ModelPartPointerType, pInterfaceModelPart) const
+        ModelPart& rModelPartOrigin, ModelPartPointerType pInterfaceModelPart) const
     {
         return Kratos::make_shared<InterfaceCommunicator>(rModelPartOrigin, pInterfaceModelPart);
     }
@@ -371,9 +379,9 @@ protected:
 
     void InitializeInverseMapper()
     {
-        mpInverseMapper = Clone(mModelPartDestination, // TODO needs "this->" ?
-                                mModelPartOrigin,
-                                mJsonParameters, // TODO how to handle this ...?
+        mpInverseMapper = Clone(mrModelPartDestination, // TODO needs "this->" ?
+                                mrModelPartOrigin,
+                                mGeneralMapperSettings, // TODO how to handle this ...?
                                 mIsMPIExecution);
 
         mInverseMapperIsInitialized = true;
@@ -383,7 +391,7 @@ protected:
     This function return information abt how the interface has to be constructed.
     This information is specific to every mapper!
     */
-    Parameters GetInterfaceParameters() = 0;
+    virtual Parameters GetInterfaceParameters() = 0;
 
 
 

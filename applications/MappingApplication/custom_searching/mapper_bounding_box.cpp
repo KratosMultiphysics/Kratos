@@ -18,14 +18,17 @@
 // External includes
 
 // Project includes
-#include "interface_search_structure_mpi.h"
+#include "mapper_bounding_box.h"
 
 namespace Kratos
 {
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
+    MapperBoundingBox::MapperBoundingBox()
+    {
 
+    }
 
     /***********************************************************************************/
     /* PROTECTED Methods */
@@ -38,5 +41,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_FLAGS_CPP_INCLUDED  defined

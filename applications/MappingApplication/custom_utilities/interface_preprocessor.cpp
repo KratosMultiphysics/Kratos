@@ -18,15 +18,23 @@
 // External includes
 
 // Project includes
-#include "mapper_bounding_box.h"
+#include "interface_preprocessor.h"
 
 namespace Kratos
 {
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
+    InterfacePreprocessor::InterfacePreprocessor(ModelPart& rModelPartDestination,
+                                                 ModelPartPointerType pInterfaceModelPart)
+    {
 
+    }
 
+    void InterfacePreprocessor::GenerateInterfaceModelPart(Parameters Interfaceparameters)
+    {
+
+    }
     /***********************************************************************************/
     /* PROTECTED Methods */
     /***********************************************************************************/
@@ -38,5 +46,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_FLAGS_CPP_INCLUDED  defined

@@ -27,9 +27,5 @@ KRATOS_CREATE_LOCAL_FLAG( MapperFlags, SWAP_SIGN,                0 );
 KRATOS_CREATE_LOCAL_FLAG( MapperFlags, ADD_VALUES,               1 );
 KRATOS_CREATE_LOCAL_FLAG( MapperFlags, CONSERVATIVE,             2 );
 KRATOS_CREATE_LOCAL_FLAG( MapperFlags, REMESHED,                 3 );
-KRATOS_CREATE_LOCAL_FLAG( MapperFlags, NON_CONFORMING_INTERFACE, 4 );
-KRATOS_CREATE_LOCAL_FLAG( MapperFlags, INTERPOLATE_VALUES,       5 );
-KRATOS_CREATE_LOCAL_FLAG( MapperFlags, NON_HISTORICAL_DATA,      6 );
+KRATOS_CREATE_LOCAL_FLAG( MapperFlags, USE_TRANSPOSE,            4 );  // This flag is used internally for conservative mapping
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_FLAGS_CPP_INCLUDED  defined

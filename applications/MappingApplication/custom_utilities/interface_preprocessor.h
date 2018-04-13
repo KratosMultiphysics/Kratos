@@ -13,19 +13,17 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPER_FACTORY_H_INCLUDED )
-#define  KRATOS_MAPPER_FACTORY_H_INCLUDED
+#if !defined(KRATOS_INTERFACE_PREPROCESSOR_H)
+#define  KRATOS_INTERFACE_PREPROCESSOR_H
 
 // System includes
-#include <unordered_map>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-
-#include "custom_mappers/mapper.h"
 
 
 namespace Kratos
@@ -52,27 +50,29 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Python Interface of the MappingApplication
-/** This class constructs the mappers and exposes them to Python
-* Some checks are performed to see if the Input (ModelParts and JSON-Parameters) are valid
-* For information abt the available echo_levels and the JSON default-parameters
-* look into the class description of the MapperCommunicator
+/// Short class definition.
+/** Detail class definition.
 */
-class MapperFactory
+class InterfacePreprocessor
 {
-public:
+    public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of MapperFactory
-    KRATOS_CLASS_POINTER_DEFINITION(MapperFactory);
+    /// Pointer definition of InterfacePreprocessor
+    KRATOS_CLASS_POINTER_DEFINITION(InterfacePreprocessor);
+
+    using ModelPartPointerType = ModelPart::Pointer;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
+    /// Default constructor.
+    InterfacePreprocessor(ModelPart& rModelPartDestination, ModelPartPointerType pInterfaceModelPart);
+
     /// Destructor.
-    virtual ~MapperFactory() { }
+    virtual ~InterfacePreprocessor() {}
 
 
     ///@}
@@ -84,13 +84,7 @@ public:
     ///@name Operations
     ///@{
 
-
-    static Mapper::Pointer CreateMapper(ModelPart& rModelPartOrigin,
-                                        ModelPart& rModelPartDestination,
-                                        Parameters MapperSettings);
-
-    static void Register(const std::string& rMapperName,
-                         Mapper::Pointer pMapperPrototype);
+    void GenerateInterfaceModelPart(Parameters Interfaceparameters);
 
 
     ///@}
@@ -110,16 +104,11 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        std::stringstream buffer;
-        buffer << "MapperFactory" ;
-        return buffer.str();
+        return "InterfacePreprocessor";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "MapperFactory";
-    }
+    virtual void PrintInfo(std::ostream& rOStream) const {}
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
@@ -188,16 +177,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    /// Default constructor.
-    MapperFactory() {}
-
-    static ModelPart& ReadInterfaceModelPart(ModelPart& rModelPart,
-                                             Parameters InterfaceParameters,
-                                             const std::string& InterfaceSide);
-
-    static std::unordered_map<std::string, Mapper::Pointer>& GetRegisteredMappersList();
-
-    static bool GetIsMPIExecution();
 
     ///@}
     ///@name Private  Access
@@ -206,7 +185,7 @@ private:
 
     ///@}
     ///@name Private Inquiry
-    ///@{s
+    ///@{
 
 
     ///@}
@@ -214,15 +193,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    MapperFactory& operator=(MapperFactory const& rOther);
+    // InterfacePreprocessor& operator=(InterfacePreprocessor const& rOther) {}
 
-    //   /// Copy constructor.
-    //   MapperFactory(MapperFactory const& rOther){}
-
+    /// Copy constructor.
+    InterfacePreprocessor(InterfacePreprocessor const& rOther) {}
 
     ///@}
 
-}; // Class MapperFactory
+    }; // Class InterfacePreprocessor
 
 ///@}
 
@@ -235,27 +213,10 @@ private:
 ///@{
 
 
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  MapperFactory& rThis)
-{
-    return rIStream;
-}
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MapperFactory& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 ///@}
 
 ///@} addtogroup block
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MAPPER_FACTORY_H_INCLUDED  defined
+#endif // KRATOS_INTERFACE_PREPROCESSOR_H  defined

@@ -64,6 +64,8 @@ public:
     /// Pointer definition of MapperUtilitiesMPI
     KRATOS_CLASS_POINTER_DEFINITION(MapperUtilitiesMPI);
 
+    using GraphType = matrix<int>; // GraphColoringProcess
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -233,7 +235,7 @@ public:
         MapperUtilities::ComputeBoundingBoxWithTolerance(pLocalBoundingBox,
                 Tolerance,
                 local_bounding_box_tol);
-        
+
         if (EchoLevel >= 3)
         {
             MapperUtilitiesMPI::PrintRankLocalBoundingBox(local_bounding_box_tol, CommRank);

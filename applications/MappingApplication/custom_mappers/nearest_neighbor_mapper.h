@@ -84,11 +84,11 @@ public:
                                    JsonParameters,
                                    IsMPIExecution)
     {
-        mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node_Coords);
-        mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
-        mpMapperCommunicator->Initialize();
+        // mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node_Coords);
+        // mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
+        // mpMapperCommunicator->Initialize();
 
-        mpInverseMapper.reset(); // explicitly specified to be safe
+        // mpInverseMapper.reset(); // explicitly specified to be safe
     }
 
     /// Destructor.
@@ -104,120 +104,16 @@ public:
 
     void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius) override
     {
-        mpMapperCommunicator->UpdateInterface(MappingOptions, SearchRadius);
-        if (mpInverseMapper)
-        {
-            mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
-        }
+        // mpMapperCommunicator->UpdateInterface(MappingOptions, SearchRadius);
+        // if (mpInverseMapper)
+        // {
+        //     mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
+        // }
 
-        if (MappingOptions.Is(MapperFlags::REMESHED))
-        {
-            ComputeNumberOfNodesAndConditions();
-        }
-    }
-
-    /* This function maps from Origin to Destination */
-    void Map(const Variable<double>& rOriginVariable,
-             const Variable<double>& rDestinationVariable,
-             Kratos::Flags MappingOptions) override
-    {
-        double factor = 1.0f;
-
-        if (MappingOptions.Is(MapperFlags::CONSERVATIVE))
-        {
-            factor = MapperUtilities::ComputeConservativeFactor(
-                         mNumNodesOrigin,
-                         mNumNodesDestination);
-        }
-
-        ProcessMappingOptions(MappingOptions, factor);
-
-        // Creating the function pointers for the InterfaceObjects
-        auto function_pointer_origin = std::bind(&GetValueOfNode<double>,
-                                       std::placeholders::_1,
-                                       rOriginVariable,
-                                       MappingOptions,
-                                       std::placeholders::_2);
-
-        auto function_pointer_destination = std::bind(&SetValueOfNode<double>,
-                                            std::placeholders::_1,
-                                            std::placeholders::_2,
-                                            rDestinationVariable,
-                                            MappingOptions,
-                                            factor);
-
-        mpMapperCommunicator->TransferVariableData(function_pointer_origin,
-                function_pointer_destination,
-                rOriginVariable);
-    }
-
-    /* This function maps from Origin to Destination */
-    void Map(const Variable< array_1d<double, 3> >& rOriginVariable,
-             const Variable< array_1d<double, 3> >& rDestinationVariable,
-             Kratos::Flags MappingOptions) override
-    {
-        double factor = 1.0f;
-
-        if (MappingOptions.Is(MapperFlags::CONSERVATIVE))
-        {
-            factor = MapperUtilities::ComputeConservativeFactor(
-                         mNumNodesOrigin,
-                         mNumNodesDestination);
-        }
-
-        ProcessMappingOptions(MappingOptions, factor);
-
-        // Creating the function pointers for the InterfaceObjects
-        auto function_pointer_origin = std::bind(&GetValueOfNode< array_1d<double, 3> >,
-                                       std::placeholders::_1,
-                                       rOriginVariable,
-                                       MappingOptions,
-                                       std::placeholders::_2);
-
-        auto function_pointer_destination = std::bind(&SetValueOfNode< array_1d<double, 3> >,
-                                            std::placeholders::_1,
-                                            std::placeholders::_2,
-                                            rDestinationVariable,
-                                            MappingOptions,
-                                            factor);
-
-        mpMapperCommunicator->TransferVariableData(function_pointer_origin,
-                function_pointer_destination,
-                rOriginVariable);
-    }
-
-    /* This function maps from Destination to Origin */
-    void InverseMap(const Variable<double>& rOriginVariable,
-                    const Variable<double>& rDestinationVariable,
-                    Kratos::Flags MappingOptions) override
-    {
-        // Construct the inverse mapper if it hasn't been done before
-        // It is constructed with the order of the model_parts changed!
-        if (!mpInverseMapper)
-        {
-            mpInverseMapper = this->Clone(mModelPartDestination,
-                                          mModelPartOrigin,
-                                          mJsonParameters,
-                                          mIsMPIExecution);
-        }
-        mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-    }
-
-    /* This function maps from Destination to Origin */
-    void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
-                    const Variable< array_1d<double, 3> >& rDestinationVariable,
-                    Kratos::Flags MappingOptions) override
-    {
-        // Construct the inverse mapper if it hasn't been done before
-        // It is constructed with the order of the model_parts changed!
-        if (!mpInverseMapper)
-        {
-            mpInverseMapper = this->Clone(mModelPartDestination,
-                                          mModelPartOrigin,
-                                          mJsonParameters,
-                                          mIsMPIExecution);
-        }
-        mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        // if (MappingOptions.Is(MapperFlags::REMESHED))
+        // {
+        //     ComputeNumberOfNodesAndConditions();
+        // }
     }
 
     Mapper::Pointer Clone(ModelPart& rModelPartOrigin,
@@ -244,19 +140,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "NearestNeighborMapper";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "NearestNeighborMapper";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -283,6 +179,17 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    Parameters GetInterfaceParameters() override
+    {
+        Parameters mapper_interface_parameters = Parameters( R"(
+        {
+            "mapper_condition_name" : "",
+            "use_nodes"      : true
+        }  )" );
+
+        return mapper_interface_parameters;
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -306,8 +213,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    Mapper::Pointer mpInverseMapper;
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -316,36 +221,36 @@ private:
     ///@name Private Operations
     ///@{
 
-    template <typename T>
-    static T GetValueOfNode(InterfaceObject::Pointer pInterfaceObject, //TODO const
-                            const Variable< T >& rVariable,
-                            const Kratos::Flags& rOptions,
-                            const std::vector<double>& rShapeFunctionValues)
-    {
-        Node<3>* p_base_node = pInterfaceObject->pGetBaseNode();
+    // template <typename T>
+    // static T GetValueOfNode(InterfaceObject::Pointer pInterfaceObject, //TODO const
+    //                         const Variable< T >& rVariable,
+    //                         const Kratos::Flags& rOptions,
+    //                         const std::vector<double>& rShapeFunctionValues)
+    // {
+    //     Node<3>* p_base_node = pInterfaceObject->pGetBaseNode();
 
-        return p_base_node->FastGetSolutionStepValue(rVariable);
-    }
+    //     return p_base_node->FastGetSolutionStepValue(rVariable);
+    // }
 
 
-    template <typename T>
-    static void SetValueOfNode(InterfaceObject::Pointer pInterfaceObject,
-                               const T& rValue,
-                               const Variable< T >& rVariable,
-                               const Kratos::Flags& rOptions,
-                               const double Factor)
-    {
-        Node<3>* p_base_node = pInterfaceObject->pGetBaseNode();
+    // template <typename T>
+    // static void SetValueOfNode(InterfaceObject::Pointer pInterfaceObject,
+    //                            const T& rValue,
+    //                            const Variable< T >& rVariable,
+    //                            const Kratos::Flags& rOptions,
+    //                            const double Factor)
+    // {
+    //     Node<3>* p_base_node = pInterfaceObject->pGetBaseNode();
 
-        if (rOptions.Is(MapperFlags::ADD_VALUES))
-        {
-            p_base_node->FastGetSolutionStepValue(rVariable) += rValue * Factor;
-        }
-        else
-        {
-            p_base_node->FastGetSolutionStepValue(rVariable) = rValue * Factor;
-        }
-    }
+    //     if (rOptions.Is(MapperFlags::ADD_VALUES))
+    //     {
+    //         p_base_node->FastGetSolutionStepValue(rVariable) += rValue * Factor;
+    //     }
+    //     else
+    //     {
+    //         p_base_node->FastGetSolutionStepValue(rVariable) = rValue * Factor;
+    //     }
+    // }
 
     ///@}
     ///@name Private  Access
@@ -360,7 +265,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    NearestNeighborMapper& operator=(NearestNeighborMapper const& rOther);
+    // NearestNeighborMapper& operator=(NearestNeighborMapper const& rOther) {}
 
     /// Copy constructor.
     //NearestNeighborMapper(NearestNeighborMapper const& rOther);
@@ -381,23 +286,6 @@ private:
 /// input stream function
 
 
-inline std::istream & operator >>(std::istream& rIStream,
-                                  NearestNeighborMapper& rThis)
-{
-    return rIStream;
-}
-
-/// output stream function
-
-inline std::ostream & operator <<(std::ostream& rOStream,
-                                  const NearestNeighborMapper& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 ///@}
 
 ///@} addtogroup block

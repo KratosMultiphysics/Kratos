@@ -25,7 +25,11 @@ namespace Kratos
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
+    InterfaceCommunicator::InterfaceCommunicator(ModelPart& rModelPartOrigin,
+                                                 ModelPart::Pointer mpInterfaceModelPart)
+    {
 
+    }
 
     /***********************************************************************************/
     /* PROTECTED Methods */
@@ -38,5 +42,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_FLAGS_CPP_INCLUDED  defined

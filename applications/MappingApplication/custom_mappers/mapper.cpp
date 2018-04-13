@@ -34,14 +34,14 @@ namespace Kratos
                      const Variable<double>& rDestinationVariable,
                      Kratos::Flags MappingOptions)
     {
-        TMap(rOriginVariable, rDestinationVariable, MappingOptions)
+        TMap(rOriginVariable, rDestinationVariable, MappingOptions);
     }
 
     void Mapper::Map(const Variable< array_1d<double, 3> >& rOriginVariable,
                      const Variable< array_1d<double, 3> >& rDestinationVariable,
                      Kratos::Flags MappingOptions)
     {
-        TMap(rOriginVariable, rDestinationVariable, MappingOptions)
+        TMap(rOriginVariable, rDestinationVariable, MappingOptions);
         // if (MappingOptions.Is(MapperFlags::CONSERVATIVE))
         // {
         //     MappingOptions.Reset(MapperFlags::CONSERVATIVE); // TODO test this!!!
@@ -104,14 +104,14 @@ namespace Kratos
                             const Variable<double>& rDestinationVariable,
                             Kratos::Flags MappingOptions)
     {
-        TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions)
+        TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
     }
 
     void Mapper::InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
                             const Variable< array_1d<double, 3> >& rDestinationVariable,
                             Kratos::Flags MappingOptions)
     {
-        TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions)
+        TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
     }
 
 
@@ -132,12 +132,11 @@ namespace Kratos
 #endif
 
         ValidateParameters(MapperSettings);
-        mEchoLevel = JsonParameters["echo_level"].GetInt();
-
+        mEchoLevel = MapperSettings["echo_level"].GetInt();
 
         mpInterfaceModelPart = Kratos::make_shared<ModelPart>("Mapper-Interface");
-        mpInterfacePreprocessor = Kratos::make_shared<InterfacePreprocessor>(this->mrModelPartDestination,
-                                                                             this->mpInterfaceModelPart) );
+        mpInterfacePreprocessor = Kratos::make_shared<InterfacePreprocessor>(mrModelPartDestination,
+                                                                             mpInterfaceModelPart);
 
         GenerateInterfaceModelPart();
         Initialize();
@@ -189,5 +188,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_FLAGS_CPP_INCLUDED  defined

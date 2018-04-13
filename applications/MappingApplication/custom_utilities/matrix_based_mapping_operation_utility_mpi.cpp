@@ -25,7 +25,10 @@ namespace Kratos
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
-
+    MatrixBasedMappingOperationUtilityMPI::MatrixBasedMappingOperationUtilityMPI(
+        ModelPartPointerType pInterfaceModelPart)
+        : MappingOperationUtility(pInterfaceModelPart)
+    {}
 
     /***********************************************************************************/
     /* PROTECTED Methods */
@@ -38,5 +41,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_FLAGS_CPP_INCLUDED  defined
