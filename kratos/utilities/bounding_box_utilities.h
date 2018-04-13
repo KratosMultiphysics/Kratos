@@ -209,7 +209,7 @@ public:
 
 
     BoundingBoxUtilities() {}
-    BoundingBoxUtilities(ModelPart& model_part, const unsigned int& dimension) : mr_model_part(model_part), mrdimension(dimension)
+    BoundingBoxUtilities(ModelPart& model_part, const unsigned int& dimension) : mr_model_part(model_part)
     {
     }
 
