@@ -876,12 +876,13 @@ void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(NodeType& nod
 
     else if (mMagnusForceType == 3){ // Loth, 2008 (Re_p < 2000; nondimensional_slip_rot_vel < 20)
         // calculate as in Rubinow and Keller, 1963
-        lift_force = Globals::Pi * SWIMMING_POW_3(mRadius) * mFluidDensity * slip_rot_cross_slip_vel;
+        noalias(lift_force) = Globals::Pi * SWIMMING_POW_3(mRadius) * mFluidDensity * slip_rot_cross_slip_vel;
         // correct coefficient
         double reynolds;
         ComputeParticleReynoldsNumber(reynolds);
         const double nondimensional_slip_rot_vel = ComputeNondimensionalRotVelocity(slip_rot);
         const double coeff = 1 - (0.675 + 0.15 * (1 + std::tanh(0.28 * (nondimensional_slip_rot_vel - 2)))) * std::tanh(0.18 * std::sqrt(reynolds));
+
         noalias(lift_force) = coeff * lift_force;
     }
 
@@ -982,7 +983,13 @@ void SphericSwimmingParticle<TBaseElement>::ComputePowerLawParticleReynoldsNumbe
 template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeNondimensionalRotVelocity(const array_1d<double, 3>& slip_rot_velocity)
 {
-    return 2.0 * mRadius * mNormOfSlipVel / std::sqrt(SWIMMING_INNER_PRODUCT_3(slip_rot_velocity, slip_rot_velocity));
+    if (mNormOfSlipVel > 0){
+        return 2.0 * mRadius * SWIMMING_MODULUS_3(slip_rot_velocity) / mNormOfSlipVel;
+    }
+
+    else {
+        return 0.0;
+    }
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************

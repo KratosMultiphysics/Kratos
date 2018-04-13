@@ -20,6 +20,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "containers/data_value_container.h"
 
 // Application includes
 #include "custom_io/hdf5_file.h"
@@ -64,12 +65,18 @@ class TestModelPartFactory
             std::vector<std::string> const& rConditions = {},
             std::vector<std::string> const& rNodalVariables = {});
 
+        static void AssignNonHistoricalNodalTestData(ModelPart& rTestModelPart,
+                                                     std::vector<std::string> const& rNodalVariables = {});
+
+        static void AssignDataValueContainer(DataValueContainer& rData,
+                                             std::vector<std::string> const& rVariables = {});
+
     private:
         explicit TestModelPartFactory(ModelPart& rTestModelPart);
 
-        std::size_t AddNodes(std::size_t NumNodes);
-
         void AddNodalVariables(std::vector<std::string> const& rNodalVariables);
+
+        std::size_t AddNodes(std::size_t NumNodes);
 
         void SetBufferSize(std::size_t BufferSize);
 
@@ -81,6 +88,14 @@ class TestModelPartFactory
 
         void AddSubModelParts();
 
+        void AddEmptySubModelPart();
+
+        void AddElementsSubModelPart();
+
+        void AddConditionsSubModelPart();
+
+        void AddElementsAndConditionsSubModelPart();
+
         ModelPart& mrTestModelPart;
 };
 
@@ -91,6 +106,11 @@ void CompareElements(HDF5::ElementsContainerType& rElements1, HDF5::ElementsCont
 void CompareConditions(HDF5::ConditionsContainerType& rConditions1, HDF5::ConditionsContainerType& rConditions2);
 
 void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2);
+
+void CompareDataValueContainers(DataValueContainer const& rData1, DataValueContainer const& rData2);
+
+void CompareNonHistoricalNodalData(HDF5::NodesContainerType& rNodes1,
+                                   HDF5::NodesContainerType& rNodes2);
 
 HDF5::File::Pointer pGetTestSerialFile();
 

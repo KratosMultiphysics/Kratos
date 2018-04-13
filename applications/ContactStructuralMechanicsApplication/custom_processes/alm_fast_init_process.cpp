@@ -46,6 +46,7 @@ void ALMFastInit::Execute()
         it_node->SetValue(INITIAL_PENALTY, epsilon);
         
         // Auxiliar values
+        it_node->SetValue(DYNAMIC_FACTOR, 1.0);
         it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
         if (is_frictional == true)
             it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, 0.0);
@@ -57,7 +58,6 @@ void ALMFastInit::Execute()
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
         (conditions_array.begin() + i)->SetValue(NORMAL, ZeroVector(3)); // The normal and tangents vectors
-
 
     KRATOS_CATCH("");
 } // class ALMFastInit

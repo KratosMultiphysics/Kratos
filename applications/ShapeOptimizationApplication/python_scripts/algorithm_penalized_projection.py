@@ -12,37 +12,24 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
+# Kratos Core and Apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
-# Import algorithm base classes
-from algorithm_base import OptimizationAlgorithm
-
 # Additional imports
-import timer_factory as timer_factory
+from algorithm_base import OptimizationAlgorithm
+import mapper_factory
+import data_logger_factory
+from custom_timer import Timer
 
 # ==============================================================================
 class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
-
     # --------------------------------------------------------------------------
-    def __init__( self,
-                  ModelPartController,
-                  Analyzer,
-                  Communicator,
-                  Mapper,
-                  DataLogger,
-                  OptimizationSettings ):
-
+    def __init__( self, OptimizationSettings, ModelPartController, Analyzer, Communicator ):
+        self.OptimizationSettings = OptimizationSettings
         self.ModelPartController = ModelPartController
         self.Analyzer = Analyzer
         self.Communicator = Communicator
-        self.Mapper = Mapper
-        self.DataLogger = DataLogger
-        self.OptimizationSettings = OptimizationSettings
 
         self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
         self.DesignSurface = ModelPartController.GetDesignSurface()
@@ -54,6 +41,9 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.dampingIsSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
         self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
 
+        self.Mapper = mapper_factory.CreateMapper( ModelPartController, OptimizationSettings )
+        self.DataLogger = data_logger_factory.CreateDataLogger( ModelPartController, Communicator, OptimizationSettings )
+
         self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
         self.OptimizationUtilities = OptimizationUtilities( self.DesignSurface, OptimizationSettings )
         if self.dampingIsSpecified:
@@ -61,25 +51,22 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
 
     # --------------------------------------------------------------------------
-    def execute( self ):
-        self.__initializeOptimizationLoop()
-        self.__runOptimizationLoop()
-        self.__finalizeOptimizationLoop()
-
-    # --------------------------------------------------------------------------
-    def __initializeOptimizationLoop( self ):
-        self.Analyzer.initializeBeforeOptimizationLoop()
+    def InitializeOptimizationLoop( self ):
+        self.Analyzer.InitializeBeforeOptimizationLoop()
         self.ModelPartController.InitializeMeshController()
-        self.DataLogger.StartTimer()
         self.DataLogger.InitializeDataLogging()
 
     # --------------------------------------------------------------------------
-    def __runOptimizationLoop( self ):
+    def RunOptimizationLoop( self ):
+        timer = Timer()
+        timer.StartTimer()
 
         for self.optimizationIteration in range(1,self.maxIterations):
             print("\n>===================================================================")
-            print("> ",self.DataLogger.GetTimeStamp(),": Starting optimization iteration ", self.optimizationIteration)
+            print("> ",timer.GetTimeStamp(),": Starting optimization iteration ", self.optimizationIteration)
             print(">===================================================================\n")
+
+            timer.StartNewLap()
 
             self.__initializeNewShape()
 
@@ -98,7 +85,8 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
             self.__logCurrentOptimizationStep()
 
-            self.__timeOptimizationStep()
+            print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
             if self.__isAlgorithmConverged():
                 break
@@ -106,13 +94,12 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
                 self.__determineAbsoluteChanges()
 
     # --------------------------------------------------------------------------
-    def __finalizeOptimizationLoop( self ):
+    def FinalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
-        self.Analyzer.finalizeAfterOptimizationLoop()
+        self.Analyzer.FinalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
     def __initializeNewShape( self ):
-        self.ModelPartController.CloneTimeStep( self.optimizationIteration )
         self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
         self.ModelPartController.SetReferenceMeshToMesh()
 
@@ -124,7 +111,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.Communicator.requestGradientOf( self.onlyObjectiveId )
         self.Communicator.requestGradientOf( self.onlyConstraintId )
 
-        self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, self.optimizationIteration, self.Communicator )
+        self.Analyzer.AnalyzeDesignAndReportToCommunicator( self.DesignSurface, self.optimizationIteration, self.Communicator )
 
         self.__storeResultOfSensitivityAnalysisOnNodes()
         self.__RevertPossibleShapeModificationsDuringAnalysis()
@@ -194,11 +181,6 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep( self ):
         self.DataLogger.LogCurrentData( self.optimizationIteration )
-
-    # --------------------------------------------------------------------------
-    def __timeOptimizationStep( self ):
-        print("\n> Time needed for current optimization step = ", self.DataLogger.GetLapTime(), "s")
-        print("> Time needed for total optimization so far = ", self.DataLogger.GetTotalTime(), "s")
 
     # --------------------------------------------------------------------------
     def __isAlgorithmConverged( self ):

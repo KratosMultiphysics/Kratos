@@ -30,7 +30,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(2).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
-        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility2D2N(1)
+        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility2D2N(2)
 
         # Line 2
         model_part.CreateNewNode(3, 0.00, 0.001, 0.00)
@@ -75,7 +75,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(2).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
-        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility2D2N(1)
+        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility2D2N(2)
 
         # Line 2
         model_part.CreateNewNode(3, 0.50, 0.001, 0.00)
@@ -121,7 +121,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(2).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
-        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility2D2N(1)
+        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility2D2N(2)
 
         # Line 2
         model_part.CreateNewNode(3, 0.0, 0.5, 0.00)

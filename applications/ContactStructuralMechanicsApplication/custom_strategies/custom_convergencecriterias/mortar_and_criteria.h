@@ -46,28 +46,12 @@ namespace Kratos
 ///@name Kratos Classes 
 ///@{
 
-/** Short class definition.
-Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-*/
-
+/** 
+ * @class MortarAndConvergenceCriteria 
+ * @ingroup ContactStructuralMechanicsApplication 
+ * @brief Custom AND convergence criteria for the mortar condition
+ * @author Vicente Mataix Ferrandiz 
+ */
 template<class TSparseSpace,
          class TDenseSpace
          >
@@ -105,6 +89,8 @@ public:
     typedef TableStreamUtility::Pointer               TablePrinterPointerType;
     
     typedef ConditionNumberUtility::Pointer ConditionNumberUtilityPointerType;
+    
+    typedef std::size_t                                             IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -151,7 +137,7 @@ public:
     ///@{
 
     /**
-     * Criteria that need to be called after getting the solution
+     * @brief Criteria that need to be called after getting the solution
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -170,23 +156,19 @@ public:
     {
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             if (mpTable != nullptr)
-                mpTable->AddToRow<unsigned int>(rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]);
+                mpTable->AddToRow<IndexType>(rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]);
         
         bool criterion_result = BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
         
-        if (mpConditionNumberUtility != nullptr)
-        {
+        if (mpConditionNumberUtility != nullptr) {
             TSystemMatrixType copy_A; // NOTE: Can not be const, TODO: Change the solvers to const
             const double condition_number = mpConditionNumberUtility->GetConditionNumber(copy_A);
             
-            if (mpTable != nullptr)
-            {
+            if (mpTable != nullptr) {
                 std::cout.precision(4);
                 auto& Table = mpTable->GetTable();
                 Table  << condition_number;
-            }
-            else
-            {
+            } else {
                 if (mPrintingOutput == false)
                     std::cout << "\n" << BOLDFONT("CONDITION NUMBER:") << "\t " << std::scientific << condition_number << std::endl;
                 else
@@ -202,14 +184,13 @@ public:
     }
 
     /**
-     * This function initialize the convergence criteria
+     * @brief This function initialize the convergence criteria
      * @param rModelPart The model part of interest
      */ 
     
     void Initialize(ModelPart& rModelPart) override
     {
-        if (mpTable != nullptr && mTableIsInitialized == false)
-        {
+        if (mpTable != nullptr && mTableIsInitialized == false) {
             (mpTable->GetTable()).SetBold(!mPrintingOutput);
             (mpTable->GetTable()).AddColumn("ITER", 4);
         }
@@ -222,7 +203,7 @@ public:
     }
 
     /**
-     * This function initializes the solution step
+     * @brief This function initializes the solution step
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -238,8 +219,7 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-        {
+        if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
             std::cout.precision(4);
             if (mPrintingOutput == false)
                 std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
@@ -254,7 +234,7 @@ public:
     }
 
     /**
-     * This function finalizes the solution step
+     * @brief This function finalizes the solution step
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -330,10 +310,10 @@ private:
     ///@name Member Variables
     ///@{
     
-    TablePrinterPointerType mpTable;                            // Pointer to the fancy table 
-    bool mPrintingOutput;                                       // If the colors and bold are printed
-    ConditionNumberUtilityPointerType mpConditionNumberUtility; // The utility to compute the condition number
-    bool mTableIsInitialized;                                   // If the table is already initialized
+    TablePrinterPointerType mpTable;                            /// Pointer to the fancy table 
+    bool mPrintingOutput;                                       /// If the colors and bold are printed
+    ConditionNumberUtilityPointerType mpConditionNumberUtility; /// The utility to compute the condition number
+    bool mTableIsInitialized;                                   /// If the table is already initialized
     
     ///@}
     ///@name Private Operators

@@ -563,31 +563,6 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-
-    Vector CurrentValueVector(3);
-    noalias(CurrentValueVector) = ZeroVector(3);
-
-    std::vector<QuaternionType> NodeQuaternions;
-    QuaternionType QuaternionValue;
-
-    //strains due to displacements and rotations
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-
-	//Rotations
-	CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
-
-	//Current Frame is the Local Frame
-	CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
-
-	QuaternionValue = QuaternionType::FromRotationVector(CurrentValueVector);
-
-	NodeQuaternions.push_back(QuaternionValue);
-
-      }
-
-
     if( mThisIntegrationMethod == mReducedIntegrationMethod ){
       mFrameQuaternionsReduced[rPointNumber].ToRotationMatrix(rVariables.PreviousRotationMatrix);
     }
@@ -603,15 +578,37 @@ namespace Kratos
 
     Matrix ExponentialRotationMatrix(3,3);
     noalias(ExponentialRotationMatrix) = ZeroMatrix(3,3);
-
-    QuaternionValue = QuaternionType::FromRotationVector(CurrentStepRotationVector);
-
-    QuaternionValue.ToRotationMatrix(ExponentialRotationMatrix);
-
+    
+    BeamMathUtilsType::ExponentialTransform( CurrentStepRotationVector, ExponentialRotationMatrix );
+    
     rVariables.CurrentRotationMatrix = prod(ExponentialRotationMatrix, rVariables.PreviousRotationMatrix);
 
 
     //option frame 2:
+
+    // const unsigned int number_of_nodes = GetGeometry().size();
+    // Vector CurrentValueVector(3);
+    // noalias(CurrentValueVector) = ZeroVector(3);
+
+    // std::vector<QuaternionType> NodeQuaternions;
+    // QuaternionType QuaternionValue;
+
+    // //strains due to displacements and rotations
+    // for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    //   {
+
+    //     //Rotations
+    //     CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
+
+    //     //Current Frame is the Local Frame
+    //     CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
+
+    //     QuaternionValue = QuaternionType::FromRotationVector(CurrentValueVector);
+
+    //     NodeQuaternions.push_back(QuaternionValue);
+
+    //   }
+    
     // QuaternionValue = (NodeQuaternions.front()).conjugate() * (NodeQuaternions.back());
 
     // QuaternionValue.ToRotationVector(CurrentValueVector);
@@ -654,12 +651,13 @@ namespace Kratos
 
     //create and initialize element variables:
     ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
     IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
     //full quadrature integration:
     mThisIntegrationMethod = mFullIntegrationMethod;
 
+    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     // initialize variables short version:
@@ -704,7 +702,7 @@ namespace Kratos
 	double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
-	if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementBeamElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+	if ( rLocalSystem.CalculationFlags.Is(BeamElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	  {
 	    LocalLeftHandSideMatrix.clear();
 
@@ -719,7 +717,7 @@ namespace Kratos
 
 	  }
 
-	if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementBeamElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+	if ( rLocalSystem.CalculationFlags.Is(BeamElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
 	  {
 	    LocalRightHandSideVector.clear();
 
@@ -772,7 +770,7 @@ namespace Kratos
 
     Vector StrainResultants = rVariables.CurrentAxisPositionDerivatives;
     Vector StrainCouples    = rVariables.CurrentCurvatureVector;
-
+    
     //Reference frame given by the Frame Rotation
     StrainResultants = prod( trans(rVariables.CurrentRotationMatrix), StrainResultants );
     StrainCouples    = prod( trans(rVariables.CurrentRotationMatrix), StrainCouples );
@@ -797,6 +795,8 @@ namespace Kratos
     //Reference Stress Vector
     rVariables.StressVector = prod( ConstitutiveMatrix, rVariables.StrainVector );
 
+    //std::cout<<" Stress "<<rVariables.StressVector<<" Strain "<<rVariables.StrainVector<<std::endl;
+    
     Vector StressResultants(3);
     noalias(StressResultants) = ZeroVector(dimension);
     Vector StressCouples(3);
@@ -1069,26 +1069,9 @@ namespace Kratos
 
 	BeamMathUtilsType::SubstractVector( Fi, rRightHandSideVector, RowIndex );
 
-	// bool write = true;
-	// if( write ){
-
-	//   Vector CurrentStepRotationVector  = ZeroVector(3);
-	//   this->GetLocalCurrentValue(STEP_ROTATION, CurrentStepRotationVector, rVariables.N);
-
-	//   Vector CurrentDisplacementVector  = ZeroVector(3);
-	//   this->GetLocalCurrentValue(DISPLACEMENT, CurrentDisplacementVector, rVariables.N);
-
-	//   std::cout<<" STEP_ROTATION  ("<<this->Id()<<"): "<<CurrentStepRotationVector<<std::endl;
-	//   std::cout<<" DISPLACEMENT   ("<<this->Id()<<"): "<<CurrentDisplacementVector<<std::endl;
-	//   std::cout<<" INTERNAL_FORCE ("<<this->Id()<<"): "<<Fi<<" StressVector "<<rVariables.StressVector<<std::endl;
-
-	//   //std::cout<<" Btensor "<<DifferentialOperatorI<<std::endl;
-
-	//   // std::cout<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
-	// }
-
       }
 
+    //std::cout<<" Fint "<<rRightHandSideVector<<std::endl;
 
     KRATOS_CATCH( "" )
 
@@ -1235,6 +1218,8 @@ namespace Kratos
     rDiscreteOperator( 4, 7 ) =  rVariables.N[ rNode ];
     rDiscreteOperator( 5, 8 ) =  rVariables.N[ rNode ];
 
+    //std::cout<<" DiscreteOperator "<<rDiscreteOperator<<std::endl;
+    
     KRATOS_CATCH( "" )
   }
 
@@ -1254,18 +1239,17 @@ namespace Kratos
     noalias(rBmatrix) = ZeroMatrix(9,9);
 
     Vector StressResultants(3);
-    noalias(StressResultants) = ZeroVector(3);
-    Vector StressCouples(3);
-    noalias(StressCouples) = ZeroVector(3);
+    Vector StressCouples(3);    
+    for ( unsigned int i = 0; i < 3; i++ )
+      {
+	StressResultants[i] = rVariables.StressVector[i];
+        StressCouples[i] = rVariables.StressVector[i+3];
+      }
 
-    StressResultants[0] = rVariables.StressVector[0];
-    StressResultants[1] = rVariables.StressVector[1];
-    StressResultants[2] = rVariables.StressVector[2];
-
-    StressCouples[0] = rVariables.StressVector[3];
-    StressCouples[1] = rVariables.StressVector[4];
-    StressCouples[2] = rVariables.StressVector[5];
-
+    //NOTE: avoid Kuug noise in plane ploblems
+    if( fabs(inner_prod(StressResultants,StressCouples)) < 1e-15 )
+      noalias(StressResultants) = ZeroVector(3);
+    
     //locate stress resultants in skew-symmetric form
     Matrix SkewSymStressResultants(3,3);
     noalias(SkewSymStressResultants) = ZeroMatrix(3,3);
@@ -1322,7 +1306,7 @@ namespace Kratos
     // AxialStressMatrix( 2, 2 ) -= AxialStressScalar;
 
 
-    // std::cout<<" AxialStressMatrix "<<AxialStressMatrix<<std::endl;
+    //std::cout<<" AxialStressMatrix "<<AxialStressMatrix<<std::endl;
 
     //axial skew-symmetric matrix (Crisfield)
     Matrix AxialSkewSymMatrix(3,3);
@@ -1360,7 +1344,7 @@ namespace Kratos
     // 	    std::cout<<rBmatrix(i,j)<<", ";
     // 	  }
     // 	std::cout<<rBmatrix(i,rBmatrix.size2()-1)<<" ]"<<std::endl;
-
+        
     //   }
 
     KRATOS_CATCH( "" )
@@ -1418,7 +1402,6 @@ namespace Kratos
       }
 
     //std::cout<<" Kuum "<<rLeftHandSideMatrix<<std::endl;
-
 
     KRATOS_CATCH( "" )
   }
@@ -2554,12 +2537,13 @@ namespace Kratos
 
       //create and initialize element variables:
       ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
       IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
       //full quadrature integration:
       mThisIntegrationMethod = mFullIntegrationMethod;
 
+      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
       // initialize variables short version:

@@ -434,7 +434,7 @@ public:
                 pScheme->InitializeConditions(BaseType::GetModelPart());
             std::cout<<"initialize the convergence criteria"<<std::endl;
             //initialisation of the convergence criteria
-            if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
+            if (mpConvergenceCriteria->IsInitialized() == false)
                 mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
 
 
@@ -940,7 +940,7 @@ public:
         TSystemVectorType& mb = *mpb;
 
 
-        if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
+        if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
         {
             GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), mb);
         }

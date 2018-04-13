@@ -11,13 +11,6 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 # ==============================================================================
 def CreateCommunicator( optimization_settings ):
     return Communicator( optimization_settings )
@@ -198,16 +191,10 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def __translateGradientToStandardForm( self, response_id, gradient ):
-        response = self.list_of_responses[response_id]
-        response_type = response["type"]
+        response_type = self.list_of_responses[response_id]["type"]
         if response_type == "maximization" or response_type == ">" or response_type == ">=":
-            for local_gradient in gradient.values():
-                local_gradient[0] = -local_gradient[0]
-                local_gradient[1] = -local_gradient[1]
-                local_gradient[2] = -local_gradient[2]
-            return gradient
-        else:
-            return gradient
+            gradient.update({key: [-value[0],-value[1],-value[2]] for key, value in gradient.items()})
+        return gradient
 
     # --------------------------------------------------------------------------
     def __storeValue( self, response_id, value ):

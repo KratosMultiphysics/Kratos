@@ -1086,8 +1086,9 @@ void UpdatedLagrangian::Calculate(const Variable<double>& rVariable,
         for (unsigned int i=0; i<number_of_nodes; i++)
 
         {
-
+            GetGeometry()[i].SetLock();
             GetGeometry()[i].GetSolutionStepValue(AUX_R) += Variables.N[i] * (MP_Mass);// - AUX_MP_Mass);
+            GetGeometry()[i].UnSetLock();
             //if(GetGeometry()[i].Id() == 538 )
             //{
             //std::cout<<"ELEMENT ID "<<this->Id()<<std::endl;
@@ -1180,7 +1181,9 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
             {
                 NodalAuxRVel[j] = Variables.N[i] * MP_Mass * MP_Velocity[j];
             }
+            GetGeometry()[i].SetLock();
             GetGeometry()[i].GetSolutionStepValue(AUX_R_VEL) += NodalAuxRVel;
+            GetGeometry()[i].UnSetLock();
 
             //std::cout<<" Variables.N[i] "<< Variables.N[i]<<std::endl;
             //std::cout<<" MP_Mass "<< MP_Mass<<std::endl;
@@ -1214,7 +1217,9 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
             {
                 NodalAuxRAcc[j] = Variables.N[i] * MP_Mass * MP_Acceleration[j];
             }
+            GetGeometry()[i].SetLock();
             GetGeometry()[i].GetSolutionStepValue(AUX_R_ACC) += NodalAuxRAcc;
+            GetGeometry()[i].UnSetLock();
         }
     }
 
@@ -1258,7 +1263,7 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     //std::cout<<" in InitializeSolutionStep2"<<std::endl;
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
     GeneralVariables Variables;
     //this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
@@ -1280,11 +1285,11 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
 
 
 
-    array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
-    array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
+    const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
+    const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
     array_1d<double,3>& AUX_MP_Velocity = this->GetValue(AUX_MP_VELOCITY);
     array_1d<double,3>& AUX_MP_Acceleration = this->GetValue(AUX_MP_ACCELERATION);
-    double MP_Mass = this->GetValue(MP_MASS);
+    const double MP_Mass = this->GetValue(MP_MASS);
     array_1d<double,3> MP_Momentum;
     array_1d<double,3> MP_Inertia;
     array_1d<double,3> NodalMomentum;
@@ -1293,8 +1298,8 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     for (unsigned int j=0; j<number_of_nodes; j++)
     {
         //these are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
-        array_1d<double, 3 > & NodalAcceleration = GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION,1);
-        array_1d<double, 3 > & NodalVelocity = GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
+        const array_1d<double, 3 > & NodalAcceleration = GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION,1);
+        const array_1d<double, 3 > & NodalVelocity = GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
 
         //std::cout<<"NodalVelocity "<< GetGeometry()[j].Id()<<std::endl;
         for (unsigned int k = 0; k < dimension; k++)
@@ -1316,10 +1321,16 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
             NodalInertia[j] = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
 
         }
+        // Added by Ricardo
+
+GetGeometry()[i].SetLock();
         GetGeometry()[i].GetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
         GetGeometry()[i].GetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
 
         GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
+GetGeometry()[i].UnSetLock();
+
+
 
     }
 
@@ -1405,9 +1416,11 @@ void UpdatedLagrangian::IterativeExtrapolation( ProcessInfo& rCurrentProcessInfo
             NodalInertia[j] = Variables.N[i] * MP_Inertia[j];
 
         }
+        GetGeometry()[i].SetLock();
         GetGeometry()[i].GetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
         GetGeometry()[i].GetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
         //GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
+        GetGeometry()[i].UnSetLock();
 
 
     }
@@ -2158,7 +2171,10 @@ Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, array_1
     {
 
         rResult.resize(3, false);
-        array_1d<double,3> rPointLocal = ZeroVector(3);
+
+        // array_1d<double,3> rPointLocal = ZeroVector(dimension);
+        array_1d<double,3> rPointLocal = ZeroVector(3);  // riccardo_add
+
         rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
         //1. I evaluate the local coordinates of a point
         //rPointLocal[0] = ((GetGeometry()[2].Coordinates()[1] - GetGeometry()[0].Coordinates()[1])*(rPoint[0] - GetGeometry()[0].Coordinates()[0]) -

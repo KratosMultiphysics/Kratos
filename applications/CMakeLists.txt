@@ -159,7 +159,7 @@ if(${FSI_APPLICATION} MATCHES ON)
 endif(${FSI_APPLICATION} MATCHES ON)
 
 if(${EMPIRE_APPLICATION} MATCHES ON)
-  add_subdirectory(empire_application)
+  add_subdirectory(EmpireApplication)
 endif(${EMPIRE_APPLICATION} MATCHES ON)
 
 if(${OPENCL_APPLICATION} MATCHES ON)

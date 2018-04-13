@@ -17,7 +17,6 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "includes/ale_variables.h"
@@ -93,6 +92,7 @@ public:
                                         int TimeOrder = 1,
                                         bool ReformDofSetAtEachStep = false,
                                         bool ComputeReactions = false,
+                                        bool CalculateMeshVelocities = true,
                                         int EchoLevel = 0)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
     {
@@ -102,6 +102,7 @@ public:
         m_reform_dof_set_at_each_step = ReformDofSetAtEachStep;
         m_echo_level = EchoLevel;
         m_compute_reactions = ComputeReactions;
+        m_calculate_mesh_velocities = CalculateMeshVelocities;
         m_time_order = TimeOrder;
         bool calculate_norm_dx_flag = false;
 
@@ -192,7 +193,9 @@ public:
 
         }
         // Update FEM database
-        CalculateMeshVelocities();
+        if (m_calculate_mesh_velocities == true)
+            CalculateMeshVelocities();
+
         MoveMesh();
 
         // clearing the system if needed
@@ -335,6 +338,7 @@ private:
 
     bool m_reform_dof_set_at_each_step;
     bool m_compute_reactions;
+    bool m_calculate_mesh_velocities;
     int m_time_order;
     int m_echo_level;
 
