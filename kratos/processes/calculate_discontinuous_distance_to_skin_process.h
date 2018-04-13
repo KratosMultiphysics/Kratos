@@ -99,7 +99,6 @@ namespace Kratos
       ///@name Access
       ///@{
 
-	  // ModelPart& GetSkinRepresentation() { return mSkinRepresentation; }
 
       ///@}
       ///@name Input and output
@@ -123,8 +122,6 @@ namespace Kratos
 
         ModelPart& mrSkinPart;
         ModelPart& mrVolumePart;
-
-		// ModelPart mSkinRepresentation;
 
       ///@}
       ///@name Private Operations
