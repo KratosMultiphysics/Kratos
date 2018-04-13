@@ -90,13 +90,13 @@
         },
         "dofs"                               : [
 *if(strcmp(GenData(DOFS),"ROTATIONS")==0)
-                                                "ROTATION",
+                                                "ROTATION"
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
-                                                "PRESSURE",
+                                                "PRESSURE"
 *endif
 *if(strcmp(GenData(DOFS),"U-wP")==0 )
-                                                "WATER_PRESSURE",
+                                                "WATER_PRESSURE"
 *endif
 *if( strcmp(GenData(DOFS),"U-J-wP")==0 )
                                                 "WATER_PRESSURE",
@@ -176,7 +176,7 @@
                    "compute_reactions"           : *tcl(string tolower *GenData(Write_Reactions)),
 	           "compute_contact_forces"      : *tcl(string tolower *GenData(Write_Contact_Forces)),
 *if( strcmp(GenData(DOFS),"U-P")==0 || strcmp(GenData(DOFS),"U-wP")==0)
-                   "stabilization_factor"        : *GenData(Stabilization_Factor),
+                   "stabilization_factor"        : 0.0,
 *endif
                    "convergence_criterion"       : "*GenData(Convergence_Criteria)",
                    "reform_dofs_at_each_step"    : true,
