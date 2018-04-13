@@ -96,7 +96,7 @@ public:
 	{
 
 		// Initialize member variables to NULL
-		m_current_response_value = 0.0;
+		mCurrentResponseValue = 0.0;
 
 	}
 
@@ -141,11 +141,11 @@ public:
 		KRATOS_TRY;
 
 		ModelPart& r_model_part = rModelPart; 
-		ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
-		m_current_response_value = 0.0;
+		ProcessInfo &current_process_info = r_model_part.GetProcessInfo();
+		mCurrentResponseValue = 0.0;
 
 		// Check if there are at the time of calling adjoint or primal elements
-		KRATOS_ERROR_IF( CurrentProcessInfo[IS_ADJOINT] )
+		KRATOS_ERROR_IF( current_process_info[IS_ADJOINT] )
 			 << "Calculate value for strain energy response is not availible when using adjoint elements" << std::endl;
 			
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
@@ -158,59 +158,16 @@ public:
 			// Get state solution relevant for energy calculation
 			elem_i.GetValuesVector(disp,0);
 
-			elem_i.CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
+			elem_i.CalculateLocalSystem(LHS, RHS, current_process_info);
 
 			// Compute strain energy
-			m_current_response_value += 0.5 * inner_prod(disp,prod(LHS,disp));
+			mCurrentResponseValue += 0.5 * inner_prod(disp, prod(LHS,disp));
  		}
 
-		return m_current_response_value;
+		return mCurrentResponseValue;
 
 		KRATOS_CATCH("");
 	}
-	// --------------------------------------------------------------------------
-	/*double GetInitialValue()
-	{
-		KRATOS_TRY;
-
-		if(!m_initial_value_defined)
-			KRATOS_THROW_ERROR(std::logi:error, "Initial value not yet defined! First compute it by calling \"CalculateValue()\"", m_initial_value_defined);
-
-		return m_initial_value;
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	double GetValue()
-	{
-		KRATOS_TRY;
-
-		return m_current_response_value;
-
-		KRATOS_CATCH("");
-	}*/
-
-	// --------------------------------------------------------------------------
-	/*boost::python::dict get_gradient()
-	{
-		KRATOS_TRY;
-
-		// Dictionary to store all sensitivities along with Ids of corresponding nodes
-		boost::python::dict dFdX;
-
-		ModelPart& r_model_part = this->GetModelPart();
-
-		// Fill dictionary with gradient information
-		for (ModelPart::NodeIterator node_i = r_model_part.NodesBegin(); node_i != r_model_part.NodesEnd(); ++node_i)
-			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(LOCAL_STRESS_GRADIENT);
-
-		return dFdX;
-
-		KRATOS_CATCH("");
-	}*/
-
-	// ==============================================================================
 
 	///@}
 	///@name Access
@@ -384,7 +341,7 @@ private:
 	///@name Member Variables
 	///@{
 
-	double m_current_response_value;
+	double mCurrentResponseValue;
 
 	///@}
 ///@name Private Operators
