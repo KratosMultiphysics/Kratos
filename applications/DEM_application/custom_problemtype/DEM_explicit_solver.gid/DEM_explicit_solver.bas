@@ -147,7 +147,7 @@ Begin NodalData POISSON_RATIO
 *end elems 
 End NodalData
 
-Begin NodalData PARTICLE_FRICTION
+Begin NodalData FRICTION
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
 *#elemsconec(1) 0 *operation(tan(elemsmatprop(Friction(Deg),real)*3.141592653589793238462643383279502884197/180.0))
