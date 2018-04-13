@@ -23,11 +23,17 @@ void AddCustomSchemesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 
-    class_<AdjointBossakScheme<SparseSpaceType, LocalSpaceType>>(m,"AdjointBossakScheme")
+    class_<
+        AdjointBossakScheme<SparseSpaceType, LocalSpaceType>,
+        typename AdjointBossakScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        SchemeType>(m,"AdjointBossakScheme")
         .def(init<Parameters&, ResponseFunction::Pointer>())
         ;
 
-    class_<AdjointSteadyVelocityPressureScheme<SparseSpaceType, LocalSpaceType>>(m,"AdjointSteadyVelocityPressureScheme")
+    class_<
+        AdjointSteadyVelocityPressureScheme<SparseSpaceType, LocalSpaceType>,
+        typename AdjointSteadyVelocityPressureScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        SchemeType>(m,"AdjointSteadyVelocityPressureScheme")
         .def(init<Parameters&, ResponseFunction::Pointer>())
         ;
 }
