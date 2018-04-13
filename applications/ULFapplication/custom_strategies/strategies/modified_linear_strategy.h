@@ -997,7 +997,7 @@ private:
 
         //WorkMatrix = D * G
         //TSparseSpace::Mult(mD, matG, WorkMatrix);
-        WorkMatrix=boost::numeric::ublas::prod(mD, matG);
+        WorkMatrix=prod(mD, matG);
         //KRATOS_WATCH(WorkMatrix)
 
         KRATOS_CATCH (" ")

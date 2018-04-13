@@ -1428,9 +1428,9 @@ namespace viennacl
           P.set_trans(false);
 
           boost::numeric::ublas::compressed_matrix<ScalarType> RA (R_temp.size1(),A_temp.size2());
-          RA = boost::numeric::ublas::prod(R_temp,A_temp);
+          RA = prod(R_temp,A_temp);
           boost::numeric::ublas::compressed_matrix<ScalarType> RAP (RA.size1(),P_temp.size2());
-          RAP = boost::numeric::ublas::prod(RA,P_temp);
+          RAP = prod(RA,P_temp);
 
           for (unsigned int x=0; x<RAP.size1(); ++x)
           {

@@ -58,7 +58,7 @@ namespace viennacl
         typedef typename MatrixType::value_type   ScalarType;
 
         //compute norm of column below diagonal:
-        matrix_1x1 = boost::numeric::ublas::prod( trans(project(A, range(j+1, A.size1()), range(j, j+1))),
+        matrix_1x1 = prod( trans(project(A, range(j+1, A.size1()), range(j, j+1))),
                                                         project(A, range(j+1, A.size1()), range(j, j+1))
                                                 );
         ScalarType sigma = matrix_1x1(0,0);
@@ -150,7 +150,7 @@ namespace viennacl
         using boost::numeric::ublas::project;
 
         ScalarType v_in_col = A(j,k);
-        matrix_1x1 = boost::numeric::ublas::prod(trans(project(v, range(j+1, A.size1()), range(0, 1))),
+        matrix_1x1 = prod(trans(project(v, range(j+1, A.size1()), range(0, 1))),
                                                        project(A, range(j+1, A.size1()), range(k,k+1)));
         v_in_col += matrix_1x1(0,0);
 
@@ -285,7 +285,7 @@ namespace viennacl
             MatrixRange W_old = project(W, range(j, A.size1()), range(0, k));
             MatrixRange z     = project(W, range(j, A.size1()), range(k, k+1));
 
-            MatrixType YT_prod_v = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Y_old), v_k);
+            MatrixType YT_prod_v = prod(boost::numeric::ublas::trans(Y_old), v_k);
             z = - betas[j+k] * (v_k + prod(W_old, YT_prod_v));
           }
 
@@ -298,7 +298,7 @@ namespace viennacl
 
             MatrixRange A_part(A, range(j, A.size1()), range(j+effective_block_size, A.size2()));
             MatrixRange W_part(W, range(j, A.size1()), range(0, effective_block_size));
-            MatrixType temp = boost::numeric::ublas::prod(trans(W_part), A_part);
+            MatrixType temp = prod(trans(W_part), A_part);
 
             A_part += prod(project(Y, range(j, A.size1()), range(0, effective_block_size)),
                           temp);
@@ -515,7 +515,7 @@ namespace viennacl
                                                                     boost::numeric::ublas::range(j, A.size1()),
                                                                     boost::numeric::ublas::range(k, k+1));
 
-            UblasMatrixType YT_prod_v = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Y_old), v_k);
+            UblasMatrixType YT_prod_v = prod(boost::numeric::ublas::trans(Y_old), v_k);
             z = - betas[j+k] * (v_k + prod(W_old, YT_prod_v));
           }
 

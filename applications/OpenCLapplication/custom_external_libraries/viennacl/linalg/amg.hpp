@@ -465,7 +465,7 @@ namespace viennacl
           #endif
 
           // Compute residual.
-          residual[level] = rhs[level] - boost::numeric::ublas::prod (A[level],result[level]);
+          residual[level] = rhs[level] - prod (A[level],result[level]);
 
           #ifdef VIENNACL_AMG_DEBUG
           std::cout << "Residual:" << std::endl;
@@ -473,7 +473,7 @@ namespace viennacl
           #endif
 
           // Restrict to coarse level. Restricted residual is RHS of coarse level.
-          rhs[level+1] = boost::numeric::ublas::prod (R[level],residual[level]);
+          rhs[level+1] = prod (R[level],residual[level]);
 
           #ifdef VIENNACL_AMG_DEBUG
           std::cout << "Restricted Residual: " << std::endl;
@@ -498,7 +498,7 @@ namespace viennacl
           #endif
 
           // Interpolate error to fine level. Correct solution by adding error.
-          result[level] += boost::numeric::ublas::prod (P[level], result[level+1]);
+          result[level] += prod (P[level], result[level+1]);
 
           #ifdef VIENNACL_AMG_DEBUG
           std::cout << "Corrected Result: " << std::endl;

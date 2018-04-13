@@ -363,8 +363,8 @@ void DSS_PS<TDim>::AddPressureSubscale(MatrixType& rLHS, VectorType& rRHS, Proce
 //        KRATOS_WATCH(InvA);
 //        KRATOS_WATCH(Down);
 //        KRATOS_WATCH(Right);
-        rLHS -= boost::numeric::ublas::prod( Right, MatrixType( boost::numeric::ublas::prod(InvA,Down)) );
-        rRHS -= boost::numeric::ublas::prod( Right, VectorType( boost::numeric::ublas::prod(InvA,b)) );
+        rLHS -= prod( Right, MatrixType( prod(InvA,Down)) );
+        rRHS -= prod( Right, VectorType( prod(InvA,b)) );
     }
     else
     {
@@ -482,7 +482,7 @@ void DSS_PS<TDim>::AddPressureSubscaleMass(MatrixType& rLHS, ProcessInfo& rProce
 
     if (Inverted)
     {
-        rLHS -= boost::numeric::ublas::prod( Right, MatrixType( boost::numeric::ublas::prod(InvA,Down)) );
+        rLHS -= prod( Right, MatrixType( prod(InvA,Down)) );
     }
 
 }

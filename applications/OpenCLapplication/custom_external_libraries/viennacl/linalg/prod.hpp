@@ -76,7 +76,7 @@ namespace viennacl
     prod(MatrixT const& matrix, VectorT const& vector)
     {
       // std::cout << "ublas .. " << std::endl;
-      return boost::numeric::ublas::prod(matrix, vector);
+      return prod(matrix, vector);
     }
     #endif
 
