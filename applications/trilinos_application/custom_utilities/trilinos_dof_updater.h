@@ -108,6 +108,7 @@ public:
         DofsArrayType& rDofSet,
         const SystemVectorType& rDx) override
     {
+        KRATOS_WATCH("BEFROE")
 
         int system_size = TSparseSpace::Size(rDx);
         int number_of_dofs = rDofSet.size();
@@ -147,6 +148,7 @@ public:
         mpDofImport.swap(p_dof_import);
 
         mImportIsInitialized = true;
+        KRATOS_WATCH("AFTER")
     }
 
     /// Free internal storage to reset the instance and/or optimize memory consumption.
@@ -172,6 +174,7 @@ public:
         if (!mImportIsInitialized)
             this->Initialize(rDofSet,rDx);
 
+        KRATOS_WATCH("Continuing")
         int system_size = TSparseSpace::Size(rDx);
 
         // defining a temporary vector to gather all of the values needed
@@ -197,6 +200,7 @@ public:
             }
         }
 
+        KRATOS_WATCH("ENDING")
         KRATOS_CATCH("");
     }
 
@@ -232,10 +236,10 @@ private:
     ///@{
 
     /// This lets the class control if Initialize() was properly called.
-    bool mImportIsInitialized;
+    bool mImportIsInitialized = false;
 
     /// Auxiliary trilinos data structure to import out-of-process data in the update vector.
-    std::unique_ptr<Epetra_Import> mpDofImport;
+    std::unique_ptr<Epetra_Import> mpDofImport = nullptr;
 
     ///@}
 
