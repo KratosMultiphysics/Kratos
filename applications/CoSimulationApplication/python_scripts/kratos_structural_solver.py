@@ -51,6 +51,7 @@ class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseSolver):
     def SolveTimeStep(self):
         self.ConvertReactionToPointLoad()
         #self.RelaxDisplacements()
+        #self.RelaxPointLoads()
         self.SolveSolutionStep();
 
     def InitializeTimeStep(self):
@@ -65,7 +66,7 @@ class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseSolver):
         data = KratosMultiphysics.Vector(3)
         for node in model_part.Nodes:
             data = node.GetSolutionStepValue(KratosMultiphysics.KratosGlobals.GetVariable(DataName), 0)
-            #print(self.name, DataName, data)
+            print(self.name, DataName, data)
         for node in self.main_model_part.GetSubModelPart(self.geometry).Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.KratosGlobals.GetVariable(DataName),0, data)
             print(DataName, node.GetSolutionStepValue(KratosMultiphysics.KratosGlobals.GetVariable(DataName)))
@@ -84,16 +85,21 @@ class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseSolver):
 
     def ConvertReactionToPointLoad(self):
         reaction = KratosMultiphysics.Vector(3)
-        torque = KratosMultiphysics.Vector(3)
         for node in self.main_model_part.GetSubModelPart(self.geometry).Nodes:
             reaction = node.GetSolutionStepValue(KratosMultiphysics.REACTION,0)
             node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD, 0,-1 * reaction)
-            print("POINT_LOAD",node.GetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD))
+            #print("POINT_LOAD",node.GetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD))
 
     def RelaxDisplacements(self):
         for node in self.main_model_part.GetSubModelPart(self.geometry).Nodes:
             displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, 1.0 * displacement)
+
+    def RelaxPointLoads(self):
+        for node in self.main_model_part.GetSubModelPart(self.geometry).Nodes:
+            point_load = node.GetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0)
+            node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD, 0, 1.0 * point_load)
+
 
 
 
