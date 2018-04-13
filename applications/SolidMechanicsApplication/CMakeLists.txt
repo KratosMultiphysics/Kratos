@@ -163,10 +163,6 @@ pybind11_add_module(KratosSolidMechanicsApplication MODULE ${KRATOS_SOLID_MECHAN
 target_link_libraries(KratosSolidMechanicsApplication PRIVATE KratosSolidMechanicsCore)
 set_target_properties(KratosSolidMechanicsApplication PROPERTIES PREFIX "")
 
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
-
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosSolidMechanicsApplication PROPERTIES SUFFIX .pyd)
