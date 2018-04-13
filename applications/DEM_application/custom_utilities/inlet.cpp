@@ -295,19 +295,6 @@ namespace Kratos {
 
     void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
     {
-        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
-            ModelPart& mp = *smp_it;
-            
-            CheckSubModelPart(mp);
-            int mesh_size = smp_it->NumberOfNodes();
-            if (!mesh_size) continue;
-            
-            array_1d<double, 3>& inlet_velocity = mp[VELOCITY];
-
-            const double inlet_velocity_magnitude = DEM_MODULUS_3(inlet_velocity);    
-
-            const array_1d<double, 3>& unitary_inlet_velocity =  inlet_velocity/inlet_velocity_magnitude;   
-
             vector<unsigned int> ElementPartition;
             OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
             typedef ElementsArrayType::iterator ElementIterator;
@@ -318,20 +305,34 @@ namespace Kratos {
             for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
                 ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;                                        
 
+                
                 SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*elem_it);
                 Node<3>& node = spheric_particle.GetGeometry()[0];
+
+                const array_1d<double,3> inlet_velocity = (*(spheric_particle.mpInlet))[VELOCITY];
+                const double inlet_velocity_magnitude = DEM_MODULUS_3(inlet_velocity);    
+                const array_1d<double, 3> unitary_inlet_velocity =  inlet_velocity/inlet_velocity_magnitude;  
+
                 const array_1d<double,3>& initial_coordinates = node.GetInitialPosition();
                 const array_1d<double,3>& coordinates = node.Coordinates();
-                const array_1d<double,3>& distance = coordinates - initial_coordinates;
+                const array_1d<double,3> distance = coordinates - initial_coordinates;
                 
-            const double reference_distance = 6.0 * mp[MAX_RADIUS];
-            /// Projection over injection axis
+                const double reference_distance = 10.0 * (*(spheric_particle.mpInlet))[MAX_RADIUS];
+                /// Projection over injection axis
 
-            const double projected_distance = DEM_INNER_PRODUCT_3(distance, unitary_inlet_velocity);
-            if (projected_distance < reference_distance) {node.Set(DEMFlags::CUMULATIVE_ZONE, true);}
+                const double projected_distance = DEM_INNER_PRODUCT_3(distance, unitary_inlet_velocity);
+
+                if (projected_distance < reference_distance) {
+                    
+                    node.Set(DEMFlags::CUMULATIVE_ZONE, true);
+                    spheric_particle.Set(DEMFlags::CUMULATIVE_ZONE, true);
+                }else{
+                    node.Set(DEMFlags::CUMULATIVE_ZONE, false);
+                    spheric_particle.Set(DEMFlags::CUMULATIVE_ZONE, false);
+
+                }
             }       
-            } 
-        }                          
+            }                         
     }
 
     void DEM_Inlet::RemoveInjectionConditions(Element& element)

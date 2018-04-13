@@ -338,6 +338,7 @@ namespace Kratos {
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
         SphericParticle* spheric_p_particle = dynamic_cast<SphericParticle*> (p_particle.get());
+        spheric_p_particle->mpInlet=&(r_sub_model_part_with_parameters);
 
         if (initial) {
             array_of_injector_elements.push_back(p_particle);
