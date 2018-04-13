@@ -12,6 +12,7 @@
 #include "shell_thin_adjoint_element_3D3N.hpp"
 #include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
+#include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
 
 //#include "geometries/triangle_3d_3.h"
 
@@ -559,39 +560,140 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Vector >& rVariable,
 
 	if(rVariable == STRESS_ON_GP)
 	{
-	    std::string traced_stress_type = this->GetValue(TRACED_STRESS_TYPE);
+        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
 
-        const char item_1 = traced_stress_type.at(0);
-        const char item_2 = traced_stress_type.at(1);
-        const char item_3 = traced_stress_type.at(2);
         int direction_1 = 0;
         int direction_2 = 0;   
         std::vector<Matrix> stress_vector;
+        bool stress_is_moment = true;
   
-        if(item_1 == 'M') 
+        switch (traced_stress_type)  
+        { 
+            case MXX:
+            {
+                direction_1 = 0; 
+                direction_2 = 0; 
+                break;
+            }
+            case MXY:
+            {
+                direction_1 = 0; 
+                direction_2 = 1;
+                break; 
+            }
+            case MXZ:
+            {
+                direction_1 = 0; 
+                direction_2 = 2;
+                break; 
+            }
+            case MYX:
+            {
+                direction_1 = 1; 
+                direction_2 = 0; 
+                break;
+            }
+            case MYY :
+            {
+                direction_1 = 1; 
+                direction_2 = 1; 
+                break;
+            }
+            case MYZ:
+            {
+                direction_1 = 1; 
+                direction_2 = 2; 
+                break;
+            }
+            case MZX:
+            {
+                direction_1 = 2; 
+                direction_2 = 0; 
+                break;
+            }
+            case MZY:
+            {
+                direction_1 = 2; 
+                direction_2 = 1; 
+                break;
+            }
+            case MZZ :
+            {
+                direction_1 = 2; 
+                direction_2 = 2; 
+                break;
+            }
+            case FXX :
+            {
+                direction_1 = 0; 
+                direction_2 = 0; 
+                stress_is_moment = false;
+                break;
+            }
+            case FXY:
+            {
+                direction_1 = 0; 
+                direction_2 = 1;
+                stress_is_moment = false;
+                break; 
+            }
+            case FXZ:
+            {
+                direction_1 = 0; 
+                direction_2 = 2;
+                stress_is_moment = false;
+                break; 
+            }
+            case FYX:
+            {
+                direction_1 = 1; 
+                direction_2 = 0; 
+                stress_is_moment = false;
+                break;
+            }
+            case FYY:
+            {
+                direction_1 = 1; 
+                direction_2 = 1; 
+                stress_is_moment = false;
+                break;
+            }
+            case FYZ:
+            {
+                direction_1 = 1; 
+                direction_2 = 2; 
+                stress_is_moment = false;
+                break;
+            }
+            case FZX:
+            {
+                direction_1 = 2; 
+                direction_2 = 0; 
+                stress_is_moment = false;
+                break;
+            }
+            case FZY:
+            {
+                direction_1 = 2; 
+                direction_2 = 1; 
+                stress_is_moment = false;
+                break;
+            }
+            case FZZ:
+            {
+                direction_1 = 2; 
+                direction_2 = 2; 
+                stress_is_moment = false;
+                break;
+            }
+            default:
+                KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;  
+        }
+
+        if(stress_is_moment)
             ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector, rCurrentProcessInfo);
-        else if(item_1 == 'F') 
+        else
             ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
-        else 
-            KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;  
-
-        if(item_2 == 'X')  
-            direction_1 = 0; 
-        else if(item_2 == 'Y')  
-            direction_1 = 1; 
-        else if(item_2 == 'Z')  
-            direction_1 = 2;   
-        else 
-            KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;       
-
-        if(item_3 == 'X')  
-            direction_2 = 0; 
-        else if(item_3 == 'Y')  
-            direction_2 = 1; 
-        else if(item_3 == 'Z')  
-            direction_2 = 2;   
-        else 
-            KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;        
 
         rOutput.resize(OPT_NUM_GP);   
         for(size_t i = 0; i < OPT_NUM_GP; i++)

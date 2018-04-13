@@ -13,6 +13,8 @@
 #include "cr_beam_adjoint_element_3D2N.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
+#include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
+
 
 
 
@@ -326,30 +328,56 @@ namespace Kratos
 
 		if(rVariable == STRESS_ON_GP || rVariable == STRESS_ON_NODE)
 		{
-			std::string traced_stress_type = this->GetValue(TRACED_STRESS_TYPE);
+			TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
 
-    		const char item_1 = traced_stress_type.at(0);
-    		const char item_2 = traced_stress_type.at(1);
-
-    		int direction_1 = 0;
     		std::vector< array_1d<double, 3 > > stress_vector;
+    		int direction_1 = 0;
+			bool stress_is_moment = true;
+  
+        	switch (traced_stress_type)  
+        	{ 
+            	case MX:
+            	{
+                	direction_1 = 0; 
+                	break;
+            	}
+            	case MY:
+            	{
+                	direction_1 = 1; 
+                	break; 
+            	}
+            	case MZ:
+            	{
+                	direction_1 = 2; 
+                	break; 
+            	}
+            	case FX:
+            	{
+                	direction_1 = 0; 
+					stress_is_moment = false;
+                	break;
+            	}	
+            	case FY:
+            	{
+                	direction_1 = 1; 
+					stress_is_moment = false;
+                	break;
+            	}
+            	case FZ:
+            	{
+                	direction_1 = 2; 
+					stress_is_moment = false;
+                	break;
+            	}
+            	default:
+                	KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;  
+        	}
 
-    		if(item_1 == 'M')
-        		CrBeamElementLinear3D2N::GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
-    		else if(item_1 == 'F')
-        		CrBeamElementLinear3D2N::GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
-    		else
-        		KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;
-
-    		if(item_2 == 'X')
-        		direction_1 = 0;
-    		else if(item_2 == 'Y')
-        		direction_1 = 1;
-    		else if(item_2 == 'Z')
-        		direction_1 = 2;
-    		else
-        		KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;
-
+        	if(stress_is_moment)
+            	CrBeamElementLinear3D2N::GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
+        	else
+            	CrBeamElementLinear3D2N::GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
+	
 			if(rVariable == STRESS_ON_GP)
 			{
 				const unsigned int&  GP_num = GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
@@ -372,7 +400,6 @@ namespace Kratos
 			rOutput.resize(3);
 			rOutput.clear();
 		}
-
 
     	KRATOS_CATCH("")
 	}
