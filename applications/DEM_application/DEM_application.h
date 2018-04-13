@@ -12,8 +12,8 @@
 
 // External includes
 #include "includes/define.h"
+#include "DEM_application_variables.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
 #include "custom_elements/cylinder_particle.h"
 #include "custom_elements/cylinder_continuum_particle.h"
 #include "custom_elements/spheric_particle.h"
@@ -34,6 +34,16 @@
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/analytic_RigidFace.h"
 #include "custom_conditions/RigidEdge.h"
+
+template<class T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T> & data) {
+
+    std::cout << "[";
+    std::copy(data.begin(), data.end(), std::ostream_iterator<T>(std::cout, ", "));
+    std::cout << "]";
+    
+    return os;
+}
 
 namespace Kratos
 {
