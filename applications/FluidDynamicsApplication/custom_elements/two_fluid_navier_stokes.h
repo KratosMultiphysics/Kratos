@@ -701,21 +701,18 @@ private:
 	unsigned int ComputeSplitting(
 		TElementData& data,
 		MatrixType& shape_functions,
-		VectorType& volumes,
-		VectorType& signs,
+		ShapeFunctionDerivativesArrayType& shape_derivatives,
 		std::vector<MatrixType>& DNenr,
 		MatrixType& Nner);
 
 	void CondenseEnrichment(
+		TElementData& data,
 		Matrix& rLeftHandSideMatrix,
 		VectorType& rRightHandSideVector,
 		MatrixType& V,
 		MatrixType& H,
 		MatrixType& K_ee,
-		VectorType& rhs_ee,
-		const Vector& volumes,
-		const Vector& signs,
-		const array_1d<double, 4> distances);
+		VectorType& rhs_ee);
 
 	template<class T>
 	bool InvertMatrix(const T& input, T& inverse);

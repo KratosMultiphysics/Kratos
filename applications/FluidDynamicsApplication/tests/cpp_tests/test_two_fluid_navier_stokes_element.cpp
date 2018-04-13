@@ -332,7 +332,7 @@ namespace Kratos {
 
 			for(unsigned int i=0; i<4; i++){
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
-				pElement->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE) = -1.0;
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE) = pElement->GetGeometry()[i].Z() - 0.5;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
 				for(unsigned int k=0; k<3; k++){
@@ -351,7 +351,7 @@ namespace Kratos {
 
 			pElement->Initialize(); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
-
+			KRATOS_WATCH(1);
 			// Compute the error of the perturbation
 			double perturbation = 2e-2;
 			std::vector<double> error_norms;

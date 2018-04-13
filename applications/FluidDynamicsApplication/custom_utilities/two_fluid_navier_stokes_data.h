@@ -74,11 +74,13 @@ array_1d<double, TNumNodes> rhs_ee;
 double ElementSize;
 
 ShapeFunctionsType Nenr;
-ShapeDerivativesType DN_DXenr; //todo: aixooo cuadno lo usooo???
+ShapeDerivativesType DN_DXenr;
 
 size_t NumPositiveNodes;
 size_t NumNegativeNodes;
 unsigned int NumberOfDivisions;
+array_1d<double, NumNodes> PartitionsVolumes;
+array_1d<double, NumNodes> PartitionsSigns; //ATTENTION: this shall be initialized of size 6 ---> Mentira
 
 ///@}
 ///@name Public Operations
@@ -116,6 +118,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     noalias(H) = ZeroMatrix(TNumNodes, TNumNodes*(TDim + 1));
     noalias(Kee) = ZeroMatrix(TNumNodes, TNumNodes);
     noalias(rhs_ee) = ZeroVector(TNumNodes);
+
 	NumPositiveNodes = 0;
 	NumNegativeNodes = 0;
 	NumberOfDivisions = 1;
@@ -128,6 +131,19 @@ void UpdateGeometryValues(
 {
     FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(NewWeight,rN,rDN_DX);
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
+}
+
+void UpdateGeometryValues(
+	double NewWeight,
+	const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
+	const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX,
+	const boost::numeric::ublas::matrix_row<Kratos::Matrix> rNenr,
+	const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DXenr)
+{
+	FluidElementData<TDim, TNumNodes, true>::UpdateGeometryValues(NewWeight, rN, rDN_DX);
+	ElementSize = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rDN_DX);
+	noalias(this->Nenr) = rNenr;
+	noalias(this->DN_DXenr) = rDN_DXenr;
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
