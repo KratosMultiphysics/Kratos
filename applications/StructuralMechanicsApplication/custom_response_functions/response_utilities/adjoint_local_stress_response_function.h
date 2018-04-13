@@ -42,6 +42,8 @@
 #include "includes/ublas_interface.h"
 #include "utilities/openmp_utils.h"
 
+#include "response_data.h"
+
 //#include "custom_utilities/finite_differences_utilities.h"
 
 // ==============================================================================
@@ -59,43 +61,6 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-
-enum TracedStressType
-{
-	FX,
-	FY,
-	FZ,
-	MX,
-	MY,
-	MZ,
-	FXX,
-	FXY,
-	FXZ,
-	FYX,
-	FYY,
-	FYZ,
-	FZX,
-	FZY,
-	FZZ,
-	MXX,
-	MXY,
-	MXZ,
-	MYX,
-	MYY,
-	MYZ,
-	MZX,
-	MZY,
-	MZZ,
-	StressTypeNotAvailible
-};
-
-enum StressTreatment
-{
-	mean,
-	node,
-	GP,
-	StressTreatmentNotAvailible
-};
 
 ///@}
 ///@name  Functions
@@ -137,18 +102,20 @@ public:
 	{
 		ModelPart& r_model_part = this->GetModelPart();
 
+		ResponseData::Pointer p_stress_response_data(new ResponseData());
+
 		// Get traced element
 		m_id_of_traced_element = rParameters["traced_element"].GetInt();
 		mp_traced_pElement = r_model_part.pGetElement(m_id_of_traced_element);
 
 		// Tell traced element the stress type
-		TracedStressType traced_stress_type = ConvertStressType(rParameters["stress_type"].GetString()); 
+		TracedStressType traced_stress_type = p_stress_response_data->ConvertStressType(rParameters["stress_type"].GetString()); 
 		if(traced_stress_type == StressTypeNotAvailible)
 			KRATOS_ERROR << "Chosen stress type is not availible!" << std::endl;
 		mp_traced_pElement->SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress_type) );		
 
 		// Get info how and where to treat the stress
-		m_stress_treatment = ConvertStressTreatment( rParameters["stress_treatment"].GetString() );
+		m_stress_treatment = p_stress_response_data->ConvertStressTreatment( rParameters["stress_treatment"].GetString() );
 		if(m_stress_treatment == StressTreatmentNotAvailible)
 			KRATOS_ERROR << "Chosen option for stress treatmeant is not availible! Chose 'GP','node' or 'mean'!" << std::endl;
 
@@ -592,72 +559,6 @@ private:
 	///@}
 	///@name Private Operations
 	///@{
-        
-    TracedStressType ConvertStressType(const std::string& Str)
-    {
-        if(Str == "FX") 
-            return TracedStressType::FX;
-        else if(Str == "FY")
-			return TracedStressType::FY;
-		else if(Str == "FZ")
-			return TracedStressType::FZ;
-		else if(Str == "MX")
-			return TracedStressType::MX;
-		else if(Str == "MY")
-			return TracedStressType::MY;
-		else if(Str == "MZ")
-			return TracedStressType::MZ;
-		else if(Str == "FXX")
-			return TracedStressType::FXX;
-		else if(Str == "FXY")
-			return TracedStressType::FXY;
-		else if(Str == "FXZ")
-			return TracedStressType::FXZ;
-		else if(Str == "FYX")
-			return TracedStressType::FYX;
-		else if(Str == "FYY")
-			return TracedStressType::FYY;
-		else if(Str == "FYZ")
-			return TracedStressType::FYZ;
-		else if(Str == "FZX")
-			return TracedStressType::FZX;
-		else if(Str == "FZY")
-			return TracedStressType::FZY;
-		else if(Str == "FZZ")
-			return TracedStressType::FZZ;
-		else if(Str == "MXX")
-			return TracedStressType::MXX;
-		else if(Str == "MXY")
-			return TracedStressType::MXY;
-		else if(Str == "MXZ")
-			return TracedStressType::MXZ;
-		else if(Str == "MYX")
-			return TracedStressType::MYX;
-		else if(Str == "MYY")
-			return TracedStressType::MYY;
-		else if(Str == "MYZ")
-			return TracedStressType::MYZ;
-		else if(Str == "MZX")
-			return TracedStressType::MZX;
-		else if(Str == "MZY")
-			return TracedStressType::MZY;
-		else if(Str == "MZZ")
-			return TracedStressType::MZZ;
-		else
-			return TracedStressType::StressTypeNotAvailible;	
-    }
-
-	StressTreatment ConvertStressTreatment(const std::string& Str)
-    {	
-		if(Str == "mean") 
-            return StressTreatment::mean;
-        else if(Str == "node")
-			return StressTreatment::node;
-		else if(Str == "GP")
-			return StressTreatment::GP;
-		else
-			return StressTreatment::StressTreatmentNotAvailible;
-	}
 
 	///@}
 	///@name Private  Access

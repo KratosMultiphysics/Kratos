@@ -12,7 +12,7 @@
 #include "shell_thin_adjoint_element_3D3N.hpp"
 #include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
-#include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
+#include "custom_response_functions/response_utilities/response_data.h"
 
 //#include "geometries/triangle_3d_3.h"
 

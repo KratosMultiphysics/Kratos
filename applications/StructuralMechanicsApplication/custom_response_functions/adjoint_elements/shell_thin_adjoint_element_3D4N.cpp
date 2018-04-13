@@ -12,7 +12,7 @@
 #include "shell_thin_adjoint_element_3D4N.hpp"
 //#include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
-#include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
+#include "custom_response_functions/response_utilities/response_data.h"
 
 //#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
 
