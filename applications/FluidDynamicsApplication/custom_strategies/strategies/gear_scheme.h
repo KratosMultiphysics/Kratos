@@ -92,7 +92,8 @@ public:
     /// Default constructor.
     GearScheme()
         :
-        Scheme<TSparseSpace, TDenseSpace>()
+        Scheme<TSparseSpace, TDenseSpace>(),
+        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {}
 
     /// Constructor to use the formulation combined with a turbulence model.
@@ -105,8 +106,23 @@ public:
     GearScheme(Process::Pointer pTurbulenceModel)
         :
         Scheme<TSparseSpace, TDenseSpace>(),
-        mpTurbulenceModel(pTurbulenceModel)
+        mpTurbulenceModel(pTurbulenceModel),
+        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {}
+
+    /// Constructor to use the formulation combined with a turbulence model.
+    /**
+     * The turbulence model is assumed to be implemented as a Kratos::Process.
+     * The model's Execute() method wil be called at the start of each
+     * non-linear iteration.
+     * @param pTurbulenceModel pointer to the turbulence model
+     */
+    GearScheme(const Kratos::Variable<int>& rPeriodicVar)
+        :
+        Scheme<TSparseSpace, TDenseSpace>(),
+        mrPeriodicIdVar(rPeriodicVar)
+    {}
+
 
     /// Destructor.
     ~GearScheme() override
@@ -739,6 +755,11 @@ protected:
         rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
         rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
 
+        // Correction for periodic conditions
+        if (mrPeriodicIdVar.Key() != 0) {
+            this->PeriodicConditionProjectionCorrection(rModelPart);
+        }
+
         for (typename ModelPart::NodesContainerType::iterator iNode = rModelPart.NodesBegin(); iNode != rModelPart.NodesEnd(); iNode++)
         {
             if (iNode->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
@@ -752,6 +773,81 @@ protected:
 
         if (rModelPart.GetCommunicator().MyPID() == 0)
             std::cout << "Performed OSS Projection" << std::endl;
+    }
+
+    /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
+     * both sides of the boundary. This is done using the conditions and the non-historical nodal data containers as follows:\n
+     * 1- The partition that owns the PeriodicCondition adds the values on both nodes to their non-historical containers.\n
+     * 2- The non-historical containers are added across processes, transmiting the right value from the condition owner to all partitions.\n
+     * 3- The value on all periodic nodes is replaced by the one received in step 2.
+     */
+    void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
+    {
+        const int num_nodes = rModelPart.NumberOfNodes();
+        const int num_conditions = rModelPart.NumberOfConditions();
+
+        #pragma omp parallel for
+        for (int i = 0; i < num_nodes; i++) {
+            auto it_node = rModelPart.NodesBegin() + i;
+
+            it_node->GetValue(NODAL_AREA) = 0.0;
+            it_node->GetValue(ADVPROJ) = array_1d<double,3>(3,0.0);
+            it_node->GetValue(DIVPROJ) = 0.0;
+        }
+
+        #pragma omp parallel for
+        for (int i = 0; i < num_conditions; i++) {
+            auto it_cond = rModelPart.ConditionsBegin() + i;
+
+            if(it_cond->Is(PERIODIC)) {
+                ModelPart::ConditionType::GeometryType& rGeom = it_cond->GetGeometry();
+                unsigned int nodes_in_cond = rGeom.PointsNumber();
+
+                double NodalArea = 0.0;
+                array_1d<double,3> AdvProj(3,0.0);
+                double DivProj = 0.0;
+                for ( unsigned int i = 0; i < nodes_in_cond; i++ )
+                {
+                    NodalArea += rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
+                    AdvProj += rGeom[i].FastGetSolutionStepValue(ADVPROJ);
+                    DivProj += rGeom[i].FastGetSolutionStepValue(DIVPROJ);
+                }
+
+                for ( unsigned int i = 0; i < nodes_in_cond; i++ )
+                {
+                    /* Note that it is assumed that each node belongs to a single periodic link,
+                        * if this lock is necessary, the algorithm will not work anyways.
+                        * I'm leaving it here to prevent locking issues, though (JC)
+                        */
+                    rGeom[i].SetLock();
+                    rGeom[i].GetValue(NODAL_AREA) = NodalArea;
+                    rGeom[i].GetValue(ADVPROJ) = AdvProj;
+                    rGeom[i].GetValue(DIVPROJ) = DivProj;
+                    rGeom[i].UnSetLock();
+                }
+            }
+        }
+
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
+
+        #pragma omp parallel for
+        for (int i = 0; i < num_nodes; i++) {
+            auto it_node = rModelPart.NodesBegin() + i;
+
+            if (it_node->GetValue(NODAL_AREA) != 0.0)
+            {
+                it_node->FastGetSolutionStepValue(NODAL_AREA) = it_node->GetValue(NODAL_AREA);
+                it_node->FastGetSolutionStepValue(ADVPROJ) = it_node->GetValue(ADVPROJ);
+                it_node->FastGetSolutionStepValue(DIVPROJ) = it_node->GetValue(DIVPROJ);
+
+                // reset for next iteration
+                it_node->GetValue(NODAL_AREA) = 0.0;
+                it_node->GetValue(ADVPROJ) = array_1d<double,3>(3,0.0);
+                it_node->GetValue(DIVPROJ) = 0.0;
+            }
+        }
     }
 
 
@@ -782,9 +878,11 @@ private:
     ///@{
 
     /// Poiner to a turbulence model
-    Process::Pointer mpTurbulenceModel;
+    Process::Pointer mpTurbulenceModel = nullptr;
 
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+
+    const Kratos::Variable<int>& mrPeriodicIdVar;
 
 //        ///@}
 //        ///@name Serialization

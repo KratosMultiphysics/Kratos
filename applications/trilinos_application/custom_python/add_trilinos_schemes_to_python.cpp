@@ -229,17 +229,10 @@ void  AddSchemes(pybind11::module& m)
 
     typedef GearScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> GearSchemeBaseType;
 
-    class_ < GearSchemeBaseType, typename GearSchemeBaseType::Pointer,
-            TrilinosBaseSchemeType >
-            ( m,"GearSchemeBaseType").def(init<Process::Pointer >() );
-
-    class_< TrilinosGearScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
-            typename TrilinosGearScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>::Pointer,
-            GearSchemeBaseType >
-            ( m,"TrilinosGearScheme").def(init<Process::Pointer>() )
+    class_ < GearSchemeBaseType, typename GearSchemeBaseType::Pointer, TrilinosBaseSchemeType >( m,"TrilinosGearScheme")
+            .def(init<Process::Pointer >() );
             .def(init<>()) // constructor without a turbulence model
             .def(init<const Variable<int>&>()) // constructor for periodic conditions
-            ;
 
     class_<
         AdjointSteadyVelocityPressureScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
