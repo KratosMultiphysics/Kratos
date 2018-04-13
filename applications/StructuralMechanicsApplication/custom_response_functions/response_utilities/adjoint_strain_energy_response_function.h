@@ -141,11 +141,11 @@ public:
 		KRATOS_TRY;
 
 		ModelPart& r_model_part = rModelPart; 
-		ProcessInfo &current_process_info = r_model_part.GetProcessInfo();
+		ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
 		mCurrentResponseValue = 0.0;
 
 		// Check if there are at the time of calling adjoint or primal elements
-		KRATOS_ERROR_IF( current_process_info[IS_ADJOINT] )
+		KRATOS_ERROR_IF( r_current_process_info[IS_ADJOINT] )
 			 << "Calculate value for strain energy response is not availible when using adjoint elements" << std::endl;
 			
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
@@ -158,7 +158,7 @@ public:
 			// Get state solution relevant for energy calculation
 			elem_i.GetValuesVector(disp,0);
 
-			elem_i.CalculateLocalSystem(LHS, RHS, current_process_info);
+			elem_i.CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
 			// Compute strain energy
 			mCurrentResponseValue += 0.5 * inner_prod(disp, prod(LHS,disp));
