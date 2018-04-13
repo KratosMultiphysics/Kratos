@@ -2,9 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosChimeraApplication ****")
 
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 #dependecies on other applications
-include_directories( ${CMAKE_SOURCE_DIR}/applications/TopologyOptimizationApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/ChimeraApplication )
 
 
@@ -31,8 +32,8 @@ endif(${MPI_NEEDED} MATCHES ON )
 
 
 # define library Kratos which defines the basic python interface
-add_library(KratosChimeraApplication SHARED ${KRATOS_CHIMERA_APPLICATION_SOURCES})
-target_link_libraries(KratosChimeraApplication KratosCore ${KRATOS_CHIMERA_APPLICATION_EXTRA_LIBS} )
+pybind11_add_module(KratosChimeraApplication MODULE ${KRATOS_CHIMERA_APPLICATION_SOURCES})
+target_link_libraries(KratosChimeraApplication PRIVATE KratosCore ${KRATOS_CHIMERA_APPLICATION_EXTRA_LIBS})
 set_target_properties(KratosChimeraApplication PROPERTIES PREFIX "")
 install(TARGETS KratosChimeraApplication DESTINATION libs )
 
