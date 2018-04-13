@@ -190,7 +190,7 @@ namespace viennacl
         {
             typedef typename MatrixType::value_type ScalarType;
             typedef typename boost::numeric::ublas::vector<ScalarType> VectorType;
-            typedef typename boost::numeric::ublas::matrix<ScalarType> UBLASDenseMatrixType;
+            typedef typename matrix<ScalarType> UBLASDenseMatrixType;
             typedef typename viennacl::matrix<ScalarType> VCLMatrixType;
         public:
 

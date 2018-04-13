@@ -513,7 +513,7 @@ namespace Kratos
 
 			ie->Set(BOUNDARY);
 		
-			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			matrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
@@ -551,7 +551,7 @@ namespace Kratos
 
 			ie->Set(BOUNDARY);
 			
-			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			matrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
@@ -605,7 +605,7 @@ namespace Kratos
 		
 			ie->Set(BOUNDARY);
 
-			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			matrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
@@ -648,7 +648,7 @@ namespace Kratos
 
 			Geometry<Node<3> >& rGeometry = (ie)->GetGeometry();
 			
-			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			matrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
@@ -722,7 +722,7 @@ namespace Kratos
       unsigned int nface=0;
 
       boost::numeric::ublas::vector<unsigned int> lnofa; //number of nodes per face
-      boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+      matrix<unsigned int> lpofa; //points that define the faces
 
       Element::GeometryType& pGeom = rElems.begin()->GetGeometry(); // the first element is taken as reference
       unsigned int Nf= pGeom.FacesNumber();     //number of faces

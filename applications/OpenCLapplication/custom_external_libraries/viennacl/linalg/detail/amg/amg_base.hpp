@@ -794,9 +794,9 @@ namespace viennacl
 
               return mat;
             }
-            operator boost::numeric::ublas::matrix<ScalarType> (void)
+            operator matrix<ScalarType> (void)
             {
-              boost::numeric::ublas::matrix<ScalarType> mat;
+              matrix<ScalarType> mat;
               mat.resize(size1(),size2(),false);
               mat.clear();
 

@@ -37,7 +37,7 @@ namespace viennacl
      * @param block_size   The block size to be used
      */
     template<typename ScalarType>
-    void inplace_tred2(boost::numeric::ublas::matrix<ScalarType> const & A, vcl_size_t block_size = 1)
+    void inplace_tred2(matrix<ScalarType> const & A, vcl_size_t block_size = 1)
     {
 
 #ifdef VIENNACL_WITH_OPENMP

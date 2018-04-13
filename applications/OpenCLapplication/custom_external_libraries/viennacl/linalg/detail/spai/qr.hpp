@@ -81,7 +81,7 @@ namespace viennacl
           void print_continious_matrix(VectorType& con_A_I_J, std::vector<cl_uint>& blocks_ind,
                                       const std::vector<std::vector<unsigned int> >& g_I, const std::vector<std::vector<unsigned int> >& g_J){
               typedef typename VectorType::value_type ScalarType;
-              std::vector<boost::numeric::ublas::matrix<ScalarType> > com_A_I_J(g_I.size());
+              std::vector<matrix<ScalarType> > com_A_I_J(g_I.size());
               for(vcl_size_t i = 0; i < g_I.size(); ++i){
                   write_to_block( con_A_I_J, blocks_ind[i], g_I[i], g_J[i], com_A_I_J[i]);
                   std::cout<<com_A_I_J[i]<<std::endl;

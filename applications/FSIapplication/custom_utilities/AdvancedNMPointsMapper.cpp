@@ -190,7 +190,7 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(ModelPart& rOriginModelPart,
     OpenMPUtils::DivideInPartitions(static_cast<int>(rDestinationModelPart.NumberOfConditions()), number_of_threads, conditions_partition);
 
     // Get the shape functions values at the Gauss pts.
-    boost::numeric::ublas::matrix<double>         GPPos(ngauss, nnodes);
+    matrix<double>         GPPos(ngauss, nnodes);
     if (dimension == 2) // 2D case
     {
         // 2 Gauss-Legendre point quadrature
@@ -223,8 +223,8 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(ModelPart& rOriginModelPart,
     {
         GaussPointVector PrivateGaussPointList;
         array_1d<double, 3> GPCoord, Normal;
-        boost::numeric::ublas::matrix<double>              Nodes(nnodes, 3); // Matrix that stores the nodal coordinates of the condition
-        boost::numeric::ublas::matrix<double>        GaussPoints(ngauss, 3); // Matrix to store the obtained coordinates of the Gauss pts.
+        matrix<double>              Nodes(nnodes, 3); // Matrix that stores the nodal coordinates of the condition
+        matrix<double>        GaussPoints(ngauss, 3); // Matrix to store the obtained coordinates of the Gauss pts.
 
         for (int k=conditions_partition[l]; k<conditions_partition[l+1]; ++k)
         {

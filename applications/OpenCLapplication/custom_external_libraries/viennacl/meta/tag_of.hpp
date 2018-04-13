@@ -157,7 +157,7 @@ namespace viennacl
     };
 
     template< typename T >
-    struct tag_of< boost::numeric::ublas::matrix<T> >
+    struct tag_of< matrix<T> >
     {
       typedef viennacl::tag_ublas  type;
     };

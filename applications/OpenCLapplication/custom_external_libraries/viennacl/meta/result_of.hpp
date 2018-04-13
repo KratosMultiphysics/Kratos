@@ -518,7 +518,7 @@ namespace viennacl
       #ifdef VIENNACL_WITH_UBLAS
       //Boost:
       template <typename T, typename F, typename A>
-      struct vector_for_matrix< boost::numeric::ublas::matrix<T, F, A> >
+      struct vector_for_matrix< matrix<T, F, A> >
       {
         typedef boost::numeric::ublas::vector<T>   type;
       };

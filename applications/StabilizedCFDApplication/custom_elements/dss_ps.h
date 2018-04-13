@@ -235,8 +235,8 @@ protected:
 
 
     template<class T>
-    bool InvertMatrix (const boost::numeric::ublas::matrix<T>& input,
-                       boost::numeric::ublas::matrix<T>& inverse)
+    bool InvertMatrix (const matrix<T>& input,
+                       matrix<T>& inverse)
     {
         typedef permutation_matrix<std::size_t> pmatrix;
         // create a working copy of the input

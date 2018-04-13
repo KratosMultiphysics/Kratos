@@ -500,7 +500,7 @@ public:
 			// 	}
 			//     }
 			
-			//   boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			//   matrix<unsigned int> lpofa; //points that define the faces
 			//   rConditionGeom.NodesInFaces(lpofa);
 			
 			

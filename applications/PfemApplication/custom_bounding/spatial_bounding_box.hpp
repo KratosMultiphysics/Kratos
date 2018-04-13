@@ -953,7 +953,7 @@ public:
     //************************************************************************************
     //************************************************************************************
 
-    void GetTriangularFaces(boost::numeric::ublas::matrix<unsigned int>& rFaces, const unsigned int& rDimension)
+    void GetTriangularFaces(matrix<unsigned int>& rFaces, const unsigned int& rDimension)
     {
       KRATOS_TRY
 	
@@ -1034,7 +1034,7 @@ public:
     }
 
 
-    void GetQuadrilateralFaces(boost::numeric::ublas::matrix<unsigned int>& rFaces, const unsigned int& rDimension)
+    void GetQuadrilateralFaces(matrix<unsigned int>& rFaces, const unsigned int& rDimension)
     {
       KRATOS_TRY
 	

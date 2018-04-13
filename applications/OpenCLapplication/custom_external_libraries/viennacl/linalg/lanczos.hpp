@@ -158,7 +158,7 @@ namespace viennacl
         ScalarType vcl_beta;
         ScalarType vcl_alpha;
         std::vector<CPU_ScalarType> alphas, betas;
-        boost::numeric::ublas::matrix<CPU_ScalarType> Q(n, size);
+        matrix<CPU_ScalarType> Q(n, size);
 
         second_step = false;
         eps = std::numeric_limits<CPU_ScalarType>::epsilon();
@@ -325,7 +325,7 @@ namespace viennacl
         vcl_size_t n = r.size();
         VectorT u(n), t(n);
         boost::numeric::ublas::vector<CPU_ScalarType> s(r.size()), u_zero(n), q(n);
-        boost::numeric::ublas::matrix<CPU_ScalarType> Q(n, size);
+        matrix<CPU_ScalarType> Q(n, size);
 
         u_zero = boost::numeric::ublas::zero_vector<CPU_ScalarType>(n);
         detail::copy_vec_to_vec(u_zero, u);
@@ -383,7 +383,7 @@ namespace viennacl
           VectorT u(n), t(n);
           ScalarType inner_rt;
           boost::numeric::ublas::vector<CPU_ScalarType> u_zero(n), s(r.size()), q(n);
-          boost::numeric::ublas::matrix<CPU_ScalarType> Q(n, size);
+          matrix<CPU_ScalarType> Q(n, size);
 
           long reorths = 0;
           norm = norm_2(r);

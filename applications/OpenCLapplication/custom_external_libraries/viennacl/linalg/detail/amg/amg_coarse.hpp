@@ -122,7 +122,7 @@ namespace viennacl
 
       #ifdef VIENNACL_AMG_DEBUG
       std::cout << "Influence Matrix: " << std::endl;
-      boost::numeric::ublas::matrix<bool> mat;
+      matrix<bool> mat;
       Pointvector[level].get_influence_matrix(mat);
       printmatrix (mat);
       #endif
@@ -607,7 +607,7 @@ namespace viennacl
 
           #ifdef VIENNACL_AMG_DEBUG
           std::cout << "Neighborhoods:" << std::endl;
-          boost::numeric::ublas::matrix<bool> mat;
+          matrix<bool> mat;
           Pointvector[level].get_influence_matrix(mat);
           printmatrix (mat);
           #endif

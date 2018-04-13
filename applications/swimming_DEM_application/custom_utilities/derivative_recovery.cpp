@@ -990,7 +990,7 @@ double DerivativeRecovery<TDim>::SecondDegreeTestPolynomial(const array_1d <doub
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-double DerivativeRecovery<TDim>::SecondDegreeGenericPolynomial(boost::numeric::ublas::matrix<double> C, const array_1d <double, 3>& coordinates)
+double DerivativeRecovery<TDim>::SecondDegreeGenericPolynomial(matrix<double> C, const array_1d <double, 3>& coordinates)
 {
     const double x = coordinates[0];
     const double y = coordinates[1];

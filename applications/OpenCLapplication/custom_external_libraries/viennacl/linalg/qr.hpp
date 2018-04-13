@@ -428,7 +428,7 @@ namespace viennacl
         typedef typename viennacl::result_of::cpu_value_type< typename MatrixType::value_type >::type   ScalarType;
 
         typedef viennacl::matrix_range<MatrixType>                    VCLMatrixRange;
-        typedef boost::numeric::ublas::matrix<ScalarType>             UblasMatrixType;
+        typedef matrix<ScalarType>             UblasMatrixType;
         typedef boost::numeric::ublas::matrix_range<UblasMatrixType>  UblasMatrixRange;
 
         std::vector<ScalarType> betas(A.size2());
@@ -627,7 +627,7 @@ namespace viennacl
     template <typename T, typename F, unsigned int ALIGNMENT, typename VectorType1, unsigned int A2>
     void inplace_qr_apply_trans_Q(viennacl::matrix<T, F, ALIGNMENT> const & A, VectorType1 const & betas, viennacl::vector<T, A2> & b)
     {
-      boost::numeric::ublas::matrix<T> ublas_A(A.size1(), A.size2());
+      matrix<T> ublas_A(A.size1(), A.size2());
       viennacl::copy(A, ublas_A);
 
       std::vector<T> stl_b(b.size());

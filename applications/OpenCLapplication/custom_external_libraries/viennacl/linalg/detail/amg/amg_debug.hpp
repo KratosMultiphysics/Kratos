@@ -28,7 +28,7 @@
 #include "viennacl/io/matrix_market.hpp"
 
 #ifdef SMALL_SIZE
-#define VIENNACL_AMG_MATRIXTYPE boost::numeric::ublas::matrix<ScalarType>
+#define VIENNACL_AMG_MATRIXTYPE matrix<ScalarType>
 #else
 #define VIENNACL_AMG_MATRIXTYPE MatrixType
 #endif

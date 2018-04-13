@@ -232,8 +232,8 @@ public:
     */
     template<class T>
 //#define T double /// for debug
-    boost::numeric::ublas::matrix<T>
-    gjinverse(const boost::numeric::ublas::matrix<T> &m, bool &singular)
+    matrix<T>
+    gjinverse(const matrix<T> &m, bool &singular)
     {
         using namespace boost::numeric::ublas;
 
@@ -483,7 +483,7 @@ public:
 // 			using namespace boost::numeric::ublas;
         typedef boost::numeric::ublas::permutation_matrix<std::size_t> pmatrix;
 // 			typedef boost::numeric::ublas::identity_matrix<std::size_t> identitymatrix;
-// 			typedef boost::numeric::ublas::matrix<std::size_t> Matrix;
+// 			typedef matrix<std::size_t> Matrix;
 
         UblasSolve(mLHS_POD_Contribution,mRHS_POD_Contribution,mX_POD_Contribution);
 

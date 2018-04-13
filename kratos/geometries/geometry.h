@@ -1084,7 +1084,7 @@ public:
         KRATOS_ERROR << "Calling base class NumberNodesInFaces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
     }
 
-    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& rNodesInFaces) const
+    virtual void NodesInFaces (matrix<unsigned int>& rNodesInFaces) const
     {
         KRATOS_ERROR << "Calling base class NodesInFaces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
     }

@@ -643,7 +643,7 @@ namespace viennacl
             typedef typename MatrixType::value_type ScalarType;
             typedef typename boost::numeric::ublas::vector<ScalarType> VectorType;
             typedef typename viennacl::linalg::detail::spai::sparse_vector<ScalarType> SparseVectorType;
-            typedef typename boost::numeric::ublas::matrix<ScalarType> DenseMatrixType;
+            typedef typename matrix<ScalarType> DenseMatrixType;
             //sparse matrix transpose...
             unsigned int cur_iter = 0;
             tag.setBegInd(0); tag.setEndInd(VIENNACL_SPAI_K_b);

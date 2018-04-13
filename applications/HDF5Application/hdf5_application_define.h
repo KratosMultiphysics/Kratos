@@ -37,7 +37,7 @@ template <class T>
 using Vector = boost::numeric::ublas::vector<T>;
 
 template <class T>
-using Matrix = boost::numeric::ublas::matrix<T>;
+using Matrix = matrix<T>;
 
 typedef IO::MeshType::NodeType NodeType;
 

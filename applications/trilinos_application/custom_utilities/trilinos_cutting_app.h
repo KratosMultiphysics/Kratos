@@ -1131,7 +1131,7 @@ public:
         double control;
         unsigned int temp_int;
 
-        boost::numeric::ublas::matrix<int> new_conectivity;
+        matrix<int> new_conectivity;
 
         int total_existing_elements = -1; //warning, they're conditions, not elements!
         int local_existing_elements = new_model_part.Conditions().size();

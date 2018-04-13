@@ -558,7 +558,7 @@ namespace Kratos
     double MaximumFaceArea = std::numeric_limits<double>::min();
     double MinimumFaceArea = std::numeric_limits<double>::max();
 
-    boost::numeric::ublas::matrix<unsigned int> lpofa;  //points that define the faces
+    matrix<unsigned int> lpofa;  //points that define the faces
     rGeometry.NodesInFaces(lpofa);
     boost::numeric::ublas::vector<unsigned int> lnofa;  //number of nodes per face (3)
     rGeometry.NumberNodesInFaces(lnofa);
@@ -679,7 +679,7 @@ namespace Kratos
     rMaximumSideLength = std::numeric_limits<double>::min();
     rMinimumSideLength = std::numeric_limits<double>::max();
     
-    boost::numeric::ublas::matrix<unsigned int> lpofa;
+    matrix<unsigned int> lpofa;
     rGeometry.NodesInFaces(lpofa);
 
     double SideLength = 0;
@@ -1312,7 +1312,7 @@ namespace Kratos
     Condition::Pointer pMasterCondition;
 
     Geometry< Node<3> >& rGeometry = pCondition->GetGeometry();
-    boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+    matrix<unsigned int> lpofa; //points that define the faces
     rGeometry.NodesInFaces(lpofa);   
 		
     //std::cout<<" lpofa "<<lpofa<<std::endl;
@@ -1483,7 +1483,7 @@ namespace Kratos
     Condition::Pointer pMasterCondition;
 
     Geometry< Node<3> >& rGeometry = pCondition->GetGeometry();
-    boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+    matrix<unsigned int> lpofa; //points that define the faces
     rGeometry.NodesInFaces(lpofa);   
 		
     //std::cout<<" lpofa "<<lpofa<<std::endl;
@@ -1662,7 +1662,7 @@ namespace Kratos
   //**************************************************************************
   //**************************************************************************
 
-  bool ModelerUtilities::FindCondition(Geometry< Node<3> >& rConditionGeometry ,Geometry< Node<3> >& rGeometry, boost::numeric::ublas::matrix<unsigned int>& lpofa, boost::numeric::ublas::vector<unsigned int>& lnofa, unsigned int& iface)
+  bool ModelerUtilities::FindCondition(Geometry< Node<3> >& rConditionGeometry ,Geometry< Node<3> >& rGeometry, matrix<unsigned int>& lpofa, boost::numeric::ublas::vector<unsigned int>& lnofa, unsigned int& iface)
   {
       
     KRATOS_TRY

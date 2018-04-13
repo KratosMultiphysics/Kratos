@@ -519,7 +519,7 @@ namespace viennacl
       detail::svd_qr_shift( QL, QR, dh, sh);
 
       // Write resulting diagonal matrix with singular values to A:
-      boost::numeric::ublas::matrix<SCALARTYPE> h_Sigma(row_num, col_num);
+      matrix<SCALARTYPE> h_Sigma(row_num, col_num);
       h_Sigma.clear();
 
       for (vcl_size_t i = 0; i < to; i++)

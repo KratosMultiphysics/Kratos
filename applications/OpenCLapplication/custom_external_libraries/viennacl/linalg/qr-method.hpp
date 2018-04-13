@@ -901,7 +901,7 @@ namespace viennacl
 
             // std::cout << A << "\n";
 
-            boost::numeric::ublas::matrix<float> eigen_values(A.size1(), A.size1());
+            matrix<float> eigen_values(A.size1(), A.size1());
             eigen_values.clear();
 
             for (vcl_size_t i = 0; i < A.size1(); i++)

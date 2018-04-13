@@ -276,7 +276,7 @@ void OrderByDistance(Node<3>::Pointer &p_node, WeakPointerVector<Node<3> >& neig
 bool SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer &p_node);
 bool SetNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer& p_node);
 double SecondDegreeTestPolynomial(const array_1d <double, 3>& coordinates);
-double SecondDegreeGenericPolynomial(boost::numeric::ublas::matrix<double> C, const array_1d <double, 3>& coordinates);
+double SecondDegreeGenericPolynomial(matrix<double> C, const array_1d <double, 3>& coordinates);
 inline int Factorial(const unsigned int n);
 bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer& p_node);
 unsigned int GetNumberOfUniqueNeighbours(const int my_id, const WeakPointerVector<Element>& my_neighbour_elements);

@@ -323,7 +323,7 @@ private:
     {
       KRATOS_TRY
 
-	boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
+	matrix<unsigned int> lpofa; //connectivities of points defining faces
         boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
 
 	for(ModelPart::ConditionsContainerType::iterator i_cond = rBoundaryEdgedConditions.begin();

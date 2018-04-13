@@ -908,7 +908,7 @@ public:
     {
 
 
-        boost::numeric::ublas::matrix<int> new_conectivity;
+        matrix<int> new_conectivity;
         ElementsArrayType& rElements         =  this_model_part.Elements();
         Element const rReferenceElement;
 

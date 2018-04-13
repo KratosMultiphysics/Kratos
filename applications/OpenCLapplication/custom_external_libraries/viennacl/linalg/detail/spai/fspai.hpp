@@ -320,7 +320,7 @@ namespace viennacl
                             fspai_tag)
           {
             typedef typename MatrixType::value_type              ScalarType;
-            typedef boost::numeric::ublas::matrix<ScalarType>    DenseMatrixType;
+            typedef matrix<ScalarType>    DenseMatrixType;
             typedef std::vector<std::map<unsigned int, ScalarType> >     SparseMatrixType;
 
             //

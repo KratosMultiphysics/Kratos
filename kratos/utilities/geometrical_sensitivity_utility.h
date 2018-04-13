@@ -38,7 +38,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GeometricalSensitivityUtility);
 
-    typedef boost::numeric::ublas::matrix<double> MatrixType;
+    typedef matrix<double> MatrixType;
 
     typedef MatrixType JacobianType;
 
