@@ -33,7 +33,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomProcessesToPython(pybind11::module& m);
+void  AddSearchStrategiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 
