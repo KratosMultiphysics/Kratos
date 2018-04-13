@@ -880,7 +880,6 @@ public:
 
 private:
     ModelPart mr_model_part;
-    unsigned int mrdimension;
 
 
 
