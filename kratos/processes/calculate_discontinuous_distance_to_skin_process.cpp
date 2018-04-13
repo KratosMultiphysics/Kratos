@@ -137,7 +137,7 @@ namespace Kratos
 		// Compute the number of intersected edges
 		std::vector<unsigned int> cut_edges_vector;
 		std::vector<array_1d <double,3> > int_pts_vector, comp_pts_vector;
-		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, int_pts_vector, comp_pts_vector);
+		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, int_pts_vector);
 
 		// Check if there is intersection: 3 or more intersected edges for a tetrahedron
 		// If there is only 1 or 2 intersected edges, intersection is not considered
@@ -209,8 +209,7 @@ namespace Kratos
 		Element& rElement1, 
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
 		std::vector<unsigned int> &rCutEdgesVector,
-      	std::vector<array_1d <double,3> > &rIntersectionPointsArray,
-      	std::vector<array_1d <double,3> > &rComplementaryPointsArray){
+      	std::vector<array_1d <double,3> > &rIntersectionPointsArray){
 
 		auto &r_geometry = rElement1.GetGeometry();
 		const auto r_edges_container = r_geometry.Edges();
@@ -219,10 +218,7 @@ namespace Kratos
 		// Initialize cut edges and points arrays
 		unsigned int n_cut_edges = 0;
 		rIntersectionPointsArray.clear();
-		rComplementaryPointsArray.clear();
 		rCutEdgesVector = std::vector<unsigned int>(n_edges, 0);
-
-		std::vector<unsigned int> NODES_IDS;
 
 		// Check wich edges are intersected
 		for (auto i_edge = 0; i_edge < n_edges; ++i_edge){
@@ -233,25 +229,11 @@ namespace Kratos
 				// Call the compute intersection method
 				Point int_pt;
 				auto &r_int_obj_geom = r_int_obj.GetGeometry();
-
-				// TODO: REMOVE THIS ONCE THE TESTS SETTINGS IS DONE
-				// if (i_edge == 0){
-				// 	if (rElement1.Id() == 861){
-				// 		std::cout << "skin_part.CreateNewElement(\"Element3D3N\", " <<  r_int_obj.Id() << ", {" << r_int_obj_geom[0].Id() << "," << r_int_obj_geom[1].Id() << "," << r_int_obj_geom[2].Id() << "}, p_properties_1);" << std::endl;
-				// 		for (unsigned int i=0; i<3; i++){
-				// 			if (std::find(NODES_IDS.begin(), NODES_IDS.end(), r_int_obj_geom[i].Id()) == NODES_IDS.end()){
-				// 				std::cout<<"skin_part.CreateNewNode(" << r_int_obj_geom[i].Id() <<", " << r_int_obj_geom[i].X() << ", " << r_int_obj_geom[i].Y() << ", " << r_int_obj_geom[i].Z() << ");" << std::endl;
-				// 				NODES_IDS.push_back(r_int_obj_geom[i].Id());
-				// 			}
-				// 		}
-				// 	}
-				// }
-
 				const int int_id = ComputeEdgeIntersection(r_int_obj_geom, r_edges_container[i_edge][0], r_edges_container[i_edge][1], int_pt);
-
+				
 				// There is intersection
 				if (int_id == 1){
-					
+
 					// Check if there is a close intersection (repeated intersection point)
 					bool is_repeated = false;
 					for (auto aux_pt : aux_pts){
@@ -284,30 +266,6 @@ namespace Kratos
 				n_cut_edges++;
 			}
 		}
-
-		// TODO: REMOVE THIS IF COMPLEMENTARY PTS. ARE FINALLY NOT USED
-		// // Save the intersection of the baricenter lines with the intersecting geometries as extra points
-		// const std::size_t n_nodes = r_geometry.PointsNumber();
-		// for (std::size_t i_node = 0; i_node < n_nodes; ++i_node){
-		// 	// Get the opposite i_node face center
-		// 	Element::NodeType face_center(3, 0.0);
-		// 	for (std::size_t j_node = 0; j_node < n_nodes; ++j_node){
-		// 		if (i_node != j_node){
-		// 			face_center += r_geometry[j_node];
-		// 		}
-		// 	}
-		// 	face_center /= (n_nodes-1);
-		// 	// Check if there is intersection with the skin
-		// 	for (auto i_int_obj = 0; i_int_obj < n_int_obj; ++i_int_obj){
-		// 		auto &r_int_obj_geom = rIntersectedObjects[i_int_obj].GetGeometry();
-		// 		Point aux_int_pt;
-		// 		const int aux_int_id = ComputeEdgeIntersection(r_int_obj_geom, r_geometry[i_node], face_center, aux_int_pt);
-		// 		// If there is intersection, add it as auxiliar pt.
-		// 		if (aux_int_id == 1){
-		// 			rComplementaryPointsArray.push_back(aux_int_pt);
-		// 		}
-		// 	}
-		// }
 
 		return n_cut_edges;
 	}

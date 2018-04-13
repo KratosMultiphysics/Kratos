@@ -135,8 +135,7 @@ namespace Kratos
       Element& rElement1, 
       const PointerVector<GeometricalObject>& rIntersectedObjects,
       std::vector<unsigned int> &rCutEdgesVector,
-      std::vector<array_1d <double,3> > &rIntersectionPointsArray,
-      std::vector<array_1d <double,3> > &rComplementaryPointsArray);
+      std::vector<array_1d <double,3> > &rIntersectionPointsArray);
 
     int ComputeEdgeIntersection(
       const Element::GeometryType& rIntObjGeometry,
