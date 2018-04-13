@@ -49,6 +49,7 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Process info creation
 			double delta_time = 0.1;
@@ -180,6 +181,7 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Process info creation
 			double delta_time = 0.1;
@@ -282,6 +284,7 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Process info creation
 			double delta_time = 0.1;
@@ -332,7 +335,7 @@ namespace Kratos {
 
 			for(unsigned int i=0; i<4; i++){
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
-				pElement->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE) = pElement->GetGeometry()[i].Z() - 0.5;
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE) = pElement->GetGeometry()[i].Z() -2.5;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
 				for(unsigned int k=0; k<3; k++){
@@ -411,6 +414,7 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
+			modelPart.AddNodalSolutionStepVariable(DISTANCE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
 

@@ -184,6 +184,14 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 	}
 }
 
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::CalculateRightHandSide(
+	VectorType& rRightHandSideVector,
+	ProcessInfo& rCurrentProcessInfo)
+{
+	MatrixType tmp;
+	CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
 
