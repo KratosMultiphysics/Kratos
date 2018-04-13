@@ -77,17 +77,17 @@ public:
 			mConditionSensitivityVariables[i] = condition_sensitivity_variables[i].GetString();
 
         // Set gradient mode
-		std::string gradientMode = rParameters["gradient_mode"].GetString();
+		std::string gradient_mode = rParameters["gradient_mode"].GetString();
 
 		// Mode 1: semi-analytic sensitivities
-		if (gradientMode.compare("semi_analytic") == 0)
+		if (gradient_mode.compare("semi_analytic") == 0)
 		{
 			mGradientMode = 1;
 			double delta = rParameters["step_size"].GetDouble();
 			mDelta = delta;
 		}
 		else
-			KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " <<  gradientMode << std::endl;
+			KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " <<  gradient_mode << std::endl;
 
 
         KRATOS_CATCH("");
