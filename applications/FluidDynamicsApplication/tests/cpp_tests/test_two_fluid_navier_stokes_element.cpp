@@ -351,7 +351,7 @@ namespace Kratos {
 
 			pElement->Initialize(); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
-			KRATOS_WATCH(1);
+
 			// Compute the error of the perturbation
 			double perturbation = 2e-2;
 			std::vector<double> error_norms;
@@ -396,7 +396,6 @@ namespace Kratos {
 			// std::cout<<std::endl;
 			// for(unsigned int i=0; i<error_norms.size(); ++i)
 			// 	std::cout << "Error norm "<< i << " " << error_norms[i] << std::endl;
-
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(TwoFluidNavierStokes3D4NStationary, FluidDynamicsApplicationFastSuite)

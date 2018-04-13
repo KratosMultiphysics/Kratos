@@ -117,14 +117,11 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 				for (unsigned int g = 0; g < number_of_gauss_points; g++) {
 					data.UpdateGeometryValues(gauss_weights[g],
 						row(shape_functions, g),
-						shape_derivatives[g],
-						row(enriched_shape_functions, g),
-						enriched_shape_derivatives[g]);
+						shape_derivatives[g]);
 					if (dgauss > 0.0)
 						data.CalculateAirMaterialResponse();
 					else
 						this->CalculateMaterialResponse(data);
-					//ojito con above, no se que me estoy perdiendo
 
 					this->AddTimeIntegratedSystem(
 						data, rLeftHandSideMatrix, rRightHandSideVector);
@@ -142,8 +139,11 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 				rhs_ee_tot.resize(NumNodes, false);
 
 				for (unsigned int g = 0; g < data.PartitionsSigns.size(); g++) {
-					data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
-						shape_derivatives[g]);
+					data.UpdateGeometryValues(data.PartitionsVolumes[g],
+						row(shape_functions, g),
+						shape_derivatives[0], //is constant
+						row(enriched_shape_functions, g),
+						enriched_shape_derivatives[g]);
 					const double dgauss = inner_prod(data.Distance, data.N);
 					if (dgauss > 0.0)
 						data.CalculateAirMaterialResponse();
@@ -1738,8 +1738,10 @@ unsigned int TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeSplitt
 	    for (unsigned int j = 0; j < Dim; j++)
 	        coords(i, j) = xyz[j];
 	}
-
-	unsigned int ndivisions = EnrichmentUtilitiesDuplicateDofs::CalculateTetrahedraEnrichedShapeFuncions(coords, rShapeDerivatives[0], rData.Distance, rData.PartitionsVolumes, rShapeFunctions, rData.PartitionsSigns, rEnrichedShapeDerivatives, rEnrichedShapeFunctions);
+	Vector distances(NumNodes);
+	for (int i = 0; i < NumNodes; i++)
+		distances[i] = rData.Distance[i];
+	unsigned int ndivisions = EnrichmentUtilitiesDuplicateDofs::CalculateTetrahedraEnrichedShapeFuncions(coords, rShapeDerivatives[0], distances, rData.PartitionsVolumes, rShapeFunctions, rData.PartitionsSigns, rEnrichedShapeDerivatives, rEnrichedShapeFunctions);
 	return ndivisions;
 
 }
@@ -1763,7 +1765,10 @@ unsigned int TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeSplitt
 			coords(i, j) = xyz[j];
 	}
 
-	unsigned int ndivisions = EnrichmentUtilitiesDuplicateDofs::CalculateTetrahedraEnrichedShapeFuncions(coords, rShapeDerivatives[0], rData.Distance, rData.PartitionsVolumes, rShapeFunctions, rData.PartitionsSigns, rEnrichedShapeDerivatives, rEnrichedShapeFunctions);
+	Vector distances(NumNodes);
+	for (int i = 0; i < NumNodes; i++)
+		distances[i] = rData.Distance[i];
+	unsigned int ndivisions = EnrichmentUtilitiesDuplicateDofs::CalculateTetrahedraEnrichedShapeFuncions(coords, rShapeDerivatives[0], distances, rData.PartitionsVolumes, rShapeFunctions, rData.PartitionsSigns, rEnrichedShapeDerivatives, rEnrichedShapeFunctions);
 	return ndivisions;
 
 }

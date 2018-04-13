@@ -79,8 +79,8 @@ ShapeDerivativesType DN_DXenr;
 size_t NumPositiveNodes;
 size_t NumNegativeNodes;
 unsigned int NumberOfDivisions;
-array_1d<double, NumNodes> PartitionsVolumes;
-array_1d<double, NumNodes> PartitionsSigns; //ATTENTION: this shall be initialized of size 6 ---> Mentira
+Vector PartitionsVolumes;
+Vector PartitionsSigns; //ATTENTION: this shall be initialized of size 6 ---> Mentira
 
 ///@}
 ///@name Public Operations
@@ -122,6 +122,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 	NumPositiveNodes = 0;
 	NumNegativeNodes = 0;
 	NumberOfDivisions = 1;
+	PartitionsSigns.resize(6, false);
 }
 
 void UpdateGeometryValues(
