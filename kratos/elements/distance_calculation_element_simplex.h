@@ -214,7 +214,7 @@ public:
         {
             //compute distance on gauss point
 
-            this->GetValue(DISTANCE) = dgauss; //saving the distance, to see if it changed sign between iterations
+            this->SetValue(DISTANCE,dgauss); //saving the distance, to see if it changed sign between iterations
             //compute LHS
             noalias(rLeftHandSideMatrix) = Area*prod(DN_DX,trans(DN_DX));
             
