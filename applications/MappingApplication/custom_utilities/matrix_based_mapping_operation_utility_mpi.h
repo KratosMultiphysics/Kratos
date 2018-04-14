@@ -25,7 +25,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "trilinos_space.h"
+#include "trilinos_space.h" // either I Include the Trilinos Dir in CMakeLists or I use the rel path // TODO
 #include "mapping_operation_utility.h"
 
 
@@ -69,6 +69,9 @@ class MatrixBasedMappingOperationUtilityMPI : public MappingOperationUtility
     using ModelPartPointerType = BaseType::ModelPartPointerType;
 
     using SparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
+
+    typedef typename SparseSpaceType::MatrixType SystemMatrixType;
+    typedef typename SparseSpaceType::MatrixPointerType SystemMatrixPointerType;
 
     ///@}
     ///@name Life Cycle

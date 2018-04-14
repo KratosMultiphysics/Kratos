@@ -140,7 +140,7 @@ Mapper::Mapper(ModelPart& rModelPartOrigin,
     //                                                                      mpInterfaceModelPart);
 
     // GenerateInterfaceModelPart();
-    // Initialize();
+    Initialize();
 }
 
 void Mapper::Initialize()

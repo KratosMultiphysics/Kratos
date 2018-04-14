@@ -1,6 +1,6 @@
 import KratosMultiphysics
 
-# import KratosMultiphysics.mpi as KratosMPI
+import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.MappingApplication as KratosMapping
 
 model_part_origin = KratosMultiphysics.ModelPart()

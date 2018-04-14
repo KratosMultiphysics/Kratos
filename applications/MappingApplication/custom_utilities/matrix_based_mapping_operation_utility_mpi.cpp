@@ -31,6 +31,32 @@ namespace Kratos
     {
         KRATOS_ERROR_IF_NOT(SparseSpaceType::IsDistributed())
             << "Wrong SparseSpace used!" << std::endl;
+
+        //creating a work array
+
+
+        Epetra_MpiComm epetra_comm(MPI_COMM_WORLD);
+
+
+        int* temp = new int[1000]; //
+
+        Epetra_Map my_map(-1, 1000, temp, 0, epetra_comm);
+
+
+        Epetra_FECrsGraph Agraph(Copy, my_map, 50);
+
+        //////
+
+
+        int ierr = Agraph.GlobalAssemble();
+
+        // TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
+
+        SystemMatrixPointerType pNewA = Kratos::make_shared<SystemMatrixType>(Copy,Agraph);
+
+        KRATOS_WATCH("After the Trilinos Stuff")
+
+
     }
 
     /***********************************************************************************/
