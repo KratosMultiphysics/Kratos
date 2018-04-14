@@ -40,7 +40,7 @@
 namespace Kratos
 {
 
-KratosMappingApplication::KratosMappingApplication() : 
+KratosMappingApplication::KratosMappingApplication() :
     KratosApplication("MappingApplication"),
     mInterfaceObject(0.0, 0.0, 0.0),
     mInterfaceNode(),
@@ -79,6 +79,8 @@ void KratosMappingApplication::Register()
     MapperFactory::Register("nearest_element",  Kratos::make_shared<NearestElementMapper>(dummy_model_part, dummy_model_part));
 
     // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
+    KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
+
     KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NEIGHBOR_COORDINATES )
 

@@ -61,6 +61,8 @@ class InterfaceCommunicator
     /// Pointer definition of InterfaceCommunicator
     KRATOS_CLASS_POINTER_DEFINITION(InterfaceCommunicator);
 
+    using ModelPartPointerType = ModelPart::Pointer;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -125,6 +127,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    ModelPart& mrModelPartOrigin;
+    ModelPartPointerType mpInterfaceModelPart;
+
 
     ///@}
     ///@name Protected Operators
@@ -134,6 +139,12 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void PrepareInterface();
+
+    void AssignInterfaceEquationIds();
+
+    void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
 
 
     ///@}

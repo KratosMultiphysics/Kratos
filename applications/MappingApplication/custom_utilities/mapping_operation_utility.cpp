@@ -25,7 +25,9 @@ namespace Kratos
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
-    MappingOperationUtility::MappingOperationUtility(ModelPartPointerType pInterfaceModelPart)
+    MappingOperationUtility::MappingOperationUtility(
+        ModelPartPointerType pInterfaceModelPart)
+        : mpInterfaceModelPart(pInterfaceModelPart)
     {
 
     }

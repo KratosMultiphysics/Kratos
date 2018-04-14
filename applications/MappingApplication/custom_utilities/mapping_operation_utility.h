@@ -87,21 +87,26 @@ class MappingOperationUtility
 
     virtual double GetMappingMatrixEntry(const IndexType RowIndex, const IndexType ColumnIndex)
     {
-        return 1234.5;
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    virtual void UpdateInterface()
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
     virtual void ExecuteMapping(const Variable<double>& rOriginVariable,
                                 const Variable<double>& rDestinationVariable,
                                 Kratos::Flags MappingOptions)
     {
-
+        KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
     virtual void ExecuteMapping(const Variable<array_1d<double, 3>>& rOriginVariable,
                                 const Variable<array_1d<double, 3>>& rDestinationVariable,
                                 Kratos::Flags MappingOptions)
     {
-
+        KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
 
@@ -147,6 +152,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    ModelPartPointerType mpInterfaceModelPart;
 
 
     ///@}

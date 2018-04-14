@@ -25,10 +25,12 @@ namespace Kratos
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
-    MatrixBasedMappingOperationUtility::MatrixBasedMappingOperationUtility(ModelPartPointerType pInterfaceModelPart)
+    MatrixBasedMappingOperationUtility::MatrixBasedMappingOperationUtility(
+        ModelPartPointerType pInterfaceModelPart)
         : MappingOperationUtility(pInterfaceModelPart)
     {
-        // KRATOS_ERROR_IF()
+        KRATOS_ERROR_IF(SparseSpaceType::IsDistributed())
+            << "Wrong SparseSpace used!" << std::endl;
     }
 
     /***********************************************************************************/

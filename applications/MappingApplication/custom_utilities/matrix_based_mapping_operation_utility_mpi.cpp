@@ -28,7 +28,10 @@ namespace Kratos
     MatrixBasedMappingOperationUtilityMPI::MatrixBasedMappingOperationUtilityMPI(
         ModelPartPointerType pInterfaceModelPart)
         : MappingOperationUtility(pInterfaceModelPart)
-    {}
+    {
+        KRATOS_ERROR_IF_NOT(SparseSpaceType::IsDistributed())
+            << "Wrong SparseSpace used!" << std::endl;
+    }
 
     /***********************************************************************************/
     /* PROTECTED Methods */
