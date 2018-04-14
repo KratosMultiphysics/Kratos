@@ -5,6 +5,7 @@
         "echo_level"      : *GenData(Echo_Level)
     },
     "model_settings"           : {
+        "model_name": "Main_Domain",
         "dimension"       : *GenData(DIMENSION,INT),
 	"bodies_list":[
 *set cond group_DeformableBodies *groups
@@ -86,32 +87,7 @@
             "name"   : "*tcl(file tail [GiD_Info Project ModelName])",
 	    "label" : 0
 *endif
-        },
-        "dofs"                               : [
-*if(strcmp(GenData(DOFS),"ROTATIONS")==0)
-                                                "ROTATION",
-*endif
-*if(strcmp(GenData(DOFS),"U-P")==0)
-                                                "PRESSURE",
-*endif
-*if(strcmp(GenData(DOFS),"U-wP")==0 )
-                                                "WATER_PRESSURE",
-*endif
-*if( strcmp(GenData(DOFS),"U-J-wP")==0 )
-                                                "WATER_PRESSURE",
-						"JACOBIAN"
-*endif
-*if( strcmp(GenData(DOFS),"U-J")==0 )
-						"JACOBIAN"
-*endif
-*if(strcmp(GenData(DOFS),"U-W")==0)
-						"WATER_DISPLACEMENT"
-*endif
-*if(strcmp(GenData(DOFS),"U-W-wP")==0)
-						"WATER_DISPLACEMENT",
-                                                "WATER_PRESSURE"
-*endif
-					       ]
+        }
     },
     "solver_settings"          : {
 *if(strcmp(GenData(Solver_Type),"DynamicSolver")==0)
@@ -183,7 +159,32 @@
                    "tolerance"      : 1e-7,
                    "max_iteration"  : *GenData(Linear_Solver_Max_Iteration,INT),
                    "scaling"        : false
-              }
+              },
+              "dofs"                            : [
+*if(strcmp(GenData(DOFS),"ROTATIONS")==0)
+                                                "ROTATION",
+*endif
+*if(strcmp(GenData(DOFS),"U-P")==0)
+                                                "PRESSURE",
+*endif
+*if(strcmp(GenData(DOFS),"U-wP")==0 )
+                                                "WATER_PRESSURE",
+*endif
+*if( strcmp(GenData(DOFS),"U-J-wP")==0 )
+                                                "WATER_PRESSURE",
+						"JACOBIAN"
+*endif
+*if( strcmp(GenData(DOFS),"U-J")==0 )
+						"JACOBIAN"
+*endif
+*if(strcmp(GenData(DOFS),"U-W")==0)
+						"WATER_DISPLACEMENT"
+*endif
+*if(strcmp(GenData(DOFS),"U-W-wP")==0)
+						"WATER_DISPLACEMENT",
+                                                "WATER_PRESSURE"
+*endif
+					       ]
         }
     },
     "problem_process_list" : [{
@@ -320,7 +321,7 @@
 			}
 		    },
 		    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ],
-                    "contact_sub_model_part_list" : [
+                    "contact_bodies_list" : [
 *set cond group_DeformableBodies *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
@@ -853,7 +854,7 @@
 				      "WATER_ACCELERATION",
 				      "WATER_PRESSURE",
 				      "WATER_PRESSURE_VELOCITY",
-				      "WATER_PRESSURE_ACCELERATIONN",
+				      "WATER_PRESSURE_ACCELERATION",
 *endif
 *endif
 *if(strcmp(GenData(Write_Reactions),"True")==0)
@@ -862,7 +863,6 @@
 *if(strcmp(GenData(Write_Contact_Forces),"True")==0)
 				      "NORMAL",
 				      "CONTACT_FORCE",
-				      "CONTACT_STRESS",
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
 				      "PRESSURE",

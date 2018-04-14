@@ -70,7 +70,7 @@ cmake ..  																		                                 \
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3   " 									                 \
 -DBOOST_LIBRARYDIR="${BOOST_ROOT}/stage/lib"									                 \
 -DPYTHON_INCLUDE_PATH="/home/odin/Python-3.3.4/Include"							           \
--DPYTHON_LIBRARY="/home/odin/Python-3.3.4/libpython3.3m.so.1.0"					       \
+-DPYTHON_EXECUTABLE="/usr/bin/python${PYTHON_VERSION_S}.${PYTHON_VERSION_M}"                    \
 -DCMAKE_BUILD_TYPE=Release  													                         \
 -DINCOMPRESSIBLE_FLUID_APPLICATION=ON  											                   \
 -DMESHING_APPLICATION=ON 														                           \
@@ -85,11 +85,8 @@ cmake ..  																		                                 \
 -DOPENCL_INCLUDE_DIRS="/home/odin/libs/AMD-APP-SDK-v2.8-RC-lnx64/include/" 		 \
 -DULF_APPLICATION=ON															                             \
 -DMIXED_ELEMENT_APPLICATION=ON													                       \
--DMKL_SOLVERS_APPLICATION=OFF													                         \
 -DTHERMO_MECHANICAL_APPLICATION=ON												                     \
 -DBLOOD_FLOW_APPLICATION=OFF													                         \
--DMKLSOLVER_INCLUDE_DIR="/opt/intel/composerxe-2011.5.220/mkl/include"			   \
--DMKLSOLVER_LIB_DIR="/opt/intel/composerxe-2011.5.220/mkl/lib/intel64"			   \
 -DUSE_INTEL_GREATER_THAN_12=TRUE 												                       \
 -DMETIS_APPLICATION=ON															                           \
 -DPARMETIS_ROOT_DIR="/home/odin/compiled_libraries/ParMetis-3.2.0" 				     \

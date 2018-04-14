@@ -50,6 +50,10 @@
 #include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
 #include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
+#include "custom_conditions/EP_point_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/EP_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/EP_axisym_point_rigid_contact_penalty_2D_condition.hpp"
+
 // friction laws
 #include "custom_friction/friction_law.hpp"
 #include "custom_friction/coulomb_adhesion_friction_law.hpp"
@@ -57,8 +61,6 @@
 
 
 // Core applications
-#include "pfem_application.h"
-
 #include "contact_mechanics_application_variables.h"
 
 namespace Kratos {
@@ -230,6 +232,9 @@ private:
 	const PointRigidContactPenalty3DCondition       mPointRigidContactPenalty3DCondition;
 	const AxisymPointRigidContactPenalty2DCondition mAxisymPointRigidContactPenalty2DCondition;
 
+	const EPPointRigidContactPenalty2DCondition       mEPPointRigidContactPenalty2DCondition;
+	const EPPointRigidContactPenalty3DCondition       mEPPointRigidContactPenalty3DCondition;
+	const EPAxisymPointRigidContactPenalty2DCondition mEPAxisymPointRigidContactPenalty2DCondition;
 	//friction laws
 	const FrictionLaw                                                       mFrictionLaw;
 	const CoulombAdhesionFrictionLaw                         mCoulombAdhesionFrictionLaw;

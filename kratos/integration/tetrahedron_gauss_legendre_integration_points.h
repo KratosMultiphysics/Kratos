@@ -210,7 +210,7 @@ private:
 class KRATOS_API(KRATOS_CORE) TetrahedronGaussLegendreIntegrationPoints5
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(TetrahedronGaussLegendreIntegrationPoints4);
+    KRATOS_CLASS_POINTER_DEFINITION(TetrahedronGaussLegendreIntegrationPoints5);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 3;

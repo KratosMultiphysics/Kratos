@@ -30,23 +30,11 @@
 #include "includes/define.h"
 //#include "utilities/split_tetrahedra.h"
 
-
-
-
-
-
-
-
-
-
-
-
-
 namespace Kratos
 {
 
-/** This utility can be used to calculate the enriched shape function for tetrahedra element.
- *  The metodology consists in partitioning the tetrahedra in a set of sub-tetrahedra and
+/** @brief This utility can be used to calculate the enriched shape function for tetrahedra element.
+ *  @details The metodology consists in partitioning the tetrahedra in a set of sub-tetrahedra and
  *  cacluate the enrichment information using these partitions.
  */
 class DiscontinuousShapeFunctionsUtilities_2D
@@ -54,13 +42,11 @@ class DiscontinuousShapeFunctionsUtilities_2D
 public:
 
     /**
-     * 
-     * 
-     * The method to calculate the ernriched shape functions for given triangle
-     * Basically, two shape functions are provided, 
-     * 1)one is the enrichment to capturate discontinuities in the gradients of the pressure 
+     * @brief The method to calculate the enriched shape functions for given triangle
+     * @details Basically, two shape functions are provided, 
+     * -# One is the enrichment to capturate discontinuities in the gradients of the pressure 
      *       ("Improving Eulerian two-phase flow finite element approximation with discontinuous gradient (i.e pressure) shape functions" Coppola-Owen and Codina) 
-     * 2) the second one is to capturate discontinuities in the varialbe(ie. pressure). it is a shape function that is zero on the nodes and has a constant discontinuity along the found interfase)
+     * -# The second one is to capturate discontinuities in the varialbe(ie. pressure). it is a shape function that is zero on the nodes and has a constant discontinuity along the found interfase)
      * 
      * @param rPoints A 3x3 matrix where row i has the coordinates of node i.
      * @param DN_DX The gradient of the shape functions Ni respect to the reference coordinates
@@ -84,8 +70,8 @@ public:
      * @param face_gauss_N_enrich is the value of the enrichment shape functions in the integration point
      * 		  actually it's value is always the same so no need to use it: the shape functions were defined to make it 1 in the first shape function,
      * 		  And 1 and -1 the second shape function (it's discontinous, so it has these two values in the interfase)
-     * 		  WARNING: therefore the discontinuity in the shape function is equal to 2.
-     * @param type_of_cut: the partition that is 'alone': the one that is on one side of the shape function
+     * 		  @warning Therefore the discontinuity in the shape function is equal to 2.
+     * @param type_of_cut The partition that is 'alone': the one that is on one side of the shape function
      * 		  the other two are the ones in the other side, meaning they have the same derivatives and , for example, densities.
      * 
      * @return number of partitions created which can be from 1 to 3.

@@ -2,7 +2,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMeshingApplication ****")
 
-
+################### PYBIND11
+include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/triangle )
@@ -59,14 +60,16 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 )
 endif(${INCLUDE_MMG} MATCHES ON)
 
-
-
+if(${KRATOS_BUILD_TESTING} MATCHES ON) 
+    file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp) 
+endif(${KRATOS_BUILD_TESTING} MATCHES ON) 
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES})
-target_link_libraries(KratosMeshingApplication KratosCore triangle tetMeshOpt)
-
+pybind11_add_module(KratosMeshingApplication MODULE ${KRATOS_MESHING_APPLICATION_SOURCES} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosMeshingApplication PRIVATE KratosCore triangle tetMeshOpt)
+set_target_properties(KratosMeshingApplication PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
+set_target_properties(KratosMeshingApplication PROPERTIES PREFIX "")
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     target_link_libraries(KratosMeshingApplication ${TETGEN_LIBRARIES})
@@ -97,6 +100,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(USE_COTIRE MATCHES ON)
+    ## The MMG is not compatibel with cotire
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosMeshingApplication)
 endif(USE_COTIRE MATCHES ON)
 

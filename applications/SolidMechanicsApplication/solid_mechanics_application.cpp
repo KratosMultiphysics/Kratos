@@ -274,13 +274,19 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
       mLargeDisplacementBeamEMCElement3D2N(
           0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
                  Element::GeometryType::PointsArrayType(2)))),
+      mLargeDisplacementBeamEMCElement3D3N(
+          0, Element::GeometryType::Pointer(new Line3D3<Node<3> >(
+                 Element::GeometryType::PointsArrayType(3)))),      
       mLargeDisplacementBeamSEMCElement3D2N(
           0, Element::GeometryType::Pointer(new LineGaussLobatto3D2<Node<3> >(
                  Element::GeometryType::PointsArrayType(2)))),
       mGeometricallyExactRodElement3D2N(
           0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
                  Element::GeometryType::PointsArrayType(2)))),
-
+      mLargeDisplacementBeamElement2D2N(
+          0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(
+                 Element::GeometryType::PointsArrayType(2)))),
+      
       mShellThickElement3D4N(0,
           Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
               Element::GeometryType::PointsArrayType(4))),
@@ -444,8 +450,10 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_VECTOR)
     KRATOS_REGISTER_VARIABLE(EIGENVECTOR_MATRIX)
 
+    //integration methods
+    KRATOS_REGISTER_VARIABLE( TIME_INTEGRATION_METHODS )  
+        
     //explicit schemes
-    KRATOS_REGISTER_VARIABLE( TIME_INTEGRATION_METHOD )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
     //solution
@@ -713,10 +721,14 @@ void KratosSolidMechanicsApplication::Register() {
         "LargeDisplacementBeamElement3D3N", mLargeDisplacementBeamElement3D3N)
     KRATOS_REGISTER_ELEMENT("LargeDisplacementBeamEMCElement3D2N",
         mLargeDisplacementBeamEMCElement3D2N)
+    KRATOS_REGISTER_ELEMENT("LargeDisplacementBeamEMCElement3D3N",
+        mLargeDisplacementBeamEMCElement3D3N)
     KRATOS_REGISTER_ELEMENT("LargeDisplacementBeamSEMCElement3D2N",
         mLargeDisplacementBeamSEMCElement3D2N)
     KRATOS_REGISTER_ELEMENT(
         "GeometricallyExactRodElement3D2N", mGeometricallyExactRodElement3D2N)
+    KRATOS_REGISTER_ELEMENT(
+        "LargeDisplacementBeamElement2D2N", mLargeDisplacementBeamElement2D2N)
 
     //Register shells
     KRATOS_REGISTER_ELEMENT("ShellThickElement3D4N", mShellThickElement3D4N)

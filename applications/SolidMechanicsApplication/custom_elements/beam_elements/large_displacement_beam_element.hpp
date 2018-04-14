@@ -7,7 +7,7 @@
 //
 // 
 
-#if !defined(KRATOS_LARGE_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_LARGE_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED)
 #define  KRATOS_LARGE_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED
 
 // System includes
@@ -39,11 +39,11 @@ namespace Kratos
 /**
  * Implements a Large Displacement Beam element for structural analysis.
  * This works for linear and quadratic geometries in 3D and large displacements :: it must be extended larger order elements and 2D geometries
- * Nodal Variables: DISPLACEMENT, STEP_DISPLACEMENT, VELOCITY, ACCELERATION, ROTATION, STEP_ROTATION, DELTA_ROTATION, ANGULAR_VELOCITY, ANGULAR_ACCELERATION
+ * Nodal Variables: DISPLACEMENT, STEP_DISPLACEMENT, VELOCITY, ACCELERATION, ROTATION, STEP_ROTATION, ANGULAR_VELOCITY, ANGULAR_ACCELERATION
  * Nodal Dofs: DISPLACEMENT, ROTATION
  */
 
-class LargeDisplacementBeamElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LargeDisplacementBeamElement
     :public BeamElement
 {
 public:

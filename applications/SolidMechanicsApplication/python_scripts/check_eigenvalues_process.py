@@ -5,7 +5,7 @@ import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return CheckEigenvaluesProcess(Model, settings["Parameters"])
 
@@ -32,12 +32,12 @@ class CheckEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.TestCas
         reference_values = settings["reference_values"].GetString()
         for ev in reference_values.strip('[]').split(','):
             self.reference_values.append(float(ev))
-            
+
 
     def ExecuteInitialize(self):
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
-    
+
     def ExecuteFinalizeSolutionStep(self):
         current_values = [ev for ev in self.model_part.ProcessInfo[self.variable]]
         for evs in zip(current_values,self.reference_values):

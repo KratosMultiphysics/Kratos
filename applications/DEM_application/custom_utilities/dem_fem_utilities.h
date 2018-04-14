@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-class DEMFEMUtilities {
+class KRATOS_API(DEM_APPLICATION) DEMFEMUtilities {
     
     
     
@@ -48,6 +48,7 @@ class DEMFEMUtilities {
     void ChangeMeshVelocity(ModelPart& r_model_part, std::string id, array_1d<double, 3> linear_velocity);
       
     void MoveAllMeshes(ModelPart& r_model_part, double time, double dt);
+    void MoveAllMeshesUsingATable(ModelPart& r_model_part, double time, double dt);
 
     void CreateRigidFacesFromAllElements(ModelPart& r_model_part, PropertiesType::Pointer pProps);
         

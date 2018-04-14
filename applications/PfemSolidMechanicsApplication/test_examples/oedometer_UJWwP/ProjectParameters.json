@@ -273,7 +273,7 @@
                                       "WATER_ACCELERATION",
                                       "WATER_PRESSURE",
                                       "WATER_PRESSURE_VELOCITY",
-                                      "WATER_PRESSURE_ACCELERATIONN",
+                                      "WATER_PRESSURE_ACCELERATION",
                                       "DISPLACEMENT"
                                     ],
             "gauss_point_results" : [

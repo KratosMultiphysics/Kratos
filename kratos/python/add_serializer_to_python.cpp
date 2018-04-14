@@ -13,11 +13,10 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/serializer.h"
 #include "python/add_serializer_to_python.h"
 #include "includes/model_part.h"
@@ -26,7 +25,7 @@ namespace Kratos
 {
 namespace Python
 {
-using namespace boost::python;
+using namespace pybind11;
 
 template< class TObjectType >
 void BufferPushBack(Buffer& rBuffer, TObjectType& rObject)
@@ -58,19 +57,18 @@ void SerializerPrint(Serializer& rSerializer)
     std::cout << ((std::stringstream*)(rSerializer.pGetBuffer()))->str();
 }
 
-void  AddSerializerToPython()
+void  AddSerializerToPython(pybind11::module& m)
 {
-    class_<Buffer, Buffer::Pointer >("Buffer")
+    class_<Buffer, Buffer::Pointer >(m,"Buffer")
     .def(init<>())
     .def(init<Buffer::SizeType>())
     .def("Size",&Buffer::size)
     .def("Swap",&Buffer::swap)
     .def("Clear",&Buffer::clear)
-//                  .def("Resize"&Buffer::resize)
-    .def(self_ns::str(self))
+    .def("__repr__", &Buffer::Info)
     ;
 
-    class_<Serializer, Serializer::Pointer, boost::noncopyable >("Serializer")
+    class_<Serializer, Serializer::Pointer >(m,"Serializer")
     .def(init<>())
     .def(init<std::string const&>())
     .def(init<Serializer::TraceType>())
@@ -78,11 +76,9 @@ void  AddSerializerToPython()
     .def("Load",SerializerLoad<ModelPart>)
     .def("Save",SerializerSave<ModelPart>)
     .def("Print", SerializerPrint)
-    //.def("",&Kernel::Initialize)
-//	      .def(self_ns::str(self))
     ;
 
-    enum_<Serializer::TraceType>("SerializerTraceType")
+    enum_<Serializer::TraceType>(m,"SerializerTraceType")
     .value("SERIALIZER_NO_TRACE", Serializer::SERIALIZER_NO_TRACE)
     .value("SERIALIZER_TRACE_ERROR", Serializer::SERIALIZER_TRACE_ERROR)
     .value("SERIALIZER_TRACE_ALL", Serializer::SERIALIZER_TRACE_ALL)

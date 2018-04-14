@@ -195,11 +195,11 @@ class schur_pressure_correction {
                 )
             : prm(prm), n(backend::rows(K)), np(0), nu(0)
         {
-            init(boost::make_shared<build_matrix>(K), bprm);
+            init(std::make_shared<build_matrix>(K), bprm);
         }
 
         schur_pressure_correction(
-                boost::shared_ptr<build_matrix> K,
+                std::shared_ptr<build_matrix> K,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
                 )
@@ -267,24 +267,24 @@ class schur_pressure_correction {
     private:
         size_t n, np, nu;
 
-        boost::shared_ptr<matrix> K, Kup, Kpu, x2u, x2p, u2x, p2x;
-        boost::shared_ptr<vector> rhs_u, rhs_p, u, p, tmp;
-        boost::shared_ptr<typename backend_type::matrix_diagonal> M;
+        std::shared_ptr<matrix> K, Kup, Kpu, x2u, x2p, u2x, p2x;
+        std::shared_ptr<vector> rhs_u, rhs_p, u, p, tmp;
+        std::shared_ptr<typename backend_type::matrix_diagonal> M;
 
-        boost::shared_ptr<USolver> U;
-        boost::shared_ptr<PSolver> P;
+        std::shared_ptr<USolver> U;
+        std::shared_ptr<PSolver> P;
 
-        void init(const boost::shared_ptr<build_matrix> &K, const backend_params &bprm)
+        void init(const std::shared_ptr<build_matrix> &K, const backend_params &bprm)
         {
             typedef typename backend::row_iterator<build_matrix>::type row_iterator;
 
             this->K = backend_type::copy_matrix(K, bprm);
 
             // Extract matrix subblocks.
-            boost::shared_ptr<build_matrix> Kuu = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> Kpu = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> Kup = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> Kpp = boost::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> Kuu = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> Kpu = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> Kup = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> Kpp = std::make_shared<build_matrix>();
 
             std::vector<ptrdiff_t> idx(n);
 
@@ -374,8 +374,8 @@ class schur_pressure_correction {
                 }
             }
 
-            U = boost::make_shared<USolver>(*Kuu, prm.usolver, bprm);
-            P = boost::make_shared<PSolver>(*Kpp, prm.psolver, bprm);
+            U = std::make_shared<USolver>(*Kuu, prm.usolver, bprm);
+            P = std::make_shared<PSolver>(*Kpp, prm.psolver, bprm);
 
             this->Kup = backend_type::copy_matrix(Kup, bprm);
             this->Kpu = backend_type::copy_matrix(Kpu, bprm);
@@ -392,10 +392,10 @@ class schur_pressure_correction {
                 M = backend_type::copy_vector(diagonal(*Kuu, /*invert = */true), bprm);
 
             // Scatter/Gather matrices
-            boost::shared_ptr<build_matrix> x2u = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> x2p = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> u2x = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> p2x = boost::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> x2u = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> x2p = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> u2x = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> p2x = std::make_shared<build_matrix>();
 
             x2u->set_size(nu, n, true);
             x2p->set_size(np, n, true);
@@ -470,7 +470,7 @@ class schur_pressure_correction {
             return os;
         }
 
-#if defined(AMGCL_DEBUG) || !defined(NDEBUG)
+#if defined(AMGCL_DEBUG)
         template <typename I, typename E>
         static void report(const std::string &name, const boost::tuple<I, E> &c) {
             std::cout << name << " (" << boost::get<0>(c) << ", " << boost::get<1>(c) << ")\n";

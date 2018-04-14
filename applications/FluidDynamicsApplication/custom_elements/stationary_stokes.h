@@ -137,6 +137,15 @@ public:
     /// Create a new StationaryStokes element and return a pointer to it
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties)  const override;
 
+
+    /// Create a new element of this type.
+	/**
+	 @param NewId Index of the new element
+     @param pGeom A pointer to the geometry of the new element
+	 @param pProperties Pointer to the element's properties
+	 */
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+
     /// Check that all required data containers are properly initialized and registered in Kratos
     /** @return 0 if no errors are detected.
       */

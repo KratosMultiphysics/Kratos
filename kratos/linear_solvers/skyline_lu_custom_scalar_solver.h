@@ -18,7 +18,7 @@
 #include <algorithm>
 
 // External includes
-#include <boost/smart_ptr.hpp>
+#include <memory>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
 #include <amgcl/value_type/complex.hpp>
@@ -82,7 +82,7 @@ public:
                 rA.index2_data().begin(),
                 rA.value_data().begin());
 
-        pSolver = boost::make_shared<SolverType>(*pBuiltinMatrix);
+        pSolver = Kratos::make_shared<SolverType>(*pBuiltinMatrix);
     }
 
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
@@ -117,9 +117,9 @@ public:
 
 private:
 
-    boost::shared_ptr<BuiltinMatrixType> pBuiltinMatrix;
+    Kratos::shared_ptr<BuiltinMatrixType> pBuiltinMatrix;
 
-    boost::shared_ptr<SolverType> pSolver;
+    Kratos::shared_ptr<SolverType> pSolver;
 };
 
 ///@}

@@ -16,16 +16,12 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/ublas_interface.h"
+#include "containers/array_1d.h"
 #include "python/add_vector_to_python.h"
-#include "python/vector_python_interface.h"
-#include "python/vector_scalar_operator_python.h"
-#include "python/vector_vector_operator_python.h"
 
 namespace Kratos
 {
@@ -33,83 +29,161 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+    using namespace pybind11;
 
-template<class TContainerType>
-struct UblasVectorModifierRenamed
-{
-    typedef typename TContainerType::size_type index_type;
-    static void Resize(TContainerType& ThisContainer, typename TContainerType::size_type NewSize)
-    {
-        ThisContainer.resize(NewSize, true);
-    }
-    static void MoveSlice(TContainerType& ThisContainer, index_type Index, index_type From, index_type To)
-    {
-        if(Index > From)
+    template< typename TVectorType > class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string Name )
         {
-            ThisContainer.resize(ThisContainer.size() + Index - From, true);
-            std::copy_backward(ThisContainer.begin() + From, ThisContainer.begin() + To, ThisContainer.begin() + Index + To - From);
+
+        class_< TVectorType, std::shared_ptr<TVectorType> > binder(m,Name.c_str());
+        binder.def(init<>());
+
+        //binder.def(init<std::TVectorType& >())
+        binder.def("Size", [](const TVectorType& self){return self.size();} );
+        binder.def("Resize", [](TVectorType& self, const typename TVectorType::size_type  new_size){if(self.size() != new_size) self.resize(new_size, false);} );
+        binder.def("__len__", [](const TVectorType& self){return self.size();} );
+
+        //operating on the object itself, +=, -=, *=, etc
+        binder.def("__iadd__", [](TVectorType& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]+=scalar; return self;}, is_operator());
+        binder.def("__isub__", [](TVectorType& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]-=scalar; return self;}, is_operator());
+        binder.def("__imul__", [](TVectorType& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]*=scalar; return self;}, is_operator());
+        binder.def("__itruediv__", [](TVectorType& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]/=scalar; return self;}, is_operator());
+
+        binder.def("__iadd__", [](TVectorType& self, const TVectorType& other_vec){noalias(self) += other_vec; return self;}, is_operator());
+        binder.def("__isub__", [](TVectorType& self, const TVectorType& other_vec){noalias(self) -= other_vec; return self; }, is_operator());
+
+        //returning a different object
+//         binder.def("__add__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]+=scalar; return vec1;}, is_operator());
+//         binder.def("__sub__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]-=scalar; return vec1;}, is_operator());
+         binder.def("__mul__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]*=scalar; return vec1;}, is_operator());
+         binder.def("__div__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar; return vec1;}, is_operator());
+//         binder.def("__radd__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]+=scalar; return vec1;}, is_operator());
+//         binder.def("__rsub__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]-=scalar; return vec1;}, is_operator());
+         binder.def("__rmul__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]*=scalar; return vec1;}, is_operator());
+         binder.def("__rdiv__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar;}, is_operator());
+        binder.def("__add__", [](const TVectorType& vec1, const TVectorType& vec2){Vector aux(vec1); aux += vec2; return aux;}, is_operator());
+        binder.def("__sub__", [](const TVectorType& vec1, const TVectorType& vec2){Vector aux(vec1); aux -= vec2; return aux;}, is_operator());
+
+        //access operators
+        binder.def("__setitem__", [](TVectorType& self, const unsigned int i, const typename TVectorType::value_type value){self[i] = value;} );
+        binder.def("__getitem__", [](const TVectorType& self, const unsigned int i){return self[i];} );
+
+        //access using slices
+        binder.def("__setitem__", [](TVectorType &self, pybind11::slice this_slice, const TVectorType &value) {
+            size_t start, stop, step, slicelength;
+            if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
+                throw pybind11::error_already_set();
+            if (slicelength != value.size())
+                throw std::runtime_error("Left and right hand size of slice assignment have different sizes!");
+            for (size_t i = 0; i < slicelength; ++i) {
+                self[start] = value[i]; start += step;
+            }
+        });
+        binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> boost::numeric::ublas::vector_slice<TVectorType> {
+            size_t start, stop, step, slicelength;
+            if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
+                throw pybind11::error_already_set();
+            boost::numeric::ublas::slice ublas_slice(start, step, slicelength );
+            boost::numeric::ublas::vector_slice<TVectorType> sliced_self(self, ublas_slice);
+            return sliced_self;
+        });
+
+        binder.def("__iter__", [](TVectorType& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() ) ;
+        binder.def("__repr__", [](const TVectorType& self) -> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; });
+
+        return binder;
         }
-        else
-        {
-            std::copy(ThisContainer.begin() + From, ThisContainer.begin() + To, ThisContainer.begin() + Index);
-            ThisContainer.resize(ThisContainer.size() + Index - From, true);
-        }
+
+    void  AddVectorToPython(pybind11::module& m)
+    {
+        typedef boost::numeric::ublas::vector_slice<Vector> VectorSlice;
+        class_< VectorSlice >(m, "VectorSlice")
+        .def("Size", [](const VectorSlice& self){return self.size();} )
+        .def("__len__", [](const VectorSlice& self){return self.size();} )
+        .def("__iadd__", [](VectorSlice& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]+=scalar; return self;}, is_operator())
+        .def("__isub__", [](VectorSlice& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]-=scalar; return self;}, is_operator())
+        .def("__imul__", [](VectorSlice& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]*=scalar; return self;}, is_operator())
+        .def("__itruediv__", [](VectorSlice& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]/=scalar; return self;}, is_operator())
+        .def("__iadd__", [](VectorSlice& self, const VectorSlice& other_vec){noalias(self) += other_vec; return self;}, is_operator())
+        .def("__isub__", [](VectorSlice& self, const VectorSlice& other_vec){noalias(self) -= other_vec; return self; }, is_operator())
+        .def("__mul__", [](VectorSlice vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]*=scalar; return vec1;}, is_operator())
+        .def("__div__", [](VectorSlice vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar; return vec1;}, is_operator())
+        .def("__rmul__", [](VectorSlice vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]*=scalar; return vec1;}, is_operator())
+        .def("__rdiv__", [](VectorSlice vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar;}, is_operator())
+        .def("__add__", [](const VectorSlice& vec1, const VectorSlice& vec2){Vector aux(vec1); aux += vec2; return aux;}, is_operator())
+        .def("__sub__", [](const VectorSlice& vec1, const VectorSlice& vec2){Vector aux(vec1); aux -= vec2; return aux;}, is_operator())
+        .def("__setitem__", [](VectorSlice& self, const unsigned int i, const typename VectorSlice::value_type value){self[i] = value;} )
+        .def("__getitem__", [](const VectorSlice& self, const unsigned int i){return self[i];} )
+        .def("__setitem__", [](VectorSlice &self, pybind11::slice this_slice, const VectorSlice &value) {
+            size_t start, stop, step, slicelength;
+            if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
+                throw pybind11::error_already_set();
+            if (slicelength != value.size())
+                throw std::runtime_error("Left and right hand size of slice assignment have different sizes!");
+            for (size_t i = 0; i < slicelength; ++i) {
+                self[start] = value[i]; start += step;
+            }
+        })
+        .def("__setitem__", [](VectorSlice &self, pybind11::slice this_slice, const Vector &value) {
+            size_t start, stop, step, slicelength;
+            if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
+                throw pybind11::error_already_set();
+            if (slicelength != value.size())
+                throw std::runtime_error("Left and right hand size of slice assignment have different sizes!");
+            for (size_t i = 0; i < slicelength; ++i) {
+                self[start] = value[i]; start += step;
+            }
+        })
+        .def("__iter__", [](VectorSlice& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() )
+        .def("__repr__", [](const VectorSlice& self) -> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; })
+        ;
+
+        auto vector_binder = CreateVectorInterface<Vector>(m, "Vector");
+        vector_binder.def(init<typename Vector::size_type>());
+        vector_binder.def(init<typename Vector::size_type, double>());
+        vector_binder.def(init<Vector>());
+        vector_binder.def(init<array_1d<double,3>>());
+        vector_binder.def(init( [](const list& input){
+                                Vector tmp(input.size());
+                                for(unsigned int i=0; i<tmp.size(); ++i)
+                                    tmp[i] = cast<double>(input[i]);
+                                return tmp;
+                                }));
+        implicitly_convertible<list, Vector>();
+        implicitly_convertible<array_1d<double,3>, Vector>();
+
+
+
+
+
+
+        auto array3_binder = CreateVectorInterface< Kratos::array_1d<double,3> >(m, "Array3");
+        array3_binder.def(init( [](double value){
+                                array_1d<double,3> tmp;
+                                for(unsigned int i=0; i<3; ++i)
+                                    tmp[i] = value;
+                                return tmp;
+                                }));
+        array3_binder.def(init( [](const Vector& input){
+                                if(input.size() != 3)
+                                    KRATOS_ERROR << "expected size should be 3 when constructing an Array3. Provide Input  size is: " << input.size() << std::endl;
+
+                                array_1d<double,3> tmp(input);
+                                return tmp;
+                                })   );
+        array3_binder.def(init<array_1d<double,3>>());
+        array3_binder.def(init( [](const list& input){
+                                if(input.size() != 3)
+                                    KRATOS_ERROR << "expected size should be 3 when constructing an Array3. Provide Input  size is: " << input.size() << std::endl;
+
+                                array_1d<double,3> tmp;
+                                for(unsigned int i=0; i<3; ++i)
+                                    tmp[i] = cast<double>(input[i]);
+                                return tmp;
+                                }) );
+        implicitly_convertible<list, array_1d<double,3>>();
+        implicitly_convertible<Vector, array_1d<double,3>>();
+
     }
-};
-
-
-void  AddVectorToPython()
-{
-
-    ReadonlyVectorPythonInterface<zero_vector<double> >::CreateInterface("ZeroVector")
-    .def(init<zero_vector<double>::size_type>())
-//       .def(VectorScalarOperatorPython<zero_vector<double>, double, vector<double> >())
-//       .def(VectorVectorOperatorPython<zero_vector<double>, unit_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<zero_vector<double>, scalar_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<zero_vector<double>, vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<zero_vector<double>, mapped_vector<double>, mapped_vector<double> >())
-//       .def(VectorVectorOperatorPython<zero_vector<double>, compressed_vector<double>, compressed_vector<double> >())
-//       .def(VectorVectorOperatorPython<zero_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
-    ;
-
-    ReadonlyVectorPythonInterface<unit_vector<double> >::CreateInterface("UnitVector")
-    .def(init<unit_vector<double>::size_type, vector<double>::size_type>())
-//       .def(VectorScalarOperatorPython<unit_vector<double>, double, vector<double> >())
-//       .def(VectorVectorOperatorPython<unit_vector<double>, zero_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<unit_vector<double>, scalar_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<unit_vector<double>, vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<unit_vector<double>, mapped_vector<double>, mapped_vector<double> >())
-//       .def(VectorVectorOperatorPython<unit_vector<double>, compressed_vector<double>, compressed_vector<double> >())
-//       .def(VectorVectorOperatorPython<unit_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
-    ;
-
-    ReadonlyVectorPythonInterface<scalar_vector<double> >::CreateInterface("ScalarVector")
-    .def(init<scalar_vector<double>::size_type, scalar_vector<double>::value_type>())
-//       .def(VectorScalarOperatorPython<scalar_vector<double>, double, vector<double> >())
-//       .def(VectorVectorOperatorPython<scalar_vector<double>, zero_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<scalar_vector<double>, unit_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<scalar_vector<double>, vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<scalar_vector<double>, mapped_vector<double>, mapped_vector<double> >())
-//       .def(VectorVectorOperatorPython<scalar_vector<double>, compressed_vector<double>, compressed_vector<double> >())
-//       .def(VectorVectorOperatorPython<scalar_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
-    ;
-
-    VectorPythonInterface<vector<double>, UblasVectorModifierRenamed<vector<double> > >::CreateInterface("Vector")
-    .def(init<vector<double>::size_type>())
-    .def(init<vector_expression<vector<double> > >())
-    .def(VectorScalarOperatorPython<vector<double>, double, vector<double> >())
-//       .def(VectorVectorOperatorPython<vector<double>, zero_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<vector<double>, unit_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<vector<double>, scalar_vector<double>, vector<double> >())
-//       .def(VectorVectorOperatorPython<vector<double>, mapped_vector<double>, vector<double> >())
-   ;
-    
-      VectorPythonInterface<vector<int>, UblasVectorModifierRenamed<vector<int> > >::CreateInterface("IntegerVector")
-      .def(init<vector<int>::size_type>())
-   ;
-
-}
 }  // namespace Python.
 
 } // Namespace Kratos

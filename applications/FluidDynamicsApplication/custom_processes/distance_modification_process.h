@@ -54,7 +54,7 @@ namespace Kratos
 
 /// Utility to modify the distances of an embedded object in order to avoid bad intersections
 /// Besides, it also deactivate the full negative distance elements
-class DistanceModificationProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DistanceModificationProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -153,6 +153,7 @@ private:
     bool                                               mCheckAtEachStep;
     bool                                           mNegElemDeactivation;
     bool                                       mRecoverOriginalDistance;
+    bool                                      mAvoidAlmostEmptyElements;
     std::vector<std::vector<unsigned int>>        mModifiedDistancesIDs;
     std::vector<std::vector<double>>           mModifiedDistancesValues;
 
@@ -165,6 +166,8 @@ private:
     ///@{
 
     unsigned int ModifyDistance();
+
+    void SetElementalDistances();
 
     void RecoverOriginalDistance();
 

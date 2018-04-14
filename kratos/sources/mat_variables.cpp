@@ -32,6 +32,7 @@ namespace Kratos
   //solution
   KRATOS_CREATE_VARIABLE( std::string, CONSTITUTIVE_LAW_NAME )
   KRATOS_CREATE_VARIABLE( bool, IMPLEX ) 
+  KRATOS_CREATE_VARIABLE( bool, IMPLEX_CONTACT ) 
 
   //elasticity
   //KRATOS_CREATE_VARIABLE( double, YOUNG_MODULUS )
@@ -49,6 +50,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, C30 )
 
   //viscosity
+  //KRATOS_CREATE_VARIABLE( double, DYNAMIC_VISCOSITY )
   //KRATOS_CREATE_VARIABLE( double, VISCOSITY )
   
   //damage
@@ -143,6 +145,7 @@ namespace Kratos
     //solution
     KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_NAME )
     KRATOS_REGISTER_VARIABLE( IMPLEX ) 
+    KRATOS_REGISTER_VARIABLE( IMPLEX_CONTACT ) 
 
     //elasticity
     //KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS )
@@ -159,6 +162,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( C30 )
 
     //viscosity
+    //KRATOS_REGISTER_VARIABLE( DYNAMIC_VISCOSITY )
     //KRATOS_REGISTER_VARIABLE( VISCOSITY )
   
     //damage

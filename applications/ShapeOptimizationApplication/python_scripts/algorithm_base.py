@@ -12,18 +12,18 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 # ==============================================================================
 class OptimizationAlgorithm:
+    # --------------------------------------------------------------------------
+    def InitializeOptimizationLoop( self ):
+        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> initializeOptimizationLoop << .")
 
     # --------------------------------------------------------------------------
-    def execute( self ):
-        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> execute << .")     
+    def RunOptimizationLoop( self ):
+        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> runOptimizationLoop << .")
+
+    # --------------------------------------------------------------------------
+    def FinalizeOptimizationLoop( self ):
+        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> finalizeOptimizationLoop << .")
 
 # ==============================================================================

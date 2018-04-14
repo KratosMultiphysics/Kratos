@@ -233,7 +233,7 @@ void TotalLagrangianElement::CalculateKinematics(ElementVariables& rVariables,
     rVariables.F0    = identity_matrix<double> ( dimension );
 
     //Set Shape Functions Values for this integration point
-    rVariables.N=row( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
     CalculateDeformationMatrix(rVariables.B,rVariables.F,rVariables.DN_DX);
@@ -282,7 +282,7 @@ void TotalLagrangianElement::CalculateKinetics(ElementVariables& rVariables, con
     rVariables.F0    = identity_matrix<double> ( dimension );
 
     //Set Shape Functions Values for this integration point
-    rVariables.N=row( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     KRATOS_CATCH( "" )
 }  

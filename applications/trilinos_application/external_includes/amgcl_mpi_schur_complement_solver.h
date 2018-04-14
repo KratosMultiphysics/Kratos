@@ -23,7 +23,6 @@
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -192,7 +191,7 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve ( SparseMatrixType& rA, VectorType& rX, VectorType& rB )
+    bool Solve ( SparseMatrixType& rA, VectorType& rX, VectorType& rB ) override
     {
         KRATOS_TRY
 
@@ -399,7 +398,7 @@ public:
     /**
      * Print information about this object.
      */
-    void  PrintInfo ( std::ostream& rOStream ) const
+    void  PrintInfo ( std::ostream& rOStream ) const override
     {
         rOStream << "AMGCL_MPI solver finished.";
     }
@@ -407,7 +406,7 @@ public:
     /**
      * Print object's data.
      */
-    void  PrintData ( std::ostream& rOStream ) const
+    void  PrintData ( std::ostream& rOStream ) const override
     {
     }
 

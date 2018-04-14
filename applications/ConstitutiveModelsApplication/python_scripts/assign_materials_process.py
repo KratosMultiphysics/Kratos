@@ -37,8 +37,9 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         self.material_name =  self.settings["material_name"].GetString()
         
         #material properties
-        self.properties = self.model_part.Properties[self.settings["properties_id"].GetInt()]
-
+        self.main_model_part = self.model_part.GetRootModelPart()
+        self.properties      = self.main_model_part.Properties[self.settings["properties_id"].GetInt()]
+        
         #read variables
         self.variables = self.settings["variables"]
         for key, value in self.variables.items():
@@ -48,9 +49,11 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
             except:
                 my_key = "KratosMultiphysics.SolidMechanicsApplication."+key
                 variable = self._GetItemFromModule(my_key)
- 
+
             if( value.IsDouble() ):
                 self.properties.SetValue(variable, value.GetDouble())
+            elif( value.IsInt() ):
+                self.properties.SetValue(variable, value.GetInt())
             elif( value.IsArray() ):
                 vector_value = KratosMultiphysics.Vector(value.size())
                 for i in range(0, value.size() ):
@@ -70,13 +73,19 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
                 new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
                 
             self.properties.SetTable(input_variable,output_variable,new_table)
-
         
         #create constitutive law
         self.material_law = self._GetLawFromModule(self.settings["constitutive_law"]["name"].GetString())
-        
+
         self.properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, self.material_law.Clone())
 
+        #pybind11 not working anymore
+        #self.model_part.Properties[self.settings["properties_id"].GetInt())] = self.properties
+        self.model_part.SetProperties(self.main_model_part.GetProperties())
+        
+        splitted_law_name = (self.settings["constitutive_law"]["name"].GetString()).split(".")
+        
+        print("::[Material]:: -"+self.material_name+"- [Model: "+splitted_law_name[len(splitted_law_name)-1]+"]")
               
     #
     def ExecuteInitialize(self):
@@ -86,15 +95,10 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
     def Execute(self):
         
         self._AssignMaterialProperties()
-
-        splitted_law_name = (self.settings["constitutive_law"]["name"].GetString()).split(".")
-        
-        print("::[Material]:: -"+self.material_name+"- [Model: "+splitted_law_name[len(splitted_law_name)-1]+"]")
         
     #
     def ExecuteFinalize(self):
-        pass
-    
+        pass   
 
     #
     def _AssignMaterialProperties(self):
@@ -109,8 +113,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
             self.feature_options = self.features.GetOptions()
             if( self.feature_options.IsNot(KratosMultiphysics.ConstitutiveLaw.PLANE_STRESS_LAW) ):
                 raise Exception("mismatch between the ConstitutiveLaw dimension and the dimension of the space")
- 
-        
+         
         # Assign properties to the model_part elements
         for Element in self.model_part.Elements:
             Element.Properties = self.properties
@@ -136,7 +139,8 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
                 if i != len(splitted)-2:
                     module_name += "."
             module = importlib.import_module(module_name)
-            return getattr(module,splitted[-1])
+            material_law = module_name+"."+splitted[-1]+"()"
+            return eval(material_law)
         elif(len(splitted) == 4):
             module_name = ""
             for i in range(len(splitted)-2):

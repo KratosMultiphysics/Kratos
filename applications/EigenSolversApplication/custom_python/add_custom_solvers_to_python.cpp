@@ -12,7 +12,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -21,7 +20,9 @@
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+#include "linear_solvers/iterative_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
+#include "custom_solvers/eigensystem_solver.h"
 
 namespace Kratos
 {
@@ -29,36 +30,68 @@ namespace Kratos
 namespace Python
 {
 
-void AddCustomSolversToPython()
+void AddCustomSolversToPython(pybind11::module& m)
 {
-	using namespace boost::python;
+	using namespace pybind11;
 
 	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 	typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 	typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 	typedef DirectSolver<SparseSpaceType, LocalSpaceType> DirectSolverType;
 
-	using SparseLUSolver = EigenDirectSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
-	class_<SparseLUSolver, bases<DirectSolverType>, boost::noncopyable>
-		("SparseLUSolver", init<>())
-		.def(init<Parameters>());
+	// --- direct solvers
 
-	#if defined EIGEN_USE_MKL_ALL
+	using SparseLUSolver = EigenDirectSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
+	class_<SparseLUSolver, SparseLUSolver::Pointer, DirectSolverType>
+		(m, "SparseLUSolver")
+		.def(init<>())
+		.def(init<Parameters>())
+	;
+
+	#if defined USE_EIGEN_MKL
 	using PardisoLLTSolver = EigenDirectSolver<PardisoLLT, SparseSpaceType, LocalSpaceType>;
-	class_<PardisoLLTSolver, bases<DirectSolverType>, boost::noncopyable>
-		("PardisoLLTSolver", init<>())
-		.def(init<Parameters>());
+	class_<PardisoLLTSolver, PardisoLLTSolver::Pointer, DirectSolverType>
+		(m, "PardisoLLTSolver")
+		.def(init<>())
+		.def(init<Parameters>())
+	;
 
 	using PardisoLDLTSolver = EigenDirectSolver<PardisoLDLT, SparseSpaceType, LocalSpaceType>;
-	class_<PardisoLDLTSolver, bases<DirectSolverType>, boost::noncopyable>
-		("PardisoLDLTSolver", init<>())
-		.def(init<Parameters>());
+	class_<PardisoLDLTSolver, PardisoLDLTSolver::Pointer, DirectSolverType>
+		(m, "PardisoLDLTSolver")
+		.def(init<>())
+		.def(init<Parameters>())
+	;
 
 	using PardisoLUSolver = EigenDirectSolver<PardisoLU, SparseSpaceType, LocalSpaceType>;
-	class_<PardisoLUSolver, bases<DirectSolverType>, boost::noncopyable>
-		("PardisoLUSolver", init<>())
-		.def(init<Parameters>());
-	#endif
+	class_<PardisoLUSolver, PardisoLUSolver::Pointer, DirectSolverType>
+		(m, "PardisoLUSolver")
+		.def(init<>())
+		.def(init<Parameters>())
+	;
+	#endif // defined USE_EIGEN_MKL
+
+	using SparseQRSolver = EigenDirectSolver<SparseQR, SparseSpaceType, LocalSpaceType>;
+	class_<SparseQRSolver, SparseQRSolver::Pointer, DirectSolverType>
+		(m, "SparseQRSolver")
+		.def(init<>())
+		.def(init<Parameters>())
+	;
+
+	// --- eigensystem solver
+
+	#if defined USE_EIGEN_MKL
+	using EigensystemSolverType = EigensystemSolver<PardisoLDLT, SparseSpaceType, LocalSpaceType>;
+	#else  // defined USE_EIGEN_MKL
+	using EigensystemSolverType = EigensystemSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
+	#endif // defined USE_EIGEN_MKL
+	class_<EigensystemSolverType, EigensystemSolverType::Pointer, LinearSolverType>
+    	(m, "EigensystemSolver")
+		.def(init<Parameters>())
+    	.def("Solve", &EigensystemSolverType::Solve)
+    	.def("GetEigenValue", &EigensystemSolverType::GetEigenValue)
+	;
+;
 }
 
 } // namespace Python

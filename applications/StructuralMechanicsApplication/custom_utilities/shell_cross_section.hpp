@@ -42,7 +42,7 @@ namespace Kratos
 * References...
 *
 */
-class ShellCrossSection : public Flags
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellCrossSection : public Flags
 {
 
 public:
@@ -124,24 +124,24 @@ public:
     public:
 
         SectionParameters()
-            : mpGeneralizedStrainVector(NULL)
-            , mpGeneralizedStressVector(NULL)
-            , mpConstitutiveMatrix(NULL)
-            , mpShapeFunctionsValues(NULL)
-            , mpShapeFunctionsDerivatives(NULL)
-            , mpCurrentProcessInfo(NULL)
-            , mpMaterialProperties(NULL)
-            , mpElementGeometry(NULL)
+            : mpGeneralizedStrainVector(nullptr)
+            , mpGeneralizedStressVector(nullptr)
+            , mpConstitutiveMatrix(nullptr)
+            , mpShapeFunctionsValues(nullptr)
+            , mpShapeFunctionsDerivatives(nullptr)
+            , mpCurrentProcessInfo(nullptr)
+            , mpMaterialProperties(nullptr)
+            , mpElementGeometry(nullptr)
         {}
 
         SectionParameters (const GeometryType& rElementGeometry,
                     const Properties& rMaterialProperties,
                     const ProcessInfo& rCurrentProcessInfo)
-            : mpGeneralizedStrainVector(NULL)
-            , mpGeneralizedStressVector(NULL)
-            , mpConstitutiveMatrix(NULL)
-            , mpShapeFunctionsValues(NULL)
-            , mpShapeFunctionsDerivatives(NULL)
+            : mpGeneralizedStrainVector(nullptr)
+            , mpGeneralizedStressVector(nullptr)
+            , mpConstitutiveMatrix(nullptr)
+            , mpShapeFunctionsValues(nullptr)
+            , mpShapeFunctionsDerivatives(nullptr)
             , mpCurrentProcessInfo(&rCurrentProcessInfo)
             , mpMaterialProperties(&rMaterialProperties)
             , mpElementGeometry(&rElementGeometry)

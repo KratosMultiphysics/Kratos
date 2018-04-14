@@ -172,7 +172,6 @@ class ExplicitStrategy(object):
         else:
             model_part.ProcessInfo.SetValue(variable, 0)
 
-
     def SetVariablesAndOptions(self):
 
         # Setting ProcessInfo variables
@@ -203,7 +202,6 @@ class ExplicitStrategy(object):
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MAX_CORNER, self.top_corner)
         self.spheres_model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
 
-
         # GLOBAL MATERIAL PROPERTIES
         self.spheres_model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROLLING_FRICTION_OPTION, self.rolling_friction_option)
@@ -233,6 +231,9 @@ class ExplicitStrategy(object):
 
         for properties in self.cluster_model_part.Properties:
             self.ModifyProperties(properties)
+        
+        for properties in self.fem_model_part.Properties:
+            self.ModifyProperties(properties, 1)
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
@@ -412,8 +413,6 @@ class ExplicitStrategy(object):
             class_name = 'SymplecticEulerScheme'
         elif name == 'Taylor_Scheme':
             class_name = 'TaylorScheme'
-        elif name == 'Newmark_Beta_Method':
-            class_name = 'NewmarkBetaScheme'
         elif name == 'Velocity_Verlet':
             class_name = 'VelocityVerletScheme'
 
@@ -429,8 +428,6 @@ class ExplicitStrategy(object):
                 class_name = 'SymplecticEulerScheme'
             elif name_translational == 'Taylor_Scheme':
                 class_name = 'TaylorScheme'
-            elif name_translational == 'Newmark_Beta_Method':
-                class_name = 'NewmarkBetaScheme'
             elif name_translational == 'Velocity_Verlet':
                 class_name = 'VelocityVerletScheme'
         elif name_rotational == 'Runge_Kutta':
@@ -441,16 +438,10 @@ class ExplicitStrategy(object):
         return class_name
 
     def GetTranslationalSchemeInstance(self, class_name):
-         if not class_name == 'NewmarkBetaScheme':
              return globals().get(class_name)()
-         else:
-             return globals().get(class_name)(0.5,0.25)
     
     def GetRotationalSchemeInstance(self, class_name):
-         if not class_name == 'NewmarkBetaScheme':
              return globals().get(class_name)()
-         else:
-             return globals().get(class_name)(0.5,0.25)
 
     def GetTranslationalScheme(self, name):
         class_name = self.TranslationalIntegrationSchemeTranslator(name)
@@ -490,39 +481,41 @@ class ExplicitStrategy(object):
 
         return rotational_scheme, error_status, summary
 
-    def ModifyProperties(self, properties):
-        DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
-        DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+    def ModifyProperties(self, properties, param = 0):
 
-        coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
+        if not param:
+            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
+            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
 
-        type_of_law = DiscontinuumConstitutiveLaw.GetTypeOfLaw()
+            coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
 
-        write_gamma = False
+            type_of_law = DiscontinuumConstitutiveLaw.GetTypeOfLaw()
 
-        if (type_of_law == 'Linear'):
-            gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
-            write_gamma = True
+            write_gamma = False
 
-        elif (type_of_law == 'Hertz' or type_of_law == 'Dependent_friction'):
-            gamma = self.GammaForHertzThornton(coefficient_of_restitution)
-            write_gamma = True
+            if (type_of_law == 'Linear'):
+                gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
+                write_gamma = True
 
-        else:
-            pass
+            elif (type_of_law == 'Hertz' or type_of_law == 'Dependent_friction'):
+                gamma = self.GammaForHertzThornton(coefficient_of_restitution)
+                write_gamma = True
 
-        if write_gamma == True:
-            properties[DAMPING_GAMMA] = gamma
+            else:
+                pass
 
-        if properties.Has(CLUSTER_FILE_NAME):
-            cluster_file_name = properties[CLUSTER_FILE_NAME]
-            [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
-            pre_utils = PreUtilities(self.spheres_model_part)
-            pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
-            self.Procedures.KRATOSprint(properties)
-            if not properties.Has(BREAKABLE_CLUSTER):
-                properties.SetValue(BREAKABLE_CLUSTER, False)
+            if write_gamma == True:
+                properties[DAMPING_GAMMA] = gamma
+
+            if properties.Has(CLUSTER_FILE_NAME):
+                cluster_file_name = properties[CLUSTER_FILE_NAME]
+                [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
+                pre_utils = PreUtilities(self.spheres_model_part)
+                pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
+                self.Procedures.KRATOSprint(properties)
+                if not properties.Has(BREAKABLE_CLUSTER):
+                    properties.SetValue(BREAKABLE_CLUSTER, False)
         
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]

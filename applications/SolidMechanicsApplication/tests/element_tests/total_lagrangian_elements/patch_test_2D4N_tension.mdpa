@@ -9,6 +9,7 @@ Begin Properties 5
     YOUNG_MODULUS   1.00000E+03 
     POISSON_RATIO   3.00000E-01
     C10    192.30769
+    BULK_MODULUS 833.333333    
 End Properties
 
 Begin Nodes

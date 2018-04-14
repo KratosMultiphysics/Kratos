@@ -19,6 +19,7 @@ class ApplyDistanceModificationProcess(KratosMultiphysics.Process):
             "distance_factor"                        : 2.0,
             "distance_threshold"                     : 0.01,
             "check_at_each_time_step"                : false,
+            "avoid_almost_empty_elements"            : true,
             "deactivate_full_negative_elements"      : true,
             "recover_original_distance_at_each_step" : false
         }  """ )

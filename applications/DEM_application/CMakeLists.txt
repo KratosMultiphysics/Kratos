@@ -2,17 +2,16 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosDEMApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## generate variables with the sources
-set(KRATOS_DEM_APPLICATION_SOURCES
+set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/DEM_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/explicit_solver_strategy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/explicit_solver_continuum.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/DEM_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nanoparticle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/analytic_spheric_particle.cpp
@@ -26,6 +25,7 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ship_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/analytic_rigid_body_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidFace.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/analytic_RigidFace.cpp
@@ -35,18 +35,11 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mapping_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_discontinuum_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_continuum_constitutive_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/beadcluster3D.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/capsulecluster3D.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/cubecluster3D.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/cuboidcluster3D.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/pillcluster3D.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ellipsoidcluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/singlespherecluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/dem_integration_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/taylor_scheme.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/newmark_beta_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/velocity_verlet_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/runge_kutta_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/quaternion_integration_scheme.cpp
@@ -81,7 +74,6 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/properties_proxies.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/dem_fem_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/excavator_utility.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AuxiliaryUtilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_model_part_filler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_particle_watcher.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_face_watcher.cpp
@@ -89,24 +81,24 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/bins_dynamic_objects_periodic.cpp
 )
 
+set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/DEM_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AuxiliaryUtilities.cpp
+)
+
+add_library(KratosDEMCore SHARED ${KRATOS_DEM_APPLICATION_CORE})
+target_link_libraries(KratosDEMCore PUBLIC KratosCore)
+set_target_properties(KratosDEMCore PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosDEMApplication SHARED ${KRATOS_DEM_APPLICATION_SOURCES})
-#if(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
-#GENERATE_EXPORT_HEADER( KratosDEMApplication
-#             BASE_NAME KratosDEMApplication
-#             EXPORT_MACRO_NAME KRATOS_DEMAPPLICATION_EXPORT_DLL
-#             EXPORT_FILE_NAME ../../../applications/DEM_application/kratos_DEMApplication_export_dll.h
-#             STATIC_DEFINE KratosDemApplication_BUILT_AS_STATIC
-#)
-#endif(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
-ADD_COMPILER_EXPORT_FLAGS()
-
-
-
-target_link_libraries(KratosDEMApplication KratosCore )
+pybind11_add_module(KratosDEMApplication MODULE ${KRATOS_DEM_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosDEMApplication PUBLIC KratosDEMCore)
 set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
-set_target_properties(KratosDEMApplication PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
+
 
 if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
     add_definitions(-DDEBUG_MACRO)
@@ -130,6 +122,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosDEMApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+if(${INSTALL_TESTING_FILES} MATCHES ON)
+  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
@@ -140,11 +137,12 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 # message("KratosDEMApplication subdir inc_dirs = ${inc_dirs}")
 # Add Cotire
 if(USE_COTIRE MATCHES ON)
+  cotire(KratosDEMCore)
   cotire(KratosDEMApplication)
 endif(USE_COTIRE MATCHES ON)
 
+install(TARGETS KratosDEMCore DESTINATION libs )
 install(TARGETS KratosDEMApplication DESTINATION libs )
-
 
 # Add to the KratosMultiphysics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DEMApplication.py" DESTINATION KratosMultiphysics )

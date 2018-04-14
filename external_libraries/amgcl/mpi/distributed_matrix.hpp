@@ -72,7 +72,7 @@ class comm_pattern {
             mutable std::vector<MPI_Request> req;
         } recv;
 
-        boost::shared_ptr<vector> x_rem;
+        std::shared_ptr<vector> x_rem;
 
         comm_pattern(
                 MPI_Comm mpi_comm,
@@ -170,7 +170,7 @@ class comm_pattern {
 
             // Create backend structures
             x_rem  = Backend::create_vector(ncols, bprm);
-            gather = boost::make_shared<Gather>(n_loc_cols, send.col, bprm);
+            gather = std::make_shared<Gather>(n_loc_cols, send.col, bprm);
             AMGCL_TOC("communication pattern");
         }
 
@@ -238,7 +238,7 @@ class comm_pattern {
 
         boost::unordered_map<ptrdiff_t, ptrdiff_t> idx;
 
-        boost::shared_ptr<Gather> gather;
+        std::shared_ptr<Gather> gather;
 };
 
 template <class Backend, class LocalMatrix = typename Backend::matrix, class RemoteMatrix = LocalMatrix>

@@ -13,10 +13,9 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/mapping_variables.h"
 #include "python/add_mapping_variables_to_python.h"
 
@@ -25,11 +24,11 @@ namespace Kratos
 
 namespace Python
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
-    void  AddMappingVariablesToPython()
+    void  AddMappingVariablesToPython(pybind11::module& m)
     {
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(TANGENT_FACTOR)
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TANGENT_FACTOR)
     }
 }  // namespace Python.
 } // Namespace Kratos

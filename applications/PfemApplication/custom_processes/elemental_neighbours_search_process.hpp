@@ -530,7 +530,7 @@ namespace Kratos
 	      }
 	      else if( rGeometry.FacesNumber() == 2 ){
 
-		//vector of the 3 faces around the given face
+		//vector of the 2 faces around the given face
 		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 2 )
 		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(2);
 		

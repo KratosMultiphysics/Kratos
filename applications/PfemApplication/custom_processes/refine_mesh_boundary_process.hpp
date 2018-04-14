@@ -840,7 +840,7 @@ public:
 	      this->SetNodalPosition(*(i_cond.base()), rCurrentProcessInfo, xc, yc, zc);
 	      
 	      //create a new node
-	      pNode = boost::make_shared< NodeType >( id, xc, yc, zc );
+	      pNode = Kratos::make_shared< NodeType >( id, xc, yc, zc );
 
 	      //giving model part variables list to the node
 	      pNode->SetSolutionStepVariablesList(&VariablesList);

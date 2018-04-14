@@ -16,7 +16,6 @@
 // #define BOOST_NUMERIC_BINDINGS_SUPERLU_PRINT
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -58,7 +57,7 @@ public:
 
     typedef typename BaseType::VectorPointerType VectorPointerType;
 
-    typedef typename boost::shared_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
+    typedef typename Kratos::shared_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
 
     MultiLevelSolver(Parameters settings)
     {

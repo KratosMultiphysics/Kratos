@@ -14,7 +14,6 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
 
 //Trilinos includes
 #include "mpi.h"
@@ -33,54 +32,13 @@
 #include "includes/define.h"
 #include "trilinos_application.h"
 #include "trilinos_space.h"
+#include "custom_python/add_trilinos_space_to_python.h"
 // #include "spaces/ublas_space.h"
 // #include "add_trilinos_linear_solvers_to_python.h"
 #include "includes/model_part.h"
 
-//strategies
-// #include "solving_strategies/strategies/solving_strategy.h"
-// #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-// #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-
-//schemes
-// #include "solving_strategies/schemes/scheme.h"
-// #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
-// #include "custom_strategies/schemes/trilinos_residualbased_lagrangian_monolithic_scheme.h"
-// #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
-// #include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme.h"
-
-//convergence criterias
-// #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-// #include "solving_strategies/convergencecriterias/displacement_criteria.h"
-//
-// //Builder And Solver
-// // #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-// #include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
-// #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
-// #include "custom_strategies/convergencecriterias/trilinos_up_criteria.h"
-// #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML.h"
-// #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_vec.h"
-// #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_mixed.h"
-
-//linear solvers
-// #include "linear_solvers/linear_solver.h"
-
-//utilities
-#include "python/pointer_vector_set_python_interface.h"
-
 //teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
-
-// #include "external_includes/aztec_solver.h"
-// #include "external_includes/amesos_solver.h"
-// #include "external_includes/ml_solver.h"
-
-//configuration files
-// #include "../../incompressible_fluid_application/custom_strategies/strategies/solver_configuration.h"
-// #include "custom_strategies/strategies/trilinos_fractionalstep_configuration.h"
-// #include "../../incompressible_fluid_application/custom_strategies/strategies/fractional_step_strategy.h"
-// #include "../../incompressible_fluid_application/incompressible_fluid_application.h"
-
 
 
 namespace Kratos
@@ -89,7 +47,41 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
+typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+//typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
+
+typedef Epetra_FECrsMatrix FECrsMatrix;
+
+
+////////////////////////////// DEFINE WRAPPER CLASSES -- needed for PYBIND11
+
+class AuxiliaryMatrixWrapper
+{
+public:
+    AuxiliaryMatrixWrapper(TrilinosSparseSpaceType::MatrixPointerType p): mp(p){};
+
+    TrilinosSparseSpaceType::MatrixPointerType& GetPointer(){return mp;}
+    TrilinosSparseSpaceType::MatrixType& GetReference(){return *mp;}
+
+private:
+    TrilinosSparseSpaceType::MatrixPointerType mp;
+};
+
+class AuxiliaryVectorWrapper
+{
+public:
+    AuxiliaryVectorWrapper(TrilinosSparseSpaceType::VectorPointerType p): mp(p){};
+
+    TrilinosSparseSpaceType::VectorPointerType& GetPointer(){return mp;}
+    TrilinosSparseSpaceType::VectorType& GetReference(){return *mp;}
+
+private:
+    TrilinosSparseSpaceType::VectorPointerType mp;
+};
+
+
+
 
 void EraseAll(std::string& ThisString, std::string ToBeRemoved)
 {
@@ -112,10 +104,10 @@ std::string ErrorCleaner(std::string const& Input)
 
 
 
-typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-//typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
 
-typedef Epetra_FECrsMatrix FECrsMatrix;
+
+
+
 
 void prova(TrilinosSparseSpaceType& dummy, FECrsMatrix& rX)
 {
@@ -159,14 +151,14 @@ TrilinosSparseSpaceType::IndexType Size2(TrilinosSparseSpaceType& dummy, Trilino
     return dummy.Size2(rM);
 }
 
-void ResizeMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixType& A, unsigned int i1, unsigned int i2)
-{
-    dummy.Resize(A, i1, i2);
-}
+// void ResizeMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixType& A, unsigned int i1, unsigned int i2)
+// {
+//     dummy.Resize(A, i1, i2);
+// }
 
-void ResizeVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorPointerType& px, unsigned int i1)
+void ResizeVector(TrilinosSparseSpaceType& dummy, AuxiliaryVectorWrapper& px, unsigned int i1)
 {
-    dummy.Resize(px, i1);
+    dummy.Resize(px.GetPointer(), i1);
 }
 
 void SetToZeroMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixType& A)
@@ -179,14 +171,14 @@ void SetToZeroVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::Ve
     dummy.SetToZero(x);
 }
 
-void ClearMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixPointerType& pA)
+void ClearMatrix(TrilinosSparseSpaceType& dummy, AuxiliaryMatrixWrapper& pA)
 {
-    dummy.Clear(pA);
+    dummy.Clear(pA.GetPointer());
 }
 
-void ClearVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorPointerType& px)
+void ClearVector(TrilinosSparseSpaceType& dummy, AuxiliaryVectorWrapper& px)
 {
-    dummy.Clear(px);
+    dummy.Clear(px.GetPointer());
 }
 
 double TwoNorm(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorType& x)
@@ -214,24 +206,29 @@ Epetra_MpiComm CreateCommunicator()
 
 //************************************************************************************************
 
-TrilinosSparseSpaceType::MatrixPointerType CreateEmptyMatrixPointer(TrilinosSparseSpaceType& dummy, Epetra_MpiComm& Comm)
+AuxiliaryMatrixWrapper CreateEmptyMatrixPointer(TrilinosSparseSpaceType& dummy, Epetra_MpiComm& Comm)
 {
-    return dummy.CreateEmptyMatrixPointer(Comm);
+    return AuxiliaryMatrixWrapper(dummy.CreateEmptyMatrixPointer(Comm));
 }
 
-TrilinosSparseSpaceType::VectorPointerType CreateEmptyVectorPointer(TrilinosSparseSpaceType& dummy, Epetra_MpiComm& Comm)
+AuxiliaryVectorWrapper CreateEmptyVectorPointer(TrilinosSparseSpaceType& dummy, Epetra_MpiComm& Comm)
 {
-    return dummy.CreateEmptyVectorPointer(Comm);
+    return AuxiliaryVectorWrapper(dummy.CreateEmptyVectorPointer(Comm));
 }
 
-Epetra_FECrsMatrix& GetMatRef(TrilinosSparseSpaceType::MatrixPointerType& dummy)
+AuxiliaryMatrixWrapper ReadMatrixMarketMatrix(TrilinosSparseSpaceType& dummy, const std::string FileName,Epetra_MpiComm& Comm)
 {
-    return *dummy;
+    return AuxiliaryMatrixWrapper(dummy.ReadMatrixMarket(FileName, Comm));
 }
 
-Epetra_FEVector& GetVecRef(TrilinosSparseSpaceType::VectorPointerType& dummy)
+Epetra_FECrsMatrix& GetMatRef(AuxiliaryMatrixWrapper& dummy)
 {
-    return *dummy;
+    return dummy.GetReference();
+}
+
+Epetra_FEVector& GetVecRef(AuxiliaryVectorWrapper& dummy)
+{
+    return dummy.GetReference();
 }
 
 void SetValue(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorType& x, std::size_t i, double value)
@@ -288,24 +285,41 @@ void SetValue(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorTyp
     dummy.sublist(sublist_name).set(name, value);
 }
 
-void  AddBasicOperations()
+void  AddBasicOperations(pybind11::module& m)
 {
 
-    class_< Epetra_MpiComm > ("Epetra_MpiComm", init< Epetra_MpiComm& >())
+    class_< Epetra_MpiComm > (m,"Epetra_MpiComm")
+    .def(init< Epetra_MpiComm& >())
+    .def("MyPID",&Epetra_MpiComm::MyPID)
+    .def("NumProc",&Epetra_MpiComm::NumProc)
     ;
 
-    class_< Epetra_FECrsMatrix > ("Epetra_FECrsMatrix", init< Epetra_FECrsMatrix& >())
+    //NOTE: deliberatly avoiding defining a Pointer handler, to make it incompatible with the Kratos. all uses should pass through the AuxiliaryMatrixWrapper
+    class_< Epetra_FECrsMatrix  > (m,"Epetra_FECrsMatrix")
+    .def(init< Epetra_FECrsMatrix& >())
+    .def("__repr__",[](const Epetra_FECrsMatrix& self){
+            std::stringstream ss;
+            ss << self;
+            return ss.str();
+        })
     ;
 
-    class_< Epetra_FEVector > ("Epetra_FEVector", init< Epetra_FEVector& >())
+    //NOTE: deliberatly avoiding defining a Pointer handler, to make it incompatible with the Kratos. all uses should pass through the AuxiliaryVectorWrapper
+    class_< Epetra_FEVector > (m,"Epetra_FEVector").def(init< Epetra_FEVector& >())
+    .def("SetValue", SetValue)
+    .def("__repr__",[](const Epetra_FEVector& self){
+            std::stringstream ss;
+            ss << self;
+            return ss.str();
+        })
     ;
 
-    class_< TrilinosSparseSpaceType::MatrixPointerType > ("TrilinosMatrixPointer", init< TrilinosSparseSpaceType::MatrixPointerType > ())
-    .def("GetReference", GetMatRef, return_value_policy<reference_existing_object > ())
+    class_< AuxiliaryMatrixWrapper > (m,"TrilinosMatrixPointer")//.def(init< TrilinosSparseSpaceType::MatrixPointerType > ())
+    .def("GetReference", GetMatRef, return_value_policy::reference_internal)
     ;
 
-    class_< TrilinosSparseSpaceType::VectorPointerType > ("TrilinosVectorPointer", init< TrilinosSparseSpaceType::VectorPointerType > ())
-    .def("GetReference", GetVecRef, return_value_policy<reference_existing_object > ())
+    class_< AuxiliaryVectorWrapper > (m,"TrilinosVectorPointer")//.def(init< TrilinosSparseSpaceType::VectorPointerType > ())
+    .def("GetReference", GetVecRef, return_value_policy::reference_internal)
     ;
 
     //typedef SolvingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBaseSolvingStrategyType;
@@ -316,10 +330,11 @@ void  AddBasicOperations()
     //********************************************************************
 
 
-    class_< TrilinosSparseSpaceType, boost::noncopyable > ("TrilinosSparseSpace", init<>())
+    class_< TrilinosSparseSpaceType> (m,"TrilinosSparseSpace")
+    .def(init<>())
     .def("ClearMatrix", ClearMatrix)
     .def("ClearVector", ClearVector)
-    .def("ResizeMatrix", ResizeMatrix)
+//     .def("ResizeMatrix", ResizeMatrix)
     .def("ResizeVector", ResizeVector)
     .def("SetToZeroMatrix", SetToZeroMatrix)
     .def("SetToZeroVector", SetToZeroVector)
@@ -336,17 +351,22 @@ void  AddBasicOperations()
     .def("ScaleAndAdd", ScaleAndAdd)
     .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
     .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
-    .def("ReadMatrixMarketMatrix", &TrilinosSparseSpaceType::ReadMatrixMarket)
+    .def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix)
     .def("SetValue", SetValue)
+    .def("__repr__",[](const TrilinosSparseSpaceType& self){
+            std::stringstream ss;
+            self.PrintInfo(ss);
+            return ss.str();
+        })
     ;
 
 
-    def("CreateCommunicator", CreateCommunicator);
-    def("ErrorCleaner", ErrorCleaner);
+    m.def("CreateCommunicator", CreateCommunicator);
+    m.def("ErrorCleaner", ErrorCleaner);
 
     //********************************************************************
     //********************************************************************
-    class_< Teuchos::ParameterList, boost::noncopyable > ("ParameterList", init<>())
+    class_< Teuchos::ParameterList > (m,"ParameterList").def(init<>())
     .def("set", SetDoubleValue)
     .def("set", SetIntValue)
     .def("set", SetCharValue)
@@ -355,7 +375,7 @@ void  AddBasicOperations()
 	.def("SetSublistDoubleValue", SetSublistDoubleValue)
 	.def("SetSublistCharValue", SetSublistCharValue)
 	.def("SetSublistBoolValue", SetSublistBoolValue)
-    .def(self_ns::str(self))
+//     .def(self_ns::str(self))
     ;
 
 

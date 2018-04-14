@@ -61,6 +61,7 @@ namespace Kratos
       double J_13;
 
     };
+
     
     struct HyperElasticFactors
     {
@@ -83,12 +84,19 @@ namespace Kratos
       // double Gamma23;  //2nd derivative ddW/dI2dI3
       
     };
-   
+
+    struct StrainEigenData
+    {
+       array_1d<double,3> Values;
+       MatrixType        Vectors;
+    };
+    
+        
     struct StrainData
     {
-    public:
-      
+	
       StrainInvariants Invariants;
+      StrainEigenData  Eigen;
 
       MatrixType       Matrix; //left(b) or right(C) cauchy green
       MatrixType       InverseMatrix; //insverse right(C) cauchy green
@@ -373,7 +381,7 @@ namespace Kratos
     virtual void CalculateInvariants(HyperElasticDataType& rVariables);
         
     virtual void CalculateScalingFactors(HyperElasticDataType& rVariables);
-
+     
     void CalculateStrainInvariants(const MatrixType& rStrainMatrix, double& rI1, double& rI2, double& rI3);
     
 
@@ -383,171 +391,29 @@ namespace Kratos
     
     virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction);
 
+
     //************// dW
     
-    virtual double& GetFunction1stI1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //dW/dI1
- 
-    virtual double& GetFunction1stI2Derivative(HyperElasticDataType& rVariables, double& rDerivative); //dW/dI2
- 
-    virtual double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative); //dW/dI3
-
     virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative); //dU/dJ
 
-
-    
-    virtual double& GetFunction2ndI1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI1dI1
-
-    virtual double& GetFunction2ndI2Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI2dI2
-
-    virtual double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI3dI3
-    
     virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative); //ddU/dJdJ
 
-    // the implementation of the crossed derivatives have to be added for a more general form (usually they are zero)
-    // virtual double& GetFunction2ndI2I1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI2dI1
-    // virtual double& GetFunction2ndI3I1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI3dI1
-    // virtual double& GetFunction2ndI1I2Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI1dI2
-    // virtual double& GetFunction2ndI3I2Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI3dI2
-    // virtual double& GetFunction2ndI1I3Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI1dI3
-    // virtual double& GetFunction2ndI2I3Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI2dI3
 
-        
-    double& GetFourthOrderUnitTensor(double& rValue,
-				     const double& a,
-				     const double& b,
-				     const double& c,
-				     const double& d); //ddC/dCdC or ddb/dbdb
-
-
-    //isochoric volumetric slit
-      
-    MatrixType& GetJLeftCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dJ/db
- 
-    MatrixType& GetIsochoricRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dC'/dC
-
-    double& GetIsochoricRightCauchyGreenDerivative(const StrainData& rStrain,
-						   double& rDerivative,
-						   const double& a,
-						   const double& b,
-						   const double& c,
-						   const double& d); //dC'/dC
-   
-    
-    MatrixType& GetIsochoricLeftCauchyGreenDerivative(const StrainData& rStrain,
-						      MatrixType& rDerivative); //db'/db
-
-    double& GetIsochoricLeftCauchyGreenDerivative(const StrainData& rStrain,
-						  double& rDerivative,
-						  const double& a,
-						  const double& b,
-						  const double& c,
-						  const double& d); //db'/db
-    
     //************// right cauchy green: C
-    
-    MatrixType& GetI1RightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dI1/dC
-
-    MatrixType& GetI2RightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dI2/dC
-
-    MatrixType& GetI3RightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dI3/dC 
-
     MatrixType& GetJRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dJ/dC
-
-
-
-    double& GetInverseRightCauchyGreenDerivative(const StrainData& rStrain,
-						 double& rDerivative,
-						 const double& a,
-						 const double& b,
-						 const double& c,
-						 const double& d); //dC^-1/dC
-
     
-    //Invariants 1st derivatives by components
-    double& GetI1RightCauchyGreen1stDerivative(const StrainData& rStrain,
-					       double& rDerivative,
-					       const double& a,
-					       const double& b); //dI1/dC
-
-
-    double& GetI2RightCauchyGreen1stDerivative(const StrainData& rStrain,
-					       double& rDerivative,
-					       const double& a,
-					       const double& b); //dI2/dC
- 
-
-    double& GetI3RightCauchyGreen1stDerivative(const StrainData& rStrain,
-					       double& rDerivative,
-					       const double& a,
-					       const double& b); //dI3/dC
-
-
-
     double& GetJRightCauchyGreen1stDerivative(const StrainData& rStrain,
 					      double& rDerivative,
 					      const double& a,
 					      const double& b); ///dJ/dC
- 
 
-    //Invariants Square of the 1st derivatives by components
-    double& GetI1RightCauchyGreenSquare1stDerivative(const StrainData& rStrain,
-						     double& rDerivative,
-						     const double& a,
-						     const double& b,
-						     const double& c,
-						     const double& d); //dI1/dC * dI2/dC
- 
-
-    double& GetI2RightCauchyGreenSquare1stDerivative(const StrainData& rStrain,
-						     double& rDerivative,
-						     const double& a,
-						     const double& b,
-						     const double& c,
-						     const double& d); //dI2/dC * dI3/dC
- 
-
-    double& GetI3RightCauchyGreenSquare1stDerivative(const StrainData& rStrain,
-						     double& rDerivative,
-						     const double& a,
-						     const double& b,
-						     const double& c,
-						     const double& d); //dI3/dC * dI3/dC
- 
-    
     double& GetJRightCauchyGreenSquare1stDerivative(const StrainData& rStrain,
 						    double& rDerivative,
 						    const double& a,
 						    const double& b,
 						    const double& c,
 						    const double& d); //dJ/dC * dJ/dC
-
     
-    
-    //Invariants 2nd derivatives by components
-    double& GetI1RightCauchyGreen2ndDerivative(const StrainData& rStrain,
-					       double& rDerivative,
-					       const double& a,
-					       const double& b,
-					       const double& c,
-					       const double& d); //ddI1/dCdC
- 
-
-    double& GetI2RightCauchyGreen2ndDerivative(const StrainData& rStrain,
-					       double& rDerivative,
-					       const double& a,
-					       const double& b,
-					       const double& c,
-					       const double& d); //ddI2/dCdC
-
-
-    double& GetI3RightCauchyGreen2ndDerivative(const StrainData& rStrain,
-					       double& rDerivative,
-					       const double& a,
-					       const double& b,
-					       const double& c,
-					       const double& d); //ddI3/dCdC
-
-
     double& GetJRightCauchyGreen2ndDerivative(const StrainData& rStrain,
 					      double& rDerivative,
 					      const double& a,
@@ -555,107 +421,29 @@ namespace Kratos
 					      const double& c,
 					      const double& d); //ddJ/dCdC
 
-
-    
     //************// left cauchy green : b
     
-    MatrixType& GetI1LeftCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dI1/db
+    MatrixType& GetJLeftCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dJ/db
 
-    MatrixType& GetI2LeftCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative);  //dI2/db
-
-    MatrixType& GetI3LeftCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dI3/db
-
-
-    //Invariants 1st derivatives by components
-    double& GetI1LeftCauchyGreen1stDerivative(const StrainData& rStrain,
-					      double& rDerivative,
-					      const double& a,
-					      const double& b); //dI1/db
- 
-
-    double& GetI2LeftCauchyGreen1stDerivative(const StrainData& rStrain,
-					      double& rDerivative,
-					      const double& a,
-					      const double& b); //dI2/db
-
-
-    double& GetI3LeftCauchyGreen1stDerivative(const StrainData& rStrain,
-					      double& rDerivative,
-					      const double& a,
-					      const double& b); //dI3/db
-
-    
     double& GetJLeftCauchyGreen1stDerivative(const StrainData& rStrain,
 					     double& rDerivative,
 					     const double& a,
 					     const double& b); //dJ/db
-  
-    //Invariants Square of the 1st derivatives by components
-    double& GetI1LeftCauchyGreenSquare1stDerivative(const StrainData& rStrain,
-						    double& rDerivative,
-						    const double& a,
-						    const double& b,
-						    const double& c,
-						    const double& d); //dI1/db * dI1/db
- 
 
-    double& GetI2LeftCauchyGreenSquare1stDerivative(const StrainData& rStrain,
-						    double& rDerivative,
-						    const double& a,
-						    const double& b,
-						    const double& c,
-						    const double& d); //dI2/db * dI2/db
-
-
-    double& GetI3LeftCauchyGreenSquare1stDerivative(const StrainData& rStrain,
-						    double& rDerivative,
-						    const double& a,
-						    const double& b,
-						    const double& c,
-						    const double& d); //dI3/db * dI3/db
-
-
-    
     double& GetJLeftCauchyGreenSquare1stDerivative(const StrainData& rStrain,
 						   double& rDerivative,
 						   const double& a,
 						   const double& b,
 						   const double& c,
 						   const double& d); //dJ/db * dJ/db
-
     
-    //Invariants 2nd derivatives by components
-    double& GetI1LeftCauchyGreen2ndDerivative(const StrainData& rStrain,
-					      double& rDerivative,
-					      const double& a,
-					      const double& b,
-					      const double& c,
-					      const double& d); //ddI1/dbdb
- 
-
-    double& GetI2LeftCauchyGreen2ndDerivative(const StrainData& rStrain,
-					      double& rDerivative,
-					      const double& a,
-					      const double& b,
-					      const double& c,
-					      const double& d); //ddI2/dbdb
-
-
-    double& GetI3LeftCauchyGreen2ndDerivative(const StrainData& rStrain,
-					      double& rDerivative,
-					      const double& a,
-					      const double& b,
-					      const double& c,
-					      const double& d); //ddI3/dbdb
-
-
     double& GetJLeftCauchyGreen2ndDerivative(const StrainData& rStrain,
 					     double& rDerivative,
 					     const double& a,
 					     const double& b,
 					     const double& c,
 					     const double& d); //ddJ/dbdb
- 
+
     
     ///@}
     ///@name Protected  Access
