@@ -129,13 +129,12 @@ namespace Kratos {
             pCondition->Initialize();
 			pCondition->InitializeSolutionStep(modelPart.GetProcessInfo());
 			pCondition->CalculateLocalSystem(condLHS, condRHS, modelPart.GetProcessInfo());
-			
+
 			const double tolerance = 1e-10;
-			KRATOS_CHECK(pCondition->Is(TO_SPLIT));
-			KRATOS_CHECK_NEAR(condRHS(0), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(0), -2.0/3.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(1), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(2), 0.0, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(3), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(3), 1.0/6.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(4), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(5), 2.0/30.0, tolerance);
 	    }
@@ -244,7 +243,6 @@ namespace Kratos {
 			pCondition->CalculateLocalSystem(condLHS, condRHS, modelPart.GetProcessInfo());
 
 			const double tolerance = 1e-7;
-			KRATOS_CHECK(pCondition->Is(TO_SPLIT));
 			KRATOS_CHECK_NEAR(condRHS(0),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(1),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(2),  0.0, tolerance);

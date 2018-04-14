@@ -122,6 +122,8 @@ namespace Kratos
   {
     KRATOS_TRY      
 
+    mpModel->SetValue(rThisVariable,rValue, rCurrentProcessInfo);
+    
     if(rThisVariable == DETERMINANT_F){
       mTotalDeformationDet = rValue;
     }

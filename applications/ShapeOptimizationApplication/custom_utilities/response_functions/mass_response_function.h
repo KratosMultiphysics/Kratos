@@ -20,12 +20,6 @@
 #include <algorithm>
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/io.hpp>
-
-// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "../../kratos/includes/define.h"
@@ -101,11 +95,9 @@ public:
 		else
 			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: finite_differencing. Specified gradient_mode: " << gradientMode << std::endl;
 
-		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
+		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 
 		// Initialize member variables to NULL
-		m_initial_value = 0.0;
-		m_initial_value_defined = false;
 		m_total_mass = 0.0;
 	}
 
@@ -147,13 +139,6 @@ public:
 			else
 				elem_volume = element_geometry.Volume();
 			m_total_mass +=  elem_density*elem_volume;
-		}
-
-		// Set initial value if not done yet
-		if(!m_initial_value_defined)
-		{
-			m_initial_value = m_total_mass;
-			m_initial_value_defined = true;
 		}
 
 		KRATOS_CATCH("");
@@ -281,19 +266,6 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	double GetInitialValue()
-	{
-		KRATOS_TRY;
-
-		if(!m_initial_value_defined)
-			KRATOS_ERROR << "Initial value not yet defined! First compute it by calling \"calculate_value()\"!" << std::endl;
-
-		return m_initial_value;
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
 	double GetValue()
 	{
 		KRATOS_TRY;
@@ -304,16 +276,16 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	boost::python::dict GetGradient()
+	pybind11::dict GetGradient()
 	{
 		KRATOS_TRY;
 
 		// Dictionary to store all sensitivities along with Ids of corresponding nodes
-		boost::python::dict dFdX;
+		pybind11::dict dFdX;
 
 		// Fill dictionary with gradient information
 		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT);
+			dFdX[pybind11::cast(node_i->Id())] = node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT);
 
 		return dFdX;
 
@@ -438,8 +410,6 @@ private:
 	unsigned int m_gradient_mode;
 	double m_total_mass;
 	double mDelta;
-	double m_initial_value;
-	bool m_initial_value_defined;
 	bool mConsiderDiscretization;
 
 	///@}

@@ -90,7 +90,7 @@ public:
     ///@name Operations
     ///@{
 
-    Node<3>* pGetBase()
+    Node<3>* pGetBaseNode() override
     {
         return mpNode;
     }

@@ -14,6 +14,7 @@
 #define KRATOS_MAPPING_VARIABLES_H_INCLUDED
 
 // System includes
+#include <unordered_set>
 #include <unordered_map>
 
 // External includes
@@ -39,6 +40,8 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    typedef std::size_t IndexType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -50,29 +53,117 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-    /** @brief Custom Point container to be used by the mapper
+    
+    /**
+     * @class IndexDatabase
+     * @ingroup KratosCore
+     * @brief Base class to derive common methods
+     * @author Vicente Mataix Ferrandiz
     */
-    class ConditionMap : public std::unordered_map<Condition::Pointer, bool, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
+    class IndexDatabase
     {
     public:
-
         ///@name Type Definitions
         ///@{
-        /// Counted pointer of ConditionMap
-        KRATOS_CLASS_POINTER_DEFINITION( ConditionMap );
+        /// Counted pointer of IndexDatabase
+        KRATOS_CLASS_POINTER_DEFINITION( IndexDatabase );
 
-        typedef std::unordered_map<Condition::Pointer, bool, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > BaseType;
-        
         ///@}
         ///@name Life Cycle
         ///@{
 
         /// Default constructors
-        ConditionMap(){}
+        IndexDatabase(){}
 
         /// Destructor
-        virtual ~ConditionMap(){}
+        virtual ~IndexDatabase(){}
+
+        ///@}
+        ///@name Operators
+        ///@{
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+       /**
+        * @brief It checks if an ID exists in the map
+        * @param IndexOrigin The condition ID to remove
+        * @return If the ID already exists or not
+        */
+        virtual bool Has(const IndexType IndexOrigin) {return false;}
+
+       /**
+        * @brief It adds a new ID to the map
+        * @param IndexOrigin The condition ID to remove
+        * @param IndexNewEntity The new created entity ID
+        */
+        virtual void AddId(
+            const IndexType IndexOrigin,
+            const IndexType IndexNewEntity = 0
+            ) {}
+
+       /**
+        * @brief It removes one particular pair from the map
+        * @param IndexOrigin The condition ID to remove
+        */
+        virtual void RemoveId(const IndexType IndexOrigin) {}
+
+        /**
+        * @brief It returns the new created entity ID
+        * @param IndexOrigin The condition ID to remove
+        * @return The new created entity ID
+        */
+        virtual IndexType GetNewEntityId(const IndexType IndexOrigin) {return 0;}
+
+        /**
+        * @brief It sets the new created entity ID
+        * @param IndexOrigin The condition ID to remove
+        * @param IndexNewEntity The new created entity ID
+        */
+        virtual void SetNewEntityId(
+            const IndexType IndexOrigin,
+            const IndexType IndexNewEntity = 0
+            ) {}
+
+        /**
+         * @brief Turn back information as a string.
+         */
+        virtual std::string Info() const {return "IndexDatabase";}
+
+        virtual void save( Serializer& rSerializer ) const {}
+
+        virtual void load( Serializer& rSerializer ) {}
+    }; // Class IndexDatabase
+
+    /**
+     * @class IndexSet
+     * @ingroup KratosCore
+     * @brief Custom unordered set container to be used by the mapper
+     * @details Contains a set of IDs of paired conditions
+     * @author Vicente Mataix Ferrandiz
+    */
+    class IndexSet
+        : public std::unordered_set<IndexType>, public IndexDatabase
+    {
+    public:
+        ///@name Type Definitions
+        ///@{
+        /// Counted pointer of IndexSet
+        KRATOS_CLASS_POINTER_DEFINITION( IndexSet );
+
+        typedef std::unordered_set<IndexType> BaseType;
+        typedef iterator IteratorType;
+
+        ///@}
+        ///@name Life Cycle
+        ///@{
+
+        /// Default constructors
+        IndexSet(){}
+
+        /// Destructor
+        virtual ~IndexSet(){}
 
         ///@}
         ///@name Operators
@@ -83,176 +174,233 @@ namespace Kratos
         ///@{
 
         /**
-        * It removes one particular condition from the map
-        * @param pCond: The condition to remove
-        */     
-        void RemoveCondition(Condition::Pointer pCond)
+        * @brief Returns the id corresponding a iterator
+        * @param ThisIterator The iterator of the class
+        * @return The ID
+        */
+        IndexType GetId(IteratorType ThisIterator)
         {
-            BaseType::iterator set = find(pCond);
+            return *ThisIterator;
+        }
+
+        /**
+        * @brief Returns the new entity id corresponding a iterator
+        * @param ThisIterator The iterator of the class
+        * @return The ID of the new generated entity
+        */
+        IndexType GetOtherId(IteratorType ThisIterator)
+        {
+            return 0;
+        }
+
+        /**
+        * @brief It checks if an ID exists in the map
+        * @param IndexOrigin The condition ID to remove
+        * @return If the ID already exists or not
+        */
+        bool Has(const IndexType IndexOrigin) override
+        {
+            BaseType::iterator set = find(IndexOrigin);
             if(set != end())
-            {
+                return true;
+
+            return false;
+        }
+
+        /**
+        * @brief It adds a new ID to the map
+        * @param IndexOrigin The condition ID to remove
+        * @param IndexNewEntity The new created entity ID
+        */
+        void AddId(
+            const IndexType IndexOrigin,
+            const IndexType IndexNewEntity = 0
+            ) override
+        {
+            insert({IndexOrigin});
+        }
+
+        /**
+        * @brief It removes one particular pair from the map
+        * @param IndexOrigin The condition ID to remove
+        */
+        void RemoveId(const IndexType IndexOrigin) override
+        {
+            BaseType::iterator set = find(IndexOrigin);
+            if(set != end())
                 erase(set);
-            }
         }
-        
+
         /**
-        * It adds one new condition
-        * @param pCond: The condition to set
-        */
-        void AddNewCondition(Condition::Pointer pCond)
+         * @brief Turn back information as a string.
+         */
+        std::string Info() const override
         {
-            insert({pCond, true}); // True by default when adding a new one
-        }
-        
-        /**
-        * It adds one new condition, as active
-        * @param pCond: The condition to set
-        */
-        void AddNewActiveCondition(Condition::Pointer pCond)
-        {
-            insert({pCond, true});
-        }
-        
-        /**
-        * It adds one new condition, as inactive
-        * @param pCond: The condition to set
-        */
-        void AddNewInactiveCondition(Condition::Pointer pCond)
-        {
-            insert({pCond, false});
-        }
-        
-        /**
-        * It sets one particular condition as active or not
-        * @param pCond: The condition to set
-        * @param Active: The flag, true if active, false otherwise
-        */
-        void SetActive(Condition::Pointer pCond, const bool Active = true)
-        {
-            BaseType::iterator set = find(pCond);
-            if(set != end())
-            {
-                set->second = Active;
-            }
-        }
-        
-        /**
-        * It checks if one particular condition is active
-        * @param pCond: The condition to check
-        * @return True if it is active, false otherwise
-        */
-        bool IsActive(Condition::Pointer pCond) const 
-        {
-            BaseType::const_iterator set = find(pCond);
-            return (set->second);
-        }
-        
-        /**
-        * It checks if at least one pair is active
-        * @return True if at least one pair is active, false otherwise
-        */
-        bool AtLeastOnePairActive()
-        {
+            std::stringstream buffer;
             for ( auto it = begin(); it != end(); ++it )
-            {
-                if (it->second == true)
-                {
-                    return true;
-                }
-            }
+                buffer << "The condition " << *it << std::endl;
+            return buffer.str();
+        }
+
+        void save( Serializer& rSerializer ) const override
+        {
+//             KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
+        }
+
+        void load( Serializer& rSerializer ) override
+        {
+//             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
+        }
+    }; // Class IndexSet
+
+    /**
+     * @class IndexMap
+     * @ingroup KratosCore
+     * @brief Custom unordered map container to be used by the mapper
+     * @details Contains a map of IDs of paired conditions, and the new created condition
+     * @author Vicente Mataix Ferrandiz
+    */
+    class IndexMap
+        : public std::unordered_map<IndexType, IndexType>, public IndexDatabase
+    {
+    public:
+        ///@name Type Definitions
+        ///@{
+        /// Counted pointer of IndexMap
+        KRATOS_CLASS_POINTER_DEFINITION( IndexMap );
+
+        typedef std::unordered_map<IndexType, IndexType> BaseType;
+        typedef iterator IteratorType;
+        
+        ///@}
+        ///@name Life Cycle
+        ///@{
+
+        /// Default constructors
+        IndexMap(){}
+
+        /// Destructor
+        virtual ~IndexMap(){}
+
+        ///@}
+        ///@name Operators
+        ///@{
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+        /**
+        * @brief Returns the id corresponding a iterator
+        * @param ThisIterator The iterator of the class
+        * @return The ID
+        */
+        IndexType GetId(IteratorType ThisIterator)
+        {
+            return ThisIterator->first;
+        }
+
+        /**
+        * @brief Returns the new entity id corresponding a iterator
+        * @param ThisIterator The iterator of the class
+        * @return The ID of the new generated entity
+        */
+        IndexType GetOtherId(IteratorType ThisIterator)
+        {
+            return ThisIterator->second;
+        }
+
+        /**
+        * @brief It checks if an ID exists in the map
+        * @param IndexOrigin The condition ID to remove
+        * @return If the ID already exists or not
+        */     
+        bool Has(const IndexType IndexOrigin) override
+        {
+            BaseType::iterator map = find(IndexOrigin);
+            if(map != end())
+                return true;
             
             return false;
         }
+
+        /**
+        * @brief It adds a new ID to the map
+        * @param IndexOrigin The condition ID to remove
+        * @param IndexNewEntity The new created entity ID
+        */     
+        void AddId(
+            const IndexType IndexOrigin,
+            const IndexType IndexNewEntity = 0
+            ) override
+        {
+            insert({IndexOrigin, IndexNewEntity});
+        }
         
         /**
-        * Print the map information
+        * @brief It removes one particular pair from the map
+        * @param IndexOrigin The condition ID to remove
+        */     
+        void RemoveId(const IndexType IndexOrigin) override
+        {
+            BaseType::iterator map = find(IndexOrigin);
+            if(map != end())
+                erase(map);
+        }
+
+        /**
+        * @brief It returns the new created entity ID
+        * @param IndexOrigin The condition ID to remove
+        * @return The new created entity ID
         */
-        void print()
+        IndexType GetNewEntityId(const IndexType IndexOrigin) override
         {
+            BaseType::iterator map = find(IndexOrigin);
+            if(map != end())
+                return map->second;
+
+            return 0;
+        }
+
+        /**
+        * @brief It sets the new created entity ID
+        * @param IndexOrigin The condition ID to remove
+        * @param IndexNewEntity The new created entity ID
+        */
+        void SetNewEntityId(
+            const IndexType IndexOrigin,
+            const IndexType IndexNewEntity
+            ) override
+        {
+            BaseType::iterator map = find(IndexOrigin);
+            if(map != end())
+                map->second = IndexNewEntity;
+        }
+
+        /**
+         * @brief Turn back information as a string.
+         */
+        std::string Info() const override
+        {
+            std::stringstream buffer;
             for ( auto it = begin(); it != end(); ++it )
-            {
-                std::cout << "The condition " << (it->first)->Id() << " is ACTIVE: " << it->second;
-                
-                KRATOS_WATCH((it->first)->GetGeometry());
-            }
-        }
-
-        void save( Serializer& rSerializer ) const
-        {
-            // TODO: Fill if necessary
-        }
-
-        void load( Serializer& rSerializer )
-        {
-            // TODO: Fill if necessary
+                buffer << "The condition " << it->first << " related with the new condition " << it->second << std::endl;
+            return buffer.str();
         }
         
-    protected:
+        void save( Serializer& rSerializer ) const override
+        {
+//             KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
+        }
 
-        ///@name Protected static Member Variables
-        ///@{
-
-        ///@}
-        ///@name Protected member Variables
-        ///@{
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
-
-        ///@}
-        ///@name Protected Operations
-        ///@{
-
-        ///@}
-        ///@name Protected  Access
-        ///@{
-
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
-
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
-        ///@}
-
-    private:
-        ///@name Static Member Variables
-        ///@{
-        ///@}
-        ///@name Member Variables
-        ///@{
-
-            
-
-        ///@}
-        ///@name Private Operators
-        ///@{
-
-        ///@}
-        ///@name Private Operations
-        ///@{
-
-        ///@}
-        ///@name Private  Access
-        ///@{
-        ///@}
-
-        ///@}
-        ///@name Serialization
-        ///@{
-
-        ///@name Private Inquiry
-        ///@{
-        ///@}
-
-        ///@name Unaccessible methods
-        ///@{
-        ///@}
-    }; // Class ConditionMap 
+        void load( Serializer& rSerializer ) override
+        {
+//             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
+        }
+    }; // Class IndexMap
     
-    KRATOS_DEFINE_VARIABLE( ConditionMap::Pointer, MAPPING_PAIRS ) // An unordened map of which contains the structure
+    KRATOS_DEFINE_VARIABLE( IndexSet::Pointer, INDEX_SET )         // An unordened set of which contains the indexes with the paired
+    KRATOS_DEFINE_VARIABLE( IndexMap::Pointer, INDEX_MAP )         // An unordened map of which contains the indexes with the paired
     KRATOS_DEFINE_VARIABLE( double, TANGENT_FACTOR )               // The factor between the tangent and normal behaviour
 
 } // namespace Kratos

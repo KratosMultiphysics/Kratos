@@ -42,7 +42,7 @@ ModelPart::ModelPart()
 {
     mName = "Default";
     MeshType mesh;
-    mMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 }
 
@@ -58,9 +58,10 @@ ModelPart::ModelPart(std::string const& NewName)
     , mpParentModelPart(NULL)
     , mSubModelParts()
 {
+    KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
     mName = NewName;
     MeshType mesh;
-    mMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 }
 
@@ -76,9 +77,10 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize)
     , mpParentModelPart(NULL)
     , mSubModelParts()
 {
+    KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
     mName = NewName;
     MeshType mesh;
-    mMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 }
 
@@ -269,7 +271,7 @@ void ModelPart::AddNode(ModelPart::NodeType::Pointer pNewNode, ModelPart::IndexT
 
 /** Inserts a list of nodes in a submodelpart provided their Id. Does nothing if applied to the top model part
 */
-void ModelPart::AddNodes(std::vector<IndexType>& NodeIds, IndexType ThisIndex)
+void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIndex)
 {
     KRATOS_TRY
     if(IsSubModelPart()) //does nothing if we are on the top model part
@@ -333,7 +335,7 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y
     }
 
     //create a new node
-    NodeType::Pointer p_new_node = boost::make_shared< NodeType >( Id, x, y, z );
+    NodeType::Pointer p_new_node = Kratos::make_shared< NodeType >( Id, x, y, z );
 
     // Giving model part's variables list to the node
     p_new_node->SetSolutionStepVariablesList(pNewVariablesList);
@@ -379,7 +381,7 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, d
     }
 
     //create a new node
-    NodeType::Pointer p_new_node = boost::make_shared< NodeType >( Id, x, y, z, mpVariablesList, pThisData, mBufferSize);
+    NodeType::Pointer p_new_node = Kratos::make_shared< NodeType >( Id, x, y, z, mpVariablesList, pThisData, mBufferSize);
     //add the new node to the list of nodes
     GetMesh(ThisIndex).AddNode(p_new_node);
 
@@ -584,7 +586,7 @@ void ModelPart::AddProperties(ModelPart::PropertiesType::Pointer pNewProperties,
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->AddProperties(pNewProperties);
+        mpParentModelPart->AddProperties(pNewProperties, ThisIndex);
     }
 
     auto pprop_it = GetMesh(0).Properties().find(ThisIndex);
@@ -694,7 +696,7 @@ void ModelPart::AddElement(ModelPart::ElementType::Pointer pNewElement, ModelPar
 
 /** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
 */
-void ModelPart::AddElements(std::vector<IndexType>& ElementIds, IndexType ThisIndex)
+void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType ThisIndex)
 {
     KRATOS_TRY
     if(IsSubModelPart()) //does nothing if we are on the top model part
@@ -765,7 +767,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
 
     auto existing_element_iterator = GetMesh(ThisIndex).Elements().find(Id);
     if(existing_element_iterator != GetMesh(ThisIndex).ElementsEnd() )
-        KRATOS_ERROR << "trying to construct aen element with ID " << Id << " however an element with the same Id already exists";
+        KRATOS_ERROR << "trying to construct an element with ID " << Id << " however an element with the same Id already exists";
 
 
     //create the new element
@@ -917,7 +919,7 @@ void ModelPart::AddCondition(ModelPart::ConditionType::Pointer pNewCondition, Mo
 
 /** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
 */
-void ModelPart::AddConditions(std::vector<IndexType>& ConditionIds, IndexType ThisIndex)
+void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexType ThisIndex)
 {
     KRATOS_TRY
     if(IsSubModelPart()) //does nothing if we are on the top model part
@@ -1318,6 +1320,7 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Name", mName);
     rSerializer.save("Buffer Size", mBufferSize);
     rSerializer.save("ProcessInfo", mpProcessInfo);
+    rSerializer.save("Tables", mTables);
     //const VariablesList* p_list = &mVariablesList;
     // I'm saving it as pointer so the nodes pointers will point to it as stored pointer. Pooyan.
     rSerializer.save("Variables List", mpVariablesList);
@@ -1332,6 +1335,7 @@ void ModelPart::load(Serializer& rSerializer)
     rSerializer.load("Name", mName);
     rSerializer.load("Buffer Size", mBufferSize);
     rSerializer.load("ProcessInfo", mpProcessInfo);
+    rSerializer.load("Tables", mTables);
     //VariablesList* p_list = &mVariablesList;
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);

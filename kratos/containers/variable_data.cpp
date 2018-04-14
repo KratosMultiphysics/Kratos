@@ -22,42 +22,33 @@
 #include "includes/define.h"
 #include "containers/variable_data.h"
 #include "input_output/logger.h"
+#include "includes/fnv_1a_hash.h"
 
 
 namespace Kratos
 {
 
     /// Constructor.
-	VariableData::VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent) : mName(NewName), mKey(0), mSize(NewSize), mIsComponent(Iscomponent) {}
+	VariableData::VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent, char ComponentIndex) : mName(NewName), mKey(0), mSize(NewSize), mIsComponent(Iscomponent) {
+        mKey = GenerateKey(mName, mSize, Iscomponent, ComponentIndex);
+    }
 
 	/// Copy constructor
     VariableData::VariableData(const VariableData& rOtherVariable)
         : mName(rOtherVariable.mName), mKey(rOtherVariable.mKey), mSize(rOtherVariable.mSize), mIsComponent(rOtherVariable.mIsComponent) {}
 
-	VariableData::KeyType VariableData::GenerateKey(const std::string& Name, std::size_t Size, std::size_t ComponentIndex)
+	VariableData::KeyType VariableData::GenerateKey(const std::string& Name, std::size_t Size, bool IsComponent, char ComponentIndex)
 	{
-		// For generation of 32bit hash key I use the 
-		// Jenkins's one-at-a-time hash taken from wikipedia 
-		// I could have used better hash functions like murmur or lookup3
-		// But finally choose this for simplicity. Pooyan.
-		// https://en.wikipedia.org/wiki/Jenkins_hash_function
+        std::uint64_t key = Size;
+        key <<= 32;
+        key += FNV1a32Hash::CalculateHash(Name.c_str());
 
-		unsigned int hash, i;
-		for(hash = i = 0; i < Name.size(); ++i)
-		{
-			hash += Name[i];
-			hash += (hash << 10);
-			hash ^= (hash >> 6);
-		}
-		hash += (hash << 3);
-		hash ^= (hash >> 11);
-		hash += (hash << 15);
+        key <<= 1;
+        key += IsComponent;
+        key <<= 7;
+        key += ComponentIndex;
 
-		//if(Size > 127) // to be store in a char
-		//	KRATOS_ERROR << "A variable of Kratos cannot be larger than 127 bytes and variable " << Name << " has sizeof " << Size;
-//		KeyType key = hash;
-//		key << 2; // This is for adding the 
-		return hash;
+		return key;
 
 	}
 
@@ -80,6 +71,8 @@ namespace Kratos
     void VariableData::Delete(void* pSource) const {}
 
     void VariableData::Print(const void* pSource, std::ostream& rOStream) const {}
+
+    void VariableData::PrintData(const void* pSource, std::ostream& rOStream) const {}
 
     void VariableData::Allocate(void** pData) const
     {
@@ -105,7 +98,7 @@ namespace Kratos
     std::string VariableData::Info() const
     {
         std::stringstream buffer;
-        buffer << mName << " variable data";
+        buffer << mName << " variable data" <<" #" << static_cast<unsigned int>(mKey);
         return buffer.str();
     }
 

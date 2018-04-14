@@ -2,16 +2,43 @@
 
 The *EigenSolversApplication* is a thin wrapper for the [Eigen linear algebra library](http://eigen.tuxfamily.org/index.php?title=Main_Page).
 
-It provides the following direct sparse solvers:
+## Direct sparse solvers
 
-| solver_type          | Matrix kind | Dependencies |
-|----------------------|:-----------:|:------------:|
-| `eigen_sparse_lu`    | Square      | None         |
-| `eigen_pardiso_llt`  | SPD         | Intel® MKL   |
-| `eigen_pardiso_ldlt` | SPD         | Intel® MKL   |
-| `eigen_pardiso_lu`   | Square      | Intel® MKL   |
+The application provides the following direct sparse solvers:
+
+| Python class      | solver_type          | Matrix kind | Dependencies |
+|-------------------|----------------------|:-----------:|:------------:|
+| SparseLUSolver    | `eigen_sparse_lu`    | Square      | None         |
+| SparseQRSolver    | *not available*      | Rectangular | None         |
+| PardisoLLTSolver  | `eigen_pardiso_llt`  | SPD         | Intel® MKL   |
+| PardisoLDLTSolver | `eigen_pardiso_ldlt` | SPD         | Intel® MKL   |
+| PardisoLUSolver   | `eigen_pardiso_lu`   | Square      | Intel® MKL   |
 
 SPD = symmetric positive definite
+
+**Example**:
+
+```json
+{
+    "solver_type": "eigen_sparse_lu"
+}
+```
+
+## Generalized eigensystem solver
+
+The application provides a generalized eigensystem solver for sparse matrices. It gives the eigenvalues and eigenvectors for the smallest eigenvalues. MKL routines are used automatically if they are available.
+
+**Example:**
+
+```json
+{
+    "solver_type": "eigen_eigensystem",
+    "number_of_eigenvalues": 1,
+    "max_iteration": 1000,
+    "tolerance": 1e-6,
+    "echo_level": 1
+}
+```
 
 ## Build instructions
 
@@ -58,30 +85,39 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
     ```batch
     call "C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\mkl\bin\mklvars.bat" intel64 lp64
     ```
-    
+
     **Linux:**
 
     ```batch
     source ~/intel/mkl/bin/mklvars.sh intel64 lp64
     ```
 
-2. Build Kratos
+2. Add the following flag to CMake to your configure script:
 
-3. Usage:
+    ```batch
+    -DUSE_EIGEN_MKL=ON ^
+    ```
+
+3. Build Kratos
+
+4. Usage:
 
     **Windows:**
 
-    Copy the required MKL library to the Kratos `lib`
-    
+    Copy the required MKL libraries to the Kratos `lib`
 
-    ```
+    ```batch
+    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_core.dll
     C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_rt.dll
+    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_intel_thread.dll
+    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_def.dll
+    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\compiler\libiomp5md.dll
     ```
 
-    or add the folder to your `PATH`/`LD_LIBRARY_PATH` variable.
+    or add the folders to your `PATH`/`LD_LIBRARY_PATH` variable.
 
     **Linux:**
-    
+
     Set the environment before using MKL
     ```batch
     source ~/intel/mkl/bin/mklvars.sh intel64 lp64

@@ -70,7 +70,7 @@ Detail class definition.
 template<class TSparseSpace,
          class TDenseSpace
          >
-class DisplacementCriteria : virtual public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class DisplacementCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
@@ -135,8 +135,6 @@ public:
     {
         if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
-            //TDataType mFinalCorrectionNorm = sqrt(std::inner_product(Dx.begin(),Dx.end(),Dx.begin(),TDataType()));
-            //TDataType mFinalCorrectionNorm = sqrt(Dot(Dx,Dx));
             TDataType mFinalCorrectionNorm = TSparseSpace::TwoNorm(Dx);
 
             TDataType ratio = 0.00;

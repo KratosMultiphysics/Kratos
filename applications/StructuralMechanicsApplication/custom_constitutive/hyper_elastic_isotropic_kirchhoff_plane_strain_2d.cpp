@@ -81,7 +81,7 @@ void  HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateMaterialResponsePK2(
     const double& poisson_coefficient = material_properties[POISSON_RATIO];
 
 
-    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+    if(Options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         CalculateGreenLagrangianStrain(rValues, strain_vector);
     }
 

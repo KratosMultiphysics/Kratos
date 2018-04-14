@@ -17,11 +17,10 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#include "boost/python/list.hpp"
 
 namespace Kratos
 {
-class AnalyticParticleWatcher {
+class KRATOS_API(DEM_APPLICATION) AnalyticParticleWatcher {
 
 public:   
 
@@ -59,20 +58,21 @@ class InterParticleImpactDataOfAParticle  // It holds the historical information
         }
     }
 
-    void FillUpPythonLists(boost::python::list& ids,
-                           boost::python::list& neighbour_ids,
-                           boost::python::list& normal_relative_vel,
-                           boost::python::list& tangential_relative_vel)
+    void FillUpPythonLists(std::list<int>& ids,
+                           std::list<int>& neighbour_ids,
+                           std::list<double>& normal_relative_vel,
+                           std::list<double>& tangential_relative_vel)
     {
+        ids.clear();
+        neighbour_ids.clear();
+        normal_relative_vel.clear();
+        tangential_relative_vel.clear();
+
         for (int i = 0; i < mNImpacts; ++i){
-            AnalyticParticleWatcher::ClearList(ids);
-            AnalyticParticleWatcher::ClearList(neighbour_ids);
-            AnalyticParticleWatcher::ClearList(normal_relative_vel);
-            AnalyticParticleWatcher::ClearList(tangential_relative_vel);
-            ids.append(mId1[i]);
-            neighbour_ids.append(mId2[i]);
-            normal_relative_vel.append(mRelVelNormal[i]);
-            tangential_relative_vel.append(mRelVelTangential[i]);
+            ids.push_back(mId1[i]);
+            neighbour_ids.push_back(mId2[i]);
+            normal_relative_vel.push_back(mRelVelNormal[i]);
+            tangential_relative_vel.push_back(mRelVelTangential[i]);
         }
     }
 
@@ -110,20 +110,21 @@ class InterParticleImpactDataOfATimeStep // It holds the historical information 
             mLinearImpulse.push_back(linear_impulse);
         }
 
-        void FillUpPythonLists(boost::python::list& times,
-                               boost::python::list& neighbour_ids,
-                               boost::python::list& normal_relative_vel,
-                               boost::python::list& tangential_relative_vel)
+        void FillUpPythonLists(std::list<double>& times,
+                               std::list<int32_t>& neighbour_ids,
+                               std::list<double>& normal_relative_vel,
+                               std::list<double>& tangential_relative_vel)
         {
+            times.clear();
+            neighbour_ids.clear();
+            normal_relative_vel.clear();
+            tangential_relative_vel.clear();
+
             for (int i = 0; i < mNImpacts; ++i){
-                AnalyticParticleWatcher::ClearList(times);
-                AnalyticParticleWatcher::ClearList(neighbour_ids);
-                AnalyticParticleWatcher::ClearList(normal_relative_vel);
-                AnalyticParticleWatcher::ClearList(tangential_relative_vel);
-                times.append(mTimes[i]);
-                neighbour_ids.append(mId2[i]);
-                normal_relative_vel.append(mRelVelNormal[i]);
-                tangential_relative_vel.append(mRelVelTangential[i]);
+                times.push_back(mTimes[i]);
+                neighbour_ids.push_back(mId2[i]);
+                normal_relative_vel.push_back(mRelVelNormal[i]);
+                tangential_relative_vel.push_back(mRelVelTangential[i]);
             }
         }
 
@@ -191,20 +192,21 @@ class FaceParticleImpactDataOfAParticle  // It holds the historical information 
         }
     }
 
-    void FillUpPythonLists(boost::python::list& ids,
-                           boost::python::list& neighbour_ids,
-                           boost::python::list& normal_relative_vel,
-                           boost::python::list& tangential_relative_vel)
+    void FillUpPythonLists(std::list<int>& ids,
+                           std::list<int>& neighbour_ids,
+                           std::list<double>& normal_relative_vel,
+                           std::list<double>& tangential_relative_vel)
     {
+        ids.clear();
+        neighbour_ids.clear();
+        normal_relative_vel.clear();
+        tangential_relative_vel.clear();
+
         for (int i = 0; i < mNImpacts; ++i){
-            AnalyticParticleWatcher::ClearList(ids);
-            AnalyticParticleWatcher::ClearList(neighbour_ids);
-            AnalyticParticleWatcher::ClearList(normal_relative_vel);
-            AnalyticParticleWatcher::ClearList(tangential_relative_vel);
-            ids.append(mId1[i]);
-            neighbour_ids.append(mId2[i]);
-            normal_relative_vel.append(mRelVelNormal[i]);
-            tangential_relative_vel.append(mRelVelTangential[i]);
+            ids.push_back(mId1[i]);
+            neighbour_ids.push_back(mId2[i]);
+            normal_relative_vel.push_back(mRelVelNormal[i]);
+            tangential_relative_vel.push_back(mRelVelTangential[i]);
         }
     }
 
@@ -240,20 +242,21 @@ class FaceParticleImpactDataOfATimeStep // It holds the historical information g
             mRelVelTangential.push_back(tang_vel);
         }
 
-        void FillUpPythonLists(boost::python::list& times,
-                               boost::python::list& neighbour_ids,
-                               boost::python::list& normal_relative_vel,
-                               boost::python::list& tangential_relative_vel)
+        void FillUpPythonLists(std::list<double>& times,
+                               std::list<int>& neighbour_ids,
+                               std::list<double>& normal_relative_vel,
+                               std::list<double>& tangential_relative_vel)
         {
+            times.clear();
+            neighbour_ids.clear();
+            normal_relative_vel.clear();
+            tangential_relative_vel.clear();
+
             for (int i = 0; i < mNImpacts; ++i){
-                AnalyticParticleWatcher::ClearList(times);
-                AnalyticParticleWatcher::ClearList(neighbour_ids);
-                AnalyticParticleWatcher::ClearList(normal_relative_vel);
-                AnalyticParticleWatcher::ClearList(tangential_relative_vel);
-                times.append(mTimes[i]);
-                neighbour_ids.append(mId2[i]);
-                normal_relative_vel.append(mRelVelNormal[i]);
-                tangential_relative_vel.append(mRelVelTangential[i]);
+                times.push_back(mTimes[i]);
+                neighbour_ids.push_back(mId2[i]);
+                normal_relative_vel.push_back(mRelVelNormal[i]);
+                tangential_relative_vel.push_back(mRelVelTangential[i]);
             }
         }
 
@@ -281,24 +284,22 @@ class FaceParticleImpactDataOfATimeStep // It holds the historical information g
 
 // 
 
-static void ClearList(boost::python::list& my_list); // its best to pass empty lists in the first place to avoid this operation
-
 void GetParticleData(int id,
-                     boost::python::list times,
-                     boost::python::list neighbour_ids,
-                     boost::python::list normal_relative_vel,
-                     boost::python::list tangential_relative_vel);
+                     std::list<double> times,
+                     std::list<int> neighbour_ids,
+                     std::list<double> normal_relative_vel,
+                     std::list<double> tangential_relative_vel);
 
 void GetAllParticlesData(ModelPart& analytic_model_part,
-                         boost::python::list times,
-                         boost::python::list neighbour_ids,
-                         boost::python::list normal_relative_vel,
-                         boost::python::list tangential_relative_vel);
+                         std::list<double> times,
+                         std::list<int> neighbour_ids,
+                         std::list<double> normal_relative_vel,
+                         std::list<double> tangential_relative_vel);
 
-void GetTimeStepsData(boost::python::list ids,
-                      boost::python::list neighbour_ids,
-                      boost::python::list normal_relative_vel,
-                      boost::python::list tangential_relative_vel);
+void GetTimeStepsData(std::list<int> ids,
+                      std::list<int> neighbour_ids,
+                      std::list<double> normal_relative_vel,
+                      std::list<double> tangential_relative_vel);
 
 virtual void MakeMeasurements(ModelPart &analytic_model_part);
 

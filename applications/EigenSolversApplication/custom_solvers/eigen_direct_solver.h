@@ -13,21 +13,19 @@
 #define KRATOS_EIGEN_SOLVER_H_INCLUDED
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 #include <Eigen/Core>
 #include <Eigen/Sparse>
+#include <Eigen/SparseQR>
+#include <Eigen/OrderingMethods>
 #if defined EIGEN_USE_MKL_ALL
 #include <Eigen/PardisoSupport>
 #endif
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ublas_interface.h"
 #include "linear_solvers/direct_solver.h"
+#include "custom_utilities/ublas_wrapper.h"
 
-#include <chrono>
-using namespace std::chrono;
 
 namespace Kratos
 {
@@ -42,6 +40,13 @@ struct SparseLU : SolverType
     using TSolver = Eigen::SparseLU<TSparseMatrix>;
 
     static constexpr auto Name = "SparseLU";
+};
+
+struct SparseQR : SolverType
+{
+    using TSolver = Eigen::SparseQR<TSparseMatrix, Eigen::COLAMDOrdering<int>>;
+
+    static constexpr auto Name = "SparseQR";
 };
 
 #if defined EIGEN_USE_MKL_ALL
@@ -75,6 +80,8 @@ template <
 class EigenDirectSolver
     : public DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
 {
+    typename TSolver::TSolver m_solver;
+
     EigenDirectSolver &operator=(const EigenDirectSolver &Other);
 
     EigenDirectSolver(const EigenDirectSolver &Other);
@@ -97,6 +104,43 @@ class EigenDirectSolver
     ~EigenDirectSolver() override {}
 
     /**
+     * This function is designed to be called every time the coefficients change in the system
+     * that is, normally at the beginning of each solve.
+     * For example if we are implementing a direct solver, this is the place to do the factorization
+     * so that then the backward substitution can be performed effectively more than once
+     * @param rA System matrix
+     * @param rX Solution vector
+     * @param rB Right hand side vector
+     */
+    void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    {
+        UblasWrapper<> a_wrapper(rA);
+
+        const auto& a = a_wrapper.matrix();
+
+        m_solver.compute(a);
+
+        KRATOS_ERROR_IF(m_solver.info() != Eigen::Success) << "Decomposition failed!" << std::endl;
+    }
+
+    /**
+     * This function actually performs the solution work, eventually taking advantage of what was done before in the
+     * Initialize and InitializeSolutionStep functions.
+     * @param rA System matrix
+     * @param rX Solution vector
+     * @param rB Right hand side vector
+     */
+    void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    {
+        Eigen::Map<Eigen::VectorXd> x(rX.data().begin(), rX.size());
+        Eigen::Map<Eigen::VectorXd> b(rB.data().begin(), rB.size());
+        
+        x = m_solver.solve(b);
+
+        KRATOS_ERROR_IF(m_solver.info() != Eigen::Success) << "Solving failed!" << std::endl;
+    }
+
+    /**
      * Solves the linear system Ax=b
      * @param rA System matrix
      * @param rX Solution vector
@@ -105,28 +149,10 @@ class EigenDirectSolver
      */
     bool Solve(SparseMatrixType &rA, VectorType &rX, VectorType &rB) override
     {
-        std::vector<int> index1_vector(rA.index1_data().size());
-        std::vector<int> index2_vector(rA.index2_data().size());
+        InitializeSolutionStep(rA, rX, rB);
+        PerformSolutionStep(rA, rX, rB);
 
-        for (size_t i = 0; i < rA.index1_data().size(); i++) {
-            index1_vector[i] = (int)rA.index1_data()[i];
-        }
-
-        for (size_t i = 0; i < rA.index2_data().size(); i++) {
-            index2_vector[i] = (int)rA.index2_data()[i];
-        }
-
-        Eigen::Map<typename TSolver::TSparseMatrix> a(rA.size1(), rA.size2(), rA.nnz(), index1_vector.data(), index2_vector.data(), rA.value_data().begin());
-        Eigen::Map<Eigen::VectorXd> x(rX.data().begin(), rX.size());
-        Eigen::Map<Eigen::VectorXd> b(rB.data().begin(), rB.size());
-
-        typename TSolver::TSolver solver;
-        solver.compute(a);
-        x = solver.solve(b);
-
-        bool success = (solver.info() == Eigen::Success);
-
-        return success;
+        return true;
     }
 
     /**

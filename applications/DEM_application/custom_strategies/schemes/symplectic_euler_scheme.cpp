@@ -63,7 +63,7 @@ namespace Kratos {
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
     }
 
-    void SymplecticEulerScheme::CalculateNewRotationalVariablesOfClusters(
+    void SymplecticEulerScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,

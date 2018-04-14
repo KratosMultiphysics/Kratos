@@ -162,7 +162,7 @@ void SmallDisplacementBbarElement::CalculateKinematics(ElementVariables& rVariab
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
 
     //Set Shape Functions Values for this integration point
-    rVariables.N=row( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
     
     // Compute the deformation matrix B_bar
     this->CalculateDeformationMatrixBbar(rVariables.B, rVariables.H, rVariables.DN_DX);

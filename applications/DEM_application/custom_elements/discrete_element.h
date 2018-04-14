@@ -18,8 +18,6 @@
 #include <cmath>
 
 // External includes 
-//#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -49,6 +47,11 @@ namespace Kratos {
         }
         /// Destructor.
         virtual ~DiscreteElement() {
+        }
+
+        DiscreteElement& operator=(const DiscreteElement& rOther) {
+            Element::operator=(rOther);
+            return *this;
         }
 
         virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override {

@@ -14,7 +14,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosExecuteEmbeddedTest as ExecuteEmbeddedTest
 import KratosExecuteManufacturedSolutionTest as ExecuteManufacturedSolutionTest
 
-# This utiltiy will control the execution scope in case we need to acces files or we depend
+# This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
 
 # TODO: Should we move this to KratosUnittest?
@@ -36,8 +36,8 @@ class EmbeddedTestFactory(KratosUnittest.TestCase):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # Get the ProjectParameters file
-            parameter_file = open(self.file_name + "_parameters.json", 'r')
-            ProjectParameters = Parameters(parameter_file.read())
+            with open(self.file_name + "_parameters.json", 'r') as parameter_file:
+                ProjectParameters = Parameters(parameter_file.read())
 
             # Create the test
             self.test = ExecuteEmbeddedTest.KratosExecuteEmbeddedTest(ProjectParameters)
@@ -56,8 +56,8 @@ class ManufacturedSolutionTestFactory(KratosUnittest.TestCase):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # Get the ProjectParameters file
-            parameter_file = open(self.file_name + "_parameters.json", 'r')
-            ProjectParameters = Parameters(parameter_file.read())
+            with open(self.file_name + "_parameters.json", 'r') as parameter_file:
+                ProjectParameters = Parameters(parameter_file.read())
 
             # Create the test
             self.test = ExecuteManufacturedSolutionTest.KratosExecuteManufacturedSolutionTest(ProjectParameters)

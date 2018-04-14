@@ -73,7 +73,7 @@ struct damped_jacobi {
         }
     };
 
-    boost::shared_ptr<typename Backend::matrix_diagonal> dia;
+    std::shared_ptr<typename Backend::matrix_diagonal> dia;
 
     /// Constructs smoother for the system matrix.
     /**

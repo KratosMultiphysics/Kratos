@@ -106,7 +106,7 @@ nsteps = 10
 for step in range(0, nsteps):
 
     print("TIME STEP = ", step)
-    model_part.ProcessInfo[TIME_STEPS] = step
+    model_part.ProcessInfo[STEP] = step
 
     if(step >= 3):
 

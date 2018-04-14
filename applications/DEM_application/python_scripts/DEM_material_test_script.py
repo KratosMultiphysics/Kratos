@@ -57,8 +57,7 @@ class MaterialTest(object):
       
       self.length_correction_factor = 1.0
 
-      self.graph_frequency        = int(self.parameters.GraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
-      
+      self.graph_frequency        = int(self.parameters["GraphExportFreq"].GetDouble()/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
       self.strain = 0.0; self.strain_bts = 0.0; self.volumetric_strain = 0.0; self.radial_strain = 0.0; self.first_time_entry = 1; self.first_time_entry_2 = 1
       self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0;
 
@@ -66,14 +65,23 @@ class MaterialTest(object):
       
       # for the graph plotting    
       self.loading_velocity = 0.0
-      self.height = self.parameters.SpecimenLength
-      self.diameter = self.parameters.SpecimenDiameter
+      self.height = self.parameters["SpecimenLength"].GetDouble()        
+      self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
+      self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
+      self.test_type = self.parameters["TestType"].GetString()
+      self.problem_name = self.parameters["problem_name"].GetString()
+      self.LoadingVelocityTop = self.parameters["LoadingVelocityTop"].GetDouble()        
+      self.LoadingVelocityBot = self.parameters["LoadingVelocityBot"].GetDouble()
+      self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()        
+      self.LoadingVelocityBot = self.parameters["LoadingVelocityBot"].GetDouble()
+      self.MeshType = self.parameters["MeshType"].GetString()
+      self.MeshPath = self.parameters["MeshPath"].GetString()
 
       self.initial_time = datetime.datetime.now()
 
       os.chdir(self.graphs_path)
       
-      self.chart = open(self.parameters.problem_name + "_Parameter_chart.grf", 'w')
+      self.chart = open(self.problem_name + "_Parameter_chart.grf", 'w')
       
       self.aux = AuxiliaryUtilities()
       self.PreUtilities = PreUtilities()
@@ -91,8 +99,8 @@ class MaterialTest(object):
       a.flush()
 
   def PrepareTestOedometric(self):
-      if(self.parameters.TestType == "Oedometric"):
-
+      if(self.test_type == "Oedometric"):
+      
         for node in self.LAT:
 
           node.SetSolutionStepValue(VELOCITY_X, 0.0);
@@ -101,7 +109,7 @@ class MaterialTest(object):
           node.Fix(VELOCITY_Z);
 
   def PrepareTestTriaxialHydro(self):
-      if ( ( self.parameters.TestType == "Triaxial") or ( self.parameters.TestType == "Hydrostatic") ):
+      if ( ( self.test_type == "Triaxial") or ( self.test_type == "Hydrostatic") ):
 
         #Correction Coefs
         self.alpha_top = 3.141592*self.diameter*self.diameter*0.25/(self.xtop_area + 0.70710678*self.xtopcorner_area)
@@ -111,7 +119,7 @@ class MaterialTest(object):
   def PrepareTests(self):
     
       ##Fixing horizontally top and bot
-      if(self.parameters.TestType != "BTS"):
+      if self.test_type != "BTS":
         
         for node in self.TOP:
           
@@ -127,25 +135,25 @@ class MaterialTest(object):
           node.Fix(VELOCITY_X);
           node.Fix(VELOCITY_Z);
 
-      if(self.parameters.TestType == "BTS"):
+      if self.test_type == "BTS":
 
-        self.bts_export = open(self.parameters.problem_name + ".grf", 'w');
+        self.bts_export = open(self.problem_name + ".grf", 'w');
         ##self.BtsSkinDetermination()
 
-      elif (self.parameters.TestType == "Shear"):
+      elif self.test_type == "Shear":
           self.BreakBondUtility(self.spheres_model_part)
-          self.graph_export = open(self.parameters.problem_name +"_graph.grf", 'w')
-          self.graph_export_1 = open(self.parameters.problem_name +"_graph_top.grf", 'w')
-          self.graph_export_2 = open(self.parameters.problem_name +"_graph_bot.grf", 'w')
+          self.graph_export = open(self.problem_name +"_graph.grf", 'w')
+          self.graph_export_1 = open(self.problem_name +"_graph_top.grf", 'w')
+          self.graph_export_2 = open(self.problem_name +"_graph_bot.grf", 'w')
 
       else:
 
-        self.graph_export = open(self.parameters.problem_name +"_graph.grf", 'w')
-        self.graph_export_1 = open(self.parameters.problem_name +"_graph_top.grf", 'w')
-        self.graph_export_2 = open(self.parameters.problem_name +"_graph_bot.grf", 'w')
+        self.graph_export = open(self.problem_name +"_graph.grf", 'w')
+        self.graph_export_1 = open(self.problem_name +"_graph_top.grf", 'w')
+        self.graph_export_2 = open(self.problem_name +"_graph_bot.grf", 'w')
         
-        if (self.parameters.TestType =="Hydrostatic"):  
-          self.graph_export_volumetric = open(self.parameters.problem_name+"_graph_VOL.grf",'w')
+        if self.test_type == "Hydrostatic":  
+          self.graph_export_volumetric = open(self.problem_name+"_graph_VOL.grf",'w')
 
         self.Procedures.KRATOSprint ('Initial Height of the Model: ' + str(self.height)+'\n')
                 
@@ -177,11 +185,9 @@ class MaterialTest(object):
         initial_height_bot = y_bot_total/weight_bot
     
         inner_initial_height = initial_height_top - initial_height_bot
-
-        specimen_length = self.parameters.SpecimenLength
-        extended_length = specimen_length + (specimen_length - inner_initial_height)
+        extended_length = self.height + (self.height - inner_initial_height)
           
-        self.length_correction_factor = specimen_length/extended_length
+        self.length_correction_factor = self.height/extended_length
 
       
   def CylinderSkinDetermination(self): #model_part, solver, DEM_parameters):
@@ -191,8 +197,8 @@ class MaterialTest(object):
 
         # Cylinder dimensions
 
-        h = self.parameters.SpecimenLength
-        d = self.parameters.SpecimenDiameter
+        h = self.height
+        d = self.diameter
 
         eps = 2.0
 
@@ -293,8 +299,8 @@ class MaterialTest(object):
 
       # Cylinder dimensions
 
-      h = self.parameters.SpecimenLength
-      d = self.parameters.SpecimenDiameter
+      h = self.height
+      d = self.diameter
       eps = 2.0
 
       for element in self.spheres_model_part.Elements:
@@ -357,9 +363,9 @@ class MaterialTest(object):
     
     dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
-    self.strain += -100*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
+    self.strain += -100*self.length_correction_factor*1.0*self.LoadingVelocityTop*dt/self.height
 
-    if (self.parameters.TestType =="BTS"):
+    if (self.test_type =="BTS"):
 
       total_force_bts = 0.0
       
@@ -368,11 +374,11 @@ class MaterialTest(object):
         force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1] 
         total_force_bts += force_node_y
         
-      self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.parameters.SpecimenLength*self.parameters.SpecimenDiameter*1e6)     
-      self.strain_bts += -100*2*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenDiameter
+      self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.height*self.diameter*1e6)     
+      self.strain_bts += -100*2*self.LoadingVelocityTop*dt/self.diameter
     else:
 
-      if (self.parameters.TestType =="Hydrostatic"):
+      if (self.test_type =="Hydrostatic"):
         
         radial_strain = -100*self.MeasureRadialStrain()
         self.volumetric_strain = self.strain + 2.0*radial_strain
@@ -386,7 +392,7 @@ class MaterialTest(object):
 
         total_force_top += force_node_y
         
-      self.total_stress_top = total_force_top/(self.parameters.MeasuringSurface*1000000)
+      self.total_stress_top = total_force_top/(self.MeasuringSurface*1000000)
 
       for node in self.bot_mesh_nodes:
 
@@ -394,21 +400,21 @@ class MaterialTest(object):
 
         total_force_bot += force_node_y
 
-      self.total_stress_bot = total_force_bot/(self.parameters.MeasuringSurface*1000000)
+      self.total_stress_bot = total_force_bot/(self.MeasuringSurface*1000000)
 
       self.total_stress_mean = 0.5*(self.total_stress_bot + self.total_stress_top)
 
-      if (self.parameters.TestType =="Shear"):
+      if (self.test_type =="Shear"):
           self.strain += dt
           self.total_stress_top = total_force_top/1.0 # applied force divided by efective shear cylinder area 2*pi*0.0225*0.08
           self.total_stress_mean = self.total_stress_top
 
       
-      if ( ( (self.parameters.TestType == "Triaxial") or (self.parameters.TestType == "Hydrostatic") ) and (self.parameters.ConfinementPressure != 0.0) ):
+      if ( ( (self.test_type == "Triaxial") or (self.test_type == "Hydrostatic") ) and (self.ConfinementPressure != 0.0) ):
           
-          self.Pressure = min(self.total_stress_mean*1e6, self.parameters.ConfinementPressure * 1e6)
+          self.Pressure = min(self.total_stress_mean*1e6, self.ConfinementPressure * 1e6)
           
-          if( self.parameters.TestType == "Hydrostatic"):
+          if( self.test_type == "Hydrostatic"):
               
               self.Pressure = self.total_stress_mean*1e6
           
@@ -424,7 +430,7 @@ class MaterialTest(object):
       
       self.graph_counter = 0
       
-      if(self.parameters.TestType == "BTS"):
+      if(self.test_type == "BTS"):
         
         self.bts_export.write(str("%.8g"%time).rjust(12) +"  "+ str("%.6g"%self.total_stress_bts).rjust(13)+'\n')
         self.Flush(self.bts_export)
@@ -438,7 +444,7 @@ class MaterialTest(object):
         self.Flush(self.graph_export_1)
         self.Flush(self.graph_export_2)
         
-        if( self.parameters.TestType =="Hydrostatic"):        
+        if( self.test_type =="Hydrostatic"):        
           self.graph_export_volumetric.write(str("%.8g"%self.volumetric_strain).rjust(12)+"    "+str("%.6g"%self.total_stress_mean).rjust(13)+'\n')
           self.Flush(self.graph_export_volumetric)
 
@@ -448,12 +454,12 @@ class MaterialTest(object):
    
   def PrintChart(self):
     
-    loading_velocity = self.parameters.LoadingVelocityTop
+    loading_velocity = self.LoadingVelocityTop
   
     print ('************DEM VIRTUAL LAB******************'+'\n')
     print ('Loading velocity: ' + str(loading_velocity) + '\n')
-    print ('Expected maximum deformation: ' + str(-loading_velocity*self.parameters.FinalTime/self.height*100) +'%'+'\n'+'\n'  )
-    
+    print ('Expected maximum deformation: ' + str(-loading_velocity*self.parameters["FinalTime"].GetDouble() /self.height*100) +'%'+'\n'+'\n'  )
+     
 
     self.chart.write(("***********PARAMETERS*****************")+'\n')
     self.chart.write( "                                    " +'\n')
@@ -479,7 +485,7 @@ class MaterialTest(object):
 
     self.chart.close()
     
-    a_chart = open(self.parameters.problem_name + "_Parameter_chart.grf","r")
+    a_chart = open(self.problem_name + "_Parameter_chart.grf","r")
     for line in a_chart.readlines():
         self.Procedures.KRATOSprint(line)
     a_chart.close()
@@ -490,23 +496,23 @@ class MaterialTest(object):
 
     #Create a copy and renaming
     for filename in os.listdir("."):
-      if filename.startswith(self.parameters.problem_name + "_graph.grf"):
+      if filename.startswith(self.problem_name + "_graph.grf"):
           shutil.copy(filename, filename+"COPY")
-          os.rename(filename+"COPY", self.parameters.problem_name + "_graph_" + str(self.initial_time).replace(":", "") + ".grf")
-      if filename.startswith(self.parameters.problem_name + "_bts.grf"):
+          os.rename(filename+"COPY", self.problem_name + "_graph_" + str(self.initial_time).replace(":", "") + ".grf")
+      if filename.startswith(self.problem_name + "_bts.grf"):
           shutil.copy(filename, filename+"COPY")
-          os.rename(filename+"COPY", self.parameters.problem_name + "_bts_" + str(self.initial_time).replace(":", "") + ".grf")
-      if filename.startswith(self.parameters.problem_name + "_graph_VOL.grf"):
+          os.rename(filename+"COPY", self.problem_name + "_bts_" + str(self.initial_time).replace(":", "") + ".grf")
+      if filename.startswith(self.problem_name + "_graph_VOL.grf"):
           shutil.copy(filename, filename+"COPY")
-          os.rename(filename+"COPY", self.parameters.problem_name + "_graph_VOL" + str(self.initial_time).replace(":", "") + ".grf")
+          os.rename(filename+"COPY", self.problem_name + "_graph_VOL" + str(self.initial_time).replace(":", "") + ".grf")
 
-    if(self.parameters.TestType == "BTS"):
+    if(self.test_type == "BTS"):
         self.bts_export.close()
         #self.bts_stress_export.close()
     else:
         self.graph_export.close()
       
-        if( self.parameters.TestType =="Hydrostatic"):  
+        if( self.test_type =="Hydrostatic"):  
             self.graph_export_volumetric.close()
     
   def OrientationStudy(self,contact_model_part,step):

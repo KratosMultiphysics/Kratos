@@ -44,6 +44,8 @@ Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, Proper
 /// Destructor.
 virtual ~AnalyticSphericParticle(){}
 
+AnalyticSphericParticle& operator=(const AnalyticSphericParticle& rOther);
+
 /// Turn back information as a string.
 std::string Info() const override
 {
@@ -61,6 +63,9 @@ void PrintData(std::ostream& rOStream) const override {}
 int GetNumberOfCollisions();
 int GetNumberOfCollisionsWithFaces();
 int GetNumberOfCollisionsWithEdges();
+
+static const unsigned int mMaxCollidingSpheres = 4;
+static const unsigned int mMaxCollidingFaceSpheres = 4;
 
 array_1d<int, 4> &GetCollidingIds();
 array_1d<double, 4> &GetCollidingNormalRelativeVelocity();
@@ -127,7 +132,7 @@ array_1d<double, 4> mCollidingNormalVelocities;
 array_1d<double, 4> mCollidingTangentialVelocities;
 array_1d<double, 4> mCollidingLinearImpulse;
 std::vector<int> mContactingNeighbourIds;
-std::unique_ptr<ParticleDataBuffer> mpDataBuffer;
+//std::unique_ptr<ParticleDataBuffer> mpDataBuffer;
 
 array_1d<int, 4> mCollidingFaceIds;
 array_1d<double, 4> mCollidingFaceNormalVelocities;

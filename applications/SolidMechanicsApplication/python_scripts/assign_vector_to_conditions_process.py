@@ -8,7 +8,7 @@ import sys
 import assign_modulus_and_direction_to_conditions_process as BaseProcess
 
 def Factory(custom_settings, Model):
-    if(type(custom_settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return AssignVectorToConditionsProcess(Model, custom_settings["Parameters"])
 
@@ -17,32 +17,32 @@ class AssignVectorToConditionsProcess(BaseProcess.AssignModulusAndDirectionToCon
         BaseProcess.AssignModulusAndDirectionToConditionsProcess.__init__(self, Model, custom_settings)
 
     def ExecuteInitialize(self):
-        
+
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
         if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
-            
+
         if( self.IsInsideInterval() and self.interval_string == "initial" ):
             self.AssignValueToConditions()
-            
+
     def ExecuteInitializeSolutionStep(self):
 
         if self.IsInsideInterval():
             self.AssignValueToConditions()
-            
-        
+
+
     def ExecuteFinalizeSolutionStep(self):
         pass
 
 
     #
     def BuildComponentsProcesses(self):
-        
+
         ## set the interval
         self.interval_started = False
         self.interval_ended   = False
-        
+
         self.interval  = []
         self.interval.append(self.settings["interval"][0].GetDouble());
         if( self.settings["interval"][1].IsString() ):
@@ -58,8 +58,8 @@ class AssignVectorToConditionsProcess(BaseProcess.AssignModulusAndDirectionToCon
 
         ## set the value
         self.value_is_numeric = False
-        self.value_is_spatial_function = False               
-                    
+        self.value_is_spatial_function = False
+
         #deprecated:
         self.function_string = self.settings["time_function"].GetString()
         if( self.function_string == "constant" ):
@@ -72,7 +72,7 @@ class AssignVectorToConditionsProcess(BaseProcess.AssignModulusAndDirectionToCon
                 self.function_expression = "t"
             else:
                 self.function_expression = self.function_string;
-                
+
             if (sys.version_info > (3, 0)):
                 self.compiled_function = compile(self.function_expression, '', 'eval', optimize=2)
             else:
@@ -93,20 +93,20 @@ class AssignVectorToConditionsProcess(BaseProcess.AssignModulusAndDirectionToCon
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             if( self.value_is_spatial_function == False ):
                 function_value = self.function(current_time)
-                   
+
                 current_value = []
                 for i in range(0, len(self.value) ):
                     current_value.append(self.value[i] * function_value)
-                                   
+
                 for cond in self.model_part.Conditions:
                     cond.SetValue(self.var,current_value)
             else:
                 raise Exception("Spatial Functions not implemented for CONDITIONS")
 
-    
+
     #
     def IsInsideInterval(self):
-        
+
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         delta_time   = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
@@ -118,4 +118,3 @@ class AssignVectorToConditionsProcess(BaseProcess.AssignModulusAndDirectionToCon
             return True
         else:
             return False
-    

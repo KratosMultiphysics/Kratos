@@ -2,9 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMetisApplication ****")
  
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-#find mkl solver package -- this is our own find package!!
 if(${USE_METIS_5} MATCHES ON)
     message("using metis (and not Parmetis) version 5")
     add_definitions(-DKRATOS_USE_METIS_5)
@@ -19,9 +20,6 @@ else(${USE_METIS_5} MATCHES ON)
     link_directories(${PARMETIS_LIBRARIES})
 endif(${USE_METIS_5} MATCHES ON)
 
-##add definitions needed
-add_definitions(-DMKL_ILP64)
-
 ## generate variables with the sources
 set( KRATOS_METIS_APPLICATION_SOURCES    
 	${CMAKE_CURRENT_SOURCE_DIR}/metis_application.cpp 
@@ -31,7 +29,7 @@ set( KRATOS_METIS_APPLICATION_SOURCES
 
 
 # ###############################################################
-add_library(KratosMetisApplication SHARED ${KRATOS_METIS_APPLICATION_SOURCES})
+pybind11_add_module(KratosMetisApplication MODULE ${KRATOS_METIS_APPLICATION_SOURCES})
 target_link_libraries(KratosMetisApplication KratosCore ${METIS_LIBRARY} ${MPI_LIBRARIES} )
 set_target_properties(KratosMetisApplication PROPERTIES PREFIX "")
 

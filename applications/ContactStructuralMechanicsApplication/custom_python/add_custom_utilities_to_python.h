@@ -3,20 +3,20 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//  License:             BSD License
+//                                       license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 
-#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED
 
 
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
@@ -31,10 +31,10 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomUtilitiesToPython();
+void  AddCustomUtilitiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED  defined 

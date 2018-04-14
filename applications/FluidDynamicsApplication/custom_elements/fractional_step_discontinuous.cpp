@@ -129,7 +129,7 @@ void FractionalStepDiscontinuous<TDim>::AddMomentumSystemTerms(Matrix& rLHSMatri
 template< unsigned int TDim >
 void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();

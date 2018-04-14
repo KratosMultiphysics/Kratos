@@ -41,6 +41,7 @@ cmake ..  									                                                    \
 -DEXTERNAL_SOLVERS_APPLICATION=ON						                                    \
 -DSTRUCTURAL_APPLICATION=ON 							                                      \
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON 					                                \
+-DCONSTITUTIVE_MODELS_APPLICATION=ON                                             \
 -DALE_APPLICATION=ON 								                                            \
 -DFSI_APPLICATION=ON 								                                            \
 -DMAPPING_APPLICATION=OFF 								                                            \

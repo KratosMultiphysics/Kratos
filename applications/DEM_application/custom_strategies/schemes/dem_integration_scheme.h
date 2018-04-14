@@ -2,14 +2,8 @@
 // Author: Miguel AngelCeligueta, maceli@cimne.upc.edu
 //
 
-
-#if !defined(KRATOS_DEM_INTEGRATION_SCHEME_H_INCLUDED)
+#if !defined KRATOS_DEM_INTEGRATION_SCHEME_H_INCLUDED
 #define KRATOS_DEM_INTEGRATION_SCHEME_H_INCLUDED
-
-
-
-
-// External includes 
 
 // Project includes
 #include "includes/define.h"
@@ -25,6 +19,7 @@
 namespace Kratos {
     
     class Cluster3D;
+    class RigidBodyElement3D;
 
     class KRATOS_API(DEM_APPLICATION) DEMIntegrationScheme {
     public:
@@ -51,8 +46,9 @@ namespace Kratos {
         
         virtual void Move(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         virtual void Rotate(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
-        virtual void MoveCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
-        virtual void RotateCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void RotateRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        
         virtual void UpdateTranslationalVariables(
                 int StepFlag, 
                 Node < 3 >& i,
@@ -69,6 +65,7 @@ namespace Kratos {
         
         virtual void CalculateTranslationalMotionOfNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
         virtual void CalculateRotationalMotionOfSphereNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void CalculateRotationalMotionOfRigidBodyElementNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
         
         virtual void CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
@@ -82,7 +79,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]);
     
-        virtual void CalculateNewRotationalVariablesOfClusters(
+        virtual void CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
@@ -177,8 +174,6 @@ namespace Kratos {
                 const double dt,
                 const array_1d<double, 3>& InitialAngularVel,
                 array_1d<double, 3>& FinalAngularVel);
-        
-        virtual void CalculateRotationalMotionOfClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
 
         virtual std::string Info() const {
             std::stringstream buffer;
@@ -239,7 +234,7 @@ namespace Kratos {
         return rOStream;
     }
 
-} // namespace Kratos.
+} // namespace Kratos
 
-#endif // KRATOS_DEM_INTEGRATION_SCHEME_H_INCLUDED  defined 
+#endif // KRATOS_DEM_INTEGRATION_SCHEME_H_INCLUDED defined 
 

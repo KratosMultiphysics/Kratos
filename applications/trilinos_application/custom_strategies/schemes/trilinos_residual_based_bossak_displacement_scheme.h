@@ -16,7 +16,6 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 #include "Epetra_Import.h"
 
 /* Project includes */
@@ -294,7 +293,7 @@ protected:
         Epetra_Map dof_update_map(-1,index_array.size(), &(*(index_array.begin())),0,Dx.Comm() );
 
         // Defining the importer class
-        boost::shared_ptr<Epetra_Import> pDofImporter( new Epetra_Import(dof_update_map,Dx.Map()) );
+        Kratos::shared_ptr<Epetra_Import> pDofImporter = Kratos::make_shared<Epetra_Import>(dof_update_map,Dx.Map());
         mpDofImporter.swap(pDofImporter);
 
         mImporterIsInitialized = true;
@@ -312,7 +311,7 @@ protected:
      * @return Importer
      */
     
-    boost::shared_ptr<Epetra_Import> pGetImporter()
+    Kratos::shared_ptr<Epetra_Import> pGetImporter()
     {
         return mpDofImporter;
     }
@@ -337,7 +336,7 @@ private:
 
     bool mImporterIsInitialized;
 
-    boost::shared_ptr<Epetra_Import> mpDofImporter;
+    Kratos::shared_ptr<Epetra_Import> mpDofImporter;
     
     ///@}
     ///@name Private Operators

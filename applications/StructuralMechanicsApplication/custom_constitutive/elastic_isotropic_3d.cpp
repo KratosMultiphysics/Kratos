@@ -68,7 +68,7 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     const double& NU    = MaterialProperties[POISSON_RATIO];
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
+    if(Options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
         CalculateCauchyGreenStrain(rValues, StrainVector);
     }
@@ -309,8 +309,15 @@ void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 
+    #ifdef KRATOS_DEBUG
+    if(F.size1() != 3 || F.size2() != 3)
+      KRATOS_ERROR << "expected size of F is 3x3, got " << F << std::endl;
+    #endif
+
     Matrix Etensor = prod(trans(F),F);
-    Etensor -= IdentityMatrix(3,3);
+    for(unsigned int i=0; i<3; ++i)
+      Etensor(i,i) -= 1.0;
+    
     Etensor *= 0.5;
 
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);

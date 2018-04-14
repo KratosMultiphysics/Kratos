@@ -371,17 +371,11 @@ class ApplicationGenerator(TemplateRule):
 
         with open(srcFile, 'r') as src, open(dstFile, 'w+') as dst:
             for l in src:
-                # Skip the first message
-                if 'message( " ")' in l and msgCount == 0:
-                    msgCount += 1
 
                 # Add the applciation to the list message
-                elif 'message( " ")' in l and msgCount == 1:
-                    newLine = ''
-
-                    newLine += 'message("' + self._nameUpper + '_APPLICATION'
-                    newLine += ('.' * (31 - len(self._nameUpper)))
-                    newLine += ' ${' + self._nameUpper + '_APPLICATION}")\n'
+                print(l.strip(), "\")", l.strip() == "\")")
+                if l.strip() == "\")" :
+                    newLine = self._nameUpper + '_APPLICATION;\\\n'
 
                     dst.write(newLine)
 
