@@ -16,6 +16,7 @@ def AddVariables(model_part, config=None):
     # add dynamic variables
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(PRESSURE)
     
     # add reactions for the displacements
     model_part.AddNodalSolutionStepVariable(REACTION)
