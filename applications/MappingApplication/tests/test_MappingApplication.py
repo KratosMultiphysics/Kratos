@@ -51,4 +51,9 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    print("Running cpp unit tests for MappingApplication...")
+    run_cpp_unit_tests.run()
+    print("Finished running cpp unit tests!")
+    print("Running python tests for MappingApplication...")
+    KratosUnittest.runTests(AssembleTestSuites())
+    print("Finished python tests!")

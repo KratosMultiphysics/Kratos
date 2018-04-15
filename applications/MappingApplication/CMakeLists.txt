@@ -35,6 +35,7 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities.cpp
 )
 
+set(KRATOS_MAPPING_APPLICATION_SOURCES_MPI "")
 set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS "")
 ## If we have mpi support, use it
 if(${MPI_NEEDED} MATCHES ON )
@@ -43,7 +44,7 @@ if(${MPI_NEEDED} MATCHES ON )
     find_package(TRILINOS REQUIRED)
     include_directories(${TRILINOS_INCLUDE_DIR})
 
-    set( KRATOS_MAPPING_APPLICATION_SOURCES_MPI
+    set( KRATOS_MAPPING_APPLICATION_SOURCES_MPI ${KRATOS_MAPPING_APPLICATION_SOURCES_MPI}
         # Searching
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure_mpi.cpp
         # Utilities
@@ -56,8 +57,16 @@ if(${MPI_NEEDED} MATCHES ON )
     set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS} ${TRILINOS_LIBRARIES})
 endif(${MPI_NEEDED} MATCHES ON )
 
+## define test sources (cpp tests)
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+ 	file(GLOB_RECURSE KRATOS_MAPPING_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    if(${MPI_NEEDED} MATCHES ON )
+        file(GLOB_RECURSE KRATOS_MAPPING_TESTING_SOURCES ${KRATOS_MAPPING_TESTING_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests_mpi/*.cpp)
+    endif(${MPI_NEEDED} MATCHES ON )
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
 # define library Kratos which defines the basic python interface
-pybind11_add_module(KratosMappingApplication MODULE ${KRATOS_MAPPING_APPLICATION_SOURCES} ${KRATOS_MAPPING_APPLICATION_SOURCES_MPI})
+pybind11_add_module(KratosMappingApplication MODULE ${KRATOS_MAPPING_APPLICATION_SOURCES} ${KRATOS_MAPPING_APPLICATION_SOURCES_MPI} ${KRATOS_MAPPING_TESTING_SOURCES})
 target_link_libraries(KratosMappingApplication PRIVATE KratosCore ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS})
 set_target_properties(KratosMappingApplication PROPERTIES PREFIX "")
 install(TARGETS KratosMappingApplication DESTINATION libs )
