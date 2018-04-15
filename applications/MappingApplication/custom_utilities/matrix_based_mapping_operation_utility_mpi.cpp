@@ -32,27 +32,63 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(SparseSpaceType::IsDistributed())
             << "Wrong SparseSpace used!" << std::endl;
 
-        //creating a work array
+
+        // big TODO what if the rank doesn't have local nodes ... ?
+
+        const int num_local_nodes = 100; //pInterfaceModelPart->GetCommunicator().LocalMesh().NumberOfNodes();
+
+        const Epetra_MpiComm epetra_comm(MPI_COMM_WORLD);
+
+        std::vector<int> global_elements(num_local_nodes);
+
+        // fill the
+        // #pragma omp parallel for
+        // for local_nodes:
+        //     global_elements[i] = node.GetValue(INTERFACE_EQUATION_ID); // Is it that easy?
+
+        // Epetra_Map (long long NumGlobalElements, int NumMyElements, const long long *MyGlobalElements, int IndexBase, const Epetra_Comm &Comm)
+
+        const int num_global_elements = -1; // computed by Epetra_Map
+        const int index_base = 0; // for C/C++
+
+        Epetra_Map epetra_map(num_global_elements,
+                              num_local_nodes,
+                              global_elements.data(), // taken as const
+                              index_base,
+                              epetra_comm);
 
 
-        Epetra_MpiComm epetra_comm(MPI_COMM_WORLD);
+        const int num_indices_per_row = 25; // TODO this is to be tested
+
+        Epetra_FECrsGraph epetra_graph(Epetra_DataAccess::Copy,
+                                       epetra_map,
+                                       num_indices_per_row);
+
+        // //////
+
+        // now loop the mapperconditions and fill the graph with the equation ids
+        // for mapper_conditions:
+        //     // InsertGlobalIndices (int numRows, const int *rows, int numCols, const int *cols)
+        //     ierr = epetra_graph.InsertGlobalIndices(...)
 
 
-        int* temp = new int[1000]; //
+        int ierr = epetra_graph.GlobalAssemble(); // TODO check if it should call "FillComplete"
+        KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsGraph.GlobalAssemble. "
+            << "Error code: " << ierr << std::endl;
 
-        Epetra_Map my_map(-1, 1000, temp, 0, epetra_comm);
+        // // TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
+        // // https://trilinos.org/docs/dev/packages/epetra/doc/html/Epetra__DataAccess_8h.html#ad1a985e79f94ad63030815a0d7d90928
+        SystemMatrixPointerType p_new_mapping_matrix = Kratos::make_shared<SystemMatrixType>(Epetra_DataAccess::Copy, epetra_graph);
+        mpMappingMatrix.swap(p_new_mapping_matrix);
 
+        SystemVectorPointerType p_new_vector_destination = Kratos::make_shared<SystemVectorType>(epetra_map);
+        mpVectorDestination.swap(p_new_vector_destination);
 
-        Epetra_FECrsGraph Agraph(Copy, my_map, 50);
+        SystemVectorPointerType p_new_vector_origin = Kratos::make_shared<SystemVectorType>(epetra_map/*_origin*/);
+        mpVectorOrigin.swap(p_new_vector_origin);
 
-        //////
+        // SparseSpaceType::Mult(*mpMappingMatrix, *mpVectorOrigin, *mpVectorDestination);
 
-
-        int ierr = Agraph.GlobalAssemble();
-
-        // TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
-
-        SystemMatrixPointerType pNewA = Kratos::make_shared<SystemMatrixType>(Copy,Agraph);
 
         KRATOS_WATCH("After the Trilinos Stuff")
 

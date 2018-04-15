@@ -70,8 +70,11 @@ class MatrixBasedMappingOperationUtilityMPI : public MappingOperationUtility
 
     using SparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
 
-    typedef typename SparseSpaceType::MatrixType SystemMatrixType;
+    typedef typename SparseSpaceType::MatrixType SystemMatrixType; // Epetra_FECrsMatrix
     typedef typename SparseSpaceType::MatrixPointerType SystemMatrixPointerType;
+
+    typedef typename SparseSpaceType::VectorType SystemVectorType; // Epetra_FEVector
+    typedef typename SparseSpaceType::VectorPointerType SystemVectorPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -172,6 +175,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    SystemMatrixPointerType mpMappingMatrix;
+    SystemVectorPointerType mpVectorOrigin;
+    SystemVectorPointerType mpVectorDestination;
 
 
     ///@}
