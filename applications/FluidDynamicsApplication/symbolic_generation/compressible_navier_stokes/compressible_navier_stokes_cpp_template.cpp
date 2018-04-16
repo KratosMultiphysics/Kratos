@@ -367,13 +367,13 @@ double CompressibleNavierStokes<3>::ShockCapturingViscosity(const ElementDataStr
     const bounded_matrix<double,nnodes,BlockSize>& Un = data.Un;
     const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
     const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
-    const array_1d<double,nnodes>& r = data.r;
-    const double mu = data.mu;
-    const double nu = data.nu;
-    const double lambda = data.lambda;
-    const double c_v = data.c_v;
+//     const array_1d<double,nnodes>& r = data.r;
+//     const double mu = data.mu;
+//     const double nu = data.nu;
+//     const double lambda = data.lambda;
+//     const double c_v = data.c_v;
     const double gamma = data.gamma;
-    const double cp = c_v*gamma;
+//     const double cp = c_v*gamma;
     double v_sc = 0.0;                                      //Shock capturing viscosity
     bounded_matrix<double,dim,1> res_m;
 
@@ -386,12 +386,12 @@ double CompressibleNavierStokes<3>::ShockCapturingViscosity(const ElementDataStr
     const array_1d<double,dim> f_gauss = prod(trans(f_ext), N);
     const bounded_matrix<double,BlockSize,dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
     const array_1d<double,BlockSize> accel_gauss = bdf0*U_gauss+bdf1*prod(trans(Un), N)+bdf2*prod(trans(Unn), N);
-    const double r_gauss = inner_prod(N,r);
+//     const double r_gauss = inner_prod(N,r);
     
     //substitute_res_m_3D
 
     double norm_res_m;
-    norm_res_m = sqrt(res_m(0,0)*res_m(0,0)+res_m(1,0)*res_m(1,0));
+    norm_res_m = sqrt(res_m(0,0)*res_m(0,0)+res_m(1,0)*res_m(1,0)+res_m(2,0)*res_m(2,0));
 
     double norm_gradm = 0.0;                                    // Frobenius norm of momentum gradient
     for (unsigned int i=1; i<dim+1; i++){
@@ -403,9 +403,6 @@ double CompressibleNavierStokes<3>::ShockCapturingViscosity(const ElementDataStr
     if (norm_gradm>tol)
         v_sc = 0.5*h*alpha*(norm_res_m/norm_gradm);
     
-    return v_sc;
-    double v_sc = 0.0;          //Shock capturing viscosity
-  
     return v_sc;
 }
 
@@ -429,13 +426,13 @@ double CompressibleNavierStokes<2>::ShockCapturingViscosity(const ElementDataStr
     const bounded_matrix<double,nnodes,BlockSize>& Un = data.Un;
     const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
     const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
-    const array_1d<double,nnodes>& r = data.r;
-    const double mu = data.mu;
-    const double nu = data.nu;
-    const double lambda = data.lambda;
-    const double c_v = data.c_v;
+//     const array_1d<double,nnodes>& r = data.r;
+//     const double mu = data.mu;
+//     const double nu = data.nu;
+//     const double lambda = data.lambda;
+//     const double c_v = data.c_v;
     const double gamma = data.gamma;
-    const double cp = c_v*gamma;
+//     const double cp = c_v*gamma;
     double v_sc = 0.0;                                      //Shock capturing viscosity
     bounded_matrix<double,dim,1> res_m;
 
@@ -448,7 +445,7 @@ double CompressibleNavierStokes<2>::ShockCapturingViscosity(const ElementDataStr
     const array_1d<double,dim> f_gauss = prod(trans(f_ext), N);
     const bounded_matrix<double,BlockSize,dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
     const array_1d<double,BlockSize> accel_gauss = bdf0*U_gauss+bdf1*prod(trans(Un), N)+bdf2*prod(trans(Unn), N);
-    const double r_gauss = inner_prod(N,r);
+//     const double r_gauss = inner_prod(N,r);
     
     //substitute_res_m_2D
 
@@ -473,7 +470,6 @@ double CompressibleNavierStokes<2>::ShockCapturingViscosity(const ElementDataStr
 template<>
 double CompressibleNavierStokes<3>::ShockCapturingConductivity(const ElementDataStruct& data)
 {
-    //TO DO : Implement it
     const int nnodes = 4;
     const int dim = 3;
     const int BlockSize = dim+2;
@@ -491,12 +487,12 @@ double CompressibleNavierStokes<3>::ShockCapturingConductivity(const ElementData
     const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
     const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
     const array_1d<double,nnodes>& r = data.r;
-    const double mu = data.mu;
-    const double nu = data.nu;
-    const double lambda = data.lambda;
-    const double c_v = data.c_v;
+//     const double mu = data.mu;
+//     const double nu = data.nu;
+//     const double lambda = data.lambda;
+//     const double c_v = data.c_v;
     const double gamma = data.gamma;
-    const double cp = c_v*gamma;
+//     const double cp = c_v*gamma;
     double k_sc = 0.0;          // Shock Capturing Conductivity
     bounded_matrix<double,dim,1> res_e;
 
@@ -509,7 +505,7 @@ double CompressibleNavierStokes<3>::ShockCapturingConductivity(const ElementData
     const array_1d<double,dim> f_gauss = prod(trans(f_ext), N);
     const bounded_matrix<double,BlockSize,dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
     const array_1d<double,BlockSize> accel_gauss = bdf0*U_gauss+bdf1*prod(trans(Un), N)+bdf2*prod(trans(Unn), N);
-    const double r_gauss = inner_prod(N,r);
+//     const double r_gauss = inner_prod(N,r);
     
     //substitute_res_e_3D
 
@@ -525,8 +521,6 @@ double CompressibleNavierStokes<3>::ShockCapturingConductivity(const ElementData
     if (norm_grade>tol)
         k_sc = 0.5*h*alpha*(norm_res_e/norm_grade);
 
-    double k_sc = 0.0;          // Shock Capturing Conductivity
-    
     return k_sc;
 }
 
@@ -551,12 +545,12 @@ double CompressibleNavierStokes<2>::ShockCapturingConductivity(const ElementData
     const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
     const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
     const array_1d<double,nnodes>& r = data.r;
-    const double mu = data.mu;
-    const double nu = data.nu;
-    const double lambda = data.lambda;
-    const double c_v = data.c_v;
+//     const double mu = data.mu;
+//     const double nu = data.nu;
+//     const double lambda = data.lambda;
+//     const double c_v = data.c_v;
     const double gamma = data.gamma;
-    const double cp = c_v*gamma;
+//     const double cp = c_v*gamma;
     double k_sc = 0.0;          // Shock Capturing Conductivity
     bounded_matrix<double,dim,1> res_e;
 
@@ -569,7 +563,7 @@ double CompressibleNavierStokes<2>::ShockCapturingConductivity(const ElementData
     const array_1d<double,dim> f_gauss = prod(trans(f_ext), N);
     const bounded_matrix<double,BlockSize,dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
     const array_1d<double,BlockSize> accel_gauss = bdf0*U_gauss+bdf1*prod(trans(Un), N)+bdf2*prod(trans(Unn), N);
-    const double r_gauss = inner_prod(N,r);
+//     const double r_gauss = inner_prod(N,r);
     
     //substitute_res_e_2D
 
