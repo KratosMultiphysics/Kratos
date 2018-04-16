@@ -187,7 +187,7 @@ void AnalyticParticleWatcher::GetAllParticlesData(ModelPart& analytic_model_part
         tangential_relative_vel.insert(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
     }
 
-}*/
+}
 
 void AnalyticParticleWatcher::GetTimeStepsData(std::list<int> ids,
                                                std::list<int> neighbour_ids,
@@ -214,7 +214,7 @@ void AnalyticParticleWatcher::GetTimeStepsData(std::list<int> ids,
         normal_relative_vel.insert(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
         tangential_relative_vel.insert(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
     }
-} */
+}
 
 
 AnalyticParticleWatcher::InterParticleImpactDataOfATimeStep& AnalyticParticleWatcher::GetParticleDataBase(int id)

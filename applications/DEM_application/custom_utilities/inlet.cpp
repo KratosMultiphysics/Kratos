@@ -122,9 +122,7 @@ namespace Kratos {
             std::string& identifier = mp[IDENTIFIER];
             mp[INLET_INITIAL_VELOCITY] = mp[LINEAR_VELOCITY];    //This is the velocity of the moving injector of particles
             mp[INLET_INITIAL_PARTICLES_VELOCITY] = mp[VELOCITY]; //This is the initial velocity vector of the injected particles
-            mp[MAX_RADIUS] = 1.5 * mp[RADIUS];
-            mp[MIN_RADIUS] = 0.5 * mp[RADIUS];
-            
+
             array_1d<double, 3>& inlet_velocity = mp[VELOCITY];
             
             if ((inlet_velocity[0] == 0.0) &&
@@ -314,7 +312,7 @@ namespace Kratos {
                 const array_1d<double,3>& initial_coordinates = node.GetInitialPosition();
                 const array_1d<double,3>& coordinates = node.Coordinates();
                 const array_1d<double,3> distance = coordinates - initial_coordinates;
-                const double reference_distance = 6.0 * (*(spheric_particle.mpInlet))[MAX_RADIUS];
+                const double reference_distance = 12.0 * (*(spheric_particle.mpInlet))[RADIUS];
 
                 /// Projection over injection axis
                 const double projected_distance = DEM_INNER_PRODUCT_3(distance, unitary_inlet_velocity);
@@ -324,7 +322,6 @@ namespace Kratos {
                 }else{
                     node.Set(DEMFlags::CUMULATIVE_ZONE, false);
                     spheric_particle.Set(DEMFlags::CUMULATIVE_ZONE, false);
-
                 }
             }       
             }                         

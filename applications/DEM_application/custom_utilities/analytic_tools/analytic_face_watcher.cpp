@@ -64,7 +64,7 @@ void AnalyticFaceWatcher::GetFaceData(int id,
                                       std::list<double> tangential_relative_vel)
 {
     mMapOfFaceHistoryDatabases[id].FillUpPythonLists(times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel);
-} */
+}
 
 void AnalyticFaceWatcher::GetAllFacesData(ModelPart& analytic_model_part,
                                           std::list<double> times,
@@ -97,7 +97,7 @@ void AnalyticFaceWatcher::GetAllFacesData(ModelPart& analytic_model_part,
         tangential_relative_vel.insert(tangential_relative_vel_i.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
     }
 
-} */
+}
 
 void AnalyticFaceWatcher::GetTimeStepsData(std::list<int> ids,
                                            std::list<int> neighbour_ids,
@@ -128,7 +128,7 @@ void AnalyticFaceWatcher::GetTimeStepsData(std::list<int> ids,
         normal_relative_vel.insert(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
         tangential_relative_vel.insert(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
     }
-} */
+}
 
 void AnalyticFaceWatcher::GetTotalFlux(std::list<double> &times, std::list<int> &n_particles, std::list<double> &mass)
 {
