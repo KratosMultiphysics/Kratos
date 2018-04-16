@@ -399,8 +399,8 @@ protected:
             }
         }
         //count the row sizes
-        SizeType nnz = 0;
-        for (SizeType i = 0; i < indices.size(); i++)
+        unsigned int nnz = 0;
+        for (unsigned int i = 0; i < indices.size(); i++)
             nnz += indices[i].size();
 
         A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
@@ -417,9 +417,9 @@ protected:
 #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(A.size1()); i++)
         {
-            const SizeType row_begin = Arow_indices[i];
-            const SizeType row_end = Arow_indices[i + 1];
-            SizeType k = row_begin;
+            const unsigned int row_begin = Arow_indices[i];
+            const unsigned int row_end = Arow_indices[i + 1];
+            unsigned int k = row_begin;
             for (auto it = indices[i].begin(); it != indices[i].end(); it++)
             {
                 Acol_indices[k] = *it;
@@ -654,16 +654,15 @@ protected:
                         LHS_Contribution(local_intern_eqid, local_slave_eqid) = 0.0;
                     }
                 } // Loop over all the slaves for this node
-                for (auto localSlaveEqId : localSlaveEquationIds)
+
+                for (auto local_slave_eqid : local_slave_equation_ids)
                 { // Loop over all the slaves for this node
-                    for (auto localSlaveEqIdOther : localSlaveEquationIds)
+                    for (auto local_slave_eqid_other : local_slave_equation_ids)
                     { // Loop over all the local equation ids
-                        LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) = 0.0;
+                        LHS_Contribution(local_slave_eqid, local_slave_eqid_other) = 0.0;
                     }
-                    LHS_Contribution(localSlaveEqId, localSlaveEqId) = 1.0;
+                    LHS_Contribution(local_slave_eqid, local_slave_eqid) = 1.0;
                 } // Loop over all the slaves for this node
-            
-            
             }
         }
         KRATOS_CATCH("Applying Multipoint constraints failed ..");

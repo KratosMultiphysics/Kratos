@@ -106,10 +106,13 @@ public:
         Parameters default_parameters(R"(
         {
             "constraint_set_name":"default",
-            "master_sub_rModelPart_name":"default_master",
-            "slave_sub_rModelPart_name":"default_slave",
+            "master_sub_model_part_name":"default_master",
+            "slave_sub_model_part_name":"default_slave",
             "variable_names":[""],
-            "reform_every_step":false
+            "reform_every_step":false,
+            "debug_info":false,
+            "bucket_size":100,
+            "neighbor_search_radius":0.1
         }  )");
 
         mParameters.ValidateAndAssignDefaults(default_parameters);

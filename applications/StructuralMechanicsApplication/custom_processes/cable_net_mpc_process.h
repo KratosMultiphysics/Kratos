@@ -68,10 +68,10 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
      */
     void CoupleModelParts()
     {
-        ModelPart &master_model_part    = mr_model_part.GetSubModelPart(m_parameters["master_sub_model_part_name"].GetString());
-        ModelPart &slave_model_part     = mr_model_part.GetSubModelPart(m_parameters["slave_sub_model_part_name"].GetString());
-        double neighbor_search_radius      = m_parameters["neighbor_search_radius"].GetDouble();
-        const int bucket_size           =  m_parameters["bucket_size"].GetInt();
+        ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+        ModelPart &slave_model_part     = mrModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
+        double neighbor_search_radius   = mParameters["neighbor_search_radius"].GetDouble();
+        const int bucket_size           =  mParameters["bucket_size"].GetInt();
         NodesArrayType &r_nodes_master  = master_model_part.Nodes();
         NodesArrayType &r_nodes_slave   = slave_model_part.Nodes();
 
@@ -85,7 +85,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
         const int max_number_of_neighbors = 2;
         for(NodeType& node_i : r_nodes_slave)
         {
-            neighbor_search_radius      = m_parameters["neighbor_search_radius"].GetDouble();
+            neighbor_search_radius      = mParameters["neighbor_search_radius"].GetDouble();
             SizeType number_of_neighbors = 0;
             NodeVector neighbor_nodes( max_number_of_neighbors );
             DoubleVector resulting_squared_distances( max_number_of_neighbors );
@@ -113,7 +113,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
                  << node_i.Id() << " " << node_i.Coordinates() << std::endl):neighbor_search_radius*=2.0;
             }
 
-            if(m_parameters["debug_info"].GetBool()) std::cout << "nr.ne.: " << number_of_neighbors << std::endl;
+            if(mParameters["debug_info"].GetBool()) std::cout << "nr.ne.: " << number_of_neighbors << std::endl;
             DoubleVector list_of_weights( number_of_neighbors, 0.0 );
 
             this->CalculateNodalWeights(resulting_squared_distances,list_of_weights,number_of_neighbors);
@@ -125,7 +125,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
             //this->ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights2);
             
 
-            //if(m_parameters["debug_info"].GetBool()) KRATOS_WATCH(list_of_weights);
+            //if(mParameters["debug_info"].GetBool()) KRATOS_WATCH(list_of_weights);
 
             //std::cout << "slave: " << node_i.Id() << " has " << number_of_neighbors << " masters " << std::endl;
             //std::cout << "###################################################" << std::endl;
@@ -140,15 +140,15 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
      const NodeVector& rNeighborNodes, const DoubleVector& rNodalNeighborWeights,
      const SizeType& rNumberOfNeighbors)
     {
-        ModelPart &master_model_part    = mr_model_part.GetSubModelPart(m_parameters["master_sub_model_part_name"].GetString());
-        ModelPart &slave_model_part     = mr_model_part.GetSubModelPart(m_parameters["slave_sub_model_part_name"].GetString());
+        ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+        ModelPart &slave_model_part     = mrModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
         NodesArrayType &r_nodes_master  = master_model_part.Nodes();
         NodesArrayType &r_nodes_slave   = slave_model_part.Nodes();
 
 
-        for(SizeType dof_iterator=0;dof_iterator<m_parameters["variable_names"].size();++dof_iterator)
+        for(SizeType dof_iterator=0;dof_iterator<mParameters["variable_names"].size();++dof_iterator)
         {
-            VariableComponentType current_dof = KratosComponents<VariableComponentType>::Get(m_parameters["variable_names"][dof_iterator].GetString());
+            VariableComponentType current_dof = KratosComponents<VariableComponentType>::Get(mParameters["variable_names"][dof_iterator].GetString());
 
             for(SizeType master_iterator =0;master_iterator<rNumberOfNeighbors;++master_iterator)
             {
@@ -158,7 +158,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
                     r_nodes_master[rNeighborNodes[master_iterator]->Id()],current_dof,
                     r_nodes_slave[rCurrentSlaveNode.Id()],current_dof,rNodalNeighborWeights[master_iterator],0);
 
-                if(m_parameters["debug_info"].GetBool()){
+                if(mParameters["debug_info"].GetBool()){
                     std::cout << rNeighborNodes[master_iterator]->Id() << "-----" << rCurrentSlaveNode.Id() << "-----" << rNodalNeighborWeights[master_iterator] << std::endl;
                 }
                 
@@ -174,7 +174,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
      */
     void CreateListOfNodesOfMasterSubModelPart(NodeVector& MasterNodeList)
     {
-        ModelPart &master_model_part = mr_model_part.GetSubModelPart(m_parameters["master_sub_model_part_name"].GetString());
+        ModelPart &master_model_part = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
         NodesArrayType &r_nodes = master_model_part.Nodes();
 
         MasterNodeList.resize(r_nodes.size());
@@ -215,7 +215,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
     void ExecuteInitializeSolutionStep() override
     {
         if (this->GetmIsInitialized()) 
-            {if (m_parameters["reform_every_step"].GetBool()) 
+            {if (mParameters["reform_every_step"].GetBool()) 
                 {this->CoupleModelParts();}
             }
         else this->CoupleModelParts();
