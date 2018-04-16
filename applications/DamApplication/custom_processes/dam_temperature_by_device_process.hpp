@@ -69,10 +69,6 @@ class DamTemperaturebyDeviceProcess : public Process
         
         unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
         
-        KRATOS_WATCH("HELLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-        KRATOS_WATCH(Dim)
-        KRATOS_WATCH("HELLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-        
         // Getting the values of the device coordinates
         mDeviceCoordinates.resize(Dim, false);
         mDeviceCoordinates[0] = rParameters["position"][0].GetDouble();
