@@ -13,13 +13,15 @@
 #if !defined(KRATOS_RESPONSE_FUNCTIONS_PYTHON_H_INCLUDED)
 #define KRATOS_RESPONSE_FUNCTIONS_PYTHON_H_INCLUDED
 
+#include "pybind11/pybind11.h"
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-  void AddResponseFunctionsToPython();
+  void AddResponseFunctionsToPython(pybind11::module& m);
 
 } // namespace Python
 

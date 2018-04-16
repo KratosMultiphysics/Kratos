@@ -251,12 +251,6 @@ void  AddSchemes(pybind11::module& m)
             .def(init<const Variable<int>&>()) // constructor for periodic conditions
             ;
 
-    class_<
-        AdjointSteadyVelocityPressureScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
-        typename AdjointSteadyVelocityPressureScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >( m,"TrilinosAdjointSteadyVelocityPressureScheme")
-        .def(init<Parameters&, ResponseFunction::Pointer>() );
-
     typedef ResidualBasedAdjointStaticScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> ResidualBasedAdjointStaticSchemeType;
     class_<ResidualBasedAdjointStaticSchemeType, typename ResidualBasedAdjointStaticSchemeType::Pointer, TrilinosBaseSchemeType>
         (m, "TrilinosResidualBasedAdjointStaticScheme")

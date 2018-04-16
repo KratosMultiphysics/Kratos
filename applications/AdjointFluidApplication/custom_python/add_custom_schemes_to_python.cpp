@@ -28,13 +28,6 @@ void AddCustomSchemesToPython(pybind11::module& m)
         SchemeType>(m,"AdjointBossakScheme")
         .def(init<Parameters&, ResponseFunction::Pointer>())
         ;
-
-    class_<
-        AdjointSteadyVelocityPressureScheme<SparseSpaceType, LocalSpaceType>,
-        typename AdjointSteadyVelocityPressureScheme<SparseSpaceType, LocalSpaceType>::Pointer,
-        SchemeType>(m,"AdjointSteadyVelocityPressureScheme")
-        .def(init<Parameters&, ResponseFunction::Pointer>())
-        ;
 }
 
 } // namespace Python
