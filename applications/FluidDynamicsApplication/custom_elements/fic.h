@@ -280,8 +280,8 @@ protected:
 
     void AddVelocitySystem(
         TElementData& rData,
-        MatrixType& rLHS,
-        VectorType& rRHS) override;
+        MatrixType& rLocalLHS,
+        VectorType& rLocalRHS) override;
 
     void AddMassLHS(
         TElementData& rData,
@@ -298,9 +298,14 @@ protected:
         MatrixType& rLHS,
         VectorType& rRHS) override;
 
+    virtual void CalculateTau(
+        const TElementData& rData,
+        const array_1d<double,3> &Velocity,
+        double &TauIncompr,
+        double &TauMomentum,
+        array_1d<double,3> &TauGrad);
+    
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
-
-
 
     ///@}
     ///@name Protected  Access
