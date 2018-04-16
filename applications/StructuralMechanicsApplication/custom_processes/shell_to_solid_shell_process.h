@@ -54,7 +54,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
 */
 template<SizeType TNumNodes>
-class ShellToSolidShellProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellToSolidShellProcess
     : public Process
 {
 public:

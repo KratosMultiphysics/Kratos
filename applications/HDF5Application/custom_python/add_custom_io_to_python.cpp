@@ -32,6 +32,7 @@
 #include "custom_io/hdf5_nodal_solution_step_data_io.h"
 #include "custom_io/hdf5_nodal_solution_step_bossak_io.h"
 #include "custom_io/hdf5_non_historical_nodal_value_io.h"
+#include "custom_io/hdf5_data_value_container_io.h"
 #ifdef KRATOS_USING_MPI
 #include "custom_io/hdf5_file_parallel.h"
 #include "custom_io/hdf5_partitioned_model_part_io.h"
@@ -46,6 +47,9 @@ namespace Python
 void AddCustomIOToPython(pybind11::module& m)
 {
     using namespace pybind11;
+
+    m.def("WriteDataValueContainer", &HDF5::Internals::WriteDataValueContainer, "");
+    m.def("ReadDataValueContainer", &HDF5::Internals::ReadDataValueContainer, "");
 
     class_<HDF5::File, HDF5::File::Pointer >(m,"HDF5File")
     .def("HasPath",&HDF5::File::HasPath)

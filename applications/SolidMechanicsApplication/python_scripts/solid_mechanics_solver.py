@@ -87,6 +87,8 @@ class MechanicalSolver(object):
             if(custom_settings["solving_strategy_settings"].Has("stabilization_factor")):
                 if(custom_settings["solving_strategy_settings"]["stabilization_factor"].IsDouble()):
                     default_settings["solving_strategy_settings"]["stabilization_factor"].SetDouble(0.0)
+                if(custom_settings["solving_strategy_settings"]["stabilization_factor"].IsInt()):
+                    default_settings["solving_strategy_settings"]["stabilization_factor"].SetDouble(0.0)
                 else:
                     self.settings["solving_strategy_settings"].RemoveValue("stabilization_factor")
 
@@ -462,7 +464,7 @@ class MechanicalSolver(object):
 
         # Add water pressure variables
         if self._check_input_dof("WATER_PRESSURE"):
-            self.dof_variables = self.dof_variables + ['WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATIONN']
+            self.dof_variables = self.dof_variables + ['WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATION']
             self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY_REACTION', 'WATER_PRESSURE_ACCELERATION_REACTION']
 
         # Add jacobian variables
