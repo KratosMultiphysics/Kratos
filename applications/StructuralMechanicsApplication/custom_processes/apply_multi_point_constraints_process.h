@@ -46,11 +46,12 @@ class ApplyMultipointConstraintsProcess : public Process
     typedef MpcData::VariableComponentType VariableComponentType;
     typedef ProcessInfo ProcessInfoType;
     typedef ProcessInfo::Pointer ProcessInfoPointerType;
-    typedef unsigned int IndexType;
+    typedef std::size_t IndexType;
     typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
     typedef MpcData::VariableType VariableType;
     typedef Kratos::shared_ptr<std::vector<MpcDataPointerType>> MpcDataSharedPointerVectorType;
     typedef ModelPart::NodeIterator NodeIterator;
+
 
     /// Constructor.
     ApplyMultipointConstraintsProcess(ModelPart &model_part,
@@ -150,7 +151,7 @@ class ApplyMultipointConstraintsProcess : public Process
                 {
                     std::string varName = m_parameters["variable_names"][i].GetString();
                     Geometry<Node<3>> &geom = pMasterElement->GetGeometry();
-                    for (unsigned int i = 0; i < geom.size(); i++)
+                    for (IndexType i = 0; i < geom.size(); i++)
                     {
                         if (KratosComponents<Variable<double>>::Has(varName))
                         { //case of double variable

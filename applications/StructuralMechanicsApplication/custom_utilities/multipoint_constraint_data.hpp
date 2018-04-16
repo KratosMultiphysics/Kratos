@@ -41,11 +41,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MpcData
     typedef Dof<double> DofType;
     typedef VariableData VariableDataType;
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
-    typedef unsigned int IndexType;
+    typedef std::size_t IndexType;
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
-    typedef std::unordered_map<unsigned int, double> MasterIdWeightMapType;
-    typedef std::pair<unsigned int, unsigned int> SlavePairType;
-    typedef std::tuple<unsigned int, unsigned int, double> key_tupple;
+    typedef std::unordered_map<IndexType, double> MasterIdWeightMapType;
+    typedef std::pair<IndexType, IndexType> SlavePairType;
+    typedef std::tuple<IndexType, IndexType, double> key_tupple;
     typedef Kratos::Variable<double> VariableType;
 
   private:
@@ -136,11 +136,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MpcData
 		*/
 
     // Takes in a slave dof equationId and a master dof equationId
-    void AddConstraint(unsigned int SlaveDofEquationId, unsigned int MasterDofEquationId, double weight, double constant = 0.0)
+    void AddConstraint(IndexType SlaveDofEquationId, IndexType MasterDofEquationId, double weight, double constant = 0.0)
     {
-        mEquationIdToWeightsMap[SlaveDofEquationId].insert(std::pair<unsigned int, double>(MasterDofEquationId, weight));
-        mSlaveEquationIdConstantsMap.insert(std::pair<unsigned int, double>(SlaveDofEquationId, constant));
-        mSlaveEquationIdConstantsUpdate.insert(std::pair<unsigned int, double>(SlaveDofEquationId, constant));
+        mEquationIdToWeightsMap[SlaveDofEquationId].insert(std::pair<IndexType, double>(MasterDofEquationId, weight));
+        mSlaveEquationIdConstantsMap.insert(std::pair<IndexType, double>(SlaveDofEquationId, constant));
+        mSlaveEquationIdConstantsUpdate.insert(std::pair<IndexType, double>(SlaveDofEquationId, constant));
     }
 
     // Takes in a slave dof and a master dof
@@ -149,9 +149,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MpcData
         //here we can get the dof since we are sure that such dof exist
         //auto &slave_dof = mp_model_part.Nodes(SlaveNodeId).GetDof(SlaveVariable);
         IndexType MasterNodeId = MasterDof.Id();
-        unsigned int MasterVariableKey = (MasterDof).GetVariable().Key();
+        IndexType MasterVariableKey = (MasterDof).GetVariable().Key();
 
-        unsigned int slaveVariableKey = SlaveDof.GetVariable().Key();
+        IndexType slaveVariableKey = SlaveDof.GetVariable().Key();
 
         mDofConstraints[std::make_pair(SlaveDof.Id(), slaveVariableKey)][std::tie(MasterNodeId, MasterVariableKey, constant)] += weight;
     }
@@ -164,13 +164,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MpcData
         if (MasterDofsVector.size() != weightsVector.size())
             assert(false);
 
-        unsigned int slaveNodeId = SlaveDof.Id();
-        unsigned int slaveVariableKey = SlaveDof.GetVariable().Key();
-        unsigned int index = 0;
+        IndexType slaveNodeId = SlaveDof.Id();
+        IndexType slaveVariableKey = SlaveDof.GetVariable().Key();
+        IndexType index = 0;
         for (auto MasterDof : MasterDofsVector)
         {
             IndexType MasterNodeId = (*MasterDof).Id();
-            unsigned int MasterVariableKey = (*MasterDof).GetVariable().Key(); // TODO :: Check why do we need a mastervariable ... is a master key not enough ?
+            IndexType MasterVariableKey = (*MasterDof).GetVariable().Key(); // TODO :: Check why do we need a mastervariable ... is a master key not enough ?
             double constant = 0.0;
             if (ConstantVector.size() == 0)
                 constant = 0;
@@ -187,7 +187,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MpcData
 		Get the Total number of MasterDOFs for a given slave dof
 		@return Total number of MasterDOFs for a given slave dof
 		 */
-    unsigned int GetNumbeOfMasterDofsForSlave(const DofType &SlaveDof)
+    IndexType GetNumbeOfMasterDofsForSlave(const DofType &SlaveDof)
     {
         return mDofConstraints[std::make_pair(SlaveDof.Id(), SlaveDof.GetVariable().Key())].size();
     }
@@ -266,12 +266,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MpcData
     std::unordered_map<SlavePairType, MasterDofWeightMapType, pair_hash> mDofConstraints;
     //this stores a much simpler "map of maps" of EquationIds vs EquationId & weight
     // This is to be formulated inside the builder and solver before build() function ideally in initialize solution step
-    std::unordered_map<unsigned int,
-                       std::unordered_map<unsigned int, double>>
+    std::unordered_map<IndexType,
+                       std::unordered_map<IndexType, double>>
         mEquationIdToWeightsMap;
 
-    std::unordered_map<unsigned int, double> mSlaveEquationIdConstantsMap;
-    std::unordered_map<unsigned int, double> mSlaveEquationIdConstantsUpdate;
+    std::unordered_map<IndexType, double> mSlaveEquationIdConstantsMap;
+    std::unordered_map<IndexType, double> mSlaveEquationIdConstantsUpdate;
 
     bool mActive;
     std::string mName;
