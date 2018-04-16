@@ -30,7 +30,7 @@ class Solution(object):
         parameters_file = open(parameters_file_name, 'r')
         return Parameters(parameters_file.read())
 
-    def LoadParametersFile(self):        
+    def LoadParametersFile(self):
         self.DEM_parameters = self.GetInputParameters()
         default_input_parameters = self.GetDefaultInputParameters()
         self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
@@ -461,7 +461,7 @@ class Solution(object):
 
     def AfterSolveOperations(self):
         if self.post_normal_impact_velocity_option:
-            self.particle_watcher.MakeMeasurements(self.analytic_model_part)            
+            self.particle_watcher.MakeMeasurements(self.analytic_model_part)
             if self.IsTimeToPrintPostProcess():
                 self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
                 self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
