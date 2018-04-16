@@ -38,7 +38,7 @@
 namespace Kratos
 {
 
-class KratosDEMApplication : public KratosApplication
+class KRATOS_API(DEM_APPLICATION) KratosDEMApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions

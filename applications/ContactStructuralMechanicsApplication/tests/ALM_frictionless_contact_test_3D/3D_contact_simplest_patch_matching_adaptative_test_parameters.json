@@ -107,7 +107,7 @@
             "node_output"         : true,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","NORMAL_CONTACT_STRESS"],
+            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE"],
             "nodal_flags_results": ["ACTIVE"],
             "gauss_point_results" : []
         },

@@ -12,10 +12,9 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "structural_mechanics_application_variables.h"
@@ -25,43 +24,55 @@
 #include "custom_processes/apply_multi_point_constraints_process.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
+#include "custom_processes/shell_to_solid_shell_process.h"
 
 namespace Kratos
 {
 namespace Python
 {
 
-void  AddCustomProcessesToPython()
+void  AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
-
-    typedef Process  ProcessBaseType;
+    using namespace pybind11;
 
     /// Processes
-    class_<ApplyMultipointConstraintsProcess, boost::noncopyable, bases<Process>>("ApplyMultipointConstraintsProcess", init<ModelPart&>())
-    .def(init< ModelPart&, Parameters& >())
+    class_<ApplyMultipointConstraintsProcess, Process>(m,"ApplyMultipointConstraintsProcess")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters& >())
 	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariableComponents)
-    .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariableComponents)
+        .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariableComponents)
 	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariable)
-    .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariable)
-    .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)      
-    .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
+        .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariable)
+        .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)      
+        .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
 
-    class_<PostprocessEigenvaluesProcess, boost::noncopyable, bases<Process>>(
-        "PostprocessEigenvaluesProcess", init<ModelPart&, Parameters>());
+    class_<PostprocessEigenvaluesProcess, Process>(m,"PostprocessEigenvaluesProcess")
+        .def(init<ModelPart&, Parameters>());
     
-    class_<TotalStructuralMassProcess, bases<ProcessBaseType>, boost::noncopyable >
-    (
-        "TotalStructuralMassProcess", init<ModelPart&>()
-    )
-    .def("Execute", &TotalStructuralMassProcess::Execute)
-    ;
+    class_<TotalStructuralMassProcess, Process >(m,"TotalStructuralMassProcess")
+        .def(init<ModelPart&>())
+        .def("Execute", &TotalStructuralMassProcess::Execute)
+        ;
     
-    class_<PrismNeighboursProcess, bases<ProcessBaseType>>("PrismNeighboursProcess", init<ModelPart&>())
-    .def(init< ModelPart&, const bool >())
-    .def("Execute",&PrismNeighboursProcess::Execute)
-    .def("ClearNeighbours",&PrismNeighboursProcess::ClearNeighbours)
-    ;
+
+    class_<PrismNeighboursProcess, Process>(m, "PrismNeighboursProcess")
+        .def(init<ModelPart&>())
+        .def(init<ModelPart&, const bool >())
+        .def("Execute",&PrismNeighboursProcess::Execute)
+        .def("ClearNeighbours",&PrismNeighboursProcess::ClearNeighbours)
+        ;
+
+    class_<ShellToSolidShellProcess<3>, Process>(m, "TriangleShellToSolidShellProcess")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters >())
+        .def("Execute",&ShellToSolidShellProcess<3>::Execute)
+        ;
+
+    class_<ShellToSolidShellProcess<4>, Process>(m, "QuadrilateralShellToSolidShellProcess")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters >())
+        .def("Execute",&ShellToSolidShellProcess<4>::Execute)
+        ;
 }
 
 }  // namespace Python.  

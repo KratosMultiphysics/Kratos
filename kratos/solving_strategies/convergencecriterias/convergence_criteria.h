@@ -85,7 +85,7 @@ public:
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-    typedef Dof<double> TDofType;
+    //typedef Dof<double> TDofType;
     typedef ModelPart::DofsArrayType DofsArrayType;
 
     /** Counted pointer of ConvergenceCriteria */
@@ -122,9 +122,7 @@ public:
     ///@name Member Variables
     ///@{
 
-    bool mActualizeRHSIsNeeded;
-    bool mConvergenceCriteriaIsInitialized;
-    int  mEchoLevel;
+    
     
     ///@}
     ///@name Operators
@@ -220,6 +218,11 @@ public:
     {
         mConvergenceCriteriaIsInitialized = true;
     }
+    
+    virtual bool IsInitialized()
+    {return mConvergenceCriteriaIsInitialized;}
+    
+    
 
     virtual void InitializeSolutionStep(
         ModelPart& rModelPart,
@@ -301,7 +304,10 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
+    bool mActualizeRHSIsNeeded = false;
+    bool mConvergenceCriteriaIsInitialized = false  ;
+    int  mEchoLevel;
+    
     ///@}
     ///@name Protected Operators
     ///@{

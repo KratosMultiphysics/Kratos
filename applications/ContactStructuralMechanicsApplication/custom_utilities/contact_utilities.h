@@ -52,6 +52,7 @@ public:
     typedef Geometry<NodeType>                               GeometryType;
     typedef ModelPart::NodesContainerType                  NodesArrayType;
     typedef ModelPart::ConditionsContainerType        ConditionsArrayType;
+    typedef std::size_t                                         IndexType;
     
     ///@}
     ///@name Life Cycle
@@ -168,7 +169,7 @@ public:
 
         const Vector new_delta_disp_center = prod(trans(GetVariableMatrix(ThisGeometry, DELTA_COORDINATES)), N);
         
-        for (unsigned int i = 0; i < new_delta_disp_center.size(); ++i)
+        for (IndexType i = 0; i < new_delta_disp_center.size(); ++i)
             center[i] += new_delta_disp_center[i];
         
         return center;
@@ -192,9 +193,9 @@ public:
         const std::size_t dim = Nodes.WorkingSpaceDimension(); 
         Matrix var_matrix(num_nodes, dim); 
          
-        for (unsigned int i_node = 0; i_node < num_nodes; i_node++) { 
+        for (IndexType i_node = 0; i_node < num_nodes; i_node++) { 
             const array_1d<double, 3> value = Nodes[i_node].GetValue(rVarName); 
-            for (unsigned int i_dof = 0; i_dof < dim; i_dof++) 
+            for (IndexType i_dof = 0; i_dof < dim; i_dof++) 
                 var_matrix(i_node, i_dof) = value[i_dof]; 
         } 
          

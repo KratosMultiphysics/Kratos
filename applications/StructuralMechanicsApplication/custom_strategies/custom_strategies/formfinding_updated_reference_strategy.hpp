@@ -413,7 +413,7 @@ namespace Kratos
                 }
 
                 // Initialization of the convergence criteria
-                if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
+                if (mpConvergenceCriteria->IsInitialized() == false)
                 {
                     mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
                 }
@@ -493,7 +493,7 @@ namespace Kratos
             TSystemVectorType& Dx = *mpDx;
             TSystemVectorType& b = *mpb;
 
-            if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
+            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
             {
                 GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), b);
             }

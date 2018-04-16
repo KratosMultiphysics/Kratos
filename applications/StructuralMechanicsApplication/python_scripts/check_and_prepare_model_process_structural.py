@@ -1,21 +1,21 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics as KM
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
+KM.CheckRegisteredApplications("StructuralMechanicsApplication")
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if(type(settings) != KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return CheckAndPrepareModelProcess(Model, settings["Parameters"])
 
 ##all the processes python processes should be derived from "python_process"
-class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
+class CheckAndPrepareModelProcess(KM.Process):
     """Prepare the computing model part.
 
     The computing model part is created if it does not exist. Nodes and elements
@@ -65,11 +65,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         #structural_computational_model_part.AddConditions(list(cond_ids)) 
         
         for part in structural_parts:
-            transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(structural_computational_model_part, part, "NodesAndElements")
+            transfer_process = KM.FastTransferBetweenModelPartsProcess(structural_computational_model_part, part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODESANDELEMENTS)
             transfer_process.Execute()
         for part in processes_parts:
-            transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(structural_computational_model_part, part, "Conditions")
+            transfer_process = KM.FastTransferBetweenModelPartsProcess(structural_computational_model_part, part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS)
             transfer_process.Execute()
 
-        print("Computing model part:")        
-        print(structural_computational_model_part)
+        KM.Logger.PrintInfo("Computing model part:", structural_computational_model_part)

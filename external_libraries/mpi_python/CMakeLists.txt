@@ -1,5 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+include(pybind11Tools)
+
 ## generate variables with the sources
 set( MPI_PYTHON_SOURCES     
  	${CMAKE_CURRENT_SOURCE_DIR}/python_interface.cpp
@@ -8,9 +10,9 @@ set( MPI_PYTHON_SOURCES
 add_definitions( -w )
 
 ###############################################################
-add_library(mpipython SHARED ${MPI_PYTHON_SOURCES})
+pybind11_add_module(mpipython MODULE ${MPI_PYTHON_SOURCES})
 
-target_link_libraries(mpipython ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${MPI_LIBRARIES})
+target_link_libraries(mpipython ${MPI_LIBRARIES})
 
 set_target_properties(mpipython PROPERTIES PREFIX "")
 

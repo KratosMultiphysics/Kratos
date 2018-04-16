@@ -7,7 +7,7 @@
 
 namespace Kratos {
 
-    class DEM_D_DMT_Cohesive_Law : public DEMDiscontinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_DMT_Cohesive_Law : public DEMDiscontinuumConstitutiveLaw {
         
     public:
 
