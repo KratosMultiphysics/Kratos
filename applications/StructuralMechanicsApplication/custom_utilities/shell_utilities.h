@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi (porting from utility made by Fabio Petracca and Peter Wilson)
@@ -18,10 +18,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -64,10 +64,10 @@ namespace Kratos
 
 		double dN_seren_dxi(const int actualNodeNumber, const double xi,
 			const double eta);
-			
+
 		double dN_seren_deta(const int actualNodeNumber, const double xi,
 			const double eta);
-		
+
 		void InterpToStandardGaussPoints(double& v1, double& v2,
 			double& v3);
 
@@ -83,19 +83,10 @@ namespace Kratos
 
 		void InterpToStandardGaussPoints(std::vector< Matrix >& v);
 
-		void CheckVariables();
-
-    	void CheckDofs(GeometryType& rGeom);
-
-    	void CheckProperties(const Element* pTheElement, const ProcessInfo& rCurrentProcessInfo, 
-                             const bool IsThickShell = false);
-
-		void CheckSpecificProperties(const Element* pTheElement, const PropertiesType & rProps, const bool IsThickShell);
-
 	}  // namespace Shell Utilities.
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_SHELL_UTILITIES_H_INCLUDED  defined 
+#endif // KRATOS_SHELL_UTILITIES_H_INCLUDED  defined
 
 

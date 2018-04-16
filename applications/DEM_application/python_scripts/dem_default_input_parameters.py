@@ -67,7 +67,18 @@ def GetDefaultInputParameters():
             "MaxTimeStep"                      : 5e-5,
             "FinalTime"                        : 0.05,
             "ControlTime"                      : 4.0,
-            "NeighbourSearchFrequency"         : 50,   
+            "NeighbourSearchFrequency"         : 50,
+            "virtual_sea_surface_settings"     : {
+                "print_sea_surface"            : false,
+                "PostVirtualSeaSurfaceX1"      : 0.0,
+                "PostVirtualSeaSurfaceY1"      : 0.0,
+                "PostVirtualSeaSurfaceX2"      : 0.0,
+                "PostVirtualSeaSurfaceY2"      : 0.0,
+                "PostVirtualSeaSurfaceX3"      : 0.0,
+                "PostVirtualSeaSurfaceY3"      : 0.0,
+                "PostVirtualSeaSurfaceX4"      : 0.0,
+                "PostVirtualSeaSurfaceY4"      : 0.0
+            },
             
             "TestType"                         : false,
             "ConfinementPressure"              : 0.0,

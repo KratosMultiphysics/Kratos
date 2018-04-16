@@ -64,26 +64,21 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     Vector& r_stress_vector                  = rValues.GetStressVector();
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if( r_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
-    {
+    if( r_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         CalculateCauchyGreenStrain( rValues, r_strain_vector);
     }
 
-    if( r_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-    {
+    if( r_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         CalculateElasticMatrix( r_constitutive_matrix, rValues);
     }
 
     if( r_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
-        if( r_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-        {
+        if( r_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
             noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
-        }
-        else
-        {
+        } else {
             CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
         }
     }
@@ -299,10 +294,11 @@ void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
     KRATOS_DEBUG_ERROR_IF(F.size1()!= space_dimension || F.size2() != space_dimension)
-        << "the size of DeformationGradientF is not equal to the space dimension" << std::endl;
+        << "expected size of F " << space_dimension << "x" << space_dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
 
     Matrix E_tensor = prod(trans(F),F);
-    E_tensor -= IdentityMatrix(space_dimension, space_dimension);
+    for(unsigned int i=0; i<space_dimension; ++i)
+      E_tensor(i,i) -= 1.0;
     E_tensor *= 0.5;
 
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);

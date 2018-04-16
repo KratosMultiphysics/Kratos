@@ -166,7 +166,7 @@ protected:
         const Vector& rStrainVector,
         Vector& rStressVector,
         ConstitutiveLaw::Parameters& rValues
-    );
+        );
 
     /**
     * It calculates the strain vector
@@ -176,7 +176,7 @@ protected:
     void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
-    ) override;
+        ) override;
 
     ///@}
 

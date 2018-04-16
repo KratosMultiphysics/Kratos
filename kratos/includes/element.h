@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -758,7 +758,7 @@ public:
 					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
 					      std::vector< array_1d<double, 6 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
@@ -794,7 +794,7 @@ public:
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
@@ -981,6 +981,8 @@ public:
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
+        if (rOutput.size1() != 0)
+            rOutput.resize(0, 0, false);
     }
 
     /**
@@ -990,6 +992,8 @@ public:
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
+        if (rOutput.size1() != 0)
+            rOutput.resize(0, 0, false);
     }
 
 
@@ -1052,12 +1056,12 @@ public:
     {
       return mData;
     }
-    
+
     void SetData(DataValueContainer const& rThisData)
     {
       mData = rThisData;
     }
-    
+
     /**
      * Check if the Data exists with Has(..) methods:
      */
@@ -1105,27 +1109,27 @@ public:
       {
 	return *this;
       }
-    
+
     Flags const& GetFlags() const
     {
       return *this;
     }
-    
+
     void SetFlags(Flags const& rThisFlags)
     {
       Flags::operator=(rThisFlags);
     }
-    
+
     ///@}
     ///@name Inquiry
     ///@{
-        
+
     /// Check that the Element has a correctly initialized pointer to a Properties instance.
     bool HasProperties() const
     {
         return mpProperties != nullptr;
     }
-    
+
     ///@}
     ///@name Input and output
     ///@{

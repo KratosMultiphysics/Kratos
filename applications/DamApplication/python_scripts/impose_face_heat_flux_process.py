@@ -17,7 +17,7 @@ class ImposeFaceHeatFluxProcess(Process):
         self.components_process_list = []
 
         ## This process assign and uniform heat flux
-        if "Uniform" in settings["model_part_name"].GetString():
+        if ("UniformFlux2D" in settings["model_part_name"].GetString()) or ("UniformFlux3D" in settings["model_part_name"].GetString()):
             if settings["table"].GetInt() == 0:
                 t_uniform = Parameters("{}")
                 t_uniform.AddValue("model_part_name",settings["model_part_name"])
@@ -30,7 +30,7 @@ class ImposeFaceHeatFluxProcess(Process):
 
         ## This process compute the heat flux according to q = h(t_ambient - t_current).
         ## Setting the extra values to 0.0 it is possible to use the same process.
-        if "TAmbient" in settings["model_part_name"].GetString():
+        if ("TAmbientFlux2D" in settings["model_part_name"].GetString()) or ("TAmbientFlux3D" in settings["model_part_name"].GetString()):
             t_ambient = Parameters("{}")
             t_ambient.AddValue("model_part_name",settings["model_part_name"])
             t_ambient.AddValue("variable_name",settings["variable_name"])
@@ -44,7 +44,7 @@ class ImposeFaceHeatFluxProcess(Process):
             self.components_process_list.append(DamTSolAirHeatFluxProcess(model_part, t_ambient))        
 
         ## This process compute the heat flux according to q = h(t_sol_air - t_current)
-        if "TSolAir" in settings["model_part_name"].GetString():
+        if ("TSolAirFluxCondition2D" in settings["model_part_name"].GetString()) or ("TSolAirFluxCondition3D" in settings["model_part_name"].GetString()):
             self.components_process_list.append(DamTSolAirHeatFluxProcess(model_part, settings))
              
     def ExecuteInitialize(self):

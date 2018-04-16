@@ -57,7 +57,7 @@ namespace Kratos
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  * @author Vicente Mataix Ferrandiz
  */
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AugmentedLagrangianMethodFrictionalMortarContactCondition
     : public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation>
 {
@@ -104,7 +104,7 @@ public:
 
     typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation>                                          DerivativeDataType;
 
-    static constexpr unsigned int MatrixSize = TDim * (TNumNodes + TNumNodes + TNumNodes);
+    static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodes + TNumNodes);
 
     ///@}
     ///@name Life Cycle
@@ -290,7 +290,7 @@ protected:
         Matrix& rLocalLHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
+        const IndexType rActiveInactive
         ) override;
 
     /**
@@ -305,7 +305,7 @@ protected:
         Vector& rLocalRHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
+        const IndexType rActiveInactive
         ) override;
 
     /******************************************************************/
@@ -318,10 +318,10 @@ protected:
      * @return The integer that can be used to identify the case to compute
      */
 
-    unsigned int GetActiveInactiveValue(GeometryType& CurrentGeometry) const override
+    IndexType GetActiveInactiveValue(GeometryType& CurrentGeometry) const override
     {
-        unsigned int value = 0;
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+        IndexType value = 0;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             if (CurrentGeometry[i_node].Is(ACTIVE) == true) {
                 if (CurrentGeometry[i_node].Is(SLIP) == true)
                     value += std::pow(3, i_node);

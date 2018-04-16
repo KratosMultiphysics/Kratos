@@ -9,31 +9,31 @@
 // System includes
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 // Application includes
 #include "adjoint_fluid_application.h"
 #include "custom_python/add_custom_schemes_to_python.h"
-#include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos
 {
-  
+
 namespace Python
 {
 
-using namespace boost::python;
-  
-BOOST_PYTHON_MODULE(KratosAdjointFluidApplication)
-{
-  class_<KratosAdjointFluidApplication,
-	 KratosAdjointFluidApplication::Pointer,
-	 bases<KratosApplication>, boost::noncopyable >("KratosAdjointFluidApplication");
+using namespace pybind11;
 
-  AddCustomSchemesToPython();
-  AddCustomProcessesToPython();
-  AddCustomResponseFunctionsToPython();
+PYBIND11_MODULE(KratosAdjointFluidApplication,m)
+{
+    class_<KratosAdjointFluidApplication,
+           KratosAdjointFluidApplication::Pointer,
+           KratosApplication >(m,"KratosAdjointFluidApplication")
+           .def(init<>())
+           ;
+
+  AddCustomSchemesToPython(m);
+  AddCustomResponseFunctionsToPython(m);
 
 }
 

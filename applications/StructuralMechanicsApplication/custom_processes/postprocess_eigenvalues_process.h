@@ -54,7 +54,7 @@ namespace Kratos {
  * The Input should be the ComputingModelPart! (Otherwise nodal results migth be messed up)
  * It is of particular importance that all Nodes have the same Dofs!
  */
-class PostprocessEigenvaluesProcess : public Process
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess : public Process
 {
   public:
 
