@@ -1,11 +1,11 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "couette_ausas_2D",
+        "problem_name"    : "couette_development_2D",
         "model_part_name" : "MainModelPart",
         "parallel_type"   : "OpenMP",
         "domain_size"     : 2,
         "start_step"      : 0.0,
-        "end_time"        : 5.0
+        "end_time"        : 0.2
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -37,7 +37,7 @@
         "solver_type"                  : "EmbeddedDevelopment",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "couette_ausas_2D"
+            "input_filename" : "couette_2D"
         },
         "maximum_iterations"           : 7,
         "dynamic_tau"                  : 1.0,
@@ -97,9 +97,11 @@
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "ApplyDistanceModificationProcess",
         "Parameters"    : {
-            "model_part_name"                   : "Parts_Fluid",
-            "check_at_each_time_step"           : false,
-            "deactivate_full_negative_elements" : false
+            "model_part_name"                        : "Parts_Fluid",
+            "check_at_each_time_step"                : false,
+            "avoid_almost_empty_elements"            : true,
+            "deactivate_full_negative_elements"      : true,
+            "recover_original_distance_at_each_step" : false
         }
     }],
     "gravity"                          : [{

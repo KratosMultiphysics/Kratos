@@ -17,68 +17,102 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
-class EmbeddedAusasCouetteTest(UnitTest.TestCase):
+class EmbeddedCouetteTest(UnitTest.TestCase):
 
+    # Embedded element tests
+    def testEmbeddedCouette2D(self):
+        self.distance = 0.25
+        self.slip_flag = False
+        self.work_folder = "EmbeddedCouette2DTest"   
+        self.reference_file = "reference_couette_embedded_2D"
+        self.settings = "EmbeddedCouette2DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
+
+    def testEmbeddedCouette3D(self):
+        self.distance = 0.25
+        self.slip_flag = False
+        self.work_folder = "EmbeddedCouette3DTest"   
+        self.reference_file = "reference_couette_embedded_3D"
+        self.settings = "EmbeddedCouette3DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
+
+    def testEmbeddedSlipCouette2D(self):
+        self.distance = 0.25
+        self.slip_flag = True
+        self.work_folder = "EmbeddedCouette2DTest"   
+        self.reference_file = "reference_couette_embedded_slip_2D"
+        self.settings = "EmbeddedCouette2DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
+
+    def testEmbeddedSlipCouette3D(self):
+        self.distance = 0.25
+        self.slip_flag = True
+        self.work_folder = "EmbeddedCouette3DTest"   
+        self.reference_file = "reference_couette_embedded_slip_3D"
+        self.settings = "EmbeddedCouette3DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
+
+    # Embedded Ausas element tests
     def testEmbeddedAusasCouette2D(self):
         self.distance = 0.25
-        self.work_folder = "EmbeddedAusasCouette2DTest"   
+        self.slip_flag = True
+        self.work_folder = "EmbeddedCouette2DTest"   
         self.reference_file = "reference_couette_ausas_2D"
         self.settings = "EmbeddedAusasCouette2DTestParameters.json"
-
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.setUpBoundaryConditions()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+        self.ExecuteEmbeddedCouetteTest()
 
     def testEmbeddedAusasCouette3D(self):
         self.distance = 0.25
-        self.work_folder = "EmbeddedAusasCouette3DTest"   
+        self.slip_flag = True
+        self.work_folder = "EmbeddedCouette3DTest"   
         self.reference_file = "reference_couette_ausas_3D"
         self.settings = "EmbeddedAusasCouette3DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
 
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.setUpBoundaryConditions()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
-
+    # Embedded development element tests
     def testEmbeddedDevelopmentCouette2D(self):
         self.distance = 0.25
-        self.work_folder = "EmbeddedAusasCouette2DTest"   
+        self.slip_flag = False
+        self.work_folder = "EmbeddedCouette2DTest"   
         self.reference_file = "reference_couette_development_2D"
         self.settings = "EmbeddedDevelopmentCouette2DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
 
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.print_output = False
-            self.print_reference_values = False
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.setUpNoSlipBoundaryConditions()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+    def testEmbeddedSlipDevelopmentCouette2D(self):
+        self.distance = 0.25
+        self.slip_flag = True
+        self.work_folder = "EmbeddedCouette2DTest"   
+        self.reference_file = "reference_couette_development_slip_2D"
+        self.settings = "EmbeddedDevelopmentCouette2DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
 
     def testEmbeddedDevelopmentCouette3D(self):
         self.distance = 0.25
-        self.work_folder = "EmbeddedAusasCouette3DTest"   
+        self.slip_flag = False
+        self.work_folder = "EmbeddedCouette3DTest"   
         self.reference_file = "reference_couette_development_3D"
-        self.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"
+        self.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"  
+        self.ExecuteEmbeddedCouetteTest()
 
+    def testEmbeddedSlipDevelopmentCouette3D(self):
+        self.distance = 0.25
+        self.slip_flag = True
+        self.work_folder = "EmbeddedCouette3DTest"   
+        self.reference_file = "reference_couette_development_slip_3D"
+        self.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
+
+    def ExecuteEmbeddedCouetteTest(self):
         with WorkFolderScope(self.work_folder):
             self.setUp()
-            self.print_output = False
-            self.print_reference_values = False
             self.setUpProblem()
             self.setUpDistanceField()
-            self.setUpNoSlipBoundaryConditions()
+            if (self.slip_flag):
+                self.setUpSlipInitialCondition()
+                self.setUpSlipBoundaryConditions()
+            else:
+                self.setUpNoSlipInitialCondition()
+                self.setUpNoSlipBoundaryConditions()
             self.runTest()
             self.tearDown()
             self.checkResults()
@@ -159,82 +193,58 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
                 elem_dist[i_node] = elem_nodes[i_node].GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, elem_dist)
 
-    def setUpBoundaryConditions(self):
+    def setUpSlipBoundaryConditions(self):
         # Set the inlet function
         for node in self.main_model_part.GetSubModelPart("Inlet").Nodes:
             if (node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0):
-                aux_vel = KratosMultiphysics.Vector(3);
-                aux_vel[0] = 1.0
-                aux_vel[1] = 0.0
-                aux_vel[2] = 0.0
+                aux_vel = KratosMultiphysics.Vector([1.0,0.0,0.0])
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                node.Fix(KratosMultiphysics.VELOCITY_X)
-                node.Fix(KratosMultiphysics.VELOCITY_Y)
-                node.Fix(KratosMultiphysics.VELOCITY_Z)
             else:
-                aux_vel = KratosMultiphysics.Vector(3);
-                aux_vel[0] = 0.0
-                aux_vel[1] = 0.0
-                aux_vel[2] = 0.0
+                aux_vel = KratosMultiphysics.Vector([0.0,0.0,0.0])
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                node.Fix(KratosMultiphysics.VELOCITY_X)
-                node.Fix(KratosMultiphysics.VELOCITY_Y)
-                node.Fix(KratosMultiphysics.VELOCITY_Z)
+            node.Fix(KratosMultiphysics.VELOCITY_X)
+            node.Fix(KratosMultiphysics.VELOCITY_Y)
+            node.Fix(KratosMultiphysics.VELOCITY_Z)
+        
+        # Set the SLIP elemental flag (only used in Winter's formulation)
+        if (self.slip_flag):
+            for element in self.main_model_part.Elements:
+                element.Set(KratosMultiphysics.SLIP, True)
+
+    def setUpSlipInitialCondition(self):
+        for node in self.main_model_part.Nodes:
+            if (node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0):
+                init_v = KratosMultiphysics.Vector([1.0,0.0,0.0])
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, init_v)
 
     def setUpNoSlipBoundaryConditions(self):
-        for elem in self.main_model_part.Elements:
-            num_negative = 0
-            for node in elem.GetNodes():
-                if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) <= 0.0:
-                    num_negative += 1
-            if num_negative == len(elem.GetNodes()):
-                elem.Set(KratosMultiphysics.ACTIVE,False)
-                for node in elem.GetNodes():
-                    node.Fix(KratosMultiphysics.VELOCITY_X)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-                    node.Fix(KratosMultiphysics.VELOCITY_Z)
-                    node.Fix(KratosMultiphysics.PRESSURE)
-            else:
-                elem.Set(KratosMultiphysics.ACTIVE,True)
-        
-        for elem in self.main_model_part.Elements:
-            if elem.Is(KratosMultiphysics.ACTIVE):
-                for node in elem.GetNodes():
-                    node.Free(KratosMultiphysics.VELOCITY_X)
-                    node.Free(KratosMultiphysics.VELOCITY_Y)
-                    node.Free(KratosMultiphysics.VELOCITY_Z)
-                    node.Free(KratosMultiphysics.PRESSURE)
-
         # Set the inlet function
         for node in self.main_model_part.GetSubModelPart("Inlet").Nodes:
-            if (node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0):
-                aux_vel = KratosMultiphysics.Vector(3)
-                aux_vel[0] = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                aux_vel[1] = 0.0
-                aux_vel[2] = 0.0
+            dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            if (dist > 0.0):
+                aux_vel = KratosMultiphysics.Vector([dist,0.0,0.0])
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                node.Fix(KratosMultiphysics.VELOCITY_X)
-                node.Fix(KratosMultiphysics.VELOCITY_Y)
-                node.Fix(KratosMultiphysics.VELOCITY_Z)
             else:
-                aux_vel = KratosMultiphysics.Vector(3)
-                aux_vel[0] = 0.0
-                aux_vel[1] = 0.0
-                aux_vel[2] = 0.0
+                aux_vel = KratosMultiphysics.Vector([0.0,0.0,0.0])
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                node.Fix(KratosMultiphysics.VELOCITY_X)
-                node.Fix(KratosMultiphysics.VELOCITY_Y)
-                node.Fix(KratosMultiphysics.VELOCITY_Z)
+            node.Fix(KratosMultiphysics.VELOCITY_X)
+            node.Fix(KratosMultiphysics.VELOCITY_Y)
+            node.Fix(KratosMultiphysics.VELOCITY_Z)
 
+        # Set and fix the top boundary velocity
         for node in self.main_model_part.GetSubModelPart("Top").Nodes:
-            aux_vel = KratosMultiphysics.Vector(3)
-            aux_vel[0] = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-            aux_vel[1] = 0.0
-            aux_vel[2] = 0.0
+            aux_vel = KratosMultiphysics.Vector([node.GetSolutionStepValue(KratosMultiphysics.DISTANCE),0.0,0.0])
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
             node.Fix(KratosMultiphysics.VELOCITY_X)
             node.Fix(KratosMultiphysics.VELOCITY_Y)
             node.Fix(KratosMultiphysics.VELOCITY_Z)
+
+    def setUpNoSlipInitialCondition(self):
+        for node in self.main_model_part.Nodes:
+            dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            if (dist > 0.0):
+                init_v = KratosMultiphysics.Vector([dist,0.0,0.0])
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, init_v)
 
     def runTest(self):
         with WorkFolderScope(self.work_folder):
@@ -270,8 +280,8 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
                 for process in self.list_of_processes:
                     process.ExecuteInitializeSolutionStep()
 
-                if(step >= 3):
-                    self.solver.Solve()
+                
+                self.solver.Solve()
 
                 for process in self.list_of_processes:
                     process.ExecuteFinalizeSolutionStep()
@@ -354,14 +364,20 @@ if __name__ == '__main__':
     test = EmbeddedAusasCouetteTest()
     test.setUp()
     test.distance = 0.25
+    test.slip_flag = False
     test.print_output = False
     test.print_reference_values = False
-    test.work_folder = "EmbeddedAusasCouette2DTest"
-    test.reference_file = "reference_couette_ausas_2D"   
-    test.settings = "EmbeddedAusasCouette2DTestParameters.json"
+    test.work_folder = "EmbeddedCouette2DTest"
+    test.reference_file = "reference_couette_embedded_2D"   
+    test.settings = "EmbeddedCouette2DTestParameters.json"
     test.setUpProblem()
     test.setUpDistanceField()
-    test.setUpBoundaryConditions()
+    if (test.slip_flag):
+        test.setUpSlipInitialCondition()
+        test.setUpSLipBoundaryConditions()
+    else:
+        test.setUpNoSlipInitialCondition()
+        test.setUpNoSlipBoundaryConditions()
     test.runTest()
     test.tearDown()
     test.checkResults()
