@@ -120,6 +120,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MpcData
     {
         mSlaveEquationIdConstantsMap.clear();
         mEquationIdToWeightsMap.clear();
+        mDofConstraints.clear();
     }
 
     /**
