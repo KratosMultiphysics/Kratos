@@ -19,10 +19,10 @@ import structural_response_function_factory
 
 # ==============================================================================
 def CreateListOfResponseFunctions( optimization_settings, optimization_model_part ):
-    listOfResponseFunctions = {}
-    responseCreator = ResponseFunctionCreator( optimization_settings, optimization_model_part )
-    responseCreator.AddSpecifiedKratosResponseFunctionsToList( listOfResponseFunctions )
-    return listOfResponseFunctions
+    list_of_response_functions = {}
+    response_creator = ResponseFunctionCreator( optimization_settings, optimization_model_part )
+    response_creator.AddSpecifiedKratosResponseFunctionsToList( list_of_response_functions )
+    return list_of_response_functions
 
 # ==============================================================================
 class ResponseFunctionCreator:
@@ -32,42 +32,42 @@ class ResponseFunctionCreator:
         self.optimization_model_part = optimization_model_part
 
      # --------------------------------------------------------------------------
-    def AddSpecifiedKratosResponseFunctionsToList( self, listOfResponseFunctions ):
-        self.listOfResponseFunctions = listOfResponseFunctions
-        self.__addObjectivesToListOfResponseFunctions()
-        self.__addConstraintsToListOfResponseFunctions()
+    def AddSpecifiedKratosResponseFunctionsToList( self, list_of_response_functions ):
+        self.list_of_response_functions = list_of_response_functions
+        self.__AddObjectivesToListOfResponseFunctions()
+        self.__AddConstraintsToListOfResponseFunctions()
 
     # --------------------------------------------------------------------------
-    def __addObjectivesToListOfResponseFunctions( self ):
+    def __AddObjectivesToListOfResponseFunctions( self ):
         for objective_number in range(self.optimization_settings["objectives"].size()):
             objective = self.optimization_settings["objectives"][objective_number]
             objective_id = objective["identifier"].GetString()
             if objective["use_kratos"].GetBool():
-                self.__checkIfGivenResponseFunctionIsAlreadyDefined( objective_id )
-                self.__createAndAddGivenResponse( objective_id, objective["kratos_response_settings"] )
+                self.__CheckIfGivenResponseFunctionIsAlreadyDefined( objective_id )
+                self.__CreateAndAddGivenResponse( objective_id, objective["kratos_response_settings"] )
 
-        if not self.listOfResponseFunctions:
+        if not self.list_of_response_functions:
             raise ValueError("No objective function specified!")
 
     # --------------------------------------------------------------------------
-    def __addConstraintsToListOfResponseFunctions( self ):
+    def __AddConstraintsToListOfResponseFunctions( self ):
         for constraint_number in range(self.optimization_settings["constraints"].size()):
             constraint = self.optimization_settings["constraints"][constraint_number]
             constraint_id = constraint["identifier"].GetString()
             if constraint["use_kratos"].GetBool():
-                self.__checkIfGivenResponseFunctionIsAlreadyDefined( constraint_id )
-                self.__createAndAddGivenResponse( constraint_id, constraint["kratos_response_settings"] )
+                self.__CheckIfGivenResponseFunctionIsAlreadyDefined( constraint_id )
+                self.__CreateAndAddGivenResponse( constraint_id, constraint["kratos_response_settings"] )
 
     # --------------------------------------------------------------------------
-    def __checkIfGivenResponseFunctionIsAlreadyDefined( self, response_id ):
-        if response_id in self.listOfResponseFunctions.keys():
+    def __CheckIfGivenResponseFunctionIsAlreadyDefined( self, response_id ):
+        if response_id in self.list_of_response_functions.keys():
             raise NameError("There are multiple response functions with the following identifier: " + response_id)
 
     # --------------------------------------------------------------------------
-    def __createAndAddGivenResponse( self, response_id, response_settings ):
+    def __CreateAndAddGivenResponse( self, response_id, response_settings ):
         response_type = response_settings["response_type"].GetString()
         if response_type in ["strain_energy", "mass", "eigenfrequency"]:
-            self.listOfResponseFunctions[response_id] = structural_response_function_factory.CreateResponseFunction(response_id, response_settings, self.optimization_model_part)
+            self.list_of_response_functions[response_id] = structural_response_function_factory.CreateResponseFunction(response_id, response_settings, self.optimization_model_part)
         else:
             raise NameError("The following response function is not available for optimization: " + response_id)
 
