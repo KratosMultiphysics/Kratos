@@ -143,7 +143,6 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSpringDamperElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       // Addint the adjoint elements
       mShellThinAdjointElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ), false ),
-      mShellThinAdjointElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4))), false),
       mCrLinearBeamAdjointElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
       /* CONDITIONS */
       // Adding point load conditions
@@ -454,7 +453,6 @@ void KratosStructuralMechanicsApplication::Register() {
 
     //Register the adjoint elements
     KRATOS_REGISTER_ELEMENT( "ShellThinAdjointElement3D3N", mShellThinAdjointElement3D3N )
-    KRATOS_REGISTER_ELEMENT("ShellThinAdjointElement3D4N", mShellThinAdjointElement3D4N)
     KRATOS_REGISTER_ELEMENT( "CrLinearBeamAdjointElement3D2N", mCrLinearBeamAdjointElement3D2N )
 
     // Register the conditions

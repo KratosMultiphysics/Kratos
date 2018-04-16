@@ -40,7 +40,6 @@
 
 /* Adding the adjoint elements */
 #include "custom_response_functions/adjoint_elements/shell_thin_adjoint_element_3D3N.hpp"
-#include "custom_response_functions/adjoint_elements/shell_thin_adjoint_element_3D4N.hpp"
 #include "custom_response_functions/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
 
 /* Adding shells and membranes elements */
@@ -364,7 +363,6 @@ private:
 
     // Adding adjoint elements
     const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
-    const ShellThinAdjointElement3D4N   mShellThinAdjointElement3D4N;
     const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
 
     /* CONDITIONS*/
