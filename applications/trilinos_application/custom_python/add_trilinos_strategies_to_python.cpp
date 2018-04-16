@@ -89,7 +89,7 @@ void AddStrategies(pybind11::module& m)
     //Builder and Solver
 
     // Builder and solver base class
-    class_< TrilinosBuilderAndSolverType >(m, "TrilinosResidualBasedBuilderAndSolver")
+    class_< TrilinosBuilderAndSolverType, typename TrilinosBuilderAndSolverType::Pointer >(m, "TrilinosResidualBasedBuilderAndSolver")
     .def(init<TrilinosLinearSolverType::Pointer> () )
     .def( "SetCalculateReactionsFlag", &TrilinosBuilderAndSolverType::SetCalculateReactionsFlag )
     .def( "GetCalculateReactionsFlag", &TrilinosBuilderAndSolverType::GetCalculateReactionsFlag )
@@ -118,17 +118,25 @@ void AddStrategies(pybind11::module& m)
     ;
 
     typedef TrilinosResidualBasedEliminationBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosResidualBasedEliminationBuilderAndSolverType;
-    class_< TrilinosResidualBasedEliminationBuilderAndSolverType, TrilinosBuilderAndSolverType >
+    class_<
+        TrilinosResidualBasedEliminationBuilderAndSolverType,
+        typename TrilinosResidualBasedEliminationBuilderAndSolverType::Pointer,
+        TrilinosBuilderAndSolverType >
     (m, "TrilinosEliminationBuilderAndSolver").def(init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
     ;
 
     typedef TrilinosBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBlockBuilderAndSolverType;
-    class_< TrilinosBlockBuilderAndSolverType,TrilinosBuilderAndSolverType  >
+    class_<
+        TrilinosBlockBuilderAndSolverType,
+        typename TrilinosBlockBuilderAndSolverType::Pointer,
+        TrilinosBuilderAndSolverType  >
     (m, "TrilinosBlockBuilderAndSolver").def(init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
     ;
 
-    class_< TrilinosBlockBuilderAndSolverPeriodic< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >,
-    TrilinosBlockBuilderAndSolverType  >
+    class_<
+        TrilinosBlockBuilderAndSolverPeriodic< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >,
+        typename TrilinosBlockBuilderAndSolverPeriodic< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Pointer,
+        TrilinosBlockBuilderAndSolverType  >
     (m, "TrilinosBlockBuilderAndSolverPeriodic").def(init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer, Kratos::Variable<int>& >() )
     ;
 
@@ -140,7 +148,8 @@ void AddStrategies(pybind11::module& m)
     ;
 
     // Strategy base class
-    class_< TrilinosBaseSolvingStrategyType > (m, "TrilinosSolvingStrategy").def(init< ModelPart&, bool >())
+    class_< TrilinosBaseSolvingStrategyType, typename TrilinosBaseSolvingStrategyType::Pointer >(m, "TrilinosSolvingStrategy")
+    .def(init< ModelPart&, bool >())
     .def("Predict", &TrilinosBaseSolvingStrategyType::Predict)
     .def("Initialize", &TrilinosBaseSolvingStrategyType::Initialize)
     .def("Solve", &TrilinosBaseSolvingStrategyType::Solve)
@@ -162,7 +171,7 @@ void AddStrategies(pybind11::module& m)
     ;
 
     typedef FSStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosFSStrategy;
-    class_< TrilinosFSStrategy, TrilinosBaseSolvingStrategyType >
+    class_< TrilinosFSStrategy, typename TrilinosFSStrategy::Pointer, TrilinosBaseSolvingStrategyType >
     (m,"TrilinosFSStrategy").def(init< ModelPart&, SolverSettings< TrilinosSparseSpaceType,TrilinosLocalSpaceType, TrilinosLinearSolverType >&, bool >())
     .def(init< ModelPart&, SolverSettings< TrilinosSparseSpaceType,TrilinosLocalSpaceType, TrilinosLinearSolverType >&, bool, const Kratos::Variable<int>& >())
     .def("CalculateReactions",&TrilinosFSStrategy::CalculateReactions)
@@ -171,12 +180,12 @@ void AddStrategies(pybind11::module& m)
     ;
 
     typedef ResidualBasedLinearStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosLinearStrategy;
-    class_< TrilinosLinearStrategy , TrilinosBaseSolvingStrategyType >
+    class_< TrilinosLinearStrategy , typename TrilinosLinearStrategy::Pointer, TrilinosBaseSolvingStrategyType >
     (m,"TrilinosLinearStrategy").def(init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosLinearSolverType::Pointer, TrilinosBuilderAndSolverType::Pointer, bool, bool, bool, bool >())
     ;
 
     typedef ResidualBasedNewtonRaphsonStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosNewtonRaphsonStrategy;
-    class_< TrilinosNewtonRaphsonStrategy , TrilinosBaseSolvingStrategyType >
+    class_< TrilinosNewtonRaphsonStrategy , typename TrilinosNewtonRaphsonStrategy::Pointer, TrilinosBaseSolvingStrategyType >
     (m,"TrilinosNewtonRaphsonStrategy").def(init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosLinearSolverType::Pointer, TrilinosConvergenceCriteria::Pointer, TrilinosBuilderAndSolverType::Pointer, int, bool, bool, bool >())
     ;
 
@@ -185,13 +194,13 @@ void AddStrategies(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 
     using TrilinosLaplacianMeshMovingStrategyType = TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >;
-    class_< TrilinosLaplacianMeshMovingStrategyType, TrilinosBaseSolvingStrategyType >
+    class_< TrilinosLaplacianMeshMovingStrategyType, typename TrilinosLaplacianMeshMovingStrategyType::Pointer, TrilinosBaseSolvingStrategyType >
     (m,"TrilinosLaplacianMeshMovingStrategy").def(init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int, bool, bool, bool, int >() )
     .def("CalculateMeshVelocities", &TrilinosLaplacianMeshMovingStrategyType::CalculateMeshVelocities)
     ;
 
     using TrilinosStructuralMeshMovingStrategyType = TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >;
-    class_< TrilinosStructuralMeshMovingStrategyType, TrilinosBaseSolvingStrategyType  >
+    class_< TrilinosStructuralMeshMovingStrategyType, typename TrilinosStructuralMeshMovingStrategyType::Pointer, TrilinosBaseSolvingStrategyType  >
     (m,"TrilinosStructuralMeshMovingStrategy").def(init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int, bool, bool, bool, int >() )
     .def("CalculateMeshVelocities", &TrilinosStructuralMeshMovingStrategyType::CalculateMeshVelocities)
     ;

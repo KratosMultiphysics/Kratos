@@ -992,7 +992,7 @@ public:
     {
         // We calculate the inverse of D operator
         double auxdet;
-        const GeometryMatrixType& inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
+        const GeometryMatrixType inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
 
         // We calculate the P operator
         const GeometryMatrixType POperator = prod(inv_D_operator, MOperator);
@@ -1404,7 +1404,7 @@ public:
         // We compute the normalized inverse
         double aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me);
         if (std::abs(aux_det) >= tolerance) {
-            const GeometryMatrixType& normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);
+            const GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);
 
             noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me);
             return true;

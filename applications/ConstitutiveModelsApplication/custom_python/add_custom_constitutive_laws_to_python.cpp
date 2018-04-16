@@ -79,18 +79,9 @@ typedef ConstitutiveModel                                          ConstitutiveM
 typedef ConstitutiveModel::Pointer                                  ConstitutiveModelPointer;
     
     
-void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
-                                  ConstitutiveLawPointer ThisConstitutiveLaw )
-{
-  ThisMaterialsContainer.push_back( ThisConstitutiveLaw );
-}
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
-  class_< MaterialsContainer >(m, "MaterialsContainer")
-      .def( init<>() )
-      .def( "PushBack", Push_Back_Constitutive_Laws )
-      ;
 
   //outfitted python laws
   // class_< PythonOutfittedConstitutiveLaw, typename PythonOutfittedConstitutiveLaw::Pointer, ConstitutiveLawBaseType >

@@ -16,7 +16,7 @@ using namespace pybind11;
 
 void AddCustomResponseFunctionsToPython(pybind11::module& m)
 {
-  class_<ResponseFunction>(m,"ResponseFunction")
+  class_<ResponseFunction, ResponseFunction::Pointer>(m,"ResponseFunction")
         .def(init<ModelPart&, Parameters&>())
         .def("Initialize", &ResponseFunction::Initialize)
         .def("InitializeSolutionStep", &ResponseFunction::InitializeSolutionStep)
@@ -32,10 +32,16 @@ void AddCustomResponseFunctionsToPython(pybind11::module& m)
         .def("CalculateValue", &ResponseFunction::CalculateValue)
         .def("UpdateSensitivities", &ResponseFunction::UpdateSensitivities);
 
-    class_<DragResponseFunction<2>>(m,"DragResponseFunction2D")
+    class_<
+        DragResponseFunction<2>,
+        typename DragResponseFunction<2>::Pointer,
+        ResponseFunction>(m,"DragResponseFunction2D")
         .def(init<ModelPart&, Parameters&>());
 
-    class_<DragResponseFunction<3>>(m,"DragResponseFunction3D")
+    class_<
+        DragResponseFunction<3>,
+        typename DragResponseFunction<3>::Pointer,
+        ResponseFunction>(m,"DragResponseFunction3D")
         .def(init<ModelPart&, Parameters&>());
 
 }
