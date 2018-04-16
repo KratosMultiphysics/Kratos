@@ -16,6 +16,13 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
 
     def __init__(self, main_model_part, custom_settings):
 
+        self.element_name = "CompressibleNavierStokes"
+        self.condition_name = "Condition"
+        self.min_buffer_size = 3
+        
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
@@ -68,7 +75,7 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the element replace settings
-        self._SetCompressibleElementReplaceSettings()
+        #self._SetCompressibleElementReplaceSettings()
 
         print("Construction of NavierStokesCompressibleSolver finished.")
 
@@ -199,24 +206,24 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
         
 
-    def _SetCompressibleElementReplaceSettings(self):
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        self.settings.AddEmptyValue("element_replace_settings")
+    #def _SetCompressibleElementReplaceSettings(self):
+        #domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        #self.settings.AddEmptyValue("element_replace_settings")
         
-        if(domain_size == 3):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-            {
-                "element_name":"CompressibleNavierStokes3D4N",
-                "condition_name": "Condition3D3N"
-            }
-            """)
-        elif(domain_size == 2):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-            {
-                "element_name":"CompressibleNavierStokes2D3N",
-                "condition_name": "Condition2D2N"
-            }
-            """)
-        else:
-            raise Exception("Domain size is not 2 or 3!!")
+        #if(domain_size == 3):
+            #self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+            #{
+                #"element_name":"CompressibleNavierStokes3D4N",
+                #"condition_name": "Condition3D3N"
+            #}
+            #""")
+        #elif(domain_size == 2):
+            #self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+            #{
+                #"element_name":"CompressibleNavierStokes2D3N",
+                #"condition_name": "Condition2D2N"
+            #}
+            #""")
+        #else:
+            #raise Exception("Domain size is not 2 or 3!!")
 
