@@ -686,52 +686,102 @@ public:
     }
 
     /**
-     * It computes the unit normal of the geometry, if possible
+     * @brief It computes the unit normal of the geometry, if possible
+     * @param rNormal The normal in the given point
+     * @param rTangentXi The tangent in the xi direction
+     * @param rTangentEta The tangent in the eta direction
      * @return The normal of the geometry
      */
-    virtual array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const
+    virtual array_1d<double, 3> AreaNormalWithTangents(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        array_1d<double, 3>& rNormal,
+        array_1d<double, 3>& rTangentXi,
+        array_1d<double, 3>& rTangentEta
+        ) const
     {
-        const unsigned int local_space_dimension = this->LocalSpaceDimension();
-        const unsigned int dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        const SizeType dimension = this->WorkingSpaceDimension();
 
-        if (dimension == local_space_dimension)
-        {
-            KRATOS_ERROR << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
-        }
+        KRATOS_ERROR_IF(dimension == local_space_dimension) << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
 
         // We define the normal and tangents
-        array_1d<double,3> tangent_xi(3, 0.0);
-        array_1d<double,3> tangent_eta(3, 0.0);
+        const array_1d<double,3> zero_array(3, 0.0);
+        rTangentXi = zero_array;
+        rTangentEta = zero_array;
 
         Matrix j_node = ZeroMatrix( dimension, local_space_dimension );
         this->Jacobian( j_node, rPointLocalCoordinates);
 
         // Using the Jacobian tangent directions
-        if (dimension == 2)
-        {
-            tangent_eta[2] = 1.0;
-            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
-            {
-                tangent_xi[i_dim]  = j_node(i_dim, 0);
+        if (dimension == 2) {
+            rTangentEta[2] = 1.0;
+            for (IndexType i_dim = 0; i_dim < dimension; ++i_dim) {
+                rTangentXi[i_dim]  = j_node(i_dim, 0);
             }
         }
-        else
-        {
-            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
-            {
-                tangent_xi[i_dim]  = j_node(i_dim, 0);
-                tangent_eta[i_dim] = j_node(i_dim, 1);
+        else {
+            for (IndexType i_dim = 0; i_dim < dimension; ++i_dim) {
+                rTangentXi[i_dim]  = j_node(i_dim, 0);
+                rTangentEta[i_dim] = j_node(i_dim, 1);
             }
         }
 
-        array_1d<double, 3> normal;
-        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+        MathUtils<double>::CrossProduct(rNormal, rTangentXi, rTangentEta);
+        return rNormal;
+    }
+
+    /**
+     * @brief It computes the unit normal and tangents of the geometry
+     * @param rPointLocalCoordinates Reference to the local coordinates of the
+     * point in where the unit normal is to be computed
+     * @param rNormal The unit normal in the given point
+     * @param rTangentXi The unitary tangent in the xi direction
+     * @param rTangentEta The unitary tangent in the eta direction
+     * @return The unit normal in the given point
+     */
+    virtual array_1d<double, 3> UnitNormalWithTangents(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        array_1d<double, 3>& rNormal,
+        array_1d<double, 3>& rTangentXi,
+        array_1d<double, 3>& rTangentEta
+        )
+    {
+        // Auxiliar tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
+        // Compute the normal and tangents
+        AreaNormalWithTangents(rPointLocalCoordinates, rNormal, rTangentXi, rTangentEta);
+
+        // Make unitary
+        const double norm_normal = norm_2(rNormal);
+        if (norm_normal > zero_tolerance) rNormal /= norm_normal;
+        else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
+
+        const double norm_tangent_xi = norm_2(rTangentXi);
+        if (norm_tangent_xi > zero_tolerance) rTangentXi /= norm_tangent_xi;
+        else KRATOS_ERROR << "ERROR: The norm of the first tangent direction is zero or almost zero. Norm. tangent in direction xi: " << norm_tangent_xi << std::endl;
+
+        const double norm_tangent_eta = norm_2(rTangentEta);
+        if (norm_tangent_eta > zero_tolerance) rTangentEta /= norm_tangent_eta;
+        else KRATOS_ERROR << "ERROR: The norm of the first tangent direction is zero or almost zero. Norm. tangent in direction xi: " << norm_tangent_eta << std::endl;
+
+        return rNormal;
+    }
+
+    /**
+     * It computes the unit normal of the geometry, if possible
+     * @return The normal of the geometry
+     */
+    virtual array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const
+    {
+        array_1d<double, 3> normal, tangent_xi, tangent_eta;
+        AreaNormalWithTangents(rPointLocalCoordinates, normal, tangent_xi, tangent_eta);
         return normal;
     }
 
     /**
      * It computes the unit normal of the geometry
-     * @param rPointLocalCoordinates Refernce to the local coordinates of the
+     * @param rPointLocalCoordinates Reference to the local coordinates of the
      * point in where the unit normal is to be computed
      * @return The unit normal in the given point
      */
