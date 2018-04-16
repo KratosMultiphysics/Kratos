@@ -14,6 +14,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
 #include "custom_response_functions/response_utilities/response_data.h"
+#include "includes/checks.h"
 
 
 namespace Kratos
@@ -782,18 +783,17 @@ namespace Kratos
 
         KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
         << "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
-        //verify that the variables are correctly initialized
-        KRATOS_ERROR_IF(VELOCITY.Key() == 0) <<
-        "VELOCITY has Key zero! (check if the application is correctly registered" << "" << std::endl;
-        KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0) <<
-        "DISPLACEMENT has Key zero! (check if the application is correctly registered"<< "" << std::endl;
-        KRATOS_ERROR_IF(ACCELERATION.Key() == 0) <<
-        "ACCELERATION has Key zero! (check if the application is correctly registered" << "" << std::endl;
-        KRATOS_ERROR_IF(DENSITY.Key() == 0) <<
-        "DENSITY has Key zero! (check if the application is correctly registered" << "" << std::endl;
-        KRATOS_ERROR_IF(CROSS_AREA.Key() == 0) <<
-        "CROSS_AREA has Key zero! (check if the application is correctly registered" << "" << std::endl;
-        
+
+        // verify that the variables are correctly initialized
+        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+        KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+        KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
+        KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
+        KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
+
+        // check properties
         KRATOS_ERROR_IF(this->GetProperties().Has(CROSS_AREA) == false || this->GetProperties()[CROSS_AREA] == 0)
         << "CROSS_AREA not provided for this element" << this->Id() << std::endl;
 
@@ -814,31 +814,24 @@ namespace Kratos
 
         KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I33) )
         << "I33 not provided for this element" << this->Id() << std::endl;
-    
-        //##################################################################################################
-        // Check for specific sensitivity analysis stuff
-        //##################################################################################################
-        KRATOS_ERROR_IF(ADJOINT_DISPLACEMENT.Key() == 0)
-            << "ADJOINT_DISPLACEMENT Key is 0. Check if the application was correctly registered." << std::endl;
 
-        KRATOS_ERROR_IF(ADJOINT_ROTATION.Key() == 0) 
-            << "ADJOINT_ROTATION Key is 0. Check if the application was correctly registered." << std::endl;
-
-         // Check if the nodes have adjoint dofs.
-        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
+        // Check dofs
+        GeometryType& r_geom = GetGeometry();
+        for (unsigned int i = 0; i < r_geom.size(); i++)
         {
-            KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_X) == false
-                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Y) == false
-                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Z) == false)
-            << "missing ADJOINT_DISPLACEMENT component degree of freedom on node " << this->GetGeometry()[iNode].Id() << std::endl;
+            auto& r_node = r_geom[i];
 
-            KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
-                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Y) == false
-                    || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Z) == false)
-            << "missing ADJOINT_ROTATION component degree of freedom on node " << this->GetGeometry()[iNode].Id() << std::endl;
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
 
-            KRATOS_ERROR_IF_NOT( this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) )
-                << "missing DISPLACEMENT variable on solution step data for node " << this->GetGeometry()[iNode].Id() << std::endl;
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node);
         }
 
         return 0;
