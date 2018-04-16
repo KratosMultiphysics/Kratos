@@ -298,14 +298,12 @@ namespace Kratos {
             vector<unsigned int> ElementPartition;
             OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
             typedef ElementsArrayType::iterator ElementIterator;
-
             #pragma omp parallel
             {
             #pragma omp for
             for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
                 ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;                                        
 
-                
                 SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*elem_it);
                 Node<3>& node = spheric_particle.GetGeometry()[0];
 
@@ -316,14 +314,11 @@ namespace Kratos {
                 const array_1d<double,3>& initial_coordinates = node.GetInitialPosition();
                 const array_1d<double,3>& coordinates = node.Coordinates();
                 const array_1d<double,3> distance = coordinates - initial_coordinates;
-                
-                const double reference_distance = 10.0 * (*(spheric_particle.mpInlet))[MAX_RADIUS];
+                const double reference_distance = 6.0 * (*(spheric_particle.mpInlet))[MAX_RADIUS];
+
                 /// Projection over injection axis
-
                 const double projected_distance = DEM_INNER_PRODUCT_3(distance, unitary_inlet_velocity);
-
                 if (projected_distance < reference_distance) {
-                    
                     node.Set(DEMFlags::CUMULATIVE_ZONE, true);
                     spheric_particle.Set(DEMFlags::CUMULATIVE_ZONE, true);
                 }else{
