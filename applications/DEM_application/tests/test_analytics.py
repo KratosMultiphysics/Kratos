@@ -62,7 +62,7 @@ class AnalyticsTestSolution(main_script.Solution):
                 elif time > 0.15 and time < 0.42:  
                     expected_value = 3.9602
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.43:  
+                elif time > 0.43:
                     expected_value = 10.268
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)                  
             if node.Id ==3:
@@ -71,13 +71,14 @@ class AnalyticsTestSolution(main_script.Solution):
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
                 elif time > 0.15 and time < 0.32:
                     expected_value = 3.9602
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)                
-                    
+                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
 
+    @classmethod
     def CheckValueOfNormalImpactVelocity(self, normal_impact_vel, expected_value, tolerance):
         if normal_impact_vel > expected_value + tolerance or normal_impact_vel < expected_value - tolerance:                    
             raise ValueError('Incorrect value for NORMAL_IMPACT_VELOCITY')
 
+    @classmethod
     def CheckValueOfFaceNormalImpactVelocity(self, face_normal_impact_vel, expected_value, tolerance):
         if face_normal_impact_vel > expected_value + tolerance or face_normal_impact_vel < expected_value - tolerance:                    
             raise ValueError('Incorrect value for FACE_NORMAL_IMPACT_VELOCITY')
@@ -91,9 +92,11 @@ class TestAnalytics(KratosUnittest.TestCase):
     def setUp(self):
         pass            
 
+    @classmethod
     def test_Analytics_1(self):        
         AnalyticsTestSolution().Run()        
     
+    @classmethod
     def test_Analytics_2(self):
         pass
 
