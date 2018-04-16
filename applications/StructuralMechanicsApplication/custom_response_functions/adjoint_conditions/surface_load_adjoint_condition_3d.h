@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
 //
 
 #if !defined(KRATOS_SURFACE_LOAD_ADJOINT_CONDITION_3D_H_INCLUDED )

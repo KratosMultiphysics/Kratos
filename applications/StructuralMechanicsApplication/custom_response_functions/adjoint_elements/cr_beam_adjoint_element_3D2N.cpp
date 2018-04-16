@@ -6,16 +6,14 @@
 //  License:     BSD License
 //           license: structural_mechanics_application/license.txt
 //
-//  Main authors: Martin Fusseder
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
 //
-//
-//
+
+
 #include "cr_beam_adjoint_element_3D2N.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
 #include "custom_response_functions/response_utilities/response_data.h"
-
-
 
 
 namespace Kratos

@@ -1,13 +1,13 @@
-// ==============================================================================
-//  KratosStructuralMechanicsApplication
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:         BSD License
-//                   license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Fusseder Martin
-//                   martin.fusseder@tum.de
-//	TODO: Check that this response function  works in a correct way for all conditions
-// ==============================================================================
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
+//   
 
 #ifndef ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H
 #define ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H
@@ -437,7 +437,6 @@ protected:
                                     num_of_deriv  << " nodes."<< std::endl;
                 }
                 rResponseGradient[dv_it] = stress_DV_deriv_value;
-                //std::cout << ("partiall derivative (shape) = ") << stress_DV_deriv_value << std::endl;
                 stress_DV_deriv_value = 0.0;
             }
 

@@ -6,10 +6,9 @@
 //  License:     BSD License
 //           license: structural_mechanics_application/license.txt
 //
-//  Main authors: Martin Fusseder
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
 //
-//
-//
+
 
 #if !defined(KRATOS_CR_BEAM_ADJOINT_ELEMENT_3D2N_H_INCLUDED )
 #define  KRATOS_CR_BEAM_ADJOINT_ELEMENT_3D2N_H_INCLUDED
