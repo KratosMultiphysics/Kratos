@@ -22,7 +22,6 @@
 //Processes
 #include "custom_processes/prism_neighbours_process.h"
 #include "custom_processes/apply_multi_point_constraints_process.h"
-#include "custom_processes/cable_net_mpc_process.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
@@ -54,11 +53,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(init<ModelPart&>())
         .def("Execute", &TotalStructuralMassProcess::Execute)
         ;
-
-    class_<CableNetMpcProcess, ApplyMultipointConstraintsProcess>(m,"CableNetMpcProcess")
-        .def(init<ModelPart&,Parameters&>())
-        .def("CoupleModelParts", &CableNetMpcProcess::CoupleModelParts)
-        ;    
+    
 
     class_<PrismNeighboursProcess, Process>(m, "PrismNeighboursProcess")
         .def(init<ModelPart&>())

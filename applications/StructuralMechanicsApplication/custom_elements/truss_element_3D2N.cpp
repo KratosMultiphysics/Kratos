@@ -507,9 +507,6 @@ double TrussElement3D2N::CalculateCurrentLength() {
   const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
   const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy) +
                              (dw + dz) * (dw + dz));
-  
-  if (l<std::numeric_limits<double>::epsilon())
-   (KRATOS_ERROR << "current length ~ 0 in element "<< this->Id() << std::endl);
   return l;
   KRATOS_CATCH("")
 }
