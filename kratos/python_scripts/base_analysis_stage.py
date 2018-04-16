@@ -90,12 +90,6 @@ class AnalysisStage(object):
         solver.InitializeSolutionStep()
 
 
-    def Predict(self):
-        """This function predicts the solution and should be executed
-        (for each step) BEFORE solving the solution step.
-        """
-        pass
-
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed
         (for each step) AFTER solving the solution step.
