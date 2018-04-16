@@ -108,7 +108,7 @@ public:
      * @param rInterfacePart The interface model part
      * @param ThisParameters The configuration parameters
      */
-    template<const IndexType TDim>
+    template<const std::size_t TDim>
     void GenerateInterfacePart(
         ModelPart& rInterfacePart,
         Parameters ThisParameters =  Parameters(R"({})")

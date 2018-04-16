@@ -176,12 +176,12 @@ public:
         double& Distance
         )
     {
-        array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
+        const array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
 
         Distance = inner_prod(vector_points, Normal); 
         
         PointType point_projected;
-        point_projected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
+        noalias(point_projected.Coordinates()) = PointDestiny.Coordinates() - Normal * Distance;
         
         return point_projected;
     }

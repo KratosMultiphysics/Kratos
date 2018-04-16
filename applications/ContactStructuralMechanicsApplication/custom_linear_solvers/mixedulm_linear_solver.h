@@ -701,7 +701,7 @@ protected:
         {
             // We iterate over original matrix
             #pragma omp for
-            for (int i=0; i<rA.size1(); i++) {
+            for (int i=0; i<static_cast<int>(rA.size1()); i++) {
                 const IndexType row_begin = index1[i];
                 const IndexType row_end   = index1[i+1];
                 const IndexType local_row_id = mGlobalToLocalIndexing[i];
@@ -828,7 +828,7 @@ protected:
         {
             // We iterate over original matrix
             #pragma omp for
-            for (int i=0; i<rA.size1(); i++) {
+            for (int i=0; i<static_cast<int>(rA.size1()); i++) {
                 const IndexType row_begin = index1[i];
                 const IndexType row_end   = index1[i+1];
                 const IndexType local_row_id = mGlobalToLocalIndexing[i];
