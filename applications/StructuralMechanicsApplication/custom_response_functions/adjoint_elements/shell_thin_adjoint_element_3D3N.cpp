@@ -10,7 +10,7 @@
 //
 
 #include "shell_thin_adjoint_element_3D3N.hpp"
-#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
+//#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/response_data.h"
 
@@ -19,29 +19,17 @@
 #include <string>
 #include <iomanip>
 
-#define OPT_NUM_NODES 3 //------------------------->TODO: check which of the stuff is here really needed
-#define OPT_STRAIN_SIZE 6
-#define OPT_NUM_DOFS 18
-
 //----------------------------------------
 // preprocessors for the integration
 // method used by this element.
 
 //#define OPT_1_POINT_INTEGRATION
 
-#ifdef OPT_1_POINT_INTEGRATION
-#define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_1
-#define OPT_NUM_GP 1
-#else
-#define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_2
-#define OPT_NUM_GP 3
-#endif // OPT_1_POINT_INTEGRATION
-
 //----------------------------------------
 // preprocessors to handle the output
 // in case of 3 integration points
 
-#define OPT_USES_INTERIOR_GAUSS_POINTS
+//#define OPT_USES_INTERIOR_GAUSS_POINTS
 
 #ifdef OPT_1_POINT_INTEGRATION
 #define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X)
@@ -49,7 +37,7 @@
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
 #define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X)
 #else
-#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X) Utilities::InterpToStandardGaussPoints(X)
+#define OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(X) ShellUtilities::InterpToStandardGaussPoints(X)
 #endif // OPT_USES_INTERIOR_GAUSS_POINTS
 #endif // OPT_1_POINT_INTEGRATION
 
@@ -58,7 +46,7 @@
 namespace Kratos
 {
 
-namespace Utilities
+/*namespace Utilities
 {
 inline void InterpToStandardGaussPoints(double& v1, double& v2, double& v3)
 {
@@ -120,7 +108,7 @@ inline void InterpToStandardGaussPoints(std::vector< Matrix >& v)
             InterpToStandardGaussPoints(v[0](i,j), v[1](i,j), v[2](i,j));
 }
 
-}
+}*/
 
 
 // =====================================================================================
@@ -182,8 +170,9 @@ Element::Pointer ShellThinAdjointElement3D3N::Create(IndexType NewId,
 
 void ShellThinAdjointElement3D3N::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
-    if(rResult.size() != OPT_NUM_DOFS)
-        rResult.resize(OPT_NUM_DOFS, false);
+    const SizeType num_dofs = GetNumberOfDofs();
+    if(rResult.size() != num_dofs)
+        rResult.resize(num_dofs, false);
 
     GeometryType & geom = this->GetGeometry();
 
@@ -204,8 +193,9 @@ void ShellThinAdjointElement3D3N::EquationIdVector(EquationIdVectorType& rResult
 
 void ShellThinAdjointElement3D3N::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
 {
+    const SizeType num_dofs = GetNumberOfDofs();
     ElementalDofList.resize(0);
-    ElementalDofList.reserve(OPT_NUM_DOFS);
+    ElementalDofList.reserve(num_dofs);
 
     GeometryType & geom = this->GetGeometry();
 
@@ -311,8 +301,9 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
 
 void ShellThinAdjointElement3D3N::GetValuesVector(Vector& values, int Step)
 {
-    if(values.size() != OPT_NUM_DOFS)
-        values.resize(OPT_NUM_DOFS, false); 
+    const SizeType num_dofs = GetNumberOfDofs();
+    if(values.size() != num_dofs)
+        values.resize(num_dofs, false); 
 
     const GeometryType & geom = GetGeometry();
 
@@ -543,6 +534,8 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Vector >& rVariable,
 {
     KRATOS_TRY;
 
+    const SizeType num_gps = GetNumberOfGPs();
+
     if(rVariable == STRESS_ON_GP)
     {
         TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
@@ -551,7 +544,7 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Vector >& rVariable,
         int direction_2 = 0;   
         std::vector<Matrix> stress_vector;
         bool stress_is_moment = true;
-  
+
         switch (traced_stress_type)  
         { 
             case MXX:
@@ -680,8 +673,8 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Vector >& rVariable,
         else
             ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
 
-        rOutput.resize(OPT_NUM_GP);   
-        for(size_t i = 0; i < OPT_NUM_GP; i++)
+        rOutput.resize(num_gps);   
+        for(size_t i = 0; i < num_gps; i++)
         {
             rOutput(i) = stress_vector[i](direction_1, direction_2);
         }
@@ -689,7 +682,7 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Vector >& rVariable,
     }
     else
     {
-        rOutput.resize(OPT_NUM_GP);  
+        rOutput.resize(num_gps);  
         rOutput.clear(); 
     }
 
@@ -745,7 +738,9 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
 
     this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
-    rOutput.resize(OPT_NUM_DOFS, OPT_NUM_GP);
+    const SizeType num_dofs = GetNumberOfDofs();
+    const SizeType num_gps = GetNumberOfGPs();
+    rOutput.resize(num_dofs, num_gps);
     rOutput.clear();
         
      // Built vector of variables containing the DOF-variables of the primal problem 
@@ -768,7 +763,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
                 
             this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
             
-            for(unsigned int k = 0; k < OPT_NUM_GP; k++)
+            for(unsigned int k = 0; k < num_gps; k++)
             {
                 stress_vector_dist[k] -= stress_vector_undist[k];
                 stress_vector_dist[k] /= dist_measure;
@@ -803,7 +798,8 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
         double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
         delta *= correction_factor;	
 
-        rOutput.resize(1, OPT_NUM_GP);
+        const SizeType num_gps = GetNumberOfGPs();
+        rOutput.resize(1, num_gps);
 
         if( this->GetProperties().Has(rDesignVariable) ) 
         {
@@ -829,7 +825,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
             noalias(stress_vector_dist)  -= stress_vector_undist;
             stress_vector_dist  /= delta;
 
-            for(size_t j = 0; j < OPT_NUM_GP; j++)
+            for(size_t j = 0; j < num_gps; j++)
                 rOutput(0, j) = stress_vector_dist[j];
         
             // Give element original properties back
@@ -864,8 +860,9 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
     {
         const int number_of_nodes = GetGeometry().PointsNumber();
         const int dimension = this->GetGeometry().WorkingSpaceDimension();
- 
-        rOutput.resize(dimension * number_of_nodes, OPT_NUM_GP);
+
+        const SizeType num_gps = GetNumberOfGPs();
+        rOutput.resize(dimension * number_of_nodes, num_gps);
      
         // Compute stress on GP before disturbance
         this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
@@ -884,7 +881,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
             noalias(stress_vector_dist)  -= stress_vector_undist;
             stress_vector_dist  /= delta;
 
-            for(size_t i = 0; i < OPT_NUM_GP; i++)
+            for(size_t i = 0; i < num_gps; i++)
                 rOutput( (0 + j*dimension), i) = stress_vector_dist[i]; 
 
             // Reset pertubed vector
@@ -905,7 +902,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
             noalias(stress_vector_dist)  -= stress_vector_undist;
             stress_vector_dist  /= delta;
 
-            for(size_t i = 0; i < OPT_NUM_GP; i++)
+            for(size_t i = 0; i < num_gps; i++)
                 rOutput((1 + j*dimension),i) = stress_vector_dist[i]; 
 
             // Reset pertubed vector
@@ -926,7 +923,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
             noalias(stress_vector_dist)  -= stress_vector_undist;
             stress_vector_dist  /= delta;
 
-            for(size_t i = 0; i < OPT_NUM_GP; i++)
+            for(size_t i = 0; i < num_gps; i++)
                 rOutput((2 + j*dimension),i) = stress_vector_dist[i]; 
 
             // Reset pertubed vector
@@ -966,16 +963,17 @@ void ShellThinAdjointElement3D3N::CalculateOnIntegrationPoints(const Variable<do
     {
         // Get result value for output
         double output_value = this->GetValue(rVariable);
+        const SizeType num_gps = GetNumberOfGPs();
 
         // Resize Output
-        if(rOutput.size() != OPT_NUM_GP)
-            rOutput.resize(OPT_NUM_GP);
+        if(rOutput.size() != num_gps)
+            rOutput.resize(num_gps);
 
         // Write scalar result value on all Gauss-Points
-        for(int i = 0; i < OPT_NUM_GP; i++)
+        for(unsigned int i = 0; i < num_gps; i++)
             rOutput[i] = output_value; 
 
-        OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rOutput);    
+        //OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rOutput);    
     }
     else
         KRATOS_ERROR << "Unsupported output variable." << std::endl;
