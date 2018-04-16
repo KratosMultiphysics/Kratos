@@ -63,7 +63,7 @@ void AnalyticFaceWatcher::ClearList(boost::python::list& my_list)
     }
 }
 
-void AnalyticFaceWatcher::GetFaceData(int id,
+/* void AnalyticFaceWatcher::GetFaceData(int id,
                                       boost::python::list times,
                                       boost::python::list neighbour_ids,
                                       boost::python::list masses,
@@ -71,9 +71,9 @@ void AnalyticFaceWatcher::GetFaceData(int id,
                                       boost::python::list tangential_relative_vel)
 {
     mMapOfFaceHistoryDatabases[id].FillUpPythonLists(times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel);
-}
+} */
 
-void AnalyticFaceWatcher::GetAllFacesData(ModelPart& analytic_model_part,
+/* void AnalyticFaceWatcher::GetAllFacesData(ModelPart& analytic_model_part,
                                           boost::python::list times,
                                           boost::python::list neighbour_ids,
                                           boost::python::list masses,
@@ -101,9 +101,9 @@ void AnalyticFaceWatcher::GetAllFacesData(ModelPart& analytic_model_part,
         tangential_relative_vel.append(tangential_relative_vel_i);
     }
 
-}
+} */
 
-void AnalyticFaceWatcher::GetTimeStepsData(boost::python::list ids,
+/* void AnalyticFaceWatcher::GetTimeStepsData(boost::python::list ids,
                                            boost::python::list neighbour_ids,
                                            boost::python::list masses,
                                            boost::python::list normal_relative_vel,
@@ -129,7 +129,7 @@ void AnalyticFaceWatcher::GetTimeStepsData(boost::python::list ids,
         normal_relative_vel.append(normal_relative_vel_i);
         tangential_relative_vel.append(tangential_relative_vel_i);
     }
-}
+} */
 
 void AnalyticFaceWatcher::GetTotalFlux(boost::python::list &times, boost::python::list &n_particles, boost::python::list &mass)
 {

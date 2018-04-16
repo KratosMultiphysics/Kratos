@@ -160,7 +160,7 @@ void AnalyticParticleWatcher::ClearList(boost::python::list& my_list)
     }
 }
 
-void AnalyticParticleWatcher::GetParticleData(int id,
+/* void AnalyticParticleWatcher::GetParticleData(int id,
                                               boost::python::list times,
                                               boost::python::list neighbour_ids,
                                               boost::python::list normal_relative_vel,
@@ -193,9 +193,9 @@ void AnalyticParticleWatcher::GetAllParticlesData(ModelPart& analytic_model_part
         tangential_relative_vel.append(tangential_relative_vel_i);
     }
 
-}
+}*/
 
-void AnalyticParticleWatcher::GetTimeStepsData(boost::python::list ids,
+/* void AnalyticParticleWatcher::GetTimeStepsData(boost::python::list ids,
                                                boost::python::list neighbour_ids,
                                                boost::python::list normal_relative_vel,
                                                boost::python::list tangential_relative_vel)
@@ -217,7 +217,7 @@ void AnalyticParticleWatcher::GetTimeStepsData(boost::python::list ids,
         normal_relative_vel.append(normal_relative_vel_i);
         tangential_relative_vel.append(tangential_relative_vel_i);
     }
-}
+} */
 
 
 AnalyticParticleWatcher::InterParticleImpactDataOfATimeStep& AnalyticParticleWatcher::GetParticleDataBase(int id)

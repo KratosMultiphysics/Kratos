@@ -183,25 +183,25 @@ static void ClearList(boost::python::list& my_list); // its best to pass empty l
 
 void ClearData();
 
-void GetFaceData(int id,
+/* void GetFaceData(int id,
                  boost::python::list times,
                  boost::python::list neighbour_ids,
                  boost::python::list masses,
                  boost::python::list normal_relative_vel,
-                 boost::python::list tangential_relative_vel);
+                 boost::python::list tangential_relative_vel); */
 
-void GetAllFacesData(ModelPart& analytic_model_part,
+/* void GetAllFacesData(ModelPart& analytic_model_part,
                      boost::python::list times,
                      boost::python::list neighbour_ids,
                      boost::python::list masses,
                      boost::python::list normal_relative_vel,
-                     boost::python::list tangential_relative_vel);
+                     boost::python::list tangential_relative_vel); */
 
-void GetTimeStepsData(boost::python::list ids,
+/* void GetTimeStepsData(boost::python::list ids,
                       boost::python::list neighbour_ids,
                       boost::python::list masses,
                       boost::python::list normal_relative_vel,
-                      boost::python::list tangential_relative_vel);
+                      boost::python::list tangential_relative_vel); */
 
 void GetTotalFlux(boost::python::list &times, boost::python::list &n_particles, boost::python::list &mass);
 

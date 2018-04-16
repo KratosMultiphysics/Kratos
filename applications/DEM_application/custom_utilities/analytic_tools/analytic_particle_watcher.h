@@ -283,7 +283,7 @@ class FaceParticleImpactDataOfATimeStep // It holds the historical information g
 
 static void ClearList(boost::python::list& my_list); // its best to pass empty lists in the first place to avoid this operation
 
-void GetParticleData(int id,
+/* void GetParticleData(int id,
                      boost::python::list times,
                      boost::python::list neighbour_ids,
                      boost::python::list normal_relative_vel,
@@ -293,12 +293,12 @@ void GetAllParticlesData(ModelPart& analytic_model_part,
                          boost::python::list times,
                          boost::python::list neighbour_ids,
                          boost::python::list normal_relative_vel,
-                         boost::python::list tangential_relative_vel);
+                         boost::python::list tangential_relative_vel); */
 
-void GetTimeStepsData(boost::python::list ids,
+/* void GetTimeStepsData(boost::python::list ids,
                       boost::python::list neighbour_ids,
                       boost::python::list normal_relative_vel,
-                      boost::python::list tangential_relative_vel);
+                      boost::python::list tangential_relative_vel); */
 
 virtual void MakeMeasurements(ModelPart &analytic_model_part);
 
