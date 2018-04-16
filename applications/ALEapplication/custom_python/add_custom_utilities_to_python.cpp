@@ -14,8 +14,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "processes/process.h"
@@ -29,15 +27,15 @@ namespace Kratos {
 
 namespace Python {
 
-void AddCustomUtilitiesToPython() {
-  using namespace boost::python;
+void AddCustomUtilitiesToPython(pybind11::module& m) {
+  using namespace pybind11;
 
   typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
   typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
   typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
-  class_<BallVertexMeshMoving<2, SparseSpaceType, LinearSolverType>,
-         boost::noncopyable>("BallVertexMeshMoving2D", init<>())
+  class_<BallVertexMeshMoving<2, SparseSpaceType, LinearSolverType> >(m,"BallVertexMeshMoving2D")
+  .def(init<>())
       .def("ConstructSystem",
            &BallVertexMeshMoving<2, SparseSpaceType,
                                  LinearSolverType>::ConstructSystem)
@@ -47,8 +45,8 @@ void AddCustomUtilitiesToPython() {
       .def("ClearSystem", &BallVertexMeshMoving<2, SparseSpaceType,
                                                 LinearSolverType>::ClearSystem);
 
-  class_<BallVertexMeshMoving3D<3, SparseSpaceType, LinearSolverType>,
-         boost::noncopyable>("BallVertexMeshMoving3D", init<>())
+  class_<BallVertexMeshMoving3D<3, SparseSpaceType, LinearSolverType>>(m,"BallVertexMeshMoving3D")
+  .def(init<>())
       .def("ConstructSystem",
            &BallVertexMeshMoving3D<3, SparseSpaceType,
                                    LinearSolverType>::ConstructSystem)

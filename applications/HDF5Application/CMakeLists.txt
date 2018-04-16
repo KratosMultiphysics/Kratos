@@ -91,8 +91,8 @@ include_directories(${HDF5_INCLUDE_DIRS})
 add_definitions(${HDF5_DEFINITIONS})
 
 # define library Kratos which defines the basic python interface
-add_library(KratosHDF5Application SHARED ${KRATOS_HDF5_APPLICATION_SOURCES})
-target_link_libraries(KratosHDF5Application KratosCore ${HDF5_C_LIBRARIES} ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS})
+pybind11_add_module(KratosHDF5Application MODULE ${KRATOS_HDF5_APPLICATION_SOURCES})
+target_link_libraries(KratosHDF5Application PRIVATE KratosCore ${HDF5_C_LIBRARIES} ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS})
 set_target_properties(KratosHDF5Application PROPERTIES PREFIX "")
 install(TARGETS KratosHDF5Application DESTINATION libs)
 

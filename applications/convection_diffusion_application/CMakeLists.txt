@@ -26,7 +26,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 # add_library(KratosConvectionDiffusionApplicationStaticLib STATIC ${KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES})
-add_library(KratosConvectionDiffusionApplication SHARED ${KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES})
+pybind11_add_module(KratosConvectionDiffusionApplication MODULE ${KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES})
 target_link_libraries(KratosConvectionDiffusionApplication KratosCore )
 set_target_properties(KratosConvectionDiffusionApplication PROPERTIES PREFIX "")
 set_target_properties(KratosConvectionDiffusionApplication PROPERTIES COMPILE_DEFINITIONS "CONVECTION_DIFFUSION_APPLICATION=EXPORT,API")
