@@ -136,6 +136,10 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
 
     mDiscontinuumConstitutiveLaw = GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
+
+    SetValue(WALL_POINT_CONDITION_POINTERS, std::vector<Condition*>());
+    SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, std::vector<array_1d<double, 3> >());
+    SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, std::vector<array_1d<double, 3> >());
         
     return *this;
 }
@@ -198,6 +202,10 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
     DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
     SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
+
+    SetValue(WALL_POINT_CONDITION_POINTERS, std::vector<Condition*>());
+    SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, std::vector<array_1d<double, 3> >());
+    SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, std::vector<array_1d<double, 3> >());
     
     KRATOS_CATCH( "" )
 }
