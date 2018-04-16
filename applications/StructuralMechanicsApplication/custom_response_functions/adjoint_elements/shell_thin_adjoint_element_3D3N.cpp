@@ -13,6 +13,7 @@
 //#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/response_data.h"
+#include "includes/checks.h"
 
 //#include "geometries/triangle_3d_3.h"
 
@@ -217,25 +218,19 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    GeometryType& geom = GetGeometry();
+    GeometryType& r_geom = GetGeometry();
 
-   // verify that the variables are correctly initialized
-    KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0)
-    << "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(ROTATION.Key() == 0)
-    << "ROTATION has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(VELOCITY.Key() == 0)
-    << "VELOCITY has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(ACCELERATION.Key() == 0)
-    << "ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(DENSITY.Key() == 0)
-    << "DENSITY has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(SHELL_CROSS_SECTION.Key() == 0)
-    << "SHELL_CROSS_SECTION has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(THICKNESS.Key() == 0)
-    << "THICKNESS has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF(CONSTITUTIVE_LAW.Key() == 0)
-    << "CONSTITUTIVE_LAW has Key zero! (check if the application is correctly registered" << std::endl;
+    // verify that the variables are correctly initialized
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION);
+    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
+    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
+    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
 
     // check properties
     KRATOS_ERROR_IF(this->pGetProperties() == NULL) << "Properties not provided for element " << this->Id() << std::endl;
@@ -247,7 +242,7 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
         const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
         KRATOS_ERROR_IF(section == NULL) << "SHELL_CROSS_SECTION not provided for element " << this->Id() << std::endl;
 
-        section->Check(props, geom, rCurrentProcessInfo);
+        section->Check(props, r_geom, rCurrentProcessInfo);
     }
     else // ... allow the automatic creation of a homogeneous section from a material and a thickness
     {
@@ -263,35 +258,25 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
         dummySection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
         dummySection->EndStack();
         dummySection->SetSectionBehavior(ShellCrossSection::Thin);
-        dummySection->Check(props, geom, rCurrentProcessInfo);
+        dummySection->Check(props, r_geom, rCurrentProcessInfo);
     }
 
-    //##################################################################################################
-    // Check for specific sensitivity analysis stuff
-    //##################################################################################################
-    KRATOS_ERROR_IF(ADJOINT_DISPLACEMENT.Key() == 0)
-    << "ADJOINT_DISPLACEMENT Key is 0. Check if the application was correctly registered." << std::endl;
-
-    KRATOS_ERROR_IF(ADJOINT_ROTATION.Key() == 0)
-    << "ADJOINT_ROTATION Key is 0. Check if the application was correctly registered." << std::endl;
-
-    // Check if the nodes have adjoint dofs.
-    for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
+    // Check dofs
+    for (unsigned int i = 0; i < r_geom.size(); i++)
     {
-        KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_X) == false
-                || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Y) == false
-                || this->GetGeometry()[iNode].HasDofFor(ADJOINT_DISPLACEMENT_Z) == false) << 
-                    "missing ADJOINT_DISPLACEMENT component degree of freedom on node " <<
-                    this->GetGeometry()[iNode].Id() << std::endl;
+        auto& r_node = r_geom[i];
 
-        KRATOS_ERROR_IF(this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_X) == false
-                || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Y) == false
-                || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Z) == false) << 
-            "missing ADJOINT_ROTATION component degree of freedom on node " <<
-            this->GetGeometry()[iNode].Id() << std::endl;
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
 
-        KRATOS_ERROR_IF_NOT( this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) )
-        << "missing DISPLACEMENT variable on solution step data for node " << this->GetGeometry()[iNode].Id() << std::endl;				
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node);
     }
 
     return 0;
