@@ -391,7 +391,7 @@ double CompressibleNavierStokes<3>::ShockCapturingViscosity(const ElementDataStr
     //substitute_res_m_3D
 
     double norm_res_m;
-    norm_res_m = sqrt(res_m(0,0)*res_m(0,0)+res_m(1,0)*res_m(1,0);
+    norm_res_m = sqrt(res_m(0,0)*res_m(0,0)+res_m(1,0)*res_m(1,0));
 
     double norm_gradm = 0.0;                                    // Frobenius norm of momentum gradient
     for (unsigned int i=1; i<dim+1; i++){
@@ -453,7 +453,7 @@ double CompressibleNavierStokes<2>::ShockCapturingViscosity(const ElementDataStr
     //substitute_res_m_2D
 
     double norm_res_m;
-    norm_res_m = sqrt(res_m(0,0)*res_m(0,0)+res_m(1,0)*res_m(1,0);
+    norm_res_m = sqrt(res_m(0,0)*res_m(0,0)+res_m(1,0)*res_m(1,0));
 
     double norm_gradm = 0.0;                                    // Frobenius norm of momentum gradient
     for (unsigned int i=1; i<dim+1; i++){
@@ -514,7 +514,7 @@ double CompressibleNavierStokes<3>::ShockCapturingConductivity(const ElementData
     //substitute_res_e_3D
 
     double norm_res_e;
-    norm_res_e = sqrt(res_e(0,0)*res_e(0,0);
+    norm_res_e = sqrt(res_e(0,0)*res_e(0,0));
 
     double norm_grade = 0.0;              // Frobenius norm of total energy gradient
     for (unsigned int i=0; i<dim; i++)
@@ -574,7 +574,7 @@ double CompressibleNavierStokes<2>::ShockCapturingConductivity(const ElementData
     //substitute_res_e_2D
 
     double norm_res_e;
-    norm_res_e = sqrt(res_e(0,0)*res_e(0,0);
+    norm_res_e = sqrt(res_e(0,0)*res_e(0,0));
 
     double norm_grade = 0.0;              // Frobenius norm of total energy gradient
     for (unsigned int i=0; i<dim; i++)
