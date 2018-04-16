@@ -20,6 +20,7 @@
 #include "point_load_adjoint_condition.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -241,21 +242,21 @@ namespace Kratos
 
     int PointLoadAdjointCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     {
-        KRATOS_ERROR_IF( ADJOINT_DISPLACEMENT.Key() == 0 )
-        <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-        KRATOS_ERROR_IF( DISPLACEMENT.Key() == 0 )
-        <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
+        // verify that the variables are correctly initialized
+        KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
+        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
 
-        //verify that the dofs exist
-        for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
+        // Check dofs
+        GeometryType& r_geom = GetGeometry();
+        for (unsigned int i = 0; i < r_geom.size(); i++)
         {
-            KRATOS_ERROR_IF( this->GetGeometry()[i].SolutionStepsDataHas( ADJOINT_DISPLACEMENT ) == false )
-            << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
+            auto& r_node = r_geom[i];
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
 
-            KRATOS_ERROR_IF( this->GetGeometry()[i].HasDofFor( ADJOINT_DISPLACEMENT_X ) == false ||
-                 this->GetGeometry()[i].HasDofFor( ADJOINT_DISPLACEMENT_Y ) == false ||
-                 this->GetGeometry()[i].HasDofFor( ADJOINT_DISPLACEMENT_Z ) == false )
-            << "missing one of the dofs for the variable ADJOINT_DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
         }
 
         return 0;
