@@ -74,34 +74,6 @@ class ManufacturedSolutionTestFactory(KratosUnittest.TestCase):
 class EmbeddedArtificialCompressibilityTest(EmbeddedTestFactory):
     file_name = "EmbeddedArtificialCompressibilityTest/EmbeddedArtificialCompressibilityTest"
 
-
-class EmbeddedCouette2DTest(EmbeddedTestFactory):
-    file_name = "EmbeddedCouette2DTest/EmbeddedCouette2DTest"
-
-
-class EmbeddedCouette3DTest(EmbeddedTestFactory):
-    file_name = "EmbeddedCouette3DTest/EmbeddedCouette3DTest"
-
-
-class EmbeddedCouette2DImposedTest(EmbeddedTestFactory):
-    file_name = "EmbeddedCouetteImposed2DTest/EmbeddedCouetteImposed2DTest"
-
-
-class EmbeddedCouette3DImposedTest(EmbeddedTestFactory):
-    file_name = "EmbeddedCouetteImposed3DTest/EmbeddedCouetteImposed3DTest"
-
-
-class EmbeddedReservoirTest(EmbeddedTestFactory):
-    file_name = "EmbeddedReservoirTest/EmbeddedReservoirTest"
-
-
-class EmbeddedSlipBoundaryConditionTest(EmbeddedTestFactory):
-    file_name = "EmbeddedSlipBoundaryConditionTest/EmbeddedSlipBoundaryConditionTest"
-
-
-class EmbeddedSlipReservoirTest(EmbeddedTestFactory):
-    file_name = "EmbeddedSlipReservoirTest/EmbeddedSlipReservoirTest"
-
     
 @KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
 class ManufacturedSolutionTest(ManufacturedSolutionTestFactory):

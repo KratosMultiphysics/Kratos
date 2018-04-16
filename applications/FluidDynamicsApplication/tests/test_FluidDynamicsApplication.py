@@ -8,12 +8,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
 from SmallTests import EmbeddedArtificialCompressibilityTest as TEmbeddedArtificialCompressibilityTest
-from SmallTests import EmbeddedCouette2DTest as TEmbeddedCouette2DTest
-from SmallTests import EmbeddedCouette3DTest as TEmbeddedCouette3DTest
-from SmallTests import EmbeddedCouette2DImposedTest as TEmbeddedCouette2DImposedTest
-from SmallTests import EmbeddedCouette3DImposedTest as TEmbeddedCouette3DImposedTest
-from SmallTests import EmbeddedSlipReservoirTest as TEmbeddedSlipReservoirTest
-from SmallTests import EmbeddedSlipBoundaryConditionTest as TEmbeddedSlipBoundaryConditionTest
 from SmallTests import ManufacturedSolutionTest as TManufacturedSolutionTest
 from SmallTests import NavierStokesWallConditionTest as TNavierStokesWallConditionTest
 
@@ -24,6 +18,7 @@ from time_integrated_fluid_element_test import TimeIntegratedFluidElementTest
 from darcy_channel_test import DarcyChannelTest
 from embedded_reservoir_test import EmbeddedReservoirTest
 from embedded_couette_test import EmbeddedCouetteTest
+from embedded_couette_imposed_test import EmbeddedCouetteImposedTest
 
 ## NIGTHLY TESTS
 
@@ -45,19 +40,16 @@ def AssambleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
-    # smallSuite.addTest(TEmbeddedArtificialCompressibilityTest('test_execution'))
-    # smallSuite.addTest(TEmbeddedCouette2DTest('test_execution'))
-    # smallSuite.addTest(TEmbeddedCouette2DImposedTest('test_execution'))
-    # smallSuite.addTest(TEmbeddedSlipBoundaryConditionTest('test_execution'))
-    # smallSuite.addTest(TManufacturedSolutionTest('test_execution'))
-    # smallSuite.addTest(TNavierStokesWallConditionTest('test_execution'))
-    # smallSuite.addTest(BuoyancyTest('testEulerian'))
-    # smallSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
-    # smallSuite.addTest(FluidElementTest('testCavity'))
-    # smallSuite.addTest(FluidElementTest('testCavityOSS'))
-    # smallSuite.addTest(TimeIntegratedFluidElementTest('testCavity'))
-    # smallSuite.addTest(TimeIntegratedFluidElementTest('testSymbolic'))
-    # smallSuite.addTest(DarcyChannelTest('testDarcyDensity'))
+    smallSuite.addTest(TEmbeddedArtificialCompressibilityTest('test_execution'))
+    smallSuite.addTest(TManufacturedSolutionTest('test_execution'))
+    smallSuite.addTest(TNavierStokesWallConditionTest('test_execution'))
+    smallSuite.addTest(BuoyancyTest('testEulerian'))
+    smallSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
+    smallSuite.addTest(FluidElementTest('testCavity'))
+    smallSuite.addTest(FluidElementTest('testCavityOSS'))
+    smallSuite.addTest(TimeIntegratedFluidElementTest('testCavity'))
+    smallSuite.addTest(TimeIntegratedFluidElementTest('testSymbolic'))
+    smallSuite.addTest(DarcyChannelTest('testDarcyDensity'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedCouette2D'))
@@ -65,6 +57,7 @@ def AssambleTestSuites():
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedDevelopmentCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipDevelopmentCouette2D'))
+    smallSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed2D'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -74,22 +67,21 @@ def AssambleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
-    #validationSuite.addTest(VolumeSourceTest('validationEulerian'))
+    validationSuite.addTest(VolumeSourceTest('validationEulerian'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
-    # allSuite.addTest(DarcyChannelTest('testDarcyLinear'))
-    # allSuite.addTest(DarcyChannelTest('testDarcyNonLinear'))
-    # allSuite.addTest(TEmbeddedCouette3DTest('test_execution'))
-    # allSuite.addTest(TEmbeddedCouette3DImposedTest('test_execution'))
-    # allSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir3D'))
-    # allSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir3D'))
-    # allSuite.addTest(EmbeddedCouetteTest('testEmbeddedCouette3D'))
-    # allSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipCouette3D'))
-    # allSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasCouette3D'))
-    # allSuite.addTest(EmbeddedCouetteTest('testEmbeddedDevelopmentCouette3D'))
-    # allSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipDevelopmentCouette3D'))
+    allSuite.addTest(DarcyChannelTest('testDarcyLinear'))
+    allSuite.addTest(DarcyChannelTest('testDarcyNonLinear'))
+    allSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir3D'))
+    allSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir3D'))
+    allSuite.addTest(EmbeddedCouetteTest('testEmbeddedCouette3D'))
+    allSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipCouette3D'))
+    allSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasCouette3D'))
+    allSuite.addTest(EmbeddedCouetteTest('testEmbeddedDevelopmentCouette3D'))
+    allSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipDevelopmentCouette3D'))
+    allSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed3D'))
 
     return suites
 

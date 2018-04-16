@@ -1,11 +1,11 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "embedded_slip_boundary_condition",
+        "problem_name"    : "couette_imposed_3d",
         "model_part_name" : "MainModelPart",
         "parallel_type"   : "OpenMP",
         "domain_size"     : 3,
         "start_step"      : 0.0,
-        "end_time"        : 5.0
+        "end_time"        : 200.0
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -37,9 +37,9 @@
         "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "EmbeddedSlipBoundaryConditionTest/slip_boundary_condition"
+            "input_filename" : "couette_imposed_3D"
         },
-        "dynamic_tau"                  : 0.01,
+        "dynamic_tau"                  : 1.0,
         "relative_velocity_tolerance"  : 1e-5,
         "absolute_velocity_tolerance"  : 1e-7,
         "relative_pressure_tolerance"  : 1e-5,
@@ -48,22 +48,38 @@
             "solver_type"         : "SuperLUSolver"
         },
         "volume_model_part_name"       : "Parts_Fluid",
-        "skin_parts"                   : ["Inlet3D","Outlet3D","Top3D","Sides3D"],
+        "skin_parts"                   : ["Inlet","Outlet3D","Sides3D","Bot3D"],
         "no_skin_parts"                : [],
         "time_stepping"                : {
             "automatic_time_step" : false,
-            "time_step"           : 0.1
+            "time_step"           : 100.0
         }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "embedded_slip_boundary_condition_test_local_process",
+        "python_module" : "apply_outlet_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "EmbeddedSlipBoundaryConditionTestLocalProcess",
+        "process_name"  : "ApplyOutletProcess",
         "Parameters"    : {
-            "distance_inlet"         : 0.25,
-            "distance_outlet"        : 0.25,
-            "fluid_model_part_name"  : "Parts_Fluid"
+            "model_part_name" : "Outlet3D",
+            "value"           : 0
+        }
+    },{
+        "python_module" : "apply_noslip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyNoSlipProcess",
+        "Parameters"    : {
+            "model_part_name" : "Bot3D"
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Sides3D",
+            "variable_name"   : "VELOCITY",
+            "value"           : [null, 0.0, 0.0],
+            "constrained"     : [false,true,true]
         }
     },{
         "python_module" : "assign_vector_variable_process",
@@ -76,34 +92,26 @@
             "constrained"     : [false,true,true]
         }
     },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "model_part_name" : "Sides3D",
-            "variable_name"   : "VELOCITY",
-            "value"           : [null, 0.0, null],
-            "constrained"     : [false,true,false]
-        }
-    },{
         "python_module" : "apply_distance_modification_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "ApplyDistanceModificationProcess",
         "Parameters"    : {
-            "model_part_name"           : "Parts_Fluid",
-            "check_at_each_time_step"   : false
+            "model_part_name"                        : "Parts_Fluid",
+            "check_at_each_time_step"                : false,
+            "avoid_almost_empty_elements"            : true,
+            "deactivate_full_negative_elements"      : true,
+            "recover_original_distance_at_each_step" : false
         }
     }],
     "gravity"                          : [{
-        "python_module" : "assign_vector_by_direction_process",
+        "python_module" : "process_factory",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorByDirectionProcess",
+        "process_name"  : "ApplyConstantVectorValueProcess",
         "Parameters"    : {
             "model_part_name" : "Parts_Fluid",
             "variable_name"   : "BODY_FORCE",
             "modulus"         : 0.0,
-            "constrained"     : false,
-            "direction"       : [0.0,0.0,-1.0]
+            "direction"       : [0.0,-1.0,0.0]
         }
     }]
 }
