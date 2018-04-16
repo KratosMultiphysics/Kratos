@@ -219,9 +219,9 @@ namespace Kratos
             PointLoadCondition::CalculateAll(dummy_LHS, RHS, copy_process_info, false, true);
 
             int k = 0;
-            for(unsigned int i = 0; i < RHS.size();++i)
+            for(unsigned int i = 0; i < RHS.size(); ++i)
             {
-                if( abs(RHS[i]) > 1e-12)
+                if( RHS[i] > 1e-12 || RHS[i] < -1e-12 )
                     rOutput(k, i) = 1.0; // or is it sign dependent?
                 k++;
             }
