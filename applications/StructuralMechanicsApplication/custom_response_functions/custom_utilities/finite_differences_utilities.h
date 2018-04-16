@@ -120,10 +120,10 @@ public:
     void SetDerivedObject(std::string _DerivedObject) { mDerivedObject = _DerivedObject; }
     std::string GetDerivedObject() { return mDerivedObject; }
 
-    void DisturbElementDesignVariable(Element& rTracedElement,std::string variable_label , double DisturbanceMeasure )
+    void DisturbElementDesignVariable(Element& rTracedElement,std::string VariableLabel , double DisturbanceMeasure )
     {
         const Variable<double> & rDesignVariable =
-                 KratosComponents<Variable<double> >::Get(variable_label);
+                 KratosComponents<Variable<double> >::Get(VariableLabel);
 
         if ( rTracedElement.GetProperties().Has(rDesignVariable) )
         {
@@ -162,8 +162,8 @@ public:
     Vector GetStressResultantBeam(Element& rTracedElement, std::string location, std::string stress_label,
                                     const ProcessInfo& rCurrentProcessInfo )
     {
-        Vector OutputVector;
-        OutputVector.clear();
+        Vector output_vector;
+        output_vector.clear();
         if(location == "STRESS_ON_GP" || location == "STRESS_ON_NODE")
         {
             std::string traced_stress_type = stress_label;
@@ -194,20 +194,20 @@ public:
             {
                 const unsigned int&  GP_num = rTracedElement.GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
 
-                OutputVector.resize(GP_num);
+                output_vector.resize(GP_num);
                 for(unsigned int i = 0; i < GP_num ; i++)
                 {
-                    OutputVector(i) = stress_vector[i][direction_1];
+                    output_vector(i) = stress_vector[i][direction_1];
                 }
             }
             else if(location == "STRESS_ON_NODE")
             {
-                OutputVector.resize(2);
-                OutputVector(0) = 2 * stress_vector[0][direction_1] - stress_vector[1][direction_1];
-                OutputVector(1) = 2 * stress_vector[2][direction_1] - stress_vector[1][direction_1];
+                output_vector.resize(2);
+                output_vector(0) = 2 * stress_vector[0][direction_1] - stress_vector[1][direction_1];
+                output_vector(1) = 2 * stress_vector[2][direction_1] - stress_vector[1][direction_1];
             }
         }
-        return OutputVector;
+        return output_vector;
 
     }
 
@@ -216,7 +216,7 @@ public:
     {
         KRATOS_TRY;
 
-        Vector OutputVector;
+        Vector output_vector;
         if(location == "STRESS_ON_GP")
         {
             std::string traced_stress_type = stress_label;
@@ -254,19 +254,19 @@ public:
                 KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;
 
             unsigned int num_GP = stress_vector.size();
-            OutputVector.resize(num_GP);
+            output_vector.resize(num_GP);
             for(size_t i = 0; i < num_GP; i++)
             {
-                OutputVector(i) = stress_vector[i](direction_1, direction_2);
+                output_vector(i) = stress_vector[i](direction_1, direction_2);
             }
         }
         else
         {
-            OutputVector.resize(1);
-            OutputVector.clear();
+            output_vector.resize(1);
+            output_vector.clear();
         }
 
-        return OutputVector;
+        return output_vector;
 
         KRATOS_CATCH("")
     }
@@ -293,7 +293,7 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
         double strain_energy = 0.0;
 
         // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
@@ -306,7 +306,7 @@ public:
             // Get state solution relevant for energy calculation
             elem_i->GetValuesVector(u,0);
 
-            elem_i->CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
+            elem_i->CalculateLocalSystem(LHS,RHS,r_current_process_info);
 
             // Compute strain energy
             strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
