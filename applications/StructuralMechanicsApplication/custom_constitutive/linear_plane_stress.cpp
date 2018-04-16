@@ -97,9 +97,9 @@ void LinearPlaneStress::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Param
 
     this->CheckClearElasticMatrix(C);
 
-    double c1 = E / (1.00 - NU * NU);
-    double c2 = c1 * NU;
-    double c3 = 0.5*E / (1 + NU);
+    const double c1 = E / (1.00 - NU * NU);
+    const double c2 = c1 * NU;
+    const double c3 = 0.5*E / (1 + NU);
 
     C(0, 0) = c1;
     C(0, 1) = c2;
@@ -121,9 +121,9 @@ void LinearPlaneStress::CalculatePK2Stress(
     const double E = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
-    double c1 = E / (1.00 - NU * NU);
-    double c2 = c1 * NU;
-    double c3 = 0.5* E / (1 + NU);
+    const double c1 = E / (1.00 - NU * NU);
+    const double c2 = c1 * NU;
+    const double c3 = 0.5* E / (1 + NU);
 
     rStressVector[0] = c1 * rStrainVector[0] + c2 * rStrainVector[1];
     rStressVector[1] = c2 * rStrainVector[0] + c1 * rStrainVector[1];

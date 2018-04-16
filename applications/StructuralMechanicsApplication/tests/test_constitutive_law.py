@@ -391,7 +391,7 @@ class UniaxialLinearElasticPlaneStress2D(UniaxialDeformation):
 
 class UniaxialElasticPlaneStressUncoupledShear2D(UniaxialLinearElasticPlaneStress2D):
     def __init__(self, deltaDef):
-        UniaxialDeformation.__init__(self, deltaDef)
+        UniaxialLinearElasticPlaneStress2D.__init__(self, deltaDef)
         self.cl = ElasticPlaneStressUncoupledShear2D()
 
 class SimpleShearDeformation(Deformation):
@@ -523,7 +523,6 @@ class ShearPlusStrechHyperElastic3D(ShearPlusStrechDeformation):
         self.cl = HyperElastic3D()
 
     def get_reference_stress(self, i):
-        lame_lambda = (self.cl.young_modulus * self.cl.poisson_ratio) / ((1.0 + self.cl.poisson_ratio) * (1.0 - 2.0 * self.cl.poisson_ratio))
         lame_mu = self.cl.young_modulus / (2.0 * (1.0 + self.cl.poisson_ratio))
         x1beta = self.x1beta
         x2beta = self.x2beta

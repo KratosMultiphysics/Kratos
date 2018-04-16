@@ -83,16 +83,16 @@ int ElasticIsotropicPlaneStressUncoupledShear::Check(
 void ElasticIsotropicPlaneStressUncoupledShear::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double& E = r_material_properties[YOUNG_MODULUS];
-    const double& NU = r_material_properties[POISSON_RATIO];
-    const double& G = r_material_properties[SHEAR_MODULUS];
-    const double& G1 = r_material_properties[SHEAR_MODULUS_GAMMA12];
-    const double& G2 = r_material_properties[SHEAR_MODULUS_GAMMA12_2];
-    const double& G3 = r_material_properties[SHEAR_MODULUS_GAMMA12_3];
-    const double& G4 = r_material_properties[SHEAR_MODULUS_GAMMA12_4];
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
+    const double G = r_material_properties[SHEAR_MODULUS];
+    const double G1 = r_material_properties[SHEAR_MODULUS_GAMMA12];
+    const double G2 = r_material_properties[SHEAR_MODULUS_GAMMA12_2];
+    const double G3 = r_material_properties[SHEAR_MODULUS_GAMMA12_3];
+    const double G4 = r_material_properties[SHEAR_MODULUS_GAMMA12_4];
 
     const Vector& r_strain_vector = rValues.GetStrainVector();
-    double abs_gamma12 = std::abs(r_strain_vector(2));
+    const double abs_gamma12 = std::abs(r_strain_vector(2));
 
     this->CheckClearElasticMatrix(C);
 
@@ -102,13 +102,38 @@ void ElasticIsotropicPlaneStressUncoupledShear::CalculateElasticMatrix(Matrix& C
 
     C(0,0) = c1;
     C(0,1) = c2;
-    C(0,2) = 0.0;
     C(1,0) = c2;
     C(1,1) = c1;
-    C(1,2) = 0.0;
-    C(2,0) = 0.0;
-    C(2,1) = 0.0;
     C(2,2) = c3;
     }
+
+//************************************************************************************
+//************************************************************************************
+
+void ElasticIsotropicPlaneStressUncoupledShear::CalculatePK2Stress(
+    const Vector& rStrainVector,
+    Vector& rStressVector,
+    ConstitutiveLaw::Parameters& rValues
+)
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
+    const double G = r_material_properties[SHEAR_MODULUS];
+    const double G1 = r_material_properties[SHEAR_MODULUS_GAMMA12];
+    const double G2 = r_material_properties[SHEAR_MODULUS_GAMMA12_2];
+    const double G3 = r_material_properties[SHEAR_MODULUS_GAMMA12_3];
+    const double G4 = r_material_properties[SHEAR_MODULUS_GAMMA12_4];
+
+    const double abs_gamma12 = std::abs(rStrainVector(2));
+
+    const double c1 = E / (1.00 - NU * NU);
+    const double c2 = c1 * NU;
+    const double c3 = G + G1 * abs_gamma12 + G2 * std::pow(abs_gamma12,2) + G3 * std::pow(abs_gamma12, 3) + G4 * std::pow(abs_gamma12, 4);
+
+    rStressVector[0] = c1 * rStrainVector[0] + c2 * rStrainVector[1];
+    rStressVector[1] = c2 * rStrainVector[0] + c1 * rStrainVector[1];
+    rStressVector[2] = c3 * rStrainVector[2];
+}
 
 } // Namespace Kratos
