@@ -160,6 +160,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
     {
+        std::cout<<" inside Res Base Builder and solver for chimera "<<std::endl;
     }
 
     /** Destructor.

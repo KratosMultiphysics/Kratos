@@ -136,7 +136,7 @@ namespace Python
     class_ < BaseSettingsType >(m, "BaseSettingsType");
 
     // Fractional step settings
-    enum_<FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel>(m,"StrategyLabel")
+    enum_<FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel>(m,"ChimeraStrategyLabel")
         .value("Velocity",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::Velocity)
         .value("Pressure",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::Pressure)
         //.value("EddyViscosity",FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)

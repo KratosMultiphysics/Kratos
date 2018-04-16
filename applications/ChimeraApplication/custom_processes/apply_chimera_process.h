@@ -124,7 +124,8 @@ class ApplyChimeraProcess : public Process
                                   },
 					"pressure_coupling_node" : 0.0,
                     "patch_boundary_model_part_name":"GENERIC_patchBoundary",
-                    "overlap_distance":0.045
+					"overlap_distance":0.045,
+					"solution_strategy":"monolithic"
             })");
 
 		m_background_model_part_name = m_parameters["background"]["model_part_name"].GetString();
@@ -168,7 +169,21 @@ class ApplyChimeraProcess : public Process
 		else
 		{
 
-			std::cout<<"Solution strategy recieved from chimera parameters is "<<m_solution_strategy_name<<"And you havent implemented it yet "<<std::endl;
+			std::cout<<"Rishith : Solution strategy recieved from chimera parameters is "<<m_solution_strategy_name<<"And you havent implemented it yet "<<std::endl;
+
+			this->pMpcPatch = MpcDataPointerType(new MpcData(m_type_patch));
+			this->pMpcBackground = MpcDataPointerType(new MpcData(m_type_background));
+			this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
+			this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
+
+			this->pMpcPatch->SetName(m_patch_model_part_name);
+			this->pMpcBackground->SetName(m_background_model_part_name);
+			this->pMpcPatch->SetActive(true);
+			this->pMpcBackground->SetActive(true);
+
+			MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
+			(*mpcDataVector).push_back(pMpcPatch);
+			(*mpcDataVector).push_back(pMpcBackground);
 
 			/* this->pMpcPatchVelocity = MpcDataPointerType(new MpcData(m_type_patch));
 			this->pMpcPatchPressure = MpcDataPointerType(new MpcData(m_type_patch));

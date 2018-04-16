@@ -164,7 +164,6 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
                                                                         self.settings["move_mesh_flag"].GetBool(),
                                                                         self.settings["reform_dofs_at_each_step"].GetBool())
             else:
-                print("Yes am here ...................")
                 self.solver_settings = KratosChimera.FractionalStepSettingsForChimera(self.computing_model_part,
                                                                         self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                         self.settings["time_order"].GetInt(),
@@ -174,12 +173,12 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
 
         self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        self.solver_settings.SetStrategy(KratosCFD.StrategyLabel.Velocity,
+        self.solver_settings.SetStrategy(KratosChimera.ChimeraStrategyLabel.Velocity,
                                          self.velocity_linear_solver,
                                          self.settings["velocity_tolerance"].GetDouble(),
                                          self.settings["maximum_velocity_iterations"].GetInt())
 
-        self.solver_settings.SetStrategy(KratosCFD.StrategyLabel.Pressure,
+        self.solver_settings.SetStrategy(KratosChimera.ChimeraStrategyLabel.Pressure,
                                          self.pressure_linear_solver,
                                          self.settings["pressure_tolerance"].GetDouble(),
                                          self.settings["maximum_pressure_iterations"].GetInt())
@@ -191,9 +190,13 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
                                                self.settings["predictor_corrector"].GetBool(),
                                                KratosCFD.PATCH_INDEX)
         else:
-            self.solver = KratosCFD.FSStrategy(self.computing_model_part,
+            print("its here now !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print(self.computing_model_part)
+            print(self.solver_settings)
+            self.solver = KratosChimera.FSStrategyForChimera(self.computing_model_part,
                                                self.solver_settings,
                                                self.settings["predictor_corrector"].GetBool())
+            print("its not yet here !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())

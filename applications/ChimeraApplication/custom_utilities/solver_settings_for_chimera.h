@@ -1,5 +1,5 @@
-#ifndef KRATOS_SOLVER_SETTINGS_H
-#define KRATOS_SOLVER_SETTINGS_H
+#ifndef KRATOS_SOLVER_SETTINGS_FOR_CHIMERA_H
+#define KRATOS_SOLVER_SETTINGS_FOR_CHIMERA_H
 
 // System includes
 #include <string>
@@ -86,7 +86,9 @@ public:
         mUseSlip(UseSlip),
         mReformDofSet(ReformDofSet),
         mMoveMeshFlag(MoveMeshFlag)
-    {}
+    {
+        std::cout<<"Initialising solver settings from fract sett constructor step for chimera, inside constructor"<<std::endl;
+    }
 
     /// Destructor.
     virtual ~SolverSettingsForChimera(){}
@@ -398,4 +400,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SOLVER_SETTINGS_H
+#endif // KRATOS_SOLVER_SETTINGS_FOR_CHIMERA_H

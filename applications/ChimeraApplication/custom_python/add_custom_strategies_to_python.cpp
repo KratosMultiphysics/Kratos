@@ -24,6 +24,7 @@
 
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/strategies/fs_strategy_for_chimera.h"
 
 //#include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 //#include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
@@ -54,23 +55,33 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-  
+
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     // Custom convergence criterion types
 
     // Custom builder and solvers types
-    
+
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
-   
+    class_< FSStrategyForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType >,
+                typename FSStrategyForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType >::Pointer,
+                BaseSolvingStrategyType >
+                (m,"FSStrategyForChimera")
+                .def(init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,bool,double,double,int,int,unsigned int,unsigned int,bool>())
+                .def(init< ModelPart&, SolverSettingsForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool >() )
+                .def(init< ModelPart&, SolverSettingsForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool, const Kratos::Variable<int>& >() )
+                .def("CalculateReactions",&FSStrategyForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateReactions)
+                .def("AddIterationStep",&FSStrategyForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::AddIterationStep)
+                .def("ClearExtraIterationSteps",&FSStrategyForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::ClearExtraIterationSteps)
+                ;
 
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
-            
+
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
@@ -83,6 +94,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
      typename ResidualBasedBlockBuilderAndSolverWithMpcChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
                 ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >(m,"ResidualBasedBlockBuilderAndSolverWithMpcChimera")
                 .def(init<LinearSolverType::Pointer>());
+
+
 }
 
 }  // namespace Python.
