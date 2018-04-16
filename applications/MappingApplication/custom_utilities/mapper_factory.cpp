@@ -18,22 +18,26 @@
 // External includes
 
 // Project includes
+#include "spaces/ublas_space.h"
+
 #include "mapper_factory.h"
 #include "custom_utilities/mapper_utilities.h"
 
 
 namespace Kratos
 {
-    Mapper::Pointer MapperFactory::CreateMapper(ModelPart& rModelPartOrigin,
-                                                ModelPart& rModelPartDestination,
-                                                Parameters MapperSettings)
+    template<class TSparseSpace, class TDenseSpace>
+    typename Mapper<TSparseSpace, TDenseSpace>::Pointer MapperFactory::CreateMapper(
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        Parameters MapperSettings)
     {
         ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, MapperSettings, "origin");
         ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, MapperSettings, "destination");
 
         const std::string mapper_name = MapperSettings["mapper_type"].GetString();
 
-        const auto& mapper_list = GetRegisteredMappersList();
+        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
 
         if (mapper_list.find(mapper_name) != mapper_list.end())
         {
@@ -62,10 +66,12 @@ namespace Kratos
         }
     }
 
+    template<class TSparseSpace, class TDenseSpace>
     void MapperFactory::Register(const std::string& rMapperName,
-                                 Mapper::Pointer pMapperPrototype)
+                                 typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype)
     {
-        GetRegisteredMappersList().insert(make_pair(rMapperName, pMapperPrototype)); // TODO std::?
+        GetRegisteredMappersList<TSparseSpace, TDenseSpace>().insert(
+            make_pair(rMapperName, pMapperPrototype)); // TODO std::?
     }
 
     ModelPart& MapperFactory::ReadInterfaceModelPart(ModelPart& rModelPart,
@@ -106,70 +112,101 @@ namespace Kratos
         }
     }
 
-    // // CommRank is used as input bcs the MyPID function of the non-MPI MapperCommunicator is used
-    // // since this function is called before the MapperMPICommunicato is initialized
-    // void CheckInterfaceModelParts(const int CommRank)
+    /* // CommRank is used as input bcs the MyPID function of the non-MPI MapperCommunicator is used
+    // since this function is called before the MapperMPICommunicato is initialized
+    void CheckInterfaceModelParts(const int CommRank)
+    {
+        const int num_nodes_origin = MapperUtilities::ComputeNumberOfNodes(mrModelPartOrigin);
+        const int num_conditions_origin = MapperUtilities::ComputeNumberOfConditions(mrModelPartOrigin);
+        const int num_elements_origin = MapperUtilities::ComputeNumberOfElements(mrModelPartOrigin);
+
+        const int num_nodes_destination = MapperUtilities::ComputeNumberOfNodes(mrModelPartDestination);
+        const int num_conditions_destination = MapperUtilities::ComputeNumberOfConditions(mrModelPartDestination);
+        const int num_elements_destination = MapperUtilities::ComputeNumberOfElements(mrModelPartDestination);
+
+        // Check if the ModelPart contains entities
+        KRATOS_ERROR_IF(num_nodes_origin + num_conditions_origin + num_elements_origin < 1)
+            << "Neither Nodes nor Conditions nor Elements found "
+            << "in the Origin ModelPart" << std::endl;
+
+        KRATOS_ERROR_IF(num_nodes_destination + num_conditions_destination + num_elements_destination < 1)
+            << "Neither Nodes nor Conditions nor Elements found "
+            << "in the Destination ModelPart" << std::endl;
+
+        // Check if the inpt ModelParts contain both Elements and Conditions
+        // This is NOT possible, bcs the InterfaceObjects are constructed
+        // with whatever exists in the Modelpart (see the InterfaceObjectManagerBase,
+        // function "InitializeInterfaceGeometryObjectManager")
+        KRATOS_ERROR_IF(num_conditions_origin > 0 && num_elements_origin > 0)
+            << "Origin ModelPart contains both Conditions and Elements "
+            << "which is not permitted" << std::endl;
+
+        KRATOS_ERROR_IF(num_conditions_destination > 0 && num_elements_destination > 0)
+            << "Destination ModelPart contains both Conditions and Elements "
+            << "which is not permitted" << std::endl;
+
+        if (mEchoLevel >= 2) {
+            std::vector<double> model_part_origin_bbox = MapperUtilities::ComputeModelPartBoundingBox(mrModelPartOrigin);
+            std::vector<double> model_part_destination_bbox = MapperUtilities::ComputeModelPartBoundingBox(mrModelPartDestination);
+
+            bool bbox_overlapping = MapperUtilities::ComputeBoundingBoxIntersection(
+                                                        model_part_origin_bbox,
+                                                        model_part_destination_bbox);
+            if(CommRank == 0)
+            {
+                if (!bbox_overlapping) {
+                    std::cout << "MAPPER WARNING, the bounding boxes of the "
+                              << "Modelparts do not overlap! "
+                              << MapperUtilities::PrintModelPartBoundingBoxes(model_part_origin_bbox,
+                                                                              model_part_destination_bbox)
+                              << std::endl;
+                } else if (mEchoLevel >= 3)
+                {
+                    std::cout << MapperUtilities::PrintModelPartBoundingBoxes(model_part_origin_bbox,
+                                                                              model_part_destination_bbox)
+                              << std::endl;
+                }
+            }
+        }
+    }
+ */
+    // template<class TSparseSpace, class TDenseSpace>
+    // std::unordered_map<std::string, typename Mapper<TSparseSpace,
+    //     TDenseSpace>::Pointer>& MapperFactory::GetRegisteredMappersList()
     // {
-    //     const int num_nodes_origin = MapperUtilities::ComputeNumberOfNodes(mrModelPartOrigin);
-    //     const int num_conditions_origin = MapperUtilities::ComputeNumberOfConditions(mrModelPartOrigin);
-    //     const int num_elements_origin = MapperUtilities::ComputeNumberOfElements(mrModelPartOrigin);
+    //     static std::unordered_map<std::string, typename Mapper<TSparseSpace, TDenseSpace>::Pointer> registered_mappers;
 
-    //     const int num_nodes_destination = MapperUtilities::ComputeNumberOfNodes(mrModelPartDestination);
-    //     const int num_conditions_destination = MapperUtilities::ComputeNumberOfConditions(mrModelPartDestination);
-    //     const int num_elements_destination = MapperUtilities::ComputeNumberOfElements(mrModelPartDestination);
-
-    //     // Check if the ModelPart contains entities
-    //     KRATOS_ERROR_IF(num_nodes_origin + num_conditions_origin + num_elements_origin < 1)
-    //         << "Neither Nodes nor Conditions nor Elements found "
-    //         << "in the Origin ModelPart" << std::endl;
-
-    //     KRATOS_ERROR_IF(num_nodes_destination + num_conditions_destination + num_elements_destination < 1)
-    //         << "Neither Nodes nor Conditions nor Elements found "
-    //         << "in the Destination ModelPart" << std::endl;
-
-    //     // Check if the inpt ModelParts contain both Elements and Conditions
-    //     // This is NOT possible, bcs the InterfaceObjects are constructed
-    //     // with whatever exists in the Modelpart (see the InterfaceObjectManagerBase,
-    //     // function "InitializeInterfaceGeometryObjectManager")
-    //     KRATOS_ERROR_IF(num_conditions_origin > 0 && num_elements_origin > 0)
-    //         << "Origin ModelPart contains both Conditions and Elements "
-    //         << "which is not permitted" << std::endl;
-
-    //     KRATOS_ERROR_IF(num_conditions_destination > 0 && num_elements_destination > 0)
-    //         << "Destination ModelPart contains both Conditions and Elements "
-    //         << "which is not permitted" << std::endl;
-
-    //     if (mEchoLevel >= 2) {
-    //         std::vector<double> model_part_origin_bbox = MapperUtilities::ComputeModelPartBoundingBox(mrModelPartOrigin);
-    //         std::vector<double> model_part_destination_bbox = MapperUtilities::ComputeModelPartBoundingBox(mrModelPartDestination);
-
-    //         bool bbox_overlapping = MapperUtilities::ComputeBoundingBoxIntersection(
-    //                                                     model_part_origin_bbox,
-    //                                                     model_part_destination_bbox);
-    //         if(CommRank == 0)
-    //         {
-    //             if (!bbox_overlapping) {
-    //                 std::cout << "MAPPER WARNING, the bounding boxes of the "
-    //                           << "Modelparts do not overlap! "
-    //                           << MapperUtilities::PrintModelPartBoundingBoxes(model_part_origin_bbox,
-    //                                                                           model_part_destination_bbox)
-    //                           << std::endl;
-    //             } else if (mEchoLevel >= 3)
-    //             {
-    //                 std::cout << MapperUtilities::PrintModelPartBoundingBoxes(model_part_origin_bbox,
-    //                                                                           model_part_destination_bbox)
-    //                           << std::endl;
-    //             }
-    //         }
-    //     }
+    //     return registered_mappers;
     // }
 
-    std::unordered_map<std::string, Mapper::Pointer>& MapperFactory::GetRegisteredMappersList()
+    // TODO is doing this ok or do I pollute the namespace?
+
+    typedef UblasSpace<double, CompressedMatrix, Vector> UblasSparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+
+    template<>
+    std::unordered_map<std::string, typename Mapper<UblasSparseSpaceType,
+        DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<UblasSparseSpaceType, DenseSpaceType>()
     {
-        static std::unordered_map<std::string, Mapper::Pointer> registered_mappers;
+        static std::unordered_map<std::string, typename Mapper<UblasSparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
 
         return registered_mappers;
     }
+
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+
+    template<>
+    std::unordered_map<std::string, typename Mapper<TrilinosSparseSpaceType,
+        DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<TrilinosSparseSpaceType, DenseSpaceType>()
+    {
+        static std::unordered_map<std::string, typename Mapper<TrilinosSparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
+
+        return registered_mappers;
+    }
+
+#endif
+
 
     bool MapperFactory::GetIsMPIExecution()
     {
@@ -182,11 +219,8 @@ namespace Kratos
             MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
             if (comm_size > 1) return true;
         }
-        return false;
-
-#else // serial compilation
-        return false;
 #endif
+        return false;
     }
 
 }  // namespace Kratos.

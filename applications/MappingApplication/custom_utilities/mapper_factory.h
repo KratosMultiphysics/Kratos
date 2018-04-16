@@ -85,12 +85,15 @@ public:
     ///@{
 
 
-    static Mapper::Pointer CreateMapper(ModelPart& rModelPartOrigin,
-                                        ModelPart& rModelPartDestination,
-                                        Parameters MapperSettings);
+    template<class TSparseSpace, class TDenseSpace>
+    static typename  Mapper<TSparseSpace, TDenseSpace>::Pointer CreateMapper(
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        Parameters MapperSettings);
 
+    template<class TSparseSpace, class TDenseSpace>
     static void Register(const std::string& rMapperName,
-                         Mapper::Pointer pMapperPrototype);
+                  typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype);
 
 
     ///@}
@@ -195,7 +198,9 @@ private:
                                              Parameters InterfaceParameters,
                                              const std::string& InterfaceSide);
 
-    static std::unordered_map<std::string, Mapper::Pointer>& GetRegisteredMappersList();
+    template<class TSparseSpace, class TDenseSpace>
+    static std::unordered_map<std::string, typename Mapper<TSparseSpace,
+        TDenseSpace>::Pointer>& GetRegisteredMappersList();
 
     static bool GetIsMPIExecution();
 
@@ -233,6 +238,24 @@ private:
 ///@}
 ///@name Input and output
 ///@{
+
+/* typedef UblasSpace<double, CompressedMatrix, Vector> UblasSparseSpaceType;
+typedef UblasSpace<double, Matrix, Vector> UblasDenseSpaceType;
+
+// template<>
+// inline MPI_Datatype MapperUtilitiesMPI::GetMPIDatatype<int>(const int& rValue)
+// {
+//     return MPI_INT ;
+// }
+
+template<>
+std::unordered_map<std::string, typename Mapper<UblasSparseSpaceType,
+    UblasDenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<UblasSparseSpaceType, UblasDenseSpaceType>()
+{
+    static std::unordered_map<std::string, typename Mapper<UblasSparseSpaceType, UblasDenseSpaceType>::Pointer> registered_mappers;
+
+    return registered_mappers;
+} */
 
 
 /// input stream function

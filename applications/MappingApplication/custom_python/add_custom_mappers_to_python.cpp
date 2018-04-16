@@ -18,6 +18,8 @@
 // External includes
 
 // Project includes
+#include "spaces/ublas_space.h"
+
 #include "custom_utilities/mapper_flags.h"
 #include "custom_python/add_custom_mappers_to_python.h"
 #include "custom_utilities/mapper_factory.h"
@@ -37,26 +39,30 @@ namespace Python
 {
 
 // Wrapper functions for taking a default argument for the flags // TODO inline? Jordi
-inline void UpdateInterfaceWithoutArgs(Mapper& dummy)
+template<class TSparseSpace, class TDenseSpace>
+inline void UpdateInterfaceWithoutArgs(Mapper<TSparseSpace, TDenseSpace>& dummy)
 {
     Kratos::Flags dummy_flags = Kratos::Flags();
     double dummy_search_radius = -1.0f;
     dummy.UpdateInterface(dummy_flags, dummy_search_radius);
 }
 
-inline void UpdateInterfaceWithOptions(Mapper& dummy, Kratos::Flags options)
+template<class TSparseSpace, class TDenseSpace>
+inline void UpdateInterfaceWithOptions(Mapper<TSparseSpace, TDenseSpace>& dummy, Kratos::Flags options)
 {
     double dummy_search_radius = -1.0f;
     dummy.UpdateInterface(options, dummy_search_radius);
 }
 
-inline void UpdateInterfaceWithSearchRadius(Mapper& dummy, double search_radius)
+template<class TSparseSpace, class TDenseSpace>
+inline void UpdateInterfaceWithSearchRadius(Mapper<TSparseSpace, TDenseSpace>& dummy, double search_radius)
 {
     Kratos::Flags dummy_flags = Kratos::Flags();
     dummy.UpdateInterface(dummy_flags, search_radius);
 }
 
-inline void MapWithoutOptionsScalar(Mapper& dummy,
+template<class TSparseSpace, class TDenseSpace>
+inline void MapWithoutOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& dummy,
          const Variable<double>& origin_variable,
          const Variable<double>& destination_variable)
 {
@@ -64,7 +70,8 @@ inline void MapWithoutOptionsScalar(Mapper& dummy,
     dummy.Map(origin_variable, destination_variable, dummy_flags);
 }
 
-inline void MapWithoutOptionsVector(Mapper& dummy,
+template<class TSparseSpace, class TDenseSpace>
+inline void MapWithoutOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy,
          const Variable< array_1d<double, 3> >& origin_variable,
          const Variable< array_1d<double, 3> >& destination_variable)
 {
@@ -72,7 +79,8 @@ inline void MapWithoutOptionsVector(Mapper& dummy,
     dummy.Map(origin_variable, destination_variable, dummy_flags);
 }
 
-inline void InverseMapWithoutOptionsScalar(Mapper& dummy,
+template<class TSparseSpace, class TDenseSpace>
+inline void InverseMapWithoutOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& dummy,
                 const Variable<double>& origin_variable,
                 const Variable<double>& destination_variable)
 {
@@ -80,7 +88,8 @@ inline void InverseMapWithoutOptionsScalar(Mapper& dummy,
     dummy.InverseMap(origin_variable, destination_variable, dummy_flags);
 }
 
-inline void InverseMapWithoutOptionsVector(Mapper& dummy,
+template<class TSparseSpace, class TDenseSpace>
+inline void InverseMapWithoutOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy,
                 const Variable< array_1d<double, 3> >& origin_variable,
                 const Variable< array_1d<double, 3> >& destination_variable)
 {
@@ -92,7 +101,10 @@ void  AddCustomMappersToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    void (Mapper::*pMapScalarOptions)(const Variable<double> &,
+    // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    // typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+
+    /* void (Mapper::*pMapScalarOptions)(const Variable<double> &,
             const Variable<double> &,
             Kratos::Flags)
         = &Mapper::Map;
@@ -153,7 +165,7 @@ void  AddCustomMappersToPython(pybind11::module& m)
 
     // Exposing the MapperFactory
     class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
-        .def_static("CreateMapper", &MapperFactory::CreateMapper);
+        .def_static("CreateMapper", &MapperFactory::CreateMapper); */
 }
 
 }  // namespace Python.

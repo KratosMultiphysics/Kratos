@@ -73,6 +73,7 @@ namespace Kratos
 * look into the class description of the MapperCommunicator
 */
 
+template<class TSparseSpace, class TDenseSpace>
 class Mapper
 {
 public:
@@ -136,7 +137,7 @@ public:
                             const Variable< array_1d<double, 3> >& rDestinationVariable,
                             Kratos::Flags MappingOptions);
 
-    virtual Mapper::Pointer Clone(ModelPart& rModelPartOrigin,
+    virtual Mapper<TSparseSpace, TDenseSpace>::Pointer Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters,
                                   const bool IsMPIExecution) = 0;

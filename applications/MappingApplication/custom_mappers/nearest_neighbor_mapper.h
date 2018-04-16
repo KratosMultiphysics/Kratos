@@ -54,7 +54,8 @@ namespace Kratos
 * look into the class description of the MapperCommunicator
 */
 
-class NearestNeighborMapper : public Mapper
+template<class TSparseSpace, class TDenseSpace>
+class NearestNeighborMapper : public Mapper<TSparseSpace, TDenseSpace>
 {
 public:
 
@@ -72,14 +73,14 @@ public:
 
     NearestNeighborMapper(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination)
-                          : Mapper(rModelPartOrigin,
+                          : Mapper<TSparseSpace, TDenseSpace>(rModelPartOrigin,
                                    rModelPartDestination) {}
 
     NearestNeighborMapper(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
                           Parameters JsonParameters,
                           const bool IsMPIExecution)
-                          : Mapper(rModelPartOrigin,
+                          : Mapper<TSparseSpace, TDenseSpace>(rModelPartOrigin,
                                    rModelPartDestination,
                                    JsonParameters,
                                    IsMPIExecution)
@@ -116,12 +117,12 @@ public:
         // }
     }
 
-    Mapper::Pointer Clone(ModelPart& rModelPartOrigin,
+    typename Mapper<TSparseSpace, TDenseSpace>::Pointer Clone(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
                           Parameters JsonParameters,
                           const bool IsMPIExecution) override
     {
-        return Kratos::make_shared<NearestNeighborMapper>(rModelPartOrigin,
+        return Kratos::make_shared<NearestNeighborMapper<TSparseSpace, TDenseSpace>>(rModelPartOrigin,
                                                           rModelPartDestination,
                                                           JsonParameters,
                                                           IsMPIExecution);

@@ -57,7 +57,8 @@ namespace Kratos
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
-class NearestElementMapper : public Mapper
+template<class TSparseSpace, class TDenseSpace>
+class NearestElementMapper : public Mapper<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
@@ -72,14 +73,14 @@ public:
 
     NearestElementMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination)
-                         : Mapper(rModelPartOrigin,
+                         : Mapper<TSparseSpace, TDenseSpace>(rModelPartOrigin,
                                   rModelPartDestination) {}
 
     NearestElementMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination,
                          Parameters JsonParameters,
                          const bool IsMPIExecution)
-                         : Mapper(rModelPartOrigin,
+                         : Mapper<TSparseSpace, TDenseSpace>(rModelPartOrigin,
                                   rModelPartDestination,
                                   JsonParameters,
                                   IsMPIExecution)
@@ -118,12 +119,12 @@ public:
         // }
     }
 
-    Mapper::Pointer Clone(ModelPart& rModelPartOrigin,
+    typename Mapper<TSparseSpace, TDenseSpace>::Pointer Clone(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
                           Parameters JsonParameters,
                           const bool IsMPIExecution) override
     {
-        return Kratos::make_shared<NearestElementMapper>(rModelPartOrigin,
+        return Kratos::make_shared<NearestElementMapper<TSparseSpace, TDenseSpace>>(rModelPartOrigin,
                                                          rModelPartDestination,
                                                          JsonParameters,
                                                          IsMPIExecution);

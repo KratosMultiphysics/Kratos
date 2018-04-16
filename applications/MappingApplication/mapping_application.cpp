@@ -28,6 +28,8 @@
 #include "geometries/prism_3d_6.h"
 #include "geometries/hexahedra_3d_8.h"
 
+#include "spaces/ublas_space.h"
+
 #include "custom_utilities/mapper_factory.h"
 
 #include "custom_mappers/nearest_neighbor_mapper.h"
@@ -75,8 +77,15 @@ void KratosMappingApplication::Register()
     ModelPart dummy_model_part;
     dummy_model_part = ModelPart();
 
-    MapperFactory::Register("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper>(dummy_model_part, dummy_model_part));
-    MapperFactory::Register("nearest_element",  Kratos::make_shared<NearestElementMapper>(dummy_model_part, dummy_model_part));
+    typedef UblasSpace<double, CompressedMatrix, Vector> UblasSparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> UblasDenseSpaceType;
+
+    MapperFactory::Register<UblasSparseSpaceType, UblasDenseSpaceType>
+        ("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper<
+        UblasSparseSpaceType,UblasDenseSpaceType>>(dummy_model_part, dummy_model_part));
+    // MapperFactory::Register<UblasSparseSpaceType,UblasDenseSpaceType>
+    //     ("nearest_element",  Kratos::make_shared<NearestElementMapper<
+    //     UblasSparseSpaceType,UblasDenseSpaceType>>(dummy_model_part, dummy_model_part));
 
     // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )

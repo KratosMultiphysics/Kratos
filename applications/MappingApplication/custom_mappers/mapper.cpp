@@ -25,19 +25,22 @@ namespace Kratos
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
-void Mapper::UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius)
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius)
 {
 
 }
 
-void Mapper::Map(const Variable<double>& rOriginVariable,
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::Map(const Variable<double>& rOriginVariable,
                     const Variable<double>& rDestinationVariable,
                     Kratos::Flags MappingOptions)
 {
     TMap(rOriginVariable, rDestinationVariable, MappingOptions);
 }
 
-void Mapper::Map(const Variable< array_1d<double, 3> >& rOriginVariable,
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::Map(const Variable< array_1d<double, 3> >& rOriginVariable,
                     const Variable< array_1d<double, 3> >& rDestinationVariable,
                     Kratos::Flags MappingOptions)
 {
@@ -100,14 +103,16 @@ void Mapper::Map(const Variable< array_1d<double, 3> >& rOriginVariable,
     // }
 }
 
-void Mapper::InverseMap(const Variable<double>& rOriginVariable,
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::InverseMap(const Variable<double>& rOriginVariable,
                         const Variable<double>& rDestinationVariable,
                         Kratos::Flags MappingOptions)
 {
     TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
 }
 
-void Mapper::InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
                         const Variable< array_1d<double, 3> >& rDestinationVariable,
                         Kratos::Flags MappingOptions)
 {
@@ -119,7 +124,8 @@ void Mapper::InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
 /***********************************************************************************/
 /* PROTECTED Methods */
 /***********************************************************************************/
-Mapper::Mapper(ModelPart& rModelPartOrigin,
+template<class TSparseSpace, class TDenseSpace>
+Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
                 ModelPart& rModelPartDestination,
                 Parameters MapperSettings,
                 const bool IsMPIExecution) :
@@ -143,7 +149,8 @@ Mapper::Mapper(ModelPart& rModelPartOrigin,
     Initialize();
 }
 
-void Mapper::Initialize()
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::Initialize()
 {
     InitializeInterfaceCommunicator();
     InitializeMappingOperationUtility();
@@ -152,7 +159,8 @@ void Mapper::Initialize()
 /***********************************************************************************/
 /* PRIVATE Methods */
 /***********************************************************************************/
-void Mapper::InitializeInterfaceCommunicator()
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::InitializeInterfaceCommunicator()
 {
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     int mpi_initialized;
@@ -169,7 +177,8 @@ void Mapper::InitializeInterfaceCommunicator()
 #endif
 }
 
-void Mapper::InitializeMappingOperationUtility()
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::InitializeMappingOperationUtility()
 {
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     int mpi_initialized;
@@ -186,15 +195,15 @@ void Mapper::InitializeMappingOperationUtility()
 #endif
 }
 
-/// input stream function
-inline std::istream & operator >> (std::istream& rIStream, Mapper& rThis);
+// /// input stream function
+// inline std::istream & operator >> (std::istream& rIStream, Mapper& rThis);
 
-/// output stream function
-inline std::ostream & operator << (std::ostream& rOStream, const Mapper& rThis) {
-  rThis.PrintInfo(rOStream);
-  rOStream << " : " << std::endl;
-  rThis.PrintData(rOStream);
-  return rOStream;
-}
+// /// output stream function
+// inline std::ostream & operator << (std::ostream& rOStream, const Mapper& rThis) {
+//   rThis.PrintInfo(rOStream);
+//   rOStream << " : " << std::endl;
+//   rThis.PrintData(rOStream);
+//   return rOStream;
+// }
 
 }  // namespace Kratos.
