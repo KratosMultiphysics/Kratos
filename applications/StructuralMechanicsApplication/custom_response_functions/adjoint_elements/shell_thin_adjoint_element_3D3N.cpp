@@ -419,7 +419,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<doub
         this->CalculateRightHandSide(RHS_dist, copy_process_info); 
 
         // Compute derivative of RHS w.r.t. design variable with finite differences
-        RHS_dist -= RHS_undist;
+        noalias(RHS_dist) -= RHS_undist;
         RHS_dist /= delta;
         for(unsigned int i = 0; i < RHS_dist.size(); i++)
             rOutput(0, i) = RHS_dist[i];
@@ -474,7 +474,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
                 this->CalculateRightHandSide(RHS_dist, copy_process_info);
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
-                RHS_dist -= RHS_undist;
+                noalias(RHS_dist) -= RHS_undist;
                 RHS_dist /= delta;
                 for(unsigned int i = 0; i < RHS_dist.size(); i++)  
                     rOutput( (0 + j*dimension), i) = RHS_dist[i]; 
@@ -494,7 +494,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
                 this->CalculateRightHandSide(RHS_dist, copy_process_info); 
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
-                RHS_dist -= RHS_undist;
+                noalias(RHS_dist) -= RHS_undist;
                 RHS_dist /= delta;
                 for(unsigned int i = 0; i < RHS_dist.size(); i++) 
                      rOutput((1 + j*dimension),i) = RHS_dist[i]; 
@@ -514,7 +514,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
                 this->CalculateRightHandSide(RHS_dist, copy_process_info);
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
-                RHS_dist -= RHS_undist;
+                noalias(RHS_dist) -= RHS_undist;
                 RHS_dist /= delta;
                 for(unsigned int i = 0; i < RHS_dist.size(); i++) 
                     rOutput((2 + j*dimension),i) = RHS_dist[i]; 
@@ -826,7 +826,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
             this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
             // Compute derivative of stress w.r.t. design variable with finite differences
-            stress_vector_dist  -= stress_vector_undist;
+            noalias(stress_vector_dist)  -= stress_vector_undist;
             stress_vector_dist  /= delta;
 
             for(size_t j = 0; j < OPT_NUM_GP; j++)
@@ -881,7 +881,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
             this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
             // Compute derivative of stress w.r.t. design variable with finite differences
-            stress_vector_dist  -= stress_vector_undist;
+            noalias(stress_vector_dist)  -= stress_vector_undist;
             stress_vector_dist  /= delta;
 
             for(size_t i = 0; i < OPT_NUM_GP; i++)
@@ -902,7 +902,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
             this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
             // Compute derivative of stress w.r.t. design variable with finite differences
-            stress_vector_dist  -= stress_vector_undist;
+            noalias(stress_vector_dist)  -= stress_vector_undist;
             stress_vector_dist  /= delta;
 
             for(size_t i = 0; i < OPT_NUM_GP; i++)
@@ -923,7 +923,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
             this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
             // Compute derivative of stress w.r.t. design variable with finite differences
-            stress_vector_dist  -= stress_vector_undist;
+            noalias(stress_vector_dist)  -= stress_vector_undist;
             stress_vector_dist  /= delta;
 
             for(size_t i = 0; i < OPT_NUM_GP; i++)

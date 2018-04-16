@@ -255,7 +255,7 @@ namespace Kratos
                 this->CalculateAll(dummy_LHS, RHS_dist, copy_process_info, false, true);
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
-                RHS_dist -= RHS_undist;
+                noalias(RHS_dist) -= RHS_undist;
                 RHS_dist /= delta;
                 for(unsigned int i = 0; i < RHS_dist.size(); i++)
                     rOutput( (0 + j*dimension), i) = RHS_dist[i];
@@ -277,7 +277,7 @@ namespace Kratos
                 this->CalculateAll(dummy_LHS, RHS_dist, copy_process_info, false, true);
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
-                RHS_dist -= RHS_undist;
+                noalias(RHS_dist) -= RHS_undist;
                 RHS_dist /= delta;
                 for(unsigned int i = 0; i < RHS_dist.size(); i++)
                     rOutput((1 + j*dimension),i) = RHS_dist[i];
@@ -299,7 +299,7 @@ namespace Kratos
                 this->CalculateAll(dummy_LHS, RHS_dist, copy_process_info, false, true);
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
-                RHS_dist -= RHS_undist;
+                noalias(RHS_dist) -= RHS_undist;
                 RHS_dist /= delta;
                 for(unsigned int i = 0; i < RHS_dist.size(); i++)
                     rOutput((2 + j*dimension),i) = RHS_dist[i];

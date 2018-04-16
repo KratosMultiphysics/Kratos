@@ -367,7 +367,7 @@ namespace Kratos
             this->CalculateRightHandSide(RHS_dist, copy_process_info); 
 
             // Compute derivative of RHS w.r.t. design variable with finite differences
-            RHS_dist -= RHS_undist;
+            noalias(RHS_dist) -= RHS_undist;
             RHS_dist /= delta;
             for(unsigned int i = 0; i < RHS_dist.size(); i++)
                 rOutput(0, i) = RHS_dist[i];
@@ -422,7 +422,7 @@ namespace Kratos
                 this->CalculateRightHandSide(RHS_dist, copy_process_info);
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
-                RHS_dist -= RHS_undist;
+                noalias(RHS_dist) -= RHS_undist;
                 RHS_dist /= delta;
                 for(unsigned int i = 0; i < RHS_dist.size(); i++)  
                     rOutput( (0 + j*dimension), i) = RHS_dist[i]; 
@@ -442,7 +442,7 @@ namespace Kratos
                 this->CalculateRightHandSide(RHS_dist, copy_process_info); 
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
-                RHS_dist -= RHS_undist;
+                noalias(RHS_dist) -= RHS_undist;
                 RHS_dist /= delta;
                 for(unsigned int i = 0; i < RHS_dist.size(); i++) 
                      rOutput((1 + j*dimension),i) = RHS_dist[i]; 
@@ -462,7 +462,7 @@ namespace Kratos
                 this->CalculateRightHandSide(RHS_dist, copy_process_info);
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
-                RHS_dist -= RHS_undist;
+                noalias(RHS_dist) -= RHS_undist;
                 RHS_dist /= delta;
                 for(unsigned int i = 0; i < RHS_dist.size(); i++) 
                     rOutput((2 + j*dimension),i) = RHS_dist[i]; 
@@ -698,11 +698,11 @@ namespace Kratos
          // Built vector of variables containing the DOF-variables of the primal problem 
         std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list; 
         primal_solution_variable_list.push_back(DISPLACEMENT_X);       
-         primal_solution_variable_list.push_back(DISPLACEMENT_Y);       
-          primal_solution_variable_list.push_back(DISPLACEMENT_Z);       
-         primal_solution_variable_list.push_back(ROTATION_X);       
+        primal_solution_variable_list.push_back(DISPLACEMENT_Y);       
+        primal_solution_variable_list.push_back(DISPLACEMENT_Z);       
+        primal_solution_variable_list.push_back(ROTATION_X);       
         primal_solution_variable_list.push_back(ROTATION_Y);       
-         primal_solution_variable_list.push_back(ROTATION_Z);  
+        primal_solution_variable_list.push_back(ROTATION_Z);  
 
         int index = 0;
         for (int i = 0; i < num_nodes; i++) 
@@ -773,7 +773,7 @@ namespace Kratos
             this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
             // Compute derivative of stress w.r.t. design variable with finite differences
-            stress_vector_dist  -= stress_vector_undist;
+            noalias(stress_vector_dist)  -= stress_vector_undist;
             stress_vector_dist  /= delta;
 
             for(size_t j = 0; j < OPT_NUM_GP; j++)
@@ -828,7 +828,7 @@ namespace Kratos
                 this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
                 // Compute derivative of stress w.r.t. design variable with finite differences
-                stress_vector_dist  -= stress_vector_undist;
+                noalias(stress_vector_dist)  -= stress_vector_undist;
                 stress_vector_dist  /= delta;
 
                 for(size_t i = 0; i < OPT_NUM_GP; i++)
@@ -849,7 +849,7 @@ namespace Kratos
                 this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
                 // Compute derivative of stress w.r.t. design variable with finite differences
-                stress_vector_dist  -= stress_vector_undist;
+                noalias(stress_vector_dist)  -= stress_vector_undist;
                 stress_vector_dist  /= delta;
 
                 for(size_t i = 0; i < OPT_NUM_GP; i++)
@@ -870,7 +870,7 @@ namespace Kratos
                 this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
                 // Compute derivative of stress w.r.t. design variable with finite differences
-                stress_vector_dist  -= stress_vector_undist;
+                noalias(stress_vector_dist)  -= stress_vector_undist;
                 stress_vector_dist  /= delta;
 
                 for(size_t i = 0; i < OPT_NUM_GP; i++)
