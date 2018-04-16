@@ -6,7 +6,6 @@
 //
 
 // Project includes
-#include "utilities/stl_io.h"
 #include "DEM_application.h"
 #include "includes/kratos_flags.h"
 #include "containers/flags.h"
@@ -125,17 +124,6 @@ KRATOS_CREATE_VARIABLE(Vector, IF_BOUNDARY_FACE)
 KRATOS_CREATE_VARIABLE(vector<int>, PARTICLE_CONTACT_FAILURE_ID)
 
 // *************** Continuum only END ***************
-template<class T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T> & data) {
-
-    std::cout << "[";
-    std::copy(data.begin(), data.end(), std::ostream_iterator<T>(std::cout, ", "));
-    std::cout << "]";
-    
-    return os;
-}
-
-
 KRATOS_CREATE_VARIABLE(std::vector<Condition*>, WALL_POINT_CONDITION_POINTERS)
 typedef std::vector<array_1d<double, 3> > std_vector_of_arrays_3d;
 KRATOS_CREATE_VARIABLE(std_vector_of_arrays_3d, WALL_POINT_CONDITION_ELASTIC_FORCES)
