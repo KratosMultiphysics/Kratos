@@ -299,18 +299,15 @@ namespace Kratos {
 
 
                         if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
-			{
-			    noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
-			    UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
-			}
-			else
-			{
-			  itNode->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
-			  itNode->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
-			  itNode->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
-			  itNode->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
-			}
-
+                        {
+                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
+                            UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+                        }
+                        else
+                        {
+                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
+                            noalias(itNode->FastGetSolutionStepValue(DISPLACEMENT)) = ZeroVector(3);
+                        }
                     }
                 }
             }
