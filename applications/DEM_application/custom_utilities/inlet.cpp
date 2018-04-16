@@ -423,8 +423,14 @@ namespace Kratos {
     } //DettachClusters
 
 
-    void DEM_Inlet::InitializeStep(ModelPart& r_modelpart) {                    
-        CheckDistanceAndSetFlag(r_modelpart);}
+    void DEM_Inlet::InitializeStep(ModelPart& r_modelpart) {   
+
+        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {            
+            ModelPart& mp = *smp_it;
+            const bool dense_inlet = mp[DENSE_INLET];
+            if (dense_inlet){CheckDistanceAndSetFlag(r_modelpart);}
+        }
+    }
 
     void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {                    
         InitializeStep(r_modelpart);
