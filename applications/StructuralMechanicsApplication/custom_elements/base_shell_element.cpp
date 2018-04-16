@@ -577,6 +577,11 @@ void BaseShellElement::CheckSpecificProperties()
     }
 }
 
+void BaseShellElement::ResetSections()
+{
+    mSections.clear();
+}
+
 ///@}
 ///@name Protected  Access
 ///@{

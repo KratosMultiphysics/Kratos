@@ -610,11 +610,6 @@ void ShellThinElement3D3N::Calculate(const Variable<Matrix>& rVariable, Matrix &
 	}
 }
 
-void ShellThinElement3D3N::ResetSections()
-{
-    mSections.clear();
-}
-
 // =====================================================================================
 //
 // Class ShellThinElement3D3N - Private methods

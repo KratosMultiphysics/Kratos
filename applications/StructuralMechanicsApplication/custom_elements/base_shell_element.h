@@ -252,6 +252,15 @@ protected:
     void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
     void CheckSpecificProperties();
 
+    /**
+    * Needed to reset the sections for semi analytical sensitivity analysis where the 
+    * derivatives are calculated with finite differenes.
+    * There it is necessary the reset the sections and re-initialize them 
+    * again after the design variable is perturbed
+    * in order have sections with the changed properties.
+    */
+    void ResetSections();
+
 
     /**
     * Returns the behavior of this shell (thin/thick)

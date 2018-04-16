@@ -388,7 +388,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<doub
         const double current_property_value = this->GetProperties()[rDesignVariable];
         p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
      
-        ShellThinElement3D3N::ResetSections();
+        this->ResetSections();
         ShellThinElement3D3N::Initialize();
 
         // Compute RHS after disturbance
@@ -402,7 +402,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<doub
     
         // Give element original properties back
         this->SetProperties(p_global_properties);
-        ShellThinElement3D3N::ResetSections();
+        this->ResetSections();
         ShellThinElement3D3N::Initialize();
         this->CalculateRightHandSide(RHS_dist, copy_process_info);   	
     }
@@ -800,7 +800,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
             const double current_property_value = this->GetProperties()[rDesignVariable];
             p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
 
-            ShellThinElement3D3N::ResetSections();
+            this->ResetSections();
             ShellThinElement3D3N::Initialize();
 
             // Compute stress on GP after disturbance
@@ -816,7 +816,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
             // Give element original properties back
             this->SetProperties(p_global_properties);
 
-            ShellThinElement3D3N::ResetSections();
+            this->ResetSections();
             ShellThinElement3D3N::Initialize();
           
         }

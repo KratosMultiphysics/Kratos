@@ -911,11 +911,6 @@ namespace Kratos
 		}
 	}
 
-	void ShellThinElement3D4N::ResetSections() 
-	{
-   		mSections.clear();
-	}
-
 	// =========================================================================
 	//
 	// Class ShellThinElement3D4N - Private methods
