@@ -791,7 +791,7 @@ protected:
             auto it_node = rModelPart.NodesBegin() + i;
 
             it_node->GetValue(NODAL_AREA) = 0.0;
-            it_node->GetValue(ADVPROJ) = array_1d<double,3>(3,0.0);
+            noalias(it_node->GetValue(ADVPROJ)) = ZeroVector(3);
             it_node->GetValue(DIVPROJ) = 0.0;
         }
 
@@ -809,7 +809,7 @@ protected:
                 for ( unsigned int i = 0; i < nodes_in_cond; i++ )
                 {
                     NodalArea += rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
-                    AdvProj += rGeom[i].FastGetSolutionStepValue(ADVPROJ);
+                    noalias(AdvProj) += rGeom[i].FastGetSolutionStepValue(ADVPROJ);
                     DivProj += rGeom[i].FastGetSolutionStepValue(DIVPROJ);
                 }
 
@@ -821,7 +821,7 @@ protected:
                         */
                     rGeom[i].SetLock();
                     rGeom[i].GetValue(NODAL_AREA) = NodalArea;
-                    rGeom[i].GetValue(ADVPROJ) = AdvProj;
+                    noalias(rGeom[i].GetValue(ADVPROJ)) = AdvProj;
                     rGeom[i].GetValue(DIVPROJ) = DivProj;
                     rGeom[i].UnSetLock();
                 }
@@ -839,13 +839,8 @@ protected:
             if (it_node->GetValue(NODAL_AREA) != 0.0)
             {
                 it_node->FastGetSolutionStepValue(NODAL_AREA) = it_node->GetValue(NODAL_AREA);
-                it_node->FastGetSolutionStepValue(ADVPROJ) = it_node->GetValue(ADVPROJ);
+                noalias(it_node->FastGetSolutionStepValue(ADVPROJ)) = it_node->GetValue(ADVPROJ);
                 it_node->FastGetSolutionStepValue(DIVPROJ) = it_node->GetValue(DIVPROJ);
-
-                // reset for next iteration
-                it_node->GetValue(NODAL_AREA) = 0.0;
-                it_node->GetValue(ADVPROJ) = array_1d<double,3>(3,0.0);
-                it_node->GetValue(DIVPROJ) = 0.0;
             }
         }
     }
