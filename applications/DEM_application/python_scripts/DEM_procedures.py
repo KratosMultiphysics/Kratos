@@ -741,7 +741,7 @@ class Procedures(object):
             file_to_remove = os.path.join(main_path, "TimesPartialRelease")
             os.remove(file_to_remove)
         except OSError:
-            pass        
+            pass
 
     @classmethod
     def CreateDirectories(self, main_path, problem_name, run_code=''):
@@ -752,7 +752,7 @@ class Procedures(object):
         graphs_path = root + '_Graphs'
         MPI_results = root + '_MPI_results'
 
-        self.RemoveFoldersWithResults(main_path, problem_name, run_code)        
+        self.RemoveFoldersWithResults(main_path, problem_name, run_code)
 
         for directory in [post_path, data_and_results, graphs_path, MPI_results]:
             if not os.path.isdir(directory):
