@@ -23,6 +23,8 @@
 // Project includes
 #include "includes/define.h"
 
+namespace Kratos {
+
 // Std::vector << operator
 template<class T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T> & data) {
@@ -33,5 +35,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<T> & data) {
     
     return os;
 }
+
+} //namespace Kratos
 
 #endif // KRATOS_KRATOS_STL_IO_H_INCLUDED  defined
