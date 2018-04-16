@@ -218,8 +218,9 @@ public:
                                    Vector& rResponseGradient,
                                    ProcessInfo& rProcessInfo) override
     {
+        if (rResponseGradient.size() != rAdjointMatrix.size1())
+            rResponseGradient.resize(rAdjointMatrix.size1(), false);
 
-        rResponseGradient.resize(rAdjointMatrix.size1());
         rResponseGradient.clear();
 
         if(rAdjointElem.Id() == mIdOfTracedElement)

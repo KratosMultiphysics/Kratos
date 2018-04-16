@@ -165,7 +165,7 @@ public:
                                     const ProcessInfo& rCurrentProcessInfo )
     {
         Vector output_vector;
-        output_vector.clear();
+        
         if(location == "STRESS_ON_GP" || location == "STRESS_ON_NODE")
         {
             std::string traced_stress_type = stress_label;
@@ -197,6 +197,7 @@ public:
                 const unsigned int&  GP_num = rTracedElement.GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
 
                 output_vector.resize(GP_num);
+                output_vector.clear();
                 for(unsigned int i = 0; i < GP_num ; i++)
                 {
                     output_vector(i) = stress_vector[i][direction_1];

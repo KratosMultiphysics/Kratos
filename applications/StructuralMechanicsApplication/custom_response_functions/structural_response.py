@@ -180,20 +180,12 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         self.response_function_utility.Initialize()
         self.primal_analysis.GetModelPart().ProcessInfo[StructuralMechanicsApplication.IS_ADJOINT] = True
         # 'Solve' the adjoint problem
-        for node in self.primal_analysis.GetModelPart().Nodes:
-            disp_x = node.GetSolutionStepValue(DISPLACEMENT_X,0)
-            disp_y = node.GetSolutionStepValue(DISPLACEMENT_Y,0)
-            disp_z = node.GetSolutionStepValue(DISPLACEMENT_Z,0)
-            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X,0,disp_x * 0.5)
-            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y,0,disp_y * 0.5)
-            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z,0,disp_z * 0.5)
-            if self.ProjectParametersPrimal["solver_settings"]["rotation_dofs"].GetBool():
-                rot_x = node.GetSolutionStepValue(ROTATION_X,0)
-                rot_y = node.GetSolutionStepValue(ROTATION_Y,0)
-                rot_z = node.GetSolutionStepValue(ROTATION_Z,0)
-                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_X,0,rot_x * 0.5)
-                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_Y,0,rot_y * 0.5)
-                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_Z,0,rot_z * 0.5)
+        for node in self.main_model_part.Nodes:
+            adjoint_displacement = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT, adjoint_displacement)
+            if self.settings["rotation_dofs"].GetBool():
+                adjoint_rotation = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.ROTATION)
+                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation)
         # Compute Sensitivities in a post-processing step
         self.response_function_utility.FinalizeSolutionStep()
         # Replace elements and conditions back to its origins

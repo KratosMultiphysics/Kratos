@@ -122,19 +122,11 @@ class AdjointStructuralSolver(structural_mechanics_solver.MechanicalSolver):
         self.response_function.Initialize()
 
         for node in self.main_model_part.Nodes:
-            disp_x = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0)
-            disp_y = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0)
-            disp_z = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0)
-            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X,0,disp_x * 0.5)
-            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y,0,disp_y * 0.5)
-            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z,0,disp_z * 0.5)
+            adjoint_displacement = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT, adjoint_displacement )
             if self.settings["rotation_dofs"].GetBool():
-                rot_x = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_X,0)
-                rot_y = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Y,0)
-                rot_z = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Z,0)
-                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_X,0,rot_x * 0.5)
-                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_Y,0,rot_y * 0.5)
-                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_Z,0,rot_z * 0.5)
+                adjoint_rotation = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.ROTATION)
+                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation )
 
         self.response_function.FinalizeSolutionStep()
 
@@ -143,14 +135,19 @@ class AdjointStructuralSolver(structural_mechanics_solver.MechanicalSolver):
         mechanical_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
         builder_and_solver = self.get_builder_and_solver()
+        calculate_reaction_flag = False
+        reform_dof_set_at_each_step = False
+        calculate_norm_dx_flag = False
+        move_mesh_flag = False
+
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               mechanical_scheme,
                                                               linear_solver,
                                                               builder_and_solver,
-                                                              False,
-                                                              False,
-                                                              False,
-                                                              False)
+                                                              calculate_reaction_flag,
+                                                              reform_dof_set_at_each_step,
+                                                              calculate_norm_dx_flag,
+                                                              move_mesh_flag)
 
     def _create_solution_scheme(self):
         return StructuralMechanicsApplication.AdjointStructuralScheme(self.scheme_settings, self.response_function)
