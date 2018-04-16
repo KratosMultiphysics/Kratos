@@ -274,6 +274,9 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
       mLargeDisplacementBeamEMCElement3D2N(
           0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
                  Element::GeometryType::PointsArrayType(2)))),
+      mLargeDisplacementBeamEMCElement3D3N(
+          0, Element::GeometryType::Pointer(new Line3D3<Node<3> >(
+                 Element::GeometryType::PointsArrayType(3)))),      
       mLargeDisplacementBeamSEMCElement3D2N(
           0, Element::GeometryType::Pointer(new LineGaussLobatto3D2<Node<3> >(
                  Element::GeometryType::PointsArrayType(2)))),
@@ -447,9 +450,10 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_VECTOR)
     KRATOS_REGISTER_VARIABLE(EIGENVECTOR_MATRIX)
 
+    //integration methods
+    KRATOS_REGISTER_VARIABLE( TIME_INTEGRATION_METHODS )  
+        
     //explicit schemes
-    KRATOS_REGISTER_VARIABLE( TIME_INTEGRATION_METHOD )
-    KRATOS_REGISTER_VARIABLE( ANGULAR_TIME_INTEGRATION_METHOD )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
     //solution
@@ -717,6 +721,8 @@ void KratosSolidMechanicsApplication::Register() {
         "LargeDisplacementBeamElement3D3N", mLargeDisplacementBeamElement3D3N)
     KRATOS_REGISTER_ELEMENT("LargeDisplacementBeamEMCElement3D2N",
         mLargeDisplacementBeamEMCElement3D2N)
+    KRATOS_REGISTER_ELEMENT("LargeDisplacementBeamEMCElement3D3N",
+        mLargeDisplacementBeamEMCElement3D3N)
     KRATOS_REGISTER_ELEMENT("LargeDisplacementBeamSEMCElement3D2N",
         mLargeDisplacementBeamSEMCElement3D2N)
     KRATOS_REGISTER_ELEMENT(

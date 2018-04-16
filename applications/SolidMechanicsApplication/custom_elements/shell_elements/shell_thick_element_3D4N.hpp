@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(SHELL_THICK_ELEMENT_3D4N_H_INCLUDED )
+#if !defined(SHELL_THICK_ELEMENT_3D4N_H_INCLUDED)
 #define  SHELL_THICK_ELEMENT_3D4N_H_INCLUDED
 
 
@@ -59,7 +59,7 @@ class ShellQ4_LocalCoordinateSystem;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class ShellThickElement3D4N : public Element
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Element
 {
  public:
 

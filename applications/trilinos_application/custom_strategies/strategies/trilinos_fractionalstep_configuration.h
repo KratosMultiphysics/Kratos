@@ -1,3 +1,15 @@
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
+//
+//  License:             BSD License
+//                                       Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
+
 #if !defined(KRATOS_RESIDUALBASED_TRILINOS_FRACTIONALSTEP_CONFIGURATION )
 #define  KRATOS_RESIDUALBASED_TRILINOS_FRACTIONALSTEP_CONFIGURATION
 
@@ -6,7 +18,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */

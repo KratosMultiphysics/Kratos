@@ -28,7 +28,7 @@ class TestMortarMapping(KratosUnittest.TestCase):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)
+        self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
 
