@@ -16,7 +16,6 @@
 // #define BOOST_NUMERIC_BINDINGS_SUPERLU_PRINT
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"

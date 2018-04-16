@@ -13,6 +13,7 @@
 #define  KRATOS_ADD_CUSTOM_LINEAR_SOLVERS_TO_PYTHON_H_INCLUDED
 
 // System includes
+#include <pybind11/pybind11.h>
 
 // External includes
 
@@ -25,7 +26,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomLinearSolversToPython();
+void  AddCustomLinearSolversToPython(pybind11::module& m);
 
 }  // namespace Python.
 

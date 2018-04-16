@@ -16,8 +16,7 @@
 // System includes 
 
 
-// External includes 
-#include "boost/smart_ptr.hpp"
+// External includes
 
 
 // Project includes

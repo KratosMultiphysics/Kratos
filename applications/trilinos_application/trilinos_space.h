@@ -19,7 +19,7 @@
 #include <string>
 #include <iostream>
 #include <cstddef>
-
+#include <sstream>
 
 // External includes
 
@@ -472,9 +472,6 @@ public:
                 }
             }
 
-            /*KRATOS_WATCH(indices);
-            KRATOS_WATCH(values);*/
-
             int ierr = b.SumIntoGlobalValues(indices, values);
             if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
 
@@ -528,17 +525,19 @@ public:
 
     }
 
-    void ReadMatrixMarket(const std::string FileName, MatrixPointerType& pA)
+    MatrixPointerType ReadMatrixMarket(const std::string FileName,Epetra_MpiComm& Comm)
     {
         KRATOS_TRY
 
         Epetra_CrsMatrix* pp = nullptr;
 
-        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), pA->Comm(), pp);
 
+        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), Comm, pp);
+        
         if(error_code != 0)
             KRATOS_ERROR << "error thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
 
+        Comm.Barrier();
 
         const Epetra_CrsGraph& rGraph = pp->Graph();
         MatrixPointerType paux = Kratos::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
@@ -547,7 +546,6 @@ public:
 
         int* MyGlobalElements = new int[NumMyRows];
         rGraph.RowMap().MyGlobalElements(MyGlobalElements);
-
 
         for(IndexType i = 0; i < NumMyRows; ++i)
         {
@@ -575,11 +573,11 @@ public:
         }
 
         paux->GlobalAssemble();
-        pA.swap(paux);
+        
         delete [] MyGlobalElements;
-//         std::cout << pp << std::endl;
         delete pp;
 
+        return paux;
         KRATOS_CATCH("");
     }
 
