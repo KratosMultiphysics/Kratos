@@ -199,7 +199,6 @@ public:
                                 ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
-        KRATOS_ERROR << "aaaaaaaaaaaaaaaaaaaaaaaa";
         constexpr unsigned int MatrixSize = TNumNodes*(BlockSize);
 
         if (rRightHandSideVector.size() != MatrixSize)
