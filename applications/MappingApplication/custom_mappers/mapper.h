@@ -410,6 +410,32 @@ protected:
     ///@name Protected  Access
     ///@{
 
+    // Kratos::Serializer particleSerializer;
+
+    // particleSerializer.save("VariableList",mpVariables_list);
+    // particleSerializer.save("ObjectList",SendObjects[i].GetContainer());
+
+    class MapperInterfaceInfo
+    {
+        public:
+        // SaveInterfaceInfo(Node*)
+        // {
+
+        // }
+
+
+        virtual void serialize()
+        {
+
+        }
+
+        virtual void deserialize()
+        {
+
+        }
+
+    };
+
     ///@}
     ///@name Protected Inquiry
     ///@{
