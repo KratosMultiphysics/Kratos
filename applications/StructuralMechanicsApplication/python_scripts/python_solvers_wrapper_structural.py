@@ -41,7 +41,7 @@ def CreateSolver(main_model_part, custom_settings):
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"static\", \"dynamic\", \"eigen_value\", \"harmonic_analysis\""
+            err_msg += "Available options are: \"static\", \"dynamic\", \"eigen_value\", \"harmonic_analysis\", \"adjoint_structural_solver\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
