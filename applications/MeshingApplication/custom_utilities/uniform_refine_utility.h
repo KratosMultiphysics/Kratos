@@ -193,16 +193,26 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrModelPart;
-    int mFinalRefinementLevel;
-    std::map<std::pair<int, int>, int> mNodesMap;
+    ModelPart& mrModelPart;             /// The model part to refine
+    int mFinalRefinementLevel;          /// The model part will be refined to this level
+
+    unsigned int mLastNodeId;           /// The node Id
+    unsigned int mLastElemId;           /// The element Id
+    unsigned int mLastCondId;           /// The condition Id
+    unsigned int mStepDataSize;         /// The size of the nodal database
+    unsigned int mBufferSize;           /// The buffer size
+    NodeType::DofsContainerType mDofs;  /// Storage for the dof of the node
+
+    std::unordered_map<int,int> mNodesColorMap;
+    std::unordered_map<int,int> mCondColorMap;
+    std::unordered_map<int,int> mElemColorMap;
+    std::unordered_map<int,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
+
+    std::map<std::pair<int, int>, int> mNodesMap;              /// Where the father nodes IDs are stored
+    std::map<std::array<int, 4>, int> mNodesInFaceMap;         /// Where the father nodes IDs are stored
     //std::unordered_map<std::pair<int, int>, int, KeyHasherRange<std::pair<int, int>>, KeyComparorRange<std::pair<int, int>> > mNodesMap;
-    unsigned int mLastNodeId;               /// The node Id
-    unsigned int mLastElemId;               /// The element Id
-    unsigned int mLastCondId;               /// The condition Id
-    unsigned int mStepDataSize;             /// The size of the database
-    unsigned int mBufferSize;               /// The size of the buffer
-    NodeType::DofsContainerType mDofs;      /// Storage for the dof of the node
+    
+    
 
 
     ///@}
@@ -264,13 +274,7 @@ private:
      * TODO: If the middle node exist, returns a pointer to the existing node
      * If the middle node does not exist, create a new one and returns a pointer to it
      */
-    Node<3>::Pointer GetNodeInFace(
-        const NodeType::Pointer pNode0,
-        const NodeType::Pointer pNode1,
-        const NodeType::Pointer pNode2,
-        const NodeType::Pointer pNode3,
-        const int& rRefinementLevel
-        );
+    Node<3>::Pointer GetNodeInFace(const FaceType& rFace);
 
     /**
      * Calculate the nodal data

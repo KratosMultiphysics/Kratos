@@ -67,6 +67,10 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
     mStepDataSize = mrModelPart.GetNodalSolutionStepDataSize();
     mBufferSize = mrModelPart.GetBufferSize();
     mDofs = mrModelPart.NodesBegin()->GetDofs();
+
+    // Compute the sub model part maps
+    SubModelPartsListUtility sub_model_parts_list(mrModelPart);
+    sub_model_parts_list.ComputeSubModelPartsList(mNodesColorMap, mCondColorMap, mElemColorMap, mColors);
 }
 
 
@@ -102,6 +106,11 @@ void UniformRefineUtility<TDim>::PrintData(std::ostream& rOStream) const {
 template< unsigned int TDim>
 void UniformRefineUtility<TDim>::Refine()
 {
+    std::cout << "--------------------------------------" << std::endl;
+    std::cout << "----------- Before remeshing ---------" << std::endl;
+    std::cout << "--------------------------------------" << std::endl;
+    KRATOS_WATCH(mrModelPart)
+    
     // Get the lowest refinement level
     int minimum_refinement_level = 1e6;
     const int n_elements = mrModelPart.Elements().size();
@@ -116,6 +125,11 @@ void UniformRefineUtility<TDim>::Refine()
     {
         RefineLevel(level);
     }
+
+    std::cout << "--------------------------------------" << std::endl;
+    std::cout << "----------- After remeshing ----------" << std::endl;
+    std::cout << "--------------------------------------" << std::endl;
+    KRATOS_WATCH(mrModelPart)
 }
 
 
@@ -212,7 +226,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
             std::array<NodeType::Pointer, 5> middle_nodes;
             for (auto edge : geom.Edges())
                 middle_nodes[i_edge++] = GetNodeInEdge(edge);
-            middle_nodes[4] = GetNodeInFace( geom.pGetPoint(0), geom.pGetPoint(1), geom.pGetPoint(2), geom.pGetPoint(3), step_refine_level );
+            middle_nodes[4] = GetNodeInFace( geom );
 
             // Create the sub elements
             std::vector<NodeType::Pointer> sub_element_nodes(4);
@@ -425,76 +439,59 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
     const int& rRefinementLevel
     )
 {
-    
-    // TODO: check the previous existance of the node
+    // Get the middle node key
+    std::array<int, 4> node_key = {rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()};
+    std::sort(node_key.begin(), node_key.end());
+    // node_key = std::sort(rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id());
 
-    // Create the new node
-    double new_x = 0.25*rFace(0)->X() + 0.25*rFace(1)->X() + 0.25*rFace(2)->X() + 0.25*rFace(3)->X();
-    double new_y = 0.25*rFace(0)->Y() + 0.25*rFace(1)->Y() + 0.25*rFace(2)->Y() + 0.25*rFace(3)->Y();
-    double new_z = 0.25*rFace(0)->Z() + 0.25*rFace(1)->Z() + 0.25*rFace(2)->Z() + 0.25*rFace(3)->Z();
-    Node<3>::Pointer middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
+    // Check if the node is not yet created
+    auto search = mNodesInFaceMap.find(node_key);
+    if (search == mNodesInFaceMap.end() )
+    {
+        // Create the new node
+        double new_x = 0.25*rFace(0)->X() + 0.25*rFace(1)->X() + 0.25*rFace(2)->X() + 0.25*rFace(3)->X();
+        double new_y = 0.25*rFace(0)->Y() + 0.25*rFace(1)->Y() + 0.25*rFace(2)->Y() + 0.25*rFace(3)->Y();
+        double new_z = 0.25*rFace(0)->Z() + 0.25*rFace(1)->Z() + 0.25*rFace(2)->Z() + 0.25*rFace(3)->Z();
+        Node<3>::Pointer middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
 
-    // // Store the node key in the map
-    // mNodesMap.insert( std::pair< std::pair<int, int>, int > (node_key, middle_node->Id()) );
+        // Store the node key in the map
+        mNodesInFaceMap.insert( std::pair< std::array<int, 4>, int > (node_key, middle_node->Id()) );
 
-    // interpolate the variables
-    CalculateNodalStepData(middle_node, rFace(0), rFace(1));
+        // interpolate the variables
+        CalculateNodalStepData(middle_node, rFace(0), rFace(1));
 
-    // Set the refinement level
-    int& this_node_level = middle_node->GetValue(REFINEMENT_LEVEL);
-    this_node_level = rRefinementLevel;
+        // Set the refinement level
+        int& this_node_level = middle_node->GetValue(REFINEMENT_LEVEL);
+        this_node_level = rRefinementLevel;
 
-    // Set the DoF's
-    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-        middle_node->pAddDof(*it_dof);
+        // Set the DoF's
+        for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+            middle_node->pAddDof(*it_dof);
+    }
 }
 
 
 /// Get the middle node on a face defined by four nodes. If the node does not exist, it creates one
 template< unsigned int TDim>
-Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeInFace(
-    const NodeType::Pointer pNode0,
-    const NodeType::Pointer pNode1,
-    const NodeType::Pointer pNode2,
-    const NodeType::Pointer pNode3,
-    const int& rRefinementLevel
-)
+Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeInFace(const FaceType& rFace)
 {
     // Initialize the output
     NodeType::Pointer middle_node;
-    
-    // WARNING: I am working on a 2D space, so I am assuming that the node inside the face only belongs to ONE quadrilateral
-    // TODO: develop the 3D and check the existance of the node
 
-    // // Get the middle node key
-    // std::pair<int, int> node_key;
-    // node_key = std::minmax(pNode0->Id(), pNode1->Id());
+    // Get the middle node key
+    std::array<int, 4> node_key = {rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()};
+    std::sort(node_key.begin(), node_key.end());
 
-    // // Check if the node exist
-    // auto search = mNodesMap.find(node_key);
-    // if (search != mNodesMap.end() )
-    // {
-    //     middle_node = mrModelPart.Nodes()(search->second);
-    // }
-    // else
-    // {
-
-    // Create the new node
-    double new_x = 0.25*pNode0->X() + 0.25*pNode1->X() + 0.25*pNode2->X() + 0.25*pNode3->X();
-    double new_y = 0.25*pNode0->Y() + 0.25*pNode1->Y() + 0.25*pNode2->Y() + 0.25*pNode3->Y();
-    double new_z = 0.25*pNode0->Z() + 0.25*pNode1->Z() + 0.25*pNode2->Z() + 0.25*pNode3->Z();
-    middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
-
-    // interpolate the variables
-    CalculateNodalStepData(middle_node, pNode0, pNode1);
-
-    // Set the refinement level
-    int& this_node_level = middle_node->GetValue(REFINEMENT_LEVEL);
-    this_node_level = rRefinementLevel;
-
-        // // Store the node in the map
-        // mNodesMap.insert( std::pair< std::pair<int, int>, int > (node_key, middle_node->Id()) );
-    // }
+    // Check if the node exist
+    auto search = mNodesInFaceMap.find(node_key);
+    if (search != mNodesInFaceMap.end() )
+    {
+        middle_node = mrModelPart.Nodes()(search->second);
+    }
+    else
+    {
+        KRATOS_WARNING("UniformRefineProcess") << "Middle node not found in edge" << rFace << std::endl;
+    }
 
     return middle_node;
 }
@@ -533,9 +530,24 @@ void UniformRefineUtility<TDim>::CreateElement(
     
     if (sub_element != nullptr) 
     {
+        // Add to the origin model part
         mrModelPart.AddElement(sub_element);
+
+        // Set the refinement level
         int& this_elem_level = sub_element->GetValue(REFINEMENT_LEVEL);
         this_elem_level = rRefinementLevel;
+
+        // Add the element to the sub model parts
+        int key = mElemColorMap[pOriginElement->Id()];
+        if (key != 0)  // NOTE: key==0 is the main model part
+        {
+            for (std::string sub_name : mColors[key])
+            {
+                ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
+                sub_model_part.AddElement(sub_element);
+            }
+        }
+        mElemColorMap.insert( std::pair<int,int>(sub_element->Id(), key) );
     }
 
 }
