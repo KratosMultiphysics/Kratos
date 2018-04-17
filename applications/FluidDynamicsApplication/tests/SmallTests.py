@@ -12,7 +12,7 @@ except ImportError as e:
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosExecuteEmbeddedTest as ExecuteEmbeddedTest
-import KratosExecuteManufacturedSolutionTest as ExecuteManufacturedSolutionTest
+# import KratosExecuteManufacturedSolutionTest as ExecuteManufacturedSolutionTest
 
 # This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
@@ -50,34 +50,9 @@ class EmbeddedTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
 
-class ManufacturedSolutionTestFactory(KratosUnittest.TestCase):
-
-    def setUp(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            # Get the ProjectParameters file
-            with open(self.file_name + "_parameters.json", 'r') as parameter_file:
-                ProjectParameters = Parameters(parameter_file.read())
-
-            # Create the test
-            self.test = ExecuteManufacturedSolutionTest.KratosExecuteManufacturedSolutionTest(ProjectParameters)
-
-    def test_execution(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.Solve()
-
-    def tearDown(self):
-        pass
-
 
 class EmbeddedArtificialCompressibilityTest(EmbeddedTestFactory):
     file_name = "EmbeddedArtificialCompressibilityTest/EmbeddedArtificialCompressibilityTest"
-
-    
-@KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
-class ManufacturedSolutionTest(ManufacturedSolutionTestFactory):
-    file_name = "ManufacturedSolutionTest/ManufacturedSolutionTest"
 
 
 class NavierStokesWallConditionTest(EmbeddedTestFactory):

@@ -8,10 +8,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
 from SmallTests import EmbeddedArtificialCompressibilityTest as TEmbeddedArtificialCompressibilityTest
-from SmallTests import ManufacturedSolutionTest as TManufacturedSolutionTest
 from SmallTests import NavierStokesWallConditionTest as TNavierStokesWallConditionTest
 
 from buoyancy_test import BuoyancyTest
+from manufactured_solution_test import ManufacturedSolutionTest
 from volume_source_test import VolumeSourceTest
 from fluid_element_test import FluidElementTest
 from time_integrated_fluid_element_test import TimeIntegratedFluidElementTest
@@ -41,8 +41,8 @@ def AssambleTestSuites():
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTest(TEmbeddedArtificialCompressibilityTest('test_execution'))
-    smallSuite.addTest(TManufacturedSolutionTest('test_execution'))
     smallSuite.addTest(TNavierStokesWallConditionTest('test_execution'))
+    smallSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
     smallSuite.addTest(BuoyancyTest('testEulerian'))
     smallSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
     smallSuite.addTest(FluidElementTest('testCavity'))

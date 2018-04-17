@@ -4,117 +4,149 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
-import process_factory
+try:
+    import KratosMultiphysics.ExternalSolversApplication
+    have_external_solvers = True
+except ImportError as e:
+    have_external_solvers = False
+
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Python modules
 import math
+import os
 
+class WorkFolderScope:
+    def __init__(self, work_folder):
+        self.currentPath = os.getcwd()
+        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
 
-class KratosExecuteManufacturedSolutionTest(KratosUnittest.TestCase):
+    def __enter__(self):
+        os.chdir(self.scope)
 
-    def __init__(self, ProjectParameters):
+    def __exit__(self, type, value, traceback):
+        os.chdir(self.currentPath)
 
-        # self.meshes_list = ["manufactured_solution_ref0",
-        #                     "manufactured_solution_ref1",
-        #                     "manufactured_solution_ref2",
-        #                     "manufactured_solution_ref3",
-        #                     "manufactured_solution_ref4"]
+@KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
+class ManufacturedSolutionTest(KratosUnittest.TestCase):
+    def testManufacturedSolution(self):
+        self.setUp()
+        self.runTest()
+        self.tearDown()
+
+    def setUp(self):
+        self.print_output = False
+        self.print_convergence_plot = False
+        self.problem_type = "manufactured_solution" # Available problem types: "manufactured_solution" "analytical_solution"
+        self.analytical_solution_type = "sinusoidal_transient_field" # Available fields: "nonlinear_transient_field" "sinusoidal_transient_field" "nonlinear_stationary_field"
+
+        self.work_folder = "ManufacturedSolutionTest"
+        self.settings = "ManufacturedSolutionTestParameters.json"
+
         self.meshes_list = ["manufactured_solution_ref0",
                             "manufactured_solution_ref1",
                             "manufactured_solution_ref2",
                             "manufactured_solution_ref3"]
+                            #"manufactured_solution_ref4"]
 
-        self.OriginalProjectParameters = ProjectParameters
-        self.print_convergence_plot = self.OriginalProjectParameters["manufactured_solution_settings"]["print_convergence_plot"].GetBool()
+    def tearDown(self):
+        with WorkFolderScope(self.work_folder):
+            for filename in self.meshes_list:
+                try:
+                    os.remove(filename + '.time')
+                except FileNotFoundError as e:
+                    pass
 
+    def runTest(self):
+        with WorkFolderScope(self.work_folder):
+            with open(self.settings, 'r') as parameter_file:
+                self.OriginalProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-    def Solve(self):
+            h = []
+            err_p = []
+            err_v = []
 
-        h = []
-        err_p = []
-        err_v = []
+            den = 1
+            mesh_0_characteristic_size = 0.2
 
-        den = 1
-        mesh_0_characteristic_size = 0.2
+            # Solve the manufactured solution problem for each one of the refinements
+            for mesh_name in self.meshes_list:
+                # Solve the problem imposing the previously obtained values
+                CaseProjectParameters = self.OriginalProjectParameters.Clone()
+                FluidProblem = ManufacturedSolutionProblem(CaseProjectParameters, mesh_name, self.print_output, self.problem_type, self.analytical_solution_type)
+                FluidProblem.SetFluidProblem()
+                FluidProblem.SolveFluidProblem()
 
-        # Solve the manufactured solution problem for each one of the refinements
-        for mesh_name in self.meshes_list:
-            # Solve the problem imposing the previously obtained values
-            CaseProjectParameters = self.OriginalProjectParameters.Clone()
-            FluidProblem = ManufacturedSolutionProblem(CaseProjectParameters, mesh_name)
-            FluidProblem.SetFluidProblem()
-            FluidProblem.SolveFluidProblem()
-
-            # Compute the obtained solution error
-            h.append(mesh_0_characteristic_size/den)
-            err_p.append(FluidProblem.ComputePressureErrorNorm())
-            err_v.append(FluidProblem.ComputeVelocityErrorNorm())
-            den *= 2
-
-        # Compute average convergence slopes
-        average_slope_pressure = (math.log(err_p[0])-math.log(err_p[-1]))/(math.log(h[0])-math.log(h[-1]))
-        average_slope_velocity = (math.log(err_v[0])-math.log(err_v[-1]))/(math.log(h[0])-math.log(h[-1]))
-
-        # Convergence plot print
-        if (self.print_convergence_plot == True):
-            # Plot the convergence graphs
-            import matplotlib.pyplot as plt
-
-            h_1_v = []
-            h_2_v = []
-            h_3_v = []
-            h_1_p = []
-            h_2_p = []
-            h_3_p = []
-
-            den = 1.0
-            for i in range(0,len(err_p)):
-                h_1_v.append(err_v[0]/den)
-                h_2_v.append(err_v[0]/den**2)
-                h_3_v.append(err_v[0]/den**3)
-                h_1_p.append(err_p[0]/den)
-                h_2_p.append(err_p[0]/den**2)
-                h_3_p.append(err_p[0]/den**3)
+                # Compute the obtained solution error
+                h.append(mesh_0_characteristic_size/den)
+                err_p.append(FluidProblem.ComputePressureErrorNorm())
+                err_v.append(FluidProblem.ComputeVelocityErrorNorm())
                 den *= 2
 
-            plt.rc('text', usetex=True)
-            plt.rc('font', family='serif')
-            plt.loglog(h, err_p, '-+', color = 'r', label = 'Obtained pressure')
-            plt.loglog(h, h_1_p, '--', color = 'r', label = 'Linear pressure')
-            plt.loglog(h, h_2_p, ':' , color = 'r', label = 'Quadratic pressure')
-            plt.loglog(h, h_3_p, '-.', color = 'r', label = 'Cubic pressure')
-            plt.loglog(h, err_v, '-x', color = 'k', label = 'Obtained velocity')
-            plt.loglog(h, h_1_v, '--', color = 'k', label = 'Linear velocity')
-            plt.loglog(h, h_2_v, ':' , color = 'k', label = 'Quadratic velocity')
-            plt.loglog(h, h_3_v, ':' , color = 'k', label = 'Cubic velocity')
+            # Compute average convergence slopes
+            average_slope_pressure = (math.log(err_p[0])-math.log(err_p[-1]))/(math.log(h[0])-math.log(h[-1]))
+            average_slope_velocity = (math.log(err_v[0])-math.log(err_v[-1]))/(math.log(h[0])-math.log(h[-1]))
 
-            plt.title('L2 norm convergence')
-            plt.ylabel(r'$\displaystyle\sum_{i=1}^{n_{n}}\frac{A_{i}\Vert\mathbf{u}_{i}-\mathbf{\bar{u}}_{i}\Vert}{A_{T}}$')
-            plt.xlabel('h')
-            plt.xlim([0.01, 0.25])
-            # plt.ylim([1e-4, 1])
-            plt.legend(loc=4, ncol=2)
-            plt.tight_layout()
-            plt.savefig('l2_norm_convergence.png')
+            # Convergence plot print
+            if (self.print_convergence_plot == True):
+                # Plot the convergence graphs
+                import matplotlib.pyplot as plt
 
-        # Check obtained solution
-        expected_velocity_errors = [0.020910246816825257, 0.0062279017039999045, 0.0014846307453335115, 0.0003540805601027302, 8.621417044815537e-05]
-        expected_pressure_errors = [46.48407227368183, 4.678777003089299, 0.8570316463968392, 0.2160365355817885, 0.06642008924417026]
+                h_1_v = []
+                h_2_v = []
+                h_3_v = []
+                h_1_p = []
+                h_2_p = []
+                h_3_p = []
 
-        for i in range(len(self.meshes_list)):
-            self.assertAlmostEqual(err_v[i], expected_velocity_errors[i])
-            self.assertAlmostEqual(err_p[i], expected_pressure_errors[i])
+                den = 1.0
+                for i in range(0,len(err_p)):
+                    h_1_v.append(err_v[0]/den)
+                    h_2_v.append(err_v[0]/den**2)
+                    h_3_v.append(err_v[0]/den**3)
+                    h_1_p.append(err_p[0]/den)
+                    h_2_p.append(err_p[0]/den**2)
+                    h_3_p.append(err_p[0]/den**3)
+                    den *= 2
+
+                plt.rc('text', usetex=True)
+                plt.rc('font', family='serif')
+                plt.loglog(h, err_p, '-+', color = 'r', label = 'Obtained pressure')
+                plt.loglog(h, h_1_p, '--', color = 'r', label = 'Linear pressure')
+                plt.loglog(h, h_2_p, ':' , color = 'r', label = 'Quadratic pressure')
+                plt.loglog(h, h_3_p, '-.', color = 'r', label = 'Cubic pressure')
+                plt.loglog(h, err_v, '-x', color = 'k', label = 'Obtained velocity')
+                plt.loglog(h, h_1_v, '--', color = 'k', label = 'Linear velocity')
+                plt.loglog(h, h_2_v, ':' , color = 'k', label = 'Quadratic velocity')
+                plt.loglog(h, h_3_v, ':' , color = 'k', label = 'Cubic velocity')
+
+                plt.title('L2 norm convergence')
+                plt.ylabel(r'$\displaystyle\sum_{i=1}^{n_{n}}\frac{A_{i}\Vert\mathbf{u}_{i}-\mathbf{\bar{u}}_{i}\Vert}{A_{T}}$')
+                plt.xlabel('h')
+                plt.xlim([0.01, 0.25])
+                # plt.ylim([1e-4, 1])
+                plt.legend(loc=4, ncol=2)
+                plt.tight_layout()
+                plt.savefig('l2_norm_convergence.png')
+
+            # Check obtained solution
+            expected_velocity_errors = [0.020910246816825257, 0.0062279017039999045, 0.0014846307453335115, 0.0003540805601027302, 8.621417044815537e-05]
+            expected_pressure_errors = [46.48407227368183, 4.678777003089299, 0.8570316463968392, 0.2160365355817885, 0.06642008924417026]
+
+            for i in range(len(self.meshes_list)):
+                self.assertAlmostEqual(err_v[i], expected_velocity_errors[i])
+                self.assertAlmostEqual(err_p[i], expected_pressure_errors[i])
 
 class ManufacturedSolutionProblem:
 
-    def __init__(self, ProjectParameters, input_file_name):
+    def __init__(self, ProjectParameters, input_file_name, print_output, problem_type, analytical_solution_type):
 
-        self.ProjectParameters = ProjectParameters
-        self.print_output = self.ProjectParameters["manufactured_solution_settings"]["print_output"].GetBool()
-        self.problem_type = self.ProjectParameters["manufactured_solution_settings"]["problem_type"].GetString()
-        self.analytical_solution_type = self.ProjectParameters["manufactured_solution_settings"]["analytical_solution_type"].GetString()
+        self.problem_type = problem_type
+        self.print_output = print_output
         self.input_file_name = input_file_name
+        self.ProjectParameters = ProjectParameters
+        self.analytical_solution_type = analytical_solution_type
+
 
     def SetFluidProblem(self):
 
@@ -123,7 +155,7 @@ class ManufacturedSolutionProblem:
             self.ProjectParameters["problem_data"]["problem_name"].SetString(self.input_file_name+"_manufactured")
         else:
             self.ProjectParameters["problem_data"]["problem_name"].SetString(self.input_file_name)
-        self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].SetString("ManufacturedSolutionTest/"+self.input_file_name)
+        self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.input_file_name)
 
         ## Fluid model part definition
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())

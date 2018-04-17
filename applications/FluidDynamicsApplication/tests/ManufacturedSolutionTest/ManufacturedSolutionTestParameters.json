@@ -1,10 +1,4 @@
 {
-    "manufactured_solution_settings"   : {
-        "problem_type"             : "manufactured_solution",
-        "analytical_solution_type" : "sinusoidal_transient_field",
-        "print_convergence_plot"   : false,
-        "print_output"             : false
-    },
     "problem_data"                     : {
         "problem_name"           : "manufactured_solution",
         "model_part_name"        : "MainModelPart",
