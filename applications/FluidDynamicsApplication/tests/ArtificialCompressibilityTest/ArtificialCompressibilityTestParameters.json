@@ -5,7 +5,7 @@
         "parallel_type"   : "OpenMP",
         "domain_size"     : 2,
         "start_step"      : 0.0,
-        "end_time"        : 1
+        "end_time"        : 20.0
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -37,10 +37,10 @@
         "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "EmbeddedArtificialCompressibilityTest/cavity_compressibility"
+            "input_filename" : "cavity_compressibility"
         },
         "maximum_iterations"           : 10,
-        "dynamic_tau"                  : 0.001,
+        "dynamic_tau"                  : 1.0,
         "echo_level"                   : 0,
         "time_order"                   : 2,
         "compute_reactions"            : false,
@@ -65,7 +65,7 @@
         "no_skin_parts"                : [],
         "time_stepping"                : {
             "automatic_time_step" : false,
-            "time_step"           : 0.01
+            "time_step"           : 10.0
         },
         "distance_reading_settings"    : {
             "import_mode"         : "from_mdpa"
@@ -90,14 +90,6 @@
             "value"           : [1.0, 0.0, 0.0],
             "constrained"     : [true,true,true],
             "model_part_name" : "Inlet2D_Inlet"
-        }
-    },{
-        "python_module" : "embedded_artificial_compressibility_test_local_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "EmbeddedArtificialCompressibilityTestLocalProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Parts_Fluid"
         }
     }],
     "gravity"                          : [{

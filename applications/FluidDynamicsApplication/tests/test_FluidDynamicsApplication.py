@@ -6,9 +6,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-## SMALL TESTS
-from SmallTests import EmbeddedArtificialCompressibilityTest as TEmbeddedArtificialCompressibilityTest
-
+from artificial_compressibility_test import ArtificialCompressibilityTest
 from buoyancy_test import BuoyancyTest
 from darcy_channel_test import DarcyChannelTest
 from embedded_reservoir_test import EmbeddedReservoirTest
@@ -40,7 +38,7 @@ def AssambleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TEmbeddedArtificialCompressibilityTest('test_execution'))
+    smallSuite.addTest(ArtificialCompressibilityTest('testArtificialCompressibility'))
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
     smallSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
     smallSuite.addTest(BuoyancyTest('testEulerian'))
