@@ -128,16 +128,10 @@ void Mapper<TSparseSpace, TDenseSpace>::InverseMap(const Variable< array_1d<doub
 template<class TSparseSpace, class TDenseSpace>
 Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
                 ModelPart& rModelPartDestination,
-                Parameters MapperSettings,
-                const bool IsMPIExecution) :
+                Parameters MapperSettings) :
                     mrModelPartOrigin(rModelPartOrigin),
-                    mrModelPartDestination(rModelPartDestination),
-                    mIsMPIExecution(IsMPIExecution)
+                    mrModelPartDestination(rModelPartDestination)
 {
-#ifndef KRATOS_USING_MPI // serial compilation
-    KRATOS_ERROR_IF(IsMPIExecution) << "Trying to construct an MPI-Mapper "
-        << "in a serial compilation!" << std::endl;
-#endif
 
     // ValidateParameters(MapperSettings);
     // mEchoLevel = MapperSettings["echo_level"].GetInt();
@@ -178,23 +172,21 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeInterfaceCommunicator()
 #endif
 }
 
-template<class TSparseSpace, class TDenseSpace>
-void Mapper<TSparseSpace, TDenseSpace>::InitializeMappingOperationUtility()
+template<>
+void Mapper<MapperDefinitions::UblasSparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
 {
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    int mpi_initialized;
-    MPI_Initialized(&mpi_initialized);
-    if (mpi_initialized) // parallel execution, i.e. mpi imported in python
-    {
-        int comm_size;
-        MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-        if (comm_size > 1)
-            mpMappingOperationUtility = CreateMPIMappingOperationUtility(mpInterfaceModelPart);
-    }
-#else // serial compilation
+    KRATOS_WATCH("Without MPI")
     mpMappingOperationUtility = CreateMappingOperationUtility(mpInterfaceModelPart);
-#endif
 }
+
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+template<>
+void Mapper<MapperDefinitions::TrilinosSparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
+{
+    KRATOS_WATCH("With MPI")
+    mpMappingOperationUtility = CreateMappingOperationUtility(mpInterfaceModelPart);
+}
+#endif
 
 // /// input stream function
 // inline std::istream & operator >> (std::istream& rIStream, Mapper& rThis);

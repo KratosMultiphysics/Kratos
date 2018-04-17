@@ -33,7 +33,6 @@
 #ifdef KRATOS_USING_MPI
 #include "mpi.h" // TODO needed here?
 #include "custom_utilities/interface_communicator_mpi.h"
-#include "custom_utilities/matrix_based_mapping_operation_utility_mpi.h"
 #endif
 
 
@@ -86,7 +85,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
     using InterfaceCommunicatorPointerType = InterfaceCommunicator::Pointer;
-    using MappingOperationUtilityPointerType = MappingOperationUtility::Pointer;
+    typedef MappingOperationUtility<TSparseSpace, TDenseSpace> MappingOperationUtilityType;
+    typedef typename MappingOperationUtilityType::Pointer MappingOperationUtilityPointerType;
     using InterfacePreprocessorPointerType = InterfacePreprocessor::Pointer;
     using ModelPartPointerType = ModelPart::Pointer;
     using SizeType = std::size_t;
@@ -99,8 +99,7 @@ public:
     Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination) :
         mrModelPartOrigin(rModelPartOrigin),
         mrModelPartDestination(rModelPartDestination),
-        mGeneralMapperSettings(Parameters(R"({})")),
-        mIsMPIExecution(false) {}
+        mGeneralMapperSettings(Parameters(R"({})")) {}
 
     /// Destructor.
     virtual ~Mapper()
@@ -139,8 +138,7 @@ public:
 
     virtual Mapper<TSparseSpace, TDenseSpace>::Pointer Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
-                                  Parameters JsonParameters,
-                                  const bool IsMPIExecution) = 0;
+                                  Parameters JsonParameters) = 0;
 
     // Developer function only being used if this class needs to be accessed from outside!
     InterfaceCommunicatorPointerType pGetInterfaceCommunicator()
@@ -149,16 +147,11 @@ public:
     }
 
     // Developer function only being used if this class needs to be accessed from outside!
-    MappingOperationUtilityPointerType pGetMappingOperatinUtility()
-    {
-        return mpMappingOperationUtility;
-    }
-
-    // Developer function only being used if this class needs to be accessed from outside!
     // can be overridden in case it is needed (e.g. for Mortar where Mdd != I !)
     virtual double GetMappingMatrixEntry(const IndexType RowIndex, const IndexType ColumnIndex)
     {
-        return mpMappingOperationUtility->GetMappingMatrixEntry(RowIndex, ColumnIndex);
+        // return mpMappingOperationUtility->GetMappingMatrixEntry(RowIndex, ColumnIndex);
+        KRATOS_ERROR << "Not implemented" << std::endl;
     }
 
     ///@}
@@ -215,7 +208,6 @@ protected:
         "echo_level"        : 0
     }  )" );
 
-    bool mIsMPIExecution = false;
     bool mInverseMapperIsInitialized = false;
 
     InterfaceCommunicatorPointerType mpInterfaceCommunicator;
@@ -245,8 +237,7 @@ protected:
     // Constructor, can only be called by derived classes (actual mappers)
     Mapper(ModelPart& rModelPartOrigin,
            ModelPart& rModelPartDestination,
-           Parameters MapperSettings,
-           const bool IsMPIExecution = false);
+           Parameters MapperSettings);
 
 
     /**
@@ -361,7 +352,7 @@ protected:
     virtual MappingOperationUtilityPointerType CreateMappingOperationUtility(
         ModelPartPointerType pInterfaceModelPart) const
     {   // here we could return the MatrixFree variant in the future
-        return Kratos::make_shared<MatrixBasedMappingOperationUtility>(pInterfaceModelPart);
+        return Kratos::make_shared<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>(pInterfaceModelPart);
     }
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
@@ -370,20 +361,13 @@ protected:
     {
         return Kratos::make_shared<InterfaceCommunicatorMPI>(rModelPartOrigin, pInterfaceModelPart);
     }
-
-    virtual MappingOperationUtilityPointerType CreateMPIMappingOperationUtility(
-        ModelPartPointerType pInterfaceModelPart) const
-    {   // here we could return the MatrixFree variant in the future
-        return Kratos::make_shared<MatrixBasedMappingOperationUtilityMPI>(pInterfaceModelPart);
-    }
 #endif
 
     void InitializeInverseMapper()
     {
         mpInverseMapper = Clone(mrModelPartDestination, // TODO needs "this->" ?
                                 mrModelPartOrigin,
-                                mGeneralMapperSettings, // TODO how to handle this ...?
-                                mIsMPIExecution);
+                                mGeneralMapperSettings); // TODO how to handle this ...?
 
         mInverseMapperIsInitialized = true;
     }

@@ -52,6 +52,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
+template<class TSparseSpace, class TDenseSpace>
 class MappingOperationUtility
 {
     public:
@@ -70,7 +71,11 @@ class MappingOperationUtility
     ///@{
 
     /// Default constructor.
-    MappingOperationUtility(ModelPartPointerType pInterfaceModelPart);
+    MappingOperationUtility(ModelPartPointerType pInterfaceModelPart)
+        : mpInterfaceModelPart(pInterfaceModelPart)
+    {
+
+    }
 
     /// Destructor.
     virtual ~MappingOperationUtility() {}
@@ -84,11 +89,6 @@ class MappingOperationUtility
     ///@}
     ///@name Operations
     ///@{
-
-    virtual double GetMappingMatrixEntry(const IndexType RowIndex, const IndexType ColumnIndex)
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
 
     virtual void UpdateInterface()
     {

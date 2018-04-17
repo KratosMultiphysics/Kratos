@@ -27,7 +27,7 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_geometry_object.cpp
     # # Utilities
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_communicator.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_operation_utility.cpp
+    # ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_operation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocessor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_factory.cpp
@@ -49,7 +49,7 @@ if(${MPI_NEEDED} MATCHES ON )
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure_mpi.cpp
         # Utilities
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_communicator_mpi.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility_mpi.cpp
+        # ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility_mpi.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities_mpi.cpp
     )
 

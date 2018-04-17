@@ -25,7 +25,8 @@ namespace Kratos
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
-    MappingOperationUtility::MappingOperationUtility(
+    template<class TSparseSpace, class TDenseSpace>
+    MappingOperationUtility<TSparseSpace, TDenseSpace>::MappingOperationUtility(
         ModelPartPointerType pInterfaceModelPart)
         : mpInterfaceModelPart(pInterfaceModelPart)
     {

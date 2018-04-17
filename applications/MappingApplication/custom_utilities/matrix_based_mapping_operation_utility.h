@@ -21,8 +21,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "spaces/ublas_space.h"
 #include "mapping_operation_utility.h"
 
 
@@ -53,7 +51,9 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class MatrixBasedMappingOperationUtility : public MappingOperationUtility
+template<class TSparseSpace, class TDenseSpace>
+class MatrixBasedMappingOperationUtility
+    : public MappingOperationUtility<TSparseSpace, TDenseSpace>
 {
     public:
     ///@name Type Definitions
@@ -62,10 +62,11 @@ class MatrixBasedMappingOperationUtility : public MappingOperationUtility
     /// Pointer definition of MatrixBasedMappingOperationUtility
     KRATOS_CLASS_POINTER_DEFINITION(MatrixBasedMappingOperationUtility);
 
-    using BaseType = MappingOperationUtility;
-    using ModelPartPointerType = BaseType::ModelPartPointerType;
+    using BaseType = MappingOperationUtility<TSparseSpace, TDenseSpace>;
+    typedef typename BaseType::ModelPartPointerType ModelPartPointerType;
 
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+
+
 
     ///@}
     ///@name Life Cycle

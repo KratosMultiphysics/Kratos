@@ -110,8 +110,6 @@ public:
 
         if (mapper_list.find(mapper_name) != mapper_list.end())
         {
-            const bool is_mpi_execution = false;
-
             // Removing Parameters that are not needed by the Mapper
             MapperSettings.RemoveValue("mapper_type");
             MapperSettings.RemoveValue("interface_submodel_part_origin");
@@ -119,8 +117,7 @@ public:
 
             return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
                                                       r_interface_model_part_destination,
-                                                      MapperSettings,
-                                                      is_mpi_execution);
+                                                      MapperSettings);
         }
         else
         {

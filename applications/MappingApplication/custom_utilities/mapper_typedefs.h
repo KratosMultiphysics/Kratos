@@ -17,7 +17,6 @@
 
 // External includes
 
-
 // Project includes
 #include "spaces/ublas_space.h"
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
@@ -25,6 +24,7 @@
 #include "Epetra_FEVector.h"
 // #include "Epetra_FECrsMatrix.h" // included in "trilinos_space"
 #endif
+
 
 namespace Kratos
 {

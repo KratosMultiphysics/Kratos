@@ -31,6 +31,9 @@ namespace Kratos
 namespace Python
 {
 
+namespace MapperToPython
+{
+
 using namespace pybind11;
 
 // Wrapper functions for taking a default argument for the flags // TODO inline? Jordi
@@ -139,21 +142,25 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
             .def("__repr__",         &Mapper<TSparseSpace, TDenseSpace>::Info)
             ;
 
-    // Adding the flags that can be used while mapping
+    // Adding the flags that can be used for mapping
     mapper.attr("SWAP_SIGN")        = MapperFlags::SWAP_SIGN;
     mapper.attr("ADD_VALUES")       = MapperFlags::ADD_VALUES;
     mapper.attr("CONSERVATIVE")     = MapperFlags::CONSERVATIVE;
     mapper.attr("REMESHED")         = MapperFlags::REMESHED;
 }
 
+} // namespace MapperToPython.
+
 void  AddCustomMappersToPython(pybind11::module& m)
 {
+    using namespace pybind11;
+
     typedef MapperDefinitions::DenseSpaceType DenseSpaceType;
     typedef MapperDefinitions::UblasSparseSpaceType UblasSparseSpaceType;
-    ExposeMapperToPython<UblasSparseSpaceType, DenseSpaceType>(m, "Mapper");
+    MapperToPython::ExposeMapperToPython<UblasSparseSpaceType, DenseSpaceType>(m, "Mapper");
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     typedef MapperDefinitions::TrilinosSparseSpaceType TrilinosSparseSpaceType;
-    ExposeMapperToPython<TrilinosSparseSpaceType, DenseSpaceType>(m, "MPIMapper");
+    MapperToPython::ExposeMapperToPython<TrilinosSparseSpaceType, DenseSpaceType>(m, "MPIMapper");
 #endif
 
     // Exposing the MapperFactory

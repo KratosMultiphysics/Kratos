@@ -78,12 +78,10 @@ public:
 
     NearestNeighborMapper(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
-                          Parameters JsonParameters,
-                          const bool IsMPIExecution)
+                          Parameters JsonParameters)
                           : Mapper<TSparseSpace, TDenseSpace>(rModelPartOrigin,
                                    rModelPartDestination,
-                                   JsonParameters,
-                                   IsMPIExecution)
+                                   JsonParameters)
     {
         // mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node_Coords);
         // mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
@@ -119,13 +117,11 @@ public:
 
     typename Mapper<TSparseSpace, TDenseSpace>::Pointer Clone(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
-                          Parameters JsonParameters,
-                          const bool IsMPIExecution) override
+                          Parameters JsonParameters) override
     {
         return Kratos::make_shared<NearestNeighborMapper<TSparseSpace, TDenseSpace>>(rModelPartOrigin,
                                                           rModelPartDestination,
-                                                          JsonParameters,
-                                                          IsMPIExecution);
+                                                          JsonParameters);
     }
 
     ///@}
