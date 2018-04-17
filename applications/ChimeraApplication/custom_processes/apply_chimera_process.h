@@ -148,10 +148,6 @@ class ApplyChimeraProcess : public Process
 
 		if(m_solution_strategy_name=="monolithic")
 		{
-
-
-			std::cout<<"Rishith: Solution strategy recieved from chimera parameters "<<m_solution_strategy_name<<std::endl;
-
 			this->pMpcPatch = MpcDataPointerType(new MpcData(m_type_patch));
 			this->pMpcBackground = MpcDataPointerType(new MpcData(m_type_background));
 			this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
@@ -169,43 +165,32 @@ class ApplyChimeraProcess : public Process
 		else
 		{
 
-			std::cout<<"Rishith : Solution strategy recieved from chimera parameters is "<<m_solution_strategy_name<<"And you havent implemented it yet "<<std::endl;
-
-			this->pMpcPatch = MpcDataPointerType(new MpcData(m_type_patch));
-			this->pMpcBackground = MpcDataPointerType(new MpcData(m_type_background));
-			this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
-			this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
-
-			this->pMpcPatch->SetName(m_patch_model_part_name);
-			this->pMpcBackground->SetName(m_background_model_part_name);
-			this->pMpcPatch->SetActive(true);
-			this->pMpcBackground->SetActive(true);
-
-			MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
-			(*mpcDataVector).push_back(pMpcPatch);
-			(*mpcDataVector).push_back(pMpcBackground);
-
-			/* this->pMpcPatchVelocity = MpcDataPointerType(new MpcData(m_type_patch));
+			this->pMpcPatchVelocity = MpcDataPointerType(new MpcData(m_type_patch));
 			this->pMpcPatchPressure = MpcDataPointerType(new MpcData(m_type_patch));
 			this->pMpcBackgroundVelocity = MpcDataPointerType(new MpcData(m_type_background));
 			this->pMpcBackgroundPressure = MpcDataPointerType(new MpcData(m_type_background));
 			this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
 			this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
 
-			this->pMpcPatch->SetName(m_patch_model_part_name+"Velocity");
-			this->pMpcPatch->SetName(m_patch_model_part_name+"Pressure");
-			this->pMpcBackground->SetName(m_background_model_part_name+"Velocity");
-			this->pMpcBackground->SetName(m_background_model_part_name+"Pressure");
+			this->pMpcPatchVelocity->SetName(m_patch_model_part_name+"Velocity");
+			this->pMpcPatchPressure->SetName(m_patch_model_part_name+"Pressure");
+			this->pMpcBackgroundVelocity->SetName(m_background_model_part_name+"Velocity");
+			this->pMpcBackgroundPressure->SetName(m_background_model_part_name+"Pressure");
 			this->pMpcPatchVelocity->SetActive(true);
 			this->pMpcPatchPressure->SetActive(true);
 			this->pMpcBackgroundVelocity->SetActive(true);
 			this->pMpcBackgroundPressure->SetActive(true);
+			this->pMpcPatchVelocity->SetVelocityOrPressure("Velocity");
+			this->pMpcPatchPressure->SetVelocityOrPressure("Pressure");
+			this->pMpcBackgroundVelocity->SetVelocityOrPressure("Velocity");
+			this->pMpcBackgroundPressure->SetVelocityOrPressure("Pressure");
+
 
 			MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
 			(*mpcDataVector).push_back(pMpcPatchVelocity);
 			(*mpcDataVector).push_back(pMpcPatchPressure);
 			(*mpcDataVector).push_back(pMpcBackgroundVelocity);
-			(*mpcDataVector).push_back(pMpcBackgroundPressure); */
+			(*mpcDataVector).push_back(pMpcBackgroundPressure);
 		}
 	}
 
@@ -234,9 +219,22 @@ class ApplyChimeraProcess : public Process
 
 	virtual void Clear()
 	{
-		pMpcBackground->Clear();
-		pMpcPatch->Clear();
-		std::cout << "Chimera process is cleared" << std::endl;
+		if(m_solution_strategy_name=="monolithic")
+		{
+			pMpcBackground->Clear();
+			pMpcPatch->Clear();
+			std::cout << "Monolithic Chimera process is cleared" << std::endl;
+		}
+		else if(m_solution_strategy_name=="fractionalstep")
+		{
+			pMpcPatchVelocity->Clear();
+			pMpcPatchPressure->Clear();
+			pMpcBackgroundVelocity->Clear();
+			pMpcBackgroundPressure->Clear();
+			std::cout << "FractionalStep Chimera process is cleared" << std::endl;
+		}
+
+
 	}
 
 	void ExecuteBeforeSolutionLoop() override
@@ -419,6 +417,205 @@ class ApplyChimeraProcess : public Process
 		std::cout << counter << " pressure nodes from " << rBoundaryModelPart.Name() << " is coupled" << std::endl;
 	}
 
+		void ApplyMpcConstraintFractionalVelocity(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc, std::string pressure_coupling)
+	{
+
+		//loop over nodes and find the triangle in which it falls, than do interpolation
+		array_1d<double, TDim + 1> N;
+		const int max_results = 10000;
+		typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+		const int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
+
+		std::size_t counter = 0;
+
+#pragma omp parallel for firstprivate(results, N)
+		//MY NEW LOOP: setting all the boundary nodes as not visited
+		for (int i = 0; i < n_boundary_nodes; i++)
+		{
+			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
+			Node<3>::Pointer p_boundary_node = *(iparticle.base());
+			p_boundary_node->Set(VISITED, false);
+		}
+
+		for (int i = 0; i < n_boundary_nodes; i++)
+
+		{
+			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
+			Node<3>::Pointer p_boundary_node = *(iparticle.base());
+
+			typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+
+			Element::Pointer pElement;
+
+			bool is_found = false;
+			is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
+
+			// Initialise the boundary nodes dofs to 0 at ever time steps
+
+			p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
+			p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
+
+			if (TDim == 3)
+				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
+
+			if (is_found == true)
+			{
+				Geometry<Node<3>> &geom = pElement->GetGeometry();
+
+				for (std::size_t i = 0; i < geom.size(); i++)
+				{
+					//Interpolation of velocity
+					p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_X).GetSolutionStepValue(0) * N[i];
+					p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_Y).GetSolutionStepValue(0) * N[i];
+
+					//Define master slave relation for velocity
+					AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_X, *p_boundary_node, VELOCITY_X, N[i]);
+					AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_Y, *p_boundary_node, VELOCITY_Y, N[i]);
+					if (TDim == 3)
+					{
+						//Interpolation of velocity
+						p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * N[i];
+
+						//Define master slave relation for velocity
+						AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
+					}
+					counter++;
+				} // end of loop over host element nodes
+
+			} // if (is_found = true)
+
+			// Setting the buffer 1 same buffer 0
+			p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0);
+			p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0);
+
+			if (TDim == 3)
+				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0);
+
+		} // end of loop over boundary nodes
+
+		counter /= TDim + 1;
+
+		std::cout << counter << " nodes from " << rBoundaryModelPart.Name() << " is coupled" << std::endl;
+	}
+
+
+	void ApplyMpcConstraintFractionalPressure(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc, std::string pressure_coupling)
+	{
+
+		//loop over nodes and find the triangle in which it falls, than do interpolation
+		array_1d<double, TDim + 1> N;
+		const int max_results = 10000;
+		typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+		const int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
+
+		std::size_t counter = 0;
+
+#pragma omp parallel for firstprivate(results, N)
+		//MY NEW LOOP: reset the visited flag
+		for (int i = 0; i < n_boundary_nodes; i++)
+
+		{
+			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
+			Node<3>::Pointer p_boundary_node = *(iparticle.base());
+			p_boundary_node->Set(VISITED, false);
+		}
+
+		for (int i = 0; i < n_boundary_nodes; i++)
+
+		{
+			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
+			Node<3>::Pointer p_boundary_node = *(iparticle.base());
+
+			typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+
+			Element::Pointer pElement;
+
+			bool is_found = false;
+			is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
+
+			// Initialise the boundary nodes dofs to 0 at ever time steps
+			if (pressure_coupling == "all")
+				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
+
+			if (is_found == true)
+			{
+				Geometry<Node<3>> &geom = pElement->GetGeometry();
+
+				for (std::size_t i = 0; i < geom.size(); i++)
+				{
+					if (pressure_coupling == "all")
+					{
+						//Interpolation of pressure
+						p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
+
+						//Defining master slave relation for pressure
+						AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
+
+						counter++;
+					}
+				} // end of loop over host element nodes
+
+			} // if (is_found = true)
+
+			if (pressure_coupling == "all")
+				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
+
+		} // end of loop over boundary nodes
+
+		if (pressure_coupling == "one")
+		{
+
+			Node<3>::Pointer p_boundary_node;
+			if (m_parameters["pressure_coupling_node"].GetDouble() == 0.0)
+			{
+
+				ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin();
+				p_boundary_node = *(iparticle.base());
+			}
+			else
+			{
+				std::size_t node_num = m_parameters["pressure_coupling_node"].GetDouble();
+
+				p_boundary_node = rBoundaryModelPart.pGetNode(node_num);
+			}
+
+			typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+
+			Element::Pointer pElement;
+
+			bool is_found = false;
+			is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
+
+			//Initialsing pressure to 0 at every time steps
+			p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
+
+			if (is_found == true)
+			{
+				Geometry<Node<3>> &geom = pElement->GetGeometry();
+				for (std::size_t i = 0; i < geom.size(); i++)
+				{
+					// Interpolation of pressure
+					p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
+
+					// Defining master slave relation for one pressure node
+					AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
+					counter++;
+				}
+			}
+			// Setting the buffer 1 same buffer 0
+			p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
+
+			std::cout << "Coordinates of node that are pressure coupled" << std::endl;
+			std::cout << p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
+
+		} // end of if (pressure_coupling == "one")
+
+		counter /= TDim + 1;
+
+		std::cout << counter << " pressure nodes from " << rBoundaryModelPart.Name() << " is coupled" << std::endl;
+	}
+
+
 	void ApplyMpcConstraintConservative(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc, std::string pressure_coupling)
 	{
 
@@ -458,7 +655,6 @@ class ApplyChimeraProcess : public Process
 	//Apply Chimera with or without overlap
 	void FormulateChimera()
 	{
-
 		ModelPart &rBackgroundModelPart = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
 		ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
 
@@ -478,9 +674,7 @@ class ApplyChimeraProcess : public Process
 		}
 
 		if (m_overlap_distance > epsilon)
-
 		{
-
 			ModelPart::Pointer pHoleModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
 			ModelPart::Pointer pHoleBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
 
@@ -494,37 +688,80 @@ class ApplyChimeraProcess : public Process
 			CalculateNodalAreaAndNodalMass(rPatchBoundaryModelPart, 1);
 			CalculateNodalAreaAndNodalMass(*pHoleBoundaryModelPart, -1);
 
-			pMpcPatch->SetIsWeak(m_parameters["patch"]["IsWeak"].GetBool());
-			pMpcBackground->SetIsWeak(m_parameters["background"]["IsWeak"].GetBool());
-
-			std::string pr_coupling_patch = m_parameters["patch"]["pressure_coupling"].GetString();
-			std::string pr_coupling_background = m_parameters["background"]["pressure_coupling"].GetString();
-
-			if (m_type_patch == "nearest_element")
+			if(m_solution_strategy_name=="monolithic")
 			{
-				ApplyMpcConstraint(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatch, pr_coupling_patch);
-				std::cout << "Patch boundary coupled with background" << std::endl;
+				pMpcPatch->SetIsWeak(m_parameters["patch"]["IsWeak"].GetBool());
+				pMpcBackground->SetIsWeak(m_parameters["background"]["IsWeak"].GetBool());
+
+				std::string pr_coupling_patch = m_parameters["patch"]["pressure_coupling"].GetString();
+				std::string pr_coupling_background = m_parameters["background"]["pressure_coupling"].GetString();
+
+				if (m_type_patch == "nearest_element")
+				{
+					ApplyMpcConstraint(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatch, pr_coupling_patch);
+					std::cout << "Patch boundary coupled with background" << std::endl;
+				}
+
+				else if (m_type_patch == "conservative")
+				{
+					ApplyMpcConstraintConservative(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatch, pr_coupling_patch);
+					std::cout << "Patch boundary coupled with background using conservative approach" << std::endl;
+				}
+
+				if (m_type_background == "nearest_element")
+				{
+					ApplyMpcConstraint(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackground, pr_coupling_background);
+					std::cout << "HoleBoundary  coupled with patch" << std::endl;
+				}
+
+				else if (m_type_background == "conservative")
+				{
+					ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackground, pr_coupling_background);
+					std::cout << "HoleBoundary  coupled with patch using conservative approach" << std::endl;
+				}
+			}
+			else if(m_solution_strategy_name=="fractionalstep")
+			{
+				std::cout<<"inside - formulate chimera for fractional step"<<std::endl;
+				pMpcPatchVelocity->SetIsWeak(m_parameters["patch"]["IsWeak"].GetBool());
+				pMpcPatchPressure->SetIsWeak(m_parameters["patch"]["IsWeak"].GetBool());
+				pMpcBackgroundVelocity->SetIsWeak(m_parameters["background"]["IsWeak"].GetBool());
+				pMpcBackgroundPressure->SetIsWeak(m_parameters["background"]["IsWeak"].GetBool());
+
+				std::string pr_coupling_patch = m_parameters["patch"]["pressure_coupling"].GetString();
+				std::string pr_coupling_background = m_parameters["background"]["pressure_coupling"].GetString();
+
+				if (m_type_patch == "nearest_element")
+				{
+					ApplyMpcConstraintFractionalVelocity(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchVelocity, pr_coupling_patch);
+					ApplyMpcConstraintFractionalPressure(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchPressure, pr_coupling_patch);
+					std::cout << "Fractional : Patch boundary coupled with background" << std::endl;
+				}
+
+				else if (m_type_patch == "conservative")
+				{
+					std::cout<<"Fractional step MPC Conservative not yet implemented "<<std::endl;
+					ApplyMpcConstraintConservative(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchVelocity, pr_coupling_patch);
+					ApplyMpcConstraintConservative(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchPressure, pr_coupling_patch);
+					std::cout << "Patch boundary coupled with background using conservative approach" << std::endl;
+				}
+
+				if (m_type_background == "nearest_element")
+				{
+					ApplyMpcConstraintFractionalVelocity(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundVelocity, pr_coupling_background);
+					ApplyMpcConstraintFractionalPressure(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundPressure, pr_coupling_background);
+					std::cout << " Fractional : HoleBoundary  coupled with patch" << std::endl;
+				}
+
+				else if (m_type_background == "conservative")
+				{
+					std::cout<<"Fractional step MPC Conservative not yet implemented "<<std::endl;
+					ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundVelocity, pr_coupling_background);
+					ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundPressure, pr_coupling_background);
+					std::cout << "HoleBoundary  coupled with patch using conservative approach" << std::endl;
+				}
 			}
 
-			else if (m_type_patch == "conservative")
-			{
-
-				ApplyMpcConstraintConservative(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatch, pr_coupling_patch);
-				std::cout << "Patch boundary coupled with background using conservative approach" << std::endl;
-			}
-
-			if (m_type_background == "nearest_element")
-			{
-				ApplyMpcConstraint(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackground, pr_coupling_background);
-				std::cout << "HoleBoundary  coupled with patch" << std::endl;
-			}
-
-			else if (m_type_background == "conservative")
-			{
-
-				ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackground, pr_coupling_background);
-				std::cout << "HoleBoundary  coupled with patch using conservative approach" << std::endl;
-			}
 		}
 	}
 
@@ -967,8 +1204,17 @@ class ApplyChimeraProcess : public Process
 	//ModelPart &mrPatchSurfaceModelPart;
 	BinBasedPointLocatorPointerType pBinLocatorForBackground; // Template argument 3 stands for 3D case
 	BinBasedPointLocatorPointerType pBinLocatorForPatch;
+
+	//for monolithic
 	MpcDataPointerType pMpcPatch;
 	MpcDataPointerType pMpcBackground;
+
+	// for fractional step
+	MpcDataPointerType pMpcPatchVelocity;
+	MpcDataPointerType pMpcPatchPressure;
+	MpcDataPointerType pMpcBackgroundVelocity;
+	MpcDataPointerType pMpcBackgroundPressure;
+
 	CustomHoleCuttingProcess::Pointer pHoleCuttingProcess;
 	typename CustomCalculateSignedDistanceProcess<TDim>::Pointer pCalculateDistanceProcess;
 	ModelPart &mrMainModelPart;

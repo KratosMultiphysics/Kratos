@@ -29,7 +29,10 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
+// Application includes
+#include "chimera_application_variables.h"
 #include "custom_utilities/solver_settings_for_chimera.h"
+#include "custom_utilities/multipoint_constraint_data.hpp"
 
 namespace Kratos {
 
@@ -80,6 +83,10 @@ public:
 
     //typedef typename BaseType::DofSetType DofSetType;
 
+    typedef MpcData::Pointer MpcDataPointerType;
+
+    typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
+
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -104,8 +111,6 @@ public:
         BaseType(rModelPart,false),
         mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {
-        std::cout<<" FSS strategy called from fractional step chimera "<<std::endl;
-
         InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
 
@@ -273,6 +278,8 @@ public:
 
     double Solve() override
     {
+
+        std::cout<<"Inside FS Strategy for chimera solve"<<std::endl;
         // Initialize BDF2 coefficients
         ModelPart& rModelPart = BaseType::GetModelPart();
         this->SetTimeCoefficients(rModelPart.GetProcessInfo());
@@ -306,6 +313,7 @@ public:
         }
         else
         {
+            std::cout<<"Inside else of if(predictorcorrector) in FS Strategy for chimera -solve"<<std::endl;
             // Solve for fractional step velocity, then update pressure once
             NormDp = this->SolveStep();
         }
@@ -509,6 +517,9 @@ protected:
 
     double SolveStep()
     {
+
+        std::cout << "Rishith : Solve step of fs strategy for chimera " << std::endl;
+
         ModelPart& rModelPart = BaseType::GetModelPart();
 
         // 1. Fractional step momentum iteration
@@ -516,6 +527,24 @@ protected:
 
         bool Converged = false;
         int Rank = rModelPart.GetCommunicator().MyPID();
+
+        ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+        MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
+
+        for (auto mpcData : (*mpcDataVector))
+        {
+            if(mpcData->GetVelocityOrPressure() == "Velocity")
+
+            {
+                mpcData->SetActive(true);
+                std::cout<<"made one patch active for Velocity "<<std::endl;
+            }
+            else
+            {
+                mpcData->SetActive(false);
+                std::cout<<"made one patch inactive for Velocity "<<std::endl;
+            }
+        }
 
         for(std::size_t it = 0; it < mMaxVelocityIter; ++it)
         {
@@ -569,9 +598,30 @@ protected:
             }
         }
 
+        for (auto mpcData : (*mpcDataVector))
+        {
+            if(mpcData->GetVelocityOrPressure() == "Pressure")
+            {
+                mpcData->SetActive(true);
+                std::cout<<"made one patch active for pressure "<<std::endl;
+            }
+            else
+            {
+                mpcData->SetActive(false);
+                std::cout<<"made one patch inactive for pressure "<<std::endl;
+            }
+        }
+
         if (BaseType::GetEchoLevel() > 0 && Rank == 0)
             std::cout << "Calculating Pressure." << std::endl;
         double NormDp = mpPressureStrategy->Solve();
+
+        for (auto mpcData : (*mpcDataVector))
+        {
+            mpcData->SetActive(true);
+            std::cout<<"made all patch active after solving for pressure "<<std::endl;
+        }
+
 
 #pragma omp parallel
         {
@@ -1104,6 +1154,7 @@ private:
         {
             rSolverConfig.FindTolerance(SolverSettingsType::Velocity,mVelocityTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,mMaxVelocityIter);
+            std::cout<<"velcoity strategy"<<std::endl;
         }
         else
         {
@@ -1116,6 +1167,8 @@ private:
         {
             rSolverConfig.FindTolerance(SolverSettingsType::Pressure,mPressureTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,mMaxPressureIter);
+
+            std::cout<<"pressure strategy"<<std::endl;
         }
         else
         {

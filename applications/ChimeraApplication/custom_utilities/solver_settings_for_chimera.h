@@ -86,9 +86,7 @@ public:
         mUseSlip(UseSlip),
         mReformDofSet(ReformDofSet),
         mMoveMeshFlag(MoveMeshFlag)
-    {
-        std::cout<<"Initialising solver settings from fract sett constructor step for chimera, inside constructor"<<std::endl;
-    }
+    { }
 
     /// Destructor.
     virtual ~SolverSettingsForChimera(){}

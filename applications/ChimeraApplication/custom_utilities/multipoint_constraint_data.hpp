@@ -271,6 +271,12 @@ class MpcData
     {
         mName = name;
     }
+
+    void SetVelocityOrPressure(const std::string VelocityOrPressure)
+    {
+        mVelocityOrPressure = VelocityOrPressure;
+    }
+
     /**
 		Get the name for the current set of constraints.
 		 */
@@ -279,6 +285,10 @@ class MpcData
         return mName;
     }
 
+    std::string GetVelocityOrPressure()
+    {
+        return mVelocityOrPressure;
+    }
     /**
 		Set the activeness for current set of constraints.
 		 */
@@ -361,6 +371,7 @@ class MpcData
     double RtMinvR;
     bool mActive;
     std::string mName;
+    std::string mVelocityOrPressure;
     bool mIsWeak;
 
     ///@}
