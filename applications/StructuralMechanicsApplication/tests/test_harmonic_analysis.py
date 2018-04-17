@@ -212,9 +212,9 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
     def test_harmonic_mdpa_input(self):
         try:
-            import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
+            import KratosMultiphysics.HDF5Application as HDF5Application
         except ImportError as e:
-            self.skipTest("AdjointFluidApplication not found: Skipping harmonic analysis mdpa test")
+            self.skipTest("HDF5Application not found: Skipping harmonic analysis mdpa test")
 
         import structural_mechanics_analysis
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -227,8 +227,8 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             test = structural_mechanics_analysis.StructuralMechanicsAnalysis(project_parameter_file_name)
             test.Run()
             # remove hdf5 file
-            kratos_utils.DeleteFileIfExisting("/harmonic_analysis_test/harmonic_analysis_test_0.h5")
-            kratos_utils.DeleteFileIfExisting("/harmonic_analysis_test/harmonic_analysis_test.time")
+            kratos_utils.DeleteFileIfExisting("harmonic_analysis_test/eigen_results.h5")
+            kratos_utils.DeleteFileIfExisting("harmonic_analysis_test/harmonic_analysis_test.time")
 
 if __name__ == '__main__':
     KratosUnittest.main()
