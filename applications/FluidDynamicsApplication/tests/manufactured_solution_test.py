@@ -393,3 +393,9 @@ class ManufacturedSolutionProblem:
     def ComputeNodalPressureManufacturedSolution(self, node):
         # We consider solenoidal velocity fields in order to have a known zero pressure solution on the continuum
         return 0.0
+
+if __name__ == '__main__':
+    test = ManufacturedSolutionTest()
+    test.setUp()
+    test.runTest()
+    test.tearDown()
