@@ -25,7 +25,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "trilinos_space.h" // either I Include the Trilinos Dir in CMakeLists or I use the rel path // TODO
+#include "trilinos_space.h"
 #include "mapping_operation_utility.h"
 
 

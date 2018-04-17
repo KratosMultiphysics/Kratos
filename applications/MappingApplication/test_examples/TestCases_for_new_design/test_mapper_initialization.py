@@ -15,7 +15,7 @@ mapper_settings = KratosMultiphysics.Parameters(
     """
 );
 
-mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_settings)
+mapper = KratosMapping.MapperFactory.CreateMPIMapper(model_part_origin, model_part_destination, mapper_settings)
 
 
 print(mapper)

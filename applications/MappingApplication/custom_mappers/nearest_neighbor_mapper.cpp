@@ -19,6 +19,7 @@
 
 // Project includes
 #include "nearest_neighbor_mapper.h"
+#include "custom_utilities/mapper_typedefs.h"
 
 namespace Kratos
 {
@@ -46,5 +47,12 @@ namespace Kratos
 //   rThis.PrintData(rOStream);
 //   return rOStream;
 // }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Class template instantiation
+template class NearestNeighborMapper< MapperDefinitions::UblasSparseSpaceType, MapperDefinitions::DenseSpaceType >;
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+template class NearestNeighborMapper< MapperDefinitions::TrilinosSparseSpaceType, MapperDefinitions::DenseSpaceType >;
+#endif
 
 }  // namespace Kratos.

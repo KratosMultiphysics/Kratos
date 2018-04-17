@@ -24,11 +24,11 @@
 #include "mapping_application.h"
 #include "mapping_application_variables.h"
 
+#include "custom_utilities/mapper_typedefs.h"
+
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/hexahedra_3d_8.h"
-
-#include "spaces/ublas_space.h"
 
 #include "custom_utilities/mapper_factory.h"
 
@@ -69,7 +69,7 @@ void KratosMappingApplication::Register()
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     int mpi_initialized = 0;
     MPI_Initialized(&mpi_initialized);
-    if (mpi_initialized)   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if (mpi_initialized) MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 
     if (rank == 0) std::cout << banner.str();
@@ -77,15 +77,21 @@ void KratosMappingApplication::Register()
     ModelPart dummy_model_part;
     dummy_model_part = ModelPart();
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> UblasSparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> UblasDenseSpaceType;
-
-    MapperFactory::Register<UblasSparseSpaceType, UblasDenseSpaceType>
+    MapperFactory::Register<MapperDefinitions::UblasSparseSpaceType, MapperDefinitions::DenseSpaceType>
         ("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper<
-        UblasSparseSpaceType,UblasDenseSpaceType>>(dummy_model_part, dummy_model_part));
-    // MapperFactory::Register<UblasSparseSpaceType,UblasDenseSpaceType>
-    //     ("nearest_element",  Kratos::make_shared<NearestElementMapper<
-    //     UblasSparseSpaceType,UblasDenseSpaceType>>(dummy_model_part, dummy_model_part));
+        MapperDefinitions::UblasSparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
+    MapperFactory::Register<MapperDefinitions::UblasSparseSpaceType,MapperDefinitions::DenseSpaceType>
+        ("nearest_element",  Kratos::make_shared<NearestElementMapper<
+        MapperDefinitions::UblasSparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
+
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+    MapperFactory::Register<MapperDefinitions::TrilinosSparseSpaceType, MapperDefinitions::DenseSpaceType>
+        ("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper<
+        MapperDefinitions::TrilinosSparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
+    MapperFactory::Register<MapperDefinitions::TrilinosSparseSpaceType,MapperDefinitions::DenseSpaceType>
+        ("nearest_element",  Kratos::make_shared<NearestElementMapper<
+        MapperDefinitions::TrilinosSparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
+#endif
 
     // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )

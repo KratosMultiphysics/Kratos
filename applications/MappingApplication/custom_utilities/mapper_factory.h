@@ -85,15 +85,63 @@ public:
     ///@{
 
 
+    // template<class TSparseSpace, class TDenseSpace>
+    // static typename Mapper<TSparseSpace, TDenseSpace>::Pointer CreateMapper(
+    //     ModelPart& rModelPartOrigin,
+    //     ModelPart& rModelPartDestination,
+    //     Parameters MapperSettings);
+
+    // template<class TSparseSpace, class TDenseSpace>
+    // static void Register(const std::string& rMapperName,
+    //               typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype);
+
     template<class TSparseSpace, class TDenseSpace>
-    static typename  Mapper<TSparseSpace, TDenseSpace>::Pointer CreateMapper(
+    static typename Mapper<TSparseSpace, TDenseSpace>::Pointer CreateMapper(
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        Parameters MapperSettings);
+        Parameters MapperSettings)
+    {
+        ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, MapperSettings, "origin");
+        ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, MapperSettings, "destination");
+
+        const std::string mapper_name = MapperSettings["mapper_type"].GetString();
+
+        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+
+        if (mapper_list.find(mapper_name) != mapper_list.end())
+        {
+            const bool is_mpi_execution = false;
+
+            // Removing Parameters that are not needed by the Mapper
+            MapperSettings.RemoveValue("mapper_type");
+            MapperSettings.RemoveValue("interface_submodel_part_origin");
+            MapperSettings.RemoveValue("interface_submodel_part_destination");
+
+            return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
+                                                      r_interface_model_part_destination,
+                                                      MapperSettings,
+                                                      is_mpi_execution);
+        }
+        else
+        {
+            std::stringstream err_msg;
+            err_msg << "The requested Mapper \"" << mapper_name <<"\" is not not available!\n"
+                    << "The following Mappers are available:" << std::endl;
+
+            for (auto const& registered_mapper : mapper_list)
+                err_msg << "\t" << registered_mapper.first << "\n";
+
+            KRATOS_ERROR << err_msg.str() << std::endl;
+        }
+    }
 
     template<class TSparseSpace, class TDenseSpace>
     static void Register(const std::string& rMapperName,
-                  typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype);
+                  typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype)
+    {
+        GetRegisteredMappersList<TSparseSpace, TDenseSpace>().insert(
+            make_pair(rMapperName, pMapperPrototype)); // TODO std::?
+    }
 
 
     ///@}
@@ -198,13 +246,19 @@ private:
                                              Parameters InterfaceParameters,
                                              const std::string& InterfaceSide);
 
+    // template<class TSparseSpace, class TDenseSpace>
+    // static std::unordered_map<std::string, typename Mapper<TSparseSpace,
+    //     TDenseSpace>::Pointer>& GetRegisteredMappersList();
+
     template<class TSparseSpace, class TDenseSpace>
     static std::unordered_map<std::string, typename Mapper<TSparseSpace,
-        TDenseSpace>::Pointer>& GetRegisteredMappersList();
+        TDenseSpace>::Pointer>& GetRegisteredMappersList()
+    {
+        static std::unordered_map<std::string, typename Mapper<TSparseSpace, TDenseSpace>::Pointer> registered_mappers;
 
-    static bool GetIsMPIExecution();
+        return registered_mappers;
+    }
 
-    ///@}
     ///@name Private  Access
     ///@{
 

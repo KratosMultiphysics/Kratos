@@ -18,18 +18,11 @@
 // External includes
 
 // Project includes
-#include "spaces/ublas_space.h"
-
-#include "custom_utilities/mapper_flags.h"
 #include "custom_python/add_custom_mappers_to_python.h"
-#include "custom_utilities/mapper_factory.h"
-
-// Mapper base class
 #include "custom_mappers/mapper.h"
-
-// Matrix-free Mappers
-#include "custom_mappers/nearest_neighbor_mapper.h"
-#include "custom_mappers/nearest_element_mapper.h"
+#include "custom_utilities/mapper_factory.h"
+#include "custom_utilities/mapper_flags.h"
+#include "custom_utilities/mapper_typedefs.h"
 
 
 namespace Kratos
@@ -37,6 +30,8 @@ namespace Kratos
 
 namespace Python
 {
+
+using namespace pybind11;
 
 // Wrapper functions for taking a default argument for the flags // TODO inline? Jordi
 template<class TSparseSpace, class TDenseSpace>
@@ -97,51 +92,51 @@ inline void InverseMapWithoutOptionsVector(Mapper<TSparseSpace, TDenseSpace>& du
     dummy.InverseMap(origin_variable, destination_variable, dummy_flags);
 }
 
-void  AddCustomMappersToPython(pybind11::module& m)
+template<class TSparseSpace, class TDenseSpace>
+    void (Mapper<TSparseSpace, TDenseSpace>::*pMapScalarOptions)(const Variable<double> &,
+            const Variable<double> &,
+            Kratos::Flags)
+        = &Mapper<TSparseSpace, TDenseSpace>::Map;
+
+template<class TSparseSpace, class TDenseSpace>
+void (Mapper<TSparseSpace, TDenseSpace>::*pMapVectorOptions)(const Variable< array_1d<double, 3> > &,
+        const Variable< array_1d<double, 3> > &,
+        Kratos::Flags)
+    = &Mapper<TSparseSpace, TDenseSpace>::Map;
+
+template<class TSparseSpace, class TDenseSpace>
+void (Mapper<TSparseSpace, TDenseSpace>::*pInverseMapScalarOptions)(const Variable<double> &,
+        const Variable<double> &,
+        Kratos::Flags)
+    = &Mapper<TSparseSpace, TDenseSpace>::InverseMap;
+
+template<class TSparseSpace, class TDenseSpace>
+void (Mapper<TSparseSpace, TDenseSpace>::*pInverseMapVectorOptions)(const Variable< array_1d<double, 3> > &,
+        const Variable< array_1d<double, 3> > &,
+        Kratos::Flags)
+    = &Mapper<TSparseSpace, TDenseSpace>::InverseMap;
+
+template<class TSparseSpace, class TDenseSpace>
+void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
 {
-    using namespace pybind11;
+// Exposing the base class of the Mappers to Python, but without constructor
+    class_< Mapper<TSparseSpace, TDenseSpace>, typename Mapper<TSparseSpace, TDenseSpace>::Pointer > mapper
+        = class_< Mapper<TSparseSpace, TDenseSpace>, typename Mapper<TSparseSpace, TDenseSpace>::Pointer >(m, rName.c_str())
+            .def("UpdateInterface",  UpdateInterfaceWithoutArgs<TSparseSpace, TDenseSpace>)
+            .def("UpdateInterface",  UpdateInterfaceWithOptions<TSparseSpace, TDenseSpace>)
+            .def("UpdateInterface",  UpdateInterfaceWithSearchRadius<TSparseSpace, TDenseSpace>)
+            .def("Map",              MapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
+            .def("Map",              MapWithoutOptionsVector<TSparseSpace, TDenseSpace>)
+            .def("InverseMap",       InverseMapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
+            .def("InverseMap",       InverseMapWithoutOptionsVector<TSparseSpace, TDenseSpace>)
 
-    // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    // typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+            .def("UpdateInterface",  &Mapper<TSparseSpace, TDenseSpace>::UpdateInterface)
+            .def("Map",              pMapScalarOptions<TSparseSpace, TDenseSpace>)
+            .def("Map",              pMapVectorOptions<TSparseSpace, TDenseSpace>)
+            .def("InverseMap",       pInverseMapScalarOptions<TSparseSpace, TDenseSpace>)
+            .def("InverseMap",       pInverseMapVectorOptions<TSparseSpace, TDenseSpace>)
 
-    /* void (Mapper::*pMapScalarOptions)(const Variable<double> &,
-            const Variable<double> &,
-            Kratos::Flags)
-        = &Mapper::Map;
-
-    void (Mapper::*pMapVectorOptions)(const Variable< array_1d<double, 3> > &,
-            const Variable< array_1d<double, 3> > &,
-            Kratos::Flags)
-        = &Mapper::Map;
-
-    void (Mapper::*pInverseMapScalarOptions)(const Variable<double> &,
-            const Variable<double> &,
-            Kratos::Flags)
-        = &Mapper::InverseMap;
-
-    void (Mapper::*pInverseMapVectorOptions)(const Variable< array_1d<double, 3> > &,
-            const Variable< array_1d<double, 3> > &,
-            Kratos::Flags)
-        = &Mapper::InverseMap;
-
-    // Exposing the base class of the Mappers to Python, but without constructor
-    class_< Mapper, Mapper::Pointer > mapper
-        = class_< Mapper, Mapper::Pointer >(m, "Mapper")
-            .def("UpdateInterface",  UpdateInterfaceWithoutArgs)
-            .def("UpdateInterface",  UpdateInterfaceWithOptions)
-            .def("UpdateInterface",  UpdateInterfaceWithSearchRadius)
-            .def("Map",              MapWithoutOptionsScalar)
-            .def("Map",              MapWithoutOptionsVector)
-            .def("InverseMap",       InverseMapWithoutOptionsScalar)
-            .def("InverseMap",       InverseMapWithoutOptionsVector)
-
-            .def("UpdateInterface",  &Mapper::UpdateInterface)
-            .def("Map",              pMapScalarOptions)
-            .def("Map",              pMapVectorOptions)
-            .def("InverseMap",       pInverseMapScalarOptions)
-            .def("InverseMap",       pInverseMapVectorOptions)
-
-            .def("__repr__",         &Mapper::Info)
+            .def("__repr__",         &Mapper<TSparseSpace, TDenseSpace>::Info)
             ;
 
     // Adding the flags that can be used while mapping
@@ -149,23 +144,25 @@ void  AddCustomMappersToPython(pybind11::module& m)
     mapper.attr("ADD_VALUES")       = MapperFlags::ADD_VALUES;
     mapper.attr("CONSERVATIVE")     = MapperFlags::CONSERVATIVE;
     mapper.attr("REMESHED")         = MapperFlags::REMESHED;
+}
 
-    // Jordi is it possible to expose the mappers without a constructor and use them only through the factory?
-    // This would circumvent problems with the wrong space being selected
-
-    // Exposing the Mappers
-    // class_< NearestNeighborMapper, bases<Mapper>, boost::noncopyable>
-    // ("NearestNeighborMapper", init<ModelPart&, ModelPart&, Parameters, bool>());
-    // class_< NearestElementMapper, bases<Mapper>, boost::noncopyable>
-    // ("NearestElementMapper", init<ModelPart&, ModelPart&, Parameters, bool>());
-
-    // class_< NearestElementMapper, NearestElementMapper::Pointer, Mapper>
-    // (m, "NearestElementMapper")
-    //     .def( init<ModelPart&, ModelPart&, Parameters>() );
+void  AddCustomMappersToPython(pybind11::module& m)
+{
+    typedef MapperDefinitions::DenseSpaceType DenseSpaceType;
+    typedef MapperDefinitions::UblasSparseSpaceType UblasSparseSpaceType;
+    ExposeMapperToPython<UblasSparseSpaceType, DenseSpaceType>(m, "Mapper");
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+    typedef MapperDefinitions::TrilinosSparseSpaceType TrilinosSparseSpaceType;
+    ExposeMapperToPython<TrilinosSparseSpaceType, DenseSpaceType>(m, "MPIMapper");
+#endif
 
     // Exposing the MapperFactory
     class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
-        .def_static("CreateMapper", &MapperFactory::CreateMapper); */
+        .def_static("CreateMapper", &MapperFactory::CreateMapper<UblasSparseSpaceType, DenseSpaceType>)
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+        .def_static("CreateMPIMapper", &MapperFactory::CreateMapper<TrilinosSparseSpaceType, DenseSpaceType>)
+#endif
+        ;
 }
 
 }  // namespace Python.

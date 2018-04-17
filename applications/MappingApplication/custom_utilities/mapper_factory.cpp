@@ -26,53 +26,120 @@
 
 namespace Kratos
 {
-    template<class TSparseSpace, class TDenseSpace>
-    typename Mapper<TSparseSpace, TDenseSpace>::Pointer MapperFactory::CreateMapper(
-        ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination,
-        Parameters MapperSettings)
-    {
-        ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, MapperSettings, "origin");
-        ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, MapperSettings, "destination");
+//     namespace MapperTypedefs
+//     {
+//         typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
 
-        const std::string mapper_name = MapperSettings["mapper_type"].GetString();
+//         typedef UblasSpace<double, CompressedMatrix, Vector> UblasSparseSpaceType;
+//         typedef typename Mapper<UblasSparseSpaceType, DenseSpaceType>::Pointer MapperPointer;
+//         typedef std::unordered_map<std::string, MapperPointer> MapperPointerMap;
 
-        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+// #ifdef KRATOS_USING_MPI // mpi-parallel compilation
+//         typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+//         typedef typename Mapper<TrilinosSparseSpaceType, DenseSpaceType>::Pointer MPIMapperPointer;
+//         typedef std::unordered_map<std::string, MPIMapperPointer> MPIMapperPointerMap;
+// #endif
+//     }
 
-        if (mapper_list.find(mapper_name) != mapper_list.end())
-        {
-            const bool is_mpi_execution = GetIsMPIExecution();
+//     // Template instantiations
+//     template<MapperTypedefs::UblasSparseSpaceType, MapperTypedefs::DenseSpaceType>
+//     typename Mapper<MapperTypedefs::UblasSparseSpaceType, MapperTypedefs::DenseSpaceType>::Pointer MapperFactory::CreateMapper(
+//         ModelPart& rModelPartOrigin,
+//         ModelPart& rModelPartDestination,
+//         Parameters MapperSettings)
+//     {
 
-            // Removing Parameters that are not needed by the Mapper
-            MapperSettings.RemoveValue("mapper_type");
-            MapperSettings.RemoveValue("interface_submodel_part_origin");
-            MapperSettings.RemoveValue("interface_submodel_part_destination");
+//     }
 
-            return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
-                                                      r_interface_model_part_destination,
-                                                      MapperSettings,
-                                                      is_mpi_execution);
-        }
-        else
-        {
-            std::stringstream err_msg;
-            err_msg << "The requested Mapper \"" << mapper_name <<"\" is not not available!\n"
-                    << "The following Mappers are available:" << std::endl;
+//     typename Mapper<MapperTypedefs::TrilinosSparseSpaceType, MapperTypedefs::DenseSpaceType>::Pointer MapperFactory::CreateMapper(
+//         ModelPart& rModelPartOrigin,
+//         ModelPart& rModelPartDestination,
+//         Parameters MapperSettings)
+//     {
 
-            for (auto const& registered_mapper : mapper_list)
-                err_msg << "\t" << registered_mapper.first << "\n";
+//     }
 
-            KRATOS_ERROR << err_msg.str() << std::endl;
-        }
-    }
+//     void MapperFactory::Register(const std::string& rMapperName,
+//                                  typename Mapper<MapperTypedefs::UblasSparseSpaceType,
+//                                     MapperTypedefs::DenseSpaceType>::Pointer pMapperPrototype)
+//     {
+//         GetRegisteredMappersList().insert(
+//             make_pair(rMapperName, pMapperPrototype)); // TODO std::?
+//     }
 
-    template<class TSparseSpace, class TDenseSpace>
-    void MapperFactory::Register(const std::string& rMapperName,
-                                 typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype)
-    {
-        GetRegisteredMappersList<TSparseSpace, TDenseSpace>().insert(
-            make_pair(rMapperName, pMapperPrototype)); // TODO std::?
-    }
+//     void MapperFactory::Register(const std::string& rMapperName,
+//                                  typename Mapper<MapperTypedefs::TrilinosSparseSpaceType,
+//                                     MapperTypedefs::DenseSpaceType>::Pointer pMapperPrototype)
+//     {
+//         GetRegisteredMappersList().insert(
+//             make_pair(rMapperName, pMapperPrototype)); // TODO std::?
+//     }
+
+//     std::unordered_map<std::string, typename Mapper<MapperTypedefs::UblasSparseSpaceType,
+//         MapperTypedefs::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList()
+//     {
+//         static std::unordered_map<std::string, typename Mapper<MapperTypedefs::UblasSparseSpaceType,
+//         MapperTypedefs::DenseSpaceType>::Pointer> registered_mappers;
+
+//         return registered_mappers;
+//     }
+
+//     std::unordered_map<std::string, typename Mapper<MapperTypedefs::TrilinosSparseSpaceType,
+//         MapperTypedefs::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList()
+//     {
+//         static std::unordered_map<std::string, typename Mapper<MapperTypedefs::TrilinosSparseSpaceType,
+//         MapperTypedefs::DenseSpaceType>::Pointer> registered_mappers;
+
+//         return registered_mappers;
+//     }
+
+    // template<class TSparseSpace, class TDenseSpace>
+    // typename Mapper<TSparseSpace, TDenseSpace>::Pointer MapperFactory::CreateMapper(
+    //     ModelPart& rModelPartOrigin,
+    //     ModelPart& rModelPartDestination,
+    //     Parameters MapperSettings)
+    // {
+    //     ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, MapperSettings, "origin");
+    //     ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, MapperSettings, "destination");
+
+    //     const std::string mapper_name = MapperSettings["mapper_type"].GetString();
+
+    //     const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+
+    //     if (mapper_list.find(mapper_name) != mapper_list.end())
+    //     {
+    //         const bool is_mpi_execution = GetIsMPIExecution();
+
+    //         // Removing Parameters that are not needed by the Mapper
+    //         MapperSettings.RemoveValue("mapper_type");
+    //         MapperSettings.RemoveValue("interface_submodel_part_origin");
+    //         MapperSettings.RemoveValue("interface_submodel_part_destination");
+
+    //         return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
+    //                                                   r_interface_model_part_destination,
+    //                                                   MapperSettings,
+    //                                                   is_mpi_execution);
+    //     }
+    //     else
+    //     {
+    //         std::stringstream err_msg;
+    //         err_msg << "The requested Mapper \"" << mapper_name <<"\" is not not available!\n"
+    //                 << "The following Mappers are available:" << std::endl;
+
+    //         for (auto const& registered_mapper : mapper_list)
+    //             err_msg << "\t" << registered_mapper.first << "\n";
+
+    //         KRATOS_ERROR << err_msg.str() << std::endl;
+    //     }
+    // }
+
+    // template<class TSparseSpace, class TDenseSpace>
+    // void MapperFactory::Register(const std::string& rMapperName,
+    //                              typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype)
+    // {
+    //     GetRegisteredMappersList<TSparseSpace, TDenseSpace>().insert(
+    //         make_pair(rMapperName, pMapperPrototype)); // TODO std::?
+    // }
 
     ModelPart& MapperFactory::ReadInterfaceModelPart(ModelPart& rModelPart,
                                                      Parameters InterfaceParameters,
@@ -181,47 +248,32 @@ namespace Kratos
 
     // TODO is doing this ok or do I pollute the namespace?
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> UblasSparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+//     typedef UblasSpace<double, CompressedMatrix, Vector> UblasSparseSpaceType;
+//     typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
 
-    template<>
-    std::unordered_map<std::string, typename Mapper<UblasSparseSpaceType,
-        DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<UblasSparseSpaceType, DenseSpaceType>()
-    {
-        static std::unordered_map<std::string, typename Mapper<UblasSparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
+//     template<>
+//     std::unordered_map<std::string, typename Mapper<UblasSparseSpaceType,
+//         DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<UblasSparseSpaceType, DenseSpaceType>()
+//     {
+//         static std::unordered_map<std::string, typename Mapper<UblasSparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
 
-        return registered_mappers;
-    }
+//         return registered_mappers;
+//     }
 
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+// #ifdef KRATOS_USING_MPI // mpi-parallel compilation
+//     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 
-    template<>
-    std::unordered_map<std::string, typename Mapper<TrilinosSparseSpaceType,
-        DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<TrilinosSparseSpaceType, DenseSpaceType>()
-    {
-        static std::unordered_map<std::string, typename Mapper<TrilinosSparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
+//     template<>
+//     std::unordered_map<std::string, typename Mapper<TrilinosSparseSpaceType,
+//         DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<TrilinosSparseSpaceType, DenseSpaceType>()
+//     {
+//         static std::unordered_map<std::string, typename Mapper<TrilinosSparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
 
-        return registered_mappers;
-    }
+//         return registered_mappers;
+//     }
 
-#endif
+// #endif
 
-
-    bool MapperFactory::GetIsMPIExecution()
-    {
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-        int mpi_initialized;
-        MPI_Initialized(&mpi_initialized);
-        if (mpi_initialized) // parallel execution, i.e. mpi imported in python
-        {
-            int comm_size;
-            MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-            if (comm_size > 1) return true;
-        }
-#endif
-        return false;
-    }
 
 }  // namespace Kratos.
 
