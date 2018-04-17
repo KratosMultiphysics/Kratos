@@ -131,55 +131,55 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def("__repr__", &Variable<DEMContinuumConstitutiveLaw::Pointer>::Info)
         ;
 
-    class_<DEM_Dempack, DEM_Dempack::Pointer>(m, "DEM_Dempack")
+    class_<DEM_Dempack, DEM_Dempack::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_Dempack")
         .def(init<>())
         ;
 
-    class_<DEM_Dempack2D, DEM_Dempack2D::Pointer>(m, "DEM_Dempack2D")
+    class_<DEM_Dempack2D, DEM_Dempack2D::Pointer, DEM_Dempack>(m, "DEM_Dempack2D")
         .def(init<>())
         ;
 
-    class_<DEM_Dempack_torque, DEM_Dempack_torque::Pointer>(m, "DEM_Dempack_torque")
+    class_<DEM_Dempack_torque, DEM_Dempack_torque::Pointer, DEM_Dempack>(m, "DEM_Dempack_torque")
         .def(init<>())
         ;
 
-    class_<DEM_Dempack_dev, DEM_Dempack_dev::Pointer>(m, "DEM_Dempack_dev")
+    class_<DEM_Dempack_dev, DEM_Dempack_dev::Pointer, DEM_Dempack>(m, "DEM_Dempack_dev")
         .def(init<>())
         ;
 
-    class_<DEM_Dempack2D_dev, DEM_Dempack2D_dev::Pointer>(m, "DEM_Dempack2D_dev")
+    class_<DEM_Dempack2D_dev, DEM_Dempack2D_dev::Pointer, DEM_Dempack_dev>(m, "DEM_Dempack2D_dev")
         .def(init<>())
         ;
 
-    class_<DEM_KDEM, DEM_KDEM::Pointer>(m, "DEM_KDEM")
+    class_<DEM_KDEM, DEM_KDEM::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_KDEM")
         .def(init<>())
         ;
 
-    class_<DEM_sintering_continuum, DEM_sintering_continuum::Pointer>(m, "DEM_sintering_continuum")
+    class_<DEM_sintering_continuum, DEM_sintering_continuum::Pointer, DEM_KDEM>(m, "DEM_sintering_continuum")
         .def(init<>())
         ;
     
-    class_<DEM_KDEMFabric, DEM_KDEMFabric::Pointer>(m, "DEM_KDEMFabric")
+    class_<DEM_KDEMFabric, DEM_KDEMFabric::Pointer, DEM_KDEM>(m, "DEM_KDEMFabric")
         .def(init<>())
         ;
     
-    class_<DEM_KDEM_Rankine, DEM_KDEM_Rankine::Pointer>(m, "DEM_KDEM_Rankine")
+    class_<DEM_KDEM_Rankine, DEM_KDEM_Rankine::Pointer, DEM_KDEM>(m, "DEM_KDEM_Rankine")
         .def(init<>())
         ;
     
-    class_<DEM_KDEM_Mohr_Coulomb, DEM_KDEM_Mohr_Coulomb::Pointer>(m, "DEM_KDEM_Mohr_Coulomb")
+    class_<DEM_KDEM_Mohr_Coulomb, DEM_KDEM_Mohr_Coulomb::Pointer, DEM_KDEM_Rankine>(m, "DEM_KDEM_Mohr_Coulomb")
         .def(init<>())
         ;
     
-    class_<DEM_KDEM2D, DEM_KDEM2D::Pointer>(m, "DEM_KDEM2D")
+    class_<DEM_KDEM2D, DEM_KDEM2D::Pointer, DEM_KDEM>(m, "DEM_KDEM2D")
         .def(init<>())
         ;
     
-    class_<DEM_KDEMFabric2D, DEM_KDEMFabric2D::Pointer>(m, "DEM_KDEMFabric2D")
+    class_<DEM_KDEMFabric2D, DEM_KDEMFabric2D::Pointer, DEM_KDEM2D>(m, "DEM_KDEMFabric2D")
         .def(init<>())
         ;
     
-    class_<DEM_ExponentialHC, DEM_ExponentialHC::Pointer>(m, "DEM_ExponentialHC")
+    class_<DEM_ExponentialHC, DEM_ExponentialHC::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_ExponentialHC")
         .def(init<>())
         ;
 }
