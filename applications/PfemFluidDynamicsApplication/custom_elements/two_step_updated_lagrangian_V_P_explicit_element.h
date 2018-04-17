@@ -382,7 +382,8 @@ namespace Kratos
 
       virtual void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
 							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo){};
+							 ProcessInfo& rCurrentProcessInfo){
+	std::cout<<"CalculateLocalContinuityEqForPressure not defined for explicit element"<<std::endl;};
       
       virtual void CalculateExplicitContinuityEquation(MatrixType& rLeftHandSideMatrix,
 						       VectorType& rRightHandSideVector,
@@ -524,15 +525,15 @@ namespace Kratos
 				      const double theta,
 				      const double Weight);
 	  
-      virtual void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
-					 const double Weight){};
+      void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
+					 const double Weight);
       
-      virtual void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix,
-					       const double Weight){};
+      void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix,
+					       const double Weight);
       
-      virtual void ComputeBulkMatrix(MatrixType& BulkMatrix,
+       void ComputeBulkMatrix(MatrixType& BulkMatrix,
 				     const ShapeFunctionsType& rN,
-				     const double Weight){};
+				     const double Weight);
 
       /* virtual void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix, */
       /* 						   const double Weight){}; */

@@ -763,87 +763,6 @@ namespace Kratos {
 
 
 
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::ComputeBulkMatrix(Matrix& BulkMatrix,
-								       const ShapeFunctionsType& rN,
-								       const double Weight)
-  {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-	for (SizeType j = 0; j < NumNodes; ++j)
-	  {
-	    // LHS contribution
-	    double Mij  = Weight*rN[i]*rN[j];
-	    BulkMatrix(i,j) +=  Mij;
-	  }
-
-      }
-  }
-
-  template< >
-  void TwoStepUpdatedLagrangianVPExplicitFluidElement<2>::ComputeBulkMatrixConsistent(Matrix& BulkMatrix,
-									      const double Weight)
-  {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-	for (SizeType j = 0; j < NumNodes; ++j)
-	  {
-	    // LHS contribution
-	    double Mij  = Weight/12;
-	    if(i==j)
-	      Mij  *= 2.0;
-	    BulkMatrix(i,j) +=  Mij;
-	  }
-
-      }
-  
-  }
-
-  template< >
-  void TwoStepUpdatedLagrangianVPExplicitFluidElement<3>::ComputeBulkMatrixConsistent(Matrix& BulkMatrix,
-									      const double Weight)
-  {
-    std::cout<<"TO IMPLEMENT AND CHECK "<<std::endl;
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-	for (SizeType j = 0; j < NumNodes; ++j)
-	  {
-	    // LHS contribution
-	    double Mij  = Weight/12;
-	    if(i==j)
-	      Mij  *= 2.0;
-	    BulkMatrix(i,j) +=  Mij;
-	  }
-
-      }
-  
-  }
-  
-
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::ComputeBulkMatrixLump(Matrix& BulkMatrix,
-									   const double Weight)
-  {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-
-    double coeff=1.0+TDim;
-    if((NumNodes==3 && TDim==2) || (NumNodes==4 && TDim==3)){
-      for (SizeType i = 0; i < NumNodes; ++i)
-	{
-	  // LHS contribution
-	  double Mij  = Weight /coeff;
-	  BulkMatrix(i,i) +=  Mij;
-	}
-    }else{
-      std::cout<<"... ComputeBulkMatrixLump TO IMPLEMENT"<<std::endl;
-    }
-  }
-
-
 
   template< >
   void TwoStepUpdatedLagrangianVPExplicitFluidElement<2>::ComputeBoundLHSMatrix(Matrix& BoundLHSMatrix,
@@ -1636,152 +1555,152 @@ namespace Kratos {
   }
 
 
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-  {
+  // template< unsigned int TDim >
+  // void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  // {
 
 
-    GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
+  //   GeometryType& rGeom = this->GetGeometry();
+  //   const unsigned int NumNodes = rGeom.PointsNumber();
 
-    // Check sizes and initialize
-    if( rLeftHandSideMatrix.size1() != NumNodes ) 
-      rLeftHandSideMatrix.resize(NumNodes,NumNodes);
+  //   // Check sizes and initialize
+  //   if( rLeftHandSideMatrix.size1() != NumNodes ) 
+  //     rLeftHandSideMatrix.resize(NumNodes,NumNodes);
 
-    rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
+  //   rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
  
-    if( rRightHandSideVector.size() != NumNodes )
-      rRightHandSideVector.resize(NumNodes);
+  //   if( rRightHandSideVector.size() != NumNodes )
+  //     rRightHandSideVector.resize(NumNodes);
 
-    rRightHandSideVector = ZeroVector(NumNodes);
+  //   rRightHandSideVector = ZeroVector(NumNodes);
 
-    // Shape functions and integration points
-    ShapeFunctionDerivativesArrayType DN_DX;
-    Matrix NContainer;
-    VectorType GaussWeights;
-    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-    const unsigned int NumGauss = GaussWeights.size();
+  //   // Shape functions and integration points
+  //   ShapeFunctionDerivativesArrayType DN_DX;
+  //   Matrix NContainer;
+  //   VectorType GaussWeights;
+  //   this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+  //   const unsigned int NumGauss = GaussWeights.size();
 
-    // MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
-    // MatrixType BulkAccMatrix = ZeroMatrix(NumNodes,NumNodes);
+  //   // MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
+  //   // MatrixType BulkAccMatrix = ZeroMatrix(NumNodes,NumNodes);
 
-    double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-    double theta=this->GetThetaContinuity();
-    double ElemSize = this->ElementSize();
+  //   double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+  //   double theta=this->GetThetaContinuity();
+  //   double ElemSize = this->ElementSize();
 
-    ElementalVariables rElementalVariables;
-    this->InitializeElementalVariables(rElementalVariables);
+  //   ElementalVariables rElementalVariables;
+  //   this->InitializeElementalVariables(rElementalVariables);
 	
-    double Density = this->mMaterialDensity;
-    double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
-    double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
-    // if(DeviatoricCoeff>0.01){
-    //   DeviatoricCoeff=0.01;
-    // }
-    // if(DeviatoricCoeff>0.1){
-    //   DeviatoricCoeff=0.1;
-    // }
-    double Tau=0;
-    this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
+  //   double Density = this->mMaterialDensity;
+  //   double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
+  //   double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
+  //   // if(DeviatoricCoeff>0.01){
+  //   //   DeviatoricCoeff=0.01;
+  //   // }
+  //   // if(DeviatoricCoeff>0.1){
+  //   //   DeviatoricCoeff=0.1;
+  //   // }
+  //   double Tau=0;
+  //   this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
 
-    double totalVolume=0;
-    bool computeElement=false;
-    // Loop on integration points
-    for (unsigned int g = 0; g < NumGauss; g++)
-      {
-	const double GaussWeight = GaussWeights[g];
-	totalVolume+=GaussWeight;
-	const ShapeFunctionsType& N = row(NContainer,g);
-	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-	computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+  //   double totalVolume=0;
+  //   bool computeElement=false;
+  //   // Loop on integration points
+  //   for (unsigned int g = 0; g < NumGauss; g++)
+  //     {
+  // 	const double GaussWeight = GaussWeights[g];
+  // 	totalVolume+=GaussWeight;
+  // 	const ShapeFunctionsType& N = row(NContainer,g);
+  // 	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
+  // 	computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
 
-	if(computeElement==true){
-	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
-	  // this->ComputeBulkMatrix(BulkVelMatrix,N,BulkCoeff);
+  // 	if(computeElement==true){
+  // 	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
+  // 	  // this->ComputeBulkMatrix(BulkVelMatrix,N,BulkCoeff);
 	
-	  // double BulkStabCoeff=BulkCoeff*Tau*Density/TimeStep;
-	  // this->ComputeBulkMatrix(BulkAccMatrix,N,BulkStabCoeff);
+  // 	  // double BulkStabCoeff=BulkCoeff*Tau*Density/TimeStep;
+  // 	  // this->ComputeBulkMatrix(BulkAccMatrix,N,BulkStabCoeff);
 
-	  double BoundLHSCoeff=Tau*4.0*GaussWeight/(ElemSize*ElemSize);
- 	  // if(TDim==3){
-	  //   BoundLHSCoeff=Tau*2*GaussWeight/(0.81649658*ElemSize*ElemSize);
-	  // }
+  // 	  double BoundLHSCoeff=Tau*4.0*GaussWeight/(ElemSize*ElemSize);
+  // 	  // if(TDim==3){
+  // 	  //   BoundLHSCoeff=Tau*2*GaussWeight/(0.81649658*ElemSize*ElemSize);
+  // 	  // }
 
-	  this->ComputeBoundLHSMatrix(rLeftHandSideMatrix,N,BoundLHSCoeff);
+  // 	  this->ComputeBoundLHSMatrix(rLeftHandSideMatrix,N,BoundLHSCoeff);
 
-	  double NProjSpatialDefRate=this->CalcNormalProjectionDefRate(rElementalVariables.SpatialDefRate);
+  // 	  double NProjSpatialDefRate=this->CalcNormalProjectionDefRate(rElementalVariables.SpatialDefRate);
 
-	  double BoundRHSCoeffAcc=Tau*Density*2*GaussWeight/ElemSize;
-	  double BoundRHSCoeffDev=Tau*8.0*NProjSpatialDefRate*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
-	  // if(TDim==3){
-	  //   BoundRHSCoeffAcc=Tau*GaussWeight*Density/(0.81649658*ElemSize);
-	  //   BoundRHSCoeffDev=Tau*GaussWeight*4.0*NProjSpatialDefRate*DeviatoricCoeff/(0.81649658*ElemSize*ElemSize);
-	  // }
+  // 	  double BoundRHSCoeffAcc=Tau*Density*2*GaussWeight/ElemSize;
+  // 	  double BoundRHSCoeffDev=Tau*8.0*NProjSpatialDefRate*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
+  // 	  // if(TDim==3){
+  // 	  //   BoundRHSCoeffAcc=Tau*GaussWeight*Density/(0.81649658*ElemSize);
+  // 	  //   BoundRHSCoeffDev=Tau*GaussWeight*4.0*NProjSpatialDefRate*DeviatoricCoeff/(0.81649658*ElemSize*ElemSize);
+  // 	  // }
 
-	  this->ComputeBoundRHSVector(rRightHandSideVector,N,TimeStep,BoundRHSCoeffAcc,BoundRHSCoeffDev);
+  // 	  this->ComputeBoundRHSVector(rRightHandSideVector,N,TimeStep,BoundRHSCoeffAcc,BoundRHSCoeffDev);
 
-	  double StabLaplacianWeight=Tau*GaussWeight;
-	  this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix,rDN_DX,StabLaplacianWeight);
+  // 	  double StabLaplacianWeight=Tau*GaussWeight;
+  // 	  this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix,rDN_DX,StabLaplacianWeight);
 
-	  for (SizeType i = 0; i < NumNodes; ++i)
-	    {         
-	      // RHS contribution
-	      // Velocity divergence   
-	      rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
-	      this->AddStabilizationNodalTermsRHS(rRightHandSideVector,Tau,Density,GaussWeight,rDN_DX,i);
-	    }
-	}
+  // 	  for (SizeType i = 0; i < NumNodes; ++i)
+  // 	    {         
+  // 	      // RHS contribution
+  // 	      // Velocity divergence   
+  // 	      rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
+  // 	      this->AddStabilizationNodalTermsRHS(rRightHandSideVector,Tau,Density,GaussWeight,rDN_DX,i);
+  // 	    }
+  // 	}
 
-      }   
+  //     }   
    
 
-    if(computeElement==true){
+  //   if(computeElement==true){
 
-      VectorType PressureValues= ZeroVector(NumNodes);
-      VectorType PressureValuesForRHS= ZeroVector(NumNodes);
-      this->GetPressureValues(PressureValuesForRHS,0);
-      //the LHS matrix up to now just contains the laplacian term and the bound term
-      noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,PressureValuesForRHS);
+  //     VectorType PressureValues= ZeroVector(NumNodes);
+  //     VectorType PressureValuesForRHS= ZeroVector(NumNodes);
+  //     this->GetPressureValues(PressureValuesForRHS,0);
+  //     //the LHS matrix up to now just contains the laplacian term and the bound term
+  //     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,PressureValuesForRHS);
 
-      this->GetPressureValues(PressureValues,1);
-      noalias(PressureValuesForRHS)+=-PressureValues;
-      MatrixType BulkMatrix = ZeroMatrix(NumNodes,NumNodes);
-      MatrixType BulkMatrixConsistent = ZeroMatrix(NumNodes,NumNodes);
-      double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
-      double lumpedBulkStabCoeff=lumpedBulkCoeff*Tau*Density/TimeStep;
-      this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkCoeff);
-      // this->ComputeBulkMatrixConsistent(BulkMatrix,lumpedBulkCoeff);
-      noalias(rLeftHandSideMatrix)+=BulkMatrix;
-      noalias(rRightHandSideVector) -= prod(BulkMatrix,PressureValuesForRHS);
-      // noalias(rRightHandSideVector) -= prod(BulkMatrixConsistent,PressureValuesForRHS);
-      // rRightHandSideVector -= prod(BulkVelMatrix,PressureValuesForRHS);
+  //     this->GetPressureValues(PressureValues,1);
+  //     noalias(PressureValuesForRHS)+=-PressureValues;
+  //     MatrixType BulkMatrix = ZeroMatrix(NumNodes,NumNodes);
+  //     MatrixType BulkMatrixConsistent = ZeroMatrix(NumNodes,NumNodes);
+  //     double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
+  //     double lumpedBulkStabCoeff=lumpedBulkCoeff*Tau*Density/TimeStep;
+  //     this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkCoeff);
+  //     // this->ComputeBulkMatrixConsistent(BulkMatrix,lumpedBulkCoeff);
+  //     noalias(rLeftHandSideMatrix)+=BulkMatrix;
+  //     noalias(rRightHandSideVector) -= prod(BulkMatrix,PressureValuesForRHS);
+  //     // noalias(rRightHandSideVector) -= prod(BulkMatrixConsistent,PressureValuesForRHS);
+  //     // rRightHandSideVector -= prod(BulkVelMatrix,PressureValuesForRHS);
 
-      this->GetPressureVelocityValues(PressureValues,0);
-      noalias(PressureValuesForRHS)+=-PressureValues*TimeStep;
-      noalias(BulkMatrix) = ZeroMatrix(NumNodes,NumNodes);
-      this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkStabCoeff);
-      // this->ComputeBulkMatrixConsistent(BulkMatrix,lumpedBulkStabCoeff);
-      noalias(rLeftHandSideMatrix)+=BulkMatrix;
-      noalias(rRightHandSideVector) -=prod(BulkMatrix,PressureValuesForRHS);
-      // noalias(rRightHandSideVector) -=prod(BulkMatrixConsistent,PressureValuesForRHS);
-      // rRightHandSideVector -=prod(BulkAccMatrix,PressureVelocityVariation);
+  //     this->GetPressureVelocityValues(PressureValues,0);
+  //     noalias(PressureValuesForRHS)+=-PressureValues*TimeStep;
+  //     noalias(BulkMatrix) = ZeroMatrix(NumNodes,NumNodes);
+  //     this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkStabCoeff);
+  //     // this->ComputeBulkMatrixConsistent(BulkMatrix,lumpedBulkStabCoeff);
+  //     noalias(rLeftHandSideMatrix)+=BulkMatrix;
+  //     noalias(rRightHandSideVector) -=prod(BulkMatrix,PressureValuesForRHS);
+  //     // noalias(rRightHandSideVector) -=prod(BulkMatrixConsistent,PressureValuesForRHS);
+  //     // rRightHandSideVector -=prod(BulkAccMatrix,PressureVelocityVariation);
 
-    }else{
-      double lumpedBulkCoeff =totalVolume*Tau*Density/(TimeStep*VolumetricCoeff);
-      MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
-      this->ComputeBulkMatrixLump(BulkVelMatrixLump,lumpedBulkCoeff);
-      noalias(rLeftHandSideMatrix)+=BulkVelMatrixLump;
-      VectorType PressureValues= ZeroVector(NumNodes);
-      VectorType PressureValuesForRHS= ZeroVector(NumNodes);
-      this->GetPressureValues(PressureValuesForRHS,0);
-      this->GetPressureValues(PressureValues,1);
-      noalias(PressureValuesForRHS)+=-PressureValues;
-      noalias(rRightHandSideVector) -= prod(BulkVelMatrixLump,PressureValuesForRHS);
-    }
+  //   }else{
+  //     double lumpedBulkCoeff =totalVolume*Tau*Density/(TimeStep*VolumetricCoeff);
+  //     MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
+  //     this->ComputeBulkMatrixLump(BulkVelMatrixLump,lumpedBulkCoeff);
+  //     noalias(rLeftHandSideMatrix)+=BulkVelMatrixLump;
+  //     VectorType PressureValues= ZeroVector(NumNodes);
+  //     VectorType PressureValuesForRHS= ZeroVector(NumNodes);
+  //     this->GetPressureValues(PressureValuesForRHS,0);
+  //     this->GetPressureValues(PressureValues,1);
+  //     noalias(PressureValuesForRHS)+=-PressureValues;
+  //     noalias(rRightHandSideVector) -= prod(BulkVelMatrixLump,PressureValuesForRHS);
+  //   }
  
 
 
-  }
+  // }
   
 
   template< unsigned int TDim >

@@ -339,15 +339,15 @@ namespace Kratos
 					   double& bulkCoefficient,
 					   double timeStep){};
          
-      void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
-				 const double Weight);
+      /* void ComputeBulkMatrixLump(MatrixType& BulkMatrix, */
+      /* 				 const double Weight); */
       
       /* void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix, */
       /* 				       const double Weight); */
        
-      void ComputeBulkMatrix(MatrixType& BulkMatrix,
-			     const ShapeFunctionsType& rN,
-			     const double Weight);
+      /* void ComputeBulkMatrix(MatrixType& BulkMatrix, */
+      /* 			     const ShapeFunctionsType& rN, */
+      /* 			     const double Weight); */
       
       /* void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix, */
       /* 					       const double Weight); */
@@ -380,9 +380,9 @@ namespace Kratos
 						    double TimeStep,
 						    unsigned int g);
      
-      virtual void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
-							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo);
+      /* virtual void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, */
+      /* 							 VectorType& rRightHandSideVector, */
+      /* 							 ProcessInfo& rCurrentProcessInfo); */
  
       double GetThetaMomentum (){return 1.0;};
 

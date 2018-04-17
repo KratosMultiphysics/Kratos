@@ -2410,6 +2410,87 @@ void TwoStepUpdatedLagrangianVPExplicitElement<3>::CheckStrain2(MatrixType &Spat
 
   }
 
+ 
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::ComputeBulkMatrix(Matrix& BulkMatrix,
+									  const ShapeFunctionsType& rN,
+									  const double Weight)
+  {
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	for (SizeType j = 0; j < NumNodes; ++j)
+	  {
+	    // LHS contribution
+	    double Mij  = Weight*rN[i]*rN[j];
+	    BulkMatrix(i,j) +=  Mij;
+	  }
+
+      }
+  }
+
+  template< >
+  void TwoStepUpdatedLagrangianVPExplicitElement<2>::ComputeBulkMatrixConsistent(Matrix& BulkMatrix,
+										 const double Weight)
+  {
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	for (SizeType j = 0; j < NumNodes; ++j)
+	  {
+	    // LHS contribution
+	    double Mij  = Weight/12;
+	    if(i==j)
+	      Mij  *= 2.0;
+	    BulkMatrix(i,j) +=  Mij;
+	  }
+
+      }
+  
+  }
+
+  template< >
+  void TwoStepUpdatedLagrangianVPExplicitElement<3>::ComputeBulkMatrixConsistent(Matrix& BulkMatrix,
+										 const double Weight)
+  {
+    std::cout<<"TO IMPLEMENT AND CHECK "<<std::endl;
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	for (SizeType j = 0; j < NumNodes; ++j)
+	  {
+	    // LHS contribution
+	    double Mij  = Weight/12;
+	    if(i==j)
+	      Mij  *= 2.0;
+	    BulkMatrix(i,j) +=  Mij;
+	  }
+
+      }
+  
+  }
+  
+
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::ComputeBulkMatrixLump(Matrix& BulkMatrix,
+									      const double Weight)
+  {
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+
+    double coeff=1.0+TDim;
+    if((NumNodes==3 && TDim==2) || (NumNodes==4 && TDim==3)){
+      for (SizeType i = 0; i < NumNodes; ++i)
+	{
+	  // LHS contribution
+	  double Mij  = Weight /coeff;
+	  BulkMatrix(i,i) +=  Mij;
+	}
+    }else{
+      std::cout<<"... ComputeBulkMatrixLump TO IMPLEMENT"<<std::endl;
+    }
+  }
+
 
 
   

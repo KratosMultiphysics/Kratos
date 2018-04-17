@@ -432,10 +432,10 @@ namespace Kratos
         {
 	  KRATOS_ERROR << "NODAL_MASS has Key zero! (check if the application is correctly registered" << std::endl;
         }
-     // if(MIDDLE_VELOCITY.Key() == 0)
-     //    {
-     // 	  KRATOS_ERROR << "MIDDLE_VELOCITY has Key zero! (check if the application is correctly registered" << std::endl;
-     //    }
+     if(NODAL_ERROR.Key() == 0)
+        {
+     	  KRATOS_ERROR << "NODAL_ERROR has Key zero! (check if the application is correctly registered" << std::endl;
+        }
       if(FORCE_RESIDUAL.Key() == 0)
         {
 	  KRATOS_ERROR << "FORCE_RESIDUAL has Key zero! (check if the application is correctly registered" << std::endl;
@@ -461,10 +461,10 @@ namespace Kratos
             {
 	      KRATOS_ERROR << "NODAL_MASS variable is not allocated for node " << it->Id() << std::endl;
             }
- 	  // if (it->SolutionStepsDataHas(MIDDLE_VELOCITY) == false)
-          //   {
-	  //     KRATOS_ERROR << "MIDDLE_VELOCITY variable is not allocated for node " << it->Id() << std::endl;
-          //   }  
+ 	  if (it->SolutionStepsDataHas(NODAL_ERROR) == false)
+            {
+	      KRATOS_ERROR << "NODAL_ERROR variable is not allocated for node " << it->Id() << std::endl;
+            }  
 	  if (it->SolutionStepsDataHas(FORCE_RESIDUAL) == false)
             {
 	      KRATOS_ERROR << "FORCE_RESIDUAL variable is not allocated for node " << it->Id() << std::endl;

@@ -344,15 +344,15 @@ namespace Kratos
 
       double ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
    
-      void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
-				 const double Weight);
+      /* void ComputeBulkMatrixLump(MatrixType& BulkMatrix, */
+      /* 				 const double Weight); */
       
-      void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix,
-				       const double Weight);
+      /* void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix, */
+      /* 				       const double Weight); */
        
-      void ComputeBulkMatrix(MatrixType& BulkMatrix,
-			     const ShapeFunctionsType& rN,
-			     const double Weight);
+      /* void ComputeBulkMatrix(MatrixType& BulkMatrix, */
+      /* 			     const ShapeFunctionsType& rN, */
+      /* 			     const double Weight); */
       
       void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
 				const ShapeFunctionsType& rN,
@@ -405,9 +405,9 @@ namespace Kratos
 					 const ShapeFunctionDerivativesType& rDN_DX,
 					 const SizeType i);
 
-      void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
-						 VectorType& rRightHandSideVector,
-						 ProcessInfo& rCurrentProcessInfo); 
+      /* void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, */
+      /* 						 VectorType& rRightHandSideVector, */
+      /* 						 ProcessInfo& rCurrentProcessInfo);  */
 
       void GetPressureVelocityValues(Vector& rValues,
 				     const int Step);
