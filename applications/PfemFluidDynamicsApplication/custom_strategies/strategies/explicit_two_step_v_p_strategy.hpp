@@ -95,7 +95,10 @@ public:
         KRATOS_TRY
 
 	  std::cout<<"ExplicitTwoStepVPStrategy "<<std::endl;
-        //set flags to default values
+
+	typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
+
+	//set flags to default values
         mCalculateReactionsFlag = CalculateReactions;
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
@@ -124,6 +127,8 @@ public:
 	//set it true for explicit :: taking the deffault geometry lumping factors
 	BaseType::GetModelPart().GetProcessInfo()[COMPUTE_LUMPED_MASS_MATRIX] = true; 
 
+	BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(mpLinearSolver, PRESSURE));
+	
         KRATOS_CATCH( "" )
     }
 
@@ -261,13 +266,14 @@ public:
         TSystemVectorType mDx = TSystemVectorType();
         TSystemVectorType mb = TSystemVectorType();
 
-        //initial operations ... things that are constant over the Solution Step
+	//initial operations ... things that are constant over the Solution Step
         pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
-        if(BaseType::mRebuildLevel > 0)
-        {
+        // if(BaseType::mRebuildLevel > 0)
+        // {
+	//   pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
+	// }
 	  pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
-	}
 
         mSolutionStepIsInitialized = true;
 
@@ -283,78 +289,189 @@ public:
     //**********************************************************************
 
 
-    double Solve()
-    {
-        KRATOS_TRY
+  double Solve()
+  {
+    KRATOS_TRY
 
-	  std::cout<<" Solve() in explicit two step v p"<<std::endl;
+      std::cout<<" Solve() in explicit two step v p"<<std::endl;
 
-        DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
-        TSystemMatrixType mA  = TSystemMatrixType();
-        TSystemVectorType mDx = TSystemVectorType();
-        TSystemVectorType mb  = TSystemVectorType();
-
-        //pointers needed in the solution
-        typename TSchemeType::Pointer pScheme = GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+    //pointers needed in the solution
+    typename TSchemeType::Pointer pScheme = GetScheme();
+    typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+    ModelPart& r_model_part                                   = BaseType::GetModelPart();
+    
+    DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
+    TSystemMatrixType mA  = TSystemMatrixType();
+    TSystemVectorType mDx = TSystemVectorType();
+    TSystemVectorType mb  = TSystemVectorType();
         
-        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-        //if the operations needed were already performed this does nothing
-        if(mInitializeWasPerformed == false)
-            Initialize();
+    //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
+    //if the operations needed were already performed this does nothing
+    if(mInitializeWasPerformed == false)
+      Initialize();
             
-        //prints informations about the current time
-        if (this->GetEchoLevel() == 2 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
-        {
-            std::cout << " " << std::endl;
-            std::cout << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
-        }
+    //prints informations about the current time
+    if (this->GetEchoLevel() == 2 && r_model_part.GetCommunicator().MyPID() == 0 )
+      {
+	std::cout << " " << std::endl;
+	std::cout << "CurrentTime = " << r_model_part.GetProcessInfo()[TIME] << std::endl;
+      }
 
-        //initialize solution step
-        if(mSolutionStepIsInitialized == false)
-	  InitializeSolutionStep();
 
-        
-        pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
+       
+    //initialize solution step
+    // if(mSolutionStepIsInitialized == false)
+    // InitializeSolutionStep();
 
-        //calculate reactions if required
-//         if (mCalculateReactionsFlag == true)
-//         {
-//             pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-//         }
-	std::cout<<"   update in expl 2 step v p "<<std::endl;
-        pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb); // Explicitly integrates the equation of motion.
+    // it predicts the timeStep, it clear the RHS of momentum and continuity
+    pScheme->InitializeSolutionStep(r_model_part, mA, mDx, mb);
 
-	//calculate reactions if required
-        // if (mCalculateReactionsFlag == true)
-        // {
-        //     pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-        // }
+    ////////////////////// starting momentum step solution /////////////////////
 
-        //Finalisation of the solution step,
-        //operations to be done after achieving convergence, for example the
-        //Final Residual Vector (mb) has to be saved in there
-        //to avoid error accumulation
-	std::cout<<"   FinalizeSolutionStep in expl 2 step v p "<<std::endl;
-        pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+    pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix  
 
-	std::cout<<"   Move Mesh "<<std::endl;
+    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mb);
 
-        //move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+    pScheme->Update(r_model_part, rDofSet, mA, mDx, mb); // Explicitly integrates the equation of motion.
 
-        //Cleaning memory after the solution
-        pScheme->Clean();
+    //Finalisation of the solution step,
+    //operations to be done after achieving convergence, for example the
+    //Final Residual Vector (mb) has to be saved in there
+    //to avoid error accumulation
+    pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
 
-        //reset flags for next step
-        mSolutionStepIsInitialized = false;
 
-        return 0.00;
+    //move the mesh if needed
+    if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
-        KRATOS_CATCH( "" )
+    //Cleaning memory after the solution
+    pScheme->Clean();
 
-    }
+    //reset flags for next step
+    mSolutionStepIsInitialized = false;
 
+    ////////////////////// momentum step solution finished /////////////////////
+
+
+    pBuilderAndSolver->Build(pScheme, r_model_part, mA, mb);
+
+    this->UpdatePressure(r_model_part); // Explicitly integrates the equation of motion.
+
+    pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
+
+    pScheme->Clean();
+
+    return 0.00;
+
+    KRATOS_CATCH( "" )
+
+      }
+
+
+  void UpdatePressure(ModelPart& rModelPart)
+  {
+    KRATOS_TRY
+
+      // std::cout<<"Update in forward euler"<<std::endl;
+
+      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      
+    OpenMPUtils::PartitionVector NodePartition;
+    OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
+	
+    const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+    NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+
+#pragma omp parallel for firstprivate(NodeBegin)
+    for(int i = 0;  i < nnodes; i++)
+      {
+	NodesArrayType::iterator itNode = NodeBegin + i;
+	  
+	// Current step information "N+1" (before step update).
+	const double& bulk_term  = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
+	double& pressure_rhs  = (itNode)->FastGetSolutionStepValue(NODAL_ERROR);
+	double& current_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
+	double& previous_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
+
+	// // std::cout<<"PREssure_rhs  "<<pressure_rhs<<"\t";
+	// std::cout<<"p(n-1)  "<<previous_pressure<<"\t";
+	// std::cout<<"p(n)  "<<current_pressure<<"\t";
+
+	// Solution of the explicit equation:
+	// if((itNode)->IsFixed(PRESSURE) == false)
+	previous_pressure=current_pressure;
+	current_pressure =  pressure_rhs/bulk_term;
+	
+	// std::cout<<"p(n)  "<<previous_pressure<<"\t";
+	// std::cout<<"p(n+1)  "<<current_pressure<<"\n";
+
+      }
+
+    KRATOS_CATCH("")
+      }
+
+  
+      void UpdateKinematics()
+  {
+    ModelPart& rModelPart = BaseType::GetModelPart();
+    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+    double timeStep = rCurrentProcessInfo[DELTA_TIME];
+      
+    for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
+	 i != rModelPart.NodesEnd(); ++i)
+      {
+
+	array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0);
+	array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
+
+	array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
+
+	array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
+	array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+	  
+	CurrentDisplacement[0] = timeStep * CurrentVelocity[0] + PreviousDisplacement[0];	  
+	CurrentDisplacement[1] = timeStep * CurrentVelocity[1] + PreviousDisplacement[1];
+	CurrentDisplacement[2] = timeStep * CurrentVelocity[2] + PreviousDisplacement[2];
+
+	CurrentAcceleration[0] = (CurrentVelocity[0] - PreviousVelocity[0]) / timeStep;	  
+	CurrentAcceleration[1] = (CurrentVelocity[1] - PreviousVelocity[1]) / timeStep;
+	CurrentAcceleration[2] = (CurrentVelocity[2] - PreviousVelocity[2]) / timeStep;
+
+	// if((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID)){
+	//   UpdateAccelerations (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, timeStep);
+	// }else
+	if((i)->Is(RIGID) && ((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID))){
+	  array_1d<double, 3>  Zeros(3,0.0);
+	  (i)->FastGetSolutionStepValue(ACCELERATION,0) = Zeros;
+	  (i)->FastGetSolutionStepValue(ACCELERATION,1) = Zeros;
+	}else {
+	  (i)->FastGetSolutionStepValue(PRESSURE,0) = 0.0; 
+	  (i)->FastGetSolutionStepValue(PRESSURE,1) = 0.0; 
+	  (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,0) = 0.0; 
+	  (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,1) = 0.0; 
+	  (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,0) = 0.0; 
+	  (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,1) = 0.0; 
+	  if((i)->SolutionStepsDataHas(VOLUME_ACCELERATION)){
+	    array_1d<double, 3 >& VolumeAcceleration = (i)->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+	    (i)->FastGetSolutionStepValue(ACCELERATION,0) = VolumeAcceleration;
+	    (i)->FastGetSolutionStepValue(VELOCITY,0) += VolumeAcceleration*rCurrentProcessInfo[DELTA_TIME];
+	  }
+	}
+
+
+      }
+  }
+
+    // inline void UpdateAccelerations(array_1d<double, 3 > & CurrentAcceleration,
+    // 				    const array_1d<double, 3 > & CurrentVelocity,
+    // 				    array_1d<double, 3 > & PreviousAcceleration,
+    // 				    const array_1d<double, 3 > & PreviousVelocity,
+    // 				    double timeStep)
+    // {
+    //   noalias(CurrentAcceleration) = (CurrentVelocity-PreviousVelocity)/timeStep;
+    // }
+
+  
     //**********************************************************************
     //**********************************************************************
 

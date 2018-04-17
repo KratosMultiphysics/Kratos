@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_V_SOLID_ELEMENT_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_V_SOLID_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_V_EXPLICIT_SOLID_ELEMENT_H_INCLUDED )
+#define  KRATOS_UPDATED_LAGRANGIAN_V_EXPLICIT_SOLID_ELEMENT_H_INCLUDED
 
 // System includes
 #include <string>
@@ -15,7 +15,7 @@
 
 // External includes
 
-#include "custom_elements/two_step_updated_lagrangian_V_P_solid_element.h" 
+#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_solid_element.h" 
 
 namespace Kratos
 {
@@ -45,21 +45,21 @@ namespace Kratos
   /// A stabilized element for the incompressible Navier-Stokes equations.
   /**
    */
-/* class UpdatedLagrangianVSolidElement : public Element */
+/* class UpdatedLagrangianVExplicitSolidElement : public Element */
   template< unsigned int TDim > 
-  /* class UpdatedLagrangianVSolidElement : public TwoStepUpdatedLagrangianVPElement<TDim> */
-  class UpdatedLagrangianVSolidElement : public TwoStepUpdatedLagrangianVPSolidElement<TDim>
+  /* class UpdatedLagrangianVExplicitSolidElement : public TwoStepUpdatedLagrangianVPExplicitElement<TDim> */
+  class UpdatedLagrangianVExplicitSolidElement : public TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>
     {
   
     public:
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of UpdatedLagrangianVSolidElement
-      KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangianVSolidElement);
+      /// Pointer definition of UpdatedLagrangianVExplicitSolidElement
+      KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangianVExplicitSolidElement);
 
       ///base type: 
-      typedef TwoStepUpdatedLagrangianVPSolidElement<TDim> BaseType;
+      typedef TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim> BaseType;
 
       /// Node type (default is: Node<3>)
       typedef Node <3> NodeType;
@@ -114,7 +114,7 @@ namespace Kratos
       /**
        * @param NewId Index number of the new element (optional)
        */
-    UpdatedLagrangianVSolidElement(IndexType NewId = 0) :
+    UpdatedLagrangianVExplicitSolidElement(IndexType NewId = 0) :
       BaseType(NewId)
       {}
 
@@ -123,7 +123,7 @@ namespace Kratos
        * @param NewId Index of the new element
        * @param ThisNodes An array containing the nodes of the new element
        */
-    UpdatedLagrangianVSolidElement(IndexType NewId, const NodesArrayType& ThisNodes) :
+    UpdatedLagrangianVExplicitSolidElement(IndexType NewId, const NodesArrayType& ThisNodes) :
       BaseType(NewId, ThisNodes)
 	{}
 
@@ -132,7 +132,7 @@ namespace Kratos
        * @param NewId Index of the new element
        * @param pGeometry Pointer to a geometry object
        */
-    UpdatedLagrangianVSolidElement(IndexType NewId, GeometryType::Pointer pGeometry) :
+    UpdatedLagrangianVExplicitSolidElement(IndexType NewId, GeometryType::Pointer pGeometry) :
       BaseType(NewId, pGeometry)
 	{}
 
@@ -142,18 +142,18 @@ namespace Kratos
        * @param pGeometry Pointer to a geometry object
        * @param pProperties Pointer to the element's properties
        */
-    UpdatedLagrangianVSolidElement(IndexType NewId, GeometryType::Pointer pGeometry, pPropertiesType pProperties) : BaseType(NewId, pGeometry, pProperties)
+    UpdatedLagrangianVExplicitSolidElement(IndexType NewId, GeometryType::Pointer pGeometry, pPropertiesType pProperties) : BaseType(NewId, pGeometry, pProperties)
 	{}
 
 
    /// copy constructor
 
-    UpdatedLagrangianVSolidElement(UpdatedLagrangianVSolidElement const& rOther):
+    UpdatedLagrangianVExplicitSolidElement(UpdatedLagrangianVExplicitSolidElement const& rOther):
       BaseType(rOther)
       {}
 
       /// Destructor.
-      virtual ~UpdatedLagrangianVSolidElement()
+      virtual ~UpdatedLagrangianVExplicitSolidElement()
 	{}
 
 
@@ -168,7 +168,7 @@ namespace Kratos
 
       /// Create a new element of this type
       /**
-       * Returns a pointer to a new UpdatedLagrangianVSolidElement element, created using given input
+       * Returns a pointer to a new UpdatedLagrangianVExplicitSolidElement element, created using given input
        * @param NewId: the ID of the new element
        * @param ThisNodes: the nodes of the new element
        * @param pProperties: the properties assigned to the new element
@@ -177,7 +177,7 @@ namespace Kratos
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
 			      pPropertiesType pProperties) const
 	{
-	  return Element::Pointer(new UpdatedLagrangianVSolidElement(NewId, BaseType::GetGeometry().Create(ThisNodes), pProperties));
+	  return Element::Pointer(new UpdatedLagrangianVExplicitSolidElement(NewId, BaseType::GetGeometry().Create(ThisNodes), pProperties));
 	}
 
       Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
@@ -195,17 +195,10 @@ namespace Kratos
 					 ProcessInfo& rCurrentProcessInfo)
       {
 	KRATOS_TRY;
-	KRATOS_THROW_ERROR(std::logic_error,"UpdatedLagrangianVSolidElement::CalculateLeftHandSide not implemented","");
+	KRATOS_THROW_ERROR(std::logic_error,"UpdatedLagrangianVExplicitSolidElement::CalculateLeftHandSide not implemented","");
 	KRATOS_CATCH("");
       }
 
-      virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-					  ProcessInfo& rCurrentProcessInfo)
-      {
-	KRATOS_TRY;
-	KRATOS_THROW_ERROR(std::logic_error,"UpdatedLagrangianVSolidElement::CalculateRightHandSide not implemented","");
-	KRATOS_CATCH("");
-      }
 
       // The following methods have different implementations depending on TDim
       /// Provides the global indices for each one of this element's local rows
@@ -255,14 +248,14 @@ namespace Kratos
       virtual std::string Info() const
 	{
 	  std::stringstream buffer;
-	  buffer << "UpdatedLagrangianVSolidElement #" << BaseType::Id();
+	  buffer << "UpdatedLagrangianVExplicitSolidElement #" << BaseType::Id();
 	  return buffer.str();
 	}
 
       /// Print information about this object.
       virtual void PrintInfo(std::ostream& rOStream) const
       {
-	rOStream << "UpdatedLagrangianVSolidElement" << TDim << "D";
+	rOStream << "UpdatedLagrangianVExplicitSolidElement" << TDim << "D";
       }
 
       //        /// Print object's data.
@@ -385,14 +378,14 @@ namespace Kratos
       ///@{
 
       /// Assignment operator.
-      UpdatedLagrangianVSolidElement & operator=(UpdatedLagrangianVSolidElement const& rOther);
+      UpdatedLagrangianVExplicitSolidElement & operator=(UpdatedLagrangianVExplicitSolidElement const& rOther);
 
       /* /// Copy constructor. */
-      /* UpdatedLagrangianVSolidElement(UpdatedLagrangianVSolidElement const& rOther); */
+      /* UpdatedLagrangianVExplicitSolidElement(UpdatedLagrangianVExplicitSolidElement const& rOther); */
 
       ///@}
 
-    }; // Class UpdatedLagrangianVSolidElement
+    }; // Class UpdatedLagrangianVExplicitSolidElement
 
   ///@}
 
@@ -408,7 +401,7 @@ namespace Kratos
   /// input stream function
   template< unsigned int TDim >
     inline std::istream& operator >>(std::istream& rIStream,
-                                     UpdatedLagrangianVSolidElement<TDim>& rThis)
+                                     UpdatedLagrangianVExplicitSolidElement<TDim>& rThis)
     {
       return rIStream;
     }
@@ -416,7 +409,7 @@ namespace Kratos
   /// output stream function
   template< unsigned int TDim >
     inline std::ostream& operator <<(std::ostream& rOStream,
-                                     const UpdatedLagrangianVSolidElement<TDim>& rThis)
+                                     const UpdatedLagrangianVExplicitSolidElement<TDim>& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -427,4 +420,4 @@ namespace Kratos
 
 } // namespace Kratos.
 
-#endif // KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_SOLID_ELEMENT  defined
+#endif // KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_EXPLICIT_SOLID_ELEMENT  defined

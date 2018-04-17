@@ -1,7 +1,7 @@
 //
 //   Project Name:        KratosFluidDynamicsApplication $
 //   Last modified by:    $Author:               AFranci $
-//   Date:                $Date:            January 2016 $
+//   Date:                $Date:              April 2018 $
 //   Revision:            $Revision:                 0.0 $
 //
 //   Implementation of the Gauss-Seidel two step Updated Lagrangian Velocity-Pressure element
@@ -13,18 +13,18 @@
 // External includes
  
 // Project includes
-#include "custom_elements/two_step_updated_lagrangian_V_P_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_element.h"
 #include "includes/cfd_variables.h"
 
 namespace Kratos {
 
   /*
-   * public TwoStepUpdatedLagrangianVPElement<TDim> functions
+   * public TwoStepUpdatedLagrangianVPExplicitElement<TDim> functions
    */
 
 
   template< unsigned int TDim >
-  TwoStepUpdatedLagrangianVPElement<TDim>::TwoStepUpdatedLagrangianVPElement(TwoStepUpdatedLagrangianVPElement  const& rOther)
+  TwoStepUpdatedLagrangianVPExplicitElement<TDim>::TwoStepUpdatedLagrangianVPExplicitElement(TwoStepUpdatedLagrangianVPExplicitElement  const& rOther)
   :Element(rOther)
   {
     KRATOS_TRY;
@@ -33,51 +33,35 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  Element::Pointer TwoStepUpdatedLagrangianVPElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  Element::Pointer TwoStepUpdatedLagrangianVPExplicitElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
     KRATOS_TRY;
 
-    TwoStepUpdatedLagrangianVPElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
-    return Element::Pointer( new TwoStepUpdatedLagrangianVPElement(NewElement) );
+    TwoStepUpdatedLagrangianVPExplicitElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    return Element::Pointer( new TwoStepUpdatedLagrangianVPExplicitElement(NewElement) );
     
     KRATOS_CATCH("");
 
   }
 
 
+  
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-								     VectorType& rRightHandSideVector,
-								     ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+									     VectorType& rRightHandSideVector,
+									     ProcessInfo& rCurrentProcessInfo)
   { 
     KRATOS_TRY;
 
-    switch ( rCurrentProcessInfo[FRACTIONAL_STEP] )
-      {
-      case 1:
-	{
-	  this->CalculateLocalMomentumEquations(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-	  break;
-	}
-      case 5:
-      	{
-      	  this->CalculateLocalContinuityEqForPressure(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-      	  break;
-      	}
-
-      default:
-	{
-	  KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for TWO_STEP_UPDATED_LAGRANGIAN_V_P_ELEMENT index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
-	}
-      }
-
+    this->CalculateExplicitContinuityEquation(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+    
     KRATOS_CATCH("");
   }
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::EquationIdVector(EquationIdVectorType& rResult,
-								 ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::EquationIdVector(EquationIdVectorType& rResult,
+									 ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -108,8 +92,8 @@ namespace Kratos {
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::GetDofList(DofsVectorType& rElementalDofList,
-							   ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::GetDofList(DofsVectorType& rElementalDofList,
+								   ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -140,12 +124,12 @@ namespace Kratos {
   }
 
   // template< unsigned int TDim >
-  // GeometryData::IntegrationMethod TwoStepUpdatedLagrangianVPElement<TDim>::GetIntegrationMethod() const
+  // GeometryData::IntegrationMethod TwoStepUpdatedLagrangianVPExplicitElement<TDim>::GetIntegrationMethod() const
   // {
   //   return GeometryData::GI_GAUSS_4;
   // }
   template< unsigned int TDim >
-  GeometryData::IntegrationMethod TwoStepUpdatedLagrangianVPElement<TDim>::GetIntegrationMethod() const
+  GeometryData::IntegrationMethod TwoStepUpdatedLagrangianVPExplicitElement<TDim>::GetIntegrationMethod() const
   {
     return GeometryData::GI_GAUSS_1;
   }
@@ -153,7 +137,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY; 
 
@@ -230,28 +214,6 @@ namespace Kratos {
 
 	  this->AddInternalForces(rRightHandSideVector,rDN_DX,rElementalVariables,GaussWeight);
 
-	  // double lumpedDynamicWeight=GaussWeight*Density;
-	  // this->ComputeLumpedMassMatrix(MassMatrix,lumpedDynamicWeight,MeanValueMass);   
-
-	  // double MeanValueMaterial=0.0;
-	  // this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight,MeanValueMass,TimeStep);    
-	  // double deviatoricCoeffTemp=DeviatoricCoeff;
-	  // DeviatoricCoeff=0;
-	  // // Add viscous term
-	  // this->ComputeCompleteTangentTerm(rElementalVariables,rLeftHandSideMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
-	  
-	  // double staticFrictionCoefficient=0.34;
-	  // double dynamicFrictionCoefficient=0.6;
-	  // double inertialNumberZero=0.279;
-	  // double grainDiameter=0.001;
-	  // double grainDensity=2500;
-	  // double meanPressure=fabs(rElementalVariables.MeanPressure);
-	  // double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
-	  // double smallScale=grainDiameter/sqrt(meanPressure/grainDensity);
-	  // double denominator=inertialNumberZero+rElementalVariables.EquivalentStrainRate*smallScale;
-	  // if(meanPressure!=0 && rElementalVariables.EquivalentStrainRate!=0){
-	  //   DeviatoricCoeff=inertialNumberZero*deltaFrictionCoefficient*meanPressure*smallScale/pow(denominator,2);
-	  // }
 	  this->ComputeCompleteTangentTerm(rElementalVariables,StiffnessMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
 	  // DeviatoricCoeff=deviatoricCoeffTemp;
 	}
@@ -331,9 +293,9 @@ namespace Kratos {
 
 
     template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-									  std::vector<double>& rValues,
-									  const ProcessInfo& rCurrentProcessInfo )
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+										     std::vector<double>& rValues,
+										     const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rVariable == YIELDED)
     {
@@ -342,13 +304,13 @@ namespace Kratos {
 }
 
   template<>
-  void TwoStepUpdatedLagrangianVPElement<2>::ComputeCompleteTangentTerm(ElementalVariables & rElementalVariables,
-									MatrixType& rDampingMatrix,
-									const ShapeFunctionDerivativesType& rDN_DX,
-									const double secondLame,
-									const double bulkModulus,
-									const double theta,
-									const double Weight)
+  void TwoStepUpdatedLagrangianVPExplicitElement<2>::ComputeCompleteTangentTerm(ElementalVariables & rElementalVariables,
+										MatrixType& rDampingMatrix,
+										const ShapeFunctionDerivativesType& rDN_DX,
+										const double secondLame,
+										const double bulkModulus,
+										const double theta,
+										const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     const double FourThirds = 4.0 / 3.0;
@@ -389,13 +351,13 @@ namespace Kratos {
  
 
   template<>
-  void TwoStepUpdatedLagrangianVPElement<3>::ComputeCompleteTangentTerm(ElementalVariables & rElementalVariables,
-									MatrixType& rDampingMatrix,
-									const ShapeFunctionDerivativesType& rDN_DX,
-									const double secondLame,
-									const double bulkModulus,
-									const double theta,
-									const double Weight){
+  void TwoStepUpdatedLagrangianVPExplicitElement<3>::ComputeCompleteTangentTerm(ElementalVariables & rElementalVariables,
+										MatrixType& rDampingMatrix,
+										const ShapeFunctionDerivativesType& rDN_DX,
+										const double secondLame,
+										const double bulkModulus,
+										const double theta,
+										const double Weight){
     
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     const double FourThirds = 4.0 / 3.0;
@@ -448,7 +410,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  int TwoStepUpdatedLagrangianVPElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPExplicitElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -511,8 +473,8 @@ namespace Kratos {
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPElement<2>::VelocityEquationIdVector(EquationIdVectorType& rResult,
-								      ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPExplicitElement<2>::VelocityEquationIdVector(EquationIdVectorType& rResult,
+									      ProcessInfo& rCurrentProcessInfo)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -534,8 +496,8 @@ namespace Kratos {
   }
 
   template<>
-  void TwoStepUpdatedLagrangianVPElement<3>::VelocityEquationIdVector(EquationIdVectorType& rResult,
-								      ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPExplicitElement<3>::VelocityEquationIdVector(EquationIdVectorType& rResult,
+									      ProcessInfo& rCurrentProcessInfo)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -557,8 +519,8 @@ namespace Kratos {
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::PressureEquationIdVector(EquationIdVectorType& rResult,
-									 ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::PressureEquationIdVector(EquationIdVectorType& rResult,
+										 ProcessInfo& rCurrentProcessInfo)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -573,8 +535,8 @@ namespace Kratos {
   }
 
   template<>
-  void TwoStepUpdatedLagrangianVPElement<2>::GetVelocityDofList(DofsVectorType& rElementalDofList,
-								ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPExplicitElement<2>::GetVelocityDofList(DofsVectorType& rElementalDofList,
+									ProcessInfo& rCurrentProcessInfo)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -593,8 +555,8 @@ namespace Kratos {
   }
 
   template<>
-  void TwoStepUpdatedLagrangianVPElement<3>::GetVelocityDofList(DofsVectorType& rElementalDofList,
-								ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPExplicitElement<3>::GetVelocityDofList(DofsVectorType& rElementalDofList,
+									ProcessInfo& rCurrentProcessInfo)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -614,8 +576,8 @@ namespace Kratos {
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::GetPressureDofList(DofsVectorType& rElementalDofList,
-								   ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::GetPressureDofList(DofsVectorType& rElementalDofList,
+									   ProcessInfo& rCurrentProcessInfo)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -632,8 +594,8 @@ namespace Kratos {
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::GetPressureValues(Vector& rValues,
-								  const int Step)
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::GetPressureValues(Vector& rValues,
+									  const int Step)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -656,10 +618,10 @@ namespace Kratos {
 
 
   template< unsigned int TDim>
-  bool TwoStepUpdatedLagrangianVPElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
-								     const ProcessInfo& rCurrentProcessInfo,
-								     const ShapeFunctionDerivativesType& rDN_DX,
-								     unsigned int g)
+  bool TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+									     const ProcessInfo& rCurrentProcessInfo,
+									     const ShapeFunctionDerivativesType& rDN_DX,
+									     unsigned int g)
   {
   
     double theta=this->GetThetaMomentum();
@@ -671,8 +633,8 @@ namespace Kratos {
 
 
   template<  unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPElement<TDim>::CalcMeanPressure(double &meanPressure,
-								 const int Step)
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalcMeanPressure(double &meanPressure,
+									 const int Step)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -689,8 +651,8 @@ namespace Kratos {
 
 
   template< >
-  void TwoStepUpdatedLagrangianVPElement<2>::CalcMeanVelocity(double &meanVelocity,
-							      const int Step)
+  void TwoStepUpdatedLagrangianVPExplicitElement<2>::CalcMeanVelocity(double &meanVelocity,
+								      const int Step)
   {
 
     GeometryType& rGeom = this->GetGeometry();
@@ -717,8 +679,8 @@ namespace Kratos {
 
 
   template< >
-  void TwoStepUpdatedLagrangianVPElement<3>::CalcMeanVelocity(double &meanVelocity,
-							      const int Step)
+  void TwoStepUpdatedLagrangianVPExplicitElement<3>::CalcMeanVelocity(double &meanVelocity,
+								      const int Step)
   {
 
     GeometryType& rGeom = this->GetGeometry();
@@ -749,7 +711,7 @@ namespace Kratos {
 
 
 template< unsigned int TDim>
-void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rDeltaPosition)
+void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalculateDeltaPosition(Matrix & rDeltaPosition)
 {
     KRATOS_TRY
 
@@ -773,8 +735,8 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 }
 
   template<>
-  void TwoStepUpdatedLagrangianVPElement<2>::GetDisplacementValues(Vector& rValues,
-								   const int Step)
+  void TwoStepUpdatedLagrangianVPExplicitElement<2>::GetDisplacementValues(Vector& rValues,
+									   const int Step)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -793,8 +755,8 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPElement<3>::GetDisplacementValues(Vector& rValues,
-								   const int Step)
+  void TwoStepUpdatedLagrangianVPExplicitElement<3>::GetDisplacementValues(Vector& rValues,
+									   const int Step)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -815,8 +777,8 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPElement<2>::GetVelocityValues(Vector& rValues,
-							       const int Step)
+  void TwoStepUpdatedLagrangianVPExplicitElement<2>::GetVelocityValues(Vector& rValues,
+								       const int Step)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -835,8 +797,8 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPElement<3>::GetVelocityValues(Vector& rValues,
-							       const int Step)
+  void TwoStepUpdatedLagrangianVPExplicitElement<3>::GetVelocityValues(Vector& rValues,
+								       const int Step)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -857,9 +819,9 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::GetElementalAcceleration(Vector& meanAcceleration,
-									 const int Step,
-									 const double TimeStep)
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::GetElementalAcceleration(Vector& meanAcceleration,
+										 const int Step,
+										 const double TimeStep)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -874,7 +836,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
   }
 
   template< >
-  void TwoStepUpdatedLagrangianVPElement<2>::GetAccelerationValues(Vector& rValues,
+  void TwoStepUpdatedLagrangianVPExplicitElement<2>::GetAccelerationValues(Vector& rValues,
 								   const int Step)
   {
     GeometryType& rGeom = this->GetGeometry();
@@ -893,7 +855,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
   }
 
   template< >
-  void TwoStepUpdatedLagrangianVPElement<3>::GetAccelerationValues(Vector& rValues,
+  void TwoStepUpdatedLagrangianVPExplicitElement<3>::GetAccelerationValues(Vector& rValues,
 								   const int Step)
   {
     GeometryType& rGeom = this->GetGeometry();
@@ -913,32 +875,8 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
   }
 
 
-
-  // template< unsigned int TDim >
-  // void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
-  // 								      Matrix &NContainer,
-  // 								      Vector &rGaussWeights)
-  // {
-  //   const GeometryType& rGeom = this->GetGeometry();
-  //   Vector DetJ;
-  //   rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,GeometryData::GI_GAUSS_4);
-  //   NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_4);
-  //   const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_4);
-
-  //   rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4),false);
-
-  //   for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4); g++){
-  //     rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
-  //     if(rGaussWeights[g]<0)
-  // 	std::cout<<"NEGATIVE GAUSS WEIGHT "<<rGaussWeights[g]<<std::endl;
-  
-  //   }
-
-  // }
-
-
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
   								      Matrix &NContainer,
   								      Vector &rGaussWeights)
   {
@@ -959,7 +897,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
   }
 
   template< unsigned int TDim >
-  double TwoStepUpdatedLagrangianVPElement<TDim>::ElementSize()
+  double TwoStepUpdatedLagrangianVPExplicitElement<TDim>::ElementSize()
   {
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -1014,7 +952,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 
 
 template < > 
-bool TwoStepUpdatedLagrangianVPElement<2>::CalcCompleteStrainRate(ElementalVariables & rElementalVariables,
+bool TwoStepUpdatedLagrangianVPExplicitElement<2>::CalcCompleteStrainRate(ElementalVariables & rElementalVariables,
 								  const ProcessInfo &rCurrentProcessInfo,
 								  const ShapeFunctionDerivativesType& rDN_DX,
 								  const double theta)
@@ -1125,7 +1063,7 @@ bool TwoStepUpdatedLagrangianVPElement<2>::CalcCompleteStrainRate(ElementalVaria
 }  
 
 template < > 
-bool TwoStepUpdatedLagrangianVPElement<3>::CalcCompleteStrainRate(ElementalVariables & rElementalVariables,
+bool TwoStepUpdatedLagrangianVPExplicitElement<3>::CalcCompleteStrainRate(ElementalVariables & rElementalVariables,
 								  const ProcessInfo &rCurrentProcessInfo,
 								  const ShapeFunctionDerivativesType& rDN_DX,
 								  const double theta)
@@ -1286,7 +1224,7 @@ bool TwoStepUpdatedLagrangianVPElement<3>::CalcCompleteStrainRate(ElementalVaria
 
 
 template< unsigned int TDim>
-bool TwoStepUpdatedLagrangianVPElement<TDim>::CalcStrainRate(ElementalVariables & rElementalVariables,
+bool TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalcStrainRate(ElementalVariables & rElementalVariables,
 							     const ProcessInfo &rCurrentProcessInfo,
 							     const ShapeFunctionDerivativesType& rDN_DX,
 							     const double theta)
@@ -1359,7 +1297,7 @@ bool TwoStepUpdatedLagrangianVPElement<TDim>::CalcStrainRate(ElementalVariables 
   
 
 template <unsigned int TDim > 
-void TwoStepUpdatedLagrangianVPElement<TDim>::CalcFGrad(const ShapeFunctionDerivativesType& rDN_DX,
+void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalcFGrad(const ShapeFunctionDerivativesType& rDN_DX,
 							MatrixType &Fgrad,
 							MatrixType &invFgrad,
 							double &FJacobian,
@@ -1432,7 +1370,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalcFGrad(const ShapeFunctionDeriv
   
 
 template < unsigned int TDim> 
-void TwoStepUpdatedLagrangianVPElement<TDim>::CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX,
+void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX,
 							     MatrixType &FgradVel,
 							     MatrixType &invFgradVel,
 							     double &FVelJacobian,
@@ -1475,7 +1413,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalcVelDefGrad(const ShapeFunction
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<2>::CalcVolumetricDefRate(const ShapeFunctionDerivativesType& rDN_DX,
+void TwoStepUpdatedLagrangianVPExplicitElement<2>::CalcVolumetricDefRate(const ShapeFunctionDerivativesType& rDN_DX,
 								 double &volumetricDefRate,
 								 MatrixType &invGradDef,
 								 const double theta)
@@ -1514,7 +1452,7 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcVolumetricDefRate(const ShapeFunc
 }
 
 template < unsigned int TDim > 
-void TwoStepUpdatedLagrangianVPElement<TDim>::CalcSpatialVelocityGrad(MatrixType &invFgrad,
+void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalcSpatialVelocityGrad(MatrixType &invFgrad,
 								      MatrixType &VelDefgrad,
 								      MatrixType &SpatialVelocityGrad)
 {
@@ -1531,7 +1469,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalcSpatialVelocityGrad(MatrixType
 
 
 template < unsigned int TDim > 
-void TwoStepUpdatedLagrangianVPElement<TDim>::CalcVolDefRateFromSpatialVelGrad(double &volumetricDefRate,
+void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalcVolDefRateFromSpatialVelGrad(double &volumetricDefRate,
 									       MatrixType &SpatialVelocityGrad)
 {
   volumetricDefRate=0;
@@ -1544,7 +1482,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalcVolDefRateFromSpatialVelGrad(d
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<2>::CheckStrain1(double &VolumetricDefRate,
+void TwoStepUpdatedLagrangianVPExplicitElement<2>::CheckStrain1(double &VolumetricDefRate,
 							MatrixType &SpatialVelocityGrad)
 {
   double trace_l=SpatialVelocityGrad(0,0)+SpatialVelocityGrad(1,1);
@@ -1556,7 +1494,7 @@ void TwoStepUpdatedLagrangianVPElement<2>::CheckStrain1(double &VolumetricDefRat
 }
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<2>::CalcMDGreenLagrangeMaterial(MatrixType &Fgrad,
+void TwoStepUpdatedLagrangianVPExplicitElement<2>::CalcMDGreenLagrangeMaterial(MatrixType &Fgrad,
 								       MatrixType &VelDefgrad, 
 								       VectorType &MDGreenLagrangeMaterial)
 {
@@ -1573,7 +1511,7 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcMDGreenLagrangeMaterial(MatrixTyp
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<3>::CalcMDGreenLagrangeMaterial(MatrixType &Fgrad,
+void TwoStepUpdatedLagrangianVPExplicitElement<3>::CalcMDGreenLagrangeMaterial(MatrixType &Fgrad,
 								       MatrixType &VelDefgrad, 
 								       VectorType &MDGreenLagrangeMaterial)
 {
@@ -1614,7 +1552,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcMDGreenLagrangeMaterial(MatrixTyp
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<2>::CalcSpatialDefRate(VectorType &MDGreenLagrangeMaterial,
+void TwoStepUpdatedLagrangianVPExplicitElement<2>::CalcSpatialDefRate(VectorType &MDGreenLagrangeMaterial,
 							      MatrixType &invFgrad,
 							      VectorType &SpatialDefRate)
 {
@@ -1635,7 +1573,7 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcSpatialDefRate(VectorType &MDGree
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<3>::CalcSpatialDefRate(VectorType &MDGreenLagrangeMaterial,
+void TwoStepUpdatedLagrangianVPExplicitElement<3>::CalcSpatialDefRate(VectorType &MDGreenLagrangeMaterial,
 							      MatrixType &invFgrad,
 							      VectorType &SpatialDefRate)
 {
@@ -1677,7 +1615,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcSpatialDefRate(VectorType &MDGree
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<2>::CalcDeviatoricInvariant(VectorType &SpatialDefRate,
+void TwoStepUpdatedLagrangianVPExplicitElement<2>::CalcDeviatoricInvariant(VectorType &SpatialDefRate,
 									double &DeviatoricInvariant)
 {
   double trace_d=SpatialDefRate[0]+SpatialDefRate[1];
@@ -1689,7 +1627,7 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcDeviatoricInvariant(VectorType &S
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<2>::CalcEquivalentStrainRate(VectorType &SpatialDefRate,
+void TwoStepUpdatedLagrangianVPExplicitElement<2>::CalcEquivalentStrainRate(VectorType &SpatialDefRate,
 								    double &EquivalentStrainRate)
 {
   EquivalentStrainRate=sqrt(2.0*(SpatialDefRate[0]*SpatialDefRate[0] +
@@ -1699,7 +1637,7 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcEquivalentStrainRate(VectorType &
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<3>::CalcDeviatoricInvariant(VectorType &SpatialDefRate,
+void TwoStepUpdatedLagrangianVPExplicitElement<3>::CalcDeviatoricInvariant(VectorType &SpatialDefRate,
 								   double &DeviatoricInvariant)
 {
   double trace_d=SpatialDefRate[0]+SpatialDefRate[1]+SpatialDefRate[2];
@@ -1714,7 +1652,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcDeviatoricInvariant(VectorType &S
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<3>::CalcEquivalentStrainRate(VectorType &SpatialDefRate,
+void TwoStepUpdatedLagrangianVPExplicitElement<3>::CalcEquivalentStrainRate(VectorType &SpatialDefRate,
 								    double &EquivalentStrainRate)
 {
   EquivalentStrainRate=sqrt(2.0*(SpatialDefRate[0]*SpatialDefRate[0] +
@@ -1726,7 +1664,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcEquivalentStrainRate(VectorType &
 }
 
 template < > 
-double TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate)
+double TwoStepUpdatedLagrangianVPExplicitElement<2>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate)
 {
   
   double NormalProjSpatialDefRate=0;
@@ -1763,7 +1701,7 @@ double TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionDefRate(VectorT
 
 
 template < > 
-double TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate)
+double TwoStepUpdatedLagrangianVPExplicitElement<3>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate)
 {
   double NormalProjSpatialDefRate=0;
   GeometryType& rGeom = this->GetGeometry();
@@ -1818,7 +1756,7 @@ double TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionDefRate(VectorT
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<2>::CheckStrain2(MatrixType &SpatialVelocityGrad,
+void TwoStepUpdatedLagrangianVPExplicitElement<2>::CheckStrain2(MatrixType &SpatialVelocityGrad,
 							MatrixType &Fgrad,
 							MatrixType &VelDefgrad)
 {
@@ -1850,7 +1788,7 @@ void TwoStepUpdatedLagrangianVPElement<2>::CheckStrain2(MatrixType &SpatialVeloc
 
 
 template < > 
-bool TwoStepUpdatedLagrangianVPElement<2>::CheckStrain3(VectorType &SpatialDefRate,
+bool TwoStepUpdatedLagrangianVPExplicitElement<2>::CheckStrain3(VectorType &SpatialDefRate,
 							MatrixType &SpatialVelocityGrad)
 {
   bool computeElement=true;
@@ -1873,7 +1811,7 @@ bool TwoStepUpdatedLagrangianVPElement<2>::CheckStrain3(VectorType &SpatialDefRa
 }
 
 template < > 
-bool TwoStepUpdatedLagrangianVPElement<3>::CheckStrain3(VectorType &SpatialDefRate,
+bool TwoStepUpdatedLagrangianVPExplicitElement<3>::CheckStrain3(VectorType &SpatialDefRate,
 							MatrixType &SpatialVelocityGrad)
 {
   bool computeElement=true;
@@ -1912,7 +1850,7 @@ bool TwoStepUpdatedLagrangianVPElement<3>::CheckStrain3(VectorType &SpatialDefRa
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<3>::CalcVolumetricDefRate(const ShapeFunctionDerivativesType& rDN_DX,
+void TwoStepUpdatedLagrangianVPExplicitElement<3>::CalcVolumetricDefRate(const ShapeFunctionDerivativesType& rDN_DX,
 								 double &volumetricDefRate,
 								 MatrixType &invGradDef,
 								 const double theta)
@@ -1923,7 +1861,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcVolumetricDefRate(const ShapeFunc
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain1(double &VolumetricDefRate,
+void TwoStepUpdatedLagrangianVPExplicitElement<3>::CheckStrain1(double &VolumetricDefRate,
 							     MatrixType &SpatialVelocityGrad)
 {
   std::cout<<"TO BE IMPLEMENTED ------- CheckStrain1 -------"<<std::endl;
@@ -1931,7 +1869,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain1(double &VolumetricDefRat
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVelocityGrad,
+void TwoStepUpdatedLagrangianVPExplicitElement<3>::CheckStrain2(MatrixType &SpatialVelocityGrad,
 							MatrixType &Fgrad,
 							MatrixType &VelDefgrad)
 {
@@ -1940,7 +1878,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
 
 
   template< unsigned int TDim >
-  double TwoStepUpdatedLagrangianVPElement<TDim>::EquivalentStrainRate(const ShapeFunctionDerivativesType &rDN_DX) const
+  double TwoStepUpdatedLagrangianVPExplicitElement<TDim>::EquivalentStrainRate(const ShapeFunctionDerivativesType &rDN_DX) const
   {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -1963,9 +1901,256 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
 
     return std::sqrt(2.0*NormS);
   }
+
+
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalculateMassMatrix(Matrix& rMassMatrix,
+								    ProcessInfo& rCurrentProcessInfo)
+  {
+
+    KRATOS_TRY
+
+    // std::cout<<"Calculate Mass Matrix for explicit PFEM"<<std::endl;
+
+    GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumNodes = rGeom.PointsNumber();
+    const unsigned int LocalSize = TDim * NumNodes;
+
+    if(rMassMatrix.size1() != LocalSize )
+      rMassMatrix.resize(LocalSize,LocalSize);
+
+    noalias(rMassMatrix)= ZeroMatrix(LocalSize,LocalSize);
+
+    ShapeFunctionDerivativesArrayType DN_DX;
+    Matrix NContainer;
+    VectorType GaussWeights;
+    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+    const unsigned int NumGauss = GaussWeights.size();
+    double totalVolume=0;
+    
+    // Loop on integration points
+    for (unsigned int g = 0; g < NumGauss; g++)
+      {
+	const double GaussWeight = GaussWeights[g];
+	totalVolume+=GaussWeight;
+      }
+    
+    //the time step is not included, the rhs is defined consequently
+    double  Weight=totalVolume*this->GetProperties()[DENSITY];
+    //lumped
+    if((NumNodes==3 && TDim==2) || (NumNodes==4 && TDim==3)){
+      double Coeff=1.0+TDim;
+      for (SizeType i = 0; i < NumNodes; ++i)
+	{
+	  double Mij = Weight/Coeff;
+	  for ( unsigned int j = 0; j <  TDim; j++ )
+	    {
+	      unsigned int index = i * TDim + j;
+	      // std::cout<<"index "<<index<<"  massTerm "<<Mij<<std::endl;
+	      rMassMatrix( index, index ) += Mij;
+	    }
+
+	}
+    }
+    else if(NumNodes==6 && TDim==2){
+      double Mij = Weight/57.0;
+      double consistent=1.0;
+      for (SizeType i = 0; i < NumNodes; ++i)
+	{
+	  if(i<3){
+	    consistent=3.0;
+	  }else{
+	    consistent=16.0;
+	  }
+	  for ( unsigned int j = 0; j <  TDim; j++ )
+	    {
+	      unsigned int index = i * TDim + j;
+	      rMassMatrix( index, index ) += Mij*consistent;
+	    }
+
+	}
+
+    }else{
+      std::cout<<"ComputeLumpedMassMatrix 3D quadratic not yet implemented!"<<std::endl;
+    }
+
+
+    KRATOS_CATCH( "" ) 
+
+      }
+
+
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+  {
+    KRATOS_TRY
+
+      // it just compute the external and internal forces terms. The inertial forces are already taken into account with the temporal scheme
+
+      GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumNodes = rGeom.PointsNumber();
+    const unsigned int LocalSize = TDim * NumNodes;
+
+    MatrixType MassMatrix= ZeroMatrix(LocalSize,LocalSize);
+
+    if( rRightHandSideVector.size() != LocalSize )
+      rRightHandSideVector.resize(LocalSize);
+
+    rRightHandSideVector = ZeroVector(LocalSize);
+
+    // Shape functions and integration points
+    ShapeFunctionDerivativesArrayType DN_DX;
+    Matrix NContainer;
+    VectorType GaussWeights;
+    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+    const unsigned int NumGauss = GaussWeights.size();
+    const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+
+    double theta=this->GetThetaMomentum();
+
+    ElementalVariables rElementalVariables;
+    this->InitializeElementalVariables(rElementalVariables);
+
+    double Density=0.0;
+    double DeviatoricCoeff = 0;
+    double VolumetricCoeff = 0;
+
+    // Loop on integration points
+    for (unsigned int g = 0; g < NumGauss; g++)
+      {
+	const double GaussWeight = GaussWeights[g];
+	const ShapeFunctionsType& N = row(NContainer,g);
+	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g]; 
+
+	double Pressure=0;
+	double OldPressure=0;
+	this->EvaluateInPoint(Pressure,PRESSURE,N,0);
+	this->EvaluateInPoint(OldPressure,PRESSURE,N,1);
+	rElementalVariables.MeanPressure=OldPressure*(1-theta)+Pressure*theta;  
+
+	bool computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,rDN_DX,g);
+
+	this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,rCurrentProcessInfo,rElementalVariables);
+
+	this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
+	
+	if(computeElement==true){
+	  // Add integration point contribution to the local mass matrix
+	  this->AddExternalForces(rRightHandSideVector,Density,N,GaussWeight);
+	  this->AddInternalForces(rRightHandSideVector,rDN_DX,rElementalVariables,GaussWeight);
+	}
+      }
+
+    KRATOS_CATCH( "" )
+      }
+
   
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::ComputeLumpedMassMatrix(Matrix& rMassMatrix,
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::AddExplicitContribution(const VectorType& rRHSVector, 
+										const Variable<VectorType>& rRHSVariable, 
+										Variable<array_1d<double,3> >& rDestinationVariable, 
+										const ProcessInfo& rCurrentProcessInfo)
+  {
+    KRATOS_TRY
+    
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_FORCE )
+      {
+
+	for(unsigned int i=0; i< number_of_nodes; i++)
+	  {
+	    int index = dimension * i;
+
+	    GetGeometry()[i].SetLock();
+
+	    array_1d<double, 3 > &ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+	    for(unsigned int j=0; j<dimension; j++)
+	      {
+		ExternalForce[j] += rRHSVector[index + j];
+	      }
+
+	    GetGeometry()[i].UnSetLock();
+	  }
+      }
+
+    if( rRHSVariable == INTERNAL_FORCES_VECTOR && rDestinationVariable == INTERNAL_FORCE )
+      {
+
+	for(unsigned int i=0; i< number_of_nodes; i++)
+	  {
+	    int index = dimension * i;
+
+	    GetGeometry()[i].SetLock();
+
+	    array_1d<double, 3 > &InternalForce = GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
+	    for(unsigned int j=0; j<dimension; j++)
+	      {
+		InternalForce[j] += rRHSVector[index + j];
+	      }
+
+	    GetGeometry()[i].UnSetLock();
+	  }
+      }
+
+
+    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
+      {
+
+	for(unsigned int i=0; i< number_of_nodes; i++)
+	  {
+	    int index = dimension * i;
+
+	    GetGeometry()[i].SetLock();
+
+	    array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+	    for(unsigned int j=0; j<dimension; j++)
+	      {
+		ForceResidual[j] += rRHSVector[index + j];
+	      }
+
+	    GetGeometry()[i].UnSetLock();
+	  }
+      }
+
+    KRATOS_CATCH( "" )
+      }
+
+
+    template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::AddExplicitContribution(const VectorType& rRHSVector, 
+										const Variable<VectorType>& rRHSVariable, 
+										Variable<double >& rDestinationVariable, 
+										const ProcessInfo& rCurrentProcessInfo)
+  {
+    KRATOS_TRY
+    
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == NODAL_ERROR )
+      {
+
+	for(unsigned int i=0; i< number_of_nodes; i++)
+	  {
+	    GetGeometry()[i].SetLock();
+
+	    double &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(NODAL_ERROR);
+	    ForceResidual += rRHSVector[i];
+
+	    GetGeometry()[i].UnSetLock();
+	  }
+      }
+
+    KRATOS_CATCH( "" )
+      }
+
+
+  
+
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::ComputeLumpedMassMatrix(Matrix& rMassMatrix,
 									const double Weight,
 									double & MeanValue)
   {
@@ -2020,7 +2205,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::ComputeMassMatrix(Matrix& rMassMatrix,
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::ComputeMassMatrix(Matrix& rMassMatrix,
 								  const ShapeFunctionsType& rN,
 								  const double Weight,
 								  double & MeanValue)
@@ -2053,7 +2238,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
 
  
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::AddExternalForces(Vector& rRHSVector,
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::AddExternalForces(Vector& rRHSVector,
 								       const double Density,
 								       const ShapeFunctionsType& rN,
 								       const double Weight)
@@ -2084,7 +2269,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
 
 
   template< >
-  void TwoStepUpdatedLagrangianVPElement<2>::AddInternalForces(Vector& rRHSVector,
+  void TwoStepUpdatedLagrangianVPExplicitElement<2>::AddInternalForces(Vector& rRHSVector,
 								    const ShapeFunctionDerivativesType& rDN_DX,
 								    ElementalVariables& rElementalVariables,
 								    const double Weight)
@@ -2112,7 +2297,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
   }
 
   template< >
-  void TwoStepUpdatedLagrangianVPElement<3>::AddInternalForces(Vector& rRHSVector,
+  void TwoStepUpdatedLagrangianVPExplicitElement<3>::AddInternalForces(Vector& rRHSVector,
 							       const ShapeFunctionDerivativesType& rDN_DX,
 							       ElementalVariables& rElementalVariables,
 							       const double Weight)
@@ -2150,11 +2335,89 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
   }
 
 
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalculateExplicitContinuityEquation(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumNodes = rGeom.PointsNumber();
+
+    // Check sizes and initialize
+    if( rLeftHandSideMatrix.size1() != NumNodes ) 
+      rLeftHandSideMatrix.resize(NumNodes,NumNodes);
+
+    rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
+ 
+    if( rRightHandSideVector.size() != NumNodes )
+      rRightHandSideVector.resize(NumNodes);
+
+    rRightHandSideVector = ZeroVector(NumNodes);
+     
+    // Shape functions and integration points
+    ShapeFunctionDerivativesArrayType DN_DX;
+    Matrix NContainer;
+    VectorType GaussWeights;
+    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+    const unsigned int NumGauss = GaussWeights.size();
+
+    // const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+    double theta=this->GetThetaContinuity();
+
+    ElementalVariables rElementalVariables;
+    this->InitializeElementalVariables(rElementalVariables);
+ 
+    // double Density  = mMaterialDensity;
+    // double DeviatoricCoeff = mMaterialVolumetricCoefficient;
+    double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
+    
+    double totalVolume=0;
+
+    // Loop on integration points
+    for (unsigned int g = 0; g < NumGauss; g++)
+      {
+	const double GaussWeight = GaussWeights[g];
+	totalVolume+=GaussWeight;
+	const ShapeFunctionsType& N = row(NContainer,g);
+	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
+	// bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+	bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+	if(computeElement==true){
+	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
+	  // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
+
+	  for (SizeType i = 0; i < NumNodes; ++i)
+	    {
+	      // RHS contribution
+	      // Velocity divergence
+	      double RHSi =  N[i] * rElementalVariables.VolumetricDefRate;
+	      rRightHandSideVector[i] += GaussWeight * RHSi;
+	    }
+
+	}
+
+      }   
+    
+    MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
+    double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
+    this->ComputeBulkMatrixLump(BulkVelMatrixLump,lumpedBulkCoeff);
+  
+    rLeftHandSideMatrix+=BulkVelMatrixLump;
+    // rLeftHandSideMatrix+=BulkVelMatrix;	
+
+    VectorType UpdatedPressure = ZeroVector(NumNodes);
+    this->GetPressureValues(UpdatedPressure,0);
+    rRightHandSideVector += prod(BulkVelMatrixLump,UpdatedPressure);
+    // rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
+
+  }
+
+
+
+  
   /*
    * Template class definition (this should allow us to compile the desired template instantiations)
    */
 
-  template class TwoStepUpdatedLagrangianVPElement<2>;
-  template class TwoStepUpdatedLagrangianVPElement<3>;
+  template class TwoStepUpdatedLagrangianVPExplicitElement<2>;
+  template class TwoStepUpdatedLagrangianVPExplicitElement<3>;
 
 }

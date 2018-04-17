@@ -3,7 +3,7 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolidMechanics
+#import KratosMultiphysics.SolidMechanicsApplication as KratosSolidMechanics
 
 import pfem_fluid_solver as BaseSolver
 
@@ -109,10 +109,10 @@ class PfemFluidExplicitSolver(BaseSolver.PfemFluidSolver):
         #                                                                          self.settings["time_step_prediction_level"].GetDouble(),
         #                                                                          self.settings["rayleigh_damping"].GetBool())
 
-        mechanical_scheme = KratosSolidMechanics.ExplicitCentralDifferencesScheme(1.0e-5,
-                                                                                  0.9,
-                                                                                  0,
-                                                                                  0)
+        mechanical_scheme = KratosPfemFluid.FirstOrderForwardEulerScheme(1.0e-4,
+                                                                         1.0,
+                                                                         0,
+                                                                         0)
         import linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
         

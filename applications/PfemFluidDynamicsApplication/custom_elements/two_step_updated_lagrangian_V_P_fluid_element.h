@@ -350,26 +350,22 @@ namespace Kratos
       double ComputeBarkerMuIrheologyViscosity(ElementalVariables & rElementalVariables);
 
       double ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
+   
+      void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
+				 const double Weight);
       
-      void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
-					      const double Weight);
-	
-     void ComputeBulkMatrixForPressureAccLump(MatrixType& BulkAccMatrix,
-					      const double Weight);
-
-     void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix,
-					  const ShapeFunctionsType& rN,
-					  const double Weight);
-	
-     void ComputeBulkMatrixForPressureAcc(MatrixType& BulkAccMatrix,
-					  const ShapeFunctionsType& rN,
-					  const double Weight);
-
-     void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
+      void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix,
+				       const double Weight);
+       
+      void ComputeBulkMatrix(MatrixType& BulkMatrix,
+			     const ShapeFunctionsType& rN,
+			     const double Weight);
+      
+      void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
 				const ShapeFunctionsType& rN,
 				const double Weight);
 
-     void ComputeBoundRHSVector(VectorType& BoundRHSVector,
+      void ComputeBoundRHSVector(VectorType& BoundRHSVector,
 				const ShapeFunctionsType& rN,
 				const double TimeStep,
 				const double BoundRHSCoeffAcc,
@@ -378,7 +374,6 @@ namespace Kratos
      void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
 				     const ShapeFunctionDerivativesType& rShapeDeriv,
 				     const double Weight);
-
 
       /* bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
       /* 				const ProcessInfo& rCurrentProcessInfo, */
