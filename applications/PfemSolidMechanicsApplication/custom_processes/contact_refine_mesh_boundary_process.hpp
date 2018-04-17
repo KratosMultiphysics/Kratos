@@ -22,6 +22,7 @@
 #include "custom_processes/refine_mesh_boundary_process.hpp"
 
 #include "pfem_solid_mechanics_application_variables.h"
+
 ///VARIABLES used:
 //StepData: NODAL_H, NORMAL, CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked) BOUNDARY, TO_SPLIT

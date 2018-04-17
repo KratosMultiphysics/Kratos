@@ -13,16 +13,14 @@
 #include "includes/model_part.h"
 #include "../../custom_conditions/RigidFace.h"
 
-
 /* External includes */
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#include "boost/python/list.hpp"
 
 namespace Kratos
 {
-class AnalyticFaceWatcher {
+class KRATOS_API(DEM_APPLICATION) AnalyticFaceWatcher {
 
 public:
 
@@ -81,24 +79,24 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         return mTime;
     }
 
-    void FillUpPythonLists(boost::python::list& ids,
-                           boost::python::list& neighbour_ids,
-                           boost::python::list& masses,
-                           boost::python::list& normal_relative_vel,
-                           boost::python::list& tangential_relative_vel)
+    void FillUpPythonLists(std::list<int>& ids,
+                           std::list<int>& neighbour_ids,
+                           std::list<double>& masses,
+                           std::list<double>& normal_relative_vel,
+                           std::list<double>& tangential_relative_vel)
     {
-        AnalyticFaceWatcher::ClearList(ids);
-        AnalyticFaceWatcher::ClearList(neighbour_ids);
-        AnalyticFaceWatcher::ClearList(masses);
-        AnalyticFaceWatcher::ClearList(normal_relative_vel);
-        AnalyticFaceWatcher::ClearList(tangential_relative_vel);
+        ids.clear();
+        neighbour_ids.clear();
+        masses.clear();
+        normal_relative_vel.clear();
+        tangential_relative_vel.clear();
 
         for (int i = 0; i < mNCrossings; ++i){
-            ids.append(mId1[i]);
-            neighbour_ids.append(mId2[i]);
-            masses.append(mMasses[i]);
-            normal_relative_vel.append(mRelVelNormal[i]);
-            tangential_relative_vel.append(mRelVelTangential[i]);
+            ids.push_back(mId1[i]);
+            neighbour_ids.push_back(mId2[i]);
+            masses.push_back(mMasses[i]);
+            normal_relative_vel.push_back(mRelVelNormal[i]);
+            tangential_relative_vel.push_back(mRelVelTangential[i]);
         }
     }
 
@@ -145,24 +143,24 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
         return mMass;
     }
 
-    void FillUpPythonLists(boost::python::list& times,
-                           boost::python::list& neighbour_ids,
-                           boost::python::list& masses,
-                           boost::python::list& normal_relative_vel,
-                           boost::python::list& tangential_relative_vel)
+    void FillUpPythonLists(std::list<double>& times,
+                           std::list<int>& neighbour_ids,
+                           std::list<double>& masses,
+                           std::list<double>& normal_relative_vel,
+                           std::list<double>& tangential_relative_vel)
     {
-        AnalyticFaceWatcher::ClearList(times);
-        AnalyticFaceWatcher::ClearList(neighbour_ids);
-        AnalyticFaceWatcher::ClearList(masses);
-        AnalyticFaceWatcher::ClearList(normal_relative_vel);
-        AnalyticFaceWatcher::ClearList(tangential_relative_vel);
+        times.clear();
+        neighbour_ids.clear();
+        masses.clear();
+        normal_relative_vel.clear();
+        tangential_relative_vel.clear();
 
         for (int i = 0; i < mNCrossings; ++i){
-            times.append(mTimes[i]);
-            neighbour_ids.append(mId2[i]);
-            masses.append(mMasses[i]);
-            normal_relative_vel.append(mRelVelNormal[i]);
-            tangential_relative_vel.append(mRelVelTangential[i]);
+            times.push_back(mTimes[i]);
+            neighbour_ids.push_back(mId2[i]);
+            masses.push_back(mMasses[i]);
+            normal_relative_vel.push_back(mRelVelNormal[i]);
+            tangential_relative_vel.push_back(mRelVelTangential[i]);
         }
     }
 
@@ -179,31 +177,29 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
         std::vector<double> mRelVelTangential;
 };
 
-static void ClearList(boost::python::list& my_list); // its best to pass empty lists in the first place to avoid this operation
-
 void ClearData();
 
 void GetFaceData(int id,
-                 boost::python::list times,
-                 boost::python::list neighbour_ids,
-                 boost::python::list masses,
-                 boost::python::list normal_relative_vel,
-                 boost::python::list tangential_relative_vel);
+                 std::list<double> times,
+                 std::list<int> neighbour_ids,
+                 std::list<double> masses,
+                 std::list<double> normal_relative_vel,
+                 std::list<double> tangential_relative_vel);
 
 void GetAllFacesData(ModelPart& analytic_model_part,
-                     boost::python::list times,
-                     boost::python::list neighbour_ids,
-                     boost::python::list masses,
-                     boost::python::list normal_relative_vel,
-                     boost::python::list tangential_relative_vel);
+                     std::list<double> times,
+                     std::list<int> neighbour_ids,
+                     std::list<double> masses,
+                     std::list<double> normal_relative_vel,
+                     std::list<double> tangential_relative_vel);
 
-void GetTimeStepsData(boost::python::list ids,
-                      boost::python::list neighbour_ids,
-                      boost::python::list masses,
-                      boost::python::list normal_relative_vel,
-                      boost::python::list tangential_relative_vel);
+void GetTimeStepsData(std::list<int> ids,
+                      std::list<int> neighbour_ids,
+                      std::list<double> masses,
+                      std::list<double> normal_relative_vel,
+                      std::list<double> tangential_relative_vel);
 
-void GetTotalFlux(boost::python::list &times, boost::python::list &n_particles, boost::python::list &mass);
+void GetTotalFlux(std::list<double> &times, std::list<int> &n_particles, std::list<double> &mass);
 
 virtual void MakeMeasurements(ModelPart& analytic_model_part);
 

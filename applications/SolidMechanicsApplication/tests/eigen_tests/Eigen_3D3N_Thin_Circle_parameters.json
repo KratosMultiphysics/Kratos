@@ -1,8 +1,7 @@
 {
     "model_settings"           : {
         "domain_parts_list"    : ["Parts_plate"],
-        "processes_parts_list" : ["DISPLACEMENT_support","ROTATION_support"],
-	"dofs"                 : ["ROTATION"]
+        "processes_parts_list" : ["DISPLACEMENT_support","ROTATION_support"]
     },
     "solver_settings"          : {
 	"solver_type" : "solid_mechanics_eigensolver",
@@ -28,7 +27,8 @@
 		"linear_solver_settings":{
                     "solver_type": "complex_skyline_lu_solver"
 		}
-	    }
+	    },
+	    "dofs" : ["ROTATION"]
         }
     },
     "constraints_process_list" : [{

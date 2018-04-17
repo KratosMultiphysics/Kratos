@@ -16,16 +16,12 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/io.h"
 #include "processes/process.h"
 #include "custom_python/add_processes_to_python.h"
-#include "python/vector_python_interface.h"
 
 #include "custom_processes/metis_divide_heterogeneous_input_process.h"
 #include "custom_processes/metis_divide_heterogeneous_input_in_memory_process.h"
@@ -49,58 +45,56 @@ namespace Python
 
 
 
-void AddProcessesToPython()
+void AddProcessesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
-    class_<std::vector<int> >("IndicesVector")
-    .def(vector_indexing_suite<std::vector<int> >())
-    ;
+
 #ifndef KRATOS_USE_METIS_5
-    class_<MetisScalarReorder, bases<Process> >("MetisScalarReorder",init<ModelPart&>())
+    class_<MetisScalarReorder, Process >(m,"MetisScalarReorder").def(init<ModelPart&>())
     ;
 
-    class_<MetisPartitioningProcess, bases<Process> >("MetisPartitioningProcess",
-            init<ModelPart&, IO&, unsigned int, unsigned int>())
+    class_<MetisPartitioningProcess, Process >(m,"MetisPartitioningProcess")
+    .def(init<ModelPart&, IO&, unsigned int, unsigned int>())
     .def(init<ModelPart&, IO&, unsigned int>())
     ;
 
-    class_<MetisDivideInputToPartitionsProcess, bases<Process> >("MetisDivideInputToPartitionsProcess",
-            init<IO&, unsigned int, unsigned int>())
+    class_<MetisDivideInputToPartitionsProcess, Process >(m,"MetisDivideInputToPartitionsProcess")
+    .def(init<IO&, unsigned int, unsigned int>())
     .def(init<IO&, unsigned int>())
     ;
 
-    class_<MetisContactPartitioningProcess, bases<MetisPartitioningProcess> >("MetisContactPartitioningProcess",
-            init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
+    class_<MetisContactPartitioningProcess, MetisPartitioningProcess >(m, "MetisContactPartitioningProcess")
+    .def(init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
     .def(init<ModelPart&, IO&, unsigned int, std::vector<int> >())
     ;
 
-    class_<MetisPartitioningProcessQuadratic, bases<MetisPartitioningProcess> >("MetisPartitioningProcessQuadratic",
-            init<ModelPart&, IO&, unsigned int, unsigned int>())
+    class_<MetisPartitioningProcessQuadratic, MetisPartitioningProcess >(m, "MetisPartitioningProcessQuadratic")
+    .def(init<ModelPart&, IO&, unsigned int, unsigned int>())
     .def(init<ModelPart&, IO&, unsigned int>())
     ;
 #endif
-    class_<MetisDivideHeterogeneousInputProcess, bases<Process> >("MetisDivideHeterogeneousInputProcess",
-                                                                   init<IO&, unsigned int>())
+    class_<MetisDivideHeterogeneousInputProcess, Process >(m,"MetisDivideHeterogeneousInputProcess")
+    .def(init<IO&, unsigned int>())
             .def(init<IO&, unsigned int, int>())
             .def(init<IO&, unsigned int, int, int>())
             .def(init<IO&, unsigned int, int, int, bool>())
             ;
 
-    class_<MetisDivideHeterogeneousInputInMemoryProcess, bases<Process> >("MetisDivideHeterogeneousInputInMemoryProcess",
-                                                                   init<IO&, unsigned int>())
+    class_<MetisDivideHeterogeneousInputInMemoryProcess, Process >(m,"MetisDivideHeterogeneousInputInMemoryProcess")
+    .def(init<IO&, unsigned int>())
             .def(init<IO&, unsigned int, int>())
             .def(init<IO&, unsigned int, int, int>())
             .def(init<IO&, unsigned int, int, int, bool>())
             ;
 
-    class_<MortonDivideInputToPartitionsProcess, bases<Process> >("MetisDivideNodalInputToPartitionsProcess",
-                                                                   init<IO&, unsigned int, unsigned int>())
-            .def(init<IO&, unsigned int>())
+    class_<MortonDivideInputToPartitionsProcess, Process >(m,"MetisDivideNodalInputToPartitionsProcess")
+    .def(init<IO&, std::size_t, int>())
+            .def(init<IO&, std::size_t>())
     ;
 
-    class_<SetMPICommunicatorProcess, bases<Process> >("SetMPICommunicatorProcess",
-            init<ModelPart&>())
+    class_<SetMPICommunicatorProcess, Process >(m,"SetMPICommunicatorProcess")
+    .def(init<ModelPart&>())
     ;
 
 }

@@ -62,11 +62,11 @@ class as_preconditioner {
                 )
             : prm(prm)
         {
-            init(boost::make_shared<build_matrix>(M), bprm);
+            init(std::make_shared<build_matrix>(M), bprm);
         }
 
         as_preconditioner(
-                boost::shared_ptr<build_matrix> M,
+                std::shared_ptr<build_matrix> M,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
                 )
@@ -94,13 +94,13 @@ class as_preconditioner {
     private:
         params prm;
 
-        boost::shared_ptr<matrix>   A;
-        boost::shared_ptr<smoother> S;
-        boost::shared_ptr<vector> tmp;
+        std::shared_ptr<matrix>   A;
+        std::shared_ptr<smoother> S;
+        std::shared_ptr<vector> tmp;
 
-        void init(boost::shared_ptr<build_matrix> M, const backend_params &bprm) {
+        void init(std::shared_ptr<build_matrix> M, const backend_params &bprm) {
             A = Backend::copy_matrix(M, bprm);
-            S = boost::make_shared<smoother>(*M, prm, bprm);
+            S = std::make_shared<smoother>(*M, prm, bprm);
             tmp = Backend::create_vector(backend::rows(*M), bprm);
         }
 

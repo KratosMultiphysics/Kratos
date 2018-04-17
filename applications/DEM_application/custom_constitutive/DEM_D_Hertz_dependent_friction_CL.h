@@ -12,7 +12,7 @@ namespace Kratos {
     
     class SphericParticle;
 
-    class DEM_D_Hertz_dependent_friction : public DEMDiscontinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Hertz_dependent_friction : public DEMDiscontinuumConstitutiveLaw {
 
     public:
         using DEMDiscontinuumConstitutiveLaw::CalculateNormalForce;

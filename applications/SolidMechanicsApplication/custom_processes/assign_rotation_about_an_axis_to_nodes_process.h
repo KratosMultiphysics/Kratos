@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_ASSIGN_ROTATION_ABOUT_AN_AXIS_TO_NODES_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_ASSIGN_ROTATION_ABOUT_AN_AXIS_TO_NODES_PROCESS_H_INCLUDED)
 #define  KRATOS_ASSIGN_ROTATION_ABOUT_AN_AXIS_TO_NODES_PROCESS_H_INCLUDED
 
 
@@ -45,13 +45,13 @@ public:
     ///@{
 
  
-    AssignRotationAboutAnAxisToNodesProcess(ModelPart& model_part) : Process(Flags()) , mr_model_part(model_part) {}
+    AssignRotationAboutAnAxisToNodesProcess(ModelPart& model_part) : Process(Flags()) , mrModelPart(model_part) {}
 
 
     
     AssignRotationAboutAnAxisToNodesProcess(ModelPart& model_part,
 				       Parameters rParameters
-				       ) : Process(Flags()) , mr_model_part(model_part)
+				       ) : Process(Flags()) , mrModelPart(model_part)
     {
         KRATOS_TRY
 			 
@@ -218,7 +218,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     std::string mvariable_name;
     double mvalue;
     double mprevious_value;
@@ -264,13 +264,13 @@ private:
     {
       KRATOS_TRY
    
-      const int nnodes = mr_model_part.GetMesh().Nodes().size();
+      const int nnodes = mrModelPart.GetMesh().Nodes().size();
 
       //std::cout<<" Apply rigid body rotation "<<std::endl;
 
       if(nnodes != 0)
         {
-	  ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh().NodesBegin();
+	  ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh().NodesBegin();
 
 	  Matrix rotation_matrix;
 	  array_1d<double,3> radius;
@@ -280,7 +280,7 @@ private:
 	  bool dynamic_angular_velocity = false;
 	  bool dynamic_angular_acceleration = false;
 
-	  const ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
+	  const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 	  const double& rDeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
 	  array_1d<double,3> angular_velocity;
