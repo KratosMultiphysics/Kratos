@@ -10,7 +10,7 @@
 //
 
 #include "shell_thin_adjoint_element_3D3N.hpp"
-//#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
+#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/response_data.h"
 #include "includes/checks.h"
@@ -149,23 +149,12 @@ ShellThinAdjointElement3D3N::~ShellThinAdjointElement3D3N()
 }
 
 Element::Pointer ShellThinAdjointElement3D3N::Create(IndexType NewId,
-            GeometryType::Pointer pGeom,
-            PropertiesType::Pointer pProperties) const 
+	NodesArrayType const& ThisNodes,
+	PropertiesType::Pointer pProperties) const
 {
-    KRATOS_TRY
-    bool NLGeom = false;
-    return Element::Pointer(
-                new ShellThinAdjointElement3D3N(NewId, pGeom, pProperties, NLGeom));
-    
-    KRATOS_CATCH("")
-}
-
-Element::Pointer ShellThinAdjointElement3D3N::Create(IndexType NewId, 
-                    NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const 
-{
-    bool NLGeom = false; 
-    GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
-    return boost::make_shared< ShellThinAdjointElement3D3N >(NewId, newGeom, pProperties, NLGeom);
+	GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
+	return Kratos::make_shared< ShellThinAdjointElement3D3N >(NewId, newGeom,
+		pProperties, ShellThinElement3D3N::mpCoordinateTransformation->Create(newGeom));
 }
 
 void ShellThinAdjointElement3D3N::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
