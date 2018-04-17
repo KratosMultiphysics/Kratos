@@ -369,7 +369,8 @@ double CompressibleNavierStokes<3>::ShockCapturingViscosity(const ElementDataStr
     const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
     const double gamma = data.gamma;
     double v_sc = 0.0;                                      //Shock capturing viscosity
-    bounded_matrix<double,dim,1> res_m;
+    bounded_matrix<double,dim,1> res_m; 
+    res_m(0,0)= 0; res_m(1,0)= 0; res_m(2,0)= 0;
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
@@ -422,7 +423,8 @@ double CompressibleNavierStokes<2>::ShockCapturingViscosity(const ElementDataStr
     const double gamma = data.gamma;
     double v_sc = 0.0;                                      //Shock capturing viscosity
     bounded_matrix<double,dim,1> res_m;
-
+    res_m(0,0) =0; res_m(1,0) =0;
+    
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
     const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
@@ -476,7 +478,7 @@ double CompressibleNavierStokes<3>::ShockCapturingConductivity(const ElementData
     const double gamma = data.gamma;
     double k_sc = 0.0;          // Shock Capturing Conductivity
     bounded_matrix<double,dim,1> res_e;
-
+    res_e(0,0) = 0;
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
     const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
@@ -528,6 +530,7 @@ double CompressibleNavierStokes<2>::ShockCapturingConductivity(const ElementData
     const double gamma = data.gamma;
     double k_sc = 0.0;          // Shock Capturing Conductivity
     bounded_matrix<double,dim,1> res_e;
+    res_e(0,0) =0;
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
@@ -538,7 +541,6 @@ double CompressibleNavierStokes<2>::ShockCapturingConductivity(const ElementData
     const array_1d<double,dim> f_gauss = prod(trans(f_ext), N);
     const bounded_matrix<double,BlockSize,dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
     const array_1d<double,BlockSize> accel_gauss = bdf0*U_gauss+bdf1*prod(trans(Un), N)+bdf2*prod(trans(Unn), N);
-//     const double r_gauss = inner_prod(N,r);
     
     //substitute_res_e_2D
 
