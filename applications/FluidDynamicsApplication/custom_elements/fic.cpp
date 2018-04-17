@@ -242,19 +242,18 @@ void FIC<TElementData>::AddVelocitySystem(
     array_1d<double,3> TauGrad(3,0.0);
     this->CalculateTau(rData,convective_velocity,TauIncompr,TauMomentum,TauGrad);
 
-//TODO: seguir
-
     Vector AGradN;
-    this->ConvectionOperator(AGradN,convective_velocity,rDN_DX);
+    this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
 
     // Residual (used by FIC shock-capturing term)
     array_1d<double,3> MomRes(3,0.0);
-    this->ASGSMomentumResidual(GaussIndex,rN,rDN_DX,MomRes);
+    this->ASGSMomentumResidual(rData,MomRes);
 
     // Multiplying some quantities by density to have correct units
-    Viscosity *= density; // Dynamic viscosity
     body_force *= density; // Force per unit of volume
     AGradN *= density; // Convective term is always multiplied by density
+
+//TODO: seguir
 
     // Auxiliary variables for matrix looping
     const unsigned int NumNodes = rN.size();
@@ -515,6 +514,36 @@ void FIC<TElementData>::CalculateTauGrad(array_1d<double,3> &TauGrad)
     }
 }
 
+template< class TElementData >
+void FIC<TElementData>::ASGSMomentumResidual(
+    TElementData& rData,
+    array_1d<double,3> &rMomentumRes)
+{
+    const GeometryType rGeom = this->GetGeometry();
+
+    array_1d<double, 3> convective_velocity =
+        this->Interpolate(rData.Velocity, rData.N) -
+        this->Interpolate(rData.MeshVelocity, rData.N);
+    
+    Vector AGradN;
+    this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
+
+    double density = rData.Density;
+    const auto& r_body_forces = rData.BodyForce;
+    const auto& r_velocities = rData.Velocity;
+    const auto& r_pressures = rData.Pressure;
+
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        const array_1d<double,3>& rAcc = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
+
+        for (unsigned int d = 0; d < Dim; d++)
+        {
+            rMomentumRes[d] += density * ( rData.N[i]*(r_body_forces(i,d) - rAcc[d]) - AGradN[i]*r_velocities(i,d)) - rData.DN_DX(i,d)*r_pressures[i];
+        }
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
@@ -665,29 +694,24 @@ void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
 
         noalias(rLHS) += rData.bdf0*mass_matrix + velocity_lhs;
         
-        Vector values = ZeroVector(rRHS.size());
         Vector acceleration = ZeroVector(rRHS.size());
 
         int LocalIndex = 0;
         const auto& r_velocities = rData.Velocity;
         const auto& r_velocities_step1 = rData.Velocity_OldStep1;
         const auto& r_velocities_step2 = rData.Velocity_OldStep2;
-        const auto& r_pressures = rData.Pressure;
 
         for (unsigned int i = 0; i < TElementData::NumNodes; ++i) {
             for (unsigned int d = 0; d < TElementData::Dim; ++d)  {
-                values[LocalIndex] = r_velocities(i,d);
                 // Velocity Dofs
                 acceleration[LocalIndex] = rData.bdf0*r_velocities(i,d);
                 acceleration[LocalIndex] += rData.bdf1*r_velocities_step1(i,d);
                 acceleration[LocalIndex] += rData.bdf2*r_velocities_step2(i,d);
                 ++LocalIndex;
             }
-            values[LocalIndex] = r_pressures[i];
             ++LocalIndex;
         }
 
-        noalias(rRHS) -= prod(velocity_lhs,values); //TODO: should this be here? (Ignasi)
         noalias(rRHS) -= prod(mass_matrix,acceleration);
 }
 
