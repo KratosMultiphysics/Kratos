@@ -20,6 +20,7 @@ class AnalyticsTestSolution(main_script.Solution):
         """))
         return input_parameters
 
+    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
