@@ -15,31 +15,16 @@
 // ------------------------------------------------------------------------------
 // System includes
 // ------------------------------------------------------------------------------
-#include <iostream>
-#include <string>
-#include <algorithm>
 
 // ------------------------------------------------------------------------------
 // External includes
 // ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/io.hpp>
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
-#include "includes/model_part.h"
-#include "includes/kratos_flags.h"
 #include "adjoint_structural_response_function.h"
-
-
-#include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
-#include "utilities/openmp_utils.h"
 
 // ==============================================================================
 
