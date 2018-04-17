@@ -94,6 +94,16 @@ class NavierStokesBaseSolver(object):
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
 
+    def AdvanceInTime(self, current_time):
+        dt = self.ComputeDeltaTime()
+        new_time = current_time + dt
+        step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+
+        self.main_model_part.CloneTimeStep(new_time)
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step + 1
+
+        return new_time
+
     def InitializeSolutionStep(self):
         self.solver.Initialize()
         self.solver.InitializeSolutionStep()
