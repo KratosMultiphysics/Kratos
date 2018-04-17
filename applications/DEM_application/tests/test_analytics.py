@@ -1,8 +1,8 @@
+import os
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import main_script
-import os
 
 class AnalyticsTestSolution(main_script.Solution):
 
@@ -21,7 +21,7 @@ class AnalyticsTestSolution(main_script.Solution):
         return input_parameters
 
     def GetMainPath(self):
-        return os.path.join(os.path.dirname(os.path.realpath(__file__)),"analytics_tests_files")
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
@@ -31,7 +31,7 @@ class AnalyticsTestSolution(main_script.Solution):
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(NORMAL_IMPACT_VELOCITY)
             face_normal_impact_vel = node.GetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY)
-            if node.Id ==1:
+            if node.Id == 1:
                 if time < 0.03:
                     expected_value = 0.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
@@ -52,7 +52,7 @@ class AnalyticsTestSolution(main_script.Solution):
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
                     expected_value = 7.1603
                     self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
-            if node.Id ==2:
+            if node.Id == 2:
                 if time < 0.03:
                     expected_value = 0.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
@@ -65,7 +65,7 @@ class AnalyticsTestSolution(main_script.Solution):
                 elif time > 0.43:
                     expected_value = 10.268
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-            if node.Id ==3:
+            if node.Id == 3:
                 if time < 0.13:
                     expected_value = 0.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
@@ -93,9 +93,9 @@ class TestAnalytics(KratosUnittest.TestCase):
         pass
 
     @classmethod
-    def test_Analytics_1(self):        
-        AnalyticsTestSolution().Run()        
-    
+    def test_Analytics_1(self):
+        AnalyticsTestSolution().Run()
+
     @classmethod
     def test_Analytics_2(self):
         pass
