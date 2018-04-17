@@ -7,7 +7,7 @@ try:
 except ImportError:
     pass
 
-from KratosMultiphysics import AnalysisStage
+from base_analysis_stage import AnalysisStage
 
 class FluidDynamicsAnalysis(AnalysisStage):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
@@ -30,7 +30,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
         ## Create model part and solver (but don't initialize them yet)
         model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
         self.main_model_part = Kratos.ModelPart(model_part_name)
-        self.model.AddModelPart(self.main_model_part)
 
         import python_solvers_wrapper_fluid
         self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
@@ -57,6 +56,8 @@ class FluidDynamicsAnalysis(AnalysisStage):
             self.solver.AddDofs()
             self.solver.AddVariables()
             self.solver.ImportModelPart()
+
+        self.model.AddModelPart(self.main_model_part)
 
         self._SetUpListOfProcesses()
         self._SetUpAnalysis()
