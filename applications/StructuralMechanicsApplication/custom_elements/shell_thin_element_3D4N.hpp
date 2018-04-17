@@ -253,6 +253,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 
 		///@}
 
+        ///@name Member Variables
+		///@{
+
+		CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
+
+        ///@}
+
 	private:
 
 		///@name Private Classes
@@ -426,8 +433,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 
 		///@name Member Variables
 		///@{
-		CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
-
         ///@}
 
         ///@name Serialization

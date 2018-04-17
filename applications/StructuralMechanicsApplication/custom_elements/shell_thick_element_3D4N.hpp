@@ -372,6 +372,13 @@ protected:
 
     ///@}
 
+    ///@name Member Variables
+    ///@{
+
+    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
+
+    ///@}
+
 private:
 
     ///@name Private Operations
@@ -433,8 +440,6 @@ private:
 
     ///@name Member Variables
     ///@{
-
-    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     EASOperatorStorage mEASStorage; /*!< The storage instance for the EAS Operator */
 

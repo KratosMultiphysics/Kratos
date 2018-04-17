@@ -191,6 +191,13 @@ namespace Kratos
 
 		///@}
 
+        ///@name Member Variables
+		///@{
+
+		CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
+
+        ///@}
+
 	private:
 
 		///@name Private Classes
@@ -359,9 +366,6 @@ namespace Kratos
 
 		///@name Member Variables
 		///@{
-
-		CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
-
         ///@}
 
         ///@name Serialization
