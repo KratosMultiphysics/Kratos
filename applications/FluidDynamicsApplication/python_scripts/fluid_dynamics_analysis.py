@@ -7,13 +7,13 @@ try:
 except ImportError:
     pass
 
-class FluidDynamicsAnalysis(object):
+from KratosMultiphysics import AnalysisStage
+
+class FluidDynamicsAnalysis(AnalysisStage):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
 
-    def __init__(self,parameters):
-        super(FluidDynamicsAnalysis,self).__init__()
-
-        self.project_parameters = parameters
+    def __init__(self,model,parameters):
+        super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
@@ -27,33 +27,111 @@ class FluidDynamicsAnalysis(object):
         else:
             self.is_printing_rank = True
 
-    def SetUpModel(self):
-        '''Initialize the model part for the problem and other general model data.'''
-
+        ## Create model part and solver (but don't initialize them yet)
         model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
         self.main_model_part = Kratos.ModelPart(model_part_name)
+        self.model.AddModelPart(self.main_model_part)
 
-        domain_size = self.project_parameters["problem_data"]["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, domain_size)
-
-        ## Solver construction
         import python_solvers_wrapper_fluid
         self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
+
+
+    def Run(self):
+        '''Wrapper function for the solution.'''
+        self.Initialize()
+        self.RunSolutionLoop()
+        self.Finalize()
+
+    def Initialize(self):
+        '''
+        Construct and initialize all classes and tools used in the simulation loop.
+        '''
+        domain_size = self.project_parameters["problem_data"]["domain_size"].GetInt()
+        self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, domain_size)
 
         self._SetUpRestart()
 
         if self.load_restart:
             self.restart_utility.LoadRestart()
         else:
+            self.solver.AddDofs()
             self.solver.AddVariables()
             self.solver.ImportModelPart()
-            self.solver.AddDofs()
 
-        # Fill a Model instance using input
-        self.model = Kratos.Model()
-        self.model.AddModelPart(self.main_model_part)
+        self._SetUpListOfProcesses()
+        self._SetUpAnalysis()
 
-    def SetUpAuxiliaryProcesses(self):
+    def RunSolutionLoop(self):
+
+        self._PrepareSolutionLoop()
+
+        while self.time < self.end_time:
+
+            self.time = solver.AdvanceInTime(self.time)
+            step = self.main_model_part.ProcessInfo[Kratos.STEP]
+
+            if self.is_printing_rank:
+                Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.step)
+                Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
+
+            self.InitializeSolutionStep()
+            solver.Predict()
+            self.SolveSolutionStep()
+            self.FinalizeSolutionStep()
+            self.OutputSolutionStep()
+
+    def Finalize(self):
+        '''Finalize the simulation and close open files.'''
+
+        for process in self.list_of_processes:
+            process.ExecuteFinalize()
+
+        if self.have_output:
+            self.output.ExecuteFinalize()
+
+    def InitializeSolutionStep(self):
+
+        for process in self.list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        if self.have_output:
+            self.output.ExecuteInitializeSolutionStep()
+
+        if self._TimeBufferIsInitialized():
+            self.solver.InitializeSolutionStep()
+
+    def SolveSolutionStep(self):
+        if self._TimeBufferIsInitialized():
+            self.solver.SolveSolutionStep()
+
+    def FinalizeSolutionStep(self):
+
+        if self._TimeBufferIsInitialized():
+            self.solver.FinalizeSolutionStep()
+
+        # shouldn't this go at the end of the iteration???
+        for process in self.list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+        if self.have_output:
+            self.output.ExecuteFinalizeSolutionStep()
+
+    def OutputSolutionStep(self):
+
+        if self.have_output and self.output.IsOutputStep():
+
+            for process in self.list_of_processes:
+                process.ExecuteBeforeOutputStep()
+
+            self.output.PrintOutput()
+
+            for process in self.list_of_processes:
+                process.ExecuteAfterOutputStep()
+
+        if self.save_restart:
+            self.restart_utility.SaveRestart()
+
+    def _SetUpListOfProcesses(self):
         '''
         Read the definition of initial and boundary conditions for the problem and initialize the processes that will manage them.
         Also initialize any additional processes present in the problem (such as those used to calculate additional results).
@@ -63,19 +141,19 @@ class FluidDynamicsAnalysis(object):
         # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
         # Note 1: gravity is constructed first. Outlet process might need its information.
         # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-        self.simulation_processes =  factory.ConstructListOfProcesses( self.project_parameters["gravity"] )
-        self.simulation_processes += factory.ConstructListOfProcesses( self.project_parameters["initial_conditions_process_list"] )
-        self.simulation_processes += factory.ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
-        self.simulation_processes += factory.ConstructListOfProcesses( self.project_parameters["auxiliar_process_list"] )
+        self.list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["gravity"] )
+        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["initial_conditions_process_list"] )
+        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
+        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["auxiliar_process_list"] )
 
-    def SetUpAnalysis(self):
+    def _SetUpAnalysis(self):
         '''
         Initialize the Python solver and its auxiliary tools and processes.
         This function should prepare everything so that the simulation
         can start immediately after exiting it.
         '''
 
-        for process in self.simulation_processes:
+        for process in self.list_of_processes:
             process.ExecuteInitialize()
 
         self.solver.Initialize()
@@ -84,7 +162,11 @@ class FluidDynamicsAnalysis(object):
         # initialize GiD  I/O
         self._SetUpGiDOutput()
 
-        ## Writing the full ProjectParameters file before solving
+    def _PrepareSolutionLoop(self):
+        '''
+        Initialize solution loop variables and prepare processes.
+        '''
+        ## If the echo level is high enough, print the complete list of settings used to run the simualtion
         if self.is_printing_rank and self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
@@ -99,7 +181,7 @@ class FluidDynamicsAnalysis(object):
             self.time = 0.0
             self.step = 0
 
-        for process in self.simulation_processes:
+        for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
 
         if self.have_output:
@@ -147,87 +229,6 @@ class FluidDynamicsAnalysis(object):
         # We always have one extra old step (step 0, read from input)
         return self.step + 1 >= self.solver.GetMinimumBufferSize()
 
-    def RunMainTemporalLoop(self):
-        '''The main solution loop.'''
-        while self.time <= self.end_time:
-
-            dt = self.solver.ComputeDeltaTime()
-            self.time = self.time + dt
-            self.step = self.step + 1
-
-            self.main_model_part.CloneTimeStep(self.time)
-            self.main_model_part.ProcessInfo[Kratos.STEP] = self.step
-
-            if self.is_printing_rank:
-                Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.step)
-                Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
-
-            self.InitializeSolutionStep()
-            self.SolveSingleStep()
-            self.FinalizeSolutionStep()
-
-    def InitializeSolutionStep(self):
-
-        for process in self.simulation_processes:
-            process.ExecuteInitializeSolutionStep()
-
-        if self.have_output:
-            self.output.ExecuteInitializeSolutionStep()
-
-        if self._TimeBufferIsInitialized():
-            self.solver.InitializeSolutionStep()
-
-    def SolveSingleStep(self):
-        if self._TimeBufferIsInitialized():
-            self.solver.SolveSolutionStep()
-
-    def FinalizeSolutionStep(self):
-
-        if self._TimeBufferIsInitialized():
-            self.solver.FinalizeSolutionStep()
-
-        # shouldn't this go at the end of the iteration???
-        for process in self.simulation_processes:
-            process.ExecuteFinalizeSolutionStep()
-
-        if self.have_output:
-            self.output.ExecuteFinalizeSolutionStep()
-
-        if self.have_output and self.output.IsOutputStep():
-
-            for process in self.simulation_processes:
-                process.ExecuteBeforeOutputStep()
-
-            self.output.PrintOutput()
-
-            for process in self.simulation_processes:
-                process.ExecuteAfterOutputStep()
-
-        if self.save_restart:
-            self.restart_utility.SaveRestart()
-
-
-    def FinalizeAnalysis(self):
-        '''Finalize the simulation and close open files.'''
-
-        for process in self.simulation_processes:
-            process.ExecuteFinalize()
-
-        if self.have_output:
-            self.output.ExecuteFinalize()
-
-    def InitializeAnalysis(self):
-        '''Wrapper function comprising the definition of the model and the initialization of the problem.'''
-        self.SetUpModel()
-        self.SetUpAuxiliaryProcesses()
-        self.SetUpAnalysis()
-
-    def Run(self):
-        '''Wrapper function for the solution.'''
-        self.InitializeAnalysis()
-        self.RunMainTemporalLoop()
-        self.FinalizeAnalysis()
-
 if __name__ == '__main__':
     from sys import argv
 
@@ -248,5 +249,6 @@ if __name__ == '__main__':
     with open(parameter_file_name,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
 
-    simulation = FluidDynamicsAnalysis(parameters)
+    model = Kratos.Model()
+    simulation = FluidDynamicsAnalysis(model,parameters)
     simulation.Run()
