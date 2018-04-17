@@ -715,7 +715,12 @@ protected:
                                      const int & rPointNumber);
 
 
+    /**
+     * Get element size from the dofs
+     */    
+    virtual unsigned int GetDofsSize();
 
+    
     /**
      * Initialize System Matrices
      */

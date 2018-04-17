@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
+//   Date:                $Date:               April 2018 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/solid_elements/large_displacement_U_P_element.hpp"
+#include "custom_elements/solid_elements/large_displacement_V_element.hpp"
 #include "solid_mechanics_application_variables.h"
 
 
@@ -23,27 +23,25 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LargeDisplacementUPElement::LargeDisplacementUPElement()
+LargeDisplacementVElement::LargeDisplacementVElement()
     : LargeDisplacementElement()
 {
-  //DO NOT CALL IT: only needed for Register and Serialization!!!
 }
 
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LargeDisplacementUPElement::LargeDisplacementUPElement( IndexType NewId, GeometryType::Pointer pGeometry )
+LargeDisplacementVElement::LargeDisplacementVElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : LargeDisplacementElement( NewId, pGeometry )
 {
-    //DO NOT ADD DOFS HERE!!!
 }
 
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LargeDisplacementUPElement::LargeDisplacementUPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+LargeDisplacementVElement::LargeDisplacementVElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : LargeDisplacementElement( NewId, pGeometry, pProperties )
 {
 }
@@ -52,7 +50,7 @@ LargeDisplacementUPElement::LargeDisplacementUPElement( IndexType NewId, Geometr
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-LargeDisplacementUPElement::LargeDisplacementUPElement( LargeDisplacementUPElement const& rOther)
+LargeDisplacementVElement::LargeDisplacementVElement( LargeDisplacementVElement const& rOther)
     :LargeDisplacementElement(rOther)
 {
 }
@@ -61,7 +59,7 @@ LargeDisplacementUPElement::LargeDisplacementUPElement( LargeDisplacementUPEleme
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
 
-LargeDisplacementUPElement&  LargeDisplacementUPElement::operator=(LargeDisplacementUPElement const& rOther)
+LargeDisplacementVElement&  LargeDisplacementVElement::operator=(LargeDisplacementVElement const& rOther)
 {
     LargeDisplacementElement::operator=(rOther);
 
@@ -72,21 +70,21 @@ LargeDisplacementUPElement&  LargeDisplacementUPElement::operator=(LargeDisplace
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
 
-Element::Pointer LargeDisplacementUPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer LargeDisplacementVElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new LargeDisplacementUPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Element::Pointer( new LargeDisplacementVElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
 
 
 //************************************CLONE*******************************************
 //************************************************************************************
 
-Element::Pointer LargeDisplacementUPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Element::Pointer LargeDisplacementVElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
 
     KRATOS_THROW_ERROR( std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!", "" )
 
-    LargeDisplacementUPElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    LargeDisplacementVElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     //-----------//
 
@@ -104,14 +102,14 @@ Element::Pointer LargeDisplacementUPElement::Clone( IndexType NewId, NodesArrayT
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
        
-    return Element::Pointer( new LargeDisplacementUPElement(NewElement) );
+    return Element::Pointer( new LargeDisplacementVElement(NewElement) );
 }
 
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-LargeDisplacementUPElement::~LargeDisplacementUPElement()
+LargeDisplacementVElement::~LargeDisplacementVElement()
 {
 }
 
@@ -122,7 +120,7 @@ LargeDisplacementUPElement::~LargeDisplacementUPElement()
 
 
 
-void LargeDisplacementUPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
 {
     rElementalDofList.resize( 0 );
 
@@ -130,13 +128,11 @@ void LargeDisplacementUPElement::GetDofList( DofsVectorType& rElementalDofList, 
 
     for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
     {
-        rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
-        rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
+        rElementalDofList.push_back( GetGeometry()[i].pGetDof( VELOCITY_X ) );
+        rElementalDofList.push_back( GetGeometry()[i].pGetDof( VELOCITY_Y ) );
 
         if( dimension == 3 )
-            rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
-
-        rElementalDofList.push_back( GetGeometry()[i].pGetDof( PRESSURE ));
+            rElementalDofList.push_back( GetGeometry()[i].pGetDof( VELOCITY_Z ) );
     }
 }
 
@@ -144,7 +140,7 @@ void LargeDisplacementUPElement::GetDofList( DofsVectorType& rElementalDofList, 
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -156,129 +152,40 @@ void LargeDisplacementUPElement::EquationIdVector( EquationIdVectorType& rResult
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = i * dimension + i;
-        rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
+        rResult[index]     = GetGeometry()[i].GetDof( VELOCITY_X ).EquationId();
+        rResult[index + 1] = GetGeometry()[i].GetDof( VELOCITY_Y ).EquationId();
 
         if( dimension == 3)
-        {
-            rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
-            rResult[index + 3] = GetGeometry()[i].GetDof( PRESSURE ).EquationId();
-        }
-        else
-        {
-            rResult[index + 2] = GetGeometry()[i].GetDof( PRESSURE ).EquationId();
-        }
+          rResult[index + 2] = GetGeometry()[i].GetDof( VELOCITY_Z ).EquationId();
 
     }
 
 }
-
-//*********************************DISPLACEMENT***************************************
-//************************************************************************************
-
-void LargeDisplacementUPElement::GetValuesVector( Vector& rValues, int Step )
-{
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension + number_of_nodes;
-
-    if ( rValues.size() != dofs_size )
-      rValues.resize( dofs_size, false );
-
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int index = i * dimension + i;
-        rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
-        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
-
-        if ( dimension == 3 )
-        {
-            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
-            rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( PRESSURE, Step );
-        }
-        else
-        {
-            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( PRESSURE, Step );
-        }
-
-    }
-}
-
-
-//************************************VELOCITY****************************************
-//************************************************************************************
-
-void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
-{
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension + number_of_nodes;
-
-    if ( rValues.size() != dofs_size )
-      rValues.resize( dofs_size, false );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int index = i * dimension + i;
-        rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
-        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
-        if ( dimension == 3 )
-        {
-            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
-            rValues[index + 3] = 0;
-        }
-        else
-        {
-            rValues[index + 2] = 0;
-        }
-    }
-}
-
-//*********************************ACCELERATION***************************************
-//************************************************************************************
-
-void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
-{
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension + number_of_nodes;
-
-    if ( rValues.size() != dofs_size )
-      rValues.resize( dofs_size, false );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int index = i * dimension + i;
-        rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
-        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
-
-        if ( dimension == 3 )
-        {
-            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
-            rValues[index + 3] = 0;
-        }
-        else
-        {
-            rValues[index + 2] = 0;
-        }
-    }
-
-}
-
 
 //************* STARTING - ENDING  METHODS
 //************************************************************************************
 //************************************************************************************
 
-unsigned int LargeDisplacementUPElement::GetDofsSize()
+void LargeDisplacementVElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    LargeDisplacementElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+unsigned int LargeDisplacementVElement::GetDofsSize()
 {
   KRATOS_TRY
      
   const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
   const unsigned int number_of_nodes = GetGeometry().PointsNumber();    
   
-  unsigned int size = number_of_nodes * dimension + number_of_nodes; //usual size for U-P elements
+  unsigned int size = number_of_nodes * dimension; //usual size for velocity based elements
   
   return size;   
   
@@ -289,7 +196,7 @@ unsigned int LargeDisplacementUPElement::GetDofsSize()
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
 {
 
     //contributions of the stiffness matrix calculated on the reference configuration
@@ -303,26 +210,13 @@ void LargeDisplacementUPElement::CalculateAndAddLHS(LocalSystemComponents& rLoca
     // operation performed: add Kg to the rLefsHandSideMatrix
     CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    // operation performed: add Kup to the rLefsHandSideMatrix
-    CalculateAndAddKup( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
-    // operation performed: add Kpu to the rLefsHandSideMatrix
-    CalculateAndAddKpu( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
-    // operation performed: add Kpp to the rLefsHandSideMatrix
-    CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
-    // operation performed: add Kpp Stab to the rLefsHandSideMatrix
-    CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
-    //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void LargeDisplacementVElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
 
     //contribution of the internal and external forces
@@ -343,80 +237,10 @@ void LargeDisplacementUPElement::CalculateAndAddRHS(LocalSystemComponents& rLoca
     //KRATOS_WATCH( rRightHandSideVector )
 }
 
-
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-        ElementVariables& rVariables,
-        Vector& rVolumeForce,
-        double& rIntegrationWeight)
-
-{
-    KRATOS_TRY
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // VectorType Fh=rRightHandSideVector;
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        int indexup = dimension * i + i;
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-	  rRightHandSideVector[indexup + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j];
-        }
-
-    }
-
-    // std::cout<<std::endl;
-    // std::cout<<" Fext "<<rRightHandSideVector-Fh<<std::endl;
-
-    KRATOS_CATCH( "" )
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementUPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-        ElementVariables & rVariables,
-        double& rIntegrationWeight
-                                                              )
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // VectorType Fh=rRightHandSideVector;
-
-    Vector InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int indexup = dimension * i + i;
-        unsigned int indexu  = dimension * i;
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            rRightHandSideVector[indexup + j] -= InternalForces[indexu + j];
-        }
-    }
-
-    // std::cout<<std::endl;
-    // std::cout<<"["<<this->Id()<<"] StressVector "<<rVariables.StressVector<<std::endl;
-    // std::cout<<" Fint "<<rRightHandSideVector-Fh<<std::endl;
-
-    KRATOS_CATCH( "" )
-}
-
-
-
-//************************************************************************************
-//************************************************************************************
-
-double& LargeDisplacementUPElement::CalculatePUCoefficient(double& rCoefficient, ElementVariables & rVariables)
+double& LargeDisplacementVElement::CalculatePUCoefficient(double& rCoefficient, ElementVariables & rVariables)
 {
   KRATOS_TRY
    
@@ -472,7 +296,7 @@ double& LargeDisplacementUPElement::CalculatePUCoefficient(double& rCoefficient,
 //************************************************************************************
 //************************************************************************************
 
-double& LargeDisplacementUPElement::CalculatePUDeltaCoefficient(double &rDeltaCoefficient, ElementVariables & rVariables)
+double& LargeDisplacementVElement::CalculatePUDeltaCoefficient(double &rDeltaCoefficient, ElementVariables & rVariables)
 {
 
   KRATOS_TRY
@@ -530,7 +354,7 @@ double& LargeDisplacementUPElement::CalculatePUDeltaCoefficient(double &rDeltaCo
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
+void LargeDisplacementVElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
 							       ElementVariables & rVariables,
 							       double& rIntegrationWeight)
 {
@@ -600,7 +424,7 @@ void LargeDisplacementUPElement::CalculateAndAddPressureForces(VectorType& rRigh
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+void LargeDisplacementVElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
         ElementVariables & rVariables,
         double& rIntegrationWeight)
 {
@@ -687,7 +511,7 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+void LargeDisplacementVElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
         ElementVariables& rVariables,
         double& rIntegrationWeight)
 {
@@ -733,7 +557,7 @@ void LargeDisplacementUPElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMa
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+void LargeDisplacementVElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
         ElementVariables& rVariables,
         double& rIntegrationWeight)
 
@@ -783,7 +607,7 @@ void LargeDisplacementUPElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMa
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
+void LargeDisplacementVElement::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
         ElementVariables& rVariables,
         double& rIntegrationWeight)
 {
@@ -818,7 +642,7 @@ void LargeDisplacementUPElement::CalculateAndAddKup (MatrixType& rLeftHandSideMa
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
+void LargeDisplacementVElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
         ElementVariables& rVariables,
         double& rIntegrationWeight)
 
@@ -866,7 +690,7 @@ void LargeDisplacementUPElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMa
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
+void LargeDisplacementVElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
         ElementVariables& rVariables,
         double& rIntegrationWeight)
 {
@@ -930,7 +754,7 @@ void LargeDisplacementUPElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMa
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
+void LargeDisplacementVElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
         ElementVariables & rVariables,
         double& rIntegrationWeight)
 {
@@ -1019,7 +843,7 @@ void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSi
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementVElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1027,7 +851,7 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int MatSize = this->GetDofsSize();
-
+    
     if ( rMassMatrix.size1() != MatSize )
         rMassMatrix.resize( MatSize, MatSize, false );
 
@@ -1114,7 +938,7 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementVElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1123,8 +947,8 @@ void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMat
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
-    const unsigned int MatSize = this->GetDofsSize();    
-
+    const unsigned int MatSize = this->GetDofsSize();
+    
     if ( rDampingMatrix.size1() != MatSize )
         rDampingMatrix.resize( MatSize, MatSize, false );
 
@@ -1190,7 +1014,7 @@ void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMat
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void LargeDisplacementVElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
   KRATOS_TRY
     
@@ -1205,7 +1029,7 @@ void LargeDisplacementUPElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHand
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void LargeDisplacementVElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
   KRATOS_TRY
       
@@ -1238,7 +1062,7 @@ void LargeDisplacementUPElement::CalculateAndAddDynamicRHS(VectorType& rRightHan
 //************************************************************************************
 //************************************************************************************
 
-int  LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  LargeDisplacementVElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1265,12 +1089,12 @@ int  LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
 //************************************************************************************
 
 
-void LargeDisplacementUPElement::save( Serializer& rSerializer ) const
+void LargeDisplacementVElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
 }
 
-void LargeDisplacementUPElement::load( Serializer& rSerializer )
+void LargeDisplacementVElement::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
 }

@@ -1146,7 +1146,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rM
     //lumped
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * dimension + number_of_nodes;
+    const unsigned int MatSize = this->GetDofsSize();    
 
     if ( rMassMatrix.size1() != MatSize )
         rMassMatrix.resize( MatSize, MatSize, false );

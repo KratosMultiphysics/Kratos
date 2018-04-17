@@ -2,13 +2,13 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
+//   Date:                $Date:               April 2018 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
 
-#if !defined(KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED)
-#define  KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_LARGE_DISPLACEMENT_V_ELEMENT_H_INCLUDED)
+#define  KRATOS_LARGE_DISPLACEMENT_V_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -35,14 +35,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Large Displacement Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
+/// Large Displacement Lagrangian V Element for 3D and 2D geometries
 
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
  * This works for linear Triangles and Tetrahedra (base class)
  */
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) LargeDisplacementUPElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LargeDisplacementVElement
     : public LargeDisplacementElement
 {
 public:
@@ -58,34 +58,34 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementUPElement );
+    /// Counted pointer of LargeDisplacementVElement
+    KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementVElement );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    LargeDisplacementUPElement();
+    LargeDisplacementVElement();
 
     /// Default constructors
-    LargeDisplacementUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    LargeDisplacementVElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    LargeDisplacementUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    LargeDisplacementVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    LargeDisplacementUPElement(LargeDisplacementUPElement const& rOther);
+    LargeDisplacementVElement(LargeDisplacementVElement const& rOther);
 
 
     /// Destructor.
-    virtual ~LargeDisplacementUPElement();
+    virtual ~LargeDisplacementVElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    LargeDisplacementUPElement& operator=(LargeDisplacementUPElement const& rOther);
+    LargeDisplacementVElement& operator=(LargeDisplacementVElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -123,21 +123,6 @@ public:
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Sets on rValues the nodal displacements
-     */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
-
-    /**
-     * Sets on rValues the nodal velocities
-     */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
-
-    /**
-     * Sets on rValues the nodal accelerations
-     */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
     //************* COMPUTING  METHODS
@@ -253,92 +238,11 @@ protected:
                                      double& rIntegrationWeight
                                     ) override;
 
-    /**
-     * Calculation of the Kup matrix
-     */
-    virtual void CalculateAndAddKup (MatrixType& rK,
-                                     ElementVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
-
-    /**
-     * Calculation of the Kpu matrix
-     */
-    virtual void CalculateAndAddKpu(MatrixType& rK,
-                                    ElementVariables & rVariables,
-                                    double& rIntegrationWeight
-                                   );
-
-
-    /**
-     * Calculation of the Kpp matrix
-     */
-    virtual void CalculateAndAddKpp(MatrixType& rK,
-                                    ElementVariables & rVariables,
-                                    double& rIntegrationWeight
-                                   );
-
-
-    /**
-     * Calculation of the Kpp Stabilization Term matrix
-     */
-    virtual void CalculateAndAddKppStab(MatrixType& rK,
-                                        ElementVariables & rVariables,
-                                        double& rIntegrationWeight
-                                       );
-
-
-
-    /**
-     * Calculation of the External Forces Vector. Fe = N * t + N * b
-     */
-    void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-                                       ElementVariables& rVariables,
-                                       Vector& rVolumeForce,
-                                       double& rIntegrationWeight
-                                      ) override;
-
-
-    /**
-      * Calculation of the Internal Forces due to sigma. Fi = B * sigma
-      */
-    void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-                                       ElementVariables & rVariables,
-                                       double& rIntegrationWeight
-                                      ) override;
-
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-            ElementVariables & rVariables,
-            double& rIntegrationWeight
-                                              );
-
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-            ElementVariables & rVariables,
-            double& rIntegrationWeight);
 
     /**
      * Get element size from the dofs
      */    
-    virtual unsigned int GetDofsSize() override;
-
-
-    /**
-     * Calculation of the constitutive coefficient for pressure of the Element
-     */
-    virtual double& CalculatePUCoefficient(double& rCoefficient, ElementVariables & rVariables);
-
-    /**
-     * Calculation of the constitutive coefficient derivative for pressure  of the Element
-     */
-    virtual double& CalculatePUDeltaCoefficient(double& rCoefficient, ElementVariables & rVariables);
+    unsigned int GetDofsSize() override;
 
     ///@}
     ///@name Protected  Access
@@ -358,23 +262,16 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-
     ///@}
     ///@name Private Operators
     ///@{
-
-
     ///@}
     ///@name Private Operations
     ///@{
-
-
     ///@}
     ///@name Private  Access
     ///@{
     ///@}
-
     ///@}
     ///@name Serialization
     ///@{
@@ -394,7 +291,7 @@ private:
     ///@{
     ///@}
 
-}; // Class LargeDisplacementUPElement
+}; // Class LargeDisplacementVElement
 
 ///@}
 ///@name Type Definitions
@@ -405,4 +302,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_LARGE_DISPLACEMENT_V_ELEMENT_H_INCLUDED  defined 
