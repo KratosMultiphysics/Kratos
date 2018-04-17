@@ -38,7 +38,7 @@
         "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "NavierStokesWallConditionTest/test_wall_condition"
+            "input_filename" : "test_wall_condition"
         },
         "compute_reactions"            : true,
         "dynamic_tau"                  : 0.01,
@@ -54,7 +54,7 @@
         "no_skin_parts"                : [],
         "time_stepping"                : {
             "automatic_time_step" : false,
-            "time_step"           : 0.1
+            "time_step"           : 1.0
         }
     },
     "initial_conditions_process_list"  : [],
@@ -114,14 +114,6 @@
         "process_name"  : "ApplyNoSlipProcess",
         "Parameters"    : {
             "model_part_name" : "NoSlip2D_NoSlip"
-        }
-    },{
-        "python_module" : "navier_stokes_wall_condition_test_local_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyLocalProcess",
-        "Parameters"    : {
-            "ext_pres_res"           : 1000.0,
-            "fluid_model_part_name"  : "Parts_Fluid"
         }
     }],
     "gravity"                          : [{
