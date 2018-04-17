@@ -418,7 +418,7 @@ namespace Kratos
         {
             this->CalculateStressDisplacementDerivative(STRESS_ON_NODE, rOutput, rCurrentProcessInfo);
         }
-        else if(rVariable == STRESS_DV_DERIV_ON_GP)
+        else if(rVariable == STRESS_DESIGN_DERIVATIVE_ON_GP)
         {
             std::string design_varible_name = this->GetValue( DESIGN_VARIABLE_NAME );
 
@@ -435,7 +435,7 @@ namespace Kratos
                 this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);
             }
         }
-        else if(rVariable == STRESS_DV_DERIV_ON_NODE)
+        else if(rVariable == STRESS_DESIGN_DERIVATIVE_ON_NODE)
         {
             std::string design_varible_name = this->GetValue( DESIGN_VARIABLE_NAME );
 

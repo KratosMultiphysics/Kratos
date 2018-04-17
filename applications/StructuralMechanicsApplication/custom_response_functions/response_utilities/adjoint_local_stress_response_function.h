@@ -314,9 +314,9 @@ protected:
 
             Matrix stress_DV_deriv;
             if(mStressTreatment == mean || mStressTreatment == GP)
-                rAdjointElem.Calculate(STRESS_DV_DERIV_ON_GP, stress_DV_deriv, rProcessInfo);
+                rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_DV_deriv, rProcessInfo);
             else
-                rAdjointElem.Calculate(STRESS_DV_DERIV_ON_NODE, stress_DV_deriv, rProcessInfo);
+                rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_NODE, stress_DV_deriv, rProcessInfo);
 
             int num_of_DV = stress_DV_deriv.size1();
             int num_of_deriv = stress_DV_deriv.size2();
@@ -399,9 +399,9 @@ protected:
 
             Matrix stress_DV_deriv;
             if(mStressTreatment == mean || mStressTreatment == GP)
-                rAdjointElem.Calculate(STRESS_DV_DERIV_ON_GP, stress_DV_deriv, rProcessInfo);
+                rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_DV_deriv, rProcessInfo);
             else
-                rAdjointElem.Calculate(STRESS_DV_DERIV_ON_NODE, stress_DV_deriv, rProcessInfo);
+                rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_NODE, stress_DV_deriv, rProcessInfo);
 
             int num_of_DV = stress_DV_deriv.size1();
             int num_of_deriv = stress_DV_deriv.size2();
