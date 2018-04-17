@@ -49,14 +49,12 @@ class AnalysisStage(object):
             process.ExecuteBeforeSolutionLoop()
 
         while self.time < self.end_time:
-            solver.AdvanceInTime(self.time)
+            self.AdvanceInTime()
             self.InitializeSolutionStep()
-            solver.Predict()
-            solver.SolveSolutionStep()
+            self.Predict()
+            self.SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
-
-
 
     def Initialize(self):
         """This function initializes the AnalysisStage
@@ -81,6 +79,12 @@ class AnalysisStage(object):
         for process in self.list_of_processes:
             process.ExecuteFinalize()
 
+    def AdvanceInTime(self):
+        """Advance the Kratos solution step data buffer to the next solution step
+        and set the new time.
+        """
+        self.time = solver.AdvanceInTime(self.time)
+
     def InitializeSolutionStep(self):
         """This function performs all the required operations that should be executed
         (for each step) BEFORE solving the solution step.
@@ -89,6 +93,16 @@ class AnalysisStage(object):
         self.ChangeMaterialProperties() #this is normally empty
         solver.InitializeSolutionStep()
 
+    def Predict(self):
+        """Predict values for the next solution step.
+        """
+        self.solver.Predict()
+
+    def SolveSolutionStep(self):
+        """Solve a single solution step. In case of black-box like coupling, this
+        should perform a coupling iteration for a single domain.
+        """
+        self.solver.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed
