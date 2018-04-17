@@ -145,13 +145,14 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
     Vector& sigma_bar = rValues.GetStressVector();
     Vector sigma_bar_pos;
     Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-    double H = matprops[ISOTROPIC_DAMAGE_MODULUS];
+    double H = matprops[ISOTROPIC_HARDENING_MODULUS];
     double dpointcoeff;
     double d, q;
+
     // Uncomment in case of solve ONLY_TRACTION surface for 3D cases
+    // bool TRACTION_ONLY = matprops[FLOW_RULE_IS_TRACTION_ONLY];
     // double sigma_xx, sigma_yy, sigma_zz, sigma_xz, sigma_yz, sigma_xy;
     // double hyp, sigma_1, sigma_2, sigma_3, angle, cos_a, sin_a;
-    bool TRACTION_ONLY = matprops[FLOW_RULE_IS_TRACTION_ONLY];
 
     // TODO(marcelo): to be removed. Use USE_ELEMENT_PROVIDED_STRAIN flag
     if (rValues.GetProcessInfo().Has(INITIAL_STRAIN))
@@ -168,15 +169,10 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
     // for tension-only fluency law:
     // originally sigma and sigma_positive are the same (as it is in the
     // symmetrical case), this block modifies sigma_positive
+    /*
     if (TRACTION_ONLY)
     {
-        // Do not use ONLY TRACTION yield surface (on 3D cases) ...
-        // Do something to solve the eigenvalue problem  for 3x3 stress tensor
-        // cases
-
         // Compute the invariants of the stress tensor
-
-        /*
         sigma_xx = sigma_bar(0);
         sigma_yy = sigma_bar(1);
         sigma_xy = sigma_bar(2);
@@ -199,12 +195,8 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
             sigma_bar_pos(1) += sigma_2 * cos_a * cos_a;
             sigma_bar_pos(2) -= sigma_2 * sin_a * cos_a;
         }
-        */
-
-        KRATOS_THROW_ERROR(
-            std::invalid_argument,
-            "Isotropic 3D Damage - Yield surface not already implemented", "");
     }
+    */
 
     tau_epsilon = std::sqrt(inner_prod(sigma_bar_pos, epsilon));
 
@@ -218,7 +210,7 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
     }
     else
     {
-        mInelasticFlag = 1;
+        mInelasticFlag = true;
         r = tau_epsilon;
         q = CalculateQ(r, matprops);
         d = 1. - q / r;
@@ -297,7 +289,7 @@ double LinearIsotropicDamage3DLaw::CalculateQ(
     const Properties& material_prop
     )
 {
-    double H = material_prop[ISOTROPIC_DAMAGE_MODULUS];
+    double H = material_prop[ISOTROPIC_HARDENING_MODULUS];
     double r0 = material_prop[YIELD_STRESS] / std::sqrt(material_prop[YOUNG_MODULUS]);
     double q_inf = material_prop[INFINITY_YIELD_STRESS] /
                    std::sqrt(material_prop[YOUNG_MODULUS]);
@@ -381,7 +373,7 @@ int LinearIsotropicDamage3DLaw::Check(
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
     KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));
     KRATOS_CHECK(rMaterialProperties.Has(INFINITY_YIELD_STRESS));
-    KRATOS_CHECK(rMaterialProperties.Has(ISOTROPIC_DAMAGE_MODULUS));
+    KRATOS_CHECK(rMaterialProperties.Has(ISOTROPIC_HARDENING_MODULUS));
 
     if (rMaterialProperties[YIELD_STRESS] < 0)
         KRATOS_THROW_ERROR(std::invalid_argument,
@@ -393,23 +385,23 @@ int LinearIsotropicDamage3DLaw::Check(
                            "LinearIsotropicDamage3DLaw - "
                            "INFINITY_YIELD_STRESS must be positive",
                            "");
-    if (rMaterialProperties[ISOTROPIC_DAMAGE_MODULUS] >= 1.)
+    if (rMaterialProperties[ISOTROPIC_HARDENING_MODULUS] >= 1.)
         KRATOS_THROW_ERROR(std::invalid_argument,
                            "LinearIsotropicDamage3DLaw - "
-                           "ISOTROPIC_DAMAGE_MODULUS must be lesser than 1.",
+                           "ISOTROPIC_HARDENING_MODULES must be lesser than 1.",
                            "");
-    if (rMaterialProperties[ISOTROPIC_DAMAGE_MODULUS] == 0)
+    if (rMaterialProperties[ISOTROPIC_HARDENING_MODULUS] == 0)
         KRATOS_THROW_ERROR(std::invalid_argument,
                            "LinearIsotropicDamage3DLaw - "
-                           "ISOTROPIC_DAMAGE_MODULUS must be != 0",
+                           "ISOTROPIC_HARDENING_MODULES must be != 0",
                            "");
-    if (rMaterialProperties[ISOTROPIC_DAMAGE_MODULUS] > 0 &&
+    if (rMaterialProperties[ISOTROPIC_HARDENING_MODULUS] > 0 &&
         rMaterialProperties[INFINITY_YIELD_STRESS] <= rMaterialProperties[YIELD_STRESS])
         KRATOS_THROW_ERROR(std::invalid_argument,
                            "LinearIsotropicDamage3DLaw - "
                            "INFINITY_YIELD_STRESS must be greater than YIELD_STRESS",
                            "");
-    if (rMaterialProperties[ISOTROPIC_DAMAGE_MODULUS] < 0 &&
+    if (rMaterialProperties[ISOTROPIC_HARDENING_MODULUS] < 0 &&
         rMaterialProperties[INFINITY_YIELD_STRESS] >= rMaterialProperties[YIELD_STRESS])
         KRATOS_THROW_ERROR(std::invalid_argument,
                            "LinearIsotropicDamage3DLaw - "
@@ -421,7 +413,7 @@ int LinearIsotropicDamage3DLaw::Check(
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2Plasticity3D::save(Serializer& rSerializer) const
+void LinearIsotropicDamage3DLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.save("mInelasticFlag", mInelasticFlag);
@@ -430,7 +422,7 @@ void LinearJ2Plasticity3D::save(Serializer& rSerializer) const
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2Plasticity3D::load(Serializer& rSerializer)
+void LinearIsotropicDamage3DLaw::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.load("mInelasticFlag", mInelasticFlag);

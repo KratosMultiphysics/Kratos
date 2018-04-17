@@ -153,27 +153,6 @@ public:
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
     /**
-     * @brief Returns the value of a specified variable (double)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
-
-    /**
-     * @brief Sets the value of a specified variable (double)
-     * @param rThisVariable The variable to be returned
-     * @param rValue New value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<double>& rThisVariable,
-        const double& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-
-    /**
      * @brief This is to be called at the very beginning of the calculation
      * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
      * @param rMaterialProperties the Properties instance of the current element
