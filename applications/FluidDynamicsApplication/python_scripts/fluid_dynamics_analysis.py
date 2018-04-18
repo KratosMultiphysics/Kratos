@@ -69,7 +69,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
         while self.time < self.end_time:
 
             self.time = self.solver.AdvanceInTime(self.time)
-            step = self.main_model_part.ProcessInfo[Kratos.STEP]
+            self.step = self.main_model_part.ProcessInfo[Kratos.STEP]
 
             if self.is_printing_rank:
                 Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.step)
