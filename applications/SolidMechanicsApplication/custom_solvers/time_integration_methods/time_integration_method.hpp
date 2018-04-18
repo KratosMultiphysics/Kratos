@@ -81,6 +81,7 @@ namespace Kratos
       mpSecondDerivative = nullptr;
 
       mpInputVariable = nullptr;
+      mpOutputVariable = nullptr;
     }
 
     /// Copy Constructor.
@@ -89,6 +90,7 @@ namespace Kratos
       ,mpFirstDerivative(rOther.mpFirstDerivative)
       ,mpSecondDerivative(rOther.mpSecondDerivative)
       ,mpInputVariable(rOther.mpInputVariable)
+      ,mpOutputVariable(rOther.mpOutputVariable)
     {
     }
 
@@ -179,6 +181,12 @@ namespace Kratos
       mpInputVariable = &rVariable;
     }
 
+    // set output variable (calculated variable, dof)
+    void SetOutputVariable(const TVariableType& rVariable)
+    {
+      mpOutputVariable = &rVariable;
+    }
+
     virtual bool HasStepVariable()
     {
       return false;
@@ -264,9 +272,13 @@ namespace Kratos
     VariablePointer mpSecondDerivative;
 
     
-    // input variable
+    // input variable (imposed variable)
     
     VariablePointer mpInputVariable;
+
+    // output variable (calculated and updated variable)
+
+    VariablePointer mpOutputVariable;
 
     
     ///@}
@@ -370,6 +382,7 @@ namespace Kratos
       rSerializer.save("FirstDerivative", mpFirstDerivative->Name());
       rSerializer.save("SecondDerivative", mpSecondDerivative->Name());
       rSerializer.save("InputVariable", mpInputVariable->Name());
+      rSerializer.save("OutputVariable", mpOutputVariable->Name());
     };
 
     virtual void load(Serializer& rSerializer)
@@ -383,6 +396,8 @@ namespace Kratos
       mpSecondDerivative = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
       rSerializer.load("InputVariable", Name);
       mpInputVariable = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
+      rSerializer.load("OutputVariable", Name);
+      mpOutputVariable = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
     };
     ///@}
     ///@name Private Inquiry
