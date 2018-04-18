@@ -47,7 +47,7 @@ before_build:
 
 # Custom build script
 build_script:
-  SET preferredToolArchitecture=x64
-  MSBuild.exe kratos/all_unity.vcxproj /p:Configuration:Debug /p:Platform:"x64"
+  - cmd: SET preferredToolArchitecture=x64
+  - cmd: MSBuild.exe kratos/all_unity.vcxproj /p:Configuration:Debug /p:Platform:"x64"
 
 test: off
