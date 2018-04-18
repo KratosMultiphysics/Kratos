@@ -1,9 +1,11 @@
 cmake .. -G "Visual Studio 15 2017 Win64"                                       ^
--DCMAKE_CXX_FLAGS="/D KRATOS_DISABLE_AMGCL" 								    ^
--DCMAKE_C_FLAGS="/D KRATOS_DISABLE_AMGCL" 									    ^
+-DCMAKE_CXX_FLAGS="/D KRATOS_DISABLE_AMGCL" 								                    ^
+-DCMAKE_C_FLAGS="/D KRATOS_DISABLE_AMGCL" 									                    ^
 -DBOOST_ROOT="C:\Libraries\boost_1_65_1"                                        ^
--DPYTHON_EXECUTABLE="C:\Python27-x64"                                           ^
--DCMAKE_BUILD_TYPE="Release"  													^
+-DPYTHON_EXECUTABLE="C:\Python27-x64\python.exe"							                  ^
+-DPYTHON_INCLUDE_PATH="C:\Python27-x64\include"							                    ^
+-DPYTHON_LIBRARY="C:\Python27-x64\libs\python27.lib"					                  ^
+-DCMAKE_BUILD_TYPE="Release"  													                        ^
 -DDEM_APPLICATION=ON                                                            ^
 -DEXTERNAL_SOLVERS_APPLICATION=OFF                                              ^
 -DFLUID_DYNAMICS_APPLICATION=ON                                                 ^

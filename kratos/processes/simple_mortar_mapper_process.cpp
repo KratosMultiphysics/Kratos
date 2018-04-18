@@ -174,7 +174,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
             
             double radius = 0.0; 
             for(IndexType i_node = 0; i_node < it_cond->GetGeometry().PointsNumber(); ++i_node)  {
-                const array_1d<double, 3>& aux_vector = center.Coordinates() - it_cond->GetGeometry()[i_node].Coordinates();
+                const array_1d<double, 3> aux_vector = center.Coordinates() - it_cond->GetGeometry()[i_node].Coordinates();
                 const double aux_value = inner_prod(aux_vector, aux_vector);
                 if(aux_value > radius) radius = aux_value; 
             } 
@@ -591,8 +591,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     // We set to zero the variables
     MortarUtilities::ResetValue<TVarType, THistDestination>(mDestinationModelPart, mDestinationVariable);
 
-    // Getting the auxiliar variable
-    TVarType aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
+    // Declaring auxiliar values
+    IntMap inverse_conectivity_database;
+    MatrixType A;
+    std::vector<VectorType> b;
 
     // Creating the assemble database
     SizeType system_size;
@@ -637,66 +639,18 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
         for(int i = 0; i < num_conditions; ++i) {
             auto it_cond = conditions_array.begin() + i;
 
-            const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
-            GeometryType& slave_geometry = it_cond->GetGeometry();
-
-            IndexSet::Pointer& indexes_set = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-            std::vector<IndexType> indexes_to_remove;
-
-            for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
-                Condition::Pointer p_cond_master = mOriginModelPart.pGetCondition(*it_pair); // MASTER
-                const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL);
-                GeometryType& master_geometry = p_cond_master->GetGeometry();
-
-                const IntegrationMethod& this_integration_method = GetIntegrationMethod();
-
-                // Reading integration points
-                std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping
-                const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
-
-                if (is_inside == true) {
-                    // Initialize general variables for the current master element
-                    this_kinematic_variables.Initialize();
-
-                    // Initialize the mortar operators
-                    this_mortar_operators.Initialize();
-
-                    const BoundedMatrixType& Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
-
-                    AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
-
-                    /* We compute the residual */
-                    const IndexType size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
-                    Matrix residual_matrix(TNumNodes, size_to_compute);
-                    ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
-
-                    MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
-
-                    // We check if DOperator is diagonal
-                    if (mEchoLevel > 1) {
-                        BoundedMatrixType aux_copy_D = this_mortar_operators.DOperator;
-                        LumpMatrix(aux_copy_D);
-                        const BoundedMatrixType aux_diff = aux_copy_D - this_mortar_operators.DOperator;
-                        const double norm_diff = norm_frobenius(aux_diff);
-                        if (norm_diff > 1.0e-4)
-                            KRATOS_WARNING("D OPERATOR") << " THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
-                        if (mEchoLevel == 3) {
-                            KRATOS_WATCH(norm_diff);
-                            KRATOS_WATCH(this_mortar_operators.DOperator);
-                        }
-                    }
-
-                    if (iteration == 0) // Just assembled the first iteration
-                        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
-                            slave_geometry[i_node].GetValue(NODAL_AREA) += this_mortar_operators.DOperator(i_node, i_node);
-                } else
-                    indexes_to_remove.push_back(*it_pair);
+            if (it_cond->Has( INDEX_MAP )) {
+                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
+                PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, it_cond, integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+            } else {
+                IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
+                PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, it_cond, integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
             }
-
-            // Clear indexes
-            for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove)
-                indexes_set->RemoveId(indexes_to_remove[i_to_remove]);
         }
+
+        // We remove the not used conditions
+        ModelPart& root_model_part = mOriginModelPart.GetRootModelPart();
+        root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
 
         NodesArrayType& nodes_array = mDestinationModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());
@@ -727,8 +681,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
             }
             norm_bi[i_size] = residual_norm[i_size];
             if (mEchoLevel > 0)
-                KRATOS_INFO("Mortar mapper ")  << "Iteration: " << iteration + 1 << "\tRESISUAL::\tABS: " << residual_norm[i_size] << "\tRELATIVE: " << residual_norm[i_size]/norm_b0[i_size] << "\tINCREMENT: " << increment_residual_norm
-                          << std::endl;
+                KRATOS_INFO("Mortar mapper ")  << "Iteration: " << iteration + 1 << "\tRESISUAL::\tABS: " << residual_norm[i_size] << "\tRELATIVE: " << residual_norm[i_size]/norm_b0[i_size] << "\tINCREMENT: " << increment_residual_norm << std::endl;
         }
 
         iteration += 1;
@@ -801,66 +754,18 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
         #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
         for(int i = 0; i < num_conditions; ++i) {
             auto it_cond = conditions_array.begin() + i;
-            const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
-            GeometryType& slave_geometry = it_cond->GetGeometry();
-
-            IndexSet::Pointer& indexes_set = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-            std::vector<IndexType> indexes_to_remove;
-
-            for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
-                Condition::Pointer p_cond_master = mOriginModelPart.pGetCondition(*it_pair); // MASTER
-                const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL);
-                GeometryType& master_geometry = p_cond_master->GetGeometry();
-
-                const IntegrationMethod& this_integration_method = GetIntegrationMethod();
-
-                // Reading integration points
-                std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping
-                const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
-
-                if (is_inside == true) {
-                    // Initialize general variables for the current master element
-                    this_kinematic_variables.Initialize();
-
-                    // Initialize the mortar operators
-                    this_mortar_operators.Initialize();
-
-                    const BoundedMatrixType& Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
-
-                    AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
-
-                    /* We compute the residual */
-                    const SizeType size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
-                    Matrix residual_matrix(TNumNodes, size_to_compute);
-                    ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
-
-                    // We check if DOperator is diagonal
-                    if (mEchoLevel > 1) {
-                        BoundedMatrixType aux_copy_D = this_mortar_operators.DOperator;
-                        LumpMatrix(aux_copy_D);
-                        const BoundedMatrixType aux_diff = aux_copy_D - this_mortar_operators.DOperator;
-                        const double norm_diff = norm_frobenius(aux_diff);
-                        if (norm_diff > 1.0e-4)
-                            KRATOS_WARNING("D OPERATOR") << " THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
-                        if (mEchoLevel == 3) {
-                            KRATOS_WATCH(norm_diff);
-                            KRATOS_WATCH(this_mortar_operators.DOperator);
-                        }
-                    }
-
-                    /* We compute the residual and assemble */
-                    if (iteration == 0)
-                        AssembleRHSAndLHS(A, b, variable_size, residual_matrix, slave_geometry, inverse_conectivity_database, this_mortar_operators);
-                    else
-                        AssembleRHS(b, variable_size, residual_matrix, slave_geometry, inverse_conectivity_database);
-                } else
-                    indexes_to_remove.push_back(*it_pair);
+            if (it_cond->Has( INDEX_MAP )) {
+                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
+                PerformMortarOperations<IndexMap, true>(A, b, inverse_conectivity_database, p_indexes_pairs, it_cond, integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+            } else {
+                IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
+                PerformMortarOperations<IndexSet, true>(A, b, inverse_conectivity_database, p_indexes_pairs, it_cond, integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
             }
-
-            // Clear indexes
-            for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove)
-                indexes_set->RemoveId(indexes_to_remove[i_to_remove]);
         }
+
+        // We remove the not used conditions
+        ModelPart& root_model_part = mOriginModelPart.GetRootModelPart();
+        root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
 
         // Finally we solve the system
         for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
