@@ -107,6 +107,9 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
         if( refining_options.Is(KratosPfem.ModelerUtilities.REFINE_ADD_NODES) ):
             select_refine_elements = KratosPfem.SetElementsToRefineOnSize(self.model_part, self.MeshingParameters, self.echo_level)
             self.mesher.SetPostMeshingProcess(select_refine_elements)
+            # it was 5
+            # select_refine_elements = KratosPfem.SetElementsToRefineOnSizeCPT(self.model_part, self.MeshingParameters, self.echo_level, 5) ##LMV
+            # self.mesher.SetPostMeshingProcess(select_refine_elements)
 
 
         #if( refining_options.Is(KratosPfem.ModelerUtilities.REFINE_INSERT_NODES) ):

@@ -29,6 +29,7 @@ namespace Kratos
   //domain definition
   KRATOS_CREATE_VARIABLE(bool, INITIALIZED_DOMAINS )
   KRATOS_CREATE_VARIABLE(bool, MESHING_STEP_PERFORMED )
+  KRATOS_CREATE_VARIABLE(bool, LMV)
   KRATOS_CREATE_VARIABLE(std::string, MODEL_PART_NAME )
 
   //boundary definition

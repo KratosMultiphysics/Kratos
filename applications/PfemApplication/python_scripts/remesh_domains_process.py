@@ -23,7 +23,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "echo_level"            : 0,
+            "echo_level"            : 1,
             "model_part_name"       : "Solid Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
@@ -31,6 +31,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
             "meshing_domains"       : []
         }
         """)
+        #echo level 1 gives seg fault?
  
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
@@ -196,4 +197,5 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         nodal_variables = ['NORMAL', 'NODAL_H', 'SHRINK_FACTOR']
         nodal_variables = nodal_variables + ['DETERMINANT_F'] # variables smoothing
         nodal_variables = nodal_variables + ['MEAN_ERROR'] # removing nodes
+        nodal_variables = nodal_variables + ['LMV'] # xD
         return nodal_variables

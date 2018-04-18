@@ -50,6 +50,9 @@
 //Kinematics
 #include "custom_processes/constant_rotation_process.h"
 
+//LMV
+#include "custom_processes/cpt_refine_mesh_elements_on_size_process.hpp"
+
 
 namespace Kratos
 {
@@ -133,7 +136,12 @@ namespace Kratos
 	 "SetElementsToRefineOnSize", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
-
+      //LMV
+      class_<CptRefineMeshElementsOnSizeProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "SetElementsToRefineOnSizeCPT", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, double>()
+	 )
+	;
       class_<RefineMeshBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
       	 "RefineMeshBoundary", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()

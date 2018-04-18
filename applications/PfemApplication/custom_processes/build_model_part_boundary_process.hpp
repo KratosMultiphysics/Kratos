@@ -263,8 +263,9 @@ namespace Kratos
 			    WeakPointerVector< Element > MasterElements;
 			    MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
 			    if( mEchoLevel >= 1 ){
-			      if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
-				std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
+			      //if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
+				//std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
+                // generates a seg fault and to me it does not make any sense (however, i do not understand this file) //LMV
 			    }
 			    i_cond->SetValue(MASTER_ELEMENTS,MasterElements);
 			    
@@ -291,8 +292,8 @@ namespace Kratos
 			      WeakPointerVector< Node<3> > MasterNodes;
 			      MasterNodes.push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,node)) ) );
 			      if( mEchoLevel >= 1 ){
-				if(i_cond->GetValue(MASTER_NODES)[0].Id() != MasterNodes[0].Id())
-				  std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ("<<i_cond->GetValue(MASTER_NODES)[0].Id()<<" != "<<MasterNodes[0].Id()<<")"<<std::endl;
+				//if(i_cond->GetValue(MASTER_NODES)[0].Id() != MasterNodes[0].Id())
+				//  std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ("<<i_cond->GetValue(MASTER_NODES)[0].Id()<<" != "<<MasterNodes[0].Id()<<")"<<std::endl;
 				i_cond->SetValue(MASTER_NODES,MasterNodes);
 			      }
 			    }
