@@ -49,11 +49,9 @@ namespace Kratos
  * - YOUNG_MODULUS
  * - POISSON_RATIO
  * - YIELD_STRESS
- * -
- * -
- * -
- * -
- * @warning Valid for small strains, linear hexahedra
+ * - INFINITY_YIELD_STRESS
+ * - ISOTROPIC_HARDENING_MODULUS
+ * @warning Valid for small strains
  * @note
  * @author Marcelo Raschi
  */
@@ -65,14 +63,12 @@ public:
 
     ///@name Type Definitions
     ///@{
-
-    typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw         BaseType;
-    typedef std::size_t             SizeType;
+    typedef ProcessInfo ProcessInfoType;
+    typedef ConstitutiveLaw BaseType;
+    typedef std::size_t SizeType;
 
     // Counted pointer of LinearIsotropicDamage3DLaw
     KRATOS_CLASS_POINTER_DEFINITION(LinearIsotropicDamage3DLaw);
-
 
     ///@}
     ///@name Lyfe Cycle
@@ -102,8 +98,8 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
     ///@}
+
     ///@name Operations
     ///@{
 
@@ -120,7 +116,6 @@ public:
     {
         return 3;
     };
-
 
     /**
      * @brief Voigt tensor size:
@@ -280,28 +275,23 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
-
     ///@}
 
     ///@name Protected member Variables
     ///@{
-
-    bool mInelasticFlag;
-    double mStrainEnergy;
-    double r;
-    double r_prev;
-    double tau_epsilon;
-
+    bool mInelasticFlag; /// Flags when in inelastic regime
+    double r; /// Damage threshold
+    double r_prev; /// Previous damage threshold
     ///@}
+
     ///@name Protected Operators
     ///@{
     ///@}
 
     ///@name Protected Operations
     ///@{
-
     double CalculateQ(double r, const Properties& rMaterialProperties);
-    virtual void CalculateConstitutiveMatrix(const Properties& props, Matrix& constitutiveMatrix);
+    virtual void CalculateConstitutiveMatrix(Matrix &constitutiveMatrix, const Properties &props);
     ///@}
 
 private:

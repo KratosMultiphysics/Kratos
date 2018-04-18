@@ -7,8 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Marcelo Raschi
-
-//  Collaborator:
+//  Collaborators:
 //
 
 #include "linear_isotropic_damage_3D_law.hpp"
@@ -95,7 +94,7 @@ void LinearIsotropicDamage3DLaw::InitializeMaterial(
     )
 {
     r_prev = material_prop[YIELD_STRESS] / std::sqrt(material_prop[YOUNG_MODULUS]);
-    tau_epsilon = 0.;
+    //tau_epsilon = 0.;
 }
 
 //************************************************************************************
@@ -140,88 +139,95 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseKirchhoff(Parameters& 
 
 void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
-    const Properties& matprops = rValues.GetMaterialProperties();
-    Vector& epsilon = rValues.GetStrainVector();
-    Vector& sigma_bar = rValues.GetStressVector();
-    Vector sigma_bar_pos;
-    Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-    double H = matprops[ISOTROPIC_HARDENING_MODULUS];
-    double dpointcoeff;
-    double d, q;
+    Flags &Options = rValues.GetOptions();
 
-    // Uncomment in case of solve ONLY_TRACTION surface for 3D cases
-    // bool TRACTION_ONLY = matprops[FLOW_RULE_IS_TRACTION_ONLY];
-    // double sigma_xx, sigma_yy, sigma_zz, sigma_xz, sigma_yz, sigma_xy;
-    // double hyp, sigma_1, sigma_2, sigma_3, angle, cos_a, sin_a;
+    const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+    Vector& strain_vector = rValues.GetStrainVector();
+    Vector& stress_vector = rValues.GetStressVector();
+    //Vector stress_vector_pos;
 
-    // TODO(marcelo): to be removed. Use USE_ELEMENT_PROVIDED_STRAIN flag
-    if (rValues.GetProcessInfo().Has(INITIAL_STRAIN))
-    {
-        noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN];
+    if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
+        CalculateConstitutiveMatrix(constitutive_matrix, rMaterialProperties);
     }
 
-    CalculateConstitutiveMatrix(matprops, constitutive_matrix);
-    sigma_bar = prod(constitutive_matrix, epsilon);
-    sigma_bar_pos = prod(constitutive_matrix, epsilon);
-    //TODO: for use with strain energy computation (see below)
-    Matrix constitutive_elastic_matrix = constitutive_matrix;
-
-    // for tension-only fluency law:
-    // originally sigma and sigma_positive are the same (as it is in the
-    // symmetrical case), this block modifies sigma_positive
-    /*
-    if (TRACTION_ONLY)
-    {
-        // Compute the invariants of the stress tensor
-        sigma_xx = sigma_bar(0);
-        sigma_yy = sigma_bar(1);
-        sigma_xy = sigma_bar(2);
-        hyp = std::hypot(0.5 * (sigma_xx - sigma_yy), sigma_xy);
-        sigma_1 = 0.5 * (sigma_xx + sigma_yy) + hyp;
-        sigma_2 = 0.5 * (sigma_xx + sigma_yy) - hyp;
-        angle = 0.5 * std::atan2(2.0 * sigma_xy, sigma_xx - sigma_yy);
-        cos_a = std::cos(angle);
-        sin_a = std::sin(angle);
-        sigma_bar_pos(0) = 0.0;
-        sigma_bar_pos(1) = 0.0;
-        sigma_bar_pos(2) = 0.0;
-        if(sigma_1 > 0){
-            sigma_bar_pos(0) += sigma_1 * cos_a * cos_a;
-            sigma_bar_pos(1) += sigma_1 * sin_a * sin_a;
-            sigma_bar_pos(2) += sigma_1 * sin_a * cos_a;
+    if (Options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
+            noalias(strain_vector) += rValues.GetProcessInfo()[INITIAL_STRAIN];
         }
-        if(sigma_2 > 0){
-            sigma_bar_pos(0) += sigma_2 * sin_a * sin_a;
-            sigma_bar_pos(1) += sigma_2 * cos_a * cos_a;
-            sigma_bar_pos(2) -= sigma_2 * sin_a * cos_a;
+        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
+        double H = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
+        double dpointcoeff;
+        double d, q;
+        double tau_epsilon;
+        // Uncomment when implementing ONLY_TRACTION
+        // bool TRACTION_ONLY = rMaterialProperties[FLOW_RULE_IS_TRACTION_ONLY];
+        // double sigma_xx, sigma_yy, sigma_zz, sigma_xz, sigma_yz, sigma_xy;
+        // double hyp, sigma_1, sigma_2, sigma_3, angle, cos_a, sin_a;
+
+        CalculateConstitutiveMatrix(constitutive_matrix, rMaterialProperties);
+        noalias(stress_vector) = prod(constitutive_matrix, strain_vector);
+        //noalias(stress_vector_pos) = prod(constitutive_matrix, strain_vector);
+
+        // for tension-only fluency law:
+        // originally sigma and sigma_positive are the same (as it is in the
+        // symmetrical case), this block modifies sigma_positive
+        /*
+        if (TRACTION_ONLY)
+        {
+            // Compute the invariants of the stress tensor
+            sigma_xx = stress_vector(0);
+            sigma_yy = stress_vector(1);
+            sigma_xy = stress_vector(2);
+            hyp = std::hypot(0.5 * (sigma_xx - sigma_yy), sigma_xy);
+            sigma_1 = 0.5 * (sigma_xx + sigma_yy) + hyp;
+            sigma_2 = 0.5 * (sigma_xx + sigma_yy) - hyp;
+            angle = 0.5 * std::atan2(2.0 * sigma_xy, sigma_xx - sigma_yy);
+            cos_a = std::cos(angle);
+            sin_a = std::sin(angle);
+            stress_vector_pos(0) = 0.0;
+            stress_vector_pos(1) = 0.0;
+            stress_vector_pos(2) = 0.0;
+            if(sigma_1 > 0){
+                stress_vector_pos(0) += sigma_1 * cos_a * cos_a;
+                stress_vector_pos(1) += sigma_1 * sin_a * sin_a;
+                stress_vector_pos(2) += sigma_1 * sin_a * cos_a;
+            }
+            if(sigma_2 > 0){
+                stress_vector_pos(0) += sigma_2 * sin_a * sin_a;
+                stress_vector_pos(1) += sigma_2 * cos_a * cos_a;
+                stress_vector_pos(2) -= sigma_2 * sin_a * cos_a;
+            }
+        }
+        */
+
+        //tau_epsilon = std::sqrt(inner_prod(stress_vector_pos, strain_vector));
+        tau_epsilon = std::sqrt(inner_prod(stress_vector, strain_vector));
+
+        if (tau_epsilon <= r_prev)
+        {
+            // ELASTIC
+            mInelasticFlag = false;
+            r = r_prev;
+            q = CalculateQ(r, rMaterialProperties);
+            d = 1. - q / r;
+            constitutive_matrix *= (1 - d);
+            stress_vector *= (1 - d);
+        }
+        else
+        {
+            // INELASTIC
+            mInelasticFlag = true;
+            r = tau_epsilon;
+            q = CalculateQ(r, rMaterialProperties);
+            d = 1. - q / r;
+            dpointcoeff = (q - H * r) / (r * r * r);
+            constitutive_matrix *= (1. - d);
+            //constitutive_matrix -= dpointcoeff * outer_prod(stress_vector_pos, stress_vector);
+            constitutive_matrix -= dpointcoeff * outer_prod(stress_vector, stress_vector);
+            stress_vector *= (1. - d);
         }
     }
-    */
-
-    tau_epsilon = std::sqrt(inner_prod(sigma_bar_pos, epsilon));
-
-    if (tau_epsilon <= r_prev)
-    {
-        r = r_prev;
-        q = CalculateQ(r, matprops);
-        d = 1. - q / r;
-        constitutive_matrix *= (1 - d);
-        sigma_bar *= (1 - d);
-    }
-    else
-    {
-        mInelasticFlag = true;
-        r = tau_epsilon;
-        q = CalculateQ(r, matprops);
-        d = 1. - q / r;
-        dpointcoeff = (q - H * r) / (r * r * r);
-        constitutive_matrix *= (1. - d);
-        constitutive_matrix -= dpointcoeff * outer_prod(sigma_bar_pos, sigma_bar);
-        sigma_bar *= (1. - d);
-    }
-
-    //TODO add check of flag here (COMPUTE_STRAIN_ENERGY)
-    mStrainEnergy = 0.5 * ((1. - d) * inner_prod(epsilon, prod(constitutive_elastic_matrix, epsilon)));
 }
 
 //************************************************************************************
@@ -233,24 +239,23 @@ double& LinearIsotropicDamage3DLaw::CalculateValue(
     double& rValue
     )
 {
-    //const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
-    //Vector& StrainVector                  = rParameterValues.GetStrainVector();
-    //Vector& StressVector                  = rParameterValues.GetStressVector();
-    //const double& E          = MaterialProperties[YOUNG_MODULUS];
-    //const double& NU    = MaterialProperties[POISSON_RATIO];
+    if (rThisVariable == STRAIN_ENERGY){
+        Vector& strain_vector = rParameterValues.GetStrainVector();
+        if (rParameterValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
+            noalias(strain_vector) += rParameterValues.GetProcessInfo()[INITIAL_STRAIN];
+        }
+        const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
+        Matrix& constitutive_matrix = rParameterValues.GetConstitutiveMatrix();
+        CalculateConstitutiveMatrix(constitutive_matrix, r_material_properties);
+        //double q = CalculateQ(r, r_material_properties);
+        //double d = 1. - q / r;
+        double q = CalculateQ(r_prev, r_material_properties);
+        double d = 1. - q / r_prev;
 
-    //if (rThisVariable == STRAIN_ENERGY)
-    //{
-    //    CalculateCauchyGreenStrain(rParameterValues, StrainVector);
-    //    CalculatePK2Stress( StrainVector, StressVector, E, NU );
-
-    //    rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
-    //}
-
-    if(rThisVariable == STRAIN_ENERGY){
-        rValue = mStrainEnergy;
+        rValue = 0.5 * ((1. - d) * inner_prod(strain_vector,
+                                              prod(constitutive_matrix, strain_vector)));
     }
-    return( rValue );
+    return(rValue);
 }
 
 //************************************************************************************
@@ -306,10 +311,7 @@ double LinearIsotropicDamage3DLaw::CalculateQ(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::CalculateConstitutiveMatrix(
-    const Properties& props,
-    Matrix& rLinearElasticMatrix
-    )
+void LinearIsotropicDamage3DLaw::CalculateConstitutiveMatrix(Matrix &rLinearElasticMatrix, const Properties &props)
 {
     double YoungModulus = props[YOUNG_MODULUS];
     double PoissonCoefficient = props[POISSON_RATIO];
@@ -372,6 +374,7 @@ int LinearIsotropicDamage3DLaw::Check(
 {
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
     KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));
+    KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS));
     KRATOS_CHECK(rMaterialProperties.Has(INFINITY_YIELD_STRESS));
     KRATOS_CHECK(rMaterialProperties.Has(ISOTROPIC_HARDENING_MODULUS));
 
