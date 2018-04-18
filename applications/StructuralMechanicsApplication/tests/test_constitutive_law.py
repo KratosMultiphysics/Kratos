@@ -312,6 +312,88 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
             t += dt
             c += 1
 
+    def test_Isotropic_Damage_3D(self):
+        nnodes = 8
+        dim = 3
+#
+        # Define a model and geometry
+        model_part = KratosMultiphysics.ModelPart("test")
+        geom = self._create_geometry(model_part, dim, nnodes)
+
+        # Material properties
+        prop_id = 0
+        properties = model_part.Properties[prop_id]
+        properties.SetValue(KratosMultiphysics.YOUNG_MODULUS, 3000)
+        properties.SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
+        properties.SetValue(KratosMultiphysics.YIELD_STRESS, 2.0)
+        properties.SetValue(StructuralMechanicsApplication.INFINITY_YIELD_STRESS, 3.0)
+        properties.SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.3)
+
+        N = KratosMultiphysics.Vector(nnodes)
+        DN_DX = KratosMultiphysics.Matrix(nnodes, dim)
+
+        # Construct a constitutive law
+        cl = StructuralMechanicsApplication.LinearIsotropicDamage3DLaw()
+        self._cl_check(cl, properties, geom, model_part, dim)
+
+        # Set the parameters to be employed
+        dict_options = {'USE_ELEMENT_PROVIDED_STRAIN': False,
+                        'COMPUTE_STRESS': True,
+                        'COMPUTE_CONSTITUTIVE_TENSOR': True,
+                        }
+        cl_options = self._set_cl_options(dict_options)
+        stress_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
+        strain_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
+        constitutive_matrix = KratosMultiphysics.Matrix(cl.GetStrainSize(),
+                                                        cl.GetStrainSize())
+
+        # Setting the parameters - note that a constitutive law may not need them all!
+        F = self._create_F()
+        detF = 1.0
+        cl_params = self._set_cl_parameters(cl_options, F, detF, strain_vector,
+                                            stress_vector, constitutive_matrix,
+                                            N, DN_DX, model_part, properties, geom)
+        cl.InitializeMaterial(properties, geom, N)
+
+        # Check the results
+        nr_timesteps = 10
+        rstress = []
+        for i in range(nr_timesteps):
+            rstress.append(KratosMultiphysics.Vector(cl.GetStrainSize()))
+        rstress[0][0] = 0.57692; rstress[0][1] = 0.57692; rstress[0][2] = 0.34615; rstress[0][3] = 0.11538; rstress[0][4] = 0.0; rstress[0][5] = 0.11538;
+        rstress[1][0] = 1.15384; rstress[1][1] = 1.15384; rstress[1][2] = 0.69231; rstress[1][3] = 0.23077; rstress[1][4] = 0.0; rstress[1][5] = 0.23077;
+        rstress[2][0] = 1.73076; rstress[2][1] = 1.73076; rstress[2][2] = 1.03850; rstress[2][3] = 0.34615; rstress[2][4] = 0.0; rstress[2][5] = 0.34615;
+        rstress[3][0] = 1.94550; rstress[3][1] = 1.94550; rstress[3][2] = 1.16730; rstress[3][3] = 0.38910; rstress[3][4] = 0.0; rstress[3][5] = 0.38910;
+        rstress[4][0] = 2.11858; rstress[4][1] = 2.11858; rstress[4][2] = 1.27120; rstress[4][3] = 0.42372; rstress[4][4] = 0.0; rstress[4][5] = 0.42372;
+        rstress[5][0] = 2.29166; rstress[5][1] = 2.29166; rstress[5][2] = 1.37500; rstress[5][3] = 0.45833; rstress[5][4] = 0.0; rstress[5][5] = 0.45833;
+        rstress[6][0] = 2.46473; rstress[6][1] = 2.46473; rstress[6][2] = 1.47880; rstress[6][3] = 0.49295; rstress[6][4] = 0.0; rstress[6][5] = 0.49295;
+        rstress[7][0] = 2.63781; rstress[7][1] = 2.63781; rstress[7][2] = 1.58270; rstress[7][3] = 0.52756; rstress[7][4] = 0.0; rstress[7][5] = 0.52756;
+        rstress[8][0] = 2.68543; rstress[8][1] = 2.68543; rstress[8][2] = 1.61130; rstress[8][3] = 0.53709; rstress[8][4] = 0.0; rstress[8][5] = 0.53709;
+        rstress[9][0] = 2.68543; rstress[9][1] = 2.68543; rstress[9][2] = 1.61130; rstress[9][3] = 0.53709; rstress[9][4] = 0.0; rstress[9][5] = 0.53709;
+
+        initial_strain = KratosMultiphysics.Vector(cl.GetStrainSize())
+        initial_strain[0] = 0.001
+        initial_strain[1] = 0.001
+        initial_strain[2] = 0.0
+        initial_strain[3] = 0.001
+        initial_strain[4] = 0.0
+        initial_strain[5] = 0.001
+
+        t = dt = 1. / nr_timesteps
+        c = 0
+        while(t <= 1. + dt /10.):
+            strain = t * initial_strain
+            cl_params.SetStrainVector(strain)
+            # Chauchy
+            cl.CalculateMaterialResponseCauchy(cl_params)
+            cl.FinalizeMaterialResponseCauchy(cl_params)
+            cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
+            stress = cl_params.GetStressVector()
+            for j in range(cl.GetStrainSize()):
+                self.assertAlmostEqual(rstress[c][j], stress[j], 4)
+            t += dt
+            c += 1
+
     def test_Uniaxial_KirchhoffSaintVenant_3D(self):
         nnodes = 4
         dim = 3
