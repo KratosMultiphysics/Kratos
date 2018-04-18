@@ -67,7 +67,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
             else:
                 #mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
                 time_integration_method = KratosSolid.StaticMethod()
-                time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
+                #time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
                 time_integration_method.SetParameters(self.process_info)
                 mechanical_scheme = KratosSolid.ResidualBasedDisplacementStaticScheme()
 

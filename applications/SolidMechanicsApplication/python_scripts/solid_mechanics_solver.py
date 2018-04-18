@@ -87,7 +87,7 @@ class MechanicalSolver(object):
                 if(custom_settings["solving_strategy_settings"]["stabilization_factor"].IsDouble()):
                     default_settings["solving_strategy_settings"]["stabilization_factor"].SetDouble(0.0)
                 else:
-                    self.settings["solving_strategy_settings"].RemoveValue("stabilization_factor")
+                    custom_settings["solving_strategy_settings"].RemoveValue("stabilization_factor")
 
 
         # Overwrite the default settings with user-provided parameters
