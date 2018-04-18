@@ -10,7 +10,7 @@
 //  Collaborators:
 //
 
-#include "linear_isotropic_damage_3D_law.hpp"
+#include "linear_isotropic_damage_3D_law.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -18,7 +18,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LinearIsotropicDamage3DLaw::LinearIsotropicDamage3DLaw()
+LinearIsotropicDamage3D::LinearIsotropicDamage3D()
     : ConstitutiveLaw()
 {
 }
@@ -26,7 +26,7 @@ LinearIsotropicDamage3DLaw::LinearIsotropicDamage3DLaw()
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 
-LinearIsotropicDamage3DLaw::LinearIsotropicDamage3DLaw(const LinearIsotropicDamage3DLaw &rOther)
+LinearIsotropicDamage3D::LinearIsotropicDamage3D(const LinearIsotropicDamage3D &rOther)
     : ConstitutiveLaw(rOther)
 {
 }
@@ -34,23 +34,23 @@ LinearIsotropicDamage3DLaw::LinearIsotropicDamage3DLaw(const LinearIsotropicDama
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer LinearIsotropicDamage3DLaw::Clone() const
+ConstitutiveLaw::Pointer LinearIsotropicDamage3D::Clone() const
 {
-    LinearIsotropicDamage3DLaw::Pointer p_clone(new LinearIsotropicDamage3DLaw(*this));
+    LinearIsotropicDamage3D::Pointer p_clone(new LinearIsotropicDamage3D(*this));
     return p_clone;
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-LinearIsotropicDamage3DLaw::~LinearIsotropicDamage3DLaw()
+LinearIsotropicDamage3D::~LinearIsotropicDamage3D()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-bool LinearIsotropicDamage3DLaw::Has(const Variable<bool>& rThisVariable)
+bool LinearIsotropicDamage3D::Has(const Variable<bool>& rThisVariable)
 {
     if(rThisVariable == INELASTIC_FLAG){
         return true;
@@ -61,7 +61,7 @@ bool LinearIsotropicDamage3DLaw::Has(const Variable<bool>& rThisVariable)
 //************************************************************************************
 //************************************************************************************
 
-bool LinearIsotropicDamage3DLaw::Has(const Variable<double>& rThisVariable)
+bool LinearIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
 {
     if(rThisVariable == STRAIN_ENERGY){
         return true;
@@ -72,7 +72,7 @@ bool LinearIsotropicDamage3DLaw::Has(const Variable<double>& rThisVariable)
 //************************************************************************************
 //************************************************************************************
 
-bool& LinearIsotropicDamage3DLaw::GetValue(
+bool& LinearIsotropicDamage3D::GetValue(
     const Variable<bool>& rThisVariable,
     bool& rValue
     )
@@ -87,7 +87,7 @@ bool& LinearIsotropicDamage3DLaw::GetValue(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::InitializeMaterial(
+void LinearIsotropicDamage3D::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -101,7 +101,7 @@ void LinearIsotropicDamage3DLaw::InitializeMaterial(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::FinalizeSolutionStep(
+void LinearIsotropicDamage3D::FinalizeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -114,7 +114,7 @@ void LinearIsotropicDamage3DLaw::FinalizeSolutionStep(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::CalculateMaterialResponsePK1(Parameters& rValues)
+void LinearIsotropicDamage3D::CalculateMaterialResponsePK1(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -122,7 +122,7 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponsePK1(Parameters& rValue
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+void LinearIsotropicDamage3D::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -130,7 +130,7 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponsePK2(Parameters& rValue
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
+void LinearIsotropicDamage3D::CalculateMaterialResponseKirchhoff(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -138,7 +138,7 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseKirchhoff(Parameters& 
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
+void LinearIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
     const Flags &Options = rValues.GetOptions();
 
@@ -227,7 +227,7 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
 //************************************************************************************
 //************************************************************************************
 
-double& LinearIsotropicDamage3DLaw::CalculateValue(
+double& LinearIsotropicDamage3D::CalculateValue(
     Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue
@@ -253,35 +253,35 @@ double& LinearIsotropicDamage3DLaw::CalculateValue(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
+void LinearIsotropicDamage3D::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+void LinearIsotropicDamage3D::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+void LinearIsotropicDamage3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void LinearIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-double LinearIsotropicDamage3DLaw::CalculateQ(
+double LinearIsotropicDamage3D::CalculateQ(
     double r,
     const Properties& rMaterialProperties
     )
@@ -305,7 +305,7 @@ double LinearIsotropicDamage3DLaw::CalculateQ(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::CalculateConstitutiveMatrix(
+void LinearIsotropicDamage3D::CalculateConstitutiveMatrix(
     Matrix &rConstitTensor,
     const Properties &rMaterialProperties
     )
@@ -334,7 +334,7 @@ void LinearIsotropicDamage3DLaw::CalculateConstitutiveMatrix(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::GetLawFeatures(Features& rFeatures)
+void LinearIsotropicDamage3D::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mOptions.Set(THREE_DIMENSIONAL_LAW);
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -347,7 +347,7 @@ void LinearIsotropicDamage3DLaw::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-int LinearIsotropicDamage3DLaw::Check(
+int LinearIsotropicDamage3D::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -379,7 +379,7 @@ int LinearIsotropicDamage3DLaw::Check(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::save(Serializer& rSerializer) const
+void LinearIsotropicDamage3D::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.save("mInelasticFlag", mInelasticFlag);
@@ -390,7 +390,7 @@ void LinearIsotropicDamage3DLaw::save(Serializer& rSerializer) const
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3DLaw::load(Serializer& rSerializer)
+void LinearIsotropicDamage3D::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.load("mInelasticFlag", mInelasticFlag);

@@ -88,7 +88,7 @@
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 #include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/linear_j2_plasticity_3d.h"
-#include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
+#include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
 /* UTILITIES */
 // Cross sections
@@ -398,7 +398,7 @@ private:
 
     const LinearJ2Plasticity3D mLinearJ2Plasticity3D;
     const LinearJ2PlasticityPlaneStrain2D mLinearJ2PlasticityPlaneStrain2D;
-    const LinearIsotropicDamage3DLaw mLinearIsotropicDamage3DLaw;
+    const LinearIsotropicDamage3D mLinearIsotropicDamage3DLaw;
 
     ///@}
     ///@name Private Operators

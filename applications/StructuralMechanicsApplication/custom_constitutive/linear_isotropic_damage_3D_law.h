@@ -44,7 +44,7 @@ namespace Kratos
 /**
  * @class LinearIsotropicDamage3D
  * @ingroup StructuralMechanicsApplication
- * @brief
+ * @brief Defines a damage with hardening/softening constitutive law in 3D
  * @details This material law is defined by the parameters:
  * - YOUNG_MODULUS
  * - POISSON_RATIO
@@ -55,7 +55,7 @@ namespace Kratos
  * @note
  * @author Marcelo Raschi
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearIsotropicDamage3DLaw
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearIsotropicDamage3D
     : public ConstitutiveLaw
 
 {
@@ -68,7 +68,7 @@ public:
     typedef std::size_t SizeType;
 
     // Counted pointer of LinearIsotropicDamage3DLaw
-    KRATOS_CLASS_POINTER_DEFINITION(LinearIsotropicDamage3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(LinearIsotropicDamage3D);
 
     ///@}
     ///@name Lyfe Cycle
@@ -77,17 +77,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    LinearIsotropicDamage3DLaw();
+    LinearIsotropicDamage3D();
 
     /**
      * @brief Default constructor.
      */
-    LinearIsotropicDamage3DLaw(const LinearIsotropicDamage3DLaw& rOther);
+    LinearIsotropicDamage3D(const LinearIsotropicDamage3D& rOther);
 
     /**
      * @brief Default constructor.
      */
-    ~LinearIsotropicDamage3DLaw() override;
+    ~LinearIsotropicDamage3D() override;
 
     /**
      * @brief Clone function
