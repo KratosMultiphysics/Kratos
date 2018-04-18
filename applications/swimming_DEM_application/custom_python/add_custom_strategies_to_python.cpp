@@ -52,11 +52,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 
-// External includes
-#include "spaces/ublas_space.h"
-
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
+
+// External includes
+#include "spaces/ublas_space.h"
 
 //strategies
 #include "../DEM_application/custom_strategies/strategies/explicit_solver_strategy.h"

@@ -155,7 +155,7 @@ void SearchPointsImplementation(
 }
 
 /// Turn back information as a string.
-virtual std::string Info() const
+virtual std::string Info() const override
 {
 std::stringstream buffer;
 buffer << "PointPointSearch" ;
@@ -164,10 +164,10 @@ return buffer.str();
 }
 
 /// Print information about this object.
-virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "PointPointSearch";}
+virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "PointPointSearch";}
 
 /// Print object's data.
-virtual void PrintData(std::ostream& rOStream) const {}
+virtual void PrintData(std::ostream& rOStream) const override {}
 
 
 ///@}

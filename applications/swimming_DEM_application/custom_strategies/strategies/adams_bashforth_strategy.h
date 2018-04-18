@@ -104,7 +104,7 @@ namespace Kratos {
             Timer::PrintTimingInformation();
         }
 
-        double Solve();
+        double Solve() override;
 
     protected:
 

@@ -173,8 +173,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     class_<VectorField<3>> (m, "VectorField3D").def(init<>())
         ;
 
-    typedef void (VelocityField::*Evaluate)(const double, const vector<double>&, vector<double>&, const int);
-    Evaluate EvaluateVector = &VelocityField::Evaluate;
+    //typedef void (VelocityField::*Evaluate)(const double, const vector<double>&, vector<double>&, const int);
+    //Evaluate EvaluateVector = &VelocityField::Evaluate;
 
     typedef void (VelocityField::*CalculateTimeDerivative)(const double, const vector<double>&, vector<double>&, const int);
     CalculateTimeDerivative CalculateTimeDerivativeVector = &VelocityField::CalculateTimeDerivative;
