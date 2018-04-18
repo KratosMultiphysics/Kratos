@@ -35,12 +35,12 @@ AnalyticParticleWatcher(){}
 virtual ~AnalyticParticleWatcher(){}
 
 
-class InterParticleImpactDataOfAParticle  // It holds the historical information gathered in a single time step
+class InterParticleImpactDataOfAllParticlesSingleTimeStep  // It holds the historical information gathered in a single time step
 {
     public:
 
-    InterParticleImpactDataOfAParticle(const double time) : mNImpacts(0)/*, mTime(time)*/{}
-    ~InterParticleImpactDataOfAParticle(){}
+    InterParticleImpactDataOfAllParticlesSingleTimeStep(const double time) : mNImpacts(0)/*, mTime(time)*/{}
+    ~InterParticleImpactDataOfAllParticlesSingleTimeStep(){}
 
     int GetNumberOfImpacts()
     {
@@ -55,6 +55,13 @@ class InterParticleImpactDataOfAParticle  // It holds the historical information
             mId2.push_back(id2);
             mRelVelNormal.push_back(normal_vel);
             mRelVelTangential.push_back(tang_vel);
+        }
+    }
+
+    void PushBackImpacts(InterParticleImpactDataOfAllParticlesSingleTimeStep& other_list_of_impacts)
+    {
+        for (int i=0; i<other_list_of_impacts.GetNumberOfImpacts(); i++) {
+            PushBackImpacts(other_list_of_impacts.mId1[i], other_list_of_impacts.mId2[i], other_list_of_impacts.mRelVelNormal[i], other_list_of_impacts.mRelVelTangential[i]);
         }
     }
 
@@ -88,17 +95,17 @@ class InterParticleImpactDataOfAParticle  // It holds the historical information
 
         bool ImpactIsNew(const int id_2)
         {
-            return std::find(mId1.begin(), mId1.end(), id_2) != mId1.end();
+            return std::find(mId1.begin(), mId1.end(), id_2) == mId1.end();
         }
     };
 
-class InterParticleImpactDataOfATimeStep // It holds the historical information gathered for a single particle
+class InterParticleImpactDataOfAllTimeStepsSingleParticle // It holds the historical information gathered for a single particle
     {
         public:
 
-        InterParticleImpactDataOfATimeStep(): mNImpacts(0)/*, mId(0)*/{}
-        InterParticleImpactDataOfATimeStep(const int id) : mNImpacts(0)/*, mId(id)*/{}
-        ~InterParticleImpactDataOfATimeStep(){}
+        InterParticleImpactDataOfAllTimeStepsSingleParticle(): mNImpacts(0)/*, mId(0)*/{}
+        InterParticleImpactDataOfAllTimeStepsSingleParticle(const int id) : mNImpacts(0)/*, mId(id)*/{}
+        ~InterParticleImpactDataOfAllTimeStepsSingleParticle(){}
 
         void PushBackImpacts(const double time, const int id2, const double normal_vel, const double tang_vel, const double linear_impulse)
         {
@@ -107,7 +114,7 @@ class InterParticleImpactDataOfATimeStep // It holds the historical information 
             mId2.push_back(id2);
             mRelVelNormal.push_back(normal_vel);
             mRelVelTangential.push_back(tang_vel);
-            mLinearImpulse.push_back(linear_impulse);
+            mLinearImpulse.push_back(linear_impulse);            
         }
 
         void FillUpPythonLists(std::list<double>& times,
@@ -130,16 +137,18 @@ class InterParticleImpactDataOfATimeStep // It holds the historical information 
 
         void GetMaxCollidingSpeedFromDatabase(double& db_normal_impact_velocity, double& db_tangential_impact_velocity){
             if(mRelVelNormal.size()){
-                db_normal_impact_velocity = std::abs(*(std::max_element(mRelVelNormal.begin(), mRelVelNormal.end())));
-                db_tangential_impact_velocity = std::abs(*(std::max_element(mRelVelTangential.begin(), mRelVelTangential.end())));
+                for(int i=0; i<(int)mRelVelNormal.size(); i++){
+                    const double abs_normal_value = std::abs(mRelVelNormal[i]);
+                    db_normal_impact_velocity = std::max(db_normal_impact_velocity, abs_normal_value);
+                    const double abs_tg_value = std::abs(mRelVelTangential[i]);
+                    db_tangential_impact_velocity = std::max(db_tangential_impact_velocity, abs_tg_value);
+                }
             }
             else {
                 db_normal_impact_velocity = 0.0;
                 db_tangential_impact_velocity = 0.0;
             }
-
         }
-
 
         void GetMaxLinearImpulseFromDatabase(double& db_linear_impulse){
             if(mRelVelNormal.size()){
@@ -162,19 +171,20 @@ class InterParticleImpactDataOfATimeStep // It holds the historical information 
         std::vector<double> mRelVelNormal;
         std::vector<double> mRelVelTangential;
         std::vector<double> mLinearImpulse;
+        
 };
 
 
 
 
-// FaceParticleImpactDataOfAParticle
+// FaceParticleImpactDataOfAllParticlesSingleTimeStep
 
-class FaceParticleImpactDataOfAParticle  // It holds the historical information gathered in a single time step against flat walls
+class FaceParticleImpactDataOfAllParticlesSingleTimeStep  // It holds the historical information gathered in a single time step against flat walls
 {
     public:
 
-    FaceParticleImpactDataOfAParticle(const double time) : mNImpacts(0)/*, mTime(time)*/{}
-    ~FaceParticleImpactDataOfAParticle(){}
+    FaceParticleImpactDataOfAllParticlesSingleTimeStep(const double time) : mNImpacts(0)/*, mTime(time)*/{}
+    ~FaceParticleImpactDataOfAllParticlesSingleTimeStep(){}
 
     int GetNumberOfImpacts()
     {
@@ -189,6 +199,13 @@ class FaceParticleImpactDataOfAParticle  // It holds the historical information 
             mId2.push_back(id2);
             mRelVelNormal.push_back(normal_vel);
             mRelVelTangential.push_back(tang_vel);
+        }
+    }
+
+    void PushBackImpacts(FaceParticleImpactDataOfAllParticlesSingleTimeStep& other_list_of_impacts)
+    {
+        for (int i=0; i<other_list_of_impacts.GetNumberOfImpacts(); i++) {
+            PushBackImpacts(other_list_of_impacts.mId1[i], other_list_of_impacts.mId2[i], other_list_of_impacts.mRelVelNormal[i], other_list_of_impacts.mRelVelTangential[i]);
         }
     }
 
@@ -221,17 +238,17 @@ class FaceParticleImpactDataOfAParticle  // It holds the historical information 
 
         bool ImpactIsNew(const int id_2)
         {
-            return std::find(mId1.begin(), mId1.end(), id_2) != mId1.end();
+            return std::find(mId1.begin(), mId1.end(), id_2) == mId1.end();
         }
     };
 
-class FaceParticleImpactDataOfATimeStep // It holds the historical information gathered for a single particle against flat walls
+class FaceParticleImpactDataOfAllTimeStepsSingleParticle // It holds the historical information gathered for a single particle against flat walls
     {
         public:
 
-        FaceParticleImpactDataOfATimeStep(): mNImpacts(0)/*, mId(0)*/{}
-        FaceParticleImpactDataOfATimeStep(const int id) : mNImpacts(0)/*, mId(id)*/{}
-        ~FaceParticleImpactDataOfATimeStep(){}
+        FaceParticleImpactDataOfAllTimeStepsSingleParticle(): mNImpacts(0)/*, mId(0)*/{}
+        FaceParticleImpactDataOfAllTimeStepsSingleParticle(const int id) : mNImpacts(0)/*, mId(id)*/{}
+        ~FaceParticleImpactDataOfAllTimeStepsSingleParticle(){}
 
         void PushBackImpacts(const double time, const int id2, const double normal_vel, const double tang_vel)
         {
@@ -262,8 +279,12 @@ class FaceParticleImpactDataOfATimeStep // It holds the historical information g
 
         void GetMaxCollidingSpeedFromDatabase(double& db_normal_impact_velocity, double& db_tangential_impact_velocity){
             if(mRelVelNormal.size()){
-                db_normal_impact_velocity = std::abs(*(std::max_element(mRelVelNormal.begin(), mRelVelNormal.end())));
-                db_tangential_impact_velocity = std::abs(*(std::max_element(mRelVelTangential.begin(), mRelVelTangential.end())));
+                for(int i=0; i<(int)mRelVelNormal.size(); i++){
+                    const double abs_normal_value = std::abs(mRelVelNormal[i]);
+                    db_normal_impact_velocity = std::max(db_normal_impact_velocity, abs_normal_value);
+                    const double abs_tg_value = std::abs(mRelVelTangential[i]);
+                    db_tangential_impact_velocity = std::max(db_tangential_impact_velocity, abs_tg_value);
+                }
             }
             else {
                 db_normal_impact_velocity = 0.0;
@@ -307,8 +328,8 @@ virtual void SetNodalMaxImpactVelocities(ModelPart &analytic_model_part);
 virtual void SetNodalMaxFaceImpactVelocities(ModelPart &analytic_model_part);
 virtual void SetNodalMaxLinearImpulse(ModelPart &analytic_model_part);
 
-virtual InterParticleImpactDataOfATimeStep& GetParticleDataBase(int id);
-virtual FaceParticleImpactDataOfATimeStep& GetParticleFaceDataBase(int id);
+virtual InterParticleImpactDataOfAllTimeStepsSingleParticle& GetParticleDataBase(int id, std::map<int, InterParticleImpactDataOfAllTimeStepsSingleParticle>& data_base);
+virtual FaceParticleImpactDataOfAllTimeStepsSingleParticle& GetParticleFaceDataBase(int id, std::map<int, FaceParticleImpactDataOfAllTimeStepsSingleParticle>& data_base);
 
 /// Turn back information as a string
 virtual std::string Info() const;
@@ -324,11 +345,11 @@ private:
 
 std::set<int> mSetOfIds;
 
-std::vector<InterParticleImpactDataOfAParticle> mInterParticleImpactDataOfAllParticles;
-std::map<int, InterParticleImpactDataOfATimeStep> mInterParticleImpactDataOfAllTimeSteps;
+std::vector<InterParticleImpactDataOfAllParticlesSingleTimeStep> mInterParticleImpactDataOfAllParticles;
+std::map<int, InterParticleImpactDataOfAllTimeStepsSingleParticle> mInterParticleImpactDataOfAllTimeSteps;
 
-std::vector<FaceParticleImpactDataOfAParticle> mFaceParticleImpactDataOfAllParticles;
-std::map<int, FaceParticleImpactDataOfATimeStep> mFaceParticleImpactDataOfAllTimeSteps;
+std::vector<FaceParticleImpactDataOfAllParticlesSingleTimeStep> mFaceParticleImpactDataOfAllParticles;
+std::map<int, FaceParticleImpactDataOfAllTimeStepsSingleParticle> mFaceParticleImpactDataOfAllTimeSteps;
 
 // std::vector<EdgeParticleImpactDataOfAParticle> mEdgeParticleImpactDataOfAllParticles; inactive
 // std::map<int, EdgeParticleImpactDataOfATimeStep> mEdgeParticleImpactDataOfAllTimeSteps;

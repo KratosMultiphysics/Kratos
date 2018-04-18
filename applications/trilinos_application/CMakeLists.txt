@@ -14,7 +14,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
 #find trilinos solver package -- this is our own find package!!
 find_package(TRILINOS REQUIRED)
-include_directories(${TRILINOS_INCLUDE_DIR})
+include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
 link_directories(${TRILINOS_LIBRARIES})
 
 if(TRILINOS_USE_AMGCL MATCHES ON)
@@ -76,13 +76,13 @@ pybind11_add_module(KratosTrilinosApplication MODULE ${KRATOS_TRILINOS_APPLICATI
 
 
 if (HAVE_PASTIX)
-        target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES} )
+        target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES} )
         install(FILES ${PASTIX_LIBRARIES} DESTINATION libs )
 
         message("linking PASTIX in the AMGCL lib")
-#         target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES})
+#         target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES})
 else()
-        target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
+        target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
 endif()
 
 set_target_properties(KratosTrilinosApplication PROPERTIES PREFIX "")

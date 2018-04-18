@@ -107,10 +107,10 @@ public:
     ///@name Access
     ///@{
 
-    virtual void SetStrategy(StrategyLabel const& rStrategyLabel,
-                             typename TLinearSolver::Pointer pLinearSolver,
-                             const double Tolerance,
-                             const unsigned int MaxIter)
+    void SetStrategy(StrategyLabel const& rStrategyLabel,
+                     typename TLinearSolver::Pointer pLinearSolver,
+                     const double Tolerance,
+                     const unsigned int MaxIter) override
     {
         KRATOS_TRY;
 
@@ -181,10 +181,10 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
-                                    typename TLinearSolver::Pointer pLinearSolver,
-                                    const double Tolerance,
-                                    const unsigned int MaxIter)
+    void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
+                            typename TLinearSolver::Pointer pLinearSolver,
+                            const double Tolerance,
+                            const unsigned int MaxIter) override
     {
         KRATOS_TRY;
 
@@ -207,7 +207,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual void SetTurbulenceModel(ProcessPointerType pTurbulenceModel)
+    void SetTurbulenceModel(ProcessPointerType pTurbulenceModel) override
     {
         BaseType::SetTurbulenceModel(pTurbulenceModel);
     }
@@ -221,7 +221,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "TrilinosFractionalStepSettings" ;
@@ -229,10 +229,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "TrilinosFractionalStepSettings";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "TrilinosFractionalStepSettings";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
