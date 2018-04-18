@@ -125,26 +125,7 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
 
-    //************* COMPUTING  METHODS
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental mass matrix
-      * @param rMassMatrix: the elemental mass matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental damping matrix
-      * @param rDampingMatrix: the elemental damping matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-
-
+ 
     //************************************************************************************
     //************************************************************************************
     /**
@@ -177,11 +158,9 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
     ///@}
     ///@name Protected Operators
     ///@{
-
     ///@}
     ///@name Protected Operations
     ///@{
@@ -191,58 +170,40 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
-                                    double& rIntegrationWeight) override;
-
-    /**
-     * Calculation and addition of the vectors of the RHS
-     */
-
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
-                                    Vector& rVolumeForce,
-                                    double& rIntegrationWeight) override;
-
-    /**
-     * Calculation and addition of the matrices of the LHS
-     */
-
-    virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
-					   ElementVariables& rVariables, 
-					   ProcessInfo& rCurrentProcessInfo, 
-					   double& rIntegrationWeight) override;
-
-    /**
-     * Calculation and addition of the vectors of the RHS
-     */
-
-    virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
-					   ElementVariables& rVariables, 
-					   ProcessInfo& rCurrentProcessInfo, 
-					   double& rIntegrationWeight) override;
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                            ElementVariables& rVariables,
+                            double& rIntegrationWeight) override;
     
-    /**
-     * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
-     */
-    virtual void CalculateAndAddKuum(MatrixType& rK,
-                                     ElementVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    ) override;
-
-    /**
-     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
-     */
-    virtual void CalculateAndAddKuug(MatrixType& rK,
-                                     ElementVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    ) override;
-
-
     /**
      * Get element size from the dofs
      */    
     unsigned int GetDofsSize() override;
+
+    /**
+     * Set Variables of the Element to the Parameters of the Constitutive Law
+     */
+    void SetElementVariables(ElementVariables& rVariables,
+                             ConstitutiveLaw::Parameters& rValues,
+                             const int & rPointNumber) override;
+    
+    /**
+     * Calculation of the velocity gradient
+     */
+    void CalculateVelocityGradient(Matrix& rH,
+                                   const Matrix& rDN_DX,
+                                   unsigned int step = 0);
+    
+    /**
+     * Calculation of the symmetric velocity gradient Vector
+     */
+    void CalculateSymmetricVelocityGradient(const Matrix& rH,
+                                            Vector& rStrainVector);
+
+    /**
+     * Calculation of the skew symmetric velocity gradient Vector
+     */
+    void CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
+                                                Vector& rStrainVector);
 
     ///@}
     ///@name Protected  Access

@@ -563,6 +563,9 @@ void SolidElement::InitializeElementVariables (ElementVariables& rVariables, con
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
 
+    //set process info
+    rVariables.SetProcessInfo(rCurrentProcessInfo);
+    
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
@@ -614,9 +617,6 @@ void SolidElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 					    Flags& rCalculationFlags)
 
 {
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
     const unsigned int MatSize = this->GetDofsSize();
@@ -1934,8 +1934,6 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
     KRATOS_TRY
 
     //0.-Initialize the DampingMatrix:
-    unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
     const unsigned int MatSize = this->GetDofsSize();

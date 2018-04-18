@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED)
-#define  KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_V_ELEMENT_H_INCLUDED)
+#define  KRATOS_UPDATED_LAGRANGIAN_V_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/solid_elements/large_displacement_element.hpp"
+#include "custom_elements/solid_elements/large_displacement_V_element.hpp"
 
 
 namespace Kratos
@@ -35,15 +35,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Axisymmetric Updated Lagrangian Element 2D geometries.
+/// Updated Lagrangian Element for 3D and 2D geometries.
 
 /**
- * Implements a Large Displacement Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 2D
+ * Implements a spatial Lagrangian definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D
  */
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) AxisymmetricUpdatedLagrangianElement
-    : public LargeDisplacementElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) UpdatedLagrangianVElement
+    : public LargeDisplacementVElement
 {
 public:
 
@@ -53,48 +53,49 @@ public:
     typedef ConstitutiveLaw ConstitutiveLawType;
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-    ///StressMeasure from constitutive laws
-    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of AxisymmetricUpdatedLagrangianElement
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricUpdatedLagrangianElement );
-
+    /// Counted pointer of UpdatedLagrangianVElement
+    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianVElement );
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    AxisymmetricUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    UpdatedLagrangianVElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    AxisymmetricUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    UpdatedLagrangianVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    AxisymmetricUpdatedLagrangianElement(AxisymmetricUpdatedLagrangianElement const& rOther);
+    UpdatedLagrangianVElement(UpdatedLagrangianVElement const& rOther);
 
     /// Destructor.
-    virtual ~AxisymmetricUpdatedLagrangianElement();
+    virtual ~UpdatedLagrangianVElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    AxisymmetricUpdatedLagrangianElement& operator=(AxisymmetricUpdatedLagrangianElement const& rOther);
+    UpdatedLagrangianVElement& operator=(UpdatedLagrangianVElement const& rOther);
 
     ///@}
     ///@name Operations
     ///@{
-
     /**
-     * creates a new total lagrangian updated element pointer
+     * Returns the currently selected integration method
+     * @return current integration method selected
+     */
+    /**
+     * creates a  element pointer
      * @param NewId: the ID of the new element
      * @param ThisNodes: the nodes of the new element
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+
 
     /**
      * clones the selected element variables, creating a new one
@@ -105,6 +106,7 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
+  
     // //************* GETTING METHODS
 
     //SET
@@ -121,6 +123,7 @@ public:
      * Get on rVariable a double Value from the Element Constitutive Law
      */
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
 
 
     //************* STARTING - ENDING  METHODS
@@ -145,12 +148,33 @@ public:
     ///@}
     ///@name Access
     ///@{
+
     ///@}
     ///@name Inquiry
     ///@{
     ///@}
     ///@name Input and output
     ///@{
+    /// Turn back information as a string.
+    virtual std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Updated Lagrangian V Element #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Updated Lagrangian V Element #" << Id();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const override
+    {
+      GetGeometry().PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -164,7 +188,13 @@ protected:
     ///@{
 
     /**
-     * Container for historical total elastic deformation measure
+     * Container for historical total stress vector measure 
+     */
+    std::vector< Vector > mStressVector;
+
+    
+    /**
+     * Container for historical total elastic deformation measure F0 = dx/dX
      */
     std::vector< Matrix > mDeformationGradientF0;
 
@@ -176,58 +206,23 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    AxisymmetricUpdatedLagrangianElement() : LargeDisplacementElement()
+    UpdatedLagrangianVElement() : LargeDisplacementVElement()
     {
     }
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    /**
-     * Calculation and addition of the matrices of the LHS
-     */
-
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
-                                    double& rIntegrationWeight) override;
-
-    /**
-     * Calculation and addition of the vectors of the RHS
-     */
-
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
-                                    Vector& rVolumeForce,
-                                    double& rIntegrationWeight) override;
-
-    /**
-     * Calculation of the Total Mass of the Element
-     */
-    double& CalculateTotalMass(double& rTotalMass, const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    /**
-     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
-     */
-    virtual void CalculateAndAddKuug(MatrixType& rK,
-                                     ElementVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    ) override;
-
-
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeElementVariables(ElementVariables& rVariables, 
+					    const ProcessInfo& rCurrentProcessInfo) override;
+
 
 
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementVariables & rVariables, const double& rPointNumber ) override;
+    virtual void FinalizeStepVariables(ElementVariables & rVariables, 
+				       const double& rPointNumber ) override;
 
 
     /**
@@ -238,48 +233,32 @@ protected:
 
 
     /**
-     * Calculate Radius in the current and deformed geometry
+     * Calculate Element Jacobian
      */
-    void CalculateRadius(double & rCurrentRadius,
-                         double & rReferenceRadius,
-                         const Vector& rN);
+    void CalculateKinetics(ElementVariables& rVariables,
+			   const double& rPointNumber) override;
+    
 
+    
     /**
      * Calculation of the Deformation Gradient F
      */
     void CalculateDeformationGradient(Matrix& rF,
                                       const Matrix& rDN_DX,
-                                      const Matrix& rDeltaPosition,
-                                      const double & rCurrentRadius,
-                                      const double & rReferenceRadius);
+                                      const Matrix& rDeltaPosition);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
     void CalculateDeformationMatrix(Matrix& rB,
-				    const Matrix& rDN_DX,
-				    const Vector& rN,
-				    const double & rCurrentRadius);
+				    const Matrix& rF,
+				    const Matrix& rDN_DX);
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
     void GetHistoricalVariables( ElementVariables& rVariables, 
 				 const double& rPointNumber ) override;
-
-
-    /**
-     * Calculation of the Green Lagrange Strain Vector
-     */
-    void CalculateGreenLagrangeStrain(const Matrix& rF,
-                                      Vector& rStrainVector) override;
-
-    /**
-     * Calculation of the Almansi Strain Vector
-     */
-    void CalculateAlmansiStrain(const Matrix& rF,
-                                Vector& rStrainVector) override;
-
 
     /**
      * Calculation of the Volume Change of the Element
@@ -304,18 +283,12 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-
     ///@}
     ///@name Private Operators
     ///@{
-
-
     ///@}
     ///@name Private Operations
     ///@{
-
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -326,12 +299,9 @@ private:
     ///@{
     friend class Serializer;
 
-    // A private default constructor necessary for serialization
-
     virtual void save(Serializer& rSerializer) const override;
 
     virtual void load(Serializer& rSerializer) override;
-
 
     ///@name Private Inquiry
     ///@{
@@ -340,7 +310,7 @@ private:
     ///@{
     ///@}
 
-}; // Class AxisymmetricUpdatedLagrangianElement
+}; // Class UpdatedLagrangianVElement
 
 ///@}
 ///@name Type Definitions
@@ -351,4 +321,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_V_ELEMENT_H_INCLUDED  defined 

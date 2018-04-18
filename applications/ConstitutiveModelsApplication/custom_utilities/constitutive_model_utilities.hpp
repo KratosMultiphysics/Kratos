@@ -109,6 +109,42 @@ namespace Kratos
     }
 
     /**
+     * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 0 in the diagonal
+     * if the matrix passed is 3D is does nothing
+     * if the matrix passed is bigger or smaller throws an error
+     * @param rL : the VelocityGradient in 2D / 3D
+     * @param rL3D : the VelocityGradient in 3D
+     */
+    static inline MatrixType& VelocityGradientTo3D(const MatrixType& rL, MatrixType& rL3D)
+    {
+      KRATOS_TRY
+	
+      for(unsigned int i=0; i<rL.size1(); i++)
+	for(unsigned int j=0; j<rL.size2(); j++)
+	  rL3D(i,j) = rL(i,j);
+      
+      if (rL.size1() == 2 && rL.size2() == 2)
+	{	      
+	  rL3D( 0 , 2 ) = 0.0;
+	  rL3D( 1 , 2 ) = 0.0;
+
+	  rL3D( 2 , 0 ) = 0.0;
+	  rL3D( 2 , 1 ) = 0.0;
+
+	  rL3D( 2 , 2 ) = 0.0;
+	}
+      else if(rL.size1() != 3 && rL.size2() != 3)
+	{
+	  KRATOS_ERROR << "Matrix Dimensions are not correct" << std::endl;
+	}
+
+      return rL3D;
+
+      KRATOS_CATCH(" ")
+    }
+    
+
+    /**
      * Computes the RightCauchyGreen (C=FT*F) given the DeformationGradientF
      * @param rDeformationGradientF input matrix 
      * @param rRightCauchyGreen output matrix

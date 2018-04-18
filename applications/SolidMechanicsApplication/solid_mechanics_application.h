@@ -49,6 +49,8 @@
 #include "custom_elements/solid_elements/updated_lagrangian_U_P_element.hpp"
 #include "custom_elements/solid_elements/axisymmetric_updated_lagrangian_U_P_element.hpp"
 
+#include "custom_elements/solid_elements/updated_lagrangian_V_element.hpp"
+
 //beam elements
 #include "custom_elements/beam_elements/beam_element.hpp"
 #include "custom_elements/beam_elements/small_displacement_beam_element.hpp"
@@ -374,6 +376,22 @@ typedef array_1d<double,6> Vector6;
    const AxisymmetricUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D8N;
    const AxisymmetricUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D9N;
 
+   //velocity based elements
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement2D3N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement2D4N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement2D6N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement2D8N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement2D9N;
+
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D4N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D6N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D8N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D10N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D15N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D20N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D27N;
+   
+   //mixed elements UP
    const UpdatedLagrangianUPElement         mUpdatedLagrangianUPElement2D3N;
    const AxisymmetricUpdatedLagrangianUPElement mAxisymUpdatedLagrangianUPElement2D3N;
    const UpdatedLagrangianUPElement         mUpdatedLagrangianUPElement3D4N;
