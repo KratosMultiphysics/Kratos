@@ -47,6 +47,7 @@ before_build:
 
 # Build
 build:
+  SET preferredToolArchitecture=x64
   project: C:\projects\kratos\cmake_build\kratosMultiphysics.sln  # path to Visual Studio solution or project
   parallel: true                                                  # enable MSBuild parallel builds
   verbosity: minimal                                              # MSBuild verbosity level (quiet|minimal|normal|detailed)
