@@ -447,6 +447,11 @@ public:
         mpSolutionStepsData = pNewSolutionStepsData;
     }
 
+    bool HasReaction()
+    {
+        return (*mpReaction != msNone);
+    }
+
     ///@}
     ///@name Inquiry
     ///@{

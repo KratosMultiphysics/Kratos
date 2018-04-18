@@ -140,7 +140,6 @@
         "Parameters"            : {
             "reference_file_name"   : "mmg_lagrangian_test/beam2D_test_result.sol",
             "output_file_name"      : "mmg_lagrangian_test/beam2D_test_step=10.sol",
-            "tolerance"             : 1.0e-6,
             "dimension"             : 2,
             "comparison_type"       : "sol_file"
         }

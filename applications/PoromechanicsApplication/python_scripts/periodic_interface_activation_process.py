@@ -16,7 +16,6 @@ class PeriodicInterfaceActivationProcess(KratosMultiphysics.Process):
 
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name",settings["model_part_name"])
-        params.AddValue("mesh_id",settings["mesh_id"])
         params.AddValue("dimension",settings["dimension"])
         params.AddValue("von_mises_limit",settings["von_mises_limit"])
         

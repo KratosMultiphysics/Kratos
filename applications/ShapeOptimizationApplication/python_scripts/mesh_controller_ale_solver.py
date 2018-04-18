@@ -11,39 +11,61 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
+# Kratos Core and Apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ALEApplication import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 # Additional imports
 import time as timer
-
 from mesh_controller_base import MeshController
+from mesh_moving_analysis import MeshMovingAnalysis
 
 # # ==============================================================================
-class MeshControllerUsingALESolver( MeshController) :
+class MeshControllerUsingALESolver(MeshController) :
     # --------------------------------------------------------------------------
-    def __init__( self, OptimizationModelPart, MeshMotionSettings ):
+    def __init__(self, MeshSolverSettings, OptimizationModelPart):
+        default_settings = Parameters("""
+        {
+            "apply_ale_mesh_solver" : true,
+            "problem_data" : {
+                "echo_level" : 0,
+                "time_step" : 1.1,
+                "start_time" : 0.0,
+                "end_time" : 1.0,
+                "parallel_type" : "OpenMP"
+            },
+            "solver_settings" : {
+                "solver_type" : "mesh_solver_structural_similarity",
+                "ale_linear_solver_settings" : {
+                    "solver_type" : "AMGCL",
+                    "smoother_type":"ilu0",
+                    "krylov_type": "gmres",
+                    "coarsening_type": "aggregation",
+                    "max_iteration": 200,
+                    "verbosity" : 0,
+                    "tolerance": 1e-7
+                },
+                "compute_reactions"         : false,
+                "calculate_mesh_velocities" : false
+            }
+        }""")
+        self.MeshSolverSettings = MeshSolverSettings
+        self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
+
+        self.MeshSolverSettings["problem_data"].AddEmptyValue("domain_size")
+        self.MeshSolverSettings["problem_data"]["domain_size"].SetInt(OptimizationModelPart.ProcessInfo[DOMAIN_SIZE])
+
         self.OptimizationModelPart = OptimizationModelPart
-        self.MeshMotionSettings = MeshMotionSettings
 
-        mesh_solver_module = __import__(self.MeshMotionSettings["mesh_solver_settings"]["solver_type"].GetString())
-        self.mesh_solver = mesh_solver_module.CreateSolver(self.OptimizationModelPart, self.MeshMotionSettings["mesh_solver_settings"])
-
-        self.mesh_solver.AddVariables()
+        self.mesh_solver = MeshMovingAnalysis(self.MeshSolverSettings, OptimizationModelPart)
 
     # --------------------------------------------------------------------------
-    def Initialize( self ):
-        self.mesh_solver.AddDofs()
+    def Initialize(self):
         self.mesh_solver.Initialize()
-        self.mesh_solver.SetEchoLevel(0)
 
     # --------------------------------------------------------------------------
-    def UpdateMeshAccordingInputVariable( self, InputVariable ):
+    def UpdateMeshAccordingInputVariable(self, InputVariable):
         print("\n> Starting to update the mesh...")
         startTime = timer.time()
 
@@ -58,10 +80,20 @@ class MeshControllerUsingALESolver( MeshController) :
         VariableUtils().ApplyFixity(MESH_DISPLACEMENT_Z, True, surface_nodes)
         VariableUtils().CopyVectorVar(SHAPE_UPDATE, MESH_DISPLACEMENT, surface_nodes)
 
-        self.mesh_solver.Solve()
+        time_before_mesh_update = self.OptimizationModelPart.ProcessInfo.GetValue(TIME)
 
-        MeshControllerUtilities( self.OptimizationModelPart ).LogMeshChangeAccordingInputVariable( MESH_DISPLACEMENT )
+        self.mesh_solver.InitializeTimeStep()
+        self.mesh_solver.SolveTimeStep()
+        self.mesh_solver.FinalizeTimeStep()
+
+        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_mesh_update)
+
+        MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(MESH_DISPLACEMENT)
 
         print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
+
+    # --------------------------------------------------------------------------
+    def Finalize(self):
+        self.mesh_solver.Finalize()
 
 # ==============================================================================

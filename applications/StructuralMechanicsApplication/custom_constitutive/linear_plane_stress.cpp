@@ -66,35 +66,28 @@ void  LinearPlaneStress::CalculateMaterialResponsePK2 (Parameters& rValues)
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
     Vector& StrainVector                  = rValues.GetStrainVector();
     Vector& StressVector                  = rValues.GetStressVector();
-    const double& E          = MaterialProperties[YOUNG_MODULUS];
-    const double& NU    = MaterialProperties[POISSON_RATIO];
+    const double E  = MaterialProperties[YOUNG_MODULUS];
+    const double NU = MaterialProperties[POISSON_RATIO];
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if(Options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
-    {
+    if(Options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         CalculateCauchyGreenStrain(rValues, StrainVector);
     }
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-    {
+    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
         Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
         CalculateElasticMatrix( ConstitutiveMatrix, E, NU );
     }
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
-    {
-        if (rValues.IsSetDeformationGradientF() == true)
-        {
+    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+        if (rValues.IsSetDeformationGradientF()) {
             CalculateCauchyGreenStrain(rValues, StrainVector);
         }
 
-        if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-        {
+        if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
             noalias(StressVector) = prod(ConstitutiveMatrix, StrainVector);
-        }
-        else
-        {
+        } else {
             CalculatePK2Stress( StrainVector, StressVector, E, NU );
         }
     }
@@ -178,11 +171,10 @@ double& LinearPlaneStress::CalculateValue(Parameters& rParameterValues, const Va
     const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
     Vector& StrainVector                  = rParameterValues.GetStrainVector();
     Vector& StressVector                  = rParameterValues.GetStressVector();
-    const double& E          = MaterialProperties[YOUNG_MODULUS];
-    const double& NU    = MaterialProperties[POISSON_RATIO];
+    const double E  = MaterialProperties[YOUNG_MODULUS];
+    const double NU = MaterialProperties[POISSON_RATIO];
     
-    if (rThisVariable == STRAIN_ENERGY)
-    {
+    if (rThisVariable == STRAIN_ENERGY) {
         CalculateCauchyGreenStrain(rParameterValues, StrainVector);
         CalculatePK2Stress( StrainVector, StressVector, E, NU );
 

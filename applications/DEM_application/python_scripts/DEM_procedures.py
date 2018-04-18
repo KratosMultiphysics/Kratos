@@ -1427,7 +1427,7 @@ class DEMIo(object):
             self.PostBoundingBox = 0
         else:
             self.PostBoundingBox = self.DEM_parameters["PostBoundingBox"].GetBool()
-
+        
         #self.automatic_bounding_box_option = Var_Translator(self.DEM_parameters["AutomaticBoundingBoxOption"].GetBool())
         #self.b_box_minX = self.DEM_parameters["BoundingBoxMinX"].GetDouble()
         #self.b_box_minY = self.DEM_parameters["BoundingBoxMinY"].GetDouble()
@@ -1464,15 +1464,18 @@ class DEMIo(object):
             self.PostFaceNormalImpactVelocity = 1
 
         # Ice
-        if "PostVirtualSeaSurfaceX1" in self.DEM_parameters.keys():
-            self.SeaSurfaceX1 = self.DEM_parameters["PostVirtualSeaSurfaceX1"].GetDouble()
-            self.SeaSurfaceY1 = self.DEM_parameters["PostVirtualSeaSurfaceY1"].GetDouble()
-            self.SeaSurfaceX2 = self.DEM_parameters["PostVirtualSeaSurfaceX2"].GetDouble()
-            self.SeaSurfaceY2 = self.DEM_parameters["PostVirtualSeaSurfaceY2"].GetDouble()
-            self.SeaSurfaceX3 = self.DEM_parameters["PostVirtualSeaSurfaceX3"].GetDouble()
-            self.SeaSurfaceY3 = self.DEM_parameters["PostVirtualSeaSurfaceY3"].GetDouble()
-            self.SeaSurfaceX4 = self.DEM_parameters["PostVirtualSeaSurfaceX4"].GetDouble()
-            self.SeaSurfaceY4 = self.DEM_parameters["PostVirtualSeaSurfaceY4"].GetDouble()
+        
+        self.sea_settings = self.DEM_parameters["virtual_sea_surface_settings"]
+        
+        if self.sea_settings["print_sea_surface"].GetBool():
+            self.SeaSurfaceX1 = self.sea_settings["PostVirtualSeaSurfaceX1"].GetDouble()
+            self.SeaSurfaceY1 = self.sea_settings["PostVirtualSeaSurfaceY1"].GetDouble()
+            self.SeaSurfaceX2 = self.sea_settings["PostVirtualSeaSurfaceX2"].GetDouble()
+            self.SeaSurfaceY2 = self.sea_settings["PostVirtualSeaSurfaceY2"].GetDouble()
+            self.SeaSurfaceX3 = self.sea_settings["PostVirtualSeaSurfaceX3"].GetDouble()
+            self.SeaSurfaceY3 = self.sea_settings["PostVirtualSeaSurfaceY3"].GetDouble()
+            self.SeaSurfaceX4 = self.sea_settings["PostVirtualSeaSurfaceX4"].GetDouble()
+            self.SeaSurfaceY4 = self.sea_settings["PostVirtualSeaSurfaceY4"].GetDouble()
 
     def KRATOSprint(self, message):
         print(message)
@@ -1743,7 +1746,7 @@ class DEMIo(object):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, contact_model_part, creator_destructor)
 
             # Ice. Printing a virtual sea surface
-            if "PostVirtualSeaSurfaceX1" in self.DEM_parameters.keys():
+            if self.sea_settings["print_sea_surface"].GetBool():
                 self.ComputeAndPrintSeaSurface(spheres_model_part, rigid_face_model_part)
 
             #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)#MSIMSI

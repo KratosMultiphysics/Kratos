@@ -11,12 +11,9 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
+# Kratos Core and Apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 # ==============================================================================
 def CreateMapper( ModelPartController, OptimizationSettings ):
@@ -26,14 +23,14 @@ def CreateMapper( ModelPartController, OptimizationSettings ):
         "filter_radius"              : 1.0,
         "max_nodes_in_filter_radius" : 10000,
         "matrix_free_filtering"      : false,
-        "integration": 
+        "integration":
         {
             "integration_method": "node_sum",
             "number_of_gauss_points": 0
         },
         "consistent_mapping_to_geometry_space": false
     }""")
-    
+
     mapper_settings = OptimizationSettings["design_variables"]["filter"]
     mapper_settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
@@ -52,6 +49,6 @@ def CreateMapper( ModelPartController, OptimizationSettings ):
         elif mapper_settings["integration"]["integration_method"].GetString() == "node_sum":
             return MapperVertexMorphing( design_surface, mapper_settings )
         else:
-            raise ValueError ("CreateMapper: integration_method not known!")       
+            raise ValueError ("CreateMapper: integration_method not known!")
 
 # ==============================================================================

@@ -37,8 +37,7 @@ namespace Kratos {
 			Properties property(0);
 			KRATOS_CHECK_IS_FALSE(property.HasVariables());
 
-			Variable<double> variable("TEST");
-			property.SetValue(variable, 1.0);
+			property.SetValue(TEMPERATURE, 1.0);
 
 			KRATOS_CHECK(property.HasVariables());
 		}
@@ -67,8 +66,7 @@ namespace Kratos {
 			Properties property1(1);
 			KRATOS_CHECK(property1.IsEmpty());
 
-			Variable<double> variable("TEST");
-			property1.SetValue(variable, 1.0);
+			property1.SetValue(TEMPERATURE, 1.0);
 
 			KRATOS_CHECK_IS_FALSE(property1.IsEmpty());
 
@@ -77,7 +75,7 @@ namespace Kratos {
 
 			property2.SetTable(TEMPERATURE, VISCOSITY, table);
 
-			property2.SetValue(variable, 1.0);
+			property2.SetValue(TEMPERATURE, 1.0);
 
 			KRATOS_CHECK_IS_FALSE(property2.IsEmpty());
 		}
