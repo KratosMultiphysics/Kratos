@@ -252,27 +252,27 @@
 		"add_nodes": true,
 		"insert_nodes": false,
 		"remove_nodes": {
-			"apply_removal": false,
+			"apply_removal": true,
 			"on_distance": true,
 			"on_threshold": false,
 			"on_error": true
 		},
 		"remove_boundary": {
-			"apply_removal": false,
+			"apply_removal": true,
 			"on_distance": true,
 			"on_threshold": false,
 			"on_error": false
 		},
 		"refine_elements": {
-			"apply_refinement": false,
+			"apply_refinement": true,
 			"on_distance": true,
 			"on_threshold": true,
 			"on_error": false
 		},
 		"refine_boundary": {
-			"apply_refinement": false,
-			"on_distance": false,
-			"on_threshold": false,
+			"apply_refinement": true,
+			"on_distance": true,
+			"on_threshold": true,
 			"on_error": false
 		},              
 		"refining_box":{
@@ -823,9 +823,22 @@
             "restart_file_name"   : "*tcl(file tail [GiD_Info Project ModelName])",
             "restart_file_label"  : "step",
             "output_control_type" : "time",
-            "output_frequency"    : *GenData(Restart_Frequency),
+            "output_frequency"    : *GenData(Write_Frequency),
             "json_output"         : false
         }
+*if(strcmp(GenData(CPT_PostProcess),"True")==0)
+    },
+    {
+        "help"            : "This process writes restart files",    
+        "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",    
+        "python_module"   : "cone_penetration_utility",
+        "process_name"    : "ConePenetrationUtility",
+        "Parameters": {
+             "cone_radius":      *GenData(CPT_Radius),
+             "u2_initial_depth": *GenData(Initial_u2_position),
+             "velocity":         *GenData(CPT_Velocity)
+         }
+*endif
     }],
     "output_configuration"     : {
         "result_file_configuration" : {
@@ -911,7 +924,9 @@
 *if(strcmp(GenData(DOFS),"U-W")==0)
 				      "WATER_PRESSURE",
 *endif
-				      "VON_MISES_STRESS"
+				      "STRESS_INV_P",
+				      "STRESS_INV_J2",
+				      "STRESS_INV_THETA"	
 				    ],
 	    "additional_list_files": [
 *for(i=1;i<=GenData(List_Files,INT);i=i+1)

@@ -39,15 +39,23 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
         self.the_process_has_been_executed = False;
 
 
+
         ## 
 
     ##def ExecuteBeforeSolutionLoop(self):
     def ExecuteThisProcess(self):
 
-        self.model_part = self.model_part[self.model_part_name]
-        self.restarted = self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
-        if ( self.restarted == True):
+        if ( self.the_process_has_been_executed == True):
             return
+
+        model_part = self.model_part[self.model_part_name]
+
+        if ( model_part.ProcessInfo.Has( KratosMultiphysics.IS_RESTARTED) ):
+            self.restarted = model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
+            if ( self.restarted == True):
+                self.the_process_has_been_executed == True
+                return
+
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name", self.settings["model_part_name"])
         params.AddValue("gravity_active",self.settings["gravity_active"])
@@ -57,9 +65,18 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
         params.AddValue("top_surface_load_bool",self.settings["top_surface_load_bool"])
         params.AddValue("top_surface_load",self.settings["top_surface_load"])
         params.AddValue("top_water_pressure",self.settings["top_water_pressure"])
-        initial_state_process = KratosPFEMSolid.SetMechanicalInitialStateProcess(self.model_part, self.settings)
+        initial_state_process = KratosPFEMSolid.SetMechanicalInitialStateProcess(model_part, self.settings)
         initial_state_process.Execute()
         self.the_process_has_been_executed = True
+
+        if ( params["gravity_active"].GetBool() ):
+            nodes = model_part.GetNodes()
+            for node in nodes:
+                VA = node.GetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION);
+                VA[1] = -10;
+                node.SetSolutionStepValue( KratosMultiphysics.VOLUME_ACCELERATION, VA)
+
+
 
     def ExecuteInitializeSolutionStep(self):
 
