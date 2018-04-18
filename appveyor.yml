@@ -7,7 +7,7 @@ branches:
 version: "{build}"
 
 # set clone depth
-clone_depth: 1
+shallow_clone: true
 
 # Image
 image: Visual Studio 2017
