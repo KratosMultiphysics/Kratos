@@ -91,10 +91,6 @@ public:
     typedef CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> RotationToolType;
     typedef typename CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double>::Pointer RotationToolPointerType;
     
-
-    typedef CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> RotationToolType;
-    typedef typename CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double>::Pointer RotationToolPointerType;
-
     ///@}
     ///@name Life Cycle
     ///@{
