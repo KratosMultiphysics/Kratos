@@ -9,7 +9,11 @@ import KratosMultiphysics.ExternalSolversApplication
 import KratosSwimmingDEM as script
 import json
 import os
-import candelier_algorithm
+
+import sys
+print(sys.path)
+
+from . import candelier_algorithm
 
 def PrintMessage(run_name, radial_error, tolerance):
         run_name += ': '
