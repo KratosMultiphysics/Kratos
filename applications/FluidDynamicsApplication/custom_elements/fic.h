@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
+//                   Ignasi de Pouplana
 //
 
 #ifndef KRATOS_FIC_FLUID_ELEMENT_H
@@ -297,6 +298,11 @@ protected:
         const Vector& rUnitNormal,
         MatrixType& rLHS,
         VectorType& rRHS) override;
+
+    void AddViscousTerm(
+        const TElementData& rData,
+        boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+        VectorType& rRHS);
 
     virtual void CalculateTau(
         const TElementData& rData,

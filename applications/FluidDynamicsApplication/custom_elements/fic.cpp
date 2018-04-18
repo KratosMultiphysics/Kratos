@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
+//                   Ignasi de Pouplana
 //
 
 #include "fic.h"
@@ -253,81 +254,80 @@ void FIC<TElementData>::AddVelocitySystem(
     body_force *= density; // Force per unit of volume
     AGradN *= density; // Convective term is always multiplied by density
 
-//TODO: seguir
-
-    // Auxiliary variables for matrix looping
-    const unsigned int NumNodes = rN.size();
-    const unsigned int BlockSize = TDim+1;
-    unsigned int Row = 0;
-    unsigned int Col = 0;
-
     // Temporary containers
-    double K,L,G,PDivV,qF;
-
+    double K,G,PDivV;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        Row = i*BlockSize;
+        unsigned int row = i*BlockSize;
 
         // LHS terms
         for (unsigned int j = 0; j < NumNodes; j++)
         {
-            Col = j*BlockSize;
+            unsigned int col = j*BlockSize;
 
             // Some terms are the same for all velocity components, calculate them once for each i,j
-            K = 0.5*(rN[i]*AGradN[j] - AGradN[i]*rN[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
+            K = 0.5*(rData.N[i]*AGradN[j] - AGradN[i]*rData.N[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
             K += AGradN[i]*TauMomentum*(AGradN[j]); // Stabilization: u*grad(v) * TauOne * u*grad(u)
-            K *= GaussWeight;
+            K *= rData.Weight;
 
             // q-p stabilization block (reset result)
-            L = 0;
+            double laplacian = 0;
 
             // The following lines implement the viscous term as a Laplacian
-            //for (unsigned int d = 0; d < TDim; d++)
-            //    K += GaussWeight * density * Viscosity * rDN_DX(i, d) * rDN_DX(j, d);
+            //for (unsigned int d = 0; d < Dim; d++)
+            //    K += rData.Weight * density * rData.EffectiveViscosity * rData.DN_DX(i, d) * rData.DN_DX(j, d);
 
-            for (unsigned int d = 0; d < TDim; d++)
+            for (unsigned int d = 0; d < Dim; d++)
             {
-                //K += GaussWeight * density * Viscosity * rDN_DX(i, d) * rDN_DX(j, d);
-                rLHS(Row+d,Col+d) += K;
+                //K += rData.Weight * density * rData.EffectiveViscosity * rData.DN_DX(i, d) * rData.DN_DX(j, d);
+                LHS(row+d,col+d) += K;
 
                 // v * Grad(p) block
-                G = AGradN[i] * rDN_DX(j,d); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
-                PDivV = rDN_DX(i,d) * rN[j]; // Div(v) * p
+                G = AGradN[i] * rData.DN_DX(j,d); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
+                PDivV = rData.DN_DX(i,d) * rData.N[j]; // Div(v) * p
 
                 // Write v * Grad(p) component
-                rLHS(Row+d,Col+TDim) += GaussWeight * (TauMomentum*G - PDivV);
+                LHS(row+d,col+Dim) += rData.Weight * (TauMomentum*G - PDivV);
                 // Use symmetry to write the q * Div(u) component
-                rLHS(Col+TDim,Row+d) += GaussWeight * (TauIncompr*G + PDivV);
+                LHS(col+Dim,row+d) += rData.Weight * (TauIncompr*G + PDivV);
 
                 // q-p stabilization block
-                L += rDN_DX(i,d) * rDN_DX(j,d); // Stabilization: Grad(q) * TauOne * Grad(p)
+                laplacian += rData.DN_DX(i,d) * rData.DN_DX(j,d); // Stabilization: Grad(q) * TauOne * Grad(p)
             }
 
             // Write q-p term
-            rLHS(Row+TDim,Col+TDim) += GaussWeight*TauIncompr*L;
+            LHS(row+Dim,col+Dim) += rData.Weight*TauIncompr*laplacian;
 
             // FIC shock capturing term
-            for (unsigned int d = 0; d < TDim; d++)
-                rLHS(Row+d,Col+d) += GaussWeight * density * std::fabs(TauGrad[d]*MomRes[d]) * L;
+            for (unsigned int d = 0; d < Dim; d++)
+                LHS(row+d,col+d) += rData.Weight * density * std::fabs(TauGrad[d]*MomRes[d]) * laplacian;
         }
 
         // RHS terms
-        qF = 0.0;
-        for (unsigned int d = 0; d < TDim; ++d)
+        double forcing = 0.0;
+        for (unsigned int d = 0; d < Dim; ++d)
         {
-            rRHS[Row+d] += GaussWeight * rN[i] * body_force[d]; // v*body_force
-            rRHS[Row+d] += GaussWeight * TauMomentum * AGradN[i] * body_force[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
-            qF += rDN_DX(i, d) * (body_force[d] - momentum_projection[d]);
+            rLocalRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*body_force
+            rLocalRHS[row+d] += rData.Weight * TauMomentum * AGradN[i] * body_force[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+            forcing += rData.DN_DX(i, d) * (body_force[d] - momentum_projection[d]);
         }
-        rRHS[Row + TDim] += GaussWeight * TauIncompr * qF; // Grad(q) * TauOne * (density * body_force)
+        rLocalRHS[row + Dim] += rData.Weight * TauIncompr * forcing; // Grad(q) * TauOne * (density * body_force)
     }
 
-    // Viscous contribution (symmetric gradient E(u) - 1/3 Tr(E) )
-    // This could potentially be optimized, as it can be integrated exactly using one less integration order when compared to previous terms.
-    this->AddViscousTerm(Viscosity,GaussWeight,rDN_DX,rLHS);
+    // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
+    array_1d<double,LocalSize> values;
+    this->GetCurrentValuesVector(rData,values);
+    noalias(rLocalRHS) -= prod(LHS, values);
 
+    /* Viscous contribution (symmetric gradient E(u) - 1/3 Tr(E) )
+     * For a generic (potentially non-linear) constitutive law, one cannot assume that RHS = F - LHS*current_values.
+     * Because of this, the AddViscousTerm function manages both the LHS and the RHS.
+     */ 
+    this->AddViscousTerm(rData,LHS,rLocalRHS);
+
+    noalias(rLocalLHS) += LHS;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -415,6 +415,25 @@ void FIC<TElementData>::AddBoundaryIntegral(TElementData& rData,
 
 }
 
+template <class TElementData>
+void FIC<TElementData>::AddViscousTerm(
+    const TElementData& rData,
+    boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+    VectorType& rRHS) {
+
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
+    FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
+
+    const auto& constitutive_matrix = rData.C;
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+
+    // Multiply times integration point weight (I do this here to avoid a temporal in LHS += weight * Bt * C * B)
+    strain_matrix *= rData.Weight;
+
+    noalias(rLHS) += boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),shear_stress_matrix);
+    noalias(rRHS) -= boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),rData.ShearStress);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
@@ -460,7 +479,7 @@ void FIC<TElementData>::CalculateTau(
     TauMomentum *= Beta;
 
     // Coefficients for FIC shock-capturing term
-    this->CalculateTauGrad(TauGrad);
+    this->CalculateTauGrad(rData,TauGrad);
     TauGrad /= rData.Density;
     for (unsigned int d = 0; d < Dim; d++)
         if (TauGrad[d] > Havg*TimeTerm)
@@ -470,27 +489,25 @@ void FIC<TElementData>::CalculateTau(
 }
 
 template< class TElementData >
-void FIC<TElementData>::CalculateTauGrad(array_1d<double,3> &TauGrad)
+void FIC<TElementData>::CalculateTauGrad(
+    const TElementData& rData, 
+    array_1d<double,3> &TauGrad)
 {
     // Small constant to prevent division by zero
     const double Small = 1.0e-12;
 
-    // Evaluate velocity gradient
     GeometryType& rGeom = this->GetGeometry();
 
-    ShapeFunctionDerivativesArrayType DN_DX;
-    rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX,GeometryData::GI_GAUSS_1);
-    ShapeFunctionDerivativesType& rDN_DX = DN_DX[0];
-
+    // Evaluate velocity gradient
+    const auto& r_velocities = rData.Velocity;
     boost::numeric::ublas::bounded_matrix<double,3,3> Gradient = ZeroMatrix(3,3);
     for (unsigned int n = 0; n < NumNodes; n++)
     {
-        const array_1d<double,3>& rU = rGeom[n].FastGetSolutionStepValue(VELOCITY);
         for (unsigned int i = 0; i < Dim; i++)
         {
             for (unsigned int j = 0; j < Dim; j++)
             {
-                Gradient(i,j) += rDN_DX(n,j)*rU[i];
+                Gradient(i,j) += rData.DN_DX(n,j)*r_velocities(n,i);
             }
         }
     }
@@ -578,90 +595,6 @@ void FIC<TElementData>::load(Serializer& rSerializer)
 // Internals
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Internals {
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// For Dim == 2
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <>
-void AddViscousTerm<2>(double DynamicViscosity,
-                       double GaussWeight,
-                       const Kratos::Matrix& rDN_DX,
-                       Kratos::Matrix& rLHS)
-{
-    double weight = GaussWeight * DynamicViscosity;
-
-    constexpr double four_thirds = 4.0 / 3.0;
-    constexpr double minus_two_thirds = -2.0 / 3.0;
-
-    const unsigned int num_nodes = rDN_DX.size1();
-    const unsigned int block_size = 3;
-
-    for (unsigned int a = 0; a < num_nodes; ++a)
-    {
-        unsigned int row = a*block_size;
-        for (unsigned int b = 0; b < num_nodes; ++b)
-        {
-            unsigned int col = b*block_size;
-
-            // First row
-            rLHS(row,col) += weight * ( four_thirds * rDN_DX(a,0) * rDN_DX(b,0) + rDN_DX(a,1) * rDN_DX(b,1) );
-            rLHS(row,col+1) += weight * ( minus_two_thirds * rDN_DX(a,0) * rDN_DX(b,1) + rDN_DX(a,1) * rDN_DX(b,0) );
-
-            // Second row
-            rLHS(row+1,col) += weight * ( minus_two_thirds * rDN_DX(a,1) * rDN_DX(b,0) + rDN_DX(a,0) * rDN_DX(b,1) );
-            rLHS(row+1,col+1) += weight * ( four_thirds * rDN_DX(a,1) * rDN_DX(b,1) + rDN_DX(a,0) * rDN_DX(b,0) );
-        }
-    }
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// For Dim == 3
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <>
-void AddViscousTerm<3>(double DynamicViscosity,
-                       double GaussWeight,
-                       const Kratos::Matrix& rDN_DX,
-                       Kratos::Matrix& rLHS)
-{
-    double weight = GaussWeight * DynamicViscosity;
-
-    constexpr double one_third = 1.0 / 3.0;
-    constexpr double minus_two_thirds = -2.0 / 3.0;
-
-    const unsigned int num_nodes = rDN_DX.size1();
-    const unsigned int block_size = 4;
-
-    unsigned int row(0),col(0);
-
-    for (unsigned int i = 0; i < num_nodes; ++i)
-    {
-        row = i*block_size;
-        for (unsigned int j = 0; j < num_nodes; ++j)
-        {
-            col = j*block_size;
-            // (dN_i/dx_k dN_j/dx_k)
-            const double diag =  rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,2) * rDN_DX(j,2);
-
-            // First row
-            rLHS(row,col) += weight * ( one_third * rDN_DX(i,0) * rDN_DX(j,0) + diag );
-            rLHS(row,col+1) += weight * ( minus_two_thirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0) );
-            rLHS(row,col+2) += weight * ( minus_two_thirds * rDN_DX(i,0) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,0) );
-
-            // Second row
-            rLHS(row+1,col) += weight * ( minus_two_thirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1) );
-            rLHS(row+1,col+1) += weight * ( one_third * rDN_DX(i,1) * rDN_DX(j,1) + diag );
-            rLHS(row+1,col+2) += weight * ( minus_two_thirds * rDN_DX(i,1) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,1) );
-
-            // Third row
-            rLHS(row+2,col) += weight * ( minus_two_thirds * rDN_DX(i,2) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,2) );
-            rLHS(row+2,col+1) += weight * ( minus_two_thirds * rDN_DX(i,2) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,2) );
-            rLHS(row+2,col+2) += weight * ( one_third * rDN_DX(i,2) * rDN_DX(j,2) + diag );
-        }
-    }
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // For Standard data: Time integration is not available
