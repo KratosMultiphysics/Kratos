@@ -88,6 +88,9 @@ public:
 
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> RotationToolType;
+    typedef typename CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double>::Pointer RotationToolPointerType;
+    
 
     typedef CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> RotationToolType;
     typedef typename CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double>::Pointer RotationToolPointerType;
@@ -107,6 +110,7 @@ public:
     {}
 
     /// Constructor providing a custom rotation tool.
+
     /** @param pRotationTool a pointer to the helper class that manages DOF rotation.
       */
     ResidualBasedIncrementalUpdateStaticSchemeSlip(RotationToolPointerType pRotationTool):

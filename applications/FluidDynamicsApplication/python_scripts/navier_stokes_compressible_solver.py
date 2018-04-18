@@ -113,7 +113,6 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
         print("Monolithic compressible fluid solver variables added correctly")
         
     def AddDofs(self):
-        print("Inside AddDof()")
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_X, KratosMultiphysics.REACTION_X, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, KratosMultiphysics.REACTION_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Z, KratosMultiphysics.REACTION_Z, self.main_model_part)
@@ -121,18 +120,17 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TOTAL_ENERGY, KratosFluid.REACTION_ENERGY, self.main_model_part)
 
     def Initialize(self):
-        print("Inside Initialize() ..")
         self.computing_model_part = self.GetComputingModelPart()
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
+            print("ERROR: _GetAutomaticTimeSteppingUtility out of date")
+            #self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         # Creating the solution strategy
         self.conv_criteria = KratosMultiphysics.ResidualCriteria(self.settings["relative_tolerance"].GetDouble(),
                                                                  self.settings["absolute_tolerance"].GetDouble())
         
-        print("Convergence criteria set")
 
         #(self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt()
         (self.conv_criteria).SetEchoLevel(3)
@@ -140,18 +138,15 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
         self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,
                                                                             self.settings["time_order"].GetInt())
         
-        print("BDF process set")
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.IS_STRUCTURE)
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
         #time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme() # DOFs (4,5)
         
-        print("Time scheme set")
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         
-        print("BS set")
 
         self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part,
                                                                             time_scheme,
@@ -163,20 +158,16 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
                                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                             self.settings["move_mesh_flag"].GetBool())
         
-        print("NR set")
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         #(self.solver).SetEchoLevel(1)
 
-        print("Before NR Initialize")
 
         (self.solver).Initialize()
         
-        print("After NR Initialize")
         
         (self.solver).Check()
         
-        print("After NR Check")
 
         # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble()) # REMEMBER TO CHECK MY STAB CONSTANTS
 
