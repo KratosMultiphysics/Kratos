@@ -5,14 +5,17 @@
 #if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
 #define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
 
-#if defined(KRATOS_PYTHON)
+
+
 // System includes
-#include <pybind11/pybind11.h>
+
 
 // External includes
+#include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define_python.h"
+#include "includes/define.h"
+
 
 namespace Kratos
 {
@@ -26,5 +29,4 @@ void  AddCustomUtilitiesToPython(pybind11::module& m);
 
 }  // namespace Kratos.
 
-#endif
-#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined
+#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined 

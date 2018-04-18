@@ -3,9 +3,11 @@
 //
 
 // System includes
+#include <pybind11/pybind11.h>
 
 // Project includes
-#include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "includes/define.h" 
+
 #include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"    
 #include "../custom_constitutive/DEM_continuum_constitutive_law.h" 
 #include "../custom_constitutive/DEM_compound_constitutive_law.h" 
@@ -44,7 +46,7 @@ namespace Python {
 
 using namespace pybind11;
 
-void _CustomConstitutiveLawsToPython(pybind11::module& m) {
+void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     // DEM Discontinuum Constitutive Laws:  
 
