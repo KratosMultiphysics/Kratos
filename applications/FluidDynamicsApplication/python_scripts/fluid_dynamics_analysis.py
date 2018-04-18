@@ -98,17 +98,14 @@ class FluidDynamicsAnalysis(AnalysisStage):
         if self.have_output:
             self.output.ExecuteInitializeSolutionStep()
 
-        if self._TimeBufferIsInitialized():
-            self.solver.InitializeSolutionStep()
+        self.solver.InitializeSolutionStep()
 
     def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            self.solver.SolveSolutionStep()
+        self.solver.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
 
-        if self._TimeBufferIsInitialized():
-            self.solver.FinalizeSolutionStep()
+        self.solver.FinalizeSolutionStep()
 
         # shouldn't this go at the end of the iteration???
         for process in self.list_of_processes:
@@ -225,10 +222,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
         else:
             self.load_restart = False
             self.save_restart = False
-
-    def _TimeBufferIsInitialized(self):
-        # We always have one extra old step (step 0, read from input)
-        return self.step + 1 >= self.solver.GetMinimumBufferSize()
 
 if __name__ == '__main__':
     from sys import argv
