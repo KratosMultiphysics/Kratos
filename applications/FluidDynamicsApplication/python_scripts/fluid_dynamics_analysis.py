@@ -53,9 +53,9 @@ class FluidDynamicsAnalysis(AnalysisStage):
         if self.load_restart:
             self.restart_utility.LoadRestart()
         else:
-            self.solver.AddDofs()
             self.solver.AddVariables()
             self.solver.ImportModelPart()
+            self.solver.AddDofs()
 
         self.model.AddModelPart(self.main_model_part)
 
@@ -68,7 +68,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
         while self.time < self.end_time:
 
-            self.time = solver.AdvanceInTime(self.time)
+            self.time = self.solver.AdvanceInTime(self.time)
             step = self.main_model_part.ProcessInfo[Kratos.STEP]
 
             if self.is_printing_rank:
@@ -76,7 +76,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
                 Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
 
             self.InitializeSolutionStep()
-            solver.Predict()
+            self.solver.Predict()
             self.SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
