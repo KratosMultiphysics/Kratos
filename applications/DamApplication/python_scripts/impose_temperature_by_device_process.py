@@ -16,7 +16,7 @@ class ImposeTemperaturebyDeviceProcess(Process):
         Process.__init__(self)
         model_part = Model[settings["model_part_name"].GetString()]
         
-        self.process = DamTemperaturebyDeviceProcess(model_part, settings) 
+        self.process = DamTemperaturebyDeviceProcess(model_part, settings)
                  
     def ExecuteInitializeSolutionStep(self):
 

@@ -146,13 +146,13 @@ public:
 
     //***************************************************************************
 
-    virtual void Update(
+    void Update(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dv,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -170,7 +170,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -214,7 +214,7 @@ public:
         return mImporterIsInitialized;
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         mpDofImporter.reset();
         mImporterIsInitialized = false;
@@ -336,7 +336,7 @@ private:
 
 
     bool mImporterIsInitialized;
-    
+
     Kratos::shared_ptr<Epetra_Import> mpDofImporter;
 
     /*@} */
