@@ -121,6 +121,10 @@ void DVMS<TElementData>::Initialize()
         for (unsigned int g = 0; g < number_of_gauss_points; g++)
             mOldSubscaleVelocity.push_back( array_1d<double,Dim>(Dim,0.0) );
     }
+
+    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+    mSubscaleIterationError.resize(number_of_gauss_points);
+    #endif
 }
 
 template <class TElementData>
@@ -276,6 +280,15 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
             }
         }
     }
+    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+    else if (rVariable == TEMPERATURE) {
+        if (mSubscaleIterationError.size() != 0) {
+            rValues.resize(mSubscaleIterationError.size());
+            for (unsigned int g = 0; g < mSubscaleIterationError.size(); g++)
+                rValues[g] = mSubscaleIterationError[g];
+        }
+    }
+    #endif
     else {
         QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
@@ -815,9 +828,9 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
             }
     }
 
-        //KRATOS_WATCH(Iter)
-
-//        std::cout << "Id: " << this->Id() << " g: " << g << " iter: " << Iter << " ss err: " << SubscaleError << " ss norm: " << SubscaleNorm << " residual: " << ResidualNorm << std::endl;
+    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+    mSubscaleIterationError[rData.IntegrationPointIndex] = subscale_velocity_error;
+    #endif
 
     // Store new subscale values
     noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = u;

@@ -13,6 +13,8 @@
 #ifndef KRATOS_D_VMS_H
 #define KRATOS_D_VMS_H
 
+#define KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
@@ -323,6 +325,10 @@ private:
     // Velocity subscale history, stored at integration points
     std::vector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
     std::vector< array_1d<double,Dim> > mOldSubscaleVelocity;
+
+    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+    std::vector< double > mSubscaleIterationError;
+    #endif
 
     ///@}
     ///@name Serialization
