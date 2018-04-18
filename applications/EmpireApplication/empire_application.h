@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -30,24 +30,24 @@ namespace Kratos
 {
 
 	///@name Kratos Globals
-	///@{ 
+	///@{
 
-	// Variables definition 
+	// Variables definition
 //	KRATOS_DEFINE_VARIABLE(double, AUX_MESH_VAR )
 //	KRATOS_DEFINE_VARIABLE(double, IS_INTERFACE)
 //	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
 
 
-	///@} 
+	///@}
 	///@name Type Definitions
-	///@{ 
+	///@{
 
-	///@} 
+	///@}
 	///@name  Enum's
 	///@{
 
 	///@}
-	///@name  Functions 
+	///@name  Functions
 	///@{
 
 	///@}
@@ -62,14 +62,14 @@ namespace Kratos
 	public:
 		///@name Type Definitions
 		///@{
-		
+
 
 		/// Pointer definition of KratosEmpireApplication
 		KRATOS_CLASS_POINTER_DEFINITION(KratosEmpireApplication);
 
 		///@}
-		///@name Life Cycle 
-		///@{ 
+		///@name Life Cycle
+		///@{
 
 		/// Default constructor.
 		KratosEmpireApplication();
@@ -79,7 +79,7 @@ namespace Kratos
 
 
 		///@}
-		///@name Operators 
+		///@name Operators
 		///@{
 
 
@@ -87,13 +87,13 @@ namespace Kratos
 		///@name Operations
 		///@{
 
-		virtual void Register();
+		void Register() override;
 
 
 
 		///@}
 		///@name Access
-		///@{ 
+		///@{
 
 
 		///@}
@@ -101,25 +101,25 @@ namespace Kratos
 		///@{
 
 
-		///@}      
+		///@}
 		///@name Input and output
 		///@{
 
 		/// Turn back information as a string.
-		virtual std::string Info() const
+		std::string Info() const override
 		{
 			return "KratosEmpireApplication";
 		}
 
 		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
+		void PrintInfo(std::ostream& rOStream) const override
 		{
 			rOStream << Info();
 			PrintData(rOStream);
 		}
 
 		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
+      void PrintData(std::ostream& rOStream) const override
       {
       	KRATOS_WATCH("in my application");
       	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -134,7 +134,7 @@ namespace Kratos
       }
 
 
-		///@}      
+		///@}
 		///@name Friends
 		///@{
 
@@ -142,80 +142,80 @@ namespace Kratos
 		///@}
 
 	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+		///@name Protected static Member Variables
+		///@{
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+		///@}
+		///@name Protected member Variables
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Protected Operators
-		///@{ 
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Protected Operations
-		///@{ 
+		///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+		///@}
+		///@name Protected  Access
+		///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+		///@}
+		///@name Protected Inquiry
+		///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+		///@}
+		///@name Protected LifeCycle
+		///@{
 
 
 		///@}
 
 	private:
-		///@name Static Member Variables 
-		///@{ 
+		///@name Static Member Variables
+		///@{
 
 
 
-		//       static const ApplicationCondition  msApplicationCondition; 
+		//       static const ApplicationCondition  msApplicationCondition;
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-// 		const Elem2D   mElem2D; 
-// 		const Elem3D   mElem3D; 
+		///@}
+		///@name Member Variables
+		///@{
+// 		const Elem2D   mElem2D;
+// 		const Elem3D   mElem3D;
 
 
-		///@} 
+		///@}
 		///@name Private Operators
-		///@{ 
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Private Operations
-		///@{ 
+		///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+		///@}
+		///@name Private  Access
+		///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+		///@}
+		///@name Private Inquiry
+		///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+		///@}
+		///@name Un accessible methods
+		///@{
 
 		/// Assignment operator.
 		KratosEmpireApplication& operator=(KratosEmpireApplication const& rOther);
@@ -224,26 +224,26 @@ namespace Kratos
 		KratosEmpireApplication(KratosEmpireApplication const& rOther);
 
 
-		///@}    
+		///@}
 
-	}; // Class KratosEmpireApplication 
+	}; // Class KratosEmpireApplication
 
-	///@} 
-
-
-	///@name Type Definitions       
-	///@{ 
+	///@}
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+	///@name Type Definitions
+	///@{
 
-	///@} 
+
+	///@}
+	///@name Input and output
+	///@{
+
+	///@}
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EMPIRE_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_EMPIRE_APPLICATION_H_INCLUDED  defined
 
 
