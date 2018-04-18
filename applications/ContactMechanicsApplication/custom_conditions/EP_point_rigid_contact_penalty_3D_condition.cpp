@@ -172,7 +172,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      if ( GetGeometry()[0].SolutionStepsDataHas( CONTACT_FORCE) ) {
+      /*if ( GetGeometry()[0].SolutionStepsDataHas( CONTACT_FORCE) ) {
          array_1d<double, 3 >& CF = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
          for(unsigned int j = 0; j < 3; j++) {
             CF[j] = 0;
@@ -197,7 +197,7 @@ namespace Kratos
          for(unsigned int j = 0; j < 3; j++) {
             CS[j] = 0;
          }
-      }
+      }*/
 
       mImplex = false;
       // calculate the stress without implex
@@ -223,14 +223,6 @@ namespace Kratos
          // ( recompute all stresses and set it to the nodal variables)
 
 
-      } else {
-         // this is a bad-programing thing that allow to see if neighbour nodes are in contact. please, correct it
-         if ( GetGeometry()[0].SolutionStepsDataHas( CONTACT_NORMAL) ) {
-            array_1d<double, 3 >& CS = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_NORMAL);
-            for(unsigned int j = 0; j < 3; j++) {
-               CS[j] = 0;
-            }
-         }
       }
       if ( (fabs( GetGeometry()[0].X()) < 1e-5) && ( fabs(GetGeometry()[0].Z() ) < 1e-6) ) {
          if ( GetGeometry()[0].SolutionStepsDataHas( CONTACT_STRESS) ) {

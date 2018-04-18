@@ -122,7 +122,7 @@ namespace Kratos
   {
 
     KRATOS_TRY
-	
+
     //Compute the neighbour distance, then a stress-"like" may be computed.
     WeakPointerVector<Node<3> >& rN  = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
     array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
@@ -165,7 +165,7 @@ namespace Kratos
       ElasticModulus = GetProperties()[YOUNG_MODULUS];
     else
       ElasticModulus = rE.front().GetProperties()[YOUNG_MODULUS];
-      
+
     // the Modified Cam Clay model does not have a constant Young modulus, so something similar to that is computed
     if (ElasticModulus <= 1.0e-5) {
       std::vector<double> mModulus;
@@ -184,7 +184,12 @@ namespace Kratos
       distance *= factor * pow(10,order);
     }
 
-    rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
+    if ( ElasticModulus > 1e-5) {
+       rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
+    } else {
+       rVariables.Penalty.Normal  = distance * PenaltyParameter * 2980.0;
+    }
+
 
     double PenaltyRatio = 1;
     if( GetProperties().Has(TANGENTIAL_PENALTY_RATIO) )
