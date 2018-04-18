@@ -56,7 +56,7 @@
 #include "add_strategies_to_python.h"
 #include "add_utilities_to_python.h"
 #include "add_matrix_market_interface_to_python.h"
-// #include "add_search_strategies_to_python.h
+#include "add_search_strategies_to_python.h"
 #include "add_kratos_parameters_to_python.h"
 #include "add_testing_to_python.h"
 #include "add_logger_to_python.h"
@@ -124,7 +124,7 @@ PYBIND11_MODULE(Kratos, m)
     AddMatrixMarketInterfaceToPython(m);
     AddKratosParametersToPython(m);
 // 
-//     AddSearchStrategiesToPython();
+    AddSearchStrategiesToPython(m);
      AddTestingToPython(m);
      AddLoggerToPython(m); //TO BE SPOKEN WITH POOYAN
 

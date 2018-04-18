@@ -61,7 +61,7 @@ namespace Kratos
 	//*****************************MATERIAL RESPONSES***************************
 	//**************************************************************************
 
-	void  LinearElasticOrthotropic2DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+	void  LinearElasticOrthotropic2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 	{
 		//1.- Lame constants
 		//const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
@@ -245,7 +245,7 @@ namespace Kratos
 	//******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
 	//************************************************************************************
 
-	bool LinearElasticOrthotropic2DLaw::CheckParameters(Parameters& rValues)
+	bool LinearElasticOrthotropic2DLaw::CheckParameters(ConstitutiveLaw::Parameters& rValues)
 	{
 		return rValues.CheckAllParameters();
 	}

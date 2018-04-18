@@ -101,14 +101,7 @@ namespace Kratos
     ///@{
 
     // update
-    virtual void Update(NodeType& rNode) override 
-    {
-      KRATOS_TRY
-
-      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS " <<std::endl;
-	
-      KRATOS_CATCH( "" )
-    }
+    virtual void Update(NodeType& rNode) override;
     
     ///@}
     ///@name Access
@@ -235,8 +228,8 @@ namespace Kratos
   ///@name Type Definitions
   ///@{
   
-  // template<>
-  // void SimoStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
+  template<>
+  void SimoStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
 
   ///@}
   ///@name Input and output

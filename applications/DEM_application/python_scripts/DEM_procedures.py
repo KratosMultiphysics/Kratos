@@ -729,62 +729,19 @@ class Procedures(object):
 
         return properties_list
 
-    # def PlotPhysicalProperties(self, properties_list, path):
-
-    # This function creates one graph for each physical property.
-    # properties_list[0][0] = 'time'
-    # properties_list[0][j] = 'property_j'
-    # properties_list[i][j] = value of property_j at time properties_list[i][0]
-
-        # n_measures     = len(properties_list)
-        # entries        = properties_list[0]
-        # n_entries      = len(entries)
-        # time_vect      = []
-        # os.chdir(path)
-
-        # for j in range(1, n_measures):
-        # time_vect.append(properties_list[j][0])
-
-        # for i in range(1, n_entries):
-        # prop_vect_i = []
-
-        # for j in range(1, n_measures):
-        # prop_i_j = properties_list[j][i]
-
-        # if (hasattr(prop_i_j, '__getitem__')): # Checking if it is an iterable object (a vector). If yes, take the modulus
-        # mod_prop_i_j = 0.0
-
-        # for k in range(len(prop_i_j)):
-        # mod_prop_i_j += prop_i_j[k] * prop_i_j[k]
-
-        # prop_i_j = sqrt(mod_prop_i_j) # Euclidean norm
-
-        # prop_vect_i.append(prop_i_j)
-
-        # plt.figure(i)
-        # plot = plt.plot(time_vect, prop_vect_i)
-        # plt.xlabel(entries[0])
-        # plt.ylabel(entries[i])
-        # plt.title('Evolution of ' + entries[i] + ' in time')
-        # plt.savefig(entries[i] + '.pdf')
-
     @classmethod
-    def SetCustomSkin(self, spheres_model_part):
+    def RemoveFoldersWithResults(self, main_path, problem_name, run_code=''):
+        shutil.rmtree(os.path.join(main_path, problem_name + '_Post_Files' + run_code), ignore_errors=True)
+        shutil.rmtree(os.path.join(main_path, problem_name + '_Graphs'), ignore_errors=True)
+        shutil.rmtree(os.path.join(main_path, problem_name + '_Results_and_Data'), ignore_errors=True)
+        shutil.rmtree(os.path.join(main_path, problem_name + '_MPI_results'), ignore_errors=True)
 
-        for element in spheres_model_part.Elements:
-
-            x = element.GetNode(0).X
-            y = element.GetNode(0).Y
-            #z = element.GetNode(0).Z
-
-            if x > 21.1:
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
-            if x < 1.25:
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
-            if y > 1.9:
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
-            if y < 0.1:
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
+        try:
+            #THIS IS NOT WORKING, AND I DON'T KNOW WHY (WHEN THE FILE EXISTS IT CAN'T REMOVE IT!!)
+            file_to_remove = os.path.join(main_path, "TimesPartialRelease")
+            os.remove(file_to_remove)
+        except OSError:
+            pass
 
     @classmethod
     def CreateDirectories(self, main_path, problem_name, run_code=''):
@@ -795,17 +752,7 @@ class Procedures(object):
         graphs_path = root + '_Graphs'
         MPI_results = root + '_MPI_results'
 
-        '''
-        answer = input("\nWarning: If there already exists previous results, they are about to be deleted. Do you want to proceed (y/n)? ")
-        if answer=='y':
-            shutil.rmtree(os.path.join(main_path, problem_name + '_Post_Files'), ignore_errors = True)
-            shutil.rmtree(os.path.join(main_path, problem_name + '_Graphs'    ), ignore_errors = True)
-        else:
-            sys.exit("\nExecution was aborted.\n")
-        '''
-
-        shutil.rmtree(os.path.join(main_path, problem_name + '_Post_Files' + run_code), ignore_errors=True)
-        shutil.rmtree(os.path.join(main_path, problem_name + '_Graphs'), ignore_errors=True)
+        self.RemoveFoldersWithResults(main_path, problem_name, run_code)
 
         for directory in [post_path, data_and_results, graphs_path, MPI_results]:
             if not os.path.isdir(directory):
@@ -1427,7 +1374,7 @@ class DEMIo(object):
             self.PostBoundingBox = 0
         else:
             self.PostBoundingBox = self.DEM_parameters["PostBoundingBox"].GetBool()
-
+        
         #self.automatic_bounding_box_option = Var_Translator(self.DEM_parameters["AutomaticBoundingBoxOption"].GetBool())
         #self.b_box_minX = self.DEM_parameters["BoundingBoxMinX"].GetDouble()
         #self.b_box_minY = self.DEM_parameters["BoundingBoxMinY"].GetDouble()
@@ -1464,15 +1411,18 @@ class DEMIo(object):
             self.PostFaceNormalImpactVelocity = 1
 
         # Ice
-        if "PostVirtualSeaSurfaceX1" in self.DEM_parameters.keys():
-            self.SeaSurfaceX1 = self.DEM_parameters["PostVirtualSeaSurfaceX1"].GetDouble()
-            self.SeaSurfaceY1 = self.DEM_parameters["PostVirtualSeaSurfaceY1"].GetDouble()
-            self.SeaSurfaceX2 = self.DEM_parameters["PostVirtualSeaSurfaceX2"].GetDouble()
-            self.SeaSurfaceY2 = self.DEM_parameters["PostVirtualSeaSurfaceY2"].GetDouble()
-            self.SeaSurfaceX3 = self.DEM_parameters["PostVirtualSeaSurfaceX3"].GetDouble()
-            self.SeaSurfaceY3 = self.DEM_parameters["PostVirtualSeaSurfaceY3"].GetDouble()
-            self.SeaSurfaceX4 = self.DEM_parameters["PostVirtualSeaSurfaceX4"].GetDouble()
-            self.SeaSurfaceY4 = self.DEM_parameters["PostVirtualSeaSurfaceY4"].GetDouble()
+        
+        self.sea_settings = self.DEM_parameters["virtual_sea_surface_settings"]
+        
+        if self.sea_settings["print_sea_surface"].GetBool():
+            self.SeaSurfaceX1 = self.sea_settings["PostVirtualSeaSurfaceX1"].GetDouble()
+            self.SeaSurfaceY1 = self.sea_settings["PostVirtualSeaSurfaceY1"].GetDouble()
+            self.SeaSurfaceX2 = self.sea_settings["PostVirtualSeaSurfaceX2"].GetDouble()
+            self.SeaSurfaceY2 = self.sea_settings["PostVirtualSeaSurfaceY2"].GetDouble()
+            self.SeaSurfaceX3 = self.sea_settings["PostVirtualSeaSurfaceX3"].GetDouble()
+            self.SeaSurfaceY3 = self.sea_settings["PostVirtualSeaSurfaceY3"].GetDouble()
+            self.SeaSurfaceX4 = self.sea_settings["PostVirtualSeaSurfaceX4"].GetDouble()
+            self.SeaSurfaceY4 = self.sea_settings["PostVirtualSeaSurfaceY4"].GetDouble()
 
     def KRATOSprint(self, message):
         print(message)
@@ -1743,7 +1693,7 @@ class DEMIo(object):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, contact_model_part, creator_destructor)
 
             # Ice. Printing a virtual sea surface
-            if "PostVirtualSeaSurfaceX1" in self.DEM_parameters.keys():
+            if self.sea_settings["print_sea_surface"].GetBool():
                 self.ComputeAndPrintSeaSurface(spheres_model_part, rigid_face_model_part)
 
             #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)#MSIMSI

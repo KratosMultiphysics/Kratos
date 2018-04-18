@@ -768,9 +768,9 @@ void StrainRateSpecialization<TElementData,3>::Calculate(
         rStrainRate[0] += rDNDX(i,0)*rVelocities(i,0);
         rStrainRate[1] += rDNDX(i,1)*rVelocities(i,1);
         rStrainRate[2] += rDNDX(i,2)*rVelocities(i,2);
-        rStrainRate[4] += rDNDX(i,0)*rVelocities(i,1) + rDNDX(i,1)*rVelocities(i,0);
-        rStrainRate[5] += rDNDX(i,1)*rVelocities(i,2) + rDNDX(i,2)*rVelocities(i,1);
-        rStrainRate[6] += rDNDX(i,0)*rVelocities(i,2) + rDNDX(i,2)*rVelocities(i,0);
+        rStrainRate[3] += rDNDX(i,0)*rVelocities(i,1) + rDNDX(i,1)*rVelocities(i,0);
+        rStrainRate[4] += rDNDX(i,1)*rVelocities(i,2) + rDNDX(i,2)*rVelocities(i,1);
+        rStrainRate[5] += rDNDX(i,0)*rVelocities(i,2) + rDNDX(i,2)*rVelocities(i,0);
     }
 }
 
