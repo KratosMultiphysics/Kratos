@@ -1,6 +1,6 @@
 cmake .. -G "Visual Studio 15 2017 Win64"                                       ^
--DCMAKE_CXX_FLAGS="/D KRATOS_DISABLE_AMGCL" 								    ^
--DCMAKE_C_FLAGS="/D KRATOS_DISABLE_AMGCL" 									    ^
+-DCMAKE_CXX_FLAGS="/D KRATOS_DISABLE_AMGCL /D EXCLUDE_EMBEDDED_PYTHON_DEBUG" 	^
+-DCMAKE_C_FLAGS="/D KRATOS_DISABLE_AMGCL /D EXCLUDE_EMBEDDED_PYTHON_DEBUG" 		^
 -DBOOST_ROOT="C:\Libraries\boost_1_65_1"                                        ^
 -DPYTHON_EXECUTABLE="C:\Python27-x64\python.exe"							    ^
 -DCMAKE_BUILD_TYPE="Debug"  													^
