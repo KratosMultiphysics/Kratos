@@ -45,11 +45,9 @@ before_build:
   - cmd: cd C:\projects\kratos\cmake_build
   - cmd: .\configure_appveyor_VS2017.bat
 
-# Build
-build:
+# Custom build script
+build_script:
   SET preferredToolArchitecture=x64
-  project: C:\projects\kratos\cmake_build\kratosMultiphysics.sln  # path to Visual Studio solution or project
-  parallel: true                                                  # enable MSBuild parallel builds
-  verbosity: minimal                                              # MSBuild verbosity level (quiet|minimal|normal|detailed)
+  MSBuild.exe kratos/all_unity.vcxproj /p:Configuration:Debug /p:Platform:"x64"
 
 test: off
