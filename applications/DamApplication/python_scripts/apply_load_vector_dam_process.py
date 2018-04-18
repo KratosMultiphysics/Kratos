@@ -2,10 +2,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DamApplication import *
 from KratosMultiphysics.PoromechanicsApplication import *
 
-import math
-
 def Factory(settings, Model):
-    if(type(settings) != Parameters):
+    if not isinstance(settings, Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyLoadVectorDamProcess(Model, settings["Parameters"])
 
