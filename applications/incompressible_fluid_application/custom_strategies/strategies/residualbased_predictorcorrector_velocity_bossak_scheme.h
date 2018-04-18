@@ -214,13 +214,13 @@ public:
 
     //***************************************************************************
 
-    virtual void Update(
+    void Update(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dv,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -322,13 +322,13 @@ public:
     //predicts the solution at the current step as
     // v = vold
 
-    virtual void Predict(
+    void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dv,
         TSystemVectorType& b
-    )
+    ) override
     {
 //             std::cout << "prediction" << std::endl;
 
@@ -415,7 +415,7 @@ public:
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
@@ -447,7 +447,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         int k = OpenMPUtils::ThisThread();
 
@@ -476,7 +476,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
@@ -497,11 +497,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Condition_Calculate_RHS_Contribution(
+    void Condition_Calculate_RHS_Contribution(
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -532,7 +532,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -555,11 +555,11 @@ public:
     //*************************************************************************************
     //*************************************************************************************
 
-    virtual void InitializeNonLinIteration(
+    void InitializeNonLinIteration(
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 

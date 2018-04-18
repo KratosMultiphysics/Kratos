@@ -729,62 +729,19 @@ class Procedures(object):
 
         return properties_list
 
-    # def PlotPhysicalProperties(self, properties_list, path):
-
-    # This function creates one graph for each physical property.
-    # properties_list[0][0] = 'time'
-    # properties_list[0][j] = 'property_j'
-    # properties_list[i][j] = value of property_j at time properties_list[i][0]
-
-        # n_measures     = len(properties_list)
-        # entries        = properties_list[0]
-        # n_entries      = len(entries)
-        # time_vect      = []
-        # os.chdir(path)
-
-        # for j in range(1, n_measures):
-        # time_vect.append(properties_list[j][0])
-
-        # for i in range(1, n_entries):
-        # prop_vect_i = []
-
-        # for j in range(1, n_measures):
-        # prop_i_j = properties_list[j][i]
-
-        # if (hasattr(prop_i_j, '__getitem__')): # Checking if it is an iterable object (a vector). If yes, take the modulus
-        # mod_prop_i_j = 0.0
-
-        # for k in range(len(prop_i_j)):
-        # mod_prop_i_j += prop_i_j[k] * prop_i_j[k]
-
-        # prop_i_j = sqrt(mod_prop_i_j) # Euclidean norm
-
-        # prop_vect_i.append(prop_i_j)
-
-        # plt.figure(i)
-        # plot = plt.plot(time_vect, prop_vect_i)
-        # plt.xlabel(entries[0])
-        # plt.ylabel(entries[i])
-        # plt.title('Evolution of ' + entries[i] + ' in time')
-        # plt.savefig(entries[i] + '.pdf')
-
     @classmethod
-    def SetCustomSkin(self, spheres_model_part):
+    def RemoveFoldersWithResults(self, main_path, problem_name, run_code=''):
+        shutil.rmtree(os.path.join(main_path, problem_name + '_Post_Files' + run_code), ignore_errors=True)
+        shutil.rmtree(os.path.join(main_path, problem_name + '_Graphs'), ignore_errors=True)
+        shutil.rmtree(os.path.join(main_path, problem_name + '_Results_and_Data'), ignore_errors=True)
+        shutil.rmtree(os.path.join(main_path, problem_name + '_MPI_results'), ignore_errors=True)
 
-        for element in spheres_model_part.Elements:
-
-            x = element.GetNode(0).X
-            y = element.GetNode(0).Y
-            #z = element.GetNode(0).Z
-
-            if x > 21.1:
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
-            if x < 1.25:
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
-            if y > 1.9:
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
-            if y < 0.1:
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
+        try:
+            #THIS IS NOT WORKING, AND I DON'T KNOW WHY (WHEN THE FILE EXISTS IT CAN'T REMOVE IT!!)
+            file_to_remove = os.path.join(main_path, "TimesPartialRelease")
+            os.remove(file_to_remove)
+        except OSError:
+            pass
 
     @classmethod
     def CreateDirectories(self, main_path, problem_name, run_code=''):
@@ -795,17 +752,7 @@ class Procedures(object):
         graphs_path = root + '_Graphs'
         MPI_results = root + '_MPI_results'
 
-        '''
-        answer = input("\nWarning: If there already exists previous results, they are about to be deleted. Do you want to proceed (y/n)? ")
-        if answer=='y':
-            shutil.rmtree(os.path.join(main_path, problem_name + '_Post_Files'), ignore_errors = True)
-            shutil.rmtree(os.path.join(main_path, problem_name + '_Graphs'    ), ignore_errors = True)
-        else:
-            sys.exit("\nExecution was aborted.\n")
-        '''
-
-        shutil.rmtree(os.path.join(main_path, problem_name + '_Post_Files' + run_code), ignore_errors=True)
-        shutil.rmtree(os.path.join(main_path, problem_name + '_Graphs'), ignore_errors=True)
+        self.RemoveFoldersWithResults(main_path, problem_name, run_code)
 
         for directory in [post_path, data_and_results, graphs_path, MPI_results]:
             if not os.path.isdir(directory):
