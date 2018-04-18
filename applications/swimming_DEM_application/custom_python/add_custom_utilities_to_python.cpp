@@ -164,13 +164,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CalculateSecondDerivative", &CompositionFunction::CalculateSecondDerivative)
         ;
 
-    class_<RealField> (m, "RealField").def(init<>())
+    class_<RealField, RealField::Pointer> (m, "RealField").def(init<>())
         ;
 
-    class_<VectorField<2>> (m, "VectorField2D").def(init<>())
+    class_<VectorField<2>, VectorField<2>::Pointer> (m, "VectorField2D").def(init<>())
         ;
 
-    class_<VectorField<3>> (m, "VectorField3D").def(init<>())
+    class_<VectorField<3>, VectorField<3>::Pointer> (m, "VectorField3D").def(init<>())
         ;
 
     //typedef void (VelocityField::*Evaluate)(const double, const vector<double>&, vector<double>&, const int);
@@ -474,7 +474,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CalculateNegativeDistanceVolume", &EmbeddedVolumeTool <3> ::CalculateNegativeDistanceVolume)
         ;
 
-    class_<Bentonite_Force_Based_Inlet, DEM_Force_Based_Inlet > (m, "Bentonite_Force_Based_Inlet")
+    class_<Bentonite_Force_Based_Inlet, Bentonite_Force_Based_Inlet::Pointer, DEM_Force_Based_Inlet > (m, "Bentonite_Force_Based_Inlet")
         .def(init<ModelPart&, array_1d<double, 3> >())
         ;
 
