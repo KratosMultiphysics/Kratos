@@ -291,7 +291,7 @@ protected:
     ///@name Protected Operations
     ///@{
     double CalculateQ(double r, const Properties& rMaterialProperties);
-    virtual void CalculateConstitutiveMatrix(Matrix &constitutiveMatrix, const Properties &props);
+    virtual void CalculateConstitutiveMatrix(Matrix &rConstitTensor, const Properties &rMaterialProperties);
     ///@}
 
 private:
