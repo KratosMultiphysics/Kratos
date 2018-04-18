@@ -344,21 +344,21 @@ protected:
         const TElementData& rData,
         double &rPressureSubscale) const;
 
-    virtual void ASGSMomentumResidual(
+    virtual void AlgebraicMomentumResidual(
         const TElementData& rData,
         const array_1d<double,3> &rConvectionVelocity,
         array_1d<double,3>& rResidual) const;
 
-    virtual void ASGSMassResidual(
+    virtual void AlgebraicMassResidual(
         const TElementData& rData,
         double& rMomentumRes) const;
 
-    virtual void OSSMomentumResidual(
+    virtual void OrthogonalMomentumResidual(
         const TElementData& rData,
         const array_1d<double,3> &rConvectionVelocity,
         array_1d<double,3>& rResidual) const;
 
-    virtual void OSSMassResidual(
+    virtual void OrthogonalMassResidual(
         const TElementData& rData,
         double& rMassRes) const;
 

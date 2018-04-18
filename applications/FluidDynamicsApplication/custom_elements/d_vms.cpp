@@ -673,10 +673,10 @@ void DVMS<TElementData>::SubscaleVelocity(
     array_1d<double,3> residual(3,0.0);
 
     if (rData.UseOSS != 1.0) {
-        this->ASGSMomentumResidual(rData,convective_velocity,residual);
+        this->AlgebraicMomentumResidual(rData,convective_velocity,residual);
     }
     else {
-        this->OSSMomentumResidual(rData,convective_velocity,residual);
+        this->OrthogonalMomentumResidual(rData,convective_velocity,residual);
     }
 
     // Note: residual is always of size 3, but stored subscale is of size Dim
@@ -713,9 +713,9 @@ void DVMS<TElementData>::SubscalePressure(
     double residual = 0.0;
 
     if (rData.UseOSS != 1.0)
-        this->ASGSMassResidual(rData,residual);
+        this->AlgebraicMassResidual(rData,residual);
     else
-        this->OSSMassResidual(rData,residual);
+        this->OrthogonalMassResidual(rData,residual);
 
     rPressureSubscale = (tau_two+tau_p)*residual - tau_p*old_residual;
 }
@@ -750,9 +750,9 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
 
     // Note I'm only using large scale convection here, small-scale convection is re-evaluated at each iteration.
     if (rData.UseOSS != 1.0)
-        this->ASGSMomentumResidual(rData,resolved_convection_velocity,static_residual);
+        this->AlgebraicMomentumResidual(rData,resolved_convection_velocity,static_residual);
     else
-        this->OSSMomentumResidual(rData,resolved_convection_velocity,static_residual);
+        this->OrthogonalMomentumResidual(rData,resolved_convection_velocity,static_residual);
 
     // Add the time discretization term to obtain the part of the residual that does not change during iteration
     for (unsigned int d = 0; d < Dim; d++)

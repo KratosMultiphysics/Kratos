@@ -235,7 +235,7 @@ void QSVMS<TElementData>::PrintInfo(std::ostream& rOStream) const
 // Protected functions
 
 template< class TElementData >
-void QSVMS<TElementData>::ASGSMomentumResidual(
+void QSVMS<TElementData>::AlgebraicMomentumResidual(
     const TElementData& rData,
     const array_1d<double,3> &rConvectionVelocity,
     array_1d<double,3>& rResidual) const
@@ -259,7 +259,7 @@ void QSVMS<TElementData>::ASGSMomentumResidual(
 }
 
 template< class TElementData >
-void QSVMS<TElementData>::ASGSMassResidual(
+void QSVMS<TElementData>::AlgebraicMassResidual(
     const TElementData& rData,
     double &rMomentumRes) const
 {
@@ -267,7 +267,7 @@ void QSVMS<TElementData>::ASGSMassResidual(
 }
 
 template< class TElementData >
-void QSVMS<TElementData>::OSSMomentumResidual(
+void QSVMS<TElementData>::OrthogonalMomentumResidual(
     const TElementData& rData,
     const array_1d<double,3> &rConvectionVelocity,
     array_1d<double,3>& rResidual) const
@@ -279,7 +279,7 @@ void QSVMS<TElementData>::OSSMomentumResidual(
 }
 
 template< class TElementData >
-void QSVMS<TElementData>::OSSMassResidual(
+void QSVMS<TElementData>::OrthogonalMassResidual(
     const TElementData& rData,
     double &rMassRes) const
 {
@@ -729,9 +729,9 @@ void QSVMS<TElementData>::SubscaleVelocity(
     array_1d<double,3> Residual(3,0.0);
 
     if (rData.UseOSS != 1.0)
-        this->ASGSMomentumResidual(rData,convective_velocity,Residual);
+        this->AlgebraicMomentumResidual(rData,convective_velocity,Residual);
     else
-        this->OSSMomentumResidual(rData,convective_velocity,Residual);
+        this->OrthogonalMomentumResidual(rData,convective_velocity,Residual);
 
     rVelocitySubscale = tau_one*Residual;
 }
@@ -751,9 +751,9 @@ void QSVMS<TElementData>::SubscalePressure(
     double Residual = 0.0;
 
     if (rData.UseOSS != 1.0)
-        this->ASGSMassResidual(rData,Residual);
+        this->AlgebraicMassResidual(rData,Residual);
     else
-        this->OSSMassResidual(rData,Residual);
+        this->OrthogonalMassResidual(rData,Residual);
 
     rPressureSubscale = tau_two*Residual;
 }
