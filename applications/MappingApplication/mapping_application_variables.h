@@ -25,10 +25,13 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kratos_application.h"
+#include "custom_utilities/mapper_utilities.h"
 
 namespace Kratos
 {
+    typedef std::vector<MapperInterfaceInfo::Pointer> InterfaceInfoPointerVector;
     KRATOS_DEFINE_APPLICATION_VARIABLE( MAPPING_APPLICATION, int, INTERFACE_EQUATION_ID )
+    KRATOS_DEFINE_APPLICATION_VARIABLE( MAPPING_APPLICATION, double/*InterfaceInfoPointerVector*/, INTERFACE_INFO )
 
     // TODO
     KRATOS_DEFINE_VARIABLE(double, NEIGHBOR_RANK)

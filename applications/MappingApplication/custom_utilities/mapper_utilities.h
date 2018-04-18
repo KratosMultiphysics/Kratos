@@ -57,6 +57,39 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class MapperInterfaceInfo
+{
+public:
+    /// Pointer definition of MapperUtilities
+    KRATOS_CLASS_POINTER_DEFINITION(MapperInterfaceInfo);
+    // SaveInterfaceInfo(Node*)
+    // {
+
+    // }
+
+private:
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const {
+        KRATOS_ERROR << "This Object cannot be serialized!" << std::endl;
+    }
+
+    void load(Serializer& rSerializer) {
+        KRATOS_ERROR << "This Object cannot be serialized!" << std::endl;
+}
+
+};
+
+inline std::istream & operator >> (std::istream& rIStream, MapperInterfaceInfo& rThis);
+
+/// output stream function
+inline std::ostream & operator << (std::ostream& rOStream, const MapperInterfaceInfo& rThis) {
+//   rThis.PrintInfo(rOStream);
+  rOStream << " : " << std::endl;
+//   rThis.PrintData(rOStream);
+  return rOStream;
+}
+
 /// Auxiliary functions for the MappingApplication
 /** This class provides a set of auxiliary functions that are used by several other functions / classes
 */

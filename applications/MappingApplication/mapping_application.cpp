@@ -93,9 +93,10 @@ void KratosMappingApplication::Register()
         MapperDefinitions::TrilinosSparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
 #endif
 
-    // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
+    KRATOS_REGISTER_VARIABLE( INTERFACE_INFO )
 
+    // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
     KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NEIGHBOR_COORDINATES )
 

@@ -26,7 +26,7 @@
 #include "custom_utilities/matrix_based_mapping_operation_utility.h"
 #include "custom_utilities/interface_preprocessor.h"
 #include "includes/kratos_parameters.h"
-// #include "custom_utilities/mapper_utilities.h"
+#include "custom_utilities/mapper_utilities.h"
 #include "custom_utilities/mapper_flags.h"
 
 // For MPI-parallel Mapper
@@ -410,31 +410,20 @@ protected:
     ///@name Protected  Access
     ///@{
 
-    // Kratos::Serializer particleSerializer;
+        /* Kratos::Serializer particleSerializer;
 
-    // particleSerializer.save("VariableList",mpVariables_list);
-    // particleSerializer.save("ObjectList",SendObjects[i].GetContainer());
+        particleSerializer.save("VariableList",mpVariables_list);
+        particleSerializer.save("ObjectList",SendObjects[i].GetContainer());
 
-    class MapperInterfaceInfo
-    {
-        public:
-        // SaveInterfaceInfo(Node*)
-        // {
+        std::stringstream * stream = (std::stringstream *)particleSerializer.pGetBuffer();
+        const std::string & stream_str = stream->str();
+        const char * cstr = stream_str.c_str();
 
-        // }
+        msgSendSize[i] = sizeof(char) * (stream_str.size()+1);
+        mpi_send_buffer[i] = (char *)malloc(msgSendSize[i]);
+        memcpy(mpi_send_buffer[i],cstr,msgSendSize[i]); */
 
 
-        virtual void serialize()
-        {
-
-        }
-
-        virtual void deserialize()
-        {
-
-        }
-
-    };
 
     ///@}
     ///@name Protected Inquiry
