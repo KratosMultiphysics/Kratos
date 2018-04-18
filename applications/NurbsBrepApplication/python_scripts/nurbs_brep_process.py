@@ -41,8 +41,8 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
                   "parameters": {
                     "knot_insertions_u": [ ],
                     "knot_insertions_v": [ ],
-                    "min_elements_u": 0,
-                    "min_elements_v": 0,
+                    "multiply_knots_u": 0,
+                    "multiply_knots_v": 0,
                     "max_element_size_u": 0,
                     "max_element_size_v": 0,
                     "min_order_p": 0,

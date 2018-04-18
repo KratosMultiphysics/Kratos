@@ -24,25 +24,29 @@ namespace Kratos
   {
     return m_brep_faces;
   }
-
   std::vector<BrepEdge>& BrepModel::GetEdgeVector()
   {
     return m_brep_edges;
   }
+  std::vector<BrepVertex>& BrepModel::GetVertexVector()
+  {
+	  return m_brep_vertices;
+  }
   // --------------------------------------------------------------------------
   ///Constructor
-  BrepModel::BrepModel(unsigned int& brep_id, FacesVector& faces, EdgesVector& edges)
+  BrepModel::BrepModel(unsigned int& brep_id, std::vector<BrepFace>& faces,
+	  std::vector<BrepEdge>& edges,
+	  std::vector<BrepVertex>& vertices)
     : m_brep_faces(faces),
       m_brep_edges(edges),
+	  m_brep_vertices(vertices),
       IndexedObject(brep_id),
       Flags()
   {
   }
-
   ///Destructor
   BrepModel::~BrepModel()
   {
   }
-
 }  // namespace Kratos.
 

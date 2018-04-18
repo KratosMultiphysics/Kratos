@@ -85,13 +85,9 @@ namespace Kratos
 			rRightHandSideVector.resize(number_of_points * 3, false);
 		rRightHandSideVector = ZeroVector(number_of_points * 3); //resetting RHS
 
-		if (!Has(SHAPE_FUNCTION_VALUES))
-			KRATOS_ERROR << "No SHAPE_FUNCTION_VALUES assigned!" << std::endl;
-		Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
-
-		if (!this->Has(EXTERNAL_FORCES_VECTOR))
-			KRATOS_ERROR << "EXTERNAL_FORCES_VECTOR not assigned!" << std::endl;
-		Vector force_vector = this->GetValue(EXTERNAL_FORCES_VECTOR);
+		
+		const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
+		const Vector& force_vector = this->GetValue(EXTERNAL_FORCES_VECTOR);
 
 		Vector fLoads(number_of_points * 3);
 
@@ -105,7 +101,18 @@ namespace Kratos
 		noalias(rRightHandSideVector) -= fLoads;
 		KRATOS_CATCH("")
 	}
+	/***********************************************************************************/
+	/***********************************************************************************/
 
+	int  MeshlessForceInterfaceCondition::Check(const ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY;
+		if (!Has(SHAPE_FUNCTION_VALUES))
+			KRATOS_ERROR << "No SHAPE_FUNCTION_VALUES assigned!" << std::endl;
+		if (!this->Has(EXTERNAL_FORCES_VECTOR))
+			KRATOS_ERROR << "EXTERNAL_FORCES_VECTOR not assigned!" << std::endl;
+		KRATOS_CATCH("")
+	}
 
 	//***********************************************************************************
 	//***********************************************************************************

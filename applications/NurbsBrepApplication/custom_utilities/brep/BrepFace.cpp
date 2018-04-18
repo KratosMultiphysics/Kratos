@@ -500,6 +500,24 @@ namespace Kratos
 		return NodeVectorElement;
 	}
 
+	Node<3>::Pointer BrepFace::GetIntegrationNodePoint(
+		const int& rTrimIndex,
+		const int& rShapefunctionOrder)
+	{
+		Node<3>::Pointer node = Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)); 
+		for (int i = 0; i < m_embedded_points.size(); i++)
+		{
+			if (m_embedded_points[i].trim_index == rTrimIndex)
+			{
+				int u = m_embedded_points[i].local_coordinates[0];
+				int v = m_embedded_points[i].local_coordinates[1];
+
+				EvaluateIntegrationNode(u, v, rShapefunctionOrder, node);
+			}
+		}
+		return node;
+	}
+
 	void BrepFace::EvaluateIntegrationNodesTrimmingCurveSlave(
 		std::vector<Node<3>::Pointer>& rNodes,
 		const int& rShapefunctionOrder,
@@ -535,6 +553,8 @@ namespace Kratos
 			rNodes[i]->SetValue(TANGENTS_BASIS_VECTOR_SLAVE, derivatives[1]);
 		}
 	}
+
+
 
   //To be deleted
  // std::vector<Node<3>::Pointer> BrepFace::GetQuadraturePointsOfTrimmingCurveWithPoints(const int& shapefunction_order, const int& trim_index, std::vector<Point> intersection_points)
@@ -1241,10 +1261,26 @@ namespace Kratos
 	void BrepFace::ApplyGeometryRefinement(
 		const GeometryRefinementParameters& rGeometryRefinementParameters)
 	{
+		/// Degree elevation
+		// newDegree = Max(minP or P+deltaP)
+		int this_order_elevation_p = rGeometryRefinementParameters.order_elevation_p;
+		if (rGeometryRefinementParameters.min_order_p - m_p > 0)
+			this_order_elevation_p = std::max((int)(rGeometryRefinementParameters.min_order_p - m_p),
+				this_order_elevation_p);
+
+		int this_order_elevation_q = rGeometryRefinementParameters.order_elevation_q;
+		if (rGeometryRefinementParameters.min_order_q - m_q > 0)
+			this_order_elevation_q = std::max((int)(rGeometryRefinementParameters.min_order_q - m_q),
+				this_order_elevation_q);
+
+		std::cout << "check here degree elevation this_order_elevation_p: " << this_order_elevation_p << ", this_order_elevation_q: " << this_order_elevation_q << std::endl;
+		if (this_order_elevation_p > 0 ||
+			this_order_elevation_q > 0)
+			DegreeElevate(this_order_elevation_p, this_order_elevation_q);
+
 		/// Knot insertions
 		//check whether increasing/decreasing
 
-		std::cout << "check here!!" << std::endl;
 		// 1. insert defined knots
 		Vector this_knot_insertions_u = ZeroVector(0);
 		if (rGeometryRefinementParameters.knot_insertions_u.size() > 0)
@@ -1259,34 +1295,59 @@ namespace Kratos
 			RefineKnotVector(this_knot_insertions_u, this_knot_insertions_v);
 
 		// 2. insert knots if higher number of elements is defined
+		this_knot_insertions_u = ZeroVector(0);
 		this_knot_insertions_v = ZeroVector(0);
-		if (rGeometryRefinementParameters.multiply_knots_u >
-			NurbsUtilities::get_number_of_knot_spans(m_knot_vector_u, 10e-8))
+		if (rGeometryRefinementParameters.multiply_knots_u > 1)
 		{
-			int number_of_knots = rGeometryRefinementParameters.multiply_knots_u
-				- NurbsUtilities::get_number_of_knot_spans(m_knot_vector_u, 10e-8);
-			this_knot_insertions_v = ZeroVector(number_of_knots);
-			for (int i = 0; i < number_of_knots; i++)
+			for (size_t i = 0; i<m_knot_vector_u.size() - 1; i++)
 			{
-				KRATOS_ERROR << "Multiply knots not implemented yet." << std::endl;
+				if (m_knot_vector_u[i] != m_knot_vector_u[i + 1])
+				{
+					for (int j = 0; j < rGeometryRefinementParameters.multiply_knots_u - 1; j++)
+					{
+						this_knot_insertions_u.resize(this_knot_insertions_u.size() + 1);
+						this_knot_insertions_u[this_knot_insertions_u.size() - 1] = ((1.0 + j) / rGeometryRefinementParameters.multiply_knots_u*(m_knot_vector_u[i + 1] - m_knot_vector_u[i]) + m_knot_vector_u[i]);
+					}
+				}
 			}
+			//double new_knot_size = (m_knot_vector_u[m_knot_vector_u.size() - 1] - m_knot_vector_u[0]) / rGeometryRefinementParameters.multiply_knots_u;
+			//double knot_insertion = m_knot_vector_u[0] + new_knot_size;
+			//for (int i = 0; i<rGeometryRefinementParameters.multiply_knots_u - 1; i++)
+			//{
+			//	this_knot_insertions_u.resize(this_knot_insertions_u.size() + 1);
+			//	this_knot_insertions_u[this_knot_insertions_u.size() - 1] = knot_insertion;
+			//	knot_insertion += new_knot_size;
+			//}
 		}
-		std::cout << "check here degree elevation!!" << std::endl;
+		if (rGeometryRefinementParameters.multiply_knots_v > 1)
+		{
+			for (size_t i = 0; i<m_knot_vector_v.size() - 1; i++)
+			{
+				if (m_knot_vector_v[i] != m_knot_vector_v[i + 1])
+				{
+					for (int j = 0; j < rGeometryRefinementParameters.multiply_knots_v - 1; j++)
+					{
+						this_knot_insertions_v.resize(this_knot_insertions_v.size() + 1);
+						this_knot_insertions_v[this_knot_insertions_v.size() - 1] = ((1.0 + j) / rGeometryRefinementParameters.multiply_knots_v*(m_knot_vector_v[i + 1] - m_knot_vector_v[i]) + m_knot_vector_v[i]);
+					}
+				}
+			}
+			//double new_knot_size = (m_knot_vector_u[m_knot_vector_u.size() - 1] - m_knot_vector_u[0]) / rGeometryRefinementParameters.multiply_knots_u;
+			//double knot_insertion = m_knot_vector_u[0] + new_knot_size;
+			//for (int i = 0; i<rGeometryRefinementParameters.multiply_knots_u - 1; i++)
+			//{
+			//	this_knot_insertions_u.resize(this_knot_insertions_u.size() + 1);
+			//	this_knot_insertions_u[this_knot_insertions_u.size() - 1] = knot_insertion;
+			//	knot_insertion += new_knot_size;
+			//}
+		}
+		KRATOS_WATCH(this_knot_insertions_u)
+		KRATOS_WATCH(this_knot_insertions_v)
+		if (this_knot_insertions_u.size() > 0 ||
+			this_knot_insertions_v.size() > 0)
+			RefineKnotVector(this_knot_insertions_u, this_knot_insertions_v);
 
-		/// Degree elevation
-		// newDegree = Max(minP or P+deltaP)
-		int this_order_elevation_p = rGeometryRefinementParameters.order_elevation_p;
-		if (rGeometryRefinementParameters.min_order_p - m_p > 0)
-			this_order_elevation_p = std::max((int)(rGeometryRefinementParameters.order_elevation_p - m_p),
-				this_order_elevation_p);
 
-		int this_order_elevation_q = rGeometryRefinementParameters.order_elevation_q;
-		if (rGeometryRefinementParameters.min_order_q - m_q > 0)
-			this_order_elevation_q = std::max((int)(rGeometryRefinementParameters.order_elevation_q - m_q),
-				this_order_elevation_q);
-
-		std::cout << "check here degree elevation this_order_elevation_p: " << this_order_elevation_p << ", this_order_elevation_q: " << this_order_elevation_q << std::endl;
-		DegreeElevate(this_order_elevation_p, this_order_elevation_q);
 	}
 
 
@@ -1315,19 +1376,19 @@ namespace Kratos
 		}
 		int number_control_points_u = m_knot_vector_u.size() - m_p - 1;
 		int number_control_points_v = m_knot_vector_v.size() - m_q - 1;
-	  
+
 		matrix<array_1d<double, 4>> Pw(number_control_points_u, number_control_points_v); // Reference control points
 		/* *---------*
 		   |  v->    |
 		   |   u|    |
 		   |    v    |
 		   *---------* */
-		for (int i = 0; i < number_control_points_v; i++)
+		for (int i = 0; i < number_control_points_u; i++)
 		{
-			for (int j = 0; j < number_control_points_u; j++)
+			for (int j = 0; j < number_control_points_v; j++)
 			{
 				array_1d<double, 4> control_point;
-				int control_point_index = j*number_control_points_v + i;
+				int control_point_index = j*number_control_points_u + i;
 				control_point[0] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).X();
 				control_point[1] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).Y();
 				control_point[2] = mp_model_part->GetNode(m_control_points_ids[control_point_index]).Z();
@@ -1340,116 +1401,159 @@ namespace Kratos
 		}
 		matrix<array_1d<double, 4>> Qw(number_control_points_u + Ru.size(), number_control_points_v); // New control points
 
-		int mu = number_control_points_u + m_p + 1;
-		int a  = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, Ru[0]);
-		int b  = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, Ru[Ru.size() - 1]) + 1;
-		for (int col = 0; col < number_control_points_v; col++)
+		if (Ru.size() > 0)
 		{
-			for (int j = 0; j <= a - m_p; j++)
-			{
-				Qw(j, col) = Pw(j, col);
-			}
-			for (int j = b - 1; j < number_control_points_u; j++)
-			{
-				Qw(j + Ru.size(), col) = Pw(j, col);
-			}
-		}
-
-		Vector knot_vector_u = ZeroVector(m_knot_vector_u.size() + Ru.size());
-		for (int j = 0; j <= a; j++) knot_vector_u[j] = m_knot_vector_u[j];
-		for (int j = b + m_p; j <= mu; j++) knot_vector_u[j + Ru.size()] = m_knot_vector_u[j];
-
-		int index_i = b + m_p - 1;
-		int index_k = index_i + Ru.size();
-
-		for (int j = Ru.size() - 1; j >= 0; j--)
-		{
-			while (Ru[j] <= m_knot_vector_u[index_i] && index_i>a)
-			{
-				for (int col = 0; col < number_control_points_v; col++)
-				{
-					Qw(index_k - m_p - 1, col) = Pw(index_i - m_p - 1, col);
-				}
-				knot_vector_u[index_k] = m_knot_vector_u[index_i];
-				index_k--;
-				index_i--;
-			}
+			int mu = number_control_points_u + m_p + 1;
+			int a  = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, Ru[0]);
+			int b  = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, Ru[Ru.size() - 1]) + 1;
 			for (int col = 0; col < number_control_points_v; col++)
 			{
-				Qw(index_k - m_p - 1, col) = Qw(index_k - m_p, col);
+				for (int j = 0; j <= a - m_p; j++)
+				{
+					Qw(j, col) = Pw(j, col);
+				}
+				for (int j = b - 1; j < number_control_points_u; j++)
+				{
+					Qw(j + Ru.size(), col) = Pw(j, col);
+				}
 			}
-			for (int l = 1; l <= m_p; l++)
+
+			Vector knot_vector_u = ZeroVector(m_knot_vector_u.size() + Ru.size());
+			for (int j = 0; j <= a; j++) knot_vector_u[j] = m_knot_vector_u[j];
+			for (int j = b + m_p; j <= mu; j++) knot_vector_u[j + Ru.size()-1] = m_knot_vector_u[j-1];
+
+			int index_i = b + m_p - 1;
+			int index_k = index_i + Ru.size();
+
+			for (int j = Ru.size() - 1; j >= 0; j--)
 			{
-				int ind = index_k - m_p + l;
-				double alfa = (Ru[j] - knot_vector_u[index_k + l]) / (m_knot_vector_u[index_i - m_p + l] - knot_vector_u[index_k + l]);
+				while (Ru[j] <= m_knot_vector_u[index_i] && index_i > a)
+				{
+					for (int col = 0; col < number_control_points_v; col++)
+					{
+						Qw(index_k - m_p - 1, col) = Pw(index_i - m_p - 1, col);
+					}
+					knot_vector_u[index_k] = m_knot_vector_u[index_i];
+					index_k--;
+					index_i--;
+				}
 				for (int col = 0; col < number_control_points_v; col++)
 				{
-					Qw(ind - 1, col) = alfa*Qw(ind - 1, col) + (1 - alfa)*Qw(ind, col);
+					Qw(index_k - m_p - 1, col) = Qw(index_k - m_p, col);
 				}
-			}
-			knot_vector_u[index_k] = Ru[j];
-			index_k = index_k - 1;
-		}
-		number_control_points_u += Ru.size();
-
-		Pw = Qw;
-		Qw.resize(number_control_points_u, number_control_points_v + Ru.size()); // New control points
-
-		int mv = number_control_points_v + m_q + 1;
-		a = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, Rv[0]);
-		b = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, Rv[Rv.size() - 1]) + 1;
-
-		for (int row = 0; row < number_control_points_u; row++)
-		{
-			for (int j = 0; j <= a - m_q; j++)
-			{
-				Qw(row, j) = Pw(row, j);
-			}
-			for (int j = b - 1; j < number_control_points_v; j++)
-			{
-				Qw(row, j + Rv.size()) = Pw(row, j);
-			}
-		}
-		Vector knot_vector_v = ZeroVector(m_knot_vector_v.size() + Rv.size());
-		for (int j = 0; j <= a; j++) knot_vector_v[j] = m_knot_vector_v[j];
-		for (int j = b + m_q; j <= mv; j++) knot_vector_v[j + Rv.size()] = m_knot_vector_v[j];
-
-		index_i = b + m_q - 1;
-		index_k = index_i + Rv.size();
-
-		for (int j = Rv.size() - 1; j >= 0; j--)
-		{
-			while ((Rv[j] <= m_knot_vector_v[index_i]) && (index_i>a))
-			{
-				for (int row = 0; row < number_control_points_u; row++)
+				for (int l = 1; l <= m_p; l++)
 				{
-					Qw(row, index_k - m_q - 1) = Pw(row, index_i - m_q - 1);
+					int ind = index_k - m_p + l;
+					double alfa = (Ru[j] - knot_vector_u[index_k + l]) / (m_knot_vector_u[index_i - m_p + l] - knot_vector_u[index_k + l]);
+					for (int col = 0; col < number_control_points_v; col++)
+					{
+						Qw(ind - 1, col) = alfa*Qw(ind - 1, col) + (1 - alfa)*Qw(ind, col);
+					}
 				}
-				knot_vector_v[index_k] = m_knot_vector_v[index_i];
-				index_k--;
-				index_i--;
+				knot_vector_u[index_k] = Ru[j];
+				index_k = index_k - 1;
 			}
+			number_control_points_u += Ru.size();
+
+			m_knot_vector_u.resize(m_knot_vector_u.size());
+			m_knot_vector_u = knot_vector_u;
+			KRATOS_WATCH(Pw)
+			Pw = Qw;
+			KRATOS_WATCH(Pw)
+		}
+		Qw.resize(number_control_points_u, number_control_points_v + Rv.size()); // New control points
+		std::cout << "here" << std::endl;
+		if (Rv.size() > 0)
+		{
+			int mv = number_control_points_v + m_q + 1;
+			int a = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, Rv[0]);
+			int b = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, Rv[Rv.size() - 1]) + 1;
+
 			for (int row = 0; row < number_control_points_u; row++)
 			{
-				Qw(row, index_k - m_q - 1) = Qw(row, index_k - m_q);
-			}
-			for (int l = 1; l <= m_q; l++)
-			{
-				int ind = index_k - m_q + l;
-				double alfa = (Rv[j] - knot_vector_v[index_k + l]) / (m_knot_vector_v[index_i - m_q + l] - knot_vector_v[index_k + l]);
-				for (int row = 0; row < number_control_points_u; row++)
+				for (int j = 0; j <= a - m_q; j++)
 				{
-					Qw(row, ind - 1) = alfa*Qw(row, ind - 1) + (1 - alfa)*Qw(row, ind);
+					Qw(row, j) = Pw(row, j);
+					KRATOS_ERROR_IF(Qw.size1() <= row) << "here";
+					KRATOS_ERROR_IF(Qw.size2() <= j) << "here";
+				}
+				for (int j = b - 1; j < number_control_points_v; j++)
+				{
+					Qw(row, j + Rv.size()) = Pw(row, j);
+					KRATOS_ERROR_IF(Qw.size1() <= row) << "here";
+					KRATOS_ERROR_IF(Qw.size2() <= (j + Rv.size())) << "here";
 				}
 			}
-			knot_vector_v[index_k] = Rv[j];
-			index_k = index_k - 1;
+			Vector knot_vector_v = ZeroVector(m_knot_vector_v.size() + Rv.size());
+			for (int j = 0; j <= a; j++)
+			{
+				knot_vector_v[j] = m_knot_vector_v[j];
+				KRATOS_ERROR_IF(knot_vector_v.size() <= j) << "here";
+			}
+			for (int j = b + m_q; j <= mv; j++) {
+				//KRATOS_ERROR_IF(knot_vector_v.size() <= j + Rv.size()) << "here guess" << j + Rv.size() << " size: " << knot_vector_v.size();
+				knot_vector_v[j + Rv.size()-1] = m_knot_vector_v[j-1];
+				//KRATOS_ERROR_IF(m_knot_vector_v.size() == j ) << "here guess" << j;
+			}
+
+			KRATOS_WATCH(knot_vector_v)
+
+			int index_i = b + m_q - 1;
+			int index_k = index_i + Rv.size();
+
+			for (int j = Rv.size() - 1; j >= 0; j--)
+			{
+				while ((Rv[j] <= m_knot_vector_v[index_i]) && (index_i > a))
+				{
+					for (int row = 0; row < number_control_points_u; row++)
+					{
+						Qw(row, index_k - m_q - 1) = Pw(row, index_i - m_q - 1);
+						KRATOS_ERROR_IF(Qw.size1() <= row) << "here";
+						KRATOS_ERROR_IF(Qw.size2() <= index_k - m_q - 1) << "here";
+						KRATOS_ERROR_IF(Qw.size2() <= index_i - m_q -1) << "here";
+					}
+					knot_vector_v[index_k] = m_knot_vector_v[index_i];
+					KRATOS_ERROR_IF(knot_vector_v.size() <= index_k) << "here";
+					index_k--;
+					index_i--;
+				}
+				for (int row = 0; row < number_control_points_u; row++)
+				{
+					Qw(row, index_k - m_q - 1) = Qw(row, index_k - m_q);
+					KRATOS_ERROR_IF(Qw.size1() <= row) << "here";
+					KRATOS_ERROR_IF(Qw.size2() <= index_k - m_q - 1) << "here";
+					KRATOS_ERROR_IF(Qw.size2() <= index_k - m_q) << "here";
+				}
+				for (int l = 1; l <= m_q; l++)
+				{
+					int ind = index_k - m_q + l;
+					double alfa = (Rv[j] - knot_vector_v[index_k + l]) / (m_knot_vector_v[index_i - m_q + l] - knot_vector_v[index_k + l]);
+					KRATOS_ERROR_IF(knot_vector_v.size() <= index_k + l) << "here";
+					for (int row = 0; row < number_control_points_u; row++)
+					{
+						Qw(row, ind - 1) = alfa*Qw(row, ind - 1) + (1 - alfa)*Qw(row, ind);
+						KRATOS_ERROR_IF(Qw.size1() <= row) << "here";
+						KRATOS_ERROR_IF(Qw.size2() <= ind - 1) << "here";
+						KRATOS_ERROR_IF(Qw.size2() <= ind) << "here";
+					}
+				}
+				knot_vector_v[index_k] = Rv[j];
+				KRATOS_ERROR_IF(knot_vector_v.size() <= index_k) << "here";
+				KRATOS_ERROR_IF(Rv.size() <= j) << "here";
+				index_k = index_k - 1;
+			}
+			m_knot_vector_v.resize(knot_vector_v.size());
+			m_knot_vector_v = knot_vector_v;
 		}
+		//KRATOS_WATCH(m_knot_vector_u)
+		//KRATOS_WATCH(m_knot_vector_v)
 
-		m_knot_vector_u = knot_vector_u;
-		m_knot_vector_v = knot_vector_v;
-
+		//m_knot_vector_u = knot_vector_u;
+		//m_knot_vector_v = knot_vector_v;
+		KRATOS_WATCH(m_knot_vector_u)
+		KRATOS_WATCH(m_knot_vector_v)
 		m_control_points_ids.resize(Qw.size1()*Qw.size2());
+		std::cout << "control point ids:";
 		for (int i = 0; i < Qw.size1(); i++)
 		{
 			for (int j = 0; j < Qw.size2(); j++)
@@ -1460,9 +1564,15 @@ namespace Kratos
 				int control_point_index = j*Qw.size1() + i;
 				m_control_points_ids[control_point_index] = new_id;
 
+				std::cout << " " << new_id;
+
 				mp_model_part->CreateNewNode(new_id, Qw(i, j)[0], Qw(i, j)[1], Qw(i, j)[2])->SetValue(CONTROL_POINT_WEIGHT, Qw(i, j)[3]);
 			}
 		}
+		std::cout << std::endl;
+		KRATOS_WATCH(Qw)
+		KRATOS_WATCH(m_control_points_ids.size())
+		KRATOS_WATCH(mp_model_part->NumberOfNodes())
   }
 
 	/* elevates polinomial degrees p and q by tp and tq
@@ -1476,7 +1586,7 @@ namespace Kratos
 		int number_control_points_u = m_knot_vector_u.size() - m_p - 1;
 		int number_control_points_v = m_knot_vector_v.size() - m_q - 1;
 
-		matrix<array_1d<double, 4>> Pw(number_control_points_u, number_control_points_v); // Reference control points
+		matrix<array_1d<double, 4>> Pw(number_control_points_v, number_control_points_u); // Reference control points
 		/*---------*
 		 |  v-->   |
 		 |u|       |
@@ -1496,10 +1606,10 @@ namespace Kratos
 
 				mp_model_part->RemoveNodeFromAllLevels(m_control_points_ids[control_point_index]);
 
-				Pw(i, j) = control_point;
+				Pw(i,j) = control_point;
 			}
 		}
-		matrix<array_1d<double, 4>> Qw(number_control_points_u + tp, number_control_points_v + tq); // New control points
+		matrix<array_1d<double, 4>> Qw(number_control_points_u + tp, number_control_points_v); // New control points
 
 		// DEGREE ELEVATION p
 		if (tp > 0)
@@ -1513,14 +1623,14 @@ namespace Kratos
 			int ph = m_p + tp;
 			int ku = 1;
 			//preallocate u_ele
-			for (int i = 0; i<m - 1; i++)
+			for (int i = 0; i<m-1; i++)
 				if (m_knot_vector_u[i] != m_knot_vector_u[i + 1]) ku++;
 			Vector u_ele = ZeroVector(m + 1 + tp*ku);
 
 			bezalfs(0, 0) = 1.0;
 			bezalfs(ph, m_p) = 1.0;
 
-			for (int i = 1; i <= (ph / 2); i++) // bezalfs are symmetric to row pr/2
+			for (int i = 1; i <= (ph / 2); i++) // bezalfs are symmetric to row ph/2
 			{
 				double inv = 1.0 / NurbsUtilities::binom(ph, i);
 				double mpi = std::min((int) m_p, i);
@@ -1536,12 +1646,12 @@ namespace Kratos
 			int a = m_p;
 			int b = m_p + 1;
 			int cind = 1;
-			double ua = m_knot_vector_u[0];
+			double ua = m_knot_vector_u[a];
 			for (int h = 0; h < number_control_points_v; h++)
 				Qw(0, h) = Pw(0, h);
-			for (int i = 0; i <= ph; i++) // left end of Ur
+			for (int i = 0; i < ph + 1; i++) // left end of Ur
 				u_ele[i] = ua;
-			for (int i = 0; i <= m_p; i++) // initialize first Bezier seg
+			for (int i = 0; i < m_p + 1; i++) // initialize first Bezier seg
 			{
 				for (int h = 0; h < number_control_points_v; h++)
 					bpts(i, h) = Pw(i, h);
@@ -1552,13 +1662,13 @@ namespace Kratos
 				while (b<m && m_knot_vector_u[b] == m_knot_vector_u[b + 1])
 					b++; // make b the rightmost ocurrence of ub
 				int mult = b - index_i + 1; // multiplicity of ub
-				int mh = mh + mult + tp;
+				mh = mh + mult + tp;
 				double ub = m_knot_vector_u[b];
 				int oldr = r; // r from last segment
-				int r = m_p - mult; // ub to be inserted r times
+				r = m_p - mult; // ub to be inserted r times
 
-				int lbz = 0.0;
-				int rbz = 0.0;
+				int lbz = 0;
+				int rbz = 0;
 
 				if (oldr>0) lbz = ((oldr + 2) / 2);
 				else lbz = 1;
@@ -1689,13 +1799,16 @@ namespace Kratos
 				}
 			}
 			m_p = ph;
+			m_knot_vector_u.resize(u_ele.size());
 			m_knot_vector_u = u_ele;
+			number_control_points_u = number_control_points_u + tp;
+
+			Pw.resize(Qw.size1(),Qw.size2());
+			Pw = Qw;
 		} // end of big loop through knot vector
-		number_control_points_u = number_control_points_u + tp;
 
 		if (tq) {
-			Pw = Qw;
-			Qw.clear();
+			Qw.resize(number_control_points_u, number_control_points_v + tq);
 			Matrix bezalfs = ZeroMatrix(m_q + tq + 1, m_q + 1); // coefficients for degree elevating the Bézier segments
 			matrix<array_1d<double, 4>> bpts(number_control_points_u, m_q + 1); //pth-degree Bézier control points of the current segment
 			matrix<array_1d<double, 4>> ebpts(number_control_points_u, m_q + tq + 1); //((p+t)th-degree Bézier control points of the current segment
@@ -1704,7 +1817,7 @@ namespace Kratos
 			int m = number_control_points_v + m_q;
 			int qh = m_q + tq;
 			int kv = 1;
-			for (int i = 0; i < m; i++) // preallocate v_ele
+			for (int i = 0; i < m - 1; i++) // preallocate v_ele
 			{
 				if (m_knot_vector_v[i] != m_knot_vector_v[i + 1]) kv++;
 			}
@@ -1753,13 +1866,13 @@ namespace Kratos
 					b = b + 1;
 				}
 				int mult = b - index_i + 1; // multiplicity of ub
-				int mh = mh + mult + tq;
+				mh = mh + mult + tq;
 				double ub = m_knot_vector_v[b];
 				int oldr = r; // r from last segment
 				r = m_q - mult; // ub to be inserted r times
 
-				int lbz;
-				int rbz;
+				int lbz = 0;
+				int rbz = 0;
 
 				if (oldr > 0)
 					lbz = ((oldr + 2) / 2);
@@ -1818,7 +1931,7 @@ namespace Kratos
 					double bet = (ub - v_ele[kind - 1]) / den;
 					for (int tr = 1; tr < oldr; tr++)
 					{
-						int index_i = first;
+						index_i = first;
 						int j = last;
 						int kj = j - kind + 1;
 						while ((j - index_i) > tr) // loop and compute the new CP for one removal step
@@ -1852,6 +1965,9 @@ namespace Kratos
 
 				if (a != m_q) // load the knot ua
 				{
+					KRATOS_WATCH(qh)
+					KRATOS_WATCH(oldr)
+					KRATOS_WATCH(ua)
 					for (int i = 0; i < qh - oldr; i++)
 					{
 						v_ele[kind] = ua;
@@ -1882,7 +1998,9 @@ namespace Kratos
 					for (int j = r; j <= m_q; j++)
 					{
 						for (int h = 0; h < number_control_points_u; h++)
+						{
 							bpts(h, j) = Pw(h, b - m_q + j);
+						}
 					}
 					a = b;
 					b = b + 1;
@@ -1890,16 +2008,22 @@ namespace Kratos
 				}
 				else // end knots
 				{
+					KRATOS_WATCH(qh)
+						KRATOS_WATCH(kind)
 					for (int i = 0; i <= qh; i++)
+					{
 						v_ele[kind + i] = ub;
+					}
 				}
 			}// end of big loop through knot vector
 
 			m_q = qh;
+			m_knot_vector_v.resize(v_ele.size());
 			m_knot_vector_v = v_ele;
 		}
 
 		m_control_points_ids.resize(Qw.size1()*Qw.size2());
+		std::cout << "Control ids: ";
 		for (int i = 0; i < Qw.size1(); i++)
 		{
 			for (int j = 0; j < Qw.size2(); j++)
@@ -1910,9 +2034,20 @@ namespace Kratos
 				int control_point_index = j*Qw.size1() + i;
 				m_control_points_ids[control_point_index] = new_id;
 
+				std::cout << " " << new_id;
+
 				mp_model_part->CreateNewNode(new_id, Qw(i, j)[0], Qw(i, j)[1], Qw(i, j)[2])->SetValue(CONTROL_POINT_WEIGHT, Qw(i, j)[3]);
 			}
 		}
+		std::cout << std::endl;
+
+		KRATOS_WATCH(Qw)
+
+		KRATOS_WATCH(m_p)
+		KRATOS_WATCH(m_q)
+
+		KRATOS_WATCH(m_knot_vector_u)
+		KRATOS_WATCH(m_knot_vector_v)
 	}
 
 
@@ -2273,6 +2408,7 @@ namespace Kratos
 		bool is_rational,
 		TrimmingLoopVector& trimming_loops,
 		TrimmingLoopVector& embedded_loops,
+		std::vector<EmbeddedPoint>& embedded_points,
 		Vector& knot_vector_u, 
 		Vector& knot_vector_v,
 		unsigned int& p, 
@@ -2283,6 +2419,7 @@ namespace Kratos
 			m_is_trimmed(is_trimmed),
 			m_is_rational(is_rational),
 			m_embedded_loops(embedded_loops),
+			m_embedded_points(embedded_points),
 			m_knot_vector_u(knot_vector_u),
 			m_knot_vector_v(knot_vector_v),
 			m_p(p),

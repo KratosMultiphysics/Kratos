@@ -57,6 +57,9 @@ namespace Kratos
 		Parameters& rIntegrationDomainParameter, 
 		ModelPart& rIntegrationDomainModelPart);
 
+	void CreateIntegrationDomainElements(
+		Parameters& rIntegrationDomainParameter, ModelPart& rModelPart);
+
 	/* Applies all geometry refinement operations on the patches which are defined in the
 	*  RefinementParameters.
 	*  @param[in] rRefinementParameters */
@@ -66,6 +69,7 @@ namespace Kratos
 	void ComputeArea(ModelPart& rModelPart);
 
 	void MapNode(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry, ModelPart& rSearchModelPart);
+	void GetInterfaceConditions(ModelPart& rParticleModelPart, ModelPart& rConditionModelPart, ModelPart& rSearchModelPart);
     ///@} 
     ///@name Life Cycle 
     ///@{ 

@@ -91,6 +91,17 @@ namespace Kratos
 		}
 	};
 
+	struct EmbeddedPoint{
+		int trim_index;
+		Vector local_coordinates;
+
+		EmbeddedPoint(const int& rTrimIndex, const Vector& rLocalCoordinates)
+		{
+			trim_index = rTrimIndex;
+			local_coordinates = rLocalCoordinates;
+		}
+	};
+
 	typedef std::vector<int>               IntVector;
 	typedef std::vector<BrepBoundaryLoop>  TrimmingLoopVector;
 	typedef std::vector<BrepTrimmingCurve> TrimmingCurveVector;
@@ -180,6 +191,10 @@ namespace Kratos
 		const int& rShapefunctionOrder, const int& rTrimIndex, const int& rPQSlave,
 		const double& rAccuracy, const double& rModelTolerance, const int& rMaxIterations);
 
+	// Integration domain points
+	Node<3>::Pointer BrepFace::GetIntegrationNodePoint(
+		const int& rTrimIndex,
+		const int& rShapefunctionOrder);
 
 	void EvaluateIntegrationNodesTrimmingCurveSlave(
 		std::vector<Node<3>::Pointer>& rNodes, const int& rShapefunctionOrder,
@@ -223,6 +238,7 @@ namespace Kratos
 		bool is_trimmed, bool is_rational,
 		TrimmingLoopVector& trimming_loops,
 		TrimmingLoopVector& embedded_loops,
+		std::vector<EmbeddedPoint>& embedded_points,
 		Vector& knot_vector_u, Vector& knot_vector_v,
 		unsigned int& p, unsigned int& q, 
 		IntVector& control_point_ids,
@@ -257,6 +273,7 @@ private:
 	bool m_is_rational;
     TrimmingLoopVector m_trimming_loops;
     TrimmingLoopVector m_embedded_loops;
+	std::vector<EmbeddedPoint> m_embedded_points;
     Vector m_knot_vector_u;
     Vector m_knot_vector_v;
     unsigned int m_p;

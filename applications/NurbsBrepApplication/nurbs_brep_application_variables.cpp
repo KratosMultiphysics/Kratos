@@ -4,6 +4,8 @@
 
 namespace Kratos
 {
+	//variables for IGA - DEM coupling
+	//KRATOS_CREATE_VARIABLE(std::vector<Condition::Pointer>, WALL_POINT_CONDITION_POINTERS)
 	//KRATOS_CREATE_VARIABLE(NurbsBrepModeler::tree::Pointer, SEARCH_TREE)
 
 	KRATOS_CREATE_VARIABLE(double, CONTROL_POINT_WEIGHT)

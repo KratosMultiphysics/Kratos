@@ -69,6 +69,15 @@ namespace Kratos
 		void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo&
 			rCurrentProcessInfo) override;
 
+		/**
+		* @brief This function provides the place to perform checks on the completeness of the input.
+		* @details It is designed to be called only once (or anyway, not often) typically at the beginning
+		* of the calculations, so to verify that nothing is missing from the input
+		* or that no common error is found.
+		* @param rCurrentProcessInfo the current process info instance
+		*/
+		int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
 		void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo&
 			rCurrentProcessInfo) override;
 
@@ -91,7 +100,6 @@ namespace Kratos
 	private:
 		///@name Member Variables
 		///@{
-
 		friend class Serializer;
 
 		// A private default constructor necessary for serialization

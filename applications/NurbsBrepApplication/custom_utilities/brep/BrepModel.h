@@ -17,78 +17,52 @@
 // ------------------------------------------------------------------------------
 #include "BrepFace.h"
 #include "BrepEdge.h"
+#include "BrepVertex.h"
 
 // ==============================================================================
 
 namespace Kratos
 {
-
-  ///@name Kratos Globals
-  ///@{ 
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  ///@}
-  ///@name  Enum's
-  ///@{
-  ///@}
-  ///@name  Functions 
-  ///@{
-  ///@}
   ///@name Kratos Classes
   ///@{
-  /// Short class definition.
-  /** Detail class definition.
+  /// Holder of all Brep entities.
+  /** This class contains the full Brep description needed to describe all CAD-geometries.
   */
-  class BrepModel : public IndexedObject, public Flags
-  {
-  public:
-    ///@name Type Definitions
-    ///@{
+	class BrepModel : public IndexedObject, public Flags
+	{
+	public:
+		///@name Type Definitions
+		///@{
+		KRATOS_CLASS_POINTER_DEFINITION(BrepModel);
 
-    typedef std::vector<BrepFace> FacesVector;
-    typedef std::vector<BrepEdge> EdgesVector;
-    
-    /// Pointer definition of KratosNurbsTestcaseApplication
-    KRATOS_CLASS_POINTER_DEFINITION(BrepModel);
+		///@}
+		///@name Life Cycle 
+		///@{ 
+		std::vector<BrepFace>&   GetFaceVector();
+		std::vector<BrepEdge>&   GetEdgeVector();
+		std::vector<BrepVertex>& GetVertexVector();
 
-    ///@}
-    ///@name Life Cycle 
-    ///@{ 
-    FacesVector& GetFaceVector();
-    EdgesVector& GetEdgeVector();
+		//TODO: you need to give reading access to your internals through the Calculate function
+		/// Constructor.
+		BrepModel(unsigned int& brep_id,
+			std::vector<BrepFace>& faces,
+			std::vector<BrepEdge>& edges,
+			std::vector<BrepVertex>& vertices
+		);
 
+		/// Destructor.
+		virtual ~BrepModel();
+		///@} 
+	protected:
 
-    //TODO: you need to give reading access to your internals through the Calculate function
-    /// Constructor.
-    BrepModel(unsigned int& brep_id, 
-      FacesVector& faces, 
-      EdgesVector& edges);
-
-    /// Destructor.
-    virtual ~BrepModel();
-
-    /// Copy constructor.
-    //BrepModel(BrepModel const& rOther);
-
-    /// Assignment operator.
-    //BrepModel& operator=(BrepModel const& rOther);
-    ///@} 
-  protected:
-
-  private:
-
-    ///@name Private methods
-    ///@{ 
-
-    ///@} 
-    ///@name Member Variables
-    ///@{ 
-    FacesVector m_brep_faces;
-    EdgesVector m_brep_edges;
-    ///@}    
-
-  }; // Class BrepModel 
+	private:
+		///@name Member Variables
+		///@{ 
+		std::vector<BrepFace>   m_brep_faces;
+		std::vector<BrepEdge>   m_brep_edges;
+		std::vector<BrepVertex> m_brep_vertices;
+		///@}    
+	}; // Class BrepModel 
 
 }  // namespace Kratos.
 

@@ -97,7 +97,7 @@ namespace Kratos
 				const Vector&  N = this->GetValue(SHAPE_FUNCTION_VALUES);
 				const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 				const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
-
+				
 				mConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
 				ProcessInfo emptyProcessInfo = ProcessInfo();
 				//mConstitutiveLaw->SetValue(INTEGRATION_WEIGHT, integration_weight, emptyProcessInfo);
@@ -129,7 +129,7 @@ namespace Kratos
 		//set up properties for Constitutive Law
 		ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-		Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+		Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
 		Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 		Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
@@ -176,7 +176,6 @@ namespace Kratos
 		CalculateSecondVariationStrainCurvature(
 			Strain_ca_11, Strain_ca_22, Strain_ca_12,
 			Curvature_ca_11, Curvature_ca_22, Curvature_ca_12, actual_metric);
-
 
 		integration_weight = this->GetValue(INTEGRATION_WEIGHT) * mInitialMetric.detJ * GetProperties()[THICKNESS];
 
@@ -228,7 +227,7 @@ namespace Kratos
 			ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 			// Set constitutive law flags:
 			Flags& ConstitutiveLawOptions = Values.GetOptions();
-			ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+			ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
 			ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 			ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
@@ -321,7 +320,7 @@ namespace Kratos
 			ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 			// Set constitutive law flags:
 			Flags& ConstitutiveLawOptions = Values.GetOptions();
-			ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+			ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
 			ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 			ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
@@ -488,9 +487,7 @@ namespace Kratos
 		Vector curvature_vector = ZeroVector(3);
 
 		CalculateStrain(strain_vector, rActualMetric.gab, mInitialMetric.gab);
-
 		rThisConstitutiveVariables.StrainVector = prod(mInitialMetric.Q, strain_vector);
-
 		CalculateCurvature(curvature_vector, rActualMetric.curvature, mInitialMetric.curvature);
 		rThisConstitutiveVariables.StrainCurvatureVector = prod(mInitialMetric.Q, curvature_vector);
 
@@ -498,9 +495,9 @@ namespace Kratos
 		rValues.SetStrainVector(rThisConstitutiveVariables.StrainVector); //this is the input parameter
 		rValues.SetStressVector(rThisConstitutiveVariables.StressVector);    //this is an ouput parameter
 		rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.DMembrane); //this is an ouput parameter
-
+		//rValues.CheckAllParameters();
 		mConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
-
+		
 		double thickness = this->GetProperties().GetValue(THICKNESS);
 		rThisConstitutiveVariables.DCurvature = rThisConstitutiveVariables.DMembrane*(pow(thickness, 2) / 12);
 

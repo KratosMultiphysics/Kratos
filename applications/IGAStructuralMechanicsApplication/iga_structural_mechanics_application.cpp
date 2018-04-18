@@ -52,7 +52,8 @@ KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication
  	mMeshlessSupportRotationCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mMeshlessSurfaceSupportCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessPenaltyCouplingRotationCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-	mMeshlessPenaltyCouplingCrackCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1))))
+	mMeshlessPenaltyCouplingCrackCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+	mMeshlessPointCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1))))
 {}
 
 void KratosIGAStructuralMechanicsApplication::Register() {
@@ -107,6 +108,7 @@ void KratosIGAStructuralMechanicsApplication::Register() {
 	KRATOS_REGISTER_CONDITION("MeshlessLagrangeCouplingCondition2", mMeshlessLagrangeCouplingCondition2)
 	KRATOS_REGISTER_CONDITION("MeshlessPenaltyCouplingRotationCondition", mMeshlessPenaltyCouplingRotationCondition)
 	KRATOS_REGISTER_CONDITION("MeshlessPenaltyCouplingCrackCondition", mMeshlessPenaltyCouplingCrackCondition)
+	KRATOS_REGISTER_CONDITION("MeshlessPointCondition", mMeshlessPointCondition)
 		
 
 	// for damage constitutive law

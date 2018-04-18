@@ -486,7 +486,8 @@ namespace Kratos
       }
       else
       {
-        KRATOS_THROW_ERROR(std::logic_error, "IntegrationUtilities::GetFace: face_id does not exist", "");
+		  KRATOS_ERROR << "IntegrationUtilities::getGaussPointLocations number of points does not exist! number_of_points: "
+			  << number_of_points;
       }
     }
 

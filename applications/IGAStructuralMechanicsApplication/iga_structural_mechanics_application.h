@@ -56,6 +56,7 @@
 #include "custom_conditions/meshless_lagrange_coupling_condition_2.h"
 #include "custom_conditions/meshless_penalty_coupling_rotation_condition.h"
 #include "custom_conditions/meshless_penalty_coupling_crack_condition.h"
+#include "custom_conditions/meshless_point_condition.h"
 
 namespace Kratos {
 
@@ -257,6 +258,7 @@ private:
     const MeshlessLagrangeCouplingCondition2       mMeshlessLagrangeCouplingCondition2;
 	const MeshlessPenaltyCouplingRotationCondition mMeshlessPenaltyCouplingRotationCondition;
 	const MeshlessPenaltyCouplingCrackCondition    mMeshlessPenaltyCouplingCrackCondition;
+	const MeshlessPointCondition                   mMeshlessPointCondition;
 	///@}
 
 	///@name Private Operators

@@ -29,12 +29,12 @@ class ModelPartIOIGA(KratosMultiphysics.IO):
 				iga_model_part = model_part.CreateSubModelPart(element_type["iga_model_part"].GetString())
 			#iga_model_part = model_part.CreateSubModelPart(element_type["iga_model_part"].GetString())
 			#cad_model_part_names = element_type["cad_model_part"]
-
+			#properties = model_part.GetProperties(element_type["parameters"]["properties_id"].GetInt())
+			
 			for property in model_part.Properties:
 				if (property.Id == element_type["parameters"]["properties_id"].GetInt()):
 					properties = property
 					break
-					
 			for cad_model_part_name_id in range (0,element_type["cad_model_part"].size()):
 				cad_model_part_name = element_type["cad_model_part"][cad_model_part_name_id]
 				#cad_model_part  = self.model_part_elements.GetSubModelPart(cad_model_part_name.GetString())
@@ -42,8 +42,15 @@ class ModelPartIOIGA(KratosMultiphysics.IO):
 				model.AddModelPart(self.model_part_elements)
 				cad_model_part  = model[cad_model_part_name.GetString()]
 
-				for node in cad_model_part.Nodes:
-					control_points = node.GetValue(eval(element_type["parameters"]["control_points"].GetString()))
+			var = KratosMultiphysics.KratosGlobals.GetVariable(element_type["parameters"]["control_points"].GetString())
+			list_var_nurbs = []
+			list_var_iga = []
+			for variable in range(0,element_type["parameters"]["variables"].size()):
+				list_var_nurbs.append(KratosMultiphysics.KratosGlobals.GetVariable(element_type["parameters"]["variables"][variable]["cad_variable"].GetString()))
+				list_var_iga.append(KratosMultiphysics.KratosGlobals.GetVariable(element_type["parameters"]["variables"][variable]["iga_variable"].GetString()))
+			
+			for node in cad_model_part.Nodes:
+					control_points = node.GetValue(var)
 					int_control_points = []
 					for cp in control_points:
 						int_control_points.append(int(cp))
@@ -51,8 +58,8 @@ class ModelPartIOIGA(KratosMultiphysics.IO):
 
 					element = iga_model_part.CreateNewElement(element_name, node.Id, int_control_points, properties)
 					i = 1
-					for variable in range(0,element_type["parameters"]["variables"].size()):#element_type["parameters"]["variables"]:
-						element.SetValue(eval(element_type["parameters"]["variables"][variable]["iga_variable"].GetString()), node.GetValue(eval(element_type["parameters"]["variables"][variable]["cad_variable"].GetString())))
+					for iga_var, brep_var in zip(list_var_iga, list_var_nurbs):# in range(0,element_type["parameters"]["variables"].size()):#element_type["parameters"]["variables"]:
+						element.SetValue(iga_var, node.GetValue(brep_var))
 
 		for condition_id in range(0,self.project_parameters["condition_list"].size()): #project_parameters["condition_list"]:
 			condition_type = self.project_parameters["condition_list"][condition_id]
@@ -62,7 +69,7 @@ class ModelPartIOIGA(KratosMultiphysics.IO):
 			else:
 				iga_model_part = model_part.CreateSubModelPart(condition_type["iga_model_part"].GetString())
 			#cad_model_part_names = condition_type["cad_model_part"]
-
+			#properties = model_part.GetProperties(condition_type["parameters"]["properties_id"].GetInt())
 			for property in model_part.Properties:
 				if (property.Id == condition_type["parameters"]["properties_id"].GetInt()):
 					properties = property
