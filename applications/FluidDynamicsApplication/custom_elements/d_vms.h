@@ -19,7 +19,7 @@
 #include "geometries/geometry.h"
 
 #include "includes/cfd_variables.h"
-#include "custom_elements/fluid_element.h"
+#include "custom_elements/qs_vms.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -47,14 +47,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-// Forward decalration of auxiliary class
-namespace Internals {
-template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystemDyn;
-}
-
 template< class TElementData >
-class DVMS : public FluidElement<TElementData>
+class DVMS : public QSVMS<TElementData>
 {
 public:
     ///@name Type Definitions
@@ -97,11 +91,11 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    constexpr static unsigned int Dim = FluidElement<TElementData>::Dim;
-    constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
-    constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
-    constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
-    constexpr static unsigned int StrainSize = FluidElement<TElementData>::StrainSize;
+    constexpr static unsigned int Dim = QSVMS<TElementData>::Dim;
+    constexpr static unsigned int NumNodes = QSVMS<TElementData>::NumNodes;
+    constexpr static unsigned int BlockSize = QSVMS<TElementData>::BlockSize;
+    constexpr static unsigned int LocalSize = QSVMS<TElementData>::LocalSize;
+    constexpr static unsigned int StrainSize = QSVMS<TElementData>::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -164,7 +158,7 @@ public:
 
     /// Create a new element of this type using given geometry
     /**
-     * Returns a pointer to a new FluidElement element, created using given input
+     * Returns a pointer to a new DVMS element, created using given input
      * @param NewId the ID of the new element
      * @param pGeom a pointer to the geomerty to be used to create the element
      * @param pProperties the properties assigned to the new element
@@ -278,19 +272,6 @@ protected:
 
     // Protected interface of FluidElement ////////////////////////////////////
 
-    void AddTimeIntegratedSystem(
-        TElementData& rData,
-        MatrixType& rLHS,
-        VectorType& rRHS) override;
-
-    void AddTimeIntegratedLHS(
-        TElementData& rData,
-        MatrixType& rLHS) override;
-
-    void AddTimeIntegratedRHS(
-        TElementData& rData,
-        VectorType& rRHS) override;
-
     void AddVelocitySystem(
         TElementData& rData,
         MatrixType& rLocalLHS,
@@ -300,25 +281,13 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
-    // This function integrates the traction over a cut. It is only required to implement embedded formulations
-    void AddBoundaryIntegral(
-        TElementData& rData,
-        const Vector& rUnitNormal,
-        MatrixType& rLHS,
-        VectorType& rRHS) override;
-
     // Implementation details of DVMS /////////////////////////////////////////
 
     void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix);
 
-    void AddViscousTerm(
-        const TElementData& rData,
-        boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
-        VectorType& rRHS);
-
-    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
+    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected  Access
@@ -340,7 +309,7 @@ private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     constexpr static double mTauC1 = 8.0;
     constexpr static double mTauC2 = 2.0;
     constexpr static double mSubscalePredictionVelocityTolerance = 1e-14;
@@ -354,12 +323,6 @@ private:
     // Velocity subscale history, stored at integration points
     std::vector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
     std::vector< array_1d<double,Dim> > mOldSubscaleVelocity;
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    friend class Internals::SpecializedAddTimeIntegratedSystemDyn<TElementData, TElementData::ElementManagesTimeIntegration>;
 
     ///@}
     ///@name Serialization
@@ -387,15 +350,6 @@ private:
         double &TauTwo,
         double &TauP) const;
 
-    void MomentumProjTerm(
-        const TElementData& rData,
-        const array_1d<double,3>& rConvectionVelocity,
-        array_1d<double,3>& rMomentumRHS) const;
-
-    void MassProjTerm(
-        const TElementData& rData,
-        double& rMassRHS) const;
-    
     void SubscaleVelocity(
         const TElementData& rData,
         array_1d<double,Dim>& rVelocitySubscale);
@@ -406,24 +360,6 @@ private:
 
     void UpdateSubscaleVelocityPrediction(
         const TElementData& rData);
-
-    void ASGSMomentumResidual(
-        const TElementData& rData,
-        const array_1d<double,3> &rConvectionVelocity,
-        array_1d<double,3>& rResidual) const;
-
-    void ASGSMassResidual(
-        const TElementData& rData,
-        double& rResidual) const;
-
-    void OSSMomentumResidual(
-        const TElementData& rData,
-        const array_1d<double,3> &rConvectionVelocity,
-        array_1d<double,3>& rResidual) const;
-
-    void OSSMassResidual(
-        const TElementData& rData,
-        double& rResidual) const;
 
     array_1d<double,3> FullConvectiveVelocity(
         const TElementData& rData) const;
@@ -486,31 +422,6 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 ///@}
 
 ///@} // Fluid Dynamics Application group
-
-namespace Internals {
-
-template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystemDyn {
-   public:
-    static void AddSystem(DVMS<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
-template <class TElementData>
-class SpecializedAddTimeIntegratedSystemDyn<TElementData, true> {
-   public:
-    static void AddSystem(DVMS<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
-template <class TElementData>
-class SpecializedAddTimeIntegratedSystemDyn<TElementData, false> {
-   public:
-    static void AddSystem(DVMS<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
-} // namespace Internals
 
 } // namespace Kratos.
 

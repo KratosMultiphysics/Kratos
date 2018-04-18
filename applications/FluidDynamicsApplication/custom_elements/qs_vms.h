@@ -318,23 +318,23 @@ protected:
     KRATOS_DEPRECATED virtual double EffectiveViscosity(
         TElementData& rData,
         double ElementSize);
-    
+
     virtual void CalculateTau(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
         double &TauOne,
         double &TauTwo) const;
 
-    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
+    virtual void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
 
     virtual void MomentumProjTerm(
         const TElementData& rData,
+        const array_1d<double,3>& rConvectionVelocity,
         array_1d<double,3>& rMomentumRHS) const;
 
     virtual void MassProjTerm(
         const TElementData& rData,
         double& rMassRHS) const;
-
 
     virtual void SubscaleVelocity(
         const TElementData& rData,
@@ -346,8 +346,8 @@ protected:
 
     virtual void ASGSMomentumResidual(
         const TElementData& rData,
-        array_1d<double,3>& rMomentumRes) const;
-
+        const array_1d<double,3> &rConvectionVelocity,
+        array_1d<double,3>& rResidual) const;
 
     virtual void ASGSMassResidual(
         const TElementData& rData,
@@ -355,7 +355,8 @@ protected:
 
     virtual void OSSMomentumResidual(
         const TElementData& rData,
-        array_1d<double,3>& rMomentumRes) const;
+        const array_1d<double,3> &rConvectionVelocity,
+        array_1d<double,3>& rResidual) const;
 
     virtual void OSSMassResidual(
         const TElementData& rData,

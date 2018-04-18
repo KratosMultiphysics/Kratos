@@ -26,14 +26,14 @@ namespace Kratos
 
 template< class TElementData >
 DVMS<TElementData>::DVMS(IndexType NewId):
-    FluidElement<TElementData>(NewId),
+    QSVMS<TElementData>(NewId),
     mPredictedSubscaleVelocity(),
     mOldSubscaleVelocity()
 {}
 
 template< class TElementData >
 DVMS<TElementData>::DVMS(IndexType NewId, const NodesArrayType& ThisNodes):
-    FluidElement<TElementData>(NewId,ThisNodes),
+    QSVMS<TElementData>(NewId,ThisNodes),
     mPredictedSubscaleVelocity(),
     mOldSubscaleVelocity()
 {}
@@ -41,7 +41,7 @@ DVMS<TElementData>::DVMS(IndexType NewId, const NodesArrayType& ThisNodes):
 
 template< class TElementData >
 DVMS<TElementData>::DVMS(IndexType NewId, GeometryType::Pointer pGeometry):
-    FluidElement<TElementData>(NewId,pGeometry),
+    QSVMS<TElementData>(NewId,pGeometry),
     mPredictedSubscaleVelocity(),
     mOldSubscaleVelocity()
 {}
@@ -49,7 +49,7 @@ DVMS<TElementData>::DVMS(IndexType NewId, GeometryType::Pointer pGeometry):
 
 template< class TElementData >
 DVMS<TElementData>::DVMS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
-    FluidElement<TElementData>(NewId,pGeometry,pProperties),
+    QSVMS<TElementData>(NewId,pGeometry,pProperties),
     mPredictedSubscaleVelocity(),
     mOldSubscaleVelocity()
 {}
@@ -101,7 +101,7 @@ template <class TElementData>
 void DVMS<TElementData>::Initialize()
 {
     // Base class does things with constitutive law here.
-    FluidElement<TElementData>::Initialize();
+    QSVMS<TElementData>::Initialize();
 
     const unsigned int number_of_gauss_points = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
 
@@ -176,25 +176,14 @@ void DVMS<TElementData>::InitializeNonLinearIteration(ProcessInfo &rCurrentProce
 template< class TElementData >
 int DVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
-    int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
+    int out = QSVMS<TElementData>::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    // Extra variables
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
-
     // Output variables (for Calculate() functions)
     KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
-
-    for(unsigned int i=0; i<NumNodes; ++i)
-    {
-        Node<3>& rNode = this->GetGeometry()[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,rNode);
-    }
 
     return out;
 }
@@ -214,20 +203,20 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
         ShapeFunctionDerivativesArrayType ShapeDerivatives;
         this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
         const unsigned int number_of_integration_points = GaussWeights.size();
-        
+
         rValues.resize(number_of_integration_points);
 
         // fill only if the subscale has already been initialized
         if (mPredictedSubscaleVelocity.size() > 0) {
-            
+
             TElementData data;
             data.Initialize(*this, rCurrentProcessInfo);
-            
+
             for (unsigned int g = 0; g < number_of_integration_points; g++) {
-                
+
                 data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
                 this->CalculateMaterialResponse(data);
-                
+
                 array_1d<double,Dim> subscale(Dim,0.0);
                 this->SubscaleVelocity(data, subscale);
 
@@ -246,7 +235,7 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
         }
     }
     else {
-        FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
@@ -264,20 +253,20 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
         ShapeFunctionDerivativesArrayType ShapeDerivatives;
         this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
         const unsigned int number_of_integration_points = GaussWeights.size();
-        
+
         rValues.resize(number_of_integration_points);
 
         // fill only if the subscale has already been initialized
         if (mPredictedSubscaleVelocity.size() > 0) {
-            
+
             TElementData data;
             data.Initialize(*this, rCurrentProcessInfo);
-            
+
             for (unsigned int g = 0; g < number_of_integration_points; g++) {
-                
+
                 data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
                 this->CalculateMaterialResponse(data);
-                
+
                 this->SubscalePressure(data, rValues[g]);
             }
         }
@@ -288,7 +277,7 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
         }
     }
     else {
-        FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
@@ -298,7 +287,7 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
@@ -307,7 +296,7 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
@@ -316,7 +305,7 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -342,30 +331,6 @@ void DVMS<TElementData>::PrintInfo(std::ostream& rOStream) const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Evaluation of system terms on Gauss Points
-
-template <class TElementData>
-void DVMS<TElementData>::AddTimeIntegratedSystem(
-    TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
-
-    // Call specialized implementation (it is on a helper class to avoid partial template specialization problems)
-    Internals::SpecializedAddTimeIntegratedSystemDyn<TElementData,
-        TElementData::ElementManagesTimeIntegration>::AddSystem(this, rData,
-        rLHS, rRHS);
-}
-
-template <class TElementData>
-void DVMS<TElementData>::AddTimeIntegratedLHS(
-    TElementData& rData, MatrixType& rLHS) {
-
-    KRATOS_ERROR << "AddTimeIntegratedLHS is not implemented." << std::endl;
-}
-
-template <class TElementData>
-void DVMS<TElementData>::AddTimeIntegratedRHS(
-    TElementData& rData, VectorType& rRHS) {
-
-    KRATOS_ERROR << "AddTimeIntegratedRHS is not implemented." << std::endl;
-}
 
 template< class TElementData >
 void DVMS<TElementData>::AddVelocitySystem(
@@ -413,7 +378,7 @@ void DVMS<TElementData>::AddVelocitySystem(
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++) {
-        
+
         unsigned int row = i*BlockSize;
 
         // LHS terms
@@ -497,7 +462,7 @@ void DVMS<TElementData>::AddVelocitySystem(
     /* Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
      * For a generic (potentially non-linear) constitutive law, one cannot assume that RHS = F - LHS*current_values.
      * Because of this, the AddViscousTerm function manages both the LHS and the RHS.
-     */ 
+     */
     this->AddViscousTerm(rData,LHS,rLocalRHS);
 
     noalias(rLocalLHS) += LHS;
@@ -555,7 +520,7 @@ void DVMS<TElementData>::AddMassStabilization(
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
-    
+
     // Multiplying convective operator by density to have correct units
     AGradN *= density;
 
@@ -581,69 +546,6 @@ void DVMS<TElementData>::AddMassStabilization(
         }
     }
 }
-
-template <class TElementData>
-void DVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
-    const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
-
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
-    FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
-
-    const auto& constitutive_matrix = rData.C;
-    
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
-
-    boost::numeric::ublas::bounded_matrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
-    FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal,normal_projection);
-    
-    // Contribution to boundary stress from 2*mu*symmetric_gradient(velocity)*n
-    boost::numeric::ublas::bounded_matrix<double,Dim,LocalSize> normal_stress_operator = boost::numeric::ublas::prod(normal_projection,shear_stress_matrix);
-
-    // Contribution to boundary stress from p*n
-    for (unsigned int i = 0; i < NumNodes; i++) {
-        const double ni = rData.N[i];
-        for (unsigned int d = 0; d < Dim; d++) {
-            const std::size_t pressure_column = i*BlockSize + Dim;
-            normal_stress_operator(d,pressure_column) = -rUnitNormal[d]*ni;
-        }
-    }
-
-    // RHS: stress computed using current solution
-    array_1d<double,Dim> shear_stress = boost::numeric::ublas::prod(normal_projection,rData.ShearStress);
-    const double p_gauss = this->GetAtCoordinate(rData.Pressure,rData.N);
-
-    // Add -Ni*normal_stress_operator to the LHS, Ni*current_stress to the RHS
-    for (unsigned int i = 0; i < NumNodes; i++) {
-        const double wni = rData.Weight*rData.N[i];
-        for (unsigned int d = 0; d < Dim; d++) {
-            const unsigned int row = i*BlockSize + d;
-            for (unsigned int col = 0; col < LocalSize; col++) {
-                rLHS(row,col) -= wni*normal_stress_operator(d,col);
-            }
-            rRHS[row] += wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
-        }
-    }
-}
-
-template <class TElementData>
-void DVMS<TElementData>::AddViscousTerm(
-    const TElementData& rData,
-    boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
-    VectorType& rRHS) {
-
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
-    FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
-
-    const auto& constitutive_matrix = rData.C;
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
-
-    // Multiply times integration point weight (I do this here to avoid a temporal in LHS += weight * Bt * C * B)
-    strain_matrix *= rData.Weight;
-
-    noalias(rLHS) += boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),shear_stress_matrix);
-    noalias(rRHS) -= boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),rData.ShearStress);
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -712,7 +614,7 @@ void DVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcess
 template< class TElementData >
 void DVMS<TElementData>::save(Serializer& rSerializer) const
 {
-    typedef FluidElement<TElementData> BaseElement;
+    typedef QSVMS<TElementData> BaseElement;
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElement );
     rSerializer.save("mOldSubscaleVelocity",mOldSubscaleVelocity);
 }
@@ -721,7 +623,7 @@ void DVMS<TElementData>::save(Serializer& rSerializer) const
 template< class TElementData >
 void DVMS<TElementData>::load(Serializer& rSerializer)
 {
-    typedef FluidElement<TElementData> BaseElement;
+    typedef QSVMS<TElementData> BaseElement;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);
     rSerializer.load("mOldSubscaleVelocity",mOldSubscaleVelocity);
 }
@@ -751,36 +653,6 @@ void DVMS<TElementData>::CalculateTau(
 
     // Auxiliary coefficient StaticTauOne*TauTwo/Dt that appears on the pressure subscale model
     TauP = density * h*h / (mTauC1*rData.DeltaTime);
-}
-
-template< class TElementData >
-void DVMS<TElementData>::MomentumProjTerm(
-    const TElementData& rData,
-    const array_1d<double,3>& rConvectionVelocity,
-    array_1d<double,3> &rMomentumRHS) const
-{
-    Vector AGradN;
-    this->ConvectionOperator(AGradN,rConvectionVelocity,rData.DN_DX);
-
-    const double density = this->GetAtCoordinate(rData.Density,rData.N);
-
-    for (unsigned int i = 0; i < NumNodes; i++) {
-        for (unsigned int d = 0; d < Dim; d++) {
-            rMomentumRHS[d] += density * ( rData.N[i]*(rData.BodyForce(i,d) /*- rAcc[d]*/) - AGradN[i]*rData.Velocity(i,d)) - rData.DN_DX(i,d)*rData.Pressure[i];
-        }
-    }
-}
-
-
-template< class TElementData >
-void DVMS<TElementData>::MassProjTerm(
-    const TElementData& rData,
-    double &rMassRHS) const
-{
-    for (unsigned int i = 0; i < NumNodes; i++) {
-        for (unsigned int d = 0; d < Dim; d++)
-            rMassRHS -= rData.DN_DX(i,d)*rData.Velocity(i,d);
-    }
 }
 
 template< class TElementData >
@@ -858,10 +730,10 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
 
     const double dt = rData.DeltaTime;
     const double h = rData.ElementSize;
-    
+
     // Elemental large-scale velocity gradient
     boost::numeric::ublas::bounded_matrix<double,Dim,Dim> resolved_velocity_gradient = ZeroMatrix(Dim,Dim);
-    
+
     const auto& r_resolved_velocities = rData.Velocity;
     for (unsigned int i = 0; i < NumNodes; i++) {
         for (unsigned int m = 0; m < Dim; m++) {
@@ -889,7 +761,7 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
     // Newton-Raphson iterations for the subscale
     unsigned int iter = 0;
     double subscale_velocity_error = 2.0 * mSubscalePredictionVelocityTolerance;
-        
+
     boost::numeric::ublas::bounded_matrix<double,Dim,Dim> J = ZeroMatrix(Dim,Dim);
     array_1d<double,Dim> rhs(Dim,0.0);
     array_1d<double,Dim> u = mPredictedSubscaleVelocity[rData.IntegrationPointIndex]; // Use last result as initial guess
@@ -921,9 +793,9 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
             residual_norm += rhs[d]*rhs[d];
 
         if (residual_norm > mSubscalePredictionResidualTolerance) {
-            
+
             FluidElementUtilities<NumNodes>::DenseSystemSolve(J,rhs,du);
-            
+
             // Update
             noalias(u) += du;
 
@@ -947,61 +819,8 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
 
 //        std::cout << "Id: " << this->Id() << " g: " << g << " iter: " << Iter << " ss err: " << SubscaleError << " ss norm: " << SubscaleNorm << " residual: " << ResidualNorm << std::endl;
 
-        // Store new subscale values
+    // Store new subscale values
     noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = u;
-}
-
-template< class TElementData >
-void DVMS<TElementData>::ASGSMomentumResidual(
-    const TElementData& rData,
-    const array_1d<double,3> &rConvectionVelocity,
-    array_1d<double,3>& rResidual) const
-{
-    const GeometryType rGeom = this->GetGeometry();
-
-    Vector convection; // u * grad(N)
-    this->ConvectionOperator(convection,rConvectionVelocity,rData.DN_DX);
-
-    const double density = this->GetAtCoordinate(rData.Density,rData.N);
-    const auto& r_body_forces = rData.BodyForce;
-    const auto& r_velocities = rData.Velocity;
-    const auto& r_pressures = rData.Pressure;
-
-    for (unsigned int i = 0; i < NumNodes; i++) {
-        const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-        for (unsigned int d = 0; d < Dim; d++) {
-            rResidual[d] += density * ( rData.N[i]*(r_body_forces(i,d) - r_acceleration[d]) - convection[i]*r_velocities(i,d)) - rData.DN_DX(i,d)*r_pressures[i];
-        }
-    }
-}
-
-template< class TElementData >
-void DVMS<TElementData>::ASGSMassResidual(
-    const TElementData& rData,
-    double& rResidual) const
-{
-    this->MassProjTerm(rData,rResidual);
-}
-
-template< class TElementData >
-void DVMS<TElementData>::OSSMomentumResidual(
-    const TElementData& rData,
-    const array_1d<double,3> &rConvectionVelocity,
-    array_1d<double,3>& rResidual) const
-{
-    this->MomentumProjTerm(rData,rConvectionVelocity,rResidual);
-
-    const array_1d<double,3> momentum_projection = this->GetAtCoordinate(rData.MomentumProjection,rData.N);
-    noalias(rResidual) -= momentum_projection;
-}
-
-template< class TElementData >
-void DVMS<TElementData>::OSSMassResidual(
-    const TElementData& rData,
-    double& rResidual) const
-{
-    this->MassProjTerm(rData,rResidual);
-    rResidual -= this->GetAtCoordinate(rData.MassProjection,rData.N);
 }
 
 template< class TElementData >
@@ -1017,65 +836,6 @@ array_1d<double,3> DVMS<TElementData>::FullConvectiveVelocity(
 
     return convective_velocity;
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Internals
-///////////////////////////////////////////////////////////////////////////////////////////////////
-namespace Internals {
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// For Standard data: Time integration is not available
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <class TElementData>
-void SpecializedAddTimeIntegratedSystemDyn<TElementData, false>::AddSystem(
-    DVMS<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
-    Vector& rRHS) {
-    KRATOS_TRY;
-    KRATOS_ERROR << "Trying to use time-integrated element functions with a "
-                    "data type that does not know previous time step data"
-                 << std::endl;
-    KRATOS_CATCH("");
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Specialized time integration
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <class TElementData>
-void SpecializedAddTimeIntegratedSystemDyn<TElementData, true>::AddSystem(
-    DVMS<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
-    Vector& rRHS) {
-        Matrix mass_matrix = ZeroMatrix(rLHS.size1(),rLHS.size2());
-        Matrix velocity_lhs = ZeroMatrix(rLHS.size1(),rLHS.size2());
-
-        pElement->AddVelocitySystem(rData,velocity_lhs,rRHS);
-        pElement->AddMassLHS(rData,mass_matrix);
-
-        noalias(rLHS) += rData.bdf0*mass_matrix + velocity_lhs;
-        
-        Vector acceleration = ZeroVector(rRHS.size());
-
-        int LocalIndex = 0;
-        const auto& r_velocities = rData.Velocity;
-        const auto& r_velocities_step1 = rData.Velocity_OldStep1;
-        const auto& r_velocities_step2 = rData.Velocity_OldStep2;
-
-        for (unsigned int i = 0; i < TElementData::NumNodes; ++i) {
-            for (unsigned int d = 0; d < TElementData::Dim; ++d)  {
-                // Velocity Dofs
-                acceleration[LocalIndex] = rData.bdf0*r_velocities(i,d);
-                acceleration[LocalIndex] += rData.bdf1*r_velocities_step1(i,d);
-                acceleration[LocalIndex] += rData.bdf2*r_velocities_step2(i,d);
-                ++LocalIndex;
-            }
-            ++LocalIndex;
-        }
-
-        noalias(rRHS) -= prod(mass_matrix,acceleration);
-}
-
-} // namespace Internals
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
