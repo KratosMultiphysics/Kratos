@@ -109,7 +109,6 @@ class NavierStokesBaseSolver(object):
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            self.solver.Initialize()
             self.solver.InitializeSolutionStep()
 
     def Predict(self):
