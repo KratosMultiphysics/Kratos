@@ -54,11 +54,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "thermo_mechanical_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -71,50 +71,20 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-
-
-BOOST_PYTHON_MODULE(KratosThermoMechanicalApplication)
+PYBIND11_MODULE(KratosThermoMechanicalApplication, m)
 {
 
     class_<KratosThermoMechanicalApplication,
            KratosThermoMechanicalApplication::Pointer,
-           bases<KratosApplication>, boost::noncopyable >("KratosThermoMechanicalApplication")
+           KratosApplication >(m,"KratosThermoMechanicalApplication")
+           .def(init<>())
            ;
 
-    AddCustomStrategiesToPython();
-    AddCustomUtilitiesToPython();
-    AddCustomProcessesToPython();
-
-    //registering variables in python
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE(  NODE_PROPERTY_ID )
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE(  AMBIENT_TEMPERATURE )
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE(  HTC )
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE(  REF_ID )
-
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE(  PARTICLE_RADIUS )
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE(  POSETIVE_DISTANCE )
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE(  NAGATIVE_DISTANCE )
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE(  IS_ESCAPED)
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE(     IS_SOLIDIFIED )
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE(  SOLIDFRACTION ) 
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE(  SOLIDIF_TIME )
- //   
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE( VOLUME_FRACTION ) 
- //   
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE( KAPPA ) 
- //   KRATOS_REGISTER_IN_PYTHON_VARIABLE( EPSILON )   	
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(  SOLIDIF_MODULUS )
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(  FILLTIME )
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(  MACRO_POROSITY )
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(  SHRINKAGE_POROSITY )
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(  MAX_VEL )
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(	IS_GRAVITY_FILLING)
-
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(  SHRINKAGE_POROSITY_US )
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(  SOLIDIF_MODULUS_US )
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(  TEMPERATURES_US )
+    AddCustomStrategiesToPython(m);
+    AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
 }
 
 

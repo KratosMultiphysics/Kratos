@@ -85,14 +85,14 @@ public:
     BICGSTABSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
         BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner) {}
         
-    BICGSTABSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner = boost::make_shared<TPreconditionerType>()):
+    BICGSTABSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()):
         BaseType(settings, pNewPreconditioner) {}
         
     /// Copy constructor.
     BICGSTABSolver(const BICGSTABSolver& Other) : BaseType(Other) {}
 
     /// Destructor.
-    virtual ~BICGSTABSolver() {}
+    ~BICGSTABSolver() override {}
 
 
     ///@}
@@ -186,7 +186,7 @@ public:
     ///@{
 
     /// Return information about this object.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Biconjugate gradient stabilized linear solver with " << BaseType::GetPreconditioner()->Info();

@@ -87,7 +87,7 @@ namespace Kratos
 		mRhs(ZeroVector(3)){} //dimension = number of nodes
 
 		/// Destructor.
-		virtual ~TetGenPfemModeler(){}
+		virtual ~TetGenPfemModeler()= default;
 
 
 		///@}
@@ -689,7 +689,7 @@ namespace Kratos
 					
 									
 					//KRATOS_WATCH(results.size())
-					for(PointIterator it=results.begin(); it!=results.begin() + number_of_points_in_radius; it++)
+					for(auto it=results.begin(); it!=results.begin() + number_of_points_in_radius; it++)
 	 				{
 						bool is_inside=false; 
 														
@@ -714,12 +714,12 @@ namespace Kratos
 			ThisModelPart.Conditions().clear();
 			
 			//set the coordinates to the original value
-			for( PointVector::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); it++)
+			for(auto & list_of_new_node : list_of_new_nodes)
 			{				
-				const array_1d<double,3>& disp = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
-				(*it)->X0() = (*it)->X() - disp[0];
-				(*it)->Y0() = (*it)->Y() - disp[1];
-				(*it)->Z0() = (*it)->Z() - disp[2];	
+				const array_1d<double,3>& disp = list_of_new_node->FastGetSolutionStepValue(DISPLACEMENT);
+				list_of_new_node->X0() = list_of_new_node->X() - disp[0];
+				list_of_new_node->Y0() = list_of_new_node->Y() - disp[1];
+				list_of_new_node->Z0() = list_of_new_node->Z() - disp[2];	
 			}
 			//cleaning unnecessary data
 			in2.deinitialize();

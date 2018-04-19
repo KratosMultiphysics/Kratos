@@ -12,7 +12,6 @@
 #include <omp.h>
 #endif
 
-//#include "boost/smart_ptr.hpp"
 #include "utilities/openmp_utils.h"
 
 #include <limits>
@@ -28,6 +27,8 @@ namespace Kratos {
 
         typedef ModelPart::ElementsContainerType ElementsArrayType;
         typedef ModelPart::NodesContainerType NodesContainerType;
+
+        KRATOS_CLASS_POINTER_DEFINITION(PostUtilities);
 
         /// Default constructor.       
 
@@ -316,7 +317,7 @@ namespace Kratos {
 
                 if (if_trihedron_option && i.IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
                     array_1d<double, 3 >& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
-                    GeometryFunctions::UpdateOrientation(EulerAngles, rotated_angle);
+                    GeometryFunctions::EulerAnglesFromRotationAngle(EulerAngles, rotated_angle);
                 } // if_trihedron_option && Not BELONGS_TO_A_CLUSTER
             }//for Node
             

@@ -1,0 +1,17 @@
+{
+    "properties": [{
+            "model_part_name": "Parts_Parts_Auto1",
+            "properties_id": 2,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
+                    },
+                    "Variables": {
+                            "KratosMultiphysics.YOUNG_MODULUS": 1.00000e+12,
+                            "KratosMultiphysics.POISSON_RATIO": 2.50000e-01
+                    },
+                    "Tables": {}
+            }
+    }]
+}

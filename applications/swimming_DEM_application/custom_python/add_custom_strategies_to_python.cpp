@@ -101,7 +101,7 @@ namespace Kratos
             ("SymplecticEulerOldVelocityScheme", init<>());
 		  
             class_< AdamsBashforthStrategy, bases<ExplicitSolverStrategy>, boost::noncopyable>
-            ("AdamsBashforthStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer, DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer, const bool>());
+            ("AdamsBashforthStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer, DEM_FEM_Search::Pointer, SpatialSearch::Pointer, const bool>());
 
             typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
             typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;

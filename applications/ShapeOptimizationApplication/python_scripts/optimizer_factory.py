@@ -4,118 +4,93 @@
 #  License:         BSD License
 #                   license: ShapeOptimizationApplication/license.txt
 #
-#  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+#  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 #
 # ==============================================================================
 
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division 
+from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
+# Kratos Core and Apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
-# Additional imports
-import timer_factory as timer_factory
-import communicator_factory as communicator_factory
-import algorithm_factory as algorithm_factory
+# additional imports
+from custom_timer import Timer
+from analyzer_empty import EmptyAnalyzer
+import model_part_controller_factory
+import analyzer_factory
+import communicator_factory
+import algorithm_factory
 
 # ==============================================================================
-def CreateOptimizer( inputModelPart, optimizationSettings ):
-    if  optimizationSettings["design_variables"]["variable_type"].GetString() == "vertex_morphing":
-        optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings )
-        return optimizer
+def CreateOptimizer(parameters, optimization_mdpa, external_analyzer=EmptyAnalyzer()):
+    optimization_settings = parameters["optimization_settings"]
+
+    model_part_controller = model_part_controller_factory.CreateController(optimization_settings, optimization_mdpa)
+
+    analyzer = analyzer_factory.CreateAnalyzer(parameters, model_part_controller, external_analyzer)
+
+    communicator = communicator_factory.CreateCommunicator(optimization_settings)
+
+    if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
+        return VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
     else:
-        raise NameError("Specified design control not implemented or misspelled: " + optimizationAlgorithm)
+        raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
 
 # ==============================================================================
 class VertexMorphingMethod:
     # --------------------------------------------------------------------------
-    def __init__( self, inputModelPart, optimizationSettings ):
-        
-        self.inputModelPart = inputModelPart
-        self.optimizationSettings = optimizationSettings
-        self.__addVariablesNeededForOptimization( inputModelPart )
+    def __init__(self, optimization_settings, model_part_controller, analyzer, communicator):
+        self.optimization_settings = optimization_settings
+        self.model_part_controller = model_part_controller
+        self.analyzer = analyzer
+        self.communicator = communicator
+
+        self.__AddNodalVariablesNeededForOptimization()
 
     # --------------------------------------------------------------------------
-    def __addVariablesNeededForOptimization( self, inputModelPart ):
-        inputModelPart.AddNodalSolutionStepVariable(NORMAL)
-        inputModelPart.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
-        inputModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
-        inputModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
-        inputModelPart.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
-        inputModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
-        inputModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
-        inputModelPart.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY) 
-        inputModelPart.AddNodalSolutionStepVariable(DESIGN_UPDATE)
-        inputModelPart.AddNodalSolutionStepVariable(DESIGN_CHANGE_ABSOLUTE)  
-        inputModelPart.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
-        inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
-        inputModelPart.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
-        inputModelPart.AddNodalSolutionStepVariable(IS_ON_BOUNDARY)
-        inputModelPart.AddNodalSolutionStepVariable(BOUNDARY_PLANE) 
-        inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATES_DEACTIVATED) 
-        inputModelPart.AddNodalSolutionStepVariable(SENSITIVITIES_DEACTIVATED) 
+    def __AddNodalVariablesNeededForOptimization(self):
+        optimization_mdpa = self.model_part_controller.GetOptimizationModelPart()
+        optimization_mdpa.AddNodalSolutionStepVariable(NORMAL)
+        optimization_mdpa.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
+        optimization_mdpa.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
+        optimization_mdpa.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
+        optimization_mdpa.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
+        optimization_mdpa.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY)
+        optimization_mdpa.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
+        optimization_mdpa.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY)
+        optimization_mdpa.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
+        optimization_mdpa.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)
+        optimization_mdpa.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
+        optimization_mdpa.AddNodalSolutionStepVariable(SHAPE_UPDATE)
+        optimization_mdpa.AddNodalSolutionStepVariable(SHAPE_CHANGE)
+        optimization_mdpa.AddNodalSolutionStepVariable(MESH_CHANGE)
 
     # --------------------------------------------------------------------------
-    def importModelPart( self ):
-        model_part_io = ModelPartIO( self.optimizationSettings["design_variables"]["input_model_part_name"].GetString() )
-        model_part_io.ReadModelPart( self.inputModelPart )
-        buffer_size = 1
-        self.inputModelPart.SetBufferSize( buffer_size )
-        self.inputModelPart.ProcessInfo.SetValue( DOMAIN_SIZE, self.optimizationSettings["design_variables"]["domain_size"].GetInt() )
-
-    # --------------------------------------------------------------------------
-    def importAnalyzer( self, newAnalyzer ): 
-        self.analyzer = newAnalyzer
-
-    # --------------------------------------------------------------------------
-    def optimize( self ):
-        
-        timer = timer_factory.CreateTimer()
-        algorithmName = self.optimizationSettings["optimization_algorithm"]["name"].GetString()
+    def Optimize(self):
+        algorithm_name = self.optimization_settings["optimization_algorithm"]["name"].GetString()
 
         print("\n> ==============================================================================================================")
-        print("> ",timer.getTimeStamp(),": Starting optimization using the following algorithm: ", algorithmName)
+        print("> ", Timer().GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
         print("> ==============================================================================================================\n")
-    
-        designSurface = self.__getDesignSurfaceFromInputModelPart()
-        listOfDampingRegions = self.__getListOfDampingRegionsFromInputModelPart()
 
-        mapper = VertexMorphingMapper( designSurface, listOfDampingRegions, self.optimizationSettings ) 
-        communicator = communicator_factory.CreateCommunicator( self.optimizationSettings )
-            
-        algorithm = algorithm_factory.CreateAlgorithm( designSurface, self.analyzer, mapper, communicator, self.optimizationSettings )
-        algorithm.execute()       
+        if self.model_part_controller.IsOptimizationModelPartAlreadyImported():
+            print("> Skipping import of optimization model part as already done by another application. ")
+        else:
+            self.model_part_controller.ImportOptimizationModelPart()
+
+        algorithm = algorithm_factory.CreateAlgorithm(self.optimization_settings,
+                                                      self.model_part_controller,
+                                                      self.analyzer,
+                                                      self.communicator)
+
+        algorithm.InitializeOptimizationLoop()
+        algorithm.RunOptimizationLoop()
+        algorithm.FinalizeOptimizationLoop()
 
         print("\n> ==============================================================================================================")
         print("> Finished optimization                                                                                           ")
         print("> ==============================================================================================================\n")
-    
-    # --------------------------------------------------------------------------
-    def __getDesignSurfaceFromInputModelPart( self ):
-        nameOfDesingSurface = self.optimizationSettings["design_variables"]["design_submodel_part_name"].GetString()
-        if self.inputModelPart.HasSubModelPart( nameOfDesingSurface ):
-            optimizationModel = self.inputModelPart.GetSubModelPart( nameOfDesingSurface )
-            print("> The following design surface was defined:\n\n",optimizationModel)
-            return optimizationModel
-        else:
-            raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)         
-
-    # --------------------------------------------------------------------------
-    def __getListOfDampingRegionsFromInputModelPart( self ):
-        listOfDampingRegions = {}
-        print("> The following damping regions are defined: \n")
-        for regionNumber in range(self.optimizationSettings["design_variables"]["damping"]["damping_regions"].size()):
-            regionName = self.optimizationSettings["design_variables"]["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
-            if self.inputModelPart.HasSubModelPart(regionName):
-                print(regionName)
-                listOfDampingRegions[regionName] = self.inputModelPart.GetSubModelPart(regionName)
-            else:
-                raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)         
-        return listOfDampingRegions               
 
 # ==============================================================================

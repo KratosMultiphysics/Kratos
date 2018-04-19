@@ -232,14 +232,14 @@ protected:
       * Calculation of the Tangent Intertia Matrix
       */
     virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-					   GeneralVariables& rVariables,
+					   ElementVariables& rVariables,
 					   ProcessInfo& rCurrentProcessInfo);
 
     /**
       * Calculation of the Inertial Forces Vector
       */
     virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-					   GeneralVariables& rVariables,
+					   ElementVariables& rVariables,
 					   ProcessInfo& rCurrentProcessInfo);
 
 

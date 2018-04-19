@@ -57,7 +57,8 @@ class DamUPThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSolv
                     "krylov_type": "gmres",
                     "coarsening_type": "aggregation"
                 },
-                "problem_domain_sub_model_part_list": [""]
+                "problem_domain_sub_model_part_list": [""],
+                "thermal_loads_sub_model_part_list": []
             },
             "mechanical_solver_settings":{
                 "echo_level": 0,
@@ -96,6 +97,7 @@ class DamUPThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSolv
                 },
                 "problem_domain_sub_model_part_list": [""],
                 "body_domain_sub_model_part_list": [],
+                "mechanical_loads_sub_model_part_list": [],
                 "loads_sub_model_part_list": [],
                 "loads_variable_list": []
             }

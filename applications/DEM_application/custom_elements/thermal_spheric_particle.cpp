@@ -26,6 +26,9 @@
 
 namespace Kratos
 {      
+    template< class TBaseElement >
+    ThermalSphericParticle<TBaseElement>::~ThermalSphericParticle() {}
+
     
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_info){
@@ -55,7 +58,7 @@ namespace Kratos
     
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::ComputeContactArea(const double rmin, double indentation, double& calculation_area) {
-            calculation_area = KRATOS_M_PI*rmin*rmin;
+            calculation_area = Globals::Pi*rmin*rmin;
     }
                 
     template< class TBaseElement >

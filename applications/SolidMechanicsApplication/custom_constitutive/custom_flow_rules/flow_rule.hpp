@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_FLOW_RULE_H_INCLUDED )
+#if !defined(KRATOS_FLOW_RULE_H_INCLUDED)
 #define  KRATOS_FLOW_RULE_H_INCLUDED
 
 // System includes
@@ -364,6 +364,15 @@ namespace Kratos
 
 	    return 0;
     };
+
+            virtual Matrix ComputeKirchhoffStressMatrix( const Matrix& rLeftCauchyGreenMatrix)
+            {
+               KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" );
+
+               Matrix ErrorMatrix(1,1);
+	       noalias(ErrorMatrix) = ZeroMatrix(1,1);
+               return ErrorMatrix;
+            };
 
 
     ///@}

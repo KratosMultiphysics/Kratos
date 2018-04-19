@@ -1,9 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.5 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Josep Maria Carbonell
+//                    
 //
 
 
@@ -205,7 +210,7 @@ private:
 class KRATOS_API(KRATOS_CORE) TetrahedronGaussLegendreIntegrationPoints5
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(TetrahedronGaussLegendreIntegrationPoints4);
+    KRATOS_CLASS_POINTER_DEFINITION(TetrahedronGaussLegendreIntegrationPoints5);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 3;

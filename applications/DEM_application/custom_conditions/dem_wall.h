@@ -9,7 +9,6 @@
 
 
 // External includes
-//#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -23,7 +22,7 @@
 namespace Kratos
 {
 class SphericParticle;
-class DEMWall : public Condition
+class KRATOS_API(DEM_APPLICATION) DEMWall : public Condition
 {
 public:
 

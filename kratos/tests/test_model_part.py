@@ -474,14 +474,12 @@ class TestModelPart(KratosUnittest.TestCase):
     def test_modelpart_variables_list(self):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VELOCITY)
-        model_part.AddNodalSolutionStepVariable(VELOCITIES)
 
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
         model_part.CreateNewNode(3, 1.00,1.00,0.00)
 
         self.assertTrue(model_part.Nodes[1].SolutionStepsDataHas(VELOCITY))
-        self.assertTrue(model_part.Nodes[1].SolutionStepsDataHas(VELOCITIES))
 
     def test_modelpart_buffersize(self):
         model_part = ModelPart("Main")
@@ -507,9 +505,13 @@ class TestModelPart(KratosUnittest.TestCase):
         
         #this should add node 3 to both sub1 and model_part1, but not to sub2
         sub1.AddNode( model_part2.Nodes[3], 0 )  
-        self.assertTrue( n3.Id in sub1.Nodes )
-        self.assertTrue( n3.Id in model_part1.Nodes )
-        self.assertFalse( n3.Id in sub2.Nodes )        
+        #self.assertTrue( n3.Id in sub1.Nodes )
+        #self.assertTrue( n3.Id in model_part1.Nodes )
+        #self.assertFalse( n3.Id in sub2.Nodes )        
+        self.assertTrue( n3 in sub1.Nodes )
+        self.assertTrue( n3 in model_part1.Nodes )
+        self.assertFalse( n3 in sub2.Nodes )        
+
         
         ##next should throw an exception, since we try to add a node with Id1 which already exists
         with self.assertRaisesRegex(RuntimeError, "Error\: attempting to add pNewNode with Id \:1, unfortunately a \(different\) node with the same Id already exists\n"):

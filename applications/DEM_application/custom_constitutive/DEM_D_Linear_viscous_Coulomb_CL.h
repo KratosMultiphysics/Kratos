@@ -12,7 +12,7 @@ namespace Kratos {
     
     class SphericParticle;
 
-    class DEM_D_Linear_viscous_Coulomb : public DEMDiscontinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Linear_viscous_Coulomb : public DEMDiscontinuumConstitutiveLaw {
 
     public:
         
@@ -26,7 +26,7 @@ namespace Kratos {
 
         void Initialize(const ProcessInfo& r_process_info) override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
         
         std::string GetTypeOfLaw() override;
 

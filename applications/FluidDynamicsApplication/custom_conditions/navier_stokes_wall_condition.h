@@ -153,7 +153,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~NavierStokesWallCondition() {}
+    ~NavierStokesWallCondition() override {}
 
 
     ///@}
@@ -177,9 +177,9 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Condition::Pointer(new NavierStokesWallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_shared<NavierStokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /// Create a new NavierStokesWallCondition object.
@@ -188,18 +188,18 @@ public:
       @param pGeom A pointer to the condition's geometry
       @param pProperties Pointer to the element's properties
       */
-    virtual Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return boost::make_shared< NavierStokesWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< NavierStokesWallCondition >(NewId, pGeom, pProperties);
     }
 
     /**
      * Clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
      * @return a Pointer to the new element
      */
-    virtual Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
     {
         Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
@@ -212,13 +212,13 @@ public:
     /// Calculates the LHS and RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rRightHandSideVector: reference to the RHS matrix
-     * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -248,7 +248,8 @@ public:
 
         // Store the outlet inflow prevention constants in the data structure
         data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
-        data.charVel = rCurrentProcessInfo[CHARACTERISTIC_VELOCITY];
+        const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
+        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
         // Gauss point information
         GeometryType& rGeom = this->GetGeometry();
@@ -278,11 +279,11 @@ public:
     /// Calculates the RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
-    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -300,11 +301,11 @@ public:
     /// Calculates the RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
-     * @param rRightHandSideVector: reference to the RHS matrix
-     * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
+     * @param rRightHandSideVector reference to the RHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -329,7 +330,8 @@ public:
 
         // Store the outlet inflow prevention constants in the data structure
         data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
-        data.charVel = rCurrentProcessInfo[CHARACTERISTIC_VELOCITY];
+        const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
+        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
         // Gauss point information
         GeometryType& rGeom = this->GetGeometry();
@@ -356,9 +358,9 @@ public:
 
     /// Condition check
     /**
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -419,14 +421,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -443,7 +445,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "NavierStokesWallCondition" << TDim << "D";
@@ -451,13 +453,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "NavierStokesWallCondition";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -527,12 +529,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
     }

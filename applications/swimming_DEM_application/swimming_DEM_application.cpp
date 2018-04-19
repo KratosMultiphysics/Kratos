@@ -27,10 +27,13 @@
 namespace Kratos
 {
         
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY) 
+KRATOS_CREATE_VARIABLE(double, SCALAR_ERROR)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
 
-  
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
+  KratosApplication("SwimmingDEMApplication"),
   mMonolithicDEMCoupled2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
   mMonolithicDEMCoupled3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
   mMonolithicDEMCoupledWeak2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -41,6 +44,7 @@ KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   mComputeMaterialDerivativeSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
   mComputeComponentGradientSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
   mComputeComponentGradientSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeGradientPouliot20122DEdge(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
   mComputeGradientPouliot20123DEdge(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
   mComputeGradientPouliot20122D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
   mComputeGradientPouliot20123D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -64,7 +68,10 @@ void KratosSwimmingDEMApplication::Register()
   KratosApplication::Register();
   std::cout << "Initializing KratosSwimmingDEMApplication... " << std::endl;
                 
-  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)   
+  KRATOS_REGISTER_VARIABLE(SCALAR_ERROR);
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR)
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
 
   /* Define In Global variables.cpp */
 
@@ -82,6 +89,7 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex3D", mComputeMaterialDerivativeSimplex3D)
   KRATOS_REGISTER_ELEMENT("ComputeComponentGradientSimplex2D", mComputeComponentGradientSimplex2D)
   KRATOS_REGISTER_ELEMENT("ComputeComponentGradientSimplex3D", mComputeComponentGradientSimplex3D)
+  KRATOS_REGISTER_ELEMENT("ComputeGradientPouliot20122DEdge", mComputeGradientPouliot20122DEdge)
   KRATOS_REGISTER_ELEMENT("ComputeGradientPouliot20123DEdge", mComputeGradientPouliot20123DEdge)
   KRATOS_REGISTER_ELEMENT("ComputeGradientPouliot20122D", mComputeGradientPouliot20122D)
   KRATOS_REGISTER_ELEMENT("ComputeGradientPouliot20123D", mComputeGradientPouliot20123D)
@@ -93,7 +101,6 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_CONDITION("MonolithicDEMCoupledWallCondition3D",mMonolithicDEMCoupledWallCondition3D)
   KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition2D",  mComputeLaplacianSimplexCondition2D)
   KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition3D", mComputeLaplacianSimplexCondition3D)
-  Serializer::Register( "VariablesList", mVariablesList );
  }
 
 }  // namespace Kratos.

@@ -1,11 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:       VMataix $
-//   Date:                $Date:     August 2016 $
-//   Revision:            $Revision:         1.0 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Vicente Mataix Ferrandiz
+//                    
 //
-
 #if !defined(KRATOS_TRIANGLE_COLLOCATION_INTEGRATION_POINTS_H_INCLUDED )
 #define  KRATOS_TRIANGLE_COLLOCATION_INTEGRATION_POINTS_H_INCLUDED
 

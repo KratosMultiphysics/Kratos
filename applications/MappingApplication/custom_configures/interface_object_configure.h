@@ -57,9 +57,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** Configuration file for PointCommObjects.
+/** Configuration file for InterfaceObject.
  * This class provides a configuration file to calculate a 'Bins'
- * using PointCommObjects.
+ * using InterfaceObject.
  * It is an adapted copy of "kratos/spatial_containers/configures/point_configure.h"
  */
 class InterfaceObjectConfigure
@@ -80,7 +80,7 @@ public:
      * @param PointType   Point of doubles with 3 coordinates (Dimension = 3)
      * @param PointerType Pointer to Point of doubles with 3 coordinates (Dimension = 3)
      */
-    typedef Point<Dimension, double>          PointType;
+    typedef Point          PointType;
 
     /** Additional types needed by the bins.
      * @param PointContainerType    Point Container.

@@ -50,7 +50,8 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, LOCAL_STRAIN_ENERGY )
 
 
-    KratosTopologyOptimizationApplication::KratosTopologyOptimizationApplication():
+    KratosTopologyOptimizationApplication::KratosTopologyOptimizationApplication() :
+        KratosApplication("TopologyOptimizationApplication"),
 		mSmallDisplacementSIMPElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ), // dummy element for surface representation
         mSmallDisplacementSIMPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mSmallDisplacementSIMPElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) )

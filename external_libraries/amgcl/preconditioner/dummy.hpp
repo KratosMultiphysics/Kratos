@@ -48,7 +48,7 @@ class dummy {
         typedef typename Backend::value_type value_type;
         typedef typename backend::builtin<value_type>::matrix build_matrix;
 
-        typedef detail::empty_params params;
+        typedef amgcl::detail::empty_params params;
         typedef typename Backend::params backend_params;
 
         template <class Matrix>
@@ -57,13 +57,13 @@ class dummy {
                 const params& = params(),
                 const backend_params &bprm = backend_params()
                 )
-            : A(Backend::copy_matrix(boost::make_shared<build_matrix>(M), bprm))
+            : A(Backend::copy_matrix(std::make_shared<build_matrix>(M), bprm))
         {
         }
 
         dummy(
-                boost::shared_ptr<build_matrix> M,
-                const params &prm = params(),
+                std::shared_ptr<build_matrix> M,
+                const params& = params(),
                 const backend_params &bprm = backend_params()
                 )
             : A(Backend::copy_matrix(M, bprm))
@@ -87,7 +87,7 @@ class dummy {
             return *A;
         }
     private:
-        boost::shared_ptr<matrix>   A;
+        std::shared_ptr<matrix>   A;
 
         friend std::ostream& operator<<(std::ostream &os, const dummy &p) {
             os << "identity matrix as preconditioner" << std::endl;

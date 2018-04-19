@@ -1,40 +1,15 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
+//
+//  License:             BSD License
+//                                       Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
 
 #ifndef KRATOS_TRILINOS_RESIDUALBASED_INCREMENTAL_AITKEN_STATIC_SCHEME_H
 #define KRATOS_TRILINOS_RESIDUALBASED_INCREMENTAL_AITKEN_STATIC_SCHEME_H
@@ -101,7 +76,7 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    typedef boost::shared_ptr < TSystemVectorType > SystemVectorPointerType;
+    typedef Kratos::shared_ptr < TSystemVectorType > SystemVectorPointerType;
 
     //typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     //typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
@@ -139,10 +114,10 @@ public:
       * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
       * @param b Right hand side vector
       */
-    virtual void InitializeSolutionStep(ModelPart &r_model_part,
+    void InitializeSolutionStep(ModelPart &r_model_part,
                                         TSystemMatrixType &A,
                                         TSystemVectorType &Dx,
-                                        TSystemVectorType &b)
+                                        TSystemVectorType &b) override
     {
         BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
         mIterationCounter = 0;
@@ -155,10 +130,10 @@ public:
       * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
       * @param b Right hand side vector
       */
-    virtual void InitializeNonLinIteration(ModelPart &r_model_part,
+    void InitializeNonLinIteration(ModelPart &r_model_part,
                                            TSystemMatrixType &A,
                                            TSystemVectorType &Dx,
-                                           TSystemVectorType &b)
+                                           TSystemVectorType &b) override
     {
         BaseType::InitializeNonLinIteration(r_model_part,A,Dx,b);
     }
@@ -171,11 +146,11 @@ public:
       * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
       * @param b Right hand side vector
       */
-    virtual void Update(ModelPart &r_model_part,
+    void Update(ModelPart &r_model_part,
                         DofsArrayType &rDofSet,
                         TSystemMatrixType &A,
                         TSystemVectorType &Dx,
-                        TSystemVectorType &b)
+                        TSystemVectorType &b) override
     {
         KRATOS_TRY;
 
@@ -310,7 +285,7 @@ protected:
         if (!this->DofImporterIsInitialized())
             this->InitializeDofImporter(rDofSet,Dx);
 
-        boost::shared_ptr<Epetra_Import> pImporter = this->pGetImporter();
+        Kratos::shared_ptr<Epetra_Import> pImporter = this->pGetImporter();
 
         int system_size = TSparseSpace::Size(Dx);
 

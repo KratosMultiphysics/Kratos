@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_elements/isotropic_shell_element.hpp"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
+// #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "structural_mechanics_application_variables.h"
 
 
@@ -42,8 +42,7 @@ IsotropicShellElement::IsotropicShellElement(IndexType NewId, GeometryType::Poin
 
 Element::Pointer IsotropicShellElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return boost::make_shared< IsotropicShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
-//     return Element::Pointer(new IsotropicShellElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared< IsotropicShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 IsotropicShellElement::~IsotropicShellElement()

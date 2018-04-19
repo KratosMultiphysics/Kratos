@@ -47,8 +47,7 @@ Element::Pointer MembraneElement::Create(
     PropertiesType::Pointer pProperties ) const
 
 {
-    return boost::make_shared< MembraneElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
-//     return Element::Pointer( new MembraneElement( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Kratos::make_shared< MembraneElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //***********************************************************************************
@@ -301,7 +300,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
         CalculateStrain( StrainVector, C );
 
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
+        Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
@@ -479,7 +478,7 @@ void MembraneElement::FinalizeSolutionStep(
     {
 //
 //            ConstitutiveLaw::Parameters Values (GetGeometry(),GetProperties(),rCurrentProcessInfo);
-//            Values.GetOptions().Set (ConstitutiveLaw::COMPUTE_STRAIN, false);
+//            Values.GetOptions().Set (ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
 //            Values.GetOptions().Set (ConstitutiveLaw::COMPUTE_STRESS);
 //            Values.GetOptions().Set (ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 //            Matrix dummy = ZeroMatrix ( 0, 0 );
@@ -1058,7 +1057,7 @@ void MembraneElement::CalculateAll(
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-    Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
+    Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
     Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
     Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 

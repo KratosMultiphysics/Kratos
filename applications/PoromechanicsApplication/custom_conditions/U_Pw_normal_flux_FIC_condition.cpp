@@ -151,7 +151,7 @@ void UPwNormalFluxFICCondition<2,2>::CalculateElementLength(double& rElementLeng
 template<>
 void UPwNormalFluxFICCondition<3,3>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
-    rElementLength = sqrt(4.0*Geom.Area()/KRATOS_M_PI);
+    rElementLength = sqrt(4.0*Geom.Area()/Globals::Pi);
 }
 
 //----------------------------------------------------------------------------------------
@@ -159,7 +159,7 @@ void UPwNormalFluxFICCondition<3,3>::CalculateElementLength(double& rElementLeng
 template<>
 void UPwNormalFluxFICCondition<3,4>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
-    rElementLength = sqrt(4.0*Geom.Area()/KRATOS_M_PI);
+    rElementLength = sqrt(4.0*Geom.Area()/Globals::Pi);
 }
 
 //----------------------------------------------------------------------------------------

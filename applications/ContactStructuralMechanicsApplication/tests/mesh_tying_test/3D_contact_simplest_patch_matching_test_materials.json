@@ -1,0 +1,36 @@
+{
+    "properties": [
+    {
+            "model_part_name": "Parts_Parts_Auto1",
+            "properties_id": 3,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
+                    },
+                    "Variables": {
+                            "KratosMultiphysics.DENSITY": 1.00000E+03,
+                            "KratosMultiphysics.YOUNG_MODULUS": 2.06900E+11,
+                            "KratosMultiphysics.POISSON_RATIO": 2.90000E-01
+                    },
+                    "Tables": {}
+            }
+    },
+    {
+            "model_part_name": "Parts_Parts_Auto2",
+            "properties_id": 4,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
+                    },
+                    "Variables": {
+                            "KratosMultiphysics.DENSITY": 1.00000E+03,
+                            "KratosMultiphysics.YOUNG_MODULUS": 2.06900E+11,
+                            "KratosMultiphysics.POISSON_RATIO": 2.90000E-01
+                    },
+                    "Tables": {}
+            }
+    }
+    ]
+}

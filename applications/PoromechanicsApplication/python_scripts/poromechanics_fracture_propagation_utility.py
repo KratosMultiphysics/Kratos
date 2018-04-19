@@ -31,8 +31,8 @@ class FracturePropagationUtility:
         self.move_mesh_flag = move_mesh_flag
         
         # Define FracturesData
-        parameter_file = open("FracturesData.json",'r')
-        self.FracturesData = KratosMultiphysics.Parameters( parameter_file.read())
+        with open("FracturesData.json",'r') as parameter_file:
+            self.FracturesData = KratosMultiphysics.Parameters(parameter_file.read())
         
         # Define control variables
         self.propagation_frequency = self.FracturesData["fracture_data"]["propagation_frequency"].GetInt()
@@ -46,7 +46,6 @@ class FracturePropagationUtility:
         self.gid_path = self.FracturesData["fracture_data"]["gid_path"].GetString()
         self.orig_state_path = os.path.join(str(self.problem_path),"OriginalState")
         self.last_state_path = os.path.join(str(self.problem_path),"LastState")
-        self.gid_preferences_path = os.path.join(str(self.problem_path),"gid_preferences.ini")
         
         # Create the file containing a list with all post.bin files
         all_list_filename = str(self.problem_name)+"_all.post.lst"
@@ -94,8 +93,6 @@ class FracturePropagationUtility:
         self.list_of_files_names.append(filename)
         filename = "FracturesData.json"
         self.list_of_files_names.append(filename)
-        #~ filename = str(self.problem_name)+".vv"
-        #~ self.list_of_files_names.append(filename)
         
         for filename in self.list_of_files_names:
             filepath = os.path.join(str(self.problem_path),str(filename))
@@ -130,9 +127,8 @@ class FracturePropagationUtility:
             # Call GiD to generate new mesh
             import subprocess
             os.chdir(self.gid_path)
-            #~ subprocess.call(str(self.execute_gid) + " -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
-            #~ subprocess.call(str(self.execute_gid) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
-            subprocess.call(str(self.execute_gid) + " -c " + str(self.gid_preferences_path) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
+            subprocess.call(str(self.execute_gid) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
+            # subprocess.call(str(self.execute_gid) + " -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
             os.chdir(self.problem_path)
             
             # Overwrite last state files with new problem files
@@ -141,8 +137,8 @@ class FracturePropagationUtility:
                 shutil.copy(str(filepath), str(self.last_state_path))
             
             # Update FracturesData
-            parameter_file = open("FracturesData.json",'r')
-            self.FracturesData = KratosMultiphysics.Parameters( parameter_file.read())
+            with open("FracturesData.json",'r') as parameter_file:
+                self.FracturesData = KratosMultiphysics.Parameters(parameter_file.read())
             
             main_model_part,solver,list_of_processes,gid_output = self.GenereateNewModelPart(main_model_part,
                                                                                              solver,
@@ -192,8 +188,8 @@ class FracturePropagationUtility:
         ### Generate New Model ---------------------------------------------------------------------------------------
         
         # Parsing the parameters
-        parameter_file = open("ProjectParameters.json",'r')
-        ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
+        with open("ProjectParameters.json",'r') as parameter_file:
+            ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         ## Model part ------------------------------------------------------------------------------------------------
 

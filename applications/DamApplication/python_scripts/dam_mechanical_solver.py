@@ -76,6 +76,7 @@ class DamMechanicalSolver(object):
                 },
                 "problem_domain_sub_model_part_list": [""],
                 "body_domain_sub_model_part_list": [],
+                "mechanical_loads_sub_model_part_list": [],
                 "loads_sub_model_part_list": [],
                 "loads_variable_list": []
             }
@@ -106,7 +107,7 @@ class DamMechanicalSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.POINT_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.LINE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.SURFACE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         # Add volume acceleration
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         # Add variables for post-processing

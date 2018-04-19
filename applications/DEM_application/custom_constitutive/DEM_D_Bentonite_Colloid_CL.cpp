@@ -27,10 +27,10 @@ namespace Kratos {
     DEM_D_Bentonite_Colloid::DEM_D_Bentonite_Colloid(){
         mA_H = 10e-19;
         mD_p = 2.0e-7; // particle diameter; it whould be equal for both particles or the third law of Newton will be violated
-        mA_p = 0.25 * KRATOS_M_PI * mD_p * mD_p;
+        mA_p = 0.25 * Globals::Pi * mD_p * mD_p;
         mThickness = 1.0e-9;
         mDDLCoefficient = 1.5e5;
-        mEquivRadius = mD_p / KRATOS_M_PI; // this is the "coin" equivalent radius
+        mEquivRadius = mD_p / Globals::Pi; // this is the "coin" equivalent radius
     }
 
     void DEM_D_Bentonite_Colloid::Initialize(const ProcessInfo& r_process_info) {}
@@ -41,8 +41,8 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_D_Bentonite_Colloid::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning DEM_D_Bentonite_Colloid to Properties " << pProp->Id() << std::endl;
+    void DEM_D_Bentonite_Colloid::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+        std::cout << "\nAssigning DEM_D_Bentonite_Colloid to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
@@ -102,10 +102,9 @@ namespace Kratos {
         else { // you are contacting a regular ball, do normal ball-to-ball force evaluation
             const double distance = element1->GetInteractionRadius() + element2->GetInteractionRadius() - indentation;
             const double cation_concentration = element1->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
-            const double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetInteractionRadius() + element2->GetInteractionRadius()));
             LocalElasticContactForce[0] = 0.0;
             LocalElasticContactForce[1] = 0.0;
-            LocalElasticContactForce[2] = smoother * CalculateNormalForce(distance, cation_concentration);
+            LocalElasticContactForce[2] = CalculateNormalForce(distance, cation_concentration);
         }
 //Z
         cohesive_force              = CalculateCohesiveNormalForce(element1, element2, indentation);
@@ -230,7 +229,7 @@ namespace Kratos {
 
     double DEM_D_Bentonite_Colloid::CalculateVanDerWaalsForce(const double distance)
     {
-        return - mA_p * mA_H / (6.0 * KRATOS_M_PI) * (1.0 / ToThePower(distance, 3) - 2.0 / ToThePower(distance + mThickness, 3) + 1.0 / ToThePower(distance + 2 * mThickness, 3));
+        return - mA_p * mA_H / (6.0 * Globals::Pi) * (1.0 / ToThePower(distance, 3) - 2.0 / ToThePower(distance + mThickness, 3) + 1.0 / ToThePower(distance + 2 * mThickness, 3));
     }
 
     double DEM_D_Bentonite_Colloid::CalculateDiffuseDoubleLayerForce(const double distance, const double cation_concentration)

@@ -141,8 +141,8 @@ public:
      */
     bool SearchPartner( ContactMasterContainerType& AllMasterElements,
                         IndexType IntegrationPointIndex,
-                        Point<3> MasterContactLocalPoint,
-                        Point<3> SlaveContactLocalPoint,
+                       Point MasterContactLocalPoint,
+                       Point SlaveContactLocalPoint,
                         Condition::Pointer CurrentMaster,
                         double CurrentLambda
                       );

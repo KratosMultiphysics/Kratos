@@ -30,7 +30,8 @@
 // Project includes
 
 // Core applications
-#include "pfem_base_application_variables.h"
+#include "includes/mat_variables.h"
+#include "pfem_application_variables.h"
 
 namespace Kratos
 {

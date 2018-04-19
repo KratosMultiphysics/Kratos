@@ -10,20 +10,17 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 #if !defined(KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED )
 #define  KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -44,11 +41,12 @@ typedef array_1d<double,3> Vector3;
     
 // Variables definition
 //KRATOS_DEFINE_VARIABLE(double, WEIGHT_FATHER_NODES ) // Moved to variables.h so trilinos application can use it too
-//KRATOS_DEFINE_VARIABLE(double, COUNTER) //already put on variables.h (warning was appearing on Windows)
-KRATOS_DEFINE_VARIABLE(double, ANISOTROPIC_RATIO);
-KRATOS_DEFINE_VARIABLE(Vector3, AUXILIAR_GRADIENT);
-KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);
-KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);
+// KRATOS_DEFINE_VARIABLE(double, COUNTER)              // Already put on variables.h (warning was appearing on Windows)
+KRATOS_DEFINE_VARIABLE(double, AVERAGE_NODAL_ERROR);   // The average nodal error
+KRATOS_DEFINE_VARIABLE(double, ANISOTROPIC_RATIO);     // The anisotropic aspect ratio
+KRATOS_DEFINE_VARIABLE(Vector3, AUXILIAR_GRADIENT);    // An auxiliar gradient needed to compute the metric
+KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);     // An auxiliar hessian needed to compute the metric
+KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);           // The condensed metric used to remesh with MMG utility
 ///@}
 ///@name Type Definitions
 ///@{
@@ -86,7 +84,7 @@ public:
     KratosMeshingApplication();
 
     /// Destructor.
-    virtual ~KratosMeshingApplication() {}
+    ~KratosMeshingApplication() override = default;
 
 
     ///@}
@@ -98,7 +96,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
 
 
@@ -117,20 +115,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosMeshingApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in KratosMeshingApplication");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );

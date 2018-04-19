@@ -207,7 +207,7 @@ public:
 
         // Initialize Search Strategy
         SizeType BucketSize = 20;
-        mpSearchStrategy = boost::shared_ptr<tree>(new tree(mCandidateNodes.begin(),mCandidateNodes.end(),BucketSize));
+        mpSearchStrategy = Kratos::shared_ptr<tree>(new tree(mCandidateNodes.begin(),mCandidateNodes.end(),BucketSize));
 
 //            std::cout << *mpSearchStrategy << std::endl;
 

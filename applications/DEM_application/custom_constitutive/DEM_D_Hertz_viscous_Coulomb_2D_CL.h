@@ -13,7 +13,7 @@ namespace Kratos {
     
     class SphericParticle;
 
-    class DEM_D_Hertz_viscous_Coulomb2D : public DEM_D_Hertz_viscous_Coulomb {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Hertz_viscous_Coulomb2D : public DEM_D_Hertz_viscous_Coulomb {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Hertz_viscous_Coulomb2D);
@@ -23,7 +23,7 @@ namespace Kratos {
       
         void Initialize(const ProcessInfo& r_process_info) override;         
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         ~DEM_D_Hertz_viscous_Coulomb2D() {
         }

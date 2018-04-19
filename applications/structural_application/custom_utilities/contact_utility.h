@@ -171,8 +171,8 @@ public:
                     {
                         for( IndexType i = 0; i < (*it)->GetGeometry().IntegrationPoints().size(); i++ )
                         {
-                            Point<3> MasterContactLocalPoint;
-                            Point<3> SlaveContactLocalPoint;
+                           Point MasterContactLocalPoint;
+                           Point SlaveContactLocalPoint;
                             Condition::Pointer CurrentMaster ;
                             if( SearchPartner(
                                         mr_model_part,
@@ -184,7 +184,7 @@ public:
                             {
                                 IndexType newId = (mr_model_part.Conditions().end()-1)->Id()+LinkingConditions.size()+1;
                                 //creating contact link element
-//                                 Point<3> contact_point_global;
+//                                Point contact_point_global;
 //                                 GlobalCoordinates( **it, contact_point_global, (GeometryType::CoordinatesArrayType)SlaveContactLocalPoint );
 //                                 NodeType::Pointer p_node(new NodeType(*i_node));
 //                 last_id++;
@@ -306,8 +306,8 @@ public:
                     {
                         for( IndexType i = 0; i < (*it)->GetGeometry().IntegrationPoints().size(); i++ )
                         {
-                            Point<3> MasterContactLocalPoint;
-                            Point<3> SlaveContactLocalPoint;
+                           Point MasterContactLocalPoint;
+                           Point SlaveContactLocalPoint;
                             (*it)->GetValue(PENALTY)[i]= initial_penalty;
                             (*it)->GetValue(PENALTY_T)[i]= initial_penalty_t;
                             Condition::Pointer CurrentMaster ;
@@ -332,7 +332,7 @@ public:
                                                              *it,
                                                              MasterContactLocalPoint,
                                                              SlaveContactLocalPoint, i) );
-//                                 Point<3> contact_point_global;
+//                                Point contact_point_global;
 //                                 GlobalCoordinates( **it, contact_point_global, (GeometryType::CoordinatesArrayType)SlaveContactLocalPoint );
 //                                 Node<3>::Pointer contact_node_global( new Node<3>( mr_model_part.NodesEnd()->Id(), contact_point_global ) );
 //                                 mr_model_part.AddNode( contact_node_global );
@@ -397,8 +397,8 @@ public:
                                     i < (*it)->GetGeometry().IntegrationPoints().size();
                                     i++ )
                             {
-                                Point<3> MasterContactLocalPoint;
-                                Point<3> SlaveContactLocalPoint;
+                               Point MasterContactLocalPoint;
+                               Point SlaveContactLocalPoint;
                                 Condition::Pointer CurrentMaster;
                                 if( SearchPartner(
                                             mr_model_part,
@@ -1034,8 +1034,8 @@ private:
                         Condition& Slave,
                         ConditionsArrayType& AllMasterElements,
                         const IndexType& IntegrationPointIndex,
-                        Point<3>& MasterContactLocalPoint,
-                        Point<3>& SlaveContactLocalPoint,
+                       Point& MasterContactLocalPoint,
+                       Point& SlaveContactLocalPoint,
                         Condition::Pointer& CurrentMaster
                       )
     {
@@ -1051,11 +1051,11 @@ private:
             = Slave.GetGeometry().IntegrationPoints()[IntegrationPointIndex];
 //                    KRATOS_WATCH(SlaveContactLocalPoint);
             //calculating global coordinates of current integration point
-            Point<3> SlaveContactGlobalPoint;
+           Point SlaveContactGlobalPoint;
 
             SlaveContactGlobalPoint = GlobalCoordinates( Slave, SlaveContactGlobalPoint, SlaveContactLocalPoint);
 
-            Point<3> GlobalCandidate;
+           Point GlobalCandidate;
             //defining set of possible master surface elements
             ConditionsArrayType::Pointer MasterSet( new ConditionsArrayType() );
             double minDist = static_cast<double>(INT_MAX);
@@ -1111,7 +1111,7 @@ private:
                 }
             }
             //searching contact partner (local search)
-            Point<3> MasterContactGlobalPoint;
+           Point MasterContactGlobalPoint;
             bool LocalPartnerExists = false;
 //                    KRATOS_WATCH( GlobalCandidate );
             for( ConditionsArrayType::ptr_iterator it = MasterSet->ptr_begin(); it != MasterSet->ptr_end(); ++it )
@@ -1363,7 +1363,7 @@ private:
     *    and the point on the slave surface
     */
 
-    Vector GetRelativTangentialVelocity(Condition::Pointer Master, Condition::Pointer Slave, Point<3> const& SlaveLocalCoordinates, Point<3> const& MasterLocalCoordinates)
+    Vector GetRelativTangentialVelocity(Condition::Pointer Master, Condition::Pointer Slave,Point const& SlaveLocalCoordinates,Point const& MasterLocalCoordinates)
     {
 
         Matrix T= TangentialVectors( Master, MasterLocalCoordinates );

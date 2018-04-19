@@ -1,18 +1,15 @@
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2008-12-15 15:41:36 $
-//   Revision:            $Revision: 1.6 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-// 
-
-
-
-// System includes
-
-
-// External includes 
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Author Julio Marti
+//
+
 
 // Project includes
 #include "includes/define.h"
@@ -32,11 +29,12 @@ namespace Kratos
 			
 	//KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 
-	KratosRadiationApplication::KratosRadiationApplication():
-	mRad2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    KratosRadiationApplication::KratosRadiationApplication():
+        KratosApplication("RadiationApplication"),
+	    mRad2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
         mRad3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-	mRadFace2D(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-	mRadFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
+	    mRadFace2D(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+	    mRadFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
 	{}
 
 

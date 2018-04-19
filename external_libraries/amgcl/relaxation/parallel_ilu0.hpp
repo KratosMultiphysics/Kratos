@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,9 @@ THE SOFTWARE.
  * \brief  Parallel version of ILU0 relaxation.
  */
 
-#include <cassert>
 #include <vector>
+#include <boost/range/algorithm.hpp>
+#include <boost/range/numeric.hpp>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
@@ -96,11 +97,14 @@ struct parallel_ilu0 {
 
         const size_t n = backend::rows(A);
 
-        boost::shared_ptr<build_matrix> Lh = boost::make_shared<build_matrix>();
-        boost::shared_ptr<build_matrix> Uh = boost::make_shared<build_matrix>();
+        std::shared_ptr<build_matrix> Lh = std::make_shared<build_matrix>();
+        std::shared_ptr<build_matrix> Uh = std::make_shared<build_matrix>();
 
-        Lh->set_size(n, n); std::fill(Lh->ptr, Lh->ptr + n + 1, 0);
-        Uh->set_size(n, n); std::fill(Uh->ptr, Uh->ptr + n + 1, 0);
+        Lh->ncols = Lh->nrows = n;
+        Uh->ncols = Uh->nrows = n;
+
+        Lh->ptr.resize(n+1, 0);
+        Uh->ptr.resize(n+1, 0);
 
         // Create an initial approximation for L and U by copying the
         // corresponding parts of A into the matrices.
@@ -116,19 +120,21 @@ struct parallel_ilu0 {
             }
         }
 
-        std::partial_sum(Lh->ptr, Lh->ptr + n + 1, Lh->ptr);
-        std::partial_sum(Uh->ptr, Uh->ptr + n + 1, Uh->ptr);
+        boost::partial_sum(Lh->ptr, Lh->ptr.begin());
+        boost::partial_sum(Uh->ptr, Uh->ptr.begin());
 
-        Lh->set_nonzeros(Lh->ptr[n]);
-        Uh->set_nonzeros(Uh->ptr[n]);
+        Lh->col.reserve(Lh->ptr.back());
+        Lh->val.reserve(Lh->ptr.back());
 
-        for(ptrdiff_t i = 0, Lhead = 0; i < static_cast<ptrdiff_t>(n); ++i) {
+        Uh->col.resize(Uh->ptr.back());
+        Uh->val.resize(Uh->ptr.back());
+
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
             for(row_iterator a = backend::row_begin(A, i); a; ++a) {
                 ptrdiff_t c = a.col();
                 if (c < i) {
-                    Lh->col[Lhead] = c;
-                    Lh->val[Lhead] = a.value();
-                    ++Lhead;
+                    Lh->col.push_back(c);
+                    Lh->val.push_back(a.value());
                 } else {
                     ptrdiff_t head = Uh->ptr[c]++;
 
@@ -138,15 +144,15 @@ struct parallel_ilu0 {
             }
         }
 
-        std::rotate(Uh->ptr, Uh->ptr + n, Uh->ptr + n + 1);
-        Uh->ptr[0] = 0;
+        std::rotate(Uh->ptr.begin(), Uh->ptr.end() - 1, Uh->ptr.end());
+        Uh->ptr.front() = 0;
 
         amgcl::backend::sort_rows(*Uh);
 
         // Do the required number of Chow-Patel sweeps to get an approximated
         // factorization.
-        value_type * Ltmp = new value_type[Lh->ptr[n]];
-        value_type * Utmp = new value_type[Uh->ptr[n]];
+        std::vector<value_type> Ltmp(Lh->ptr.back());
+        std::vector<value_type> Utmp(Uh->ptr.back());
 
         for (unsigned sweep = 0; sweep < prm.factor_sweeps; ++sweep) {
 #pragma omp parallel for schedule(dynamic,4096)
@@ -212,21 +218,14 @@ struct parallel_ilu0 {
                 }
             }
 
-            std::swap(Ltmp, Lh->val);
-            std::swap(Utmp, Uh->val);
+            Ltmp.swap(Lh->val);
+            Utmp.swap(Uh->val);
         }
 
-        delete[] Ltmp;
-        delete[] Utmp;
-
         // Convert U to CRS, split out its diagonal.
+        std::vector<ptrdiff_t> ptr(n+1, 0);
+        std::vector<ptrdiff_t> col(Uh->ptr.back());
         std::vector<value_type> Dh(n);
-
-        ptrdiff_t  * Uptr = new ptrdiff_t [n+1];
-        ptrdiff_t  * Ucol = new ptrdiff_t [Uh->ptr[n] - n];
-        value_type * Uval = new value_type[Uh->ptr[n] - n];
-
-        std::fill(Uptr, Uptr + n + 1, 0);
 
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
             for(ptrdiff_t k = Uh->ptr[i]; k < Uh->ptr[i+1]; ++k) {
@@ -234,30 +233,31 @@ struct parallel_ilu0 {
                 if (j == i) {
                     Dh[i] = math::inverse(Uh->val[k]);
                 } else {
-                    ++Uptr[j+1];
+                    ++ptr[j+1];
                 }
             }
         }
 
-        std::partial_sum(Uptr, Uptr + n + 1, Uptr);
+        boost::partial_sum(ptr, ptr.begin());
+        Utmp.resize(ptr.back());
 
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
             for(ptrdiff_t k = Uh->ptr[i]; k < Uh->ptr[i+1]; ++k) {
                 ptrdiff_t j = Uh->col[k];
                 if (j != i) {
-                    ptrdiff_t head = Uptr[j]++;
-                    Ucol[head] = i;
-                    Uval[head] = Uh->val[k];
+                    ptrdiff_t head = ptr[j]++;
+                    col[head]  = i;
+                    Utmp[head] = Uh->val[k];
                 }
             }
         }
 
-        std::rotate(Uptr, Uptr + n, Uptr + n + 1);
-        Uptr[0] = 0;
+        std::rotate(ptr.begin(), ptr.end() - 1, ptr.end());
+        ptr.front() = 0;
 
-        std::swap(Uptr, Uh->ptr); delete[] Uptr;
-        std::swap(Ucol, Uh->col); delete[] Ucol;
-        std::swap(Uval, Uh->val); delete[] Uval;
+        ptr.swap(Uh->ptr);
+        col.swap(Uh->col);
+        Utmp.swap(Uh->val);
 
         amgcl::backend::sort_rows(*Uh);
 
@@ -294,16 +294,16 @@ struct parallel_ilu0 {
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params &prm) const
     {
         backend::copy(rhs, x);
         solve(x, prm);
     }
 
     private:
-        boost::shared_ptr<matrix> L, U;
-        boost::shared_ptr<matrix_diagonal> D;
-        boost::shared_ptr<vector> t1, t2;
+        std::shared_ptr<matrix> L, U;
+        std::shared_ptr<matrix_diagonal> D;
+        std::shared_ptr<vector> t1, t2;
 
         template <class VectorX>
         void solve(VectorX &x, const params &prm) const

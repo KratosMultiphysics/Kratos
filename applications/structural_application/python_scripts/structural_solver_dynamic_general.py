@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.MKLSolversApplication import *
+# from KratosMultiphysics.MKLSolversApplication import *
 CheckForPreviousImport()
 
 
@@ -59,8 +59,8 @@ class DynamicStructuralSolver:
         self.norm = 1.0E-6
 
         # definition of the solvers
-        # self.structure_linear_solver  =  SkylineLUFactorizationSolver()
-        self.structure_linear_solver = MKLPardisoSolver()  # SuperLUSolver()
+        self.structure_linear_solver  =  SkylineLUFactorizationSolver()
+        # self.structure_linear_solver = MKLPardisoSolver()  # SuperLUSolver()
 
         # definition of the convergence criteria
 

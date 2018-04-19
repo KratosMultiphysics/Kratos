@@ -326,7 +326,7 @@ private:
     ///@name Member Variables
     ///@{
 
-//	  Geometry< Point<3,double> >::Pointer  mpReferenceGeometry;
+//	  Geometry< Point >::Pointer  mpReferenceGeometry;
 
     //double mTotalDomainInitialSize;
 

@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //
 // ==============================================================================
 
@@ -12,10 +12,9 @@
 // System includes
 // ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
+// // ------------------------------------------------------------------------------
+// // External includes
+// // ------------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -26,13 +25,17 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/optimization_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
-#include "custom_utilities/vertex_morphing_mapper.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
+#include "custom_utilities/damping/damping_utilities.h"
+#include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/input_output/vtk_file_io.h"
-
-
+#include "custom_utilities/response_functions/eigenfrequency_response_function.h"
+#include "custom_utilities/response_functions/eigenfrequency_response_function_lin_scal.h"
 // ==============================================================================
 
 namespace Kratos
@@ -41,82 +44,131 @@ namespace Kratos
 namespace Python
 {
 
-
-void  AddCustomUtilitiesToPython()
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<VertexMorphingMapper, bases<Process> >("VertexMorphingMapper", init<ModelPart&, boost::python::dict, Parameters&>())
-        .def("compute_mapping_matrix", &VertexMorphingMapper::compute_mapping_matrix)
-        .def("map_sensitivities_to_design_space", &VertexMorphingMapper::map_sensitivities_to_design_space)
-        .def("map_design_update_to_geometry_space", &VertexMorphingMapper::map_design_update_to_geometry_space)
+    class_<MapperVertexMorphing >(m, "MapperVertexMorphing")
+        .def(init<ModelPart&, Parameters>())
+        .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
+        ;
+    class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
+        .def(init<ModelPart&, Parameters>())
+        .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
+        ;
+    class_<MapperVertexMorphingImprovedIntegration >(m, "MapperVertexMorphingImprovedIntegration")
+        .def(init<ModelPart&, Parameters>())
+        .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
+        ;
+
+    // ================================================================
+    // For a possible damping of nodal variables
+    // ================================================================
+    class_<DampingUtilities >(m, "DampingUtilities")
+        .def(init<ModelPart&, pybind11::dict, Parameters>())
+        .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
         ;
 
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters&>())
+    class_<OptimizationUtilities >(m, "OptimizationUtilities")
+        .def(init<ModelPart&, Parameters>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
-        .def("compute_search_direction_steepest_descent", &OptimizationUtilities::compute_search_direction_steepest_descent)
+        .def("ComputeSearchDirectionSteepestDescent", &OptimizationUtilities::ComputeSearchDirectionSteepestDescent)
         // ----------------------------------------------------------------
         // For running penalized projection method
         // ----------------------------------------------------------------
-        .def("compute_projected_search_direction", &OptimizationUtilities::compute_projected_search_direction)
-        .def("correct_projected_search_direction", &OptimizationUtilities::correct_projected_search_direction)
-        .def("get_correction_scaling", &OptimizationUtilities::get_correction_scaling)
-        .def("set_correction_scaling", &OptimizationUtilities::set_correction_scaling)
+        .def("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
+        .def("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
-        .def("compute_design_update", &OptimizationUtilities::compute_design_update)
+        .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
+        .def("AddFirstVariableToSecondVariable", &OptimizationUtilities::AddFirstVariableToSecondVariable)
         ;
 
     // ========================================================================
     // For pre- and post-processing of geometry data
     // ========================================================================
-    class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&>())
-        .def("compute_unit_surface_normals", &GeometryUtilities::compute_unit_surface_normals)
-        .def("project_grad_on_unit_surface_normal", &GeometryUtilities::project_grad_on_unit_surface_normal)
-        .def("extract_surface_nodes", &GeometryUtilities::extract_surface_nodes)
+    class_<GeometryUtilities >(m, "GeometryUtilities")
+        .def(init<ModelPart&>())
+        .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
+        .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
+        .def("ExtractSurfaceNodes", &GeometryUtilities::ExtractSurfaceNodes)
+        ;
+
+    // ========================================================================
+    // For mesh handling
+    // ========================================================================
+    class_<MeshControllerUtilities >(m, "MeshControllerUtilities")
+        .def(init<ModelPart&>())
+        .def("UpdateMeshAccordingInputVariable", &MeshControllerUtilities::UpdateMeshAccordingInputVariable)
+        .def("LogMeshChangeAccordingInputVariable", &MeshControllerUtilities::LogMeshChangeAccordingInputVariable)
+        .def("SetMeshToReferenceMesh", &MeshControllerUtilities::SetMeshToReferenceMesh)
+        .def("SetReferenceMeshToMesh", &MeshControllerUtilities::SetReferenceMeshToMesh)
+        .def("SetDeformationVariablesToZero", &MeshControllerUtilities::SetDeformationVariablesToZero)
         ;
 
     // ========================================================================
     // For calculations related to response functions
     // ========================================================================
-    class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, Parameters&>())
-        .def("initialize", &StrainEnergyResponseFunction::initialize)
-        .def("calculate_value", &StrainEnergyResponseFunction::calculate_value)
-        .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient) 
-        .def("get_value", &StrainEnergyResponseFunction::get_value)
-        .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)  
-        .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)                              
-        ; 
-    class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters&>())
-        .def("initialize", &MassResponseFunction::initialize)
-        .def("calculate_value", &MassResponseFunction::calculate_value)
-        .def("calculate_gradient", &MassResponseFunction::calculate_gradient)  
-        .def("get_value", &MassResponseFunction::get_value)
-        .def("get_initial_value", &MassResponseFunction::get_initial_value) 
-        .def("get_gradient", &MassResponseFunction::get_gradient)                              
-        ;                     
+    class_<StrainEnergyResponseFunction >(m, "StrainEnergyResponseFunction")
+        .def(init<ModelPart&, Parameters>())
+        .def("Initialize", &StrainEnergyResponseFunction::Initialize)
+        .def("CalculateValue", &StrainEnergyResponseFunction::CalculateValue)
+        .def("CalculateGradient", &StrainEnergyResponseFunction::CalculateGradient)
+        .def("GetValue", &StrainEnergyResponseFunction::GetValue)
+        .def("GetGradient", &StrainEnergyResponseFunction::GetGradient)
+        ;
+    class_<MassResponseFunction >(m, "MassResponseFunction")
+        .def(init<ModelPart&, Parameters>())
+        .def("Initialize", &MassResponseFunction::Initialize)
+        .def("CalculateValue", &MassResponseFunction::CalculateValue)
+        .def("CalculateGradient", &MassResponseFunction::CalculateGradient)
+        .def("GetValue", &MassResponseFunction::GetValue)
+        .def("GetGradient", &MassResponseFunction::GetGradient)
+        ;
+
+   class_<EigenfrequencyResponseFunction >(m, "EigenfrequencyResponseFunction")
+        .def(init<ModelPart&, Parameters&>())
+        .def("Initialize", &EigenfrequencyResponseFunction::Initialize)
+        .def("CalculateValue", &EigenfrequencyResponseFunction::CalculateValue)
+        .def("CalculateGradient", &EigenfrequencyResponseFunction::CalculateGradient)
+        .def("GetValue", &EigenfrequencyResponseFunction::GetValue)
+        .def("GetGradient", &EigenfrequencyResponseFunction::GetGradient)
+        ;
+
+    class_<EigenfrequencyResponseFunctionLinScal >(m, "EigenfrequencyResponseFunctionLinScal")
+        .def(init<ModelPart&, Parameters&>())
+        .def("Initialize", &EigenfrequencyResponseFunctionLinScal::Initialize)
+        .def("CalculateValue", &EigenfrequencyResponseFunctionLinScal::CalculateValue)
+        .def("CalculateGradient", &EigenfrequencyResponseFunctionLinScal::CalculateGradient)
+        .def("GetValue", &EigenfrequencyResponseFunctionLinScal::GetValue)
+        .def("GetGradient", &EigenfrequencyResponseFunctionLinScal::GetGradient)
+        ;
 
     // ========================================================================
     // For input / output
-    // ======================================================================== 
-    class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters&>())
-        .def("initializeLogging", &UniversalFileIO::initializeLogging)
-        .def("logNodalResults", &UniversalFileIO::logNodalResults)
-        ;           
-     
-    class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, Parameters&>())
-        .def("initializeLogging", &VTKFileIO::initializeLogging)
-        .def("logNodalResults", &VTKFileIO::logNodalResults)
-        ;           
+    // ========================================================================
+    class_<UniversalFileIO >(m, "UniversalFileIO")
+        .def(init<ModelPart&, std::string, std::string, Parameters>())
+        .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
+        .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
+        ;
+    class_<VTKFileIO >(m, "VTKFileIO")
+        .def(init<ModelPart&, std::string, std::string, Parameters>())
+        .def("InitializeLogging", &VTKFileIO::InitializeLogging)
+        .def("LogNodalResults", &VTKFileIO::LogNodalResults)
+        ;
 }
 
 

@@ -39,6 +39,7 @@ namespace Kratos
 
        double A;
        double B;
+       double C;
 
    };
 
@@ -101,7 +102,9 @@ class TrescaYieldCriterion
 
         double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha);
 
-	void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha);
+	//void CalculateYieldFunctionSecondDerivative(const Vector& rStressVector, Matrix& SecondDerivative, const double& rAlpha);
+	
+   void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha);
         ///@}
         ///@name Access
         ///@{
@@ -159,6 +162,10 @@ class TrescaYieldCriterion
         double GetSmoothingLodeAngle();
 
         double GetPI();
+
+        void ComputeC2andC3Vector( const Vector& rStressVector, TrescaStressInvariants& rStressInvariants, Vector& C2Vector, Vector& C3Vector);
+        
+        void ComputeC2andC3VectorDD( const Vector& rStressVector, TrescaStressInvariants& rStressInvariants, Vector& C2Vector, Vector& C3Vector, Matrix& C2Matrix, Matrix& C3Matrix, Vector & rLodeDerivative);
 
         ///@}
         ///@name Protected  Access

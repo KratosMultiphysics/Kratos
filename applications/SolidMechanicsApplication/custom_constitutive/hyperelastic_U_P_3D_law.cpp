@@ -137,7 +137,7 @@ void  HyperElasticUP3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
 
     //8.-Green-Lagrange Strain:
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
       {
 	this->CalculateGreenLagrangeStrain(RightCauchyGreen, StrainVector);
       }
@@ -188,7 +188,6 @@ void  HyperElasticUP3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
 	this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, SplitConstitutiveMatrix.Volumetric );
 
-	//if( Options.Is(ConstitutiveLaw::TOTAL_TENSOR ) )
 	ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Volumetric;
 
 	if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )
@@ -287,7 +286,7 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
 
 
     //8.-Almansi Strain:
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
         // e= 0.5*(1-invbT*invb)
         this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix,StrainVector);
@@ -346,7 +345,6 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
 
 	this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, SplitConstitutiveMatrix.Volumetric );
 
-        //if( Options.Is(ConstitutiveLaw::TOTAL_TENSOR ) )
         ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Volumetric;
 
         if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )

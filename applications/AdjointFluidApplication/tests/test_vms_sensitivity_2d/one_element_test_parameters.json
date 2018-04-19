@@ -38,7 +38,6 @@
         "echo_level"                    : 0,
         "consider_periodic_conditions"  : false,
         "compute_reactions"             : false,
-        "divergence_clearance_steps"    : 0,
         "reform_dofs_at_each_step"      : false,
         "relative_velocity_tolerance"   : 0.001,
         "absolute_velocity_tolerance"   : 1e-5,
@@ -58,9 +57,9 @@
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "impose_vector_value_by_direction_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ImposeVectorValueByDirectionProcess",
+        "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Inlet",
@@ -69,9 +68,9 @@
             "direction"       : [0.70710678118654746,-0.70710678118654746,0.0]
         }
     },{
-        "python_module" : "impose_scalar_value_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyOutletProcess",
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignScalarVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet",
@@ -87,30 +86,37 @@
             "model_part_name" : "Boundary"
         }
     },{
-        "python_module" : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet",
             "variable_name"   : "VELOCITY",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [false,true,true],
             "value"           : [0.0, 0.0, 0.0]
         }
     }],
     "gravity" : [],
     "list_other_processes" :[{
-        "kratos_module" : "KratosMultiphysics.AdjointFluidApplication",
-        "python_module" : "output_primal_solution_process",
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_primal_output_process",
         "help"          : "",
-        "process_name"  : "OutputPrimalSolutionProcess",
+        "process_name"  : "",
         "Parameters" : {
-	    "model_part_name" : "MainModelPart",
-            "file_name"       : "test_vms_sensitivity_2d/one_element_test",
-            "variable_list"   : ["VELOCITY", "ACCELERATION", "PRESSURE"],
-            "alpha_bossak"    :-0.3
+            "model_part_name" : "MainModelPart",
+            "file_settings" : {
+                "file_access_mode" : "truncate"
+            },
+            "model_part_output_settings" : {
+                "prefix" : "/ModelData"
+            },
+            "nodal_results_settings" : {
+                "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+            },
+            "output_time_settings" : {
+                "output_step_frequency": 1
+            }
         }
     },{
         "kratos_module" : "KratosMultiphysics.AdjointFluidApplication",

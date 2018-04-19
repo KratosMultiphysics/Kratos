@@ -11,11 +11,12 @@
 #include <iostream>
 
 // External includes
+
 // Project includes
-//#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
+#include "includes/variables.h"
 #include "includes/node.h"
 #include "includes/element.h"
 #include "geometries/geometry.h"
@@ -41,7 +42,8 @@ namespace Kratos {
         typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
         typedef WeakPointerVector<Element> ParticleWeakVectorType;
         typedef ModelPart::ElementsContainerType ElementsArrayType;
-        
+
+        KRATOS_CLASS_POINTER_DEFINITION(DEM_Inlet);
         
         /// Constructor:               
         DEM_Inlet(ModelPart& inlet_modelpart);
@@ -65,15 +67,19 @@ namespace Kratos {
         int GetTotalNumberOfParticlesInjectedSoFar();
         double GetPartialMassInjectedSoFar(const int i);
         double GetTotalMassInjectedSoFar();
+    protected:
+        virtual void AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees);
 
     private:
+        void UpdateInjectedParticleVelocity(Element &particle, Element &injector_element);
         virtual void FixInjectorConditions(Element* p_element);
-        virtual void FixInjectionConditions(Element* p_element);
+        virtual void FixInjectionConditions(Element* p_element, Element* p_injector_element);
         virtual void RemoveInjectionConditions(Element &element);
         virtual void UpdateTotalThroughput(SphericParticle& r_spheric_particle); 
         virtual void UpdateTotalThroughput(Cluster3D& r_cluster);
         virtual void UpdatePartialThroughput(SphericParticle& r_spheric_particle, const int i);
         virtual void UpdatePartialThroughput(Cluster3D& r_cluster, const int i);
+        double GetInputNumberOfParticles(const ModelPart& mp);
 
         Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
         Vector mLastInjectionTimes; //array of doubles, must be resized in the constructor to the number of meshes
@@ -84,6 +90,7 @@ namespace Kratos {
         bool mStrategyForContinuum;
         int  mTotalNumberOfParticlesInjected;
         std::vector<int> mNumberOfParticlesInjected;
+        std::map<int, std::string> mOriginInletSubmodelPartIndexes;
         double mTotalMassInjected;
         Vector mMassInjected; 
         // The following two ratios mark the limit indentation (normalized by the radius) for releasing a particle

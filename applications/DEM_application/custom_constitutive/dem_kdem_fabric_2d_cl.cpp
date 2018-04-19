@@ -10,8 +10,8 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEMFabric2D::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning DEM_KDEMFabric2D to Properties " << pProp->Id() << std::endl;
+    void DEM_KDEMFabric2D::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+        if(verbose) std::cout << "\nAssigning DEM_KDEMFabric2D to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 

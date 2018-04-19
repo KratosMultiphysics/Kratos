@@ -84,7 +84,7 @@ typedef double*                                     DistanceIterator;
 typedef PointConfigure<3>                           PointConfigureType;
 //Bin Types
 typedef BinsObjectDynamic<PointConfigureType>       PointBinsType;
-typedef PointerVectorSet<Point<3>, IndexedObject>   PointSetType;
+typedef PointerVectorSet<Point, IndexedObject>   PointSetType;
 
 
 ///@}

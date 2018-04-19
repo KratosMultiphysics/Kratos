@@ -91,7 +91,7 @@ public:
     ///@{
 
     /// Default constructor.
-    ContactDomain3DModeler() {} //
+    ContactDomain3DModeler() { std::cout<<"3D modeler for Contact"<<std::endl; } //
 
     /// Destructor.
     virtual ~ContactDomain3DModeler() {}
@@ -122,16 +122,16 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
 	return "";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {}
+    virtual void PrintInfo(std::ostream& rOStream) const override {}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -202,13 +202,13 @@ private:
      
     //set nodes to a mesh
     void SetNodes(ModelPart& rModelPart,
-		  MeshingParametersType& rMeshingVariables);
+		  MeshingParametersType& rMeshingVariables) override;
 
 
     //set faces in the triangulateio before the Delaunay Tesselation
     void SetFaces ( ModelPart &rModelPart,
 		    MeshingParametersType & rMeshingVariables,
-		    tetgenio &in );
+		    tetgenio &in ) override;
 
     ///@}
     ///@name Private  Access

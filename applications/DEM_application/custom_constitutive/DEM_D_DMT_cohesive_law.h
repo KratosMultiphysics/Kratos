@@ -7,7 +7,7 @@
 
 namespace Kratos {
 
-    class DEM_D_DMT_Cohesive_Law : public DEMDiscontinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_DMT_Cohesive_Law : public DEMDiscontinuumConstitutiveLaw {
         
     public:
 
@@ -17,7 +17,7 @@ namespace Kratos {
 
         void Initialize(const ProcessInfo& r_process_info) override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         virtual ~DEM_D_DMT_Cohesive_Law();
 

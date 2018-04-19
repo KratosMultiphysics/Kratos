@@ -59,7 +59,7 @@ namespace Kratos
       Exception(Exception const& Other);
 
       /// Destructor.
-      virtual ~Exception() noexcept;
+      ~Exception() noexcept override;
 
 
       ///@}

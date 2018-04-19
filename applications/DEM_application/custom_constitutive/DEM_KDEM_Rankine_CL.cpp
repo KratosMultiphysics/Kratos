@@ -14,7 +14,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_Rankine::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
+    void DEM_KDEM_Rankine::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
         std::cout << "\nAssigning DEM_KDEM_Rankine to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }    

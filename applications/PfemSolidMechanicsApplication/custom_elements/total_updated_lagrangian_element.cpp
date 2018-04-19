@@ -132,9 +132,9 @@ TotalUpdatedLagrangianElement::~TotalUpdatedLagrangianElement()
 //************************************************************************************
 
 
-void TotalUpdatedLagrangianElement::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void TotalUpdatedLagrangianElement::InitializeElementVariables (ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    LargeDisplacementElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
+    LargeDisplacementElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
     rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
@@ -150,7 +150,7 @@ void TotalUpdatedLagrangianElement::InitializeGeneralVariables (GeneralVariables
 //************************************************************************************
 
 
-void TotalUpdatedLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
+void TotalUpdatedLagrangianElement::CalculateKinematics(ElementVariables& rVariables,
         const double& rPointNumber)
 
 {
@@ -273,7 +273,7 @@ void TotalUpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************************************************************
 //************************************************************************************
 
-void TotalUpdatedLagrangianElement::TransformGeneralVariables(GeneralVariables& rVariables, const double& rPointNumber)
+void TotalUpdatedLagrangianElement::TransformElementVariables(ElementVariables& rVariables, const double& rPointNumber)
 {
   // pull_back the stresses to last_known configuration
   mConstitutiveLawVector[rPointNumber]->TransformStresses(rVariables.StressVector, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2);
@@ -285,7 +285,7 @@ void TotalUpdatedLagrangianElement::TransformGeneralVariables(GeneralVariables& 
 //************************************************************************************
 //************************************************************************************
 
-void TotalUpdatedLagrangianElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
+void TotalUpdatedLagrangianElement::GetHistoricalVariables( ElementVariables& rVariables, const double& rPointNumber )
 {
     LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
 
@@ -298,7 +298,7 @@ void TotalUpdatedLagrangianElement::GetHistoricalVariables( GeneralVariables& rV
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
-double& TotalUpdatedLagrangianElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+double& TotalUpdatedLagrangianElement::CalculateVolumeChange( double& rVolumeChange, ElementVariables& rVariables )
 {
     KRATOS_TRY
       

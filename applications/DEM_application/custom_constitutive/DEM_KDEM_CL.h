@@ -8,7 +8,7 @@
 
 namespace Kratos {
 
-    class DEM_KDEM : public DEMContinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_KDEM : public DEMContinuumConstitutiveLaw {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM);
@@ -18,7 +18,7 @@ namespace Kratos {
 
         void Initialize() override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         ~DEM_KDEM() {
         }

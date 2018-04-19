@@ -39,7 +39,7 @@ namespace Kratos
 
 class ContactDomainLM3DCondition
     : public ContactDomainCondition
-{
+{ 
 public:
 
 
@@ -168,6 +168,13 @@ protected:
     ///@name Protected Operators
     ///@{
 
+
+    /**
+     * Check and resolve the element type EDGE_TO_EDGE (EdgeType) or FaceType
+     */
+    void ResolveElementType();
+  
+  
     /**
      * Calculation of the Contact Master Nodes and Mechanical variables
      */
@@ -198,26 +205,26 @@ protected:
     /**
      * Calculation of the Contact Multipliers or Penalty Factors
      */
-    virtual void CalculateExplicitFactors(GeneralVariables& rVariables,
+    virtual void CalculateExplicitFactors(ConditionVariables& rVariables,
 					  ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation of the Contact Multipliers or Penalty Factors EdgeType element
      */
-    virtual void CalculateExplicitFactorsEdgeType(GeneralVariables& rVariables,
+    virtual void CalculateExplicitFactorsEdgeType(ConditionVariables& rVariables,
 						  ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation of the Contact Multipliers or Penalty Factors EdgeType element
      */
-    virtual void CalculateExplicitFactorsFaceType(GeneralVariables& rVariables,
+    virtual void CalculateExplicitFactorsFaceType(ConditionVariables& rVariables,
 						  ProcessInfo& rCurrentProcessInfo);
   
 
     /**
      * Tangent Matrix construction methods:
      */
-    void CalculateDomainShapeN(GeneralVariables& rVariables);
+    void CalculateDomainShapeN(ConditionVariables& rVariables);
 
 
     /**
@@ -228,39 +235,39 @@ protected:
     /**
      * Calculation of the Material Stiffness Matrix by components
      */
-    virtual void CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,
-				       unsigned int& ndi,unsigned int& ndj,
-				       unsigned int& idir,unsigned int& jdir);
+    virtual void CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,
+					    unsigned int& ndi,unsigned int& ndj,
+					    unsigned int& idir,unsigned int& jdir);
 
 
     /**
      * Normal Force construction by components
      */
-    virtual void CalculateNormalForce       (double &F,GeneralVariables& rVariables,
+    virtual void CalculateNormalForce       (double &F,ConditionVariables& rVariables,
 					     unsigned int& ndi,unsigned int& idir);
 
     /**
      * Tangent Stick Force construction by components
      */
-    virtual void CalculateTangentStickForce (double &F,GeneralVariables& rVariables,
+    virtual void CalculateTangentStickForce (double &F,ConditionVariables& rVariables,
 					     unsigned int& ndi,unsigned int& idir);
     /**
      * Tangent Slip Force construction by components
      */
-    virtual void CalculateTangentSlipForce  (double &F,GeneralVariables& rVariables,
+    virtual void CalculateTangentSlipForce  (double &F,ConditionVariables& rVariables,
 					     unsigned int& ndi,unsigned int& idir);
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-    inline bool CheckFictiousContacts(GeneralVariables& rVariables);
+    inline bool CheckFictiousContacts(ConditionVariables& rVariables);
 
     PointType& CalculateCurrentTangent(PointType &rTangent);
 
-    void FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndl,unsigned int &ndm,unsigned int &ndn);
+    void FSigmaP(ConditionVariables& rVariables, std::vector<Vector >& rSigmaP, PointType& rDirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndl,unsigned int &ndm,unsigned int &ndn);
 
-    void FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj);
+    void FSigmaPnd(ConditionVariables& rVariables, std::vector<Vector >& rSigmaP, PointType& rDirVector,unsigned int &ndi,unsigned int &ndj);
 
 
 

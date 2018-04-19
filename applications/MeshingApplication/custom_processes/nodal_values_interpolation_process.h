@@ -19,9 +19,9 @@
 
 // Project includes
 #include "meshing_application.h"
+#include "processes/process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-// Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
 
 namespace Kratos
@@ -37,11 +37,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
     
-    #if !defined(FRAMEWORK_EULER_LAGRANGE)
-    #define FRAMEWORK_EULER_LAGRANGE
-        enum FrameworkEulerLagrange {Eulerian = 0, Lagrangian = 1};
-    #endif
-    
 ///@}
 ///@name  Functions
 ///@{
@@ -50,11 +45,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief NodalValuesInterpolationProcess
- * This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
+/** 
+ * @class NodalValuesInterpolationProcess
+ * @ingroup MeshingApplication
+ * @brief NodalValuesInterpolationProcess
+ * @details This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
  * The process employs the projection.h from MeshingApplication, which works internally using a kd-tree 
+ * @author Vicente Mataix Ferrandiz
  */
-
 template<unsigned int TDim>
 class NodalValuesInterpolationProcess 
     : public Process
@@ -74,49 +72,33 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( NodalValuesInterpolationProcess );
       
     ///@}
+    ///@name  Enum's
+    ///@{
+    
+    /**
+     * @brief This enums allows to differentiate the working framework
+     */
+    enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};
+    
+    ///@}
     ///@name Life Cycle
     ///@{
 
-    // Class Constructor
-    
     /**
-     * The constructor of the search utility uses the following inputs:
-     * @param rOriginMainModelPart: The model part from where interpolate values
-     * @param rDestinationMainModelPart: The model part where we want to interpolate the values
-     * @param ThisParameters: The parameters containing all the information needed
+     * @brief The constructor of the search utility uses the following inputs:
+     * @param rOriginMainModelPart The model part from where interpolate values
+     * @param rDestinationMainModelPart The model part where we want to interpolate the values
+     * @param ThisParameters The parameters containing all the information needed
      */
     
     NodalValuesInterpolationProcess(
         ModelPart& rOriginMainModelPart,
         ModelPart& rDestinationMainModelPart,
         Parameters ThisParameters = Parameters(R"({})")
-        )
-    :mrOriginMainModelPart(rOriginMainModelPart),
-     mrDestinationMainModelPart(rDestinationMainModelPart)
-     {
-         Parameters DefaultParameters = Parameters(R"(
-         {
-            "echo_level"            : 1, 
-            "framework"             : "Eulerian", 
-            "max_number_of_searchs" : 1000, 
-            "step_data_size"        : 0, 
-            "buffer_size"           : 0
-         })");
-         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-         
-         mEchoLevel = ThisParameters["echo_level"].GetInt();
-         mFramework = ConvertFramework(ThisParameters["framework"].GetString());
-         mMaxNumberOfResults = ThisParameters["max_number_of_searchs"].GetInt();
-         mStepDataSize = ThisParameters["step_data_size"].GetInt();
-         mBufferSize   = ThisParameters["buffer_size"].GetInt();
-        
-         if (mEchoLevel > 0)
-         {
-             std::cout << "Step data size: " << mStepDataSize << " Buffer size: " << mBufferSize << std::endl;
-         }
-     }
+        );
     
-    virtual ~NodalValuesInterpolationProcess(){};
+    /// Destructor
+    ~NodalValuesInterpolationProcess() override= default;;
 
     ///@}
     ///@name Operators
@@ -132,63 +114,10 @@ public:
     ///@{
     
     /**
-     * We execute the search relative to the old and new model part
+     * @brief We execute the search relative to the old and new model part
      */
     
-    virtual void Execute()
-    {
-        // We create the locator
-        BinBasedFastPointLocator<TDim> PointLocator = BinBasedFastPointLocator<TDim>(mrOriginMainModelPart);
-        PointLocator.UpdateSearchDatabase();
-        
-        // Iterate in the nodes
-        NodesArrayType& pNode = mrDestinationMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
-        
-        /* Nodes */
-//         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNode.begin() + i;
-            
-            Vector ShapeFunctions;
-            Element::Pointer pElement;
-            
-            const bool IsFound = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), ShapeFunctions, pElement, mMaxNumberOfResults);
-            
-            if (IsFound == false)
-            {
-                if (mEchoLevel > 0 || mFramework == Lagrangian) // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
-                {
-                   std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
-                   std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
-                   
-                   if (mFramework == Lagrangian)
-                   {
-                       std::cout << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
-                   }
-                }
-            }
-            else
-            {
-                for(unsigned int iStep = 0; iStep < mBufferSize; iStep++)
-                {
-                    CalculateStepData(*(itNode.base()), pElement, ShapeFunctions, iStep);
-                }
-                
-                // After we interpolate the DISPLACEMENT we interpolate the initial coordinates to ensure a functioning of the simulation
-                if (mFramework == Lagrangian)
-                {
-                    if ( itNode->SolutionStepsDataHas( DISPLACEMENT ) == false ) // Fisrt we check if we have the displacement variable
-                    {
-                        KRATOS_ERROR << "Missing DISPLACEMENT on node " << itNode->Id() << std::endl;
-                    }
-                    
-                    CalculateInitialCoordinates(*(itNode.base()));
-                }
-            }
-        }
-    }
+    void Execute() override;
     
     ///@}
     ///@name Access
@@ -205,7 +134,7 @@ public:
     /************************************ GET INFO *************************************/
     /***********************************************************************************/
     
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "NodalValuesInterpolationProcess";
     }
@@ -213,7 +142,7 @@ public:
     /************************************ PRINT INFO ***********************************/
     /***********************************************************************************/
     
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
@@ -264,13 +193,13 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrOriginMainModelPart;                    // The origin model part
-    ModelPart& mrDestinationMainModelPart;               // The destination model part
-    unsigned int mMaxNumberOfResults;                    // The maximum number of results to consider in the search
-    unsigned int mStepDataSize;                          // The size of the database
-    unsigned int mBufferSize;                            // The size of the buffer
-    FrameworkEulerLagrange mFramework;                   // The framework
-    unsigned int mEchoLevel;                             // The level of verbosity
+    ModelPart& mrOriginMainModelPart;                    /// The origin model part
+    ModelPart& mrDestinationMainModelPart;               /// The destination model part
+    unsigned int mMaxNumberOfResults;                    /// The maximum number of results to consider in the search
+    unsigned int mStepDataSize;                          /// The size of the database
+    unsigned int mBufferSize;                            /// The size of the buffer
+    FrameworkEulerLagrange mFramework;                   /// The framework
+    unsigned int mEchoLevel;                             /// The level of verbosity
     
     ///@}
     ///@name Private Operators
@@ -281,46 +210,37 @@ private:
     ///@{
     
     /**
-     * It calculates the initial coordinates interpolated to the node
-     * @return itNode: The node pointer
-     */
-    
-    void CalculateInitialCoordinates(NodeType::Pointer& pNode);
-    
-    /**
-     * It calculates the Step data interpolated to the node
-     * @return itNode: The node pointer
-     * @param pElement: The element pointer
-     */
-    
-    void CalculateStepData(
-        NodeType::Pointer& pNode,
-        const Element::Pointer& pElement,
-        const Vector ShapeFunctions,
-        const unsigned int Step
-        );
-    
-    /**
-     * This converts the framework string to an enum
-     * @param str: The string
+     * @brief This converts the framework string to an enum
+     * @param Str The string
      * @return FrameworkEulerLagrange: The equivalent enum
      */
         
-    FrameworkEulerLagrange ConvertFramework(const std::string& str)
+    static inline FrameworkEulerLagrange ConvertFramework(const std::string& Str)
     {
-        if(str == "Lagrangian") 
-        {
-            return Lagrangian;
-        }
-        else if(str == "Eulerian") 
-        {
-            return Eulerian;
-        }
+        if(Str == "Lagrangian" || Str == "LAGRANGIAN") 
+            return FrameworkEulerLagrange::LAGRANGIAN;
+        else if(Str == "Eulerian" || Str == "EULERIAN") 
+            return FrameworkEulerLagrange::EULERIAN;
+        else if(Str == "ALE") 
+            return FrameworkEulerLagrange::ALE;
         else
-        {
-            return Eulerian;
-        }
+            return FrameworkEulerLagrange::EULERIAN;
     }
+    
+    /**
+     * @brief It calculates the Step data interpolated to the node
+     * @param pNode The node pointer
+     * @param pElement The element pointer
+     * @param rShapeFunctions The shape functions
+     * @param Step The current time step
+     */
+    
+    void CalculateStepData(
+        NodeType::Pointer pNode,
+        const Element::Pointer& pElement,
+        const Vector& rShapeFunctions,
+        const unsigned int Step
+        );
     
     ///@}
     ///@name Private  Access
@@ -337,82 +257,6 @@ private:
     ///@}
 
 }; // Class NodalValuesInterpolationProcess
-
-///@name Explicit Specializations
-///@{
-    
-    template<>  
-    void NodalValuesInterpolationProcess<2>::CalculateInitialCoordinates(NodeType::Pointer& pNode)
-    {
-        // We interpolate the initial coordinates (X = X0 + DISPLACEMENT), then X0 = X - DISPLACEMENT        
-        pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
-        pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void NodalValuesInterpolationProcess<3>::CalculateInitialCoordinates(NodeType::Pointer& pNode)
-    {        
-        // We interpolate the initial coordinates (X = X0 + DISPLACEMENT), then X0 = X - DISPLACEMENT        
-        pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
-        pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
-        pNode->Z0() = pNode->Z() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Z);
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void NodalValuesInterpolationProcess<2>::CalculateStepData(
-        NodeType::Pointer& pNode,
-        const Element::Pointer& pElement,
-        const Vector ShapeFunctions,
-        const unsigned int Step
-        )
-    {
-        double* StepData = pNode->SolutionStepData().Data(Step);
-        
-        double* NodeData0 = pElement->GetGeometry()[0].SolutionStepData().Data(Step);
-        double* NodeData1 = pElement->GetGeometry()[1].SolutionStepData().Data(Step);
-        double* NodeData2 = pElement->GetGeometry()[2].SolutionStepData().Data(Step);
-        
-        for (unsigned int j = 0; j < mStepDataSize; j++)
-        {
-            StepData[j] = ShapeFunctions[0] * NodeData0[j]
-                        + ShapeFunctions[1] * NodeData1[j]
-                        + ShapeFunctions[2] * NodeData2[j];
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void NodalValuesInterpolationProcess<3>::CalculateStepData(
-        NodeType::Pointer& pNode,
-        const Element::Pointer& pElement,
-        const Vector ShapeFunctions,
-        const unsigned int Step
-        )
-    {
-        double* StepData = pNode->SolutionStepData().Data(Step);
-        
-        // NOTE: This just works with tetrahedron (you are going to have problems with anything else)
-        double* NodeData0 = pElement->GetGeometry()[0].SolutionStepData().Data(Step);
-        double* NodeData1 = pElement->GetGeometry()[1].SolutionStepData().Data(Step);
-        double* NodeData2 = pElement->GetGeometry()[2].SolutionStepData().Data(Step);
-        double* NodeData3 = pElement->GetGeometry()[3].SolutionStepData().Data(Step);
-        
-        for (unsigned int j = 0; j < mStepDataSize; j++)
-        {
-            StepData[j] = ShapeFunctions[0] * NodeData0[j]
-                        + ShapeFunctions[1] * NodeData1[j]
-                        + ShapeFunctions[2] * NodeData2[j]
-                        + ShapeFunctions[3] * NodeData3[j];
-        }
-    }
 
 ///@}
 

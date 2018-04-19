@@ -39,10 +39,17 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-/// Short class definition.
-// This process initializes the variables related with the ALM
-/** Detail class definition.
-*/
+/**
+ * @class MetricFastInit
+ *
+ * @ingroup MeshingApplication
+ * 
+ * @brief This process initializes the variables related with the ALM
+ * 
+ * @author Vicente Mataix Ferrandiz
+ * 
+ * @todo Replace with VariableUtils() when updated for nonhistorical
+ */
 template<unsigned int TDim>
 class MetricFastInit
     : public Process
@@ -65,17 +72,10 @@ public:
     ///@{
 
     /// Default constructor.
-    MetricFastInit( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart)
-    {
-        KRATOS_TRY;
-
-        KRATOS_CATCH("");
-    }
+    MetricFastInit( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart){}
 
     /// Destructor.
-    virtual ~MetricFastInit()
-    {
-    }
+    ~MetricFastInit() override = default;
 
     ///@}
     ///@name Access
@@ -106,29 +106,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute() override
-    {
-        KRATOS_TRY;
-
-        constexpr unsigned int size = TDim == 2  ? 3: 6;
-
-        const array_1d<double, size> zerovector(size, 0.0);
-
-        // We iterate over the node
-        NodesArrayType& pNodes = mrThisModelPart.Nodes();
-        int numNodes = mrThisModelPart.NumberOfNodes();
-
-        #pragma omp parallel for firstprivate(zerovector)
-        for(int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNodes.begin() + i;
-
-            // The metric
-            itNode->SetValue(MMG_METRIC, zerovector);
-        }
-
-        KRATOS_CATCH("");
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -145,19 +123,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "MetricFastInit";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MetricFastInit";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -213,6 +191,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    
     ModelPart& mrThisModelPart;
 
     ///@}

@@ -8,7 +8,7 @@
 
 namespace Kratos {
 
-    class DEM_ExponentialHC : public DEMContinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_ExponentialHC : public DEMContinuumConstitutiveLaw {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_ExponentialHC);
@@ -26,7 +26,7 @@ namespace Kratos {
 
         void Initialize() override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         ~DEM_ExponentialHC() {}
 

@@ -1,0 +1,401 @@
+//
+//   Project Name:        KratosConstitutiveModelsApplication $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                   April 2017 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
+
+#if !defined(KRATOS_LINEAR_ELASTIC_MODEL_H_INCLUDED )
+#define  KRATOS_LINEAR_ELASTIC_MODEL_H_INCLUDED
+
+// System includes
+#include <string>
+#include <iostream>
+
+// External includes
+
+// Project includes
+#include "custom_models/constitutive_model.hpp"
+
+namespace Kratos
+{
+  ///@addtogroup ConstitutiveModelsApplication
+  ///@{
+
+  ///@name Kratos Globals
+  ///@{
+
+  ///@}
+  ///@name Type Definitions
+  ///@{
+
+  ///@}
+  ///@name  Enum's
+  ///@{
+
+  ///@}
+  ///@name  Functions
+  ///@{
+
+  ///@}
+  ///@name Kratos Classes
+  ///@{
+
+  /// Short class definition.
+  /** Detail class definition.
+   */
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) LinearElasticModel : public ConstitutiveModel
+  {
+  protected:
+ 
+    struct ElasticModelData
+    {
+    private:
+
+      Flags*               mpState;
+      const ModelDataType* mpModelData;
+      
+    public:
+      
+      bounded_matrix<double,6,6>   ConstitutiveTensor;
+      
+      //Set Data Pointers
+      void SetState           (Flags& rState)                    {mpState = &rState;};
+      void SetModelData       (const ModelDataType&  rModelData) {mpModelData = &rModelData;};
+      
+      //Get Data Pointers
+      const ModelDataType&    GetModelData                () const {return *mpModelData;};
+      const MaterialDataType& GetMaterialParameters       () const {return mpModelData->GetMaterialParameters();}; 
+
+      //Get non const Data
+      Flags& State                                        () {return *mpState;};
+
+      //Get const Data
+      const Flags&  GetState                              () const {return *mpState;};
+      
+    };
+    
+
+  public:
+
+    ///@name Type Definitions
+    ///@{
+    typedef ElasticModelData              ElasticDataType;
+
+      
+    /// Pointer definition of LinearElasticModel
+    KRATOS_CLASS_POINTER_DEFINITION( LinearElasticModel );
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.    
+    LinearElasticModel();
+
+    /// Copy constructor.
+    LinearElasticModel(LinearElasticModel const& rOther);
+
+    /// Clone.
+    virtual ConstitutiveModel::Pointer Clone() const override;
+
+    /// Assignment operator.
+    LinearElasticModel& operator=(LinearElasticModel const& rOther);
+
+    /// Destructor.
+    virtual ~LinearElasticModel();
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+
+    /**
+     * Initialize member data
+     */    
+    virtual void InitializeModel(ModelDataType& rValues) override;
+
+    
+    /**
+     * Finalize member data
+     */    
+    virtual void FinalizeModel(ModelDataType& rValues) override;
+ 
+    
+    /**
+     * Calculate Strain Energy Density Functions
+     */
+    virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override;
+
+      
+    /**
+     * Calculate Stresses
+     */    
+    virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
+
+    virtual void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
+
+    virtual void CalculateVolumetricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
+
+
+    
+    /**
+     * Calculate Constitutive Tensor
+     */
+    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override; 
+    
+    virtual void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override; 
+
+    virtual void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override; 
+    
+    /**
+     * Calculate Stress and Constitutive Tensor
+     */
+    virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
+
+    virtual void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
+    
+    virtual void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
+
+    
+    /**
+     * Check
+     */    
+    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
+    
+    ///@}
+    ///@name Access
+    ///@{
+        
+    virtual void SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
+			  const ProcessInfo& rCurrentProcessInfo ) override
+    {
+      KRATOS_TRY
+
+      // A method to compute the initial linear strain from the stress is needed
+      //if(rThisVariable == INITIAL_STRESS_VECTOR)
+	
+      // A method to compute the initial linear strain from the stress is needed
+      // if(rThisVariable == INITIAL_STRAIN_VECTOR){
+      //   this->mHistoryVector = rValue;
+      // }
+
+      KRATOS_CATCH(" ")
+    }
+
+
+    virtual void SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+			  const ProcessInfo& rCurrentProcessInfo ) override
+    {
+      KRATOS_TRY
+
+      // A method to compute the initial linear strain from the stress is needed
+      //if(rThisVariable == INITIAL_STRESS_VECTOR)
+	
+      // A method to compute the initial linear strain from the stress is needed
+      // if(rThisVariable == INITIAL_STRAIN_VECTOR){
+      //   this->mHistoryVector = rValue;
+      // }
+
+      KRATOS_CATCH(" ")
+    }
+    
+    /**
+     * method to ask the plasticity model the list of variables (dofs)  needed from the domain
+     * @param rScalarVariables : list of scalar dofs
+     * @param rComponentVariables :  list of vector dofs
+     */
+    virtual void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
+					std::vector<Variable<array_1d<double,3> > >& rComponentVariables) override
+    {
+      KRATOS_TRY
+
+      rComponentVariables.push_back(DISPLACEMENT);
+ 	
+      KRATOS_CATCH(" ")
+    }
+    
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "LinearElasticModel";
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "LinearElasticModel";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const override
+    {
+      rOStream << "LinearElasticModel Data";
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+  protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    
+    /**
+     * Calculate Stresses
+     */
+    virtual void CalculateAndAddStressTensor(ElasticDataType& rVariables, VectorType& rStrainVector, VectorType& rStressVector);
+
+    virtual void CalculateAndAddIsochoricStressTensor(ElasticDataType& rVariables, VectorType& rStrainVector, VectorType& rStressVector);
+
+    virtual void CalculateAndAddVolumetricStressTensor(ElasticDataType& rVariables, VectorType& rStrainVector, VectorType& rStressVector);
+
+    /**
+     * Calculate Constitutive Tensor
+     */
+    virtual void CalculateAndAddConstitutiveTensor(ElasticDataType& rVariables, Matrix& rConstitutiveMatrix);
+
+    virtual void CalculateAndAddConstitutiveTensor(ElasticDataType& rVariables);
+
+    virtual void CalculateAndAddIsochoricConstitutiveTensor(ElasticDataType& rVariables, Matrix& rConstitutiveMatrix);
+
+    virtual void CalculateAndAddIsochoricConstitutiveTensor(ElasticDataType& rVariables);
+
+    
+    virtual void CalculateAndAddVolumetricConstitutiveTensor(ElasticDataType& rVariables, Matrix& rConstitutiveMatrix);
+
+    virtual void CalculateAndAddVolumetricConstitutiveTensor(ElasticDataType& rVariables);
+
+    //************//
+
+    void InitializeElasticData(ModelDataType& rValues, ElasticDataType& rVariables);    
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+  private:
+    
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+	
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+	
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const override
+    {
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
+    }
+
+    virtual void load(Serializer& rSerializer) override
+    {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
+    }
+
+     ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    ///@}
+
+  }; // Class LinearElasticModel
+
+  ///@}
+
+  ///@name Type Definitions
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+  
+  ///@}
+
+  ///@} addtogroup block
+
+}  // namespace Kratos.
+
+#endif // KRATOS_LINEAR_ELASTIC_MODEL_H_INCLUDED  defined 
+
+

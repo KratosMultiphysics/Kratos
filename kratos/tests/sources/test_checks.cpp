@@ -19,7 +19,7 @@
 
 // Project includes
 #include "testing/testing.h"
-
+#include "includes/model_part.h"
 
 
 namespace Kratos {
@@ -44,5 +44,55 @@ namespace Kratos {
 
 			KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(std::string("Test"), "es");
 		}
-	}
+
+		KRATOS_TEST_CASE_IN_SUITE(VariableChecks, KratosCoreFastSuite)
+        {
+            ModelPart model_part("TestModelPart");
+
+            model_part.AddNodalSolutionStepVariable(VELOCITY);
+            model_part.AddNodalSolutionStepVariable(PRESSURE);
+
+            model_part.SetBufferSize(1);
+
+            model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+
+            for (auto it_node = model_part.NodesBegin();
+                 it_node != model_part.NodesEnd(); ++it_node)
+            {
+                it_node->AddDof(VELOCITY_Y, REACTION_Y);
+                it_node->AddDof(PRESSURE);
+            }
+
+            Node<3>& r_node = *(model_part.NodesBegin());
+
+            // These functions throw an error if the check fails
+            // Expected passes: test OK if no error is thrown
+            KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_X, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(PRESSURE, r_node);
+
+            // Expected fails: test failed unless an error is thrown
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE, r_node),
+                "Missing BODY_FORCE variable in solution step data for node "
+                "1.");
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE_X, r_node),
+                "Missing BODY_FORCE_X variable in solution step data for node "
+                "1.");
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TEMPERATURE, r_node),
+                "Missing TEMPERATURE variable in solution step data for node "
+                "1.");
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_DOF_IN_NODE(TEMPERATURE, r_node),
+                "Missing Degree of Freedom for TEMPERATURE in node 1.");
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X, r_node),
+                "Missing Degree of Freedom for VELOCITY_X in node 1.");
+        }
+    }
 }  // namespace Kratos.

@@ -49,32 +49,32 @@ public:
 
   KratosAdjointFluidApplication();
 
-  virtual ~KratosAdjointFluidApplication() {}
+  ~KratosAdjointFluidApplication() override {}
 
   ///@}
   ///@name Operations
   ///@{
 
-  virtual void Register();
+  void Register() override;
 
   ///@}
   ///@name Input and output
   ///@{
 
-  virtual std::string Info() const
+  std::string Info() const override
   {
     return "KratosAdjointFluidApplication";
   }
 
   /// Print information about this object.
-  virtual void PrintInfo(std::ostream& rOStream) const
+  void PrintInfo(std::ostream& rOStream) const override
   {
     rOStream << Info();
     PrintData(rOStream);
   }
 
   /// Print object's data.
-  virtual void PrintData(std::ostream& rOStream) const
+  void PrintData(std::ostream& rOStream) const override
   {
     std::cout << "in KratosAdjointFluidApplication" << std::endl;
     KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )

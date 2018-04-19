@@ -40,7 +40,7 @@ Multifile                        = "multiple_files"
 ElementType                      = "SphericPartDEMElement3D"
 
 # Solution Strategy
-IntegrationScheme                = "Verlet_Velocity"
+IntegrationScheme                = "Velocity_Verlet"
 AutomaticTimestep                = "OFF"
 DeltaTimeSafetyFactor            = 1.0
 MaxTimeStep                      = 1.0e-7

@@ -8,7 +8,7 @@
 //
 
 ////
-// NON ASSOCIATIVE, WITH HARDENING, PLASTIC FLOW RULE COMPUTED IN EXPLICITEDLY (maybe with runge-kutta)
+// NON ASSOCIATIVE, WITH HARDENING, PLASTIC FLOW RULE COMPUTED IN EXPLICITLY
 
 #if !defined(KRATOS_NON_ASSOCIATIVE_EXPLICIT_PLASTIC_FLOW_RULE_H_INCLUDED)
 #define      KRATOS_NON_ASSOCIATIVE_EXPLICIT_PLASTIC_FLOW_RULE_H_INCLUDED
@@ -69,6 +69,7 @@ namespace Kratos
         double StressErrorMeasure;
         double NewEquivalentPlasticStrain;
         double IncrementPlasticStrain;
+        double DeltaDeltaPlastic;
 
     };
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
@@ -88,10 +89,8 @@ namespace Kratos
     NonAssociativeExplicitPlasticFlowRule(const NonAssociativeExplicitPlasticFlowRule & rOther);
 
     /// Assignment operator.
-    NonAssociativeExplicitPlasticFlowRule& operator=(NonAssociativeExplicitPlasticFlowRule const& rOther) {FlowRule::operator=(rOther); return *this;} ;
+    NonAssociativeExplicitPlasticFlowRule& operator=(NonAssociativeExplicitPlasticFlowRule const& rOther); // {FlowRule::operator=(rOther); return *this;} ;
  
-    /// CLONE
-    virtual FlowRule::Pointer Clone() const;
 	
     /// Destructor.
     virtual ~NonAssociativeExplicitPlasticFlowRule();
@@ -101,10 +100,16 @@ namespace Kratos
     ///@name Operators
     ///@{
 
+    /// CLONE
+    virtual FlowRule::Pointer Clone() const;
 
     ///@}
     ///@name Operations
     ///@{
+
+    virtual void InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties);
+
+    virtual void InitializeMaterial (const Properties& rMaterialProperties);
     
     virtual bool CalculateReturnMappingImpl( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
 
@@ -114,6 +119,9 @@ namespace Kratos
 
     virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
 
+    virtual bool CalculateReturnMappingImplex( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
+
+    virtual bool CalculateReturnMappingImplex2( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
 
     virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
 
@@ -124,6 +132,9 @@ namespace Kratos
     {
 	    KRATOS_THROW_ERROR( std::logic_error, "calling not the base class but another function in FlowRule ... illegal operation!!", "" )
     };
+
+
+    virtual Matrix ComputeKirchhoffStressMatrix( const Matrix & rLeftCauchyGreenMatrix);
 
     ///@}
     ///@name Access
@@ -168,8 +179,8 @@ namespace Kratos
     //Matrix mEigenVectors;
 
 
-    double mIncrementalPlasticShearStrain;
-   
+    double mPlasticMultiplierVelocity; 
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -183,7 +194,7 @@ namespace Kratos
 
     bool& EvaluateElastoPlasticUnloadingCondition( bool& rUnloadingCondition, const Matrix& rElasticLeftCauchyGreen, const Matrix& rDeltaDeformationGradient, const InternalVariables& rPlasticVariables, const double & rTolerance);
 
-    void CalculateOneExplicitPlasticStep(const Matrix& rDeltaDeformationGradient,  const Matrix& rPreviousElasticLeftCauchyGreen, const double& rPreviousEquivalentPlasticStrain, Matrix& rNewElasticLeftCauchyGreen, double& rNewEquivalentPlasticStrain, double& rNewPlasticShearStrain);
+    void CalculateOneExplicitPlasticStep(const Matrix& rDeltaDeformationGradient,  const Matrix& rPreviousElasticLeftCauchyGreen, const double& rPreviousEquivalentPlasticStrain, Matrix& rNewElasticLeftCauchyGreen, double& rNewEquivalentPlasticStrain, double& rNewPlasticShearStrain, double& rDeltaPlastic);
 
     virtual void CalculateKirchhoffStressVector(const Vector& rElasticHenckyStrain, Vector& rNewStressVector)
     {
@@ -208,8 +219,6 @@ namespace Kratos
 
     void ComputeSubstepIncrementalDeformationGradient(const Matrix& rDeformationGradient, const double& rReferenceConfiguration, const double& rFinalConfiguration, Matrix& rIncrementalDeformationGradient);
 
-    //  Calculates One Explicit Step (Either Elastic or Plastic) 
-//    void CalculateOneExplicitStep(const Matrix& rDeltaDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, double& rNewEquivalentPlasticStrain, const bool& rElastoPlasticBool, double& rStressErrorMeasure);
 
     void CalculateOneExplicitStep(const Matrix& rDeltaDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const bool& rElastoPlasticBool, ExplicitStressUpdateInformation& rStressUpdateInformation);
 
@@ -223,20 +232,15 @@ namespace Kratos
 
     void UpdateRadialReturnVariables(RadialReturnVariables& rReturnMappingVariables, const ExplicitStressUpdateInformation& rStressUpdateInformation);
 
-//    void CalculateOneExplicitStep(const Vector& rHenckyStrainIncrement, const Vector& rPreviousElasticHenckyStrain, InternalVariables& rPlasticVariables, Vector& rNewElasticHenckyStrain, Vector& rNewStressVector, double& rNewEquivalentPlasticStrain, const bool& rElastoPlasticBool, double& rStressErrorMeasure);
-
- //   void CalculateExplicitSolution( const Vector& rHenckyStrainIncrement, const Vector& rPreviousElasticHenckyStrain, InternalVariables& rPlasticVariables, Vector& rNewElasticHenckyStrain, Vector& rNewStressVector,  const bool& rElastoPlasticBool, const double& rTolerance); 
 
 
-  //  void CalculateExplicitSolutionWithChange( const Vector& rHenckyStrainIncrement, const Vector& rPreviousElasticHenckyStrain, InternalVariables& rPlasticVariables, Vector& rNewElasticHenckyStrain, Vector& rNewStressVector,  const double& rTolerance); 
-
-
+    void ReturnStressToYieldSurface4( RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance);
 
     void ReturnStressToYieldSurface( RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance);
 
-    //void ReturnStressToYieldSurface2( RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance); TAKE ME OUT
 
-    void ReturnStressToYieldSurface(Vector& rElasticHenckyStrainVector, Vector& rStressVector, double& rAlpha, double& rDrift, const double& rTolerance);
+
+    void PerformSomeSortOfLineSearch( Vector& rHenckyElastic, double& rGamma, double& rAlpha, const Vector& rHenckyTrialElastic, const double& rAlphaTrial, double& rReidualNorm, const double& rPreviousError,  const Vector& rDeltaX);
 
 //    void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
 

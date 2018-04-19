@@ -51,16 +51,24 @@
 namespace Kratos
 {
 
-
-  KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication():   
+  KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication():
+    KratosApplication("PfemFluidDynamicsApplication"),
     mTwoStepUpdatedLagrangianVPElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mTwoStepUpdatedLagrangianVPElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
     mTwoStepUpdatedLagrangianVPElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mTwoStepUpdatedLagrangianVPElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
     mTwoStepUpdatedLagrangianVPSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mTwoStepUpdatedLagrangianVPSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
     mTwoStepUpdatedLagrangianVPSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mTwoStepUpdatedLagrangianVPSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
     mUpdatedLagrangianVSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mUpdatedLagrangianVSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
     mUpdatedLagrangianVSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mUpdatedLagrangianVSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
     mTwoStepUpdatedLagrangianVPFluidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mTwoStepUpdatedLagrangianVPFluidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+    mTwoStepUpdatedLagrangianVPFluidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+    mTwoStepUpdatedLagrangianVPFluidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mTwoStepUpdatedLagrangianVPFluidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10))))
   {
   }
   
@@ -83,20 +91,49 @@ namespace Kratos
     // KRATOS_REGISTER_VARIABLE(PATCH_INDEX);
     // KRATOS_REGISTER_VARIABLE(NORMVELOCITY);
     KRATOS_REGISTER_VARIABLE(FREESURFACE);
-    KRATOS_REGISTER_VARIABLE(INTERF);
-    KRATOS_REGISTER_VARIABLE( RIGID_WALL )
+    KRATOS_REGISTER_VARIABLE(INITIAL_DELTA_TIME);
+    KRATOS_REGISTER_VARIABLE(CURRENT_DELTA_TIME);
+    KRATOS_REGISTER_VARIABLE(TIME_INTERVAL_CHANGED);
+    KRATOS_REGISTER_VARIABLE(BAD_VELOCITY_CONVERGENCE);
+    KRATOS_REGISTER_VARIABLE(BAD_PRESSURE_CONVERGENCE);
+
+    //Papanastasiou variables
+    KRATOS_REGISTER_VARIABLE(YIELDED);
+    KRATOS_REGISTER_VARIABLE(FLOW_INDEX);
+    KRATOS_REGISTER_VARIABLE(YIELD_SHEAR);
+    KRATOS_REGISTER_VARIABLE(ADAPTIVE_EXPONENT);
+
+    //mu(I)-rheology variables
+    KRATOS_REGISTER_VARIABLE(STATIC_FRICTION);
+    KRATOS_REGISTER_VARIABLE(DYNAMIC_FRICTION);
+    KRATOS_REGISTER_VARIABLE(INERTIAL_NUMBER_ZERO);
+    KRATOS_REGISTER_VARIABLE(GRAIN_DIAMETER);
+    KRATOS_REGISTER_VARIABLE(GRAIN_DENSITY);
+    KRATOS_REGISTER_VARIABLE(REGULARIZATION_COEFFICIENT);
+    KRATOS_REGISTER_VARIABLE(INFINITE_FRICTION);
+    KRATOS_REGISTER_VARIABLE(INERTIAL_NUMBER_ONE);
+    KRATOS_REGISTER_VARIABLE(ALPHA_PARAMETER);
+
+    KRATOS_REGISTER_VARIABLE(PRESSURE_VELOCITY);
+    KRATOS_REGISTER_VARIABLE(PRESSURE_ACCELERATION);
 
     //Register Elements
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPElement2D",mTwoStepUpdatedLagrangianVPElement2D);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPElement2Dquadratic",mTwoStepUpdatedLagrangianVPElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPElement3D",mTwoStepUpdatedLagrangianVPElement3D);
-
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPElement3Dquadratic",mTwoStepUpdatedLagrangianVPElement3Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPSolidElement2D",mTwoStepUpdatedLagrangianVPSolidElement2D);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPSolidElement2Dquadratic",mTwoStepUpdatedLagrangianVPSolidElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPSolidElement3D",mTwoStepUpdatedLagrangianVPSolidElement3D);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPSolidElement3Dquadratic",mTwoStepUpdatedLagrangianVPSolidElement3Dquadratic);
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVSolidElement2D",mUpdatedLagrangianVSolidElement2D);
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVSolidElement2Dquadratic",mUpdatedLagrangianVSolidElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVSolidElement3D",mUpdatedLagrangianVSolidElement3D);
-
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVSolidElement3Dquadratic",mUpdatedLagrangianVSolidElement3Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement2D",mTwoStepUpdatedLagrangianVPFluidElement2D);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement2Dquadratic",mTwoStepUpdatedLagrangianVPFluidElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement3D",mTwoStepUpdatedLagrangianVPFluidElement3D);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement3Dquadratic",mTwoStepUpdatedLagrangianVPFluidElement3Dquadratic);
 
 
     //Register Conditions

@@ -265,7 +265,7 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    void UpdateBoxPosition(const double & rCurrentTime)
+    void UpdateBoxPosition(const double & rCurrentTime) override
     {
 
       KRATOS_TRY
@@ -285,7 +285,7 @@ public:
     //************************************************************************************
    
 
-    bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0)
+    bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0) override
     {
       
       KRATOS_TRY
@@ -314,7 +314,7 @@ public:
     //************************************************************************************
     //************************************************************************************
     
-    bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
+    bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
 
@@ -331,11 +331,31 @@ public:
     }
 
 
+            // *********************************************************************************
+            // *********************************************************************************
+            virtual void GetParametricDirections(BoundingBoxParameters & rValues, Vector & rT1, Vector & rT2) override
+            {
+               KRATOS_TRY
+               
+               // GetTheNormalOfThePlane
+                  PointType Normal(3);
+                  noalias(Normal) = mPlane.Normal; 
+                  PointType T1(3); PointType T2(3);
+                  noalias(T1) = ZeroVector(3); noalias(T2) = ZeroVector(3);
+                  this->CalculateOrthonormalBase(Normal, T1, T2);
+
+                  for (unsigned int i = 0; i < 3; i++)
+                  {
+                     rT1(i) = T1(i); rT2(i) = T2(i); 
+               }
+
+               KRATOS_CATCH("")
+            }
     //************************************************************************************
     //************************************************************************************
 
     //Plane
-    void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 )
+    void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 ) override
     {
       KRATOS_TRY
 	
@@ -395,7 +415,7 @@ public:
       double alpha = 0;
       QuaternionType Quaternion;      
 
-      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DOMAIN_SIZE]==2 )
+      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[SPACE_DIMENSION]==2 )
 	angular_partitions = 2;
       else
 	angular_partitions = 4;
@@ -432,7 +452,7 @@ public:
 	}
 
       //std::cout<<" Nodes Added "<<NodeId-InitialNodeId<<std::endl;
-      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DOMAIN_SIZE]==2 ){
+      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[SPACE_DIMENSION]==2 ){
 	std::cout<<" CREATE a LINE mesh "<<std::endl;
 	this->CreateLinearBoundaryMesh(rModelPart, InitialNodeId);
       }
@@ -462,19 +482,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "PlaneBoundingBox";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         rOStream << this->mBox.UpperPoint << " , " << this->mBox.LowerPoint;
     }

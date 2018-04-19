@@ -1,14 +1,19 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: jcotela $
-//   Date:                $Date: 2011-07-22 17:06:00 $
-//   Revision:            $Revision: 1.2 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Jordi Cotela
+//                   Riccardo Rossi
 //
 
 
-#if !defined(KRATOS_SPALART_ALLMARAS_H_INCLUDED )
-#define  KRATOS_SPALART_ALLMARAS_H_INCLUDED
+#if !defined(KRATOS_SPALART_ALLMARAS_TURBULENCE_H_INCLUDED )
+#define  KRATOS_SPALART_ALLMARAS_TURBULENCE_H_INCLUDED
 
 
 
@@ -176,7 +181,7 @@ public:
 
     /// Destructor.
 
-    virtual ~SpalartAllmarasTurbulenceModel()
+    ~SpalartAllmarasTurbulenceModel() override
     {
     }
 
@@ -191,7 +196,7 @@ public:
     ///@{
 
     /// Solve an iteration of the turbulent viscosity
-    void Execute()
+    void Execute() override
     {
         KRATOS_TRY
 
@@ -311,7 +316,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "SpalartAllmarasTurbulenceModel";
@@ -320,14 +325,14 @@ public:
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SpalartAllmarasTurbulenceModel";
     }
 
     /// Print object's data.
 
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -640,6 +645,6 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_SPALART_ALLMARAS_H_INCLUDED  defined
+#endif // KRATOS_SPALART_ALLMARAS_TURBULENCE_H_INCLUDED  defined
 
 

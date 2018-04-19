@@ -1,1 +1,0 @@
-KRATOS_BENCHMARK | Float | Z Rotation | 6.546278784266611 | 1e-09 | 1e-05

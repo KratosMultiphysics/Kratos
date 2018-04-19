@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
@@ -33,9 +33,6 @@
 #include "includes/condition.h"
 #include "shape_optimization_application.h"
 
-// elements
-#include "custom_elements/small_displacement_analytic_sensitivity_element.hpp"
-
 // conditions
 #include "custom_conditions/shape_optimization_condition.h"
 
@@ -54,49 +51,35 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double,CONSTRAINT_SURFACE_SENSITIVITY);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MAPPED_CONSTRAINT_SENSITIVITY);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SEARCH_DIRECTION);
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DESIGN_UPDATE);
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DESIGN_CHANGE_ABSOLUTE);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_UPDATE);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_CHANGE);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE_ABSOLUTE);
-
-    // To allow for deactivating (setting zero) variables
-    KRATOS_CREATE_VARIABLE(double,SHAPE_UPDATES_DEACTIVATED);
-    KRATOS_CREATE_VARIABLE(double,SENSITIVITIES_DEACTIVATED);
-
-    // For boundary conditions
-    KRATOS_CREATE_VARIABLE(double,IS_ON_BOUNDARY);
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);
 
     // For edge damping
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
 
-    // To create and process mapping matrix
-    KRATOS_CREATE_VARIABLE(int,MAPPING_MATRIX_ID);
+    // For Mapping
+    KRATOS_CREATE_VARIABLE(int,MAPPING_ID);
 
     // For Structure Sensitivity Analysis
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MASS_SHAPE_GRADIENT);
-    KRATOS_CREATE_VARIABLE( int, ACTIVE_NODE_INDEX );
-    KRATOS_CREATE_VARIABLE( Vector, DKDXU );
-    KRATOS_CREATE_VARIABLE( Vector, DKDXU_X );
-    KRATOS_CREATE_VARIABLE( Vector, DKDXU_Y );
-    KRATOS_CREATE_VARIABLE( Vector, DKDXU_Z );
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EIGENFREQUENCY_SHAPE_GRADIENT);
 
 
     // Eof variables
 
-    KratosShapeOptimizationApplication::KratosShapeOptimizationApplication():
-    	mSmallDisplacementAnalyticSensitivityElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
-		mSmallDisplacementAnalyticSensitivityElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) ),
-    	mSmallDisplacementAnalyticSensitivityElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
-		mSmallDisplacementAnalyticSensitivityElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) ),
+    KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
+        KratosApplication("ShapeOptimizationApplication"),
 
         mShapeOptimizationCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         mShapeOptimizationCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
         mShapeOptimizationCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) )
 
     {}
- 	
+
  	void KratosShapeOptimizationApplication::Register()
  	{
  		// calling base class register to register Kratos components
@@ -119,39 +102,22 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(CONSTRAINT_SURFACE_SENSITIVITY);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MAPPED_CONSTRAINT_SENSITIVITY);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SEARCH_DIRECTION);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DESIGN_UPDATE);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DESIGN_CHANGE_ABSOLUTE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_UPDATE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_CHANGE);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE_ABSOLUTE);
-
-        // To allow for deactivating (setting zero) variables
-        KRATOS_REGISTER_VARIABLE(SHAPE_UPDATES_DEACTIVATED);
-        KRATOS_REGISTER_VARIABLE(SENSITIVITIES_DEACTIVATED);
-
-        // For boundary treatment
-        KRATOS_REGISTER_VARIABLE(IS_ON_BOUNDARY);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);
 
         // For edge damping
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
 
-        // To create and process mapping matrix
-        KRATOS_REGISTER_VARIABLE(MAPPING_MATRIX_ID);
+        // For mapping
+        KRATOS_REGISTER_VARIABLE(MAPPING_ID);
 
         // For Structure Sensitivity Analysis
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MASS_SHAPE_GRADIENT);
-        KRATOS_REGISTER_VARIABLE( ACTIVE_NODE_INDEX )
-        KRATOS_REGISTER_VARIABLE( DKDXU )
-		KRATOS_REGISTER_VARIABLE( DKDXU_X )
-		KRATOS_REGISTER_VARIABLE( DKDXU_Y )
-		KRATOS_REGISTER_VARIABLE( DKDXU_Z )
-
-        // Register elements
-        KRATOS_REGISTER_ELEMENT( "SmallDisplacementAnalyticSensitivityElement3D4N", mSmallDisplacementAnalyticSensitivityElement3D4N );
-        KRATOS_REGISTER_ELEMENT( "SmallDisplacementAnalyticSensitivityElement3D10N", mSmallDisplacementAnalyticSensitivityElement3D10N );
-        KRATOS_REGISTER_ELEMENT( "SmallDisplacementAnalyticSensitivityElement3D8N", mSmallDisplacementAnalyticSensitivityElement3D8N );
-        KRATOS_REGISTER_ELEMENT( "SmallDisplacementAnalyticSensitivityElement3D20N", mSmallDisplacementAnalyticSensitivityElement3D20N );
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EIGENFREQUENCY_SHAPE_GRADIENT);
 
         // Register conditions
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D3N", mShapeOptimizationCondition3D3N );

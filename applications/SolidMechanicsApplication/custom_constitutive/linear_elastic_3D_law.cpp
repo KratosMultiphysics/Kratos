@@ -59,6 +59,17 @@ LinearElastic3DLaw::~LinearElastic3DLaw()
 //************************************************************************************
 //************************************************************************************
 
+
+//******************CALCULATE VALUE: DOUBLE - VECTOR - MATRIX*************************
+//************************************************************************************
+
+double& LinearElastic3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue )
+{
+
+  return (this->GetValue(rThisVariable,rValue ));
+
+}
+  
 double& LinearElastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
     if (rThisVariable == STRAIN_ENERGY)
@@ -90,7 +101,7 @@ double& LinearElastic3DLaw::GetValue( const Variable<double>& rThisVariable, dou
 //   Matrix& ConstitutiveMatrix         = rValues.GetConstitutiveMatrix();
 
 //   //2.-Green-Lagrange Strain:
-//   if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+//   if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
 //     {
 //       TransformStrains (StrainVector, DeformationGradientF, StrainMeasure_Almansi, StrainMeasure_GreenLagrange);
 //     }
@@ -142,7 +153,7 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     //   ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
 
 
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN )) //large strains
+    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) //large strains
     {
 
         //1.-Compute total deformation gradient
@@ -239,7 +250,7 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 //   Matrix& ConstitutiveMatrix         = rValues.GetConstitutiveMatrix();
 
 //   //2.-Almansi Strain:
-//   if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+//   if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
 //     {
 //       TransformStrains (StrainVector, DeformationGradientF, StrainMeasure_GreenLagrange, StrainMeasure_Almansi);
 //     }
@@ -290,7 +301,7 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
     //   ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
 
 
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN )) //large strains
+    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) //large strains
       {
 	//1.-Compute total deformation gradient
         const Matrix& DeformationGradientF      = rValues.GetDeformationGradientF();
@@ -313,7 +324,7 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 	const double& DeterminantF         = rValues.GetDeterminantF();
 
 	//2.-Almansi Strain:
-	// if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+	// if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
 	//   {
 	//     TransformStrains (StrainVector, DeformationGradientF, StrainMeasure_GreenLagrange, StrainMeasure_Almansi);
 	//   }

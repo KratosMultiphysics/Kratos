@@ -140,7 +140,7 @@ protected:
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables,
+    virtual void CalculateKinematics(ConditionVariables& rVariables,
 				     const ProcessInfo& rCurrentProcessInfo,
 				     const double& rPointNumber);
 
@@ -150,35 +150,35 @@ protected:
      * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
+				     ConditionVariables& rVariables,
 				     double& rIntegrationWeight);
 
     virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
+				     ConditionVariables& rVariables,
 				     double& rIntegrationWeight);
 
     /**
      * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
-					      GeneralVariables& rVariables,
+					      ConditionVariables& rVariables,
 					      double& rIntegrationWeight );
 
 
-    virtual void CalculateAndAddNormalContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight);
+    virtual void CalculateAndAddNormalContactForce(Vector& rRightHandSideVector, ConditionVariables& rVariables, double& rIntegrationWeight);
 
 
-    virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight);
-
-
-
-    double& CalculateNormalForceModulus( double& rNormalForceModulus, GeneralVariables& rVariables );
-
-    double& CalculateEffectiveNormalForceModulus( double&  rNormalForceModulus, GeneralVariables& rVariables );
+    virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, ConditionVariables& rVariables, double& rIntegrationWeight);
 
 
 
-    double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, GeneralVariables& rVariables );
+    double& CalculateNormalForceModulus( double& rNormalForceModulus, ConditionVariables& rVariables );
+
+    double& CalculateEffectiveNormalForceModulus( double&  rNormalForceModulus, ConditionVariables& rVariables );
+
+
+
+    double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, ConditionVariables& rVariables );
 
     double CalculateFrictionCoefficient(const double& rTangentRelativeMovement, const double& rDeltaTime);
 
@@ -186,7 +186,7 @@ protected:
     /**
      * Calculation of the Contact Force Factors
      */
-    virtual void CalculateContactFactors(GeneralVariables &rContact);
+    virtual void CalculateContactFactors(ConditionVariables &rContact);
 
     ///@}
     ///@name Protected  Access

@@ -16,13 +16,12 @@
 
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
 
 // Project includes
-#include "includes/define.h"
 
 
 namespace Kratos
@@ -31,7 +30,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddGeometriesToPython();
+void  AddGeometriesToPython(pybind11::module& m);
 
 }  // namespace Python.
 

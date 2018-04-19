@@ -139,7 +139,7 @@ public:
             combined_model_part.Elements().push_back(*(im.base()));
             id++;
         }
-        combined_model_part.Elements().Sort();
+        //combined_model_part.Elements().Sort();
 
 
         //renumbering
@@ -161,7 +161,7 @@ public:
             combined_model_part.Conditions().push_back(*(im.base()));
             id++;
         }
-        combined_model_part.Conditions().Sort();
+        //combined_model_part.Conditions().Sort();
 
         //renumbering
         /*
@@ -175,6 +175,7 @@ public:
         */
         //WE HAVE TO COPY THE ProcessInfo pointer to the new part, otherwise it is empty
         combined_model_part.SetProcessInfo(fluid_model_part.pGetProcessInfo());
+	combined_model_part.SetProperties(fluid_model_part.pProperties());
 
         KRATOS_CATCH("")
     }

@@ -1,50 +1,14 @@
-/*
-==============================================================================
-KratosIncompressibleFluidApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: pablo $
-//   Date:                $Date: 2009-01-13 16:40:58 $
-//   Revision:            $Revision: 1.24 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pablo Becker
+//                    
 //
 
 
@@ -66,24 +30,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 //#include "utilities/split_tetrahedra.h"
 
-
-
-
-
-
-
-
-
-
-
-
-
 namespace Kratos
 {
 
-/** This utility can be used to calculate the enriched shape function for tetrahedra element.
- *  The metodology consists in partitioning the tetrahedra in a set of sub-tetrahedra and
- *  cacluate the enrichment information using these partitions.
+/** @brief This utility can be used to calculate the enriched shape function for tetrahedra element.
+ *  @details The metodology consists in partitioning the tetrahedra in a set of sub-tetrahedra and
+ *  calculate the enrichment information using these partitions.
  */
 class EnrichmentUtilities_2D
 {
@@ -120,8 +72,8 @@ public:
      * @param face_gauss_N_enrich is the value of the enrichment shape functions in the integration point
      * 		  actually it's value is always the same so no need to use it: the shape functions were defined to make it 1 in the first shape function,
      * 		  And 1 and -1 the second shape function (it's discontinous, so it has these two values in the interfase)
-     * 		  WARNING: therefore the discontinuity in the shape function is equal to 2.
-     * @param type_of_cut: the partition that is 'alone': the one that is on one side of the shape function
+     * 		  @warning therefore the discontinuity in the shape function is equal to 2.
+     * @param type_of_cut the partition that is 'alone': the one that is on one side of the shape function
      * 		  the other two are the ones in the other side, meaning they have the same derivatives and , for example, densities.
      * 
      * @return number of partitions created which can be from 1 to 3.

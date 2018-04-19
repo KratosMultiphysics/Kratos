@@ -81,7 +81,7 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
   
-  void AxisymPointRigidContactPenalty2DCondition::CalculateKinematics(GeneralVariables& rVariables,
+  void AxisymPointRigidContactPenalty2DCondition::CalculateKinematics(ConditionVariables& rVariables,
 								      const ProcessInfo& rCurrentProcessInfo,
 								      const double& rPointNumber)
   {
@@ -98,7 +98,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void AxisymPointRigidContactPenalty2DCondition::CalculateContactFactors(GeneralVariables &rVariables)
+  void AxisymPointRigidContactPenalty2DCondition::CalculateContactFactors(ConditionVariables &rVariables)
   {
 
     KRATOS_TRY
@@ -150,10 +150,21 @@ namespace Kratos
 
     WeakPointerVector<Element >& rE = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
     double ElasticModulus = 0;
-    if( GetProperties().Has(YOUNG_MODULUS) )
+    if( GetProperties().Has(YOUNG_MODULUS) ){
       ElasticModulus = GetProperties()[YOUNG_MODULUS];
-    else
-      ElasticModulus = rE.front().GetProperties()[YOUNG_MODULUS];
+    }
+    else if( GetProperties().Has(C10) ){
+	ElasticModulus = GetProperties()[C10];
+    }
+    else{
+	
+	if( rE.front().GetProperties().Has(YOUNG_MODULUS) ){
+	    ElasticModulus = rE.front().GetProperties()[YOUNG_MODULUS];
+	}
+	else if( rE.front().GetProperties().Has(C10) ){
+	    ElasticModulus = rE.front().GetProperties()[C10];
+	}
+    }
 
     // the Modified Cam Clay model does not have a constant Young modulus, so something similar to that is computed
     if (ElasticModulus <= 1.0e-5) {
@@ -252,13 +263,15 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void  AxisymPointRigidContactPenalty2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+  void  AxisymPointRigidContactPenalty2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
 
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
-
-    if( GetProperties()[THICKNESS] > 0 )
-      IntegrationWeight /=  GetProperties()[THICKNESS];
+    
+    if ( this->GetProperties().Has(THICKNESS) ) {
+       if( GetProperties()[THICKNESS] > 0 )
+          IntegrationWeight /=  GetProperties()[THICKNESS];
+    }
 
     //contributions to stiffness matrix calculated on the reference config
 
@@ -271,12 +284,14 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void  AxisymPointRigidContactPenalty2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+  void  AxisymPointRigidContactPenalty2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
-    if( GetProperties()[THICKNESS] > 0 )
-      IntegrationWeight /=  GetProperties()[THICKNESS];
+    if ( this->GetProperties().Has(THICKNESS) ) {
+       if( GetProperties()[THICKNESS] > 0 )
+          IntegrationWeight /=  GetProperties()[THICKNESS];
+    }
 
     //contribution to external forces
 

@@ -5,9 +5,9 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 from . import recoverer
 
 class PostProcessGradientMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer):
-    def __init__(self, pp, model_part, cplusplus_recovery_tool):
-        self.store_full_gradient = pp.CFD_DEM.store_full_gradient
-        recoverer.MaterialAccelerationRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
+    def __init__(self, pp, model_part):
+        self.store_full_gradient = pp.CFD_DEM["store_full_gradient_option"].GetBool()
+        recoverer.MaterialAccelerationRecoverer.__init__(self, pp, model_part)
 
     def RecoverMaterialAcceleration(self):
         self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)

@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: clabra $
-//   Date:                $Date: 2007-03-27 17:02:19 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    clabra
 //
 
 
@@ -110,7 +114,7 @@ public:
         mpChilds[1] = pRightChild;
     }
 
-    virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const
+    void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const override
     {
         rOStream << Perfix << "Partition at ";
         switch(mCutingDimension)
@@ -147,7 +151,7 @@ public:
     ///@name Operations
     ///@{
 
-    void SearchNearestPoint(PointType const& rThisPoint, PointerType& rResult, CoordinateType& rResultDistance )
+    void SearchNearestPoint(PointType const& rThisPoint, PointerType& rResult, CoordinateType& rResultDistance ) override
     {
         SearchStructureType Auxiliar;
         for(SizeType i = 0 ; i < Dimension; i++)
@@ -155,7 +159,7 @@ public:
         SearchNearestPoint(rThisPoint, rResult, rResultDistance, Auxiliar );
     }
 
-    void SearchNearestPoint(PointType const& rThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Auxiliar )
+    void SearchNearestPoint(PointType const& rThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Auxiliar ) override
     {
         CoordinateType temp = Auxiliar.residual_distance[mCutingDimension];
         CoordinateType distance_to_partition = rThisPoint[mCutingDimension] - mPosition;
@@ -192,7 +196,7 @@ public:
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults)
+                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults) override
     {
         SearchStructureType Auxiliar;
         for(SizeType i = 0 ; i < Dimension; i++)
@@ -201,7 +205,7 @@ public:
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar )
+                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar ) override
     {
         CoordinateType temp = Auxiliar.residual_distance[mCutingDimension];
         CoordinateType distance_to_partition = ThisPoint[mCutingDimension] - mPosition;
@@ -237,7 +241,7 @@ public:
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults)
+                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults) override
     {
         SearchStructureType Auxiliar;
         for(SizeType i = 0 ; i < Dimension; i++)
@@ -246,7 +250,7 @@ public:
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar )
+                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar ) override
     {
         CoordinateType temp = Auxiliar.residual_distance[mCutingDimension];
         CoordinateType distance_to_partition = ThisPoint[mCutingDimension] - mPosition;
@@ -283,7 +287,7 @@ public:
     }
 
     void SearchInBox(PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& Results, SizeType& NumberOfResults,
-                     SizeType const& MaxNumberOfResults )
+                     SizeType const& MaxNumberOfResults ) override
     {
         if( SearchMinPoint[mCutingDimension] <= mPosition )
             mpChilds[0]->SearchInBox(SearchMinPoint,SearchMaxPoint,Results,NumberOfResults,MaxNumberOfResults);
@@ -511,7 +515,7 @@ public:
             partition_high_point.Coordinates() =  HighPoint.Coordinates();
             PointType partition_low_point;
             partition_low_point.Coordinates() =  LowPoint.Coordinates();
-            
+
             partition_high_point[cutting_dimension] = cutting_value;
             partition_low_point[cutting_dimension] = cutting_value;
 
@@ -885,6 +889,6 @@ public:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KD_TREE_H_INCLUDED  defined 
+#endif // KRATOS_KD_TREE_H_INCLUDED  defined
 
 

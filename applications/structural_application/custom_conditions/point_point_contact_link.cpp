@@ -105,8 +105,8 @@ PointPointContactLink::PointPointContactLink(
     PropertiesType::Pointer pProperties,
     Condition::Pointer Slave,
     Condition::Pointer Master
-    //Point<3>& MasterContactLocalPoint,
-    //Point<3>& SlaveContactLocalPoint,
+    //Point& MasterContactLocalPoint,
+    //Point& SlaveContactLocalPoint,
     //int SlaveIntegrationPointIndex
 )  : Condition( NewId, pGeometry, pProperties )
 {

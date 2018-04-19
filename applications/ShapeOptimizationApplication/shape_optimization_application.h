@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
@@ -17,7 +17,7 @@
 // ------------------------------------------------------------------------------
 
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -28,9 +28,6 @@
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-
-// elements
-#include "custom_elements/small_displacement_analytic_sensitivity_element.hpp"
 
 //conditions
 #include "custom_conditions/shape_optimization_condition.h"
@@ -44,7 +41,7 @@ namespace Kratos
 {
 
 	///@name Kratos Globals
-	///@{ 
+	///@{
 
 	// Geometry variables
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NORMALIZED_SURFACE_NORMAL);
@@ -57,44 +54,33 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double,CONSTRAINT_SURFACE_SENSITIVITY);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MAPPED_CONSTRAINT_SENSITIVITY);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SEARCH_DIRECTION);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DESIGN_UPDATE);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DESIGN_CHANGE_ABSOLUTE);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_UPDATE);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_CHANGE);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE_ABSOLUTE);
-
-    // To allow for deactivating (setting zero) variables
-    KRATOS_DEFINE_VARIABLE(double,SHAPE_UPDATES_DEACTIVATED);
-    KRATOS_DEFINE_VARIABLE(double,SENSITIVITIES_DEACTIVATED);
-
-    // For boundary treatment
-    KRATOS_DEFINE_VARIABLE(double,IS_ON_BOUNDARY);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);
 
 	// For edge damping
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
 
-    // To create and process mapping matrix
-    KRATOS_DEFINE_VARIABLE(int,MAPPING_MATRIX_ID);
+    // For mapping
+    KRATOS_DEFINE_VARIABLE(int,MAPPING_ID);
 
     // For Structure Sensitivity Analysis
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MASS_SHAPE_GRADIENT);
-    KRATOS_DEFINE_VARIABLE(int,ACTIVE_NODE_INDEX);
-	KRATOS_DEFINE_VARIABLE(Vector,DKDXU);
-    KRATOS_DEFINE_VARIABLE(Vector,DKDXU_X);
-    KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Y);
-    KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Z);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(EIGENFREQUENCY_SHAPE_GRADIENT);
 
-	///@} 
+	///@}
 	///@name Type Definitions
-	///@{ 
+	///@{
 
-	///@} 
+	///@}
 	///@name  Enum's
 	///@{
 
 	///@}
-	///@name  Functions 
+	///@name  Functions
 	///@{
 
 	///@}
@@ -109,14 +95,14 @@ namespace Kratos
 	public:
 		///@name Type Definitions
 		///@{
-		
+
 
 		/// Pointer definition of KratosShapeOptimizationApplication
 		KRATOS_CLASS_POINTER_DEFINITION(KratosShapeOptimizationApplication);
 
 		///@}
-		///@name Life Cycle 
-		///@{ 
+		///@name Life Cycle
+		///@{
 
 		/// Default constructor.
 		KratosShapeOptimizationApplication();
@@ -126,7 +112,7 @@ namespace Kratos
 
 
 		///@}
-		///@name Operators 
+		///@name Operators
 		///@{
 
 
@@ -134,13 +120,13 @@ namespace Kratos
 		///@name Operations
 		///@{
 
-		virtual void Register();
+	    void Register() override;
 
 
 
 		///@}
 		///@name Access
-		///@{ 
+		///@{
 
 
 		///@}
@@ -148,25 +134,25 @@ namespace Kratos
 		///@{
 
 
-		///@}      
+		///@}
 		///@name Input and output
 		///@{
 
 		/// Turn back information as a string.
-		virtual std::string Info() const
+		std::string Info() const override
 		{
 			return "KratosShapeOptimizationApplication";
 		}
 
 		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
+		void PrintInfo(std::ostream& rOStream) const override
 		{
 			rOStream << Info();
 			PrintData(rOStream);
 		}
 
 		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
+       void PrintData(std::ostream& rOStream) const override
       {
       	KRATOS_WATCH("in my application");
       	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -181,7 +167,7 @@ namespace Kratos
       }
 
 
-		///@}      
+		///@}
 		///@name Friends
 		///@{
 
@@ -189,61 +175,55 @@ namespace Kratos
 		///@}
 
 	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+		///@name Protected static Member Variables
+		///@{
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+		///@}
+		///@name Protected member Variables
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Protected Operators
-		///@{ 
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Protected Operations
-		///@{ 
+		///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+		///@}
+		///@name Protected  Access
+		///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+		///@}
+		///@name Protected Inquiry
+		///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+		///@}
+		///@name Protected LifeCycle
+		///@{
 
 
 		///@}
 
 	private:
-		///@name Static Member Variables 
-		///@{ 
+		///@name Static Member Variables
+		///@{
 
 
 
-		//       static const ApplicationCondition  msApplicationCondition; 
+		//       static const ApplicationCondition  msApplicationCondition;
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
+		///@}
+		///@name Member Variables
+		///@{
 
         // elements
-
-        // for structural optimization
-      	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D4N;
-      	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D10N;
-      	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D8N;
-      	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D20N;
 
         //conditions
         const ShapeOptimizationCondition mShapeOptimizationCondition3D3N;
@@ -251,29 +231,29 @@ namespace Kratos
         const ShapeOptimizationCondition mShapeOptimizationCondition2D2N;
 
 
-		///@} 
+		///@}
 		///@name Private Operators
-		///@{ 
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Private Operations
-		///@{ 
+		///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+		///@}
+		///@name Private  Access
+		///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+		///@}
+		///@name Private Inquiry
+		///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+		///@}
+		///@name Un accessible methods
+		///@{
 
 		/// Assignment operator.
 		KratosShapeOptimizationApplication& operator=(KratosShapeOptimizationApplication const& rOther);
@@ -282,26 +262,26 @@ namespace Kratos
 		KratosShapeOptimizationApplication(KratosShapeOptimizationApplication const& rOther);
 
 
-		///@}    
+		///@}
 
-	}; // Class KratosShapeOptimizationApplication 
+	}; // Class KratosShapeOptimizationApplication
 
-	///@} 
-
-
-	///@name Type Definitions       
-	///@{ 
+	///@}
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+	///@name Type Definitions
+	///@{
 
-	///@} 
+
+	///@}
+	///@name Input and output
+	///@{
+
+	///@}
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SHAPEOPTIMIZATION_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_SHAPEOPTIMIZATION_APPLICATION_H_INCLUDED  defined
 
 

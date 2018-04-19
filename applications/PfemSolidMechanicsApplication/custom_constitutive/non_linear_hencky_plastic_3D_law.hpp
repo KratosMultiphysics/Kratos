@@ -148,7 +148,8 @@ public:
     void InitializeMaterial( const Properties& rProps,
                              const GeometryType& rGeom,
                              const Vector& rShapeFunctionsValues );
-
+    
+    int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo); 
 
 /*    void InitializeSolutionStep( const Properties& props,
                                  const GeometryType& geom, //this is just to give the array of nodes
@@ -287,6 +288,8 @@ protected:
     virtual void CalculateElastoPlasticTangentMatrix( const FlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticMatrix, const MaterialResponseVariables& rElasticVariables);
 
     virtual void CalculateOnlyDeviatoricPart( Matrix& rIncrementalDeformationGradient );
+
+    virtual Matrix CalculateExtraMatrix( const Matrix& rStressMatrix);
 
     /**
      * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal

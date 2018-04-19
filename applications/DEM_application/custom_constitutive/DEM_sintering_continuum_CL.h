@@ -12,7 +12,7 @@
 
 namespace Kratos {
 
-	class DEM_sintering_continuum : public DEM_KDEM {
+	class KRATOS_API(DEM_APPLICATION) DEM_sintering_continuum : public DEM_KDEM {
 	public:
 
 		KRATOS_CLASS_POINTER_DEFINITION(DEM_sintering_continuum);
@@ -22,7 +22,7 @@ namespace Kratos {
 
 		void Initialize() override;
 
-		void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+		void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
 		~DEM_sintering_continuum() {
 		}

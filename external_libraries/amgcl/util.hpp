@@ -32,6 +32,8 @@ THE SOFTWARE.
  */
 
 #include <iostream>
+#include <iomanip>
+#include <string>
 #include <set>
 #include <limits>
 #include <stdexcept>
@@ -42,23 +44,27 @@ THE SOFTWARE.
 
 /* Performance measurement macros
  *
- * If AMGCL_PROFILING macro is defined at compilation, then TIC(name) and
- * TOC(name) macros correspond to prof.tic(name) and prof.toc(name).
+ * If AMGCL_PROFILING macro is defined at compilation, then AMGCL_TIC(name) and
+ * AMGCL_TOC(name) macros correspond to prof.tic(name) and prof.toc(name).
  * amgcl::prof should be an instance of amgcl::profiler<> defined in a user
  * code similar to:
  * \code
  * namespace amgcl { profiler<> prof; }
  * \endcode
- * If AMGCL_PROFILING is undefined, then TIC and TOC are noop macros.
+ * If AMGCL_PROFILING is undefined, then AMGCL_TIC and AMGCL_TOC are noop macros.
  */
 #ifdef AMGCL_PROFILING
 #  include <amgcl/profiler.hpp>
-#  define TIC(name) amgcl::prof.tic(name);
-#  define TOC(name) amgcl::prof.toc(name);
+#  define AMGCL_TIC(name) amgcl::prof.tic(name);
+#  define AMGCL_TOC(name) amgcl::prof.toc(name);
 namespace amgcl { extern profiler<> prof; }
 #else
-#  define TIC(name)
-#  define TOC(name)
+#  ifndef AMGCL_TIC
+#    define AMGCL_TIC(name)
+#  endif
+#  ifndef AMGCL_TOC
+#    define AMGCL_TOC(name)
+#  endif
 #endif
 
 #define AMGCL_DEBUG_SHOW(x)                                                    \
@@ -104,19 +110,38 @@ void precondition(const Condition &condition, const Message &message) {
       std::cerr << "AMGCL WARNING: unknown parameter " << name << std::endl
 #endif
 
-# define AMGCL_PARAMS_CHECK_LOOP(z, p, name)                                   \
-    defprm.insert(BOOST_PP_STRINGIZE(name));                                   \
-    if (!p.count(BOOST_PP_STRINGIZE(name))) {                                  \
-        AMGCL_PARAM_MISSING(BOOST_PP_STRINGIZE(name));                         \
-    }
+# define AMGCL_PARAMS_CHECK_INSERT(z, s, name)                                 \
+    s.insert(BOOST_PP_STRINGIZE(name));                                        \
 
 # define AMGCL_PARAMS_CHECK(p, names)                                          \
     std::set<std::string> defprm;                                              \
-    BOOST_PP_SEQ_FOR_EACH(AMGCL_PARAMS_CHECK_LOOP, p, names)                   \
+    BOOST_PP_SEQ_FOR_EACH(AMGCL_PARAMS_CHECK_INSERT, defprm, names)            \
+    for(std::set<std::string>::const_iterator v = defprm.begin(); v != defprm.end(); ++v) \
+        if (!p.count(BOOST_PP_STRINGIZE(*v)))                                  \
+            AMGCL_PARAM_MISSING(BOOST_PP_STRINGIZE(*v));                       \
     for(boost::property_tree::ptree::const_iterator v = p.begin(), e = p.end(); v != e; ++v) \
-        if (!defprm.count(v->first)) {                                         \
-            AMGCL_PARAM_UNKNOWN(v->first);                                     \
-        }
+        if (!defprm.count(v->first))                                           \
+            AMGCL_PARAM_UNKNOWN(v->first)
+
+# define AMGCL_PARAMS_CHECK_OPT(p, names, opt_names)                           \
+    std::set<std::string> defprm;                                              \
+    std::set<std::string> skip;                                                \
+    BOOST_PP_SEQ_FOR_EACH(AMGCL_PARAMS_CHECK_INSERT, defprm, names)            \
+    BOOST_PP_SEQ_FOR_EACH(AMGCL_PARAMS_CHECK_INSERT, skip, opt_names)          \
+    for(std::set<std::string>::const_iterator v = defprm.begin(); v != defprm.end(); ++v) \
+        if (!p.count(BOOST_PP_STRINGIZE(*v)))                                  \
+            AMGCL_PARAM_MISSING(BOOST_PP_STRINGIZE(*v));                       \
+    for(boost::property_tree::ptree::const_iterator v = p.begin(), e = p.end(); v != e; ++v) \
+        if (!defprm.count(v->first) && !skip.count(v->first))                  \
+            AMGCL_PARAM_UNKNOWN(v->first)
+
+// Put parameter in form "key=value" into a boost::property_tree::ptree
+inline void put(boost::property_tree::ptree &p, const std::string &param) {
+    size_t eq_pos = param.find('=');
+    if (eq_pos == std::string::npos)
+        throw std::invalid_argument("param in amgcl::put() should have \"key=value\" format!");
+    p.put(param.substr(0, eq_pos), param.substr(eq_pos + 1));
+}
 
 namespace detail {
 

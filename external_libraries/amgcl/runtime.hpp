@@ -54,6 +54,7 @@ THE SOFTWARE.
 #include <amgcl/solver/gmres.hpp>
 #include <amgcl/solver/lgmres.hpp>
 #include <amgcl/solver/fgmres.hpp>
+#include <amgcl/solver/idrs.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
 
 
@@ -100,7 +101,8 @@ inline std::istream& operator>>(std::istream &in, type &c)
     else if (val == "smoothed_aggr_emin")
         c = smoothed_aggr_emin;
     else
-        throw std::invalid_argument("Invalid coarsening value");
+        throw std::invalid_argument("Invalid coarsening value. Valid choices are: "
+                "ruge_stuben, aggregation, smoothed_aggregation, smoothed_aggr_emin.");
 
     return in;
 }
@@ -179,15 +181,6 @@ process_amg(
                 amgcl::relaxation::gauss_seidel
                 >(func);
             break;
-#ifndef AMGCL_RUNTIME_DISABLE_MULTICOLOR_GS
-        case runtime::relaxation::multicolor_gauss_seidel:
-            process_amg<
-                Backend,
-                Coarsening,
-                amgcl::relaxation::multicolor_gauss_seidel
-                >(func);
-            break;
-#endif
         case runtime::relaxation::ilu0:
             process_amg<
                 Backend,
@@ -195,15 +188,6 @@ process_amg(
                 amgcl::relaxation::ilu0
                 >(func);
             break;
-#ifndef AMGCL_RUNTIME_DISABLE_PARALLEL_ILU0
-        case runtime::relaxation::parallel_ilu0:
-            process_amg<
-                Backend,
-                Coarsening,
-                amgcl::relaxation::parallel_ilu0
-                >(func);
-            break;
-#endif
         case runtime::relaxation::iluk:
             process_amg<
                 Backend,
@@ -540,7 +524,8 @@ enum type {
     bicgstabl,  ///< BiCGStab(ell)
     gmres,      ///< GMRES
     lgmres,     ///< LGMRES
-    fgmres      ///< FGMRES
+    fgmres,     ///< FGMRES
+    idrs        ///< IDR(s)
 };
 
 inline std::ostream& operator<<(std::ostream &os, type s)
@@ -558,6 +543,8 @@ inline std::ostream& operator<<(std::ostream &os, type s)
             return os << "lgmres";
         case fgmres:
             return os << "fgmres";
+        case idrs:
+            return os << "idrs";
         default:
             return os << "???";
     }
@@ -580,8 +567,11 @@ inline std::istream& operator>>(std::istream &in, type &s)
         s = lgmres;
     else if (val == "fgmres")
         s = fgmres;
+    else if (val == "idrs")
+        s = idrs;
     else
-        throw std::invalid_argument("Invalid solver value");
+        throw std::invalid_argument("Invalid solver value. Valid choices are: "
+                "cg, bicgstab, bicgstabl, gmres, lgmres, fgmres, idrs.");
 
     return in;
 }
@@ -634,6 +624,12 @@ inline void process_solver(
         case runtime::solver::fgmres:
             {
                 typedef amgcl::solver::fgmres<Backend, InnerProduct> Solver;
+                func.template process<Solver>();
+            }
+            break;
+        case runtime::solver::idrs:
+            {
+                typedef amgcl::solver::idrs<Backend, InnerProduct> Solver;
                 func.template process<Solver>();
             }
             break;

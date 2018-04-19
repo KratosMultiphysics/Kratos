@@ -16,11 +16,11 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/stl.h>
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "python/add_model_part_to_python.h"
 #include "includes/process_info.h"
@@ -69,7 +69,7 @@ ModelPart::MeshType::Pointer ModelPartGetMesh2(ModelPart& rModelPart, ModelPart:
     // adding necessary meshes to the model part.
     ModelPart::MeshType empty_mesh;
     for(ModelPart::IndexType i = number_of_meshes ; i < MeshIndex + 1 ; i++)
-        rModelPart.GetMeshes().push_back(boost::make_shared<ModelPart::MeshType>(empty_mesh.Clone()));
+        rModelPart.GetMeshes().push_back(Kratos::make_shared<ModelPart::MeshType>(empty_mesh.Clone()));
 
     return rModelPart.pGetMesh(MeshIndex);
 }
@@ -79,23 +79,23 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
-Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, boost::python::list& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
+Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
     Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
 
-    for(unsigned int i = 0; i < len(NodeIdList); i++) {
-        pElementNodeList.push_back(rModelPart.pGetNode(boost::python::extract<int>(NodeIdList[i])));
+    for(unsigned int i = 0; i < NodeIdList.size(); i++) {
+        pElementNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
 
     return rModelPart.CreateNewElement(ElementName, Id, pElementNodeList, pProperties);
 }
 
-Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, boost::python::list& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
+Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
     Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
 
-    for(unsigned int i = 0; i < len(NodeIdList); i++) {
-        pConditionNodeList.push_back(rModelPart.pGetNode(boost::python::extract<int>(NodeIdList[i])));
+    for(unsigned int i = 0; i <NodeIdList.size(); i++) {
+        pConditionNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
 
     return rModelPart.CreateNewCondition(ConditionName, Id, pConditionNodeList, pProperties);
@@ -486,36 +486,18 @@ void RemoveSubModelPart2(ModelPart& rModelPart, ModelPart& ThisSubModelPart)
 	rModelPart.RemoveSubModelPart(ThisSubModelPart);
 }
 
-void AddNodesByIds(ModelPart& rModelPart, boost::python::list& NodeIdList )
+void AddNodesByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ConditionNodeIds )
 {
-    std::vector< ModelPart::IndexType > ConditionNodeIds;
-    ConditionNodeIds.reserve( len(NodeIdList) );
-
-    for(unsigned int i = 0; i < len(NodeIdList); i++)
-        ConditionNodeIds.push_back(boost::python::extract<int>(NodeIdList[i]));
-
     rModelPart.AddNodes(ConditionNodeIds);
 }
 
-void AddConditionsByIds(ModelPart& rModelPart, boost::python::list& ConditionIdList )
+void AddConditionsByIds(ModelPart& rModelPart,std::vector< ModelPart::IndexType >& ConditionsIds )
 {
-    std::vector< ModelPart::IndexType > ConditionsIds;
-    ConditionsIds.reserve( len(ConditionIdList) );
-
-    for(unsigned int i = 0; i < len(ConditionIdList); i++)
-        ConditionsIds.push_back(boost::python::extract<int>(ConditionIdList[i]));
-
     rModelPart.AddConditions(ConditionsIds);
 }
 
-void AddElementsByIds(ModelPart& rModelPart, boost::python::list& ElementIdList )
+void AddElementsByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ElementIds )
 {
-    std::vector< ModelPart::IndexType > ElementIds;
-    ElementIds.reserve( len(ElementIdList) );
-
-    for(unsigned int i = 0; i < len(ElementIdList); i++)
-        ElementIds.push_back(boost::python::extract<int>(ElementIdList[i]));
-
     rModelPart.AddElements(ElementIds);
 }
 
@@ -565,8 +547,17 @@ TDataType CommunicatorMaxAll(Communicator& rCommunicator, const TDataType& rValu
     return Value;
 }
 
+template<class TDataType>
+TDataType CommunicatorScanSum(Communicator& rCommunicator, const TDataType rSendPartial, TDataType rReceiveAccumulated)
+{
+    TDataType SendPartial = rSendPartial;
+    TDataType ReceiveAccumulated = rReceiveAccumulated;
+    rCommunicator.ScanSum(SendPartial, ReceiveAccumulated);
+    return ReceiveAccumulated;
+}
 
-void AddModelPartToPython()
+
+void AddModelPartToPython(pybind11::module& m)
 {
 
     ModelPart::IndexType(ModelPart::*pointer_to_clone_time_step_1)(void) = &ModelPart::CloneTimeStep;
@@ -576,23 +567,23 @@ void AddModelPartToPython()
     // ModelPart::MeshType::Pointer (ModelPart::*pointer_to_get_mesh)() = &ModelPart::pGetMesh;
     //	  std::string& (ModelPart::*pointer_to_name)(void) = &ModelPart::Name;
 
-    using namespace boost::python;
+    using namespace pybind11;
 
-    class_<Communicator > ("Communicator")
+    class_<Communicator > (m,"Communicator")
         .def(init<>())
         .def("MyPID", &Communicator::MyPID)
         .def("Barrier", &Communicator::Barrier)
         .def("TotalProcesses", &Communicator::TotalProcesses)
         .def("GetNumberOfColors", &Communicator::GetNumberOfColors)
-        .def("NeighbourIndices", NeighbourIndicesConst, return_internal_reference<>())
+        .def("NeighbourIndices", NeighbourIndicesConst, return_value_policy::reference_internal)
         .def("SynchronizeNodalSolutionStepsData", &Communicator::SynchronizeNodalSolutionStepsData)
         .def("SynchronizeDofs", &Communicator::SynchronizeDofs)
-        .def("LocalMesh", CommunicatorGetLocalMesh, return_internal_reference<>() )
-        .def("LocalMesh", CommunicatorGetLocalMeshWithIndex, return_internal_reference<>() )
-        .def("GhostMesh", CommunicatorGetGhostMesh, return_internal_reference<>() )
-        .def("GhostMesh", CommunicatorGetGhostMeshWithIndex, return_internal_reference<>() )
-        .def("InterfaceMesh", CommunicatorGetInterfaceMesh, return_internal_reference<>() )
-        .def("InterfaceMesh", CommunicatorGetInterfaceMeshWithIndex, return_internal_reference<>() )
+        .def("LocalMesh", CommunicatorGetLocalMesh, return_value_policy::reference_internal )
+        .def("LocalMesh", CommunicatorGetLocalMeshWithIndex, return_value_policy::reference_internal )
+        .def("GhostMesh", CommunicatorGetGhostMesh, return_value_policy::reference_internal )
+        .def("GhostMesh", CommunicatorGetGhostMeshWithIndex, return_value_policy::reference_internal )
+        .def("InterfaceMesh", CommunicatorGetInterfaceMesh, return_value_policy::reference_internal )
+        .def("InterfaceMesh", CommunicatorGetInterfaceMeshWithIndex, return_value_policy::reference_internal )
         .def("SumAll", CommunicatorSumAll<int> )
         .def("SumAll", CommunicatorSumAll<double> )
         .def("SumAll", CommunicatorSumAll<array_1d<double,3> > )
@@ -600,6 +591,8 @@ void AddModelPartToPython()
         .def("MinAll", CommunicatorMinAll<double> )
         .def("MaxAll", CommunicatorMaxAll<int> )
         .def("MaxAll", CommunicatorMaxAll<double> )
+        .def("ScanSum", CommunicatorScanSum<int> )
+        .def("ScanSum", CommunicatorScanSum<double> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<int> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<double> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<array_1d<double,3> > )
@@ -612,14 +605,17 @@ void AddModelPartToPython()
         .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Matrix> )
         ;
 
+        class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
+        .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return make_iterator(self.begin(), self.end());},  keep_alive<0,1>())
+        
+        ;
 
-
-	class_<ModelPart, bases<DataValueContainer, Flags> >("ModelPart")
+	class_<ModelPart, ModelPart::Pointer, DataValueContainer, Flags >(m,"ModelPart")
 		.def(init<std::string const&>())
 		.def(init<>())
-		.add_property("Name", GetModelPartName, SetModelPartName)
-		//  .add_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
-		.add_property("ProcessInfo", pointer_to_get_process_info, pointer_to_set_process_info)
+		.def_property("Name", GetModelPartName, SetModelPartName)
+		//  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
+		.def_property("ProcessInfo", pointer_to_get_process_info, pointer_to_set_process_info)
 		.def("CreateSolutionStep", &ModelPart::CreateSolutionStep)
 		.def("CloneSolutionStep", &ModelPart::CloneSolutionStep)
 		.def("CreateTimeStep", &ModelPart::CreateTimeStep)
@@ -640,7 +636,7 @@ void AddModelPartToPython()
 		.def("NumberOfProperties", ModelPartNumberOfProperties1)
 		.def("GetMesh", ModelPartGetMesh)
 		.def("GetMesh", ModelPartGetMesh2)
-		.add_property("Nodes", ModelPartGetNodes1, ModelPartSetNodes1)
+		.def_property("Nodes", ModelPartGetNodes1, ModelPartSetNodes1)
 		.def("GetNode", ModelPartGetNode1)
 		.def("GetNode", ModelPartGetNode2)
 		.def("GetNodes", ModelPartGetNodes1)
@@ -656,12 +652,12 @@ void AddModelPartToPython()
 		.def("RemoveNodeFromAllLevels", ModelPartRemoveNodeFromAllLevels3)
 		.def("RemoveNodeFromAllLevels", ModelPartRemoveNodeFromAllLevels4)
         .def("RemoveNodesFromAllLevels", ModelPartRemoveNodesFromAllLevels)
-		.def("NodesArray", &ModelPart::NodesArray, return_internal_reference<>())
+		.def("NodesArray", &ModelPart::NodesArray, return_value_policy::reference_internal)
 		.def("NumberOfTables", &ModelPart::NumberOfTables)
 		.def("AddTable", &ModelPart::AddTable)
 		.def("GetTable", &ModelPart::pGetTable)
         .def("GetProperties", ModelPartGetPropertiesById) //new method where one asks for one specific property on one given mesh
-		.add_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
+		.def_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
 		.def("AddProperties", ModelPartAddProperties1)
 		.def("AddProperties", ModelPartAddProperties2)
 		.def("GetProperties", ModelPartGetProperties1)
@@ -676,8 +672,8 @@ void AddModelPartToPython()
 		.def("RemovePropertiesFromAllLevels", ModelPartRemovePropertiesFromAllLevels2)
 		.def("RemovePropertiesFromAllLevels", ModelPartRemovePropertiesFromAllLevels3)
 		.def("RemovePropertiesFromAllLevels", ModelPartRemovePropertiesFromAllLevels4)
-		.def("PropertiesArray", &ModelPart::PropertiesArray, return_internal_reference<>())
-		.add_property("Elements", ModelPartGetElements1, ModelPartSetElements1)
+		.def("PropertiesArray", &ModelPart::PropertiesArray, return_value_policy::reference_internal)
+		.def_property("Elements", ModelPartGetElements1, ModelPartSetElements1)
 		.def("GetElement", ModelPartGetElement1)
 		.def("GetElement", ModelPartGetElement2)
 		.def("GetElements", ModelPartGetElements1)
@@ -688,13 +684,14 @@ void AddModelPartToPython()
 		.def("RemoveElement", ModelPartRemoveElement2)
 		.def("RemoveElement", ModelPartRemoveElement3)
 		.def("RemoveElement", ModelPartRemoveElement4)
+                .def("RemoveElements", &ModelPart::RemoveElements)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels1)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels2)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels3)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels4)
         .def("RemoveElementsFromAllLevels", ModelPartRemoveElementsFromAllLevels)
-		.def("ElementsArray", &ModelPart::ElementsArray, return_internal_reference<>())
-		.add_property("Conditions", ModelPartGetConditions1, ModelPartSetConditions1)
+		.def("ElementsArray", &ModelPart::ElementsArray, return_value_policy::reference_internal)
+		.def_property("Conditions", ModelPartGetConditions1, ModelPartSetConditions1)
 		.def("GetCondition", ModelPartGetCondition1)
 		.def("GetCondition", ModelPartGetCondition2)
 		.def("GetConditions", ModelPartGetConditions1)
@@ -711,13 +708,13 @@ void AddModelPartToPython()
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels2)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels3)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels4)
-		.def("CreateSubModelPart", &ModelPart::CreateSubModelPart, return_internal_reference<>())
+		.def("CreateSubModelPart", &ModelPart::CreateSubModelPart)
 		.def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
-		.def("GetSubModelPart", &ModelPart::GetSubModelPart, return_internal_reference<>())
+		.def("GetSubModelPart", &ModelPart::pGetSubModelPart)
 		.def("RemoveSubModelPart", RemoveSubModelPart1)
 		.def("RemoveSubModelPart", RemoveSubModelPart2)
 		.def("HasSubModelPart", &ModelPart::HasSubModelPart)
-		.def("ConditionsArray", &ModelPart::ConditionsArray, return_internal_reference<>())
+		.def("ConditionsArray", &ModelPart::ConditionsArray, return_value_policy::reference_internal)
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<bool>)
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<int>)
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<double>)
@@ -731,7 +728,7 @@ void AddModelPartToPython()
 		.def("CreateNewNode", ModelPartCreateNewNode)
 		.def("CreateNewElement", ModelPartCreateNewElement)
 		.def("CreateNewCondition", ModelPartCreateNewCondition)
-		.def("GetCommunicator", ModelPartGetCommunicator, return_internal_reference<>())
+		.def("GetCommunicator", ModelPartGetCommunicator, return_value_policy::reference_internal)
 		.def("Check", &ModelPart::Check)
 		.def("IsSubModelPart", &ModelPart::IsSubModelPart)
         .def("AddNode", &ModelPart::AddNode)
@@ -740,10 +737,10 @@ void AddModelPartToPython()
         .def("AddConditions",AddConditionsByIds)
         .def("AddElement", &ModelPart::AddElement)
         .def("AddElements",AddElementsByIds)
-        .def("GetRootModelPart", &ModelPart::GetRootModelPart, return_internal_reference<>())
-        .add_property("SubModelParts", boost::python::range<return_value_policy<reference_existing_object > >(GetSubModelPartBegin, GetSubModelPartEnd) )
-		//.def("",&ModelPart::)
-		.def(self_ns::str(self))
+        .def("GetRootModelPart", &ModelPart::GetRootModelPart, return_value_policy::reference_internal)
+        .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },  
+                                        [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; }) 
+ 		.def("__repr__", [](const ModelPart& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
 		;
 }
 

@@ -24,28 +24,71 @@ namespace Kratos
 {
 
 	FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProcess(ModelPart& rPart1, ModelPart& rPart2)
-	:mrModelPart1(rPart1), mrModelPart2(rPart2) {
-
+		: mrModelPart1(rPart1), mrModelPart2(rPart2)
+	{
 	}
 
-	void FindIntersectedGeometricalObjectsProcess::Initialize() {
+	void FindIntersectedGeometricalObjectsProcess::Initialize()
+	{
 		GenerateOctree();
 	}
 
-	void FindIntersectedGeometricalObjectsProcess::Execute() {
+	void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
+	{
+		const std::size_t number_of_elements = mrModelPart1.NumberOfElements();
+		auto& r_elements = mrModelPart1.ElementsArray();
+		std::vector<OctreeType::cell_type*> leaves;
+
+		rResults.resize(number_of_elements);
+		for (std::size_t i = 0; i < number_of_elements; i++) {
+			auto p_element_1 = r_elements[i];
+			leaves.clear();
+			mOctree.GetIntersectedLeaves(p_element_1, leaves);
+			FindIntersectedSkinObjects(*p_element_1, leaves, rResults[i]);
+		}
+	}
+
+	void FindIntersectedGeometricalObjectsProcess::FindIntersections()
+	{
+		this->FindIntersectedSkinObjects(mIntersectedObjects);
+	}
+
+	std::vector<PointerVector<GeometricalObject>>& FindIntersectedGeometricalObjectsProcess::GetIntersections()
+	{
+		return mIntersectedObjects;
+	}
+
+	ModelPart& FindIntersectedGeometricalObjectsProcess::GetModelPart1()
+	{
+		return mrModelPart1;
+	}
+
+	OctreeBinary<OctreeBinaryCell<Internals::DistanceSpatialContainersConfigure>>* FindIntersectedGeometricalObjectsProcess::GetOctreePointer()
+	{
+		return &mOctree;
+	}
+
+	void FindIntersectedGeometricalObjectsProcess::Clear()
+	{
+		mIntersectedObjects.clear();
+	}
+
+	void FindIntersectedGeometricalObjectsProcess::Execute()
+	{
 		GenerateOctree();
 
 		std::vector<OctreeType::cell_type*> leaves;
 		const int number_of_elements = mrModelPart1.NumberOfElements();
-#pragma omp parallel for private(leaves)
-		for (int i = 0; i < number_of_elements; i++) {
+
+		#pragma omp parallel for private(leaves)
+		for (int i = 0; i < number_of_elements; i++)
+		{
 			auto p_element_1 = mrModelPart1.ElementsBegin() + i;
 			leaves.clear();
 			mOctree.GetIntersectedLeaves(*(p_element_1.base()), leaves);
 			MarkIfIntersected(**(p_element_1.base()), leaves);
 		}
 	}
-
 
 	/// Turn back information as a string.
 	std::string FindIntersectedGeometricalObjectsProcess::Info() const {
@@ -62,26 +105,8 @@ namespace Kratos
 
 	}
 
-	void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults) {
-		const std::size_t number_of_elements = mrModelPart1.NumberOfElements();
-		auto& r_elements = mrModelPart1.ElementsArray();
-		std::vector<OctreeType::cell_type*> leaves;
-
-		rResults.resize(number_of_elements);
-		for (std::size_t i = 0; i < number_of_elements; i++) {
-			auto p_element_1 = r_elements[i];
-			leaves.clear();
-			mOctree.GetIntersectedLeaves(p_element_1, leaves);
-			FindIntersectedSkinObjects(*p_element_1, leaves, rResults[i]);
-		}
-	}
-
-	ModelPart& FindIntersectedGeometricalObjectsProcess::GetModelPart1() {
-		return mrModelPart1;
-	}
-
 	void FindIntersectedGeometricalObjectsProcess::GenerateOctree() {
-		SetOctreeBoundingBox();
+		this->SetOctreeBoundingBox();
 
 		// Adding mrModelPart2 to the octree
 		for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
@@ -94,22 +119,24 @@ namespace Kratos
 	}
 
 	void  FindIntersectedGeometricalObjectsProcess::SetOctreeBoundingBox() {
-		Point<3> low(mrModelPart1.NodesBegin()->Coordinates());
-		Point<3> high(mrModelPart1.NodesBegin()->Coordinates());
+		Point low(mrModelPart1.NodesBegin()->Coordinates());
+		Point high(mrModelPart1.NodesBegin()->Coordinates());
 
 		// loop over all nodes in first modelpart
 		for (auto i_node = mrModelPart1.NodesBegin(); i_node != mrModelPart1.NodesEnd(); i_node++) {
+			const array_1d<double,3> &r_coordinates = i_node->Coordinates();
 			for (int i = 0; i < 3; i++) {
-				low[i] = i_node->Coordinate(i + 1) < low[i] ? i_node->Coordinate(i + 1) : low[i];
-				high[i] = i_node->Coordinate(i + 1) > high[i] ? i_node->Coordinate(i + 1) : high[i];
+				low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
+				high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
 			}
 		}
 
 		// loop over all skin nodes
 		for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
+			const array_1d<double,3>& r_coordinates = i_node->Coordinates();
 			for (int i = 0; i < 3; i++) {
-				low[i] = i_node->Coordinate(i + 1) < low[i] ? i_node->Coordinate(i + 1) : low[i];
-				high[i] = i_node->Coordinate(i + 1) > high[i] ? i_node->Coordinate(i + 1) : high[i];
+				low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
+				high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
 			}
 		}
 

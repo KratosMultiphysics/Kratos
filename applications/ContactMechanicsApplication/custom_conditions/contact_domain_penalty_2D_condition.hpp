@@ -178,33 +178,33 @@ protected:
     /**
      * Calculation of the Contact Multipliers or Penalty Factors
      */
-    void CalculateExplicitFactors(GeneralVariables& rVariables,
+    void CalculateExplicitFactors(ConditionVariables& rVariables,
 				  ProcessInfo& rCurrentProcessInfo);
 
 
     /**
      * Calculation of the Material Stiffness Matrix by components
      */
-    void CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,
-			       unsigned int& ndi,unsigned int& ndj,
-			       unsigned int& idir,unsigned int& jdir);
+    void CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,
+				    unsigned int& ndi,unsigned int& ndj,
+				    unsigned int& idir,unsigned int& jdir);
 
 
     /**
      * Normal Force construction by components
      */
-    void CalculateNormalForce       (double &F,GeneralVariables& rVariables,
+    void CalculateNormalForce       (double &F,ConditionVariables& rVariables,
 				     unsigned int& ndi,unsigned int& idir);
 
     /**
      * Tangent Stick Force construction by components
      */
-    void CalculateTangentStickForce (double &F,GeneralVariables& rVariables,
+    void CalculateTangentStickForce (double &F,ConditionVariables& rVariables,
 				     unsigned int& ndi,unsigned int& idir);
     /**
      * Tangent Slip Force construction by components
      */
-    void CalculateTangentSlipForce  (double &F,GeneralVariables& rVariables,
+    void CalculateTangentSlipForce  (double &F,ConditionVariables& rVariables,
 				     unsigned int& ndi,unsigned int& idir);
 
     ///@}

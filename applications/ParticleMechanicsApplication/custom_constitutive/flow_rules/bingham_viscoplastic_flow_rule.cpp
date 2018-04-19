@@ -43,8 +43,8 @@ BinghamViscoplasticFlowRule::BinghamViscoplasticFlowRule(YieldCriterionPointer p
 
 BinghamViscoplasticFlowRule& BinghamViscoplasticFlowRule::operator=(BinghamViscoplasticFlowRule const& rOther)
 {
-   FlowRule::operator=(rOther);
-   return *this;
+    FlowRule::operator=(rOther);
+    return *this;
 }
 
 //*******************************COPY CONSTRUCTOR*************************************
@@ -61,8 +61,8 @@ BinghamViscoplasticFlowRule::BinghamViscoplasticFlowRule(BinghamViscoplasticFlow
 
 FlowRule::Pointer BinghamViscoplasticFlowRule::Clone() const
 {
-  FlowRule::Pointer p_clone(new BinghamViscoplasticFlowRule(*this));
-  return p_clone;
+    FlowRule::Pointer p_clone(new BinghamViscoplasticFlowRule(*this));
+    return p_clone;
 }
 
 //********************************DESTRUCTOR******************************************
@@ -99,7 +99,7 @@ bool BinghamViscoplasticFlowRule::CalculateConsistencyCondition( RadialReturnVar
     HardeningLaw::Parameters NewHardeningParameters(rCriterionParameters.GetHardeningParameters());
     NewHardeningParameters.SetEquivalentPlasticStrain(rPlasticVariables.EquivalentPlasticStrain);
     NewHardeningParameters.SetDeltaGamma(rReturnMappingVariables.DeltaGamma);
-	
+
     double Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening,NewHardeningParameters);
     //double StateFunction = (Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)*pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-sqrt(2.0/3.0) * Hardening;
     double StateFunction = Qtrial-sqrt(2.0/3.0) * Hardening;
@@ -144,7 +144,7 @@ bool BinghamViscoplasticFlowRule::CalculateConsistencyCondition( RadialReturnVar
 
 
     if(iter>MaxIterations)
-      return false;
+        return false;
 
 
     return true;
@@ -152,47 +152,47 @@ bool BinghamViscoplasticFlowRule::CalculateConsistencyCondition( RadialReturnVar
 }
 void BinghamViscoplasticFlowRule::CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
 {
-	  
- 	//1.-Identity build
-	Matrix IdentityMatrix       = identity_matrix<double> (3);
 
-	//2.-Auxiliar matrices
-	rScalingFactors.Normal      = rReturnMappingVariables.TrialIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
+    //1.-Identity build
+    Matrix IdentityMatrix       = identity_matrix<double> (3);
 
-	Matrix Norm_Normal          = prod( rScalingFactors.Normal, trans(rScalingFactors.Normal) );
+    //2.-Auxiliar matrices
+    rScalingFactors.Normal      = rReturnMappingVariables.TrialIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
 
-	double Trace_Norm_Normal    = Norm_Normal( 0, 0 ) + Norm_Normal( 1, 1 )	+ Norm_Normal( 2, 2 );
+    Matrix Norm_Normal          = prod( rScalingFactors.Normal, trans(rScalingFactors.Normal) );
 
-	rScalingFactors.Dev_Normal  = Norm_Normal;
-	rScalingFactors.Dev_Normal -= (1.0/3.0) * Trace_Norm_Normal * IdentityMatrix;
+    double Trace_Norm_Normal    = Norm_Normal( 0, 0 ) + Norm_Normal( 1, 1 )	+ Norm_Normal( 2, 2 );
+
+    rScalingFactors.Dev_Normal  = Norm_Normal;
+    rScalingFactors.Dev_Normal -= (1.0/3.0) * Trace_Norm_Normal * IdentityMatrix;
 
 
-	//3.-Auxiliar constants
-	double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
-	double DeltaHardening = 0;
-	
-	double eta = GetProperties().GetValue(VISCOSITY);
+    //3.-Auxiliar constants
+    double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
+    double DeltaHardening = 0;
+
+    double eta = GetProperties().GetValue(VISCOSITY);
     //double dt = rReturnMappingVariables.DeltaTime;
-	
-	HardeningLaw::Parameters HardeningParameters;
-	HardeningParameters.SetTemperature(rReturnMappingVariables.Temperature);
-	HardeningParameters.SetEquivalentPlasticStrain(EquivalentPlasticStrain);
 
-	DeltaHardening = mpYieldCriterion->GetHardeningLaw().CalculateDeltaHardening( DeltaHardening, HardeningParameters );
+    HardeningLaw::Parameters HardeningParameters;
+    HardeningParameters.SetTemperature(rReturnMappingVariables.Temperature);
+    HardeningParameters.SetEquivalentPlasticStrain(EquivalentPlasticStrain);
 
-	rScalingFactors.Beta0 = eta / (2 * rReturnMappingVariables.LameMu_bar) + 1.0 + DeltaHardening/(3.0 * rReturnMappingVariables.LameMu_bar);
-		
-	rScalingFactors.Beta1 = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma / rReturnMappingVariables.NormIsochoricStress;
-		
-	rScalingFactors.Beta2 = ( ( 1.0 - ( 1.0 / rScalingFactors.Beta0 ) ) * (2.0/3.0) * rReturnMappingVariables.NormIsochoricStress * rReturnMappingVariables.DeltaGamma )/(rReturnMappingVariables.LameMu_bar) ;
-		
-	rScalingFactors.Beta3 = ( ( 1.0 / rScalingFactors.Beta0 ) - rScalingFactors.Beta1 + rScalingFactors.Beta2 );
-		
-	rScalingFactors.Beta4 = ( ( 1.0 / rScalingFactors.Beta0 ) - rScalingFactors.Beta1 ) * rReturnMappingVariables.NormIsochoricStress / ( rReturnMappingVariables.LameMu_bar ) ;
+    DeltaHardening = mpYieldCriterion->GetHardeningLaw().CalculateDeltaHardening( DeltaHardening, HardeningParameters );
+
+    rScalingFactors.Beta0 = eta / (2 * rReturnMappingVariables.LameMu_bar) + 1.0 + DeltaHardening/(3.0 * rReturnMappingVariables.LameMu_bar);
+
+    rScalingFactors.Beta1 = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma / rReturnMappingVariables.NormIsochoricStress;
+
+    rScalingFactors.Beta2 = ( ( 1.0 - ( 1.0 / rScalingFactors.Beta0 ) ) * (2.0/3.0) * rReturnMappingVariables.NormIsochoricStress * rReturnMappingVariables.DeltaGamma )/(rReturnMappingVariables.LameMu_bar) ;
+
+    rScalingFactors.Beta3 = ( ( 1.0 / rScalingFactors.Beta0 ) - rScalingFactors.Beta1 + rScalingFactors.Beta2 );
+
+    rScalingFactors.Beta4 = ( ( 1.0 / rScalingFactors.Beta0 ) - rScalingFactors.Beta1 ) * rReturnMappingVariables.NormIsochoricStress / ( rReturnMappingVariables.LameMu_bar ) ;
 
 }
-	
-	
+
+
 
 void BinghamViscoplasticFlowRule::save( Serializer& rSerializer ) const
 {

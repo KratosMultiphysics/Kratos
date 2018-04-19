@@ -76,55 +76,54 @@
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module"   : "impose_vector_value_by_direction_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes all the components of a given vector variable",
-        "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "ImposeVectorValueByDirectionProcess",
-        "Parameters"            : {
+        "process_name"  : "AssignVectorByDirectionProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Inlet2D_inlet",
             "variable_name"   : "VELOCITY",
-            "modulus"          : 10.0,
+            "modulus"         : 10.0,
             "direction"       : [1,0.0,0.0]
         }
     },{
-        "python_module"   : "impose_scalar_value_process",
+        "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the given scalar variable",
-        "process_name"          : "ImposeScalarValueProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "AssignScalarVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet2D_outlet",
             "variable_name"   : "PRESSURE",
             "value"           : 0.0
         }
     },{
-        "python_module"   : "apply_noslip_process",
+        "python_module" : "apply_noslip_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"          : "ApplyNoSlipProcess",
-        "Parameters"            : {
+        "process_name"  : "ApplyNoSlipProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "NoSlip2D_walls"
         }
     },{
-        "python_module"   : "apply_noslip_process",
+        "python_module" : "apply_noslip_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"          : "ApplyNoSlipProcess",
-        "Parameters"            : {
+        "process_name"  : "ApplyNoSlipProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "NoSlip2D_obstacle"
         }
     }],
     "gravity"                          : [{
-        "python_module"   : "process_factory",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"          : "ApplyConstantVectorValueProcess",
-        "Parameters"            : {
+        "process_name"  : "AssignVectorByDirectionProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Parts_domain",
             "variable_name"   : "BODY_FORCE",
-            "modulus"          : 0,
+            "modulus"         : 0,
+            "constrained"     : false,
             "direction"       : [0.0,-1,0.0]
         }
     }]

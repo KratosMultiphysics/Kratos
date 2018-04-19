@@ -33,13 +33,16 @@
     "solver_settings"                  : {
         "solver_type"                  : "adjoint_vmsmonolithic_solver",
         "scheme_settings" : {
-            "scheme_type"              : "steady",
-            "boundary_model_part_name" : "NoSlip2D_Cylinder"
+            "scheme_type"              : "steady"
         },
-        "objective_settings" : {
-            "objective_type"            : "drag",
-            "structure_model_part_name" : "NoSlip2D_Cylinder",
-            "drag_direction"            : [1.0, 0.0, 0.0]
+        "response_function_settings" : {
+            "response_type"            : "drag",
+            "sensitivity_model_part_name" : "NoSlip2D_Cylinder",
+            "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
+            "custom_settings" : {
+                "structure_model_part_name" : "NoSlip2D_Cylinder",
+                "drag_direction"            : [1.0, 0.0, 0.0]
+            }
         },
         "dynamic_tau"                  : 0,
         "oss_switch"                   : 0,
@@ -49,7 +52,8 @@
         "linear_solver_settings"       : {
             "solver_type"         : "AMGCL",
             "verbosity"           : 0,
-            "coarse_enough"       : 500
+            "coarse_enough"       : 500,
+            "tolerance"           : 1e-7
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
@@ -58,22 +62,19 @@
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Inlet2D_Inlet",
             "variable_name"   : "ADJOINT_VELOCITY",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
             "value"           : [0.0, 0.0, 0.0]
         }
     },{
-        "python_module" : "impose_scalar_value_process",
+        "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ImposeScalarValueProcess",
+        "process_name"  : "AssignScalarVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet2D_Outlet",
@@ -81,53 +82,52 @@
             "value"           : 0
         }
     },{
-        "python_module" : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "NoSlip2D_Cylinder",
             "variable_name"   : "ADJOINT_VELOCITY",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
             "value"           : [0.0, 0.0, 0.0]
         }
     },{
-        "python_module" : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "NoSlip2D_Wall",
             "variable_name"   : "ADJOINT_VELOCITY",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
             "value"           : [0.0, 0.0, 0.0]
         }
     }],
     "gravity"                          : [{
-        "python_module" : "process_factory",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ApplyConstantVectorValueProcess",
+        "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Parts_Fluid",
             "variable_name"   : "BODY_FORCE",
             "modulus"         : 0.0,
+            "constrained"     : false,
             "direction"       : [0.0,-1.0,0.0]
         }
     }],
     "list_other_processes" :[{
-        "kratos_module"    : "KratosMultiphysics.AdjointFluidApplication",
-        "python_module"    : "input_primal_solution_process",
-        "help"             : "",
-        "process_name"     : "InputPrimalSolutionProcess",
-        "Parameters"          : {
-            "model_part_name" : "MainModelPart",
-            "file_name"       : "test_vms_sensitivity_2d/steady_cylinder_test",
-            "variable_list"   : ["VELOCITY", "PRESSURE"]
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_primal_input_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+	        "model_part_name" : "MainModelPart",
+            "file_settings" : {
+                "file_access_mode" : "read_only"
+            },
+            "nodal_results_settings" : {
+                "list_of_variables": ["VELOCITY", "PRESSURE"]
+            }
         }
     }]
 }

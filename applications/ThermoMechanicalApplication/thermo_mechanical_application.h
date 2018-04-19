@@ -46,33 +46,6 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
-
-// Variables definition
-//KRATOS_DEFINE_VARIABLE(int, NODE_PROPERTY_ID)
-//KRATOS_DEFINE_VARIABLE(double,  HTC)
-//KRATOS_DEFINE_VARIABLE(int, REF_ID)
-//KRATOS_DEFINE_VARIABLE(double, PARTICLE_RADIUS)
-//KRATOS_DEFINE_VARIABLE(double, POSETIVE_DISTANCE)
-//KRATOS_DEFINE_VARIABLE(double, NAGATIVE_DISTANCE)
-//KRATOS_DEFINE_VARIABLE(bool, IS_ESCAPED)
-//KRATOS_DEFINE_VARIABLE(int, IS_SOLIDIFIED)  
-//KRATOS_DEFINE_VARIABLE(double, SOLIDFRACTION ) 
-//KRATOS_DEFINE_VARIABLE(double, SOLIDIF_TIME  )
-//KRATOS_DEFINE_VARIABLE(double, SOLIDIF_MODULUS  )
-//KRATOS_DEFINE_VARIABLE(double, FILLTIME  )
-//KRATOS_DEFINE_VARIABLE(double, MACRO_POROSITY  )
-//KRATOS_DEFINE_VARIABLE(double, SHRINKAGE_POROSITY  )
-//KRATOS_DEFINE_VARIABLE(double, MAX_VEL  )
-//KRATOS_DEFINE_VARIABLE(int, IS_GRAVITY_FILLING)
-//
-//KRATOS_DEFINE_VARIABLE(double,VOLUME_FRACTION ) 
-//
-//KRATOS_DEFINE_VARIABLE(double,KAPPA ) 
-//KRATOS_DEFINE_VARIABLE(double,EPSILON )
-//
-//KRATOS_DEFINE_VARIABLE(double,SHRINKAGE_POROSITY_US)
-//KRATOS_DEFINE_VARIABLE(double,SOLIDIF_MODULUS_US)
-//KRATOS_DEFINE_VARIABLE(double,TEMPERATURES_US)
 ///@}
 ///@name Type Definitions
 ///@{
@@ -122,7 +95,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
 
 
@@ -141,20 +114,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosThermoMechanicalApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in my application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -234,7 +207,7 @@ private:
     const SUPGConvDiff2D  mSUPGConvDiff2D;
     const SUPGConvDiff3D  mSUPGConvDiff3D;
     const SUPGConv3D  mSUPGConv3D;
-    const SUPGConv2D  mSUPGConv2D;  
+    const SUPGConv2D  mSUPGConv2D;
     const SUPGConvLevelSet  mSUPGConvLevelSet;
 
  //   const Poisson3D mPoisson3D;
@@ -289,6 +262,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_THERMOMECHANICAL_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_THERMOMECHANICAL_APPLICATION_H_INCLUDED  defined
 
 

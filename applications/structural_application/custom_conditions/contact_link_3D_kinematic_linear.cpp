@@ -95,8 +95,8 @@ ContactLink3D_Kinematic_Linear::ContactLink3D_Kinematic_Linear( IndexType NewId,
         PropertiesType::Pointer pProperties,
         Condition::Pointer Master,
         Condition::Pointer Slave,
-        Point<3>& MasterContactLocalPoint,
-        Point<3>& SlaveContactLocalPoint,
+       Point& MasterContactLocalPoint,
+       Point& SlaveContactLocalPoint,
         int SlaveIntegrationPointIndex
                                                               )
     : Condition( NewId, pGeometry, pProperties )
@@ -1630,7 +1630,7 @@ void ContactLink3D_Kinematic_Linear::GetDofList( DofsVectorType& ConditionalDofL
 
 //new functions includes
 
-Point<3>& ContactLink3D_Kinematic_Linear::GlobalCoordinates( Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates )
+Point& ContactLink3D_Kinematic_Linear::GlobalCoordinates( Condition::Pointer Surface,Point& rResult,Point const& LocalCoordinates )
 {
     noalias( rResult ) = ZeroVector( 3 );
 

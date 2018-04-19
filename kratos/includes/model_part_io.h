@@ -78,6 +78,9 @@ public:
     typedef std::vector<std::ostream*>            OutputFilesContainerType;
     typedef std::size_t                           SizeType;
 
+    // Prevents this class from hidding IO::WriteProperties(Properties)
+    using BaseType::WriteProperties;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -86,7 +89,7 @@ public:
     ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
 
     /// Constructor with stream.
-    ModelPartIO(boost::shared_ptr<std::iostream> Stream);
+    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream);
 
 
     /// Constructor with filenames.
@@ -97,7 +100,7 @@ public:
 
 
     /// Destructor.
-    virtual ~ModelPartIO();
+    ~ModelPartIO() override;
 
 
     ///@}
@@ -109,45 +112,45 @@ public:
     ///@name Operations
     ///@{
 
-    virtual bool ReadNode(NodeType& rThisNode) override;
+    bool ReadNode(NodeType& rThisNode) override;
 
-    virtual bool ReadNodes(NodesContainerType& rThisNodes) override;
+    bool ReadNodes(NodesContainerType& rThisNodes) override;
 
-    virtual std::size_t ReadNodesNumber() override;
+    std::size_t ReadNodesNumber() override;
 
-    virtual void WriteNodes(NodesContainerType const& rThisNodes) override;
+    void WriteNodes(NodesContainerType const& rThisNodes) override;
 
-    virtual void ReadProperties(Properties& rThisProperties) override;
+    void ReadProperties(Properties& rThisProperties) override;
 
-    virtual void ReadProperties(PropertiesContainerType& rThisProperties) override;
+    void ReadProperties(PropertiesContainerType& rThisProperties) override;
 
     virtual void WriteProperties(PropertiesContainerType& rThisProperties);
 
-    virtual void ReadElement(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, Element::Pointer& pThisElements) override;
+    void ReadElement(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, Element::Pointer& pThisElements) override;
 
-    virtual void ReadElements(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements) override;
+    void ReadElements(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements) override;
 
-    virtual std::size_t  ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities) override;
+    std::size_t  ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities) override;
 
-    virtual void WriteElements(ElementsContainerType const& rThisElements) override;
+    void WriteElements(ElementsContainerType const& rThisElements) override;
 
-    virtual void ReadConditions(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions) override;
+    void ReadConditions(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions) override;
 
-    virtual std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
+    std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
-    virtual void WriteConditions(ConditionsContainerType const& rThisConditions);
+    virtual void WriteConditions(ConditionsContainerType const& rThisConditions) override;
 
-    virtual void ReadInitialValues(ModelPart& rThisModelPart) override;
+    void ReadInitialValues(ModelPart& rThisModelPart) override;
 
 //       void ReadGeometries(NodesContainerType& rThisNodes, GeometriesContainerType& rResults);
 
-    virtual void ReadMesh(MeshType & rThisMesh) override;
+    void ReadMesh(MeshType & rThisMesh) override;
 
     virtual void WriteMesh(MeshType & rThisMesh);
 
-    virtual void ReadModelPart(ModelPart & rThisModelPart) override;
+    void ReadModelPart(ModelPart & rThisModelPart) override;
 
-    virtual void WriteModelPart(ModelPart & rThisModelPart) override;
+    void WriteModelPart(ModelPart & rThisModelPart) override;
 
 
     /// Read the input file and create the nodal connectivities graph, stored in CSR format.
@@ -164,9 +167,9 @@ public:
      * to node k (counting from 0).
      * @return Number of nodes.
      */
-    virtual std::size_t ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities) override;
+    std::size_t ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities) override;
 
-    virtual void DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
+    void DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                          PartitionIndicesType const& NodesPartitions,
                                          PartitionIndicesType const& ElementsPartitions,
                                          PartitionIndicesType const& ConditionsPartitions,
@@ -174,7 +177,7 @@ public:
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions) override;
 
-    virtual void DivideInputToPartitions(boost::shared_ptr<std::iostream> * Streams,
+    void DivideInputToPartitions(Kratos::shared_ptr<std::iostream> * Streams,
                                          SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                          PartitionIndicesType const& NodesPartitions,
                                          PartitionIndicesType const& ElementsPartitions,
@@ -183,7 +186,7 @@ public:
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions) override;
 
-    void SwapStreamSource(boost::shared_ptr<std::iostream> newStream);
+    void SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream);
 
 
     ///@}
@@ -281,7 +284,7 @@ protected:
     std::string mFilename;
     Flags mOptions;
 
-    boost::shared_ptr<std::iostream> mpStream;
+    Kratos::shared_ptr<std::iostream> mpStream;
 
 
     ///@}
@@ -351,8 +354,10 @@ protected:
     void ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable, TDataType Dummy);
 
     void ReadElementalDataBlock(ElementsContainerType& rThisElements);
-    
-    void WriteElementalDataBlock(ElementsContainerType& rThisElements);
+    template<class TObjectsContainerType>
+    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName);
+    template<class TVariableType, class TObjectsContainerType>
+    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer,const VariableData* rVariable, const std::string& rObjectName);
 
     template<class TVariableType>
     void ReadElementalScalarVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable);
@@ -361,8 +366,6 @@ protected:
     template<class TVariableType, class TDataType>
     void ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable, TDataType Dummy);
     void ReadConditionalDataBlock(ConditionsContainerType& rThisConditions);
-    
-    void WriteConditionalDataBlock(ConditionsContainerType& rThisConditions);
 
     template<class TVariableType>
     void ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable);
@@ -535,6 +538,7 @@ protected:
     template<class TValueType>
     TValueType& ExtractValue(std::string rWord, TValueType & rValue);
 
+    void ReadConstitutiveLawValue(ConstitutiveLaw::Pointer& rValue);
 
     ModelPartIO& ReadWord(std::string& Word);
 

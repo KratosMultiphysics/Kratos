@@ -9,7 +9,7 @@
 
 namespace Kratos {
 
-    class DEM_KDEMFabric : public DEM_KDEM {
+    class KRATOS_API(DEM_APPLICATION) DEM_KDEMFabric : public DEM_KDEM {
     
     public:
 
@@ -19,7 +19,7 @@ namespace Kratos {
         
         ~DEM_KDEMFabric() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 

@@ -49,7 +49,7 @@ ShearFlow1DWithExponentialViscosityField(const double u_far_field, const double 
 virtual ~ShearFlow1DWithExponentialViscosityField(){}
 
 
-void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const int i_thread);
+void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const int i_thread) override;
 
 
 virtual std::string Info() const override
@@ -64,6 +64,7 @@ virtual void PrintInfo(std::ostream& rOStream) const override {}
 virtual void PrintData(std::ostream& rOStream) const override {}
 
 void SetRimZoneThickness(const double z_max);
+void SetViscosity(const double viscosity);
 
 protected:
 

@@ -1,42 +1,15 @@
-//verification
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-==============================================================================
- */
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: jcotela $
-//   Date:                $Date: 2010-10-09 10:34:00 $
-//   Revision:            $Revision: 0.1 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Kazem Kamran
 //
+
 #if !defined(KRATOS_TWO_FLUID_DPGVMS_H_INCLUDED )
 #define  KRATOS_TWO_FLUID_DPGVMS_H_INCLUDED
 // System includes
@@ -145,7 +118,7 @@ public:
     {
     }
     /// Destructor.
-    virtual ~DPGVMS()
+    ~DPGVMS() override
     {
     }
     ///@}
@@ -157,20 +130,35 @@ public:
     /// Create a new element of this type
     /**
      * Returns a pointer to a new DPGVMS element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
-        return Element::Pointer(new DPGVMS(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties));
+        return Kratos::make_shared<DPGVMS>(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
     }
+
+    /// Create a new element of this type.
+	/**
+	 @param NewId Index of the new element
+     @param pGeom A pointer to the geometry of the new element
+	 @param pProperties Pointer to the element's properties
+	 */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared< DPGVMS >(NewId,pGeom,pProperties);
+    }
+
     /// Call at teh begining of each step, ita decides if element is cutted or no!
     /**    
       */  
-    virtual void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+    void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override
     {
 // 	for (unsigned int jj = 0; jj < 4; jj++){
 // 	      this->GetGeometry()[jj].FastGetSolutionStepValue(WET_VOLUME ) = 0.0;  
@@ -181,7 +169,7 @@ public:
     /// Call at teh begining of each iteration, ita decides if element is cutted or no!
     /**    
       */  
-    virtual void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+    void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override
     {
 	  // Calculate this element's geometric parameters
 	  double Area;
@@ -227,13 +215,13 @@ public:
      * system that are either constant or computed explicitly (from the 'old'
      * iteration variables). In this case this means the body force terms and the
      * OSS projections, that are treated explicitly.
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix. Not used here, required for compatibility purposes only.
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info
+     * @param rLeftHandSideMatrix the elemental left hand side matrix. Not used here, required for compatibility purposes only.
+     * @param rRightHandSideVector the elemental right hand side
+     * @param rCurrentProcessInfo the current process info
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
 //         this->IsCutted();
         unsigned int LocalSize = (TDim + 1) * TNumNodes;
@@ -272,8 +260,8 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance from the ModelPart. It is
      * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
      */
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo) override
     { 
       	if( this->is_cutted == 1)
 	{
@@ -358,7 +346,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
 //       this->IsCutted();     
       if( this->is_cutted == 0)
@@ -454,9 +442,9 @@ public:
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
 //       this->IsCutted();     
       if( this->is_cutted == 0){
@@ -703,7 +691,7 @@ public:
     }
     
     /// Implementation of FinalizeNonLinearIteration to compute enriched pressure.   
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
 //       this->IsCutted();     
       if( this->is_cutted == 0)
@@ -756,7 +744,7 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
 
-    void GetFirstDerivativesVector(Vector& values, int Step)
+    void GetFirstDerivativesVector(Vector& values, int Step) override
     {
 // 	this->IsCutted();     
 	if( this->is_cutted == 0)  
@@ -785,7 +773,7 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
 
-      void GetSecondDerivativesVector(Vector& values, int Step)
+      void GetSecondDerivativesVector(Vector& values, int Step) override
       {
 // 	this->IsCutted();     
 	if( this->is_cutted == 0)  
@@ -821,9 +809,9 @@ public:
      * @param Output Will be overwritten with the elemental momentum error
      * @param rCurrentProcessInfo Process info instance (unused)
      */
-    virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == ADVPROJ) // Compute residual projections for OSS
         {
@@ -983,7 +971,7 @@ public:
  * @see DPGVMS::GetValueOnIntegrationPoints
  */
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override
       {
 
 	  if (rVariable == PRESSUREAUX)
@@ -1025,7 +1013,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
         // Perform basic element checks
@@ -1111,14 +1099,14 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "DPGVMS #" << this->Id();
         return buffer.str();
     }
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "DPGVMS" << TDim << "D";
     }
@@ -1160,11 +1148,11 @@ protected:
      * values given by rShapeFunc and add the result, weighted by Weight, to
      * rResult. This is an auxiliary function used to compute values in integration
      * points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Step: The time Step (Defaults to 0 = Current)
-     * @param Weight: The variable will be weighted by this value before it is added to rResult
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
+     * @param Step The time Step (Defaults to 0 = Current)
+     * @param Weight The variable will be weighted by this value before it is added to rResult
      */
     virtual void AddPointContribution(double& rResult,
                                       const Variable< double >& rVariable,
@@ -1180,14 +1168,14 @@ protected:
      * Evaluate a scalar variable in the point where the form functions take the
      * values given by rShapeFunc and write the result to rResult.
      * This is an auxiliary function used to compute values in integration points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Step: The time Step (Defaults to 0 = Current)
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
+     * @param Step The time Step (Defaults to 0 = Current)
      */
-    virtual void EvaluateInPoint(double& rResult,
+    void EvaluateInPoint(double& rResult,
                                  const Variable< double >& rVariable,
-                                 const array_1d< double, TNumNodes >& rShapeFunc)
+                                 const array_1d< double, TNumNodes >& rShapeFunc) override
     {
         //compute sign of distance on gauss point
         double dist = 0.0;
@@ -1218,10 +1206,10 @@ protected:
      * values given by rShapeFunc and add the result, weighted by Weight, to
      * rResult. This is an auxiliary function used to compute values in integration
      * points.
-     * @param rResult: The vector where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Weight: The variable will be weighted by this value before it is added to rResult
+     * @param rResult The vector where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
+     * @param Weight The variable will be weighted by this value before it is added to rResult
      */
     virtual void AddPointContribution(array_1d< double, 3 > & rResult,
                                       const Variable< array_1d< double, 3 > >& rVariable,
@@ -1237,13 +1225,13 @@ protected:
      * Evaluate a scalar variable in the point where the form functions take the
      * values given by rShapeFunc and write the result to rResult.
      * This is an auxiliary function used to compute values in integration points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
      */
-    virtual void EvaluateInPoint(array_1d< double, 3 > & rResult,
+    void EvaluateInPoint(array_1d< double, 3 > & rResult,
                                  const Variable< array_1d< double, 3 > >& rVariable,
-                                 const array_1d< double, TNumNodes >& rShapeFunc)
+                                 const array_1d< double, TNumNodes >& rShapeFunc) override
     {
         //compute sign of distance on gauss point
         double dist = 0.0;
@@ -1503,11 +1491,11 @@ private:
     ///@name Serialization
     ///@{
     friend class Serializer;
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ElementBaseType);
     }
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ElementBaseType);
     }

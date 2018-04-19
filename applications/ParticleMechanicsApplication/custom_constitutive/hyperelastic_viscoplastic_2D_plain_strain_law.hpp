@@ -74,12 +74,12 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Destructor.
      */
-    virtual ~HyperElasticViscoplasticPlaneStrain2DLaw();
+    ~HyperElasticViscoplasticPlaneStrain2DLaw() override;
 
     /**
      * Operators
@@ -168,12 +168,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticPlasticPlaneStrain2DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticPlasticPlaneStrain2DLaw )
     }

@@ -21,7 +21,7 @@ class ApplyMoveRotorProcess(KratosMultiphysics.Process):
             "coordinates_of_stator_center_y"                    :0.0,
             "initial_coordinates_of_rotor_center_x"             :0.0,
             "initial_coordinates_of_rotor_center_y"             :0.0,
-            "max_radius_of_rotor"                               :0.0
+            "number_of_rotor_lobules"                            :0
         }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters);

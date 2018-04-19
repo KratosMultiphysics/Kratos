@@ -88,7 +88,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::InitializeNonLinearIteration(Proc
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    ConstitutiveParameters.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY); //Note: this is for nonlocal damage
+    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
     ConstitutiveParameters.SetStressVector(StressVector);
     ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -158,7 +158,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::FinalizeNonLinearIteration(Proces
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    ConstitutiveParameters.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY); //Note: this is for nonlocal damage
+    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
     ConstitutiveParameters.SetStressVector(StressVector);
     ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -684,7 +684,7 @@ void UPwSmallStrainFICElement<3,8>::ExtrapolateShapeFunctionsGradients(array_1d<
 template<>
 void UPwSmallStrainFICElement<2,3>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
-    rElementLength = sqrt(4.0*Geom.Area()/KRATOS_M_PI);
+    rElementLength = sqrt(4.0*Geom.Area()/Globals::Pi);
 }
 
 //----------------------------------------------------------------------------------------
@@ -692,7 +692,7 @@ void UPwSmallStrainFICElement<2,3>::CalculateElementLength(double& rElementLengt
 template<>
 void UPwSmallStrainFICElement<2,4>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
-    rElementLength = sqrt(4.0*Geom.Area()/KRATOS_M_PI);
+    rElementLength = sqrt(4.0*Geom.Area()/Globals::Pi);
 }
 
 //----------------------------------------------------------------------------------------
@@ -700,7 +700,7 @@ void UPwSmallStrainFICElement<2,4>::CalculateElementLength(double& rElementLengt
 template<>
 void UPwSmallStrainFICElement<3,4>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
-    rElementLength = pow( (6.0*Geom.Volume()/KRATOS_M_PI) , (1.0/3.0) );
+    rElementLength = pow( (6.0*Geom.Volume()/Globals::Pi) , (1.0/3.0) );
 }
 
 //----------------------------------------------------------------------------------------
@@ -708,7 +708,7 @@ void UPwSmallStrainFICElement<3,4>::CalculateElementLength(double& rElementLengt
 template<>
 void UPwSmallStrainFICElement<3,8>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
-    rElementLength = pow( (6.0*Geom.Volume()/KRATOS_M_PI) , (1.0/3.0) );
+    rElementLength = pow( (6.0*Geom.Volume()/Globals::Pi) , (1.0/3.0) );
 }
 
 //----------------------------------------------------------------------------------------

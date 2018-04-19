@@ -37,7 +37,7 @@ VirtualMassCoefficient           = 1.0
 RollingFrictionOption            = "ON"
 DontSearchUntilFailure           = "OFF"
 ContactMeshOption                = "OFF"
-OutputFileType                   = "Ascii"
+OutputFileType                   = "Binary"
 Multifile                        = "multiple_files"
 HorizontalFixVel                 = "ON"
 

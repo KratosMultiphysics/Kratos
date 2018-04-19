@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix
 //
@@ -12,48 +12,53 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
-
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_python.h"
+#include "custom_utilities/process_factory_utility.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-
 #include "spaces/ublas_space.h"
 
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/custom_strategies/line_search_contact_strategy.h"
 #include "custom_strategies/custom_strategies/residualbased_newton_raphson_contact_strategy.h"
-// #include "custom_strategies/custom_strategies/residualbased_newton_raphson_contact_accelerated_strategy.h"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
-#include "custom_strategies/custom_schemes/residual_based_incremental_update_static_contact_scheme.hpp"
-#include "custom_strategies/custom_schemes/residual_based_bossak_displacement_contact_scheme.hpp"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_strategies/custom_convergencecriterias/mortar_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/mortar_and_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/mesh_tying_mortar_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/alm_frictionless_mortar_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/alm_frictionless_components_mortar_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/alm_frictional_mortar_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_contact_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_mixed_contact_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_residual_contact_criteria.h"
 
 // Builders and solvers
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "custom_strategies/custom_builder_and_solvers/contact_residualbased_block_builder_and_solver.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
-
-// Convergence accelerators
-// #include "../FSIapplication/custom_utilities/convergence_accelerator.hpp"
 
 namespace Kratos
 {
 
 namespace Python
 {
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddCustomStrategiesToPython()
+void  AddCustomStrategiesToPython(pybind11::module& m)
 {
+    typedef TableStreamUtility::Pointer TablePrinterPointerType;
+    typedef ProcessFactoryUtility::Pointer ProcessesListType;
+    typedef ConditionNumberUtility::Pointer ConditionNumberUtilityPointerType;
+    
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
@@ -62,19 +67,26 @@ void  AddCustomStrategiesToPython()
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
+    typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-//     typedef ConvergenceAccelerator< LocalSpaceType > ConvergenceAcceleratorType;
         
     // Custom strategy types
     typedef ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonContactStrategyType;
-//     typedef ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonContactAcceleratedStrategyType;
+    typedef LineSearchContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  LineSearchContactStrategyType;
     
     // Custom scheme types
-    typedef ResidualBasedIncrementalUpdateStaticContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticContactSchemeType;
-    typedef ResidualBasedBossakDisplacementContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementContactSchemeType;
 
     // Custom convergence criterion types
-    typedef MortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarConvergenceCriteriaType;
+    typedef MortarAndConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarAndConvergenceCriteriaType;
+    typedef MeshTyingMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MeshTyingMortarConvergenceCriteriaType;
+    typedef ALMFrictionlessMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionlessMortarConvergenceCriteriaType;
+    typedef ALMFrictionlessComponentsMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionlessComponentsMortarConvergenceCriteriaType;
+    typedef ALMFrictionalMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionalMortarConvergenceCriteriaType;
+    typedef DisplacementLagrangeMultiplierContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierContactCriteriaType;
+    typedef DisplacementLagrangeMultiplierMixedContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierMixedContactCriteriaType;
+    typedef DisplacementLagrangeMultiplierResidualContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualContactCriteriaType;
+    
+    // Linear solvers
     
     // Custom builder and solvers types
     
@@ -83,62 +95,126 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
             
     // Residual Based Newton Raphson Contact Strategy      
-    class_< ResidualBasedNewtonRaphsonContactStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
-            ("ResidualBasedNewtonRaphsonContactStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, double, unsigned int >())
-            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, double, unsigned int >())
+    class_< ResidualBasedNewtonRaphsonContactStrategyType, 
+            typename ResidualBasedNewtonRaphsonContactStrategyType::Pointer,
+            BaseSolvingStrategyType  >  (m, "ResidualBasedNewtonRaphsonContactStrategy")
+            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType>())
+            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType, ProcessesListType>())
+            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType>())
+            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType, ProcessesListType>())
             .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
             .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
             .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
             .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
             ;
             
-//     // Residual Based Newton Raphson Contact Accelerated Strategy      
-//     class_< ResidualBasedNewtonRaphsonContactAcceleratedStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
-//             ("ResidualBasedNewtonRaphsonContactAcceleratedStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, ConvergenceAcceleratorType::Pointer >())
-//             .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, ConvergenceAcceleratorType::Pointer>())
-//             .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
-//             .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
-//             .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
-//             .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
-//             ;
-             
+    // Line search Contact Strategy      
+    class_< LineSearchContactStrategyType,
+            typename LineSearchContactStrategyType::Pointer,
+            BaseSolvingStrategyType  >(m, "LineSearchContactStrategy")
+            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+            .def("SetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
+            .def("GetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
+            .def("SetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
+            .def("GetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
+            ;
+            
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
     //********************************************************************
-
-    // Residual Based Incremental Update Static Contact Scheme Type
-    class_< ResidualBasedIncrementalUpdateStaticContactSchemeType,
-            bases< BaseSchemeType >, boost::noncopyable >
-            (
-            "ResidualBasedIncrementalUpdateStaticContactScheme", init< >()
-            );
             
-    // Residual Based Bossak Scheme Type
-    class_< ResidualBasedBossakDisplacementContactSchemeType,
-    bases< BaseSchemeType >,  boost::noncopyable >
-    (
-        "ResidualBasedBossakDisplacementContactScheme", init< double >() )
-        .def("Initialize", &ResidualBasedBossakDisplacementContactScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-    ;
-     
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
-
-    // Displacement Convergence Criterion
-    class_< MortarConvergenceCriteriaType,
-            bases< ConvergenceCriteriaType >, boost::noncopyable >
-            (
-            "MortarConvergenceCriteria", 
-            init< >())
+                    
+    // Custom mortar and criteria
+    class_< MortarAndConvergenceCriteriaType, typename MortarAndConvergenceCriteriaType::Pointer,
+            ConvergenceCriteriaType >
+            (m, "MortarAndConvergenceCriteria") 
+            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
+            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType>())
+            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType, bool>())
+            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType, bool, ConditionNumberUtilityPointerType>())
+            ;
+            
+    // Weighted residual values update
+    class_< MeshTyingMortarConvergenceCriteriaType, typename MeshTyingMortarConvergenceCriteriaType::Pointer,
+            ConvergenceCriteriaType >
+            (m, "MeshTyingMortarConvergenceCriteria") 
             .def(init< >())
-            .def("SetEchoLevel", &MortarConvergenceCriteriaType::SetEchoLevel)
+            .def(init<TablePrinterPointerType>())
+            ;
+
+    // Dual set strategy for SSNM Convergence Criterion (frictionless case)
+    class_< ALMFrictionlessMortarConvergenceCriteriaType, typename ALMFrictionlessMortarConvergenceCriteriaType::Pointer,
+            ConvergenceCriteriaType >
+            (m, "ALMFrictionlessMortarConvergenceCriteria") 
+            .def(init< >())
+            .def(init<TablePrinterPointerType>())
+            .def(init<TablePrinterPointerType, bool>())
+            .def(init<TablePrinterPointerType, bool, bool>())
+            ;
+            
+    // Dual set strategy for SSNM Convergence Criterion (frictionless components case)
+    class_< ALMFrictionlessComponentsMortarConvergenceCriteriaType, typename ALMFrictionlessComponentsMortarConvergenceCriteriaType::Pointer,
+            ConvergenceCriteriaType >
+            (m, "ALMFrictionlessComponentsMortarConvergenceCriteria")
+            .def(init< >())
+            .def(init<TablePrinterPointerType>())
+            .def(init<TablePrinterPointerType, bool>())
+            .def(init<TablePrinterPointerType, bool, bool>())
+            ;
+            
+    // Dual set strategy for SSNM Convergence Criterion (frictional case)
+    class_< ALMFrictionalMortarConvergenceCriteriaType, typename ALMFrictionalMortarConvergenceCriteriaType::Pointer,
+            ConvergenceCriteriaType >
+            (m, "ALMFrictionalMortarConvergenceCriteria") 
+            .def(init< >())
+            .def(init<TablePrinterPointerType>())
+            .def(init<TablePrinterPointerType, bool>())
+            .def(init<TablePrinterPointerType, bool, bool>())
+            ;
+            
+    // Displacement and lagrange multiplier Convergence Criterion
+    class_< DisplacementLagrangeMultiplierContactCriteriaType, typename DisplacementLagrangeMultiplierContactCriteriaType::Pointer,
+            ConvergenceCriteriaType >
+            (m, "DisplacementLagrangeMultiplierContactCriteria") 
+            .def(init< double, double, double, double >())
+            .def(init< double, double, double, double, bool >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType, bool >())
+            ;
+            
+    // Displacement and lagrange multiplier mixed Convergence Criterion
+    class_< DisplacementLagrangeMultiplierMixedContactCriteriaType, typename DisplacementLagrangeMultiplierMixedContactCriteriaType::Pointer,
+            ConvergenceCriteriaType >
+            (m, "DisplacementLagrangeMultiplierMixedContactCriteria") 
+            .def(init< double, double, double, double >())
+            .def(init< double, double, double, double, bool >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType, bool >())
+            ;
+            
+    // Displacement and lagrange multiplier residual Convergence Criterion
+    class_< DisplacementLagrangeMultiplierResidualContactCriteriaType, typename DisplacementLagrangeMultiplierResidualContactCriteriaType::Pointer,
+            ConvergenceCriteriaType >
+            (m, "DisplacementLagrangeMultiplierResidualContactCriteria") 
+            .def(init< double, double, double, double >())
+            .def(init< double, double, double, double, bool >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType, bool >())
             ;
             
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
-
+            
+    typedef ContactResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ContactResidualBasedBlockBuilderAndSolverType;
+    class_< ContactResidualBasedBlockBuilderAndSolverType, typename ContactResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolver")
+    .def(init< LinearSolverType::Pointer > ());
 }
 
 }  // namespace Python.

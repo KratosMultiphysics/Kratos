@@ -87,8 +87,8 @@ class cg {
             /// Target absolute residual error.
             scalar_type abstol;
 
-            params(size_t maxiter = 100, scalar_type tol = 1e-8)
-                : maxiter(maxiter), tol(tol),
+            params()
+                : maxiter(100), tol(1e-8),
                   abstol(std::numeric_limits<scalar_type>::min())
             {}
 
@@ -183,9 +183,6 @@ class cg {
                 res_norm = norm(*r);
             }
 
-            backend::residual(rhs, A, x, *r);
-            res_norm = norm(*r);
-
             return boost::make_tuple(iter, res_norm / norm_rhs);
         }
 
@@ -219,10 +216,10 @@ class cg {
     private:
         size_t n;
 
-        boost::shared_ptr<vector> r;
-        boost::shared_ptr<vector> s;
-        boost::shared_ptr<vector> p;
-        boost::shared_ptr<vector> q;
+        std::shared_ptr<vector> r;
+        std::shared_ptr<vector> s;
+        std::shared_ptr<vector> p;
+        std::shared_ptr<vector> q;
 
         InnerProduct inner_product;
 

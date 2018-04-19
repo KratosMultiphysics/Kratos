@@ -16,7 +16,7 @@ namespace Kratos
 
 {
 
-class RigidFace3D : public DEMWall
+class KRATOS_API(DEM_APPLICATION) RigidFace3D : public DEMWall
 {
 public:
 

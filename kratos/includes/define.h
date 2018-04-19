@@ -2,12 +2,12 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand 
+//  Main authors:    Pooyan Dadvand
 //
 
 #if !defined(KRATOS_DEFINE_H_INCLUDED )
@@ -19,25 +19,23 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-#include "boost/current_function.hpp"
-
 
 /* Project includes */
-#include "includes/constant.h"
-#include "includes/kratos_config.h"
 #include "includes/kratos_export_api.h"
+#include "includes/shared_pointers.h"
 #include "includes/exception.h"
 
 
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+    #define KRATOS_COMPILED_IN_LINUX
 
-#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef boost::shared_ptr<a > Pointer; \
-typedef boost::shared_ptr<a > SharedPointer; \
-typedef boost::weak_ptr<a > WeakPointer
+#elif defined(__APPLE__) && defined(__MACH__)
+    #define KRATOS_COMPILED_IN_OSX
 
-#define KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME(a) typedef boost::shared_ptr<a > Pointer; \
-typedef typename boost::shared_ptr<a > SharedPointer; \
-typedef typename boost::weak_ptr<a > WeakPointer
+#elif defined(_WIN32)
+    #define KRATOS_COMPILED_IN_WINDOWS
+#endif
+
 
 //-----------------------------------------------------------------
 //
@@ -54,70 +52,6 @@ typedef typename boost::weak_ptr<a > WeakPointer
 // Exceptions
 //
 //-----------------------------------------------------------------
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_1)
-#define KRATOS_EXCEPTION_LEVEL_1
-#endif
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_2)
-#define KRATOS_EXCEPTION_LEVEL_1
-#define KRATOS_EXCEPTION_LEVEL_2
-#endif
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_3)
-#define KRATOS_EXCEPTION_LEVEL_1
-#define KRATOS_EXCEPTION_LEVEL_2
-#define KRATOS_EXCEPTION_LEVEL_3
-#endif
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_4)
-#define KRATOS_EXCEPTION_LEVEL_1
-#define KRATOS_EXCEPTION_LEVEL_2
-#define KRATOS_EXCEPTION_LEVEL_3
-#define KRATOS_EXCEPTION_LEVEL_4
-#endif
-
-#if defined(KRATOS_EXCEPTION_LEVEL_1)
-#define KRATOS_TRY_LEVEL_1 try {
-#define KRATOS_CATCH_LEVEL_1(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_1 {
-#define KRATOS_CATCH_LEVEL_1(MoreInfo) }
-#endif
-
-
-#if defined(KRATOS_EXCEPTION_LEVEL_2)
-#define KRATOS_TRY_LEVEL_2 try {
-#define KRATOS_CATCH_LEVEL_2(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_2 {
-#define KRATOS_CATCH_LEVEL_2(MoreInfo) }
-#endif
-
-#if defined(KRATOS_EXCEPTION_LEVEL_3)
-#define KRATOS_TRY_LEVEL_3 try {
-#define KRATOS_CATCH_LEVEL_3(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_3 {
-#define KRATOS_CATCH_LEVEL_3(MoreInfo) }
-#endif
-
-#if defined(KRATOS_EXCEPTION_LEVEL_4)
-#define KRATOS_TRY_LEVEL_4 try {
-#define KRATOS_CATCH_LEVEL_4(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_4 {
-#define KRATOS_CATCH_LEVEL_4(MoreInfo) }
-#endif
-
-#ifndef KRATOS_CURRENT_FUNCTION
-#define KRATOS_CURRENT_FUNCTION BOOST_CURRENT_FUNCTION
-#endif
-
 
 #define KRATOS_CATCH_AND_THROW(ExceptionType, MoreInfo, Block) \
 catch(ExceptionType& e)                                        \
@@ -159,11 +93,11 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 
 #define KRATOS_CATCH(MoreInfo) { };
 #endif
+
 //-----------------------------------------------------------------
 //
 // variables
 //
-
 //-----------------------------------------------------------------
 
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
@@ -229,13 +163,13 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::zero_vector<double>(3)); \
 \
     /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component1(#component1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 0)); \
+                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 0)); \
 \
     /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component2(#component2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 1)); \
+                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 1)); \
 \
     /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component3(#component3, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 2));
+                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 2));
 
 #ifdef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
@@ -301,6 +235,13 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
   static const Kratos::Flags name;			\
   static const Kratos::Flags NOT_##name
 
+#ifdef KRATOS_DEFINE_LOCAL_APPLICATION_FLAG
+#undef KRATOS_DEFINE_LOCAL_APPLICATION_FLAG
+#endif
+#define KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(application, name)		\
+  static KRATOS_API(DEM_APPLICATION) const Kratos::Flags name;			\
+  static KRATOS_API(DEM_APPLICATION) const Kratos::Flags NOT_##name
+
 #ifdef KRATOS_CREATE_LOCAL_FLAG
 #undef KRATOS_CREATE_LOCAL_FLAG
 #endif
@@ -330,9 +271,12 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KratosComponents<Condition >::Add(name, reference); \
     Serializer::Register(name, reference);
 
-
-
-
+#ifdef KRATOS_REGISTER_CONSTITUTIVE_LAW
+#undef KRATOS_REGISTER_CONSTITUTIVE_LAW
+#endif
+#define KRATOS_REGISTER_CONSTITUTIVE_LAW(name, reference) \
+    KratosComponents<ConstitutiveLaw >::Add(name, reference); \
+    Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
@@ -349,8 +293,31 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Y) \
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Z)
 
+#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
+    scope().attr(#flag) = boost::ref(flag)      \
+ 
+#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_FLAG(flag) \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
 
-
+    
+    
+    
+#ifdef __GNUC__
+#define KRATOS_DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#define KRATOS_DEPRECATED __declspec(deprecated)
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define KRATOS_DEPRECATED
+#endif
+    
 
 namespace Kratos
 {
@@ -363,9 +330,6 @@ namespace Kratos
 
 /**@name Type Definitions */
 /*@{ */
-/** Pointer to char
- */
-typedef const char* PointerToConstCharType;
 
 /*@} */
 
@@ -390,30 +354,10 @@ typedef const char* PointerToConstCharType;
 /* #define KRATOS_REGISTER_LINEAR_SOLVER_BEGIN \ */
 /* template<class TFunction> ApplyToLinearSolver(String Name){ */
 
-
-
-
 //Print Trace if defined
-//#define KRATOS_PRINT_TRACE
-#ifdef KRATOS_PRINT_TRACE
-
-#define KRATOS_TRACE(A,B) gTrace.Inform(A,B)
-
-#else
-
-#define KRATOS_TRACE(A,B)
-#endif
-
-#define KRATOS_TRIANGULAR_MEMBRANE_ELEMENT_INCLUDED
-#define KRATOS_QUADRILATERAL_DIFFUSION_CONVECTION_ELEMENT_INCLUDED
-#define KRATOS_TETRAHEDRAL_HEAT_CONDUCTIVITY_ELEMENT_INCLUDED
-
-#define KRATOS_WATCH(variable) \
-  std::cout << #variable << " : " << variable << std::endl;
+#define KRATOS_WATCH(variable) std::cout << #variable << " : " << variable << std::endl;
 
 }  /* namespace Kratos.*/
-
-
 
 #define KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType) \
 	Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));

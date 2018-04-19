@@ -118,36 +118,72 @@ class schur_pressure_correction {
 
             std::vector<char> pmask;
 
-            params() {}
+            // Approximate Kuu^-1 with inverted diagonal of Kuu during
+            // construction of matrix-less Schur complement.
+            // When false, USolver is used instead.
+            bool approx_schur;
+
+            params() : approx_schur(true) {}
 
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, usolver),
-                  AMGCL_PARAMS_IMPORT_CHILD(p, psolver)
+                  AMGCL_PARAMS_IMPORT_CHILD(p, psolver),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, approx_schur)
             {
-                void *pm = 0;
                 size_t n = 0;
 
-                pm = p.get("pmask",     pm);
-                n  = p.get("pmask_size", n);
-
-                precondition(pm,
-                        "Error in schur_complement parameters: "
-                        "pmask is not set");
+                n = p.get("pmask_size", n);
 
                 precondition(n > 0,
                         "Error in schur_complement parameters: "
-                        "pmask is set, but pmask_size is not"
-                        );
+                        "pmask_size is not set");
 
-                pmask.assign(static_cast<char*>(pm), static_cast<char*>(pm) + n);
+                if (p.count("pmask_pattern")) {
+                    pmask.resize(n, 0);
 
-                AMGCL_PARAMS_CHECK(p, (usolver)(psolver)(pmask)(pmask_size));
+                    std::string pattern = p.get("pmask_pattern", std::string());
+                    switch (pattern[0]) {
+                        case '%':
+                            {
+                                int start  = std::atoi(pattern.substr(1).c_str());
+                                int stride = std::atoi(pattern.substr(3).c_str());
+                                for(size_t i = start; i < n; i += stride) pmask[i] = 1;
+                            }
+                            break;
+                        case '<':
+                            {
+                                size_t m = std::atoi(pattern.c_str()+1);
+                                for(size_t i = 0; i < std::min(m, n); ++i) pmask[i] = 1;
+                            }
+                            break;
+                        case '>':
+                            {
+                                size_t m = std::atoi(pattern.c_str()+1);
+                                for(size_t i = m; i < n; ++i) pmask[i] = 1;
+                            }
+                            break;
+                        default:
+                            precondition(false, "Unknown pattern in pmask_pattern");
+                    }
+                } else if (p.count("pmask")) {
+                    void *pm = 0;
+                    pm = p.get("pmask", pm);
+                    pmask.assign(static_cast<char*>(pm), static_cast<char*>(pm) + n);
+                } else {
+                    precondition(false,
+                            "Error in schur_complement parameters: "
+                            "neither pmask_pattern, nor pmask is set"
+                            );
+                }
+
+                AMGCL_PARAMS_CHECK_OPT(p, (usolver)(psolver)(approx_schur)(pmask_size), (pmask)(pmask_pattern));
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path = "") const
             {
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, usolver);
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, psolver);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, approx_schur);
             }
         } prm;
 
@@ -159,11 +195,11 @@ class schur_pressure_correction {
                 )
             : prm(prm), n(backend::rows(K)), np(0), nu(0)
         {
-            init(boost::make_shared<build_matrix>(K), bprm);
+            init(std::make_shared<build_matrix>(K), bprm);
         }
 
         schur_pressure_correction(
-                boost::shared_ptr<build_matrix> K,
+                std::shared_ptr<build_matrix> K,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
                 )
@@ -218,30 +254,37 @@ class schur_pressure_correction {
             backend::spmv( alpha, P->system_matrix(), x, beta, y);
 
             backend::spmv(1, *Kup, x, 0, *tmp);
-            backend::clear(*u);
-            (*U)(*tmp, *u);
+
+            if (prm.approx_schur) {
+                backend::vmul(1, *M, *tmp, 0, *u);
+            } else {
+                backend::clear(*u);
+                (*U)(*tmp, *u);
+            }
+
             backend::spmv(-alpha, *Kpu, *u, 1, y);
         }
     private:
         size_t n, np, nu;
 
-        boost::shared_ptr<matrix> K, Kup, Kpu, x2u, x2p, u2x, p2x;
-        boost::shared_ptr<vector> rhs_u, rhs_p, u, p, tmp;
+        std::shared_ptr<matrix> K, Kup, Kpu, x2u, x2p, u2x, p2x;
+        std::shared_ptr<vector> rhs_u, rhs_p, u, p, tmp;
+        std::shared_ptr<typename backend_type::matrix_diagonal> M;
 
-        boost::shared_ptr<USolver> U;
-        boost::shared_ptr<PSolver> P;
+        std::shared_ptr<USolver> U;
+        std::shared_ptr<PSolver> P;
 
-        void init(const boost::shared_ptr<build_matrix> &K, const backend_params &bprm)
+        void init(const std::shared_ptr<build_matrix> &K, const backend_params &bprm)
         {
             typedef typename backend::row_iterator<build_matrix>::type row_iterator;
 
             this->K = backend_type::copy_matrix(K, bprm);
 
             // Extract matrix subblocks.
-            boost::shared_ptr<build_matrix> Kuu = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> Kpu = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> Kup = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> Kpp = boost::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> Kuu = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> Kpu = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> Kup = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> Kpp = std::make_shared<build_matrix>();
 
             std::vector<ptrdiff_t> idx(n);
 
@@ -331,8 +374,8 @@ class schur_pressure_correction {
                 }
             }
 
-            U = boost::make_shared<USolver>(*Kuu, prm.usolver, bprm);
-            P = boost::make_shared<PSolver>(*Kpp, prm.psolver, bprm);
+            U = std::make_shared<USolver>(*Kuu, prm.usolver, bprm);
+            P = std::make_shared<PSolver>(*Kpp, prm.psolver, bprm);
 
             this->Kup = backend_type::copy_matrix(Kup, bprm);
             this->Kpu = backend_type::copy_matrix(Kpu, bprm);
@@ -345,11 +388,14 @@ class schur_pressure_correction {
 
             tmp = backend_type::create_vector(nu, bprm);
 
+            if (prm.approx_schur)
+                M = backend_type::copy_vector(diagonal(*Kuu, /*invert = */true), bprm);
+
             // Scatter/Gather matrices
-            boost::shared_ptr<build_matrix> x2u = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> x2p = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> u2x = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> p2x = boost::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> x2u = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> x2p = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> u2x = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> p2x = std::make_shared<build_matrix>();
 
             x2u->set_size(nu, n, true);
             x2p->set_size(np, n, true);
@@ -424,7 +470,7 @@ class schur_pressure_correction {
             return os;
         }
 
-#if defined(AMGCL_DEBUG) || !defined(NDEBUG)
+#if defined(AMGCL_DEBUG)
         template <typename I, typename E>
         static void report(const std::string &name, const boost::tuple<I, E> &c) {
             std::cout << name << " (" << boost::get<0>(c) << ", " << boost::get<1>(c) << ")\n";

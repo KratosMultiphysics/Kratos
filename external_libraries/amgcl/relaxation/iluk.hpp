@@ -55,6 +55,8 @@ struct iluk {
 
     typedef typename math::scalar_of<value_type>::type scalar_type;
 
+    typedef detail::ilu_solve<Backend> ilu_solve;
+
     /// Relaxation parameters.
     struct params {
         /// Level of fill-in.
@@ -63,24 +65,23 @@ struct iluk {
         /// Damping factor.
         scalar_type damping;
 
-        /// Number of Jacobi iterations.
-        /** \note Used for approximate solution of triangular systems on parallel backends */
-        unsigned jacobi_iters;
+        /// Parameters for sparse triangular system solver
+        typename ilu_solve::params solve;
 
-        params() : k(1), damping(1), jacobi_iters(2) {}
+        params() : k(1), damping(1) {}
 
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, k)
             , AMGCL_PARAMS_IMPORT_VALUE(p, damping)
-            , AMGCL_PARAMS_IMPORT_VALUE(p, jacobi_iters)
+            , AMGCL_PARAMS_IMPORT_CHILD(p, solve)
         {
-            AMGCL_PARAMS_CHECK(p, (k)(damping)(jacobi_iters));
+            AMGCL_PARAMS_CHECK(p, (k)(damping)(solve));
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, k);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, damping);
-            AMGCL_PARAMS_EXPORT_VALUE(p, path, jacobi_iters);
+            AMGCL_PARAMS_EXPORT_CHILD(p, path, solve);
         }
     };
 
@@ -88,7 +89,9 @@ struct iluk {
     template <class Matrix>
     iluk( const Matrix &A, const params &prm, const typename Backend::params &bprm)
     {
+        typedef typename backend::builtin<value_type>::matrix build_matrix;
         typedef typename backend::row_iterator<Matrix>::type row_iterator;
+
         const size_t n = backend::rows(A);
 
         size_t Anz = backend::nonzeros(A);
@@ -103,7 +106,8 @@ struct iluk {
 
         std::vector<int> Ulev; Ulev.reserve(Anz / 3);
 
-        std::vector<value_type> D; D.reserve(n);
+        std::shared_ptr<backend::numa_vector<value_type> > D =
+            std::make_shared<backend::numa_vector<value_type> >(n, false);
 
         sparse_vector w(n, prm.k);
 
@@ -116,7 +120,7 @@ struct iluk {
 
             while(!w.q.empty()) {
                 nonzero &a = w.next_nonzero();
-                a.val = a.val * D[a.col];
+                a.val = a.val * (*D)[a.col];
 
                 for(ptrdiff_t j = Uptr[a.col], e = Uptr[a.col+1]; j < e; ++j) {
                     int lev = std::max(a.lev, Ulev[j]) + 1;
@@ -131,7 +135,7 @@ struct iluk {
                     Lcol.push_back(e.col);
                     Lval.push_back(e.val);
                 } else if (e.col == i) {
-                    D.push_back(math::inverse(e.val));
+                    (*D)[i] = math::inverse(e.val);
                 } else {
                     Ucol.push_back(e.col);
                     Uval.push_back(e.val);
@@ -143,14 +147,10 @@ struct iluk {
             Uptr.push_back(Ucol.size());
         }
 
-        this->D = Backend::copy_vector(D, bprm);
-        this->L = Backend::copy_matrix(boost::make_shared<build_matrix>(n, n, Lptr, Lcol, Lval), bprm);
-        this->U = Backend::copy_matrix(boost::make_shared<build_matrix>(n, n, Uptr, Ucol, Uval), bprm);
-
-        if (!serial_backend::value) {
-            t1 = Backend::create_vector(n, bprm);
-            t2 = Backend::create_vector(n, bprm);
-        }
+        ilu = std::make_shared<ilu_solve>(
+                std::make_shared<build_matrix>(n, n, Lptr, Lcol, Lval),
+                std::make_shared<build_matrix>(n, n, Uptr, Ucol, Uval),
+                D, prm.solve, bprm);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
@@ -161,7 +161,7 @@ struct iluk {
             ) const
     {
         backend::residual(rhs, A, x, tmp);
-        solve(tmp, prm, serial_backend());
+        ilu->solve(tmp);
         backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
     }
 
@@ -173,27 +173,19 @@ struct iluk {
             ) const
     {
         backend::residual(rhs, A, x, tmp);
-        solve(tmp, prm, serial_backend());
+        ilu->solve(tmp);
         backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params&) const
     {
         backend::copy(rhs, x);
-        solve(x, prm, serial_backend());
+        ilu->solve(x);
     }
 
     private:
-        typedef typename boost::is_same<
-                Backend, backend::builtin<value_type>
-            >::type serial_backend;
-
-        typedef typename backend::builtin<value_type>::matrix build_matrix;
-
-        boost::shared_ptr<matrix> L, U;
-        boost::shared_ptr<matrix_diagonal> D;
-        boost::shared_ptr<vector> t1, t2;
+        std::shared_ptr<ilu_solve> ilu;
 
         struct nonzero {
             ptrdiff_t  col;
@@ -276,20 +268,6 @@ struct iluk {
                 dia = d;
             }
         };
-
-        template <class VectorX>
-        void solve(VectorX &x, const params&, boost::true_type) const
-        {
-            relaxation::detail::serial_ilu_solve(*L, *U, *D, x);
-        }
-
-        template <class VectorX>
-        void solve(VectorX &x, const params &prm, boost::false_type) const
-        {
-            relaxation::detail::parallel_ilu_solve(
-                    *L, *U, *D, x, *t1, *t2, prm.jacobi_iters
-                    );
-        }
 };
 
 } // namespace relaxation

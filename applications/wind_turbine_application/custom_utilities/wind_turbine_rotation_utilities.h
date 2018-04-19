@@ -16,10 +16,10 @@ extern "C" {
         #define REAL double
     #endif /* not SINGLE */
 
-    #include "custom_external_libraries/triangle/triangle.h"
+    #include "triangle.h"
 }
 
-#include "custom_external_libraries/tetgen1.4.3/tetgen.h"
+#include "tetgen.h"
 
 // Project includes
 #include "includes/define.h"

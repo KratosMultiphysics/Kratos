@@ -28,6 +28,12 @@
 #include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
 #include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
+#include "custom_conditions/EP_point_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/EP_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/EP_point_rigid_contact_penalty_wP_3D_condition.hpp"
+#include "custom_conditions/EP_axisym_point_rigid_contact_penalty_2D_condition.hpp"
+
+
 // #include "custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.hpp"
 // #include "custom_conditions/beam_point_rigid_contact_penalty_3D_condition.hpp"
 // #include "custom_conditions/beam_point_rigid_contact_LM_3D_condition.hpp"
@@ -380,7 +386,7 @@ namespace Kratos
       KRATOS_TRY
 
       ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo();
-      double Dimension = rCurrentProcessInfo[DOMAIN_SIZE];
+      double Dimension = rCurrentProcessInfo[SPACE_DIMENSION];
 
       //create properties prototype for the contact conditions
       unsigned int NumberOfProperties = mrMainModelPart.NumberOfProperties();
@@ -399,6 +405,8 @@ namespace Kratos
       mpProperties->SetValue(PENALTY_PARAMETER, CustomProperties["PENALTY_PARAMETER"].GetDouble());
       mpProperties->SetValue(TANGENTIAL_PENALTY_RATIO, CustomProperties["TANGENTIAL_PENALTY_RATIO"].GetDouble());
       mpProperties->SetValue(TAU_STAB, CustomProperties["TAU_STAB"].GetDouble());
+      mpProperties->SetValue(THICKNESS, 1.0);
+      mpProperties->SetValue(CONTACT_FRICTION_ANGLE, 0.0);
 
       mrMainModelPart.AddProperties(mpProperties, NumberOfProperties);
 
@@ -426,6 +434,21 @@ namespace Kratos
       }
       else if(  ConditionName == "AxisymPointContactPenaltyCondition2D1N" ){
       	return ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
+      }
+       else if(  ConditionName == "EPPointContactPenaltyCondition3D1N" ) {
+        return ConditionType::Pointer(new EPPointRigidContactPenalty3DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
+     }
+     else if(  ConditionName == "EPPointContactPenaltyCondition2D1N" ) {
+        return ConditionType::Pointer(new EPPointRigidContactPenalty2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
+     }
+     else if(  ConditionName == "EPPointContactPenaltywPCondition3D1N" ) {
+        return ConditionType::Pointer(new EPPointRigidContactPenaltywP3DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
+     }
+     else if(  ConditionName == "EPAxisymPointContactPenaltyCondition2D1N" ) {
+        return ConditionType::Pointer(new EPAxisymPointRigidContactPenalty2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
+      } else {
+        std::cout << ConditionName << std::endl;
+        KRATOS_ERROR << "the specified contact condition does not exist " << std::endl;
       }
       // else if(  ConditionName == "AxisymPointWaterContactPenaltyCondition2D1N" ){
       // 	return ConditionType::Pointer(new AxisymPointRigidContactPenaltyWater2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
@@ -566,7 +589,7 @@ namespace Kratos
       KRATOS_TRY
 
       ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo();
-      double Dimension = rCurrentProcessInfo[DOMAIN_SIZE];
+      double Dimension = rCurrentProcessInfo[SPACE_DIMENSION];
 
       ModelPart::ConditionsContainerType ContactConditions;
       
@@ -609,6 +632,7 @@ namespace Kratos
 	      ConditionType::Pointer  pConditionType = FindPointCondition(rContactModelPart, (*nd) );
 	    
 	      pCondition = pConditionType->Clone(id, pConditionNode);
+              pCondition->SetData( pConditionType->GetData() );
 
 	      pCondition->Set(CONTACT);
 
@@ -691,6 +715,16 @@ namespace Kratos
     {
 
      KRATOS_TRY
+      const ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo(); 
+      if ( rCurrentProcessInfo.Has(IS_RESTARTED) && rCurrentProcessInfo.Has(LOAD_RESTART) ) {
+         if ( rCurrentProcessInfo[IS_RESTARTED] == true) {
+            if ( rCurrentProcessInfo[STEP] == rCurrentProcessInfo[LOAD_RESTART] ) {
+std::cout << " doing my.... ";
+               return mpConditionType;
+
+            }
+         }
+      }
 
      for(ModelPart::ConditionsContainerType::iterator i_cond =rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
        {

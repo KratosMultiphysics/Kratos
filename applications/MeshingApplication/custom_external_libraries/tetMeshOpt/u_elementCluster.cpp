@@ -20,10 +20,10 @@ void dgetSurfaceTriangles(TList<TObject*>* orig , TList<TObject*>* res , TList<T
 	for (i = 0 ; i<orig->Count() ; i++)
 	{
 		t = (TTetra*)(orig->elementAt(i));
-		if (t == NULL) continue;
+		if (t == nullptr) continue;
 
-		tr = t->getSurfaceTriangle(false, tempL,NULL);
-		if (tr!=NULL)
+		tr = t->getSurfaceTriangle(false, tempL,nullptr);
+		if (tr!=nullptr)
 		{
 			for (j = 0 ;j<tr->Count() ; j++)
 			{
@@ -80,10 +80,10 @@ double evaluteVertexChange(TVertex * vOrig , TVertex* vNew ,
 		// Si es invalido, lo borro
 		if (cnt>1)
 		{
-			velList->setElementAt(4*i, NULL);
-			velList->setElementAt(4*i+1, NULL);
-			velList->setElementAt(4*i+2, NULL);
-			velList->setElementAt(4*i+3, NULL);
+			velList->setElementAt(4*i, nullptr);
+			velList->setElementAt(4*i+1, nullptr);
+			velList->setElementAt(4*i+2, nullptr);
+			velList->setElementAt(4*i+3, nullptr);
 		}
 	}
 	// elimino invalidos
@@ -175,7 +175,7 @@ void innercollapseEdges(TVolumeMesh*  aMesh , int  maxSteps,
 			if (vNew->flag >0) continue;
 			if (vNew->isdestroyed) continue;
 			if (vNew->getID()<vOrig->getID())continue;
-			if (vNew->elementsList == NULL)  continue;
+			if (vNew->elementsList == nullptr)  continue;
 			// Reemplazo un vertice por otro que tambien cumpla las mismas propiedades
 			if (vNew->isSurface && !vOrig->isSurface) continue;
 			if (!vNew->isSurface && vOrig->isSurface) continue;
@@ -237,7 +237,7 @@ TElementsCluster::TElementsCluster(TMesh* aMesh, TVertexesEvaluator functor  )
 	tempL = new TList<TObject*>();
 
 	fc = functor;
-	vC =NULL;
+	vC =nullptr;
 
 	//avgEdgeLength = aMesh.AvgEdgeLength;
 };
@@ -274,8 +274,8 @@ double TElementsCluster::getMinAngle()
 
 TElementsCluster::~TElementsCluster()
 {
-	fc =NULL;
-	vC =NULL;
+	fc =nullptr;
+	vC =nullptr;
 	delete(  goodTetraList);
 	delete(  surfaceT);
 	delete(  vertexes);
@@ -300,7 +300,7 @@ int TElementsCluster::evaluateSet()
 	TVertex *v0,*v1,*v2,*v3;
 	float4 cn ;
 
-	vC = NULL;
+	vC = nullptr;
 
 	if (testCenter) 
 	{
@@ -388,7 +388,7 @@ void  TElementsCluster::genElements(bool vertexIsNew)
 	int i ;  
 
 
-	if ((!testCenter) && (vC != NULL)) 
+	if ((!testCenter) && (vC != nullptr)) 
 		delete vC;
 
 	if (newElements->Count()>0)
@@ -448,7 +448,7 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 			v2 = (TVertex*)(goodTetraList->elementAt(i+2));
 			v3 = (TVertex*)(goodTetraList->elementAt(i+3));
 
-			t = new TTetra(NULL,v0,v1,v2,v3,true);          
+			t = new TTetra(nullptr,v0,v1,v2,v3,true);          
 			newElements->Add(t);
 		}
 
@@ -474,10 +474,10 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 				for (i = 0 ; i<newElements->Count();i++)
 				{
 					TTetra *_t = (TTetra *)(newElements->elementAt(i));					
-					if (_t != NULL)
+					if (_t != nullptr)
 					{
 					  _t->removeVertexRef();
-					  newElements->setElementAt(i,NULL);
+					  newElements->setElementAt(i,nullptr);
 					  delete _t;
 					}
 				}
@@ -490,10 +490,10 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 					_t->isdestroyed = false;
 					_t->updateVertexRef();
 				}
-				if (vC!= NULL)
+				if (vC!= nullptr)
 				{ 
 					delete vC;
-					vC = NULL;
+					vC = nullptr;
 				}
 				newElements->Clear();
 				copyEL->Clear();
@@ -526,12 +526,12 @@ bool TElementsCluster::generateSubMesh(double minExpectedQuality , double minExp
 	tempTetraList->Clear();
 	goodTetraList->Clear();
 	tempL->Clear();
-	vC = NULL;
+	vC = nullptr;
 
 	for (i = 0 ; i< inspectedElements->Count() ; i++)
 	{
 		TTetra* _t = (TTetra*)( inspectedElements->elementAt(i));
-		if (_t == NULL) continue;
+		if (_t == nullptr) continue;
 		if (! _t->isdestroyed )
 			elements->Add(_t);
 	}
@@ -542,7 +542,7 @@ bool TElementsCluster::generateSubMesh(double minExpectedQuality , double minExp
 	for (i = 0 ; i< elements->Count() ;i++)
 	{
 		TTetra* _t =t = (TTetra*)( elements->elementAt(i));
-		if (_t == NULL) continue;		
+		if (_t == nullptr) continue;		
 		_t->calidad = fc(_t->vertexes);       
 		_t->fMinDiedralAngle = diedralAngle(_t->vertexes);
 		minQuality = Min(minQuality,_t->calidad );
@@ -587,7 +587,7 @@ void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 	for (iv = 0 ; iv<elements->Count()  ; iv++)
 	{
 		TTetra *_t = (TTetra*)(elements->elementAt(iv)); 
-		if (_t == NULL ) continue;
+		if (_t == nullptr ) continue;
 		if (_t->isdestroyed) continue;
 		nFaces->Clear();
 		_t->getNeighboursByFace(1,nFaces);
@@ -597,7 +597,7 @@ void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 		for (j = 0  ; j<nFaces->Count() ; j++) 
 		{
 			TTetra *_t2 = (TTetra*)(nFaces->elementAt(j));
-			if (_t2 == NULL) continue;
+			if (_t2 == nullptr) continue;
 			if (_t2->isdestroyed) continue;
 
 			inspectedElements->Clear();
@@ -660,7 +660,7 @@ void evaluateClusterByNode(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 	for (i = 0 ;i< aMesh->elements->Count(); i++)
 	{
 		TTetra *t = (TTetra*)(aMesh->elements->elementAt(i));
-		if (t==NULL) continue;
+		if (t==nullptr) continue;
 		t->calidad =vrelaxQuality( t->vertexes);
 		meshMinQ = Min(meshMinQ,  t->calidad);
 	}
@@ -682,7 +682,7 @@ void evaluateClusterByNode(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 	for (iv = 0 ; iv<vertexesCopy->Count() ; iv++)
 	{
 		inspVertex =(TVertex*)(vertexesCopy->elementAt(iv));
-		if (inspVertex->elementsList== NULL)  continue;
+		if (inspVertex->elementsList== nullptr)  continue;
 		inspVertex->elementsList->Pack();
 		if (inspVertex->elementsList->Count() == 0) continue;
 		//--Limpio las variables
@@ -756,7 +756,7 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 		vl->Clear();
 		v0->getVertexNeighboursByElem(vl,1,true);
 
-		if (vl == NULL) continue;
+		if (vl == nullptr) continue;
 		if (vl->Count() == 0 ) continue;
 
 		//  Recorro los vertices vecinos
@@ -764,14 +764,14 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 		{
 			v1 = (TVertex*)(vl->elementAt(j));
 			if (v0->getID()>=v1->getID()) continue;
-			if (v1->elementsList == NULL) continue;
+			if (v1->elementsList == nullptr) continue;
 			inspElements->Clear();
 			//--- Veo los vecinos de arista de ambos vertices
 			//Para el vertice 0
 			for (k = 0 ; k<v0->elementsList->Count() ; k++)
 			{
 				t = (TTetra*)(v0->elementsList->elementAt(k));
-				if (t == NULL) continue;
+				if (t == nullptr) continue;
 				if (t->isdestroyed) continue;
 				if (!t->hasEdge(v0,v1)) continue;
 				if (t->innerFlag == i*1000+j) continue;
@@ -782,7 +782,7 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 			for (k = 0 ; k<v1->elementsList->Count() ; k++)
 			{
 				t = (TTetra*)(v1->elementsList->elementAt(k));
-				if (t == NULL) continue;
+				if (t == nullptr) continue;
 				if (t->isdestroyed) continue;
 				if (!t->hasEdge(v0,v1)) continue;
 				if (t->innerFlag == i*1000+j) continue;
@@ -901,7 +901,7 @@ double testTetraSplit4(TTetra *t, TVertex* v, TList<TObject*>* lRes , TVertexesE
 		vs[2] = t->vertexes[ TTetraFaces[i*3+2] ];
 		vs[3] = v;
 		q = Min(q , qualityFunction(vs) );
-		if (lRes != NULL )
+		if (lRes != nullptr )
 		{
 			lRes->Add(vs[0]);
 			lRes->Add(vs[1]);
@@ -938,7 +938,7 @@ int vertexTetraReInsertion(TMesh *am ,TList<TVertex*>* vertexesList )
 		v = (TVertex*)(vertexesList->elementAt(i));
 		t = aMesh->isPointInside(v->fPos);
 		// Ningun tetra lo contiene
-		if (t == NULL)  continue;      
+		if (t == nullptr)  continue;      
 		oldQ = minMeshQ;
 
 		lRes->Clear();
@@ -949,13 +949,13 @@ int vertexTetraReInsertion(TMesh *am ,TList<TVertex*>* vertexesList )
 		if (newQ>=oldQ)  
 		{
 			//Pude volver a insertar el nodo          
-			vertexesList->setElementAt(i, NULL); 
+			vertexesList->setElementAt(i, nullptr); 
 			res ++ ;
 			
 			// Create new Tetra!!
 			for (j = 0 ; j<lRes->Count();j=j+4)
 			{
-				tNew = new TTetra(NULL, (TVertex*)(lRes->structure[j]),
+				tNew = new TTetra(nullptr, (TVertex*)(lRes->structure[j]),
 					(TVertex*)(lRes->structure[j+1]),
 					(TVertex*)(lRes->structure[j+2]),
 					(TVertex*)(lRes->structure[j+3]));

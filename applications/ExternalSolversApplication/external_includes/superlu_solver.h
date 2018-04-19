@@ -46,7 +46,6 @@
 #define  KRATOS_SUPERLU_SOLVER_H_INCLUDED
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 #include "includes/ublas_interface.h"
 // #include "external_includes/superlu/superlu.hpp"
@@ -91,7 +90,7 @@ public:
     /**
      * Destructor
      */
-    virtual ~SuperLUSolver() {}
+    ~SuperLUSolver() override {}
 
     /**
      * Normal solve method.
@@ -101,7 +100,7 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         //std::cout << "matrix size in solver:  " << rA.size1() << std::endl;
         //std::cout << "RHS size in solver SLU: " << rB.size() << std::endl;
@@ -233,7 +232,7 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
         /**
          * TODO:
@@ -278,7 +277,7 @@ public:
     /**
      * Print information about this object.
      */
-    void  PrintInfo(std::ostream& rOStream) const
+    void  PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SuperLU solver finished.";
     }
@@ -286,7 +285,7 @@ public:
     /**
      * Print object's data.
      */
-    void  PrintData(std::ostream& rOStream) const
+    void  PrintData(std::ostream& rOStream) const override
     {
     }
 

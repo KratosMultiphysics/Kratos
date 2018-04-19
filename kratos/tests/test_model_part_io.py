@@ -1,14 +1,16 @@
 ﻿from __future__ import print_function, absolute_import, division
 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 import os
 import sys
 
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 
 class TestModelPartIO(KratosUnittest.TestCase):
@@ -16,6 +18,12 @@ class TestModelPartIO(KratosUnittest.TestCase):
     def setUp(self):
         if (sys.version_info < (3, 2)):
             self.assertRaisesRegex = self.assertRaisesRegexp
+
+    def tearDown(self):
+        # Clean up temporary files
+        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
+        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.time"))
+        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.time"))
 
     def test_model_part_io_read_model_part(self):
         model_part = KratosMultiphysics.ModelPart("Main")
@@ -136,11 +144,6 @@ class TestModelPartIO(KratosUnittest.TestCase):
         import filecmp
         value = filecmp.cmp(GetFilePath("test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
         self.assertEqual(value, True)
-
-        # Clean up temporary files
-        os.remove(GetFilePath("test_model_part_io_write.out.mdpa"))
-        os.remove(GetFilePath("test_model_part_io_write.out.time"))
-        os.remove(GetFilePath("test_model_part_io_write.time"))
 
     @KratosUnittest.expectedFailure
     def test_error_on_wrong_input(self):

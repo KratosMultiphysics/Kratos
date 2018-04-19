@@ -19,7 +19,7 @@ BoundingBoxMinZ                  = -1e3
 dem_inlet_option                 = 0
 GravityX                         = 0.0
 GravityY                         = 0.0
-GravityZ                         = 0.0 #-9.81
+GravityZ                         = 0.0
 
 VelocityTrapOption               = 0
 RotationOption                   = "ON"
@@ -32,7 +32,7 @@ RemoveBallsInEmbeddedOption      = 1
 DeltaOption                      = "Absolute"
 SearchTolerance                  = 0.0
 CoordinationNumber               = 10
-AmplifiedSearchRadiusExtension   = 1.10000e+00
+AmplifiedSearchRadiusExtension   = 1
 ModelDataInfo                    = "OFF"
 VirtualMassCoefficient           = 1.0
 RollingFrictionOption            = "OFF"
@@ -47,24 +47,11 @@ HorizontalFixVel                 = "ON"
 IntegrationScheme                = "Forward_Euler"
 AutomaticTimestep                = "OFF"
 DeltaTimeSafetyFactor            = 1.0
-MaxTimeStep                      = 3.7e-12
-FinalTime                        = 0.0000035
-ControlTime                      = 4.0
+MaxTimeStep                      = 1
+FinalTime                        = 1
+ControlTime                      = 100
 NeighbourSearchFrequency         = 1
 PeriodicDomainOption             = 0
-
-# Constitutive Parameters
-
-MaterialModel                    = "Hertz"
-G1                               = 0.0
-G2                               = 0.0
-G3                               = 0.0
-MaxDef                           = 0.0
-FailureCriterionType             = "Uncoupled"
-AreaFactor                       = 1.00000e+00
-LocalContactDamping              = "Normal"
-LocalDampingFactor               = 1.0 #0.9
-GlobalForceReduction             = 0.0 #0.2
 
 # Material Test
 
@@ -76,17 +63,17 @@ FemPlates                        = "OFF"
 StressStrainOption               = "OFF"
 MeshType                         = "Current"
 MeshPath                         = "0"
-SpecimenLength                   = 0.30
-SpecimenDiameter                 = 0.15
-MeasuringSurface                 = 0.01767145867644375
+SpecimenLength                   = 1
+SpecimenDiameter                 = 1
+MeasuringSurface                 = 1
 
 ElementType                      = "SphericPartDEMElement3D"
 
 # PostProcess Results
 
-GraphExportFreq                  = 1e-5
-VelTrapGraphExportFreq           = 1e-3
-OutputTimeStep                   = 1e-3
+GraphExportFreq                  = 100
+VelTrapGraphExportFreq           = 100
+OutputTimeStep                   = 100
 PostDisplacement                 = "1"
 PostVelocity                     = "1"
 PostElasticForces                = "1"
@@ -123,5 +110,5 @@ MeanRadius                       = 0.0001
 
 # Declare Python Variables
 
-problem_name="benchmark5"
+problem_name="DEFAULT"
 kratos_path="D:\Kratos"

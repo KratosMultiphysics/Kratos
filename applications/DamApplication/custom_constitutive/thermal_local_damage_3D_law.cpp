@@ -78,8 +78,8 @@ void ThermalLocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValu
     
     // MaterialResponseVariables (Thermal variables)
     HyperElastic3DLaw::MaterialResponseVariables ElasticVariables;
-	ElasticVariables.SetShapeFunctionsValues(rValues.GetShapeFunctionsValues());
-	ElasticVariables.SetElementGeometry(rValues.GetElementGeometry());
+    ElasticVariables.SetShapeFunctionsValues(rValues.GetShapeFunctionsValues());
+    ElasticVariables.SetElementGeometry(rValues.GetElementGeometry());
     ElasticVariables.LameMu = 1.0+PoissonCoefficient;
     ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION]; 
     ElasticVariables.ReferenceTemperature = rValues.GetProcessInfo()[REFERENCE_TEMPERATURE];
@@ -97,54 +97,41 @@ void ThermalLocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValu
     this->CalculateCharacteristicSize(CharacteristicSize,rValues.GetElementGeometry());
     ReturnMappingVariables.CharacteristicSize = CharacteristicSize;
 
-    if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) //TOTAL STRESS
-    {
-        // Thermal strain
-        Vector ThermalStrainVector(VoigtSize);
-        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables);
-        // Mechanical strain
-        noalias(rStrainVector) -= ThermalStrainVector;
-        noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
-        noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
+    if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)){ //TOTAL STRESS
     
-        if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
-        {
-            // COMPUTE_CONSTITUTIVE_TENSOR
-            Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-            Vector EffectiveStressVector(VoigtSize);
-
-            this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
-
-            this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
-        }
-        else
-        {
-            // COMPUTE_CONSTITUTIVE_TENSOR && COMPUTE_STRESS
-            Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-            Vector& rStressVector = rValues.GetStressVector();
-            
-            this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
-            
-            this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
-        }
-    }
-    else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS)) //TOTAL STRESS
-    {
-        // COMPUTE_STRESS
-        Vector& rStressVector = rValues.GetStressVector();
-
-        // Thermal strain
-        Vector ThermalStrainVector(VoigtSize);
-        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables);
-        // Mechanical strain
-        noalias(rStrainVector) -= ThermalStrainVector;
-        noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
-        noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
+      // Thermal strain
+      Vector ThermalStrainVector(VoigtSize);
+      this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables);
+      // Mechanical strain
+      noalias(rStrainVector) -= ThermalStrainVector;
+      noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+      noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
+    
+      if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS)){
         
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+	// COMPUTE_CONSTITUTIVE_TENSOR
+	Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+	Vector EffectiveStressVector(VoigtSize);
+
+	this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+
+	this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
+      }
+      else{
+        
+	// COMPUTE_CONSTITUTIVE_TENSOR && COMPUTE_STRESS
+	Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+	Vector& rStressVector = rValues.GetStressVector();
+            
+	this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+            
+	this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
+      }
     }
-    else if(Options.Is(ConstitutiveLaw::TOTAL_TENSOR)) //This should be COMPUTE_MECHANICAL_STRESS
-    {
+    else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS)){ //TOTAL STRESS
+
+      if(Options.Is(ConstitutiveLaw::MECHANICAL_RESPONSE_ONLY)){ //This should be COMPUTE_MECHANICAL_STRESS
+    
         // COMPUTE_STRESS
         Vector& rStressVector = rValues.GetStressVector();
         
@@ -153,10 +140,10 @@ void ThermalLocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValu
         noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
         
         this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
-    }
-    else if(Options.Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY)) //This should be COMPUTE_THERMAL_STRESS
-    {
-        // COMPUTE_STRESS
+      }
+      else if(Options.Is(ConstitutiveLaw::THERMAL_RESPONSE_ONLY)){ //This should be COMPUTE_THERMAL_STRESS
+
+	// COMPUTE_STRESS
         Vector& rStressVector = rValues.GetStressVector();
 
         // Thermal strain
@@ -165,13 +152,36 @@ void ThermalLocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValu
         noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
         
         this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
-    }
-    else if(Options.Is(ConstitutiveLaw::COMPUTE_STRAIN)) //This should be COMPUTE_THERMAL_STRAIN
-    {
-        // COMPUTE_STRAIN
-        
+      }
+      else{
+
+	// COMPUTE_STRESS
+        Vector& rStressVector = rValues.GetStressVector();
+
         // Thermal strain
-        this->CalculateThermalStrain(rStrainVector,ElasticVariables);
+        Vector ThermalStrainVector(VoigtSize);
+        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables);
+        // Mechanical strain
+        noalias(rStrainVector) -= ThermalStrainVector;
+        noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+        noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
+        
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+
+      }
+
+
+    }
+    else if(Options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)){ //This should be COMPUTE_THERMAL_STRAIN
+
+      // USE_ELEMENT_PROVIDED_STRAIN
+      if(Options.Is(ConstitutiveLaw::THERMAL_RESPONSE_ONLY)){
+
+	// Thermal strain
+        this->CalculateThermalStrain(rStrainVector,ElasticVariables);	
+      }
+      //other strain: to implement
+      
     }
 }
 
@@ -214,10 +224,8 @@ void ThermalLocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValue
     ReturnMappingVariables.initialize();
     // Strain and Stress matrices
     const unsigned int Dim = this->WorkingSpaceDimension();
-    Matrix AuxMatrix(Dim,Dim);
-    noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
     ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
-    noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
+    noalias(ReturnMappingVariables.StrainMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
     ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
     // CharacteristicSize
     double CharacteristicSize = 1.0;
@@ -242,7 +250,7 @@ void ThermalLocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValue
         // COMPUTE_STRESS
         Vector& rStressVector = rValues.GetStressVector();
         
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateStressVector(rStressVector,ReturnMappingVariables,EffectiveStressVector);
     }
 }
 

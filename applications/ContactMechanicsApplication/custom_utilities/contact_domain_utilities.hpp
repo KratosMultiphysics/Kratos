@@ -218,39 +218,39 @@ public:
 
   
     void  CalculateEdgeDistances (std::vector<BaseLengths>& BaseVector, 
-				  PointType& P1, 
-				  PointType& P2, 
-				  PointType& PS1,
-				  PointType& PS2, 
-				  PointType& Normal);
+				  const PointType& P1, 
+				  const PointType& P2, 
+				  const PointType& PS1,
+				  const PointType& PS2, 
+				  const PointType& Normal);
   
     void  CalculateBaseDistances (std::vector<BaseLengths>& BaseVector, 
-				  PointType& P1, 
-				  PointType& P2, 
-				  PointType& P3,
-				  PointType& PS, 
-				  PointType& Normal);
+				  const PointType& P1, 
+				  const PointType& P2, 
+				  const PointType& P3,
+				  const PointType& PS, 
+				  const PointType& Normal);
 
 
     void  CalculateBaseDistances (BaseLengths& Base, 
-				  PointType& P1, 
-				  PointType& P2, 
-				  PointType& PS, 
-				  PointType& Normal);
+				  const PointType& P1, 
+				  const PointType& P2, 
+				  const PointType& PS, 
+				  const PointType& Normal);
 
     PointType & CalculateSurfaceNormal(PointType& Normal,
-				       PointType& P1, 
-				       PointType& P2);
+				       const PointType& P1, 
+				       const PointType& P2);
 
 
     PointType & CalculateFaceNormal(PointType& Normal,
-				    PointType& P1, 
-				    PointType& P2);
+				    const PointType& P1, 
+				    const PointType& P2);
 
 	
     PointType & CalculateFaceTangent(PointType& Tangent,
-				     PointType& P1, 
-				     PointType& P2);
+				     const PointType& P1, 
+				     const PointType& P2);
 
    
 
@@ -258,6 +258,10 @@ public:
 				     PointType& Normal);
 
 
+    void GetOppositeEdge(unsigned int& i, unsigned int& j, unsigned int& k, unsigned int& l); 
+
+
+    void BuildEdgeVector(std::vector<std::vector<std::vector<unsigned int> > >& rEdges);
     ///@}
     ///@name Access
     ///@{

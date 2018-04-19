@@ -2,6 +2,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosParticleMechanicsApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemSolidMechanicsApplication )
@@ -13,26 +16,43 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_UP.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_UP.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_quadrilateral.cpp
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_UP_quadrilateral.cpp
 	##${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/your_new_element_2d.h
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/viscoplastic_flow_rule.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_viscoplastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_3d_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_plane_strain_2d_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_UP_3d_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_plane_strain_UP_2d_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_plane_strain_2D_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_plane_strain_UP_2D_law.cpp
+        
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_3D_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_UP_3D_law.cpp
+	
+	###yield criteria
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/yield_criteria/mc_yield_criterion.cpp
+        
+        ###flow rules
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/MPM_flow_rule.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/mc_plastic_flow_rule.cpp
 
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_line_load_2D_condition.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_line_load_3D_condition.cpp
 )
 
 ###############################################################
-## define library Kratos which defines the basic python interface
-add_library(KratosParticleMechanicsApplication SHARED ${KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES})
-target_link_libraries(KratosParticleMechanicsApplication KratosCore KratosSolidMechanicsApplication )
-set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
+pybind11_add_module(KratosParticleMechanicsApplication MODULE ${KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES})
+target_link_libraries(KratosParticleMechanicsApplication PUBLIC KratosCore KratosSolidMechanicsCore)
 set_target_properties(KratosParticleMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PARTICLE_MECHANICS_APPLICATION=EXPORT,API")
-install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
+set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
 
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
@@ -42,6 +62,12 @@ install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosParticleMechanicsApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosParticleMechanicsApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)

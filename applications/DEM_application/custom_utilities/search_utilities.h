@@ -9,8 +9,6 @@
 #include <omp.h>
 #endif
 
-#include "boost/smart_ptr.hpp"
-
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -140,19 +138,19 @@ namespace Kratos
               std::size_t node_size = rSearchNodes.size();
               
               mResultsDistances.resize(node_size);
-              mSearchRadius.resize(node_size);
+              mSearchRadii.resize(node_size);
               mNodesResults.resize(node_size);
               
               mResultsDistances.clear();
-              mSearchRadius.clear();
+              mSearchRadii.clear();
               mNodesResults.clear();
         
               for(NodesArrayType::iterator it = rSearchNodes.begin(); it != rSearchNodes.end(); ++it)
               {
-                  mSearchRadius[it-rSearchNodes.begin()] = rSearchRadius;
+                  mSearchRadii[it-rSearchNodes.begin()] = rSearchRadius;
               }
 
-              mSpatialSearch->SearchNodesInRadiusExclusive(rBinsNodes,rSearchNodes,mSearchRadius,mNodesResults,mResultsDistances);
+              mSpatialSearch->SearchNodesInRadiusExclusive(rBinsNodes,rSearchNodes,mSearchRadii,mNodesResults,mResultsDistances);
               
               for(NodesArrayType::iterator it = rSearchNodes.begin(); it != rSearchNodes.end(); ++it)
               { 
@@ -205,7 +203,7 @@ namespace Kratos
       
       ///@name Protected static Member rVariables
       ///@{
-      RadiusArrayType                   mSearchRadius;
+      RadiusArrayType                   mSearchRadii;
         
       VectorResultNodesContainerType    mNodesResults;
       VectorDistanceType                mResultsDistances;

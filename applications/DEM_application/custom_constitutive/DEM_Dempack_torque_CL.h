@@ -9,7 +9,7 @@
 
 namespace Kratos {
 
-    class DEM_Dempack_torque : public DEM_Dempack {
+    class KRATOS_API(DEM_APPLICATION) DEM_Dempack_torque : public DEM_Dempack {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack_torque);
@@ -17,7 +17,7 @@ namespace Kratos {
         DEM_Dempack_torque() {
         }
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         ~DEM_Dempack_torque() {
         }

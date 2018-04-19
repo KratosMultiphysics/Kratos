@@ -24,6 +24,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "mapper_utilities.h"
 #include "processes/graph_coloring_process.h"
 
 
@@ -51,8 +52,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Auxiliary functions for the MappingApplication in MPI
+/** This class provides a set of auxiliary functions for MPI that are used by several other functions / classes
 */
 class MapperUtilitiesMPI
 {
@@ -112,22 +113,17 @@ public:
         MPI_Sendrecv(&SendBufferSize, 1, MPI_INT, CommPartner, 0, &rReceiveBufferSize,
                      1, MPI_INT, CommPartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-        // Debug Check
-        if (SendBufferSize > MaxSendBufferSize)
-        {
-            KRATOS_ERROR << "Send Buffer too small!; "
-                         << "SendBufferSize = " << SendBufferSize
-                         << ", MaxSendBufferSize = "
-                         << MaxSendBufferSize << std::endl;
-        }
+        KRATOS_DEBUG_ERROR_IF(SendBufferSize > MaxSendBufferSize)
+            << "Send Buffer too small!; "
+            << "SendBufferSize = " << SendBufferSize
+            << ", MaxSendBufferSize = "
+            << MaxSendBufferSize << std::endl;
 
-        if (rReceiveBufferSize > MaxReceiveBufferSize)
-        {
-            KRATOS_ERROR << "Receive Buffer too small!; "
-                         << "rReceiveBufferSize = " << rReceiveBufferSize
-                         << ", MaxReceiveBufferSize = "
-                         << MaxReceiveBufferSize << std::endl;
-        }
+        KRATOS_DEBUG_ERROR_IF(rReceiveBufferSize > MaxReceiveBufferSize)
+            << "Receive Buffer too small!; "
+            << "rReceiveBufferSize = " << rReceiveBufferSize
+            << ", MaxReceiveBufferSize = "
+            << MaxReceiveBufferSize << std::endl;
 
         // Perform the actual exchange of the buffers
         MPI_Sendrecv(pSendBuffer, SendBufferSize, DataType, CommPartner, 0, pReceiveBuffer,
@@ -206,7 +202,7 @@ public:
 
     static void PrintGraph(GraphType& rGraph, int NumColors)
     {
-        std::cout << "\nCommunication Graph: " << std::endl;
+        std::cout << "Mapper Communication Graph: " << std::endl;
         std::cout << std::setw(5);
         for(std::size_t i = 0; i < rGraph.size1(); ++i)
         {
@@ -219,63 +215,12 @@ public:
         std::cout << std::endl;
     }
 
-    static void ComputeLocalBoundingBox(ModelPart& rModelPart,
-                                        double* pLocalBoundingBox)
+    static void PrintRankLocalBoundingBox(double* pBoundingBox, const int CommRank)
     {
-        // xmax, xmin,  ymax, ymin,  zmax, zmin
-        // loop over local nodes
-        for (auto &r_node : rModelPart.GetCommunicator().LocalMesh().Nodes())
-        {
-            pLocalBoundingBox[0] = std::max(r_node.X(), pLocalBoundingBox[0]);
-            pLocalBoundingBox[1] = std::min(r_node.X(), pLocalBoundingBox[1]);
-            pLocalBoundingBox[2] = std::max(r_node.Y(), pLocalBoundingBox[2]);
-            pLocalBoundingBox[3] = std::min(r_node.Y(), pLocalBoundingBox[3]);
-            pLocalBoundingBox[4] = std::max(r_node.Z(), pLocalBoundingBox[4]);
-            pLocalBoundingBox[5] = std::min(r_node.Z(), pLocalBoundingBox[5]);
-        }
-        // loop over ghost nodes (necessary if conditions have only ghost nodes)
-        for (auto &r_node : rModelPart.GetCommunicator().GhostMesh().Nodes())
-        {
-            pLocalBoundingBox[0] = std::max(r_node.X(), pLocalBoundingBox[0]);
-            pLocalBoundingBox[1] = std::min(r_node.X(), pLocalBoundingBox[1]);
-            pLocalBoundingBox[2] = std::max(r_node.Y(), pLocalBoundingBox[2]);
-            pLocalBoundingBox[3] = std::min(r_node.Y(), pLocalBoundingBox[3]);
-            pLocalBoundingBox[4] = std::max(r_node.Z(), pLocalBoundingBox[4]);
-            pLocalBoundingBox[5] = std::min(r_node.Z(), pLocalBoundingBox[5]);
-        }
-    }
-
-    static void ComputeLocalBoundingBoxWithTolerance(double* pLocalBoundingBox,
-            const double Tolerance,
-            const int CommRank,
-            const int EchoLevel,
-            double* pLocalBoundingBoxWithTolerance)
-    {
-        // xmax, xmin,  ymax, ymin,  zmax, zmin
-        pLocalBoundingBoxWithTolerance[0] = pLocalBoundingBox[0] + Tolerance;
-        pLocalBoundingBoxWithTolerance[1] = pLocalBoundingBox[1] - Tolerance;
-        pLocalBoundingBoxWithTolerance[2] = pLocalBoundingBox[2] + Tolerance;
-        pLocalBoundingBoxWithTolerance[3] = pLocalBoundingBox[3] - Tolerance;
-        pLocalBoundingBoxWithTolerance[4] = pLocalBoundingBox[4] + Tolerance;
-        pLocalBoundingBoxWithTolerance[5] = pLocalBoundingBox[5] - Tolerance;
-
-        if (EchoLevel > 3)
-        {
-            MapperUtilitiesMPI::PrintBoundingBox(pLocalBoundingBoxWithTolerance, CommRank);
-        }
-    }
-
-    static void PrintBoundingBox(double* pBoundingBox, const int CommRank)
-    {
-        std::cout << "\nBounding Box, Rank " << CommRank << " [ "
-                  << pBoundingBox[1] << " "     // xmin
-                  << pBoundingBox[3] << " "     // ymin
-                  << pBoundingBox[5] << " ] [ " // zmin
-                  << pBoundingBox[0] << " "     // xmax
-                  << pBoundingBox[2] << " "     // ymax
-                  << pBoundingBox[4] << " ]"    // zmax
+        std::cout << "Rank-local Bounding Box, Rank " << CommRank << ": "
+                  << MapperUtilities::BoundingBoxStingStream(pBoundingBox)
                   << std::endl;
-        // TODO maybe write it such that gid can directly read it (=> batch file?)
+        // TODO maybe write it such that gid can directly read it
     }
 
     static void ComputeGlobalBoundingBoxes(double* pLocalBoundingBox,
@@ -285,11 +230,16 @@ public:
                                            double* pGlobalBoundingBoxes)
     {
         double* local_bounding_box_tol = new double[6];
-        MapperUtilitiesMPI::ComputeLocalBoundingBoxWithTolerance(pLocalBoundingBox,
+        MapperUtilities::ComputeBoundingBoxWithTolerance(pLocalBoundingBox,
                 Tolerance,
-                CommRank,
-                EchoLevel,
                 local_bounding_box_tol);
+        
+        if (EchoLevel >= 3)
+        {
+            MapperUtilitiesMPI::PrintRankLocalBoundingBox(local_bounding_box_tol, CommRank);
+            // TODO maybe write it such that gid can directly read it
+        }
+
         MPI_Allgather(local_bounding_box_tol, 6, MPI_DOUBLE,
                       pGlobalBoundingBoxes, 6, MPI_DOUBLE, MPI_COMM_WORLD);
         delete local_bounding_box_tol;

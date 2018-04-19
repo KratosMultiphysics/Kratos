@@ -42,6 +42,7 @@ typedef WeakPointerVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 /// Default constructor.
+SphericParticle();
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
 SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
@@ -50,6 +51,8 @@ Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, Proper
 
 /// Destructor.
 virtual ~SphericParticle();
+
+SphericParticle& operator=(const SphericParticle& rOther);  
 
 class ParticleDataBuffer
 {
@@ -77,7 +80,15 @@ void SetCurrentNeighbour(SphericParticle* p_neighbour)
     mpOtherParticle = p_neighbour;
 }
 
+void SetBoundingBox(const bool periodicity, const array_1d<double, 3> domain_min, const array_1d<double, 3> domain_max)
+{
+    mDomainIsPeriodic = periodicity;
+    mDomainMin = domain_min;
+    mDomainMax = domain_max;
+}
+
 bool mMultiStageRHS;
+bool mDomainIsPeriodic;
 double mDistance;
 double mRadiusSum;
 double mDt;
@@ -87,8 +98,13 @@ double mMyCoors[3];
 double mOtherCoors[3];
 double mLocalRelVel[3];
 array_1d<double, 3> mOtherToMeVector;
+array_1d<double, 3> mDomainMin;
+array_1d<double, 3> mDomainMax;
 SphericParticle* mpThisParticle;
 SphericParticle* mpOtherParticle;
+
+std::vector<DEMWall*> mNeighbourRigidFaces; // why repeated? it is in the sphere as well!
+
 };
 
 typedef std::unique_ptr<ParticleDataBuffer> BufferPointerType;
@@ -99,9 +115,15 @@ virtual std::unique_ptr<ParticleDataBuffer> CreateParticleDataBuffer(SphericPart
     return std::unique_ptr<ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
 }
 
-void TransformToClosestPeriodicCoordinates(double my_coors[3], double other_coors[3]);
-bool GetDomainPeriodicity();
-virtual void CalculateRelativePositions(ParticleDataBuffer & data_buffer);
+void TransformNeighbourCoorsToClosestInPeriodicDomain(ParticleDataBuffer & data_buffer);
+void TransformNeighbourCoorsToClosestInPeriodicDomain(ParticleDataBuffer & data_buffer,
+                                                      const array_1d<double, 3>& coors,
+                                                      array_1d<double, 3>& neighbour_coors);
+void TransformNeighbourCoorsToClosestInPeriodicDomain(const ProcessInfo& r_process_info,
+                                                      const double coors[3],
+                                                      double neighbour_coors[3]);
+
+virtual bool CalculateRelativePositionsOrSkipContact(ParticleDataBuffer & data_buffer);
 
 using DiscreteElement::Initialize; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 virtual void Initialize(const ProcessInfo& r_process_info);
@@ -129,13 +151,14 @@ virtual void Calculate(const Variable<double>& rVariable, double& Output, const 
 virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info) override;
 virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
 virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info) override;
-virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
+virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation, const ProcessInfo& r_process_info);
 virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info);
 
 virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme); 
-virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
+virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
+virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
+virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
 
 virtual void ComputeConditionRelativeData(int rigid_neighbour_index,
                                           DEMWall* const wall,
@@ -159,11 +182,9 @@ virtual double CalculateVolume();
 virtual double GetInteractionRadius(const int radius_index = 0);
 virtual void SetInteractionRadius(const double radius, const int radius_index = 0);
 virtual double GetSearchRadius();
-virtual double GetSearchRadiusWithFem();
 DEMDiscontinuumConstitutiveLaw::Pointer GetConstitutiveLawPointer();
 virtual void SetDefaultRadiiHierarchy(const double radius);
 virtual void SetSearchRadius(const double radius);
-virtual void SetSearchRadiusWithFem(const double radius);
 virtual double GetMass();
 virtual void   SetMass(double real_mass);
 virtual double   CalculateMomentOfInertia();
@@ -171,6 +192,8 @@ virtual double GetYoung();
 void   SetYoungFromProperties(double* young);
 virtual double GetRollingFriction();
 void   SetRollingFrictionFromProperties(double* rolling_friction);
+virtual double GetRollingFrictionWithWalls();
+void   SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
 virtual double GetPoisson();
 void   SetPoissonFromProperties(double* poisson);
 virtual double GetTgOfFrictionAngle();
@@ -190,13 +213,11 @@ void   SetParticleKNormalFromProperties(double* particle_k_normal);
 virtual double GetParticleKTangential();
 void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
 
-//Conical damage
+//Dependent Friction
 virtual double GetParticleContactRadius();
 void   SetParticleContactRadiusFromProperties(double* particle_contact_radius);
 virtual double GetParticleMaxStress();
 void   SetParticleMaxStressFromProperties(double* particle_max_stress);
-virtual double GetParticleAlpha();
-void   SetParticleAlphaFromProperties(double* particle_alpha);
 virtual double GetParticleGamma();
 void   SetParticleGammaFromProperties(double* particle_gamma);
 
@@ -212,6 +233,7 @@ void   SetFastProperties(std::vector<PropertiesProxy>& list_of_proxies);
 
 double SlowGetYoung();
 double SlowGetRollingFriction();
+double SlowGetRollingFrictionWithWalls();
 double SlowGetPoisson();
 double SlowGetTgOfFrictionAngle();
 double SlowGetCoefficientOfRestitution();
@@ -240,6 +262,7 @@ double mInelasticFrictionalEnergy;
 double mInelasticViscodampingEnergy;
 std::vector<SphericParticle*>     mNeighbourElements;
 std::vector<int>                  mContactingNeighbourIds;
+std::vector<int>                  mContactingFaceNeighbourIds;
 std::vector<DEMWall*>             mNeighbourRigidFaces;
 std::vector<DEMWall*>             mNeighbourPotentialRigidFaces;
 
@@ -267,15 +290,13 @@ std::vector<int> mFemOldNeighbourIds;
 
 protected:
 
-SphericParticle();
-
-virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticForce,
+virtual void ComputeBallToRigidFaceContactForce(ParticleDataBuffer & data_buffer,
+                                                array_1d<double, 3>& rElasticForce,
                                                 array_1d<double, 3>& rContactForce,
                                                 double& RollingResistance,
                                                 array_1d<double, 3>& rigid_element_force,
-                                                ProcessInfo& r_process_info,
-                                                double mTimeStep,
-                                                int search_control) final;
+                                                ProcessInfo& r_process_info,                                                
+                                                int search_control) ;
 
 virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override;
 
@@ -289,15 +310,13 @@ virtual void ComputeBallToBallContactForce(ParticleDataBuffer & data_buffer,
                                            array_1d<double, 3>& rContactForce,
                                            double& RollingResistance);
 
-virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
+virtual void EvaluateDeltaDisplacement(ParticleDataBuffer & data_buffer,
+                                       double DeltDisp[3],
                                        double RelVel[3],
                                        double LocalCoordSystem[3][3],
                                        double OldLocalCoordSystem[3][3],
-                                       const array_1d<double, 3> &other_to_me_vect,
                                        const array_1d<double, 3> &vel,
-                                       const array_1d<double, 3> &delta_displ,
-                                       SphericParticle* neighbour_iterator,
-                                       double& distance);
+                                       const array_1d<double, 3> &delta_displ);
 
 virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotation(const double indentation,
                                                                         double DeltDesp[3],
@@ -385,9 +404,12 @@ virtual void AddUpMomentsAndProject(double LocalCoordSystem[3][3],
                                     double ElasticLocalRotationalMoment[3],
                                     double ViscoLocalRotationalMoment[3]) final;
 
-virtual void ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel, double tangential_vel[3],
-                         double mTimeStep, double density, bool sliding, double inverse_of_volume,
-                         double LocalElasticContactForce, DEMWall* cast_neighbour);
+virtual void ComputeWear(double LocalRelVel[3],
+                         double mTimeStep, 
+                         bool sliding, 
+                         double inverse_of_volume,
+                         double LocalElasticContactForce, 
+                         DEMWall* cast_neighbour);
 
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 
@@ -409,12 +431,12 @@ virtual void ApplyGlobalDampingToContactForces();
 DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 double mRadius;
 double mSearchRadius;
-double mSearchRadiusWithFem;
 double mRealMass;
 PropertiesProxy* mFastProperties;
 int mClusterId;
 double mBoundDeltaDispSq;
-DEMIntegrationScheme* mpIntegrationScheme;
+DEMIntegrationScheme* mpTranslationalIntegrationScheme;
+DEMIntegrationScheme* mpRotationalIntegrationScheme;
 double mGlobalDamping;
 
 private:
@@ -426,7 +448,6 @@ virtual void save(Serializer& rSerializer) const override
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
     rSerializer.save("mRadius",mRadius);
     rSerializer.save("mSearchRadius", mSearchRadius);
-    rSerializer.save("mSearchRadiusWithFem", mSearchRadiusWithFem);
     rSerializer.save("mRealMass",mRealMass);
     rSerializer.save("mClusterId",mClusterId);
     rSerializer.save("mBoundDeltaDispSq",mBoundDeltaDispSq);
@@ -441,7 +462,6 @@ virtual void load(Serializer& rSerializer) override
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
     rSerializer.load("mRadius",mRadius);
     rSerializer.load("mSearchRadius", mSearchRadius);
-    rSerializer.load("mSearchRadiusWithFem", mSearchRadiusWithFem);
     rSerializer.load("mRealMass",mRealMass);
     rSerializer.load("mClusterId",mClusterId);
     rSerializer.load("mBoundDeltaDispSq",mBoundDeltaDispSq); 

@@ -64,6 +64,7 @@ AMG amg(boost::make_tuple(n,
 #include <boost/tuple/tuple.hpp>
 #include <boost/range/const_iterator.hpp>
 #include <boost/range/value_type.hpp>
+#include <boost/range/size.hpp>
 #include <boost/type_traits.hpp>
 
 #include <amgcl/util.hpp>

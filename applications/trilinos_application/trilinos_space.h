@@ -19,7 +19,7 @@
 #include <string>
 #include <iostream>
 #include <cstddef>
-
+#include <sstream>
 
 // External includes
 
@@ -92,8 +92,8 @@ public:
 
     typedef std::size_t SizeType;
 
-    typedef typename boost::shared_ptr< TMatrixType > MatrixPointerType;
-    typedef typename boost::shared_ptr< TVectorType > VectorPointerType;
+    typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
+    typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -271,7 +271,7 @@ public:
 
     static void ScaleAndAdd(const double A, const VectorType& rX, const double B, const VectorType& rY, VectorType& rZ) // rZ = (A * rX) + (B * rY)
     {
-        rZ.Update(A, rX, B, rY, 1.0);
+        rZ.Update(A, rX, B, rY, 0.0);
     }
 
     static void ScaleAndAdd(const double A, const VectorType& rX, const double B, VectorType& rY) // rY = (A * rX) + (B * rY)
@@ -285,7 +285,7 @@ public:
     // 	{
     // 	  return inner_prod(row(rA, i), rX);
     // 	}
-    void SetValue(VectorType& rX, IndexType i, double value)
+    static void SetValue(VectorType& rX, IndexType i, double value)
     {
         Epetra_IntSerialDenseVector indices(1);
         Epetra_SerialDenseVector values(1);
@@ -293,11 +293,10 @@ public:
         values[0] = value;
 
         int ierr = rX.ReplaceGlobalValues(indices, values);
-        if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
-        
-        ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
-        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure when attempting to insert value in function SetValue", "");
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
 
+        ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
     }
 
     /// rX = A
@@ -317,14 +316,14 @@ public:
     {
         KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for a reference to Trilinos Vector - need to use the version passing a Pointer", "")
     }
-    
+
     static void Resize(VectorPointerType& pX, SizeType n)
     {
 //         if(pX != NULL)
 //             KRATOS_ERROR << "trying to resize a null pointer" ;
         int global_elems = n;
         Epetra_Map Map(global_elems, 0, pX->Comm());
-        VectorPointerType pNewEmptyX = boost::make_shared<VectorType>(Map);
+        VectorPointerType pNewEmptyX = Kratos::make_shared<VectorType>(Map);
         pX.swap(pNewEmptyX);
     }
 
@@ -371,19 +370,6 @@ public:
         }
     }
 
-    // 	static void Clear(VectorType& rX)
-    // 	{
-    // 		int global_elems = 0;
-    // 		Epetra_Map Map(global_elems,0,rX.Comm());
-    // 		rX = VectorType(Map);
-    // 	}
-
-    template<class TOtherMatrixType>
-    inline static void ClearData(TOtherMatrixType& rA)
-    {
-        rA.PutScalar(0.0);
-    }
-
     inline static void SetToZero(MatrixType& rA)
     {
         rA.PutScalar(0.0);
@@ -392,7 +378,6 @@ public:
     inline static void SetToZero(VectorType& rX)
     {
         rX.PutScalar(0.0);
-        ;
     }
 
     /// TODO: creating the the calculating reaction version
@@ -487,9 +472,6 @@ public:
                 }
             }
 
-            /*KRATOS_WATCH(indices);
-            KRATOS_WATCH(values);*/
-
             int ierr = b.SumIntoGlobalValues(indices, values);
             if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
 
@@ -543,32 +525,33 @@ public:
 
     }
 
-    void ReadMatrixMarket(const std::string FileName, MatrixPointerType& pA)
+    MatrixPointerType ReadMatrixMarket(const std::string FileName,Epetra_MpiComm& Comm)
     {
         KRATOS_TRY
-        
+
         Epetra_CrsMatrix* pp = nullptr;
 
-        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), pA->Comm(), pp);
+
+        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), Comm, pp);
         
         if(error_code != 0)
             KRATOS_ERROR << "error thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
-        
+
+        Comm.Barrier();
 
         const Epetra_CrsGraph& rGraph = pp->Graph();
-        MatrixPointerType paux = boost::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
-        
-        int NumMyRows = rGraph.RowMap().NumMyElements();
+        MatrixPointerType paux = Kratos::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
+
+        IndexType NumMyRows = rGraph.RowMap().NumMyElements();
 
         int* MyGlobalElements = new int[NumMyRows];
         rGraph.RowMap().MyGlobalElements(MyGlobalElements);
-        
-        
-        for(IndexType i=0; i< NumMyRows; i++)
+
+        for(IndexType i = 0; i < NumMyRows; ++i)
         {
 //             std::cout << pA->Comm().MyPID() << " : I=" << i << std::endl;
             IndexType GlobalRow = MyGlobalElements[i];
-            
+
             int NumEntries;
             std::size_t Length = pp->NumGlobalEntries(GlobalRow);  // length of Values and Indices
 
@@ -576,25 +559,25 @@ public:
             int* Indices = new int[Length];          // extracted global column indices for the corresponding values
 
             error_code = pp->ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
-            
+
             if(error_code != 0)
                 KRATOS_ERROR << "error thrown in ExtractGlobalRowCopy : " << error_code;
 
             error_code = paux->ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
-            
+
             if(error_code != 0)
                 KRATOS_ERROR << "error thrown in ReplaceGlobalValues : " << error_code;
-            
+
             delete [] Values;
             delete [] Indices;
         }
-        
+
         paux->GlobalAssemble();
-        pA.swap(paux);
-        delete [] MyGlobalElements;
-//         std::cout << pp << std::endl;
-        delete pp;
         
+        delete [] MyGlobalElements;
+        delete pp;
+
+        return paux;
         KRATOS_CATCH("");
     }
 
@@ -771,6 +754,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_TRILINOS_SPACE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_TRILINOS_SPACE_H_INCLUDED  defined

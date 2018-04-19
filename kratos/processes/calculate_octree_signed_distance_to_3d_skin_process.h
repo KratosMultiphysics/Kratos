@@ -1,48 +1,15 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
- 
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: pooyan $
-//   Date:                $Date: 2007-10-31 17:51:34 $
-//   Revision:            $Revision: 1.1 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pooyan Dadvand
+//
+
 
 
 #if !defined(KRATOS_CALCULATE_DISTANCE_PROCESS_H_INCLUDED )
@@ -87,7 +54,7 @@ public:
         double& X() {return mCoordinates[0];}
         double& Y() {return mCoordinates[1];}
         double& Z() {return mCoordinates[2];}
-        double& Coordinate(int i) {return mCoordinates[i-1];}
+        double& operator[](int i) {return mCoordinates[i];}
         std::size_t& Id(){return mId;}
     };
 
@@ -100,7 +67,7 @@ public:
            MAX_LEVEL = 12,
            MIN_LEVEL = 2
          };
-    typedef Point<3, double>                                PointType;  /// always the point 3D
+    typedef Point                                           PointType;  /// always the point 3D
     typedef std::vector<double>::iterator                   DistanceIteratorType;
     typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
     typedef ContainerType::value_type                       PointerType;
@@ -204,8 +171,8 @@ public:
     {
         Kratos::Element::GeometryType& geom_1 = rObject->GetGeometry();
         
-        Kratos::Point<3,double> rLowPointTolerance;
-        Kratos::Point<3,double> rHighPointTolerance;
+        Kratos::Point rLowPointTolerance;
+        Kratos::Point rHighPointTolerance;
         
         for(std::size_t i = 0; i<3; i++)
         {
@@ -363,10 +330,11 @@ private:
           for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin() ; i_node != mrSkinModelPart.NodesEnd() ; i_node++)
           {
               double temp_point[3];
+              const Node<3>& r_node = *i_node;
               
-              temp_point[0] = i_node->Coordinate(1);
-              temp_point[1] = i_node->Coordinate(2);
-              temp_point[2] = i_node->Coordinate(3);
+              temp_point[0] = r_node[0];
+              temp_point[1] = r_node[1];
+              temp_point[2] = r_node[2];
               
               mOctree.Insert(temp_point);
           }
@@ -574,7 +542,7 @@ private:
 // //            KRATOS_WATCH(nodes_array.size())
 //             for (int i_node = 0; i_node < nodes_array.size() ; i_node++)
 //             {
-//                 double coord = nodes_array[i_node]->Coordinate(i_direction+1);
+//                 double coord = nodes_array[i_node]->Coordinates()[i_direction];
 //    //             KRATOS_WATCH(intersections.size());
 // 
 //                 int ray_color= 1;
@@ -636,7 +604,7 @@ private:
                 //cell_point[1] = pCell->GetCoordinate(keys[1]);
                 //cell_point[2] = pCell->GetCoordinate(keys[2]);
 
-                double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point<3>(cell_point[0], cell_point[1], cell_point[2]));
+                double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point(cell_point[0], cell_point[1], cell_point[2]));
 
                 if(d < distance)
                     distance = d;
@@ -1060,7 +1028,7 @@ private:
 
             for(DistanceSpatialContainersConfigure::data_type::const_iterator i_node = mOctreeNodes.begin() ; i_node != mOctreeNodes.end() ; i_node++)
             {
-                rOStream << (*i_node)->Id() << "  " << (*i_node)->Coordinate(1) << "  " << (*i_node)->Coordinate(2) << "  " << (*i_node)->Coordinate(3) << std::endl;
+                rOStream << (*i_node)->Id() << "  " << (*i_node)->X() << "  " << (*i_node)->Y() << "  " << (*i_node)->Z() << std::endl;
             }
             
             std::cout << "Nodes written..." << std::endl;

@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
@@ -20,12 +20,6 @@
 #include <algorithm>
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/io.hpp>
-
-// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "../../kratos/includes/define.h"
@@ -34,6 +28,7 @@
 #include "../../kratos/includes/element.h"
 #include "../../kratos/includes/model_part.h"
 #include "../../kratos/includes/kratos_flags.h"
+#include "processes/find_nodal_neighbours_process.h"
 #include "response_function.h"
 
 // ==============================================================================
@@ -81,31 +76,26 @@ public:
 	///@{
 
 	/// Default constructor.
-	StrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
+	StrainEnergyResponseFunction(ModelPart& model_part, Parameters responseSettings)
 	: mr_model_part(model_part)
 	{
 		// Set gradient mode
 		std::string gradientMode = responseSettings["gradient_mode"].GetString();
 
-		// Mode 1: analytic sensitivities
-		if (gradientMode.compare("analytic") == 0)
-			mGradientMode = 1;
-
-		// Mode 2: semi-analytic sensitivities
-		else if (gradientMode.compare("semi_analytic") == 0)
+		// Mode 1: semi-analytic sensitivities
+		if (gradientMode.compare("semi_analytic") == 0)
 		{
-			mGradientMode = 2;
+			mGradientMode = 1;
 			double delta = responseSettings["step_size"].GetDouble();
 			mDelta = delta;
 		}
-
 		// Throw error message in case of wrong specification
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: ", gradientMode);
+			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: semi_analytic. Specified gradient_mode: " << gradientMode << std::endl;
+
+		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 
 		// Initialize member variables to NULL
-		m_initial_value = 0.0;
-		m_initial_value_defined = false;
 		m_strain_energy = 0.0;
 	}
 
@@ -123,85 +113,40 @@ public:
 	///@{
 
 	// ==============================================================================
-	void initialize()
+	void Initialize() override
 	{
-		// In case of analytic sensitivity analysis, check if specified elements in model_part provide necessary sensitivity information.
-		// To check, we compare if the class type of all the given elements in the model_part is among the elements
-		// that provide the required sensitivity information (reference elements)
-		// The reference class type is: "SmallDisplacementAnalyticSensitivityElement"
-
-		if(mGradientMode==1)
-		{
-			const char element_name[] = "SmallDisplacementAnalyticSensitivityElement3D4N";
-			Element const &reference_element = KratosComponents<Element>::Get(element_name);
-
-			bool sensitivity_analysis_implemented = true;
-			for (ModelPart::ElementsContainerType::iterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
-			{
-				Element const &given_element = mr_model_part.Elements()[elem_i->Id()];
-
-				if (typeid(given_element) != typeid(reference_element))
-				{
-					sensitivity_analysis_implemented = false;
-					break;
-				}
-			}
-
-			if (!sensitivity_analysis_implemented)
-				KRATOS_THROW_ERROR(std::logic_error, "Analytic sensitivity analysis for given element type not implemented. Please choose for complete model part elements that support an analytic sensitivity analysis", "");
-		}
+		//not needed because only semi-analytical sensitivity analysis is implemented yet
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_value()
+	void CalculateValue() override
 	{
 		KRATOS_TRY;
 
-		// Working variables / vectors
 		ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
 		m_strain_energy = 0.0;
-		Vector u;
-		Vector RHS;
 
-		// Computation of strain_energy = 1/2*u*f
-		const int nconditions = static_cast<int>(mr_model_part.Conditions().size());
-		ModelPart::ConditionsContainerType::iterator cond_begin = mr_model_part.ConditionsBegin();
-		for (int k = 0; k < nconditions; k++)
+		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
+		for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
 		{
-			ModelPart::ConditionsContainerType::iterator cond_i = cond_begin + k;
+			Matrix LHS;
+			Vector RHS;
+			Vector u;
 
-			// Detect if the condition is active or not. If the user did not make any choice the element
-			// Is active by default
-			bool condition_is_active = true;
-			if ((cond_i)->IsDefined(ACTIVE))
-				condition_is_active = (cond_i)->Is(ACTIVE);
+			// Get state solution relevant for energy calculation
+			elem_i->GetValuesVector(u,0);
 
-			if (condition_is_active)
-			{
-				// Get state solution relevant for energy calculation
-				cond_i->GetValuesVector(u,0);
+			elem_i->CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
 
-				// Calculate RHS
-				cond_i->CalculateRightHandSide(RHS, CurrentProcessInfo);
-
-				// Compute strain energy
-				m_strain_energy += 0.5 * inner_prod(RHS, u);
-			}
+			// Compute strain energy
+			m_strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
 		}
-
-		// Set initial value if not done yet
-		if(!m_initial_value_defined)
-		{
-			m_initial_value = m_strain_energy;
-			m_initial_value_defined = true;
-		}
-
 
 		KRATOS_CATCH("");
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_gradient()
+	void CalculateGradient() override
 	{
 		KRATOS_TRY;
 
@@ -229,43 +174,24 @@ public:
 
 		switch (mGradientMode)
 		{
-		// analytic sensitivities
+		// Semi analytic sensitivities
 		case 1:
 		{
-			std::cout << "WARNING: in StrainEnergyResponseFunction::calculate_gradient()!!!! No variation of external force considerd yet in analytical sensitivity analysis" << std::endl;
-
-			// calculate_response_derivative_part_analytically();
-			calculate_adjoint_field();
-			calculate_state_derivative_part_analytically();
-			break;
-		}
-		// Semi analytic sensitivities
-		case 2:
-		{
-			calculate_response_derivative_part_by_finite_differencing();
-			calculate_adjoint_field();
-			calculate_state_derivative_part_by_finite_differencing();
+			CalculateResponseDerivativePartByFiniteDifferencing();
+			CalculateAdjointField();
+			CalculateStateDerivativePartByFiniteDifferencing();
 			break;
 		}
 		}
 
-		KRATOS_CATCH("");
-	}
-	// --------------------------------------------------------------------------
-	double get_initial_value()
-	{
-		KRATOS_TRY;
-
-		if(!m_initial_value_defined)
-			KRATOS_THROW_ERROR(std::logi:error, "Initial value not yet defined! First compute it by calling \"calculate_value()\"", m_initial_value_defined);
-
-		return m_initial_value;
+		if (mConsiderDiscretization)
+			this->ConsiderDiscretization();
 
 		KRATOS_CATCH("");
 	}
 
 	// --------------------------------------------------------------------------
-	double get_value()
+	double GetValue() override
 	{
 		KRATOS_TRY;
 
@@ -275,16 +201,16 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	boost::python::dict get_gradient()
+	pybind11::dict GetGradient() override
 	{
 		KRATOS_TRY;
 
 		// Dictionary to store all sensitivities along with Ids of corresponding nodes
-		boost::python::dict dFdX;
+		pybind11::dict dFdX;
 
 		// Fill dictionary with gradient information
 		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT);
+			dFdX[pybind11::cast(node_i->Id())] = node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT);
 
 		return dFdX;
 
@@ -306,19 +232,19 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const
+	std::string Info() const override
 	{
 		return "StrainEnergyResponseFunction";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
+	void PrintInfo(std::ostream &rOStream) const override
 	{
 		rOStream << "StrainEnergyResponseFunction";
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
+	void PrintData(std::ostream &rOStream) const override
 	{
 	}
 
@@ -345,7 +271,7 @@ protected:
 	///@{
 
 	// ==============================================================================
-	void calculate_adjoint_field()
+	void CalculateAdjointField()
 	{
 		KRATOS_TRY;
 
@@ -355,49 +281,7 @@ protected:
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_state_derivative_part_analytically()
-	{
-		KRATOS_TRY;
-
-		// Working variables
-		ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
-
-		// Computation of: \frac{1}{2} u^T \cdot ( - \frac{\partial K}{\partial x} )
-		for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
-		{
-			Vector u;
-			Vector lambda;
-
-			// Get state solution
-			elem_i->GetValuesVector(u,0);
-
-			// Get adjoint variables (Corresponds to 1/2*u)
-			lambda = 0.5*u;
-
-			// Analytic computation of partial derivative of state equation w.r.t. node coordinates
-			for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
-			{
-				array_3d gradient_contribution(3, 0.0);
-				int node_index = node_i - elem_i->GetGeometry().begin();
-
-				// Specify node for which DKDXU (including DKDXU_X,DKDXU_Y,DKDXU_Z) shall be computed
-				elem_i->SetValue(ACTIVE_NODE_INDEX, node_index);
-				elem_i->Calculate(DKDXU, u, CurrentProcessInfo);
-
-				gradient_contribution[0] = -inner_prod(lambda, elem_i->GetValue(DKDXU_X));
-				gradient_contribution[1] = -inner_prod(lambda, elem_i->GetValue(DKDXU_Y));
-				gradient_contribution[2] = -inner_prod(lambda, elem_i->GetValue(DKDXU_Z));
-
-				// Assemble gradient to node
-				noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += gradient_contribution;
-			}
-		}
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	void calculate_state_derivative_part_by_finite_differencing()
+	void CalculateStateDerivativePartByFiniteDifferencing()
 	{
 		KRATOS_TRY;
 
@@ -517,7 +401,7 @@ protected:
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_response_derivative_part_by_finite_differencing()
+	void CalculateResponseDerivativePartByFiniteDifferencing()
 	{
 		KRATOS_TRY;
 
@@ -584,6 +468,44 @@ protected:
 		KRATOS_CATCH("");
 	}
 
+	// --------------------------------------------------------------------------
+  	void ConsiderDiscretization() override {
+
+
+		// Start process to identify element neighbors for every node
+		FindNodalNeighboursProcess neigbhorFinder = FindNodalNeighboursProcess(mr_model_part, 10, 10);
+		neigbhorFinder.Execute();
+
+		std::cout<< "> Considering discretization size!" << std::endl;
+		for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
+		{
+			WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
+
+			double scaling_factor = 0.0;
+			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			{
+				Kratos::Element& ng_elem_i = ng_elem[i];
+				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+
+				if( isElementOfTypeShell(element_geometry) )
+					scaling_factor += element_geometry.Area();
+				else
+					scaling_factor += element_geometry.Volume();
+			}
+
+			node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT) /= scaling_factor;
+		}
+	}
+
+	// --------------------------------------------------------------------------
+	bool isElementOfTypeShell( Element::GeometryType& given_element_geometry )
+	{
+		if(given_element_geometry.WorkingSpaceDimension() != given_element_geometry.LocalSpaceDimension())
+			return true;
+		else
+		    return false;
+	}
+
 	// ==============================================================================
 
 	///@}
@@ -612,8 +534,7 @@ private:
 	unsigned int mGradientMode;
 	double m_strain_energy;
 	double mDelta;
-	double m_initial_value;
-	bool m_initial_value_defined;
+	bool mConsiderDiscretization;
 
 	///@}
 ///@name Private Operators

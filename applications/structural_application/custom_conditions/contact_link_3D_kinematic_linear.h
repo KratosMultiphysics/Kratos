@@ -98,8 +98,8 @@ public:
                                     PropertiesType::Pointer pProperties,
                                     Condition::Pointer Master,
                                     Condition::Pointer Slave,
-                                    Point<3>& MasterContactLocalPoint,
-                                    Point<3>& SlaveContactLocalPoint,
+                                   Point& MasterContactLocalPoint,
+                                   Point& SlaveContactLocalPoint,
                                     int SlaveIntegrationPointIndex
                                   );
     /**
@@ -208,7 +208,7 @@ private:
     Matrix TangentialVectors_inOrigin( Condition::Pointer Surface,
                                        const GeometryType::CoordinatesArrayType& rPoint );
 
-    Point<3>& GlobalCoordinates(Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates);
+   Point& GlobalCoordinates(Condition::Pointer Surface,Point& rResult,Point const& LocalCoordinates);
 
 
     Vector GetRelativTangentialVelocity(Matrix& T);
@@ -253,10 +253,10 @@ private:
     Matrix mTMaster;
 //             Condition::Pointer mpSlave;
 //             Condition::Pointer mpMaster;
-//             Point<3> mMasterContactLocalPoint;
-//             Point<3> mSlaveContactLocalPoint;
-//             Point<3> mMasterContactGlobalPoint;
-//             Point<3> mSlaveContactGlobalPoint;
+//            Point mMasterContactLocalPoint;
+//            Point mSlaveContactLocalPoint;
+//            Point mMasterContactGlobalPoint;
+//            Point mSlaveContactGlobalPoint;
 }; // Class ContactLink3D_Kinematic_Linear
 }  // namespace Kratos.
 

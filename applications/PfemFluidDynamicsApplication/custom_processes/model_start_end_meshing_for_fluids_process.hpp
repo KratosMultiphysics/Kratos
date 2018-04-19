@@ -1,5 +1,5 @@
 //
-//   Project Name:        KratosPfemBaseApplication $
+//   Project Name:        KratosPfemApplication $
 //   Created by:          $Author:      JMCarbonell $
 //   Last modified by:    $Co-Author:               $
 //   Date:                $Date:      February 2016 $
@@ -175,7 +175,7 @@ namespace Kratos
 	{
 	  // if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
 	  if(  (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
-
+ 
 
 	    if( EchoLevel > 1 )
 	      std::cout<<"    [ SUBMODEL PART ["<<i_mp->Name()<<"] [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ] "<<std::endl;

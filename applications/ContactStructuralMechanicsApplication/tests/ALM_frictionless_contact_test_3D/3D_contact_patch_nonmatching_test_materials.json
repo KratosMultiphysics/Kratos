@@ -1,0 +1,36 @@
+{
+    "properties": [
+    {
+            "model_part_name": "Parts_Part_foundation",
+            "properties_id": 3,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
+                    },
+                    "Variables": {
+                            "KratosMultiphysics.DENSITY": 1.00000E+03,
+                            "KratosMultiphysics.YOUNG_MODULUS": 1.00000E+02 ,
+                            "KratosMultiphysics.POISSON_RATIO": 3.00000E-01
+                    },
+                    "Tables": {}
+            }
+    },
+    {
+            "model_part_name": "Parts_Part_punch",
+            "properties_id": 4,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
+                    },
+                    "Variables": {
+                            "KratosMultiphysics.DENSITY": 1.00000E+03,
+                            "KratosMultiphysics.YOUNG_MODULUS": 1.00000E+02 ,
+                            "KratosMultiphysics.POISSON_RATIO": 3.00000E-01
+                    },
+                    "Tables": {}
+            }
+    }
+    ]
+}

@@ -119,7 +119,7 @@ namespace Kratos
       //CONDITIONS MASTER_ELEMENTS and MASTER_NODES SEARCH
       if( mrMainModelPart.GetProcessInfo()[IS_RESTARTED] == true ){
       	BuildModelPartBoundaryProcess BuildBoundaryProcess(mrMainModelPart, mrMainModelPart.Name(), mEchoLevel);
-      	BuildBoundaryProcess.SearchConditionMasters(mrMainModelPart);
+      	BuildBoundaryProcess.SearchConditionMasters();
       }
       
       //Update Boundary Normals before Contact Search   

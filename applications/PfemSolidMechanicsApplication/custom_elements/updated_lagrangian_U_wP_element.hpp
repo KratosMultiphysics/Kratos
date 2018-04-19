@@ -15,9 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/large_displacement_element.hpp"
-
-#include "pfem_solid_mechanics_application_variables.h"
+#include "custom_elements/solid_elements/updated_lagrangian_element.hpp"
 
 namespace Kratos
 {
@@ -40,7 +38,7 @@ namespace Kratos
 
 
 class UpdatedLagrangianUwPElement
-    : public LargeDisplacementElement
+    : public UpdatedLagrangianElement
 {
 public:
 
@@ -112,14 +110,6 @@ public:
 
     //************* GETTING METHODS
 
-    //SET
-
-    /**
-     * Set a double  Value on the Element Constitutive Law
-     */
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-
     //GET:
 
     /**
@@ -133,11 +123,6 @@ public:
 
     //************* STARTING - ENDING  METHODS
 
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    void Initialize();
 
     /**
     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -176,26 +161,6 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Calculate Element Kinematics
-     */
-    virtual void CalculateKinematics(GeneralVariables& rVariables,
-                                     const double& rPointNumber);
-
-
-    /**
-     * Calculation of the Deformation Gradient F
-     */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF,
-                                      Matrix& rDeltaPosition);
-
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    virtual void CalculateDeformationMatrix(Matrix& rB,
-                                            Matrix& rF,
-                                            Matrix& rDN_DX);
 
     ///@}
     ///@name Access
@@ -219,25 +184,10 @@ protected:
     ///@{
 
     
-    /**
-     * Container for historical total elastic deformation measure F0 = dx/dX
-     */
-    std::vector< Matrix > mDeformationGradientF0;
-
-    /**
-     * Container for the total deformation gradient determinants
-     */
-    Vector mDeterminantF0;
-
-    /**** 
+   /**** 
        the time step (requiered). It shall be somewhere else.
     ****/    
     double mTimeStep;
-
-    /*** 
-        Just to check a few things
-     ***/
-    //bool mCompressibleWater;
 
     ///@}
     ///@name Protected Operators
@@ -247,15 +197,13 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // TO BE DESTROYED BECAUSE IT DOES NOT MAKE ANY SENCE
-    void  GetConstants(double& rScalingConstant, double& rWaterBulk, double& rDeltaTime, double& rPermeability);
-
+ 
     /**
      * Calculation and addition of the matrices of the LHS
      */
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
+                                    ElementVariables& rVariables,
                                     double& rIntegrationWeight);
 
     /**
@@ -263,105 +211,16 @@ protected:
      */
 
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
+                                    ElementVariables& rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight);
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-   /**
-     * Finalize Element Internal Variables
-     */
-    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
+    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
-
-    /**
-     * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
-     */
-    virtual void CalculateAndAddKuum(MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
-
-    /**
-     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
-     */
-    virtual void CalculateAndAddKuug(MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
-
-    /**
-     * Calculation of the Kup matrix
-     */
-    virtual void CalculateAndAddKup (MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
-
-    /**
-     * Calculation of the Kpu matrix
-     */
-    virtual void CalculateAndAddKpu(MatrixType& rK,
-                                    GeneralVariables & rVariables,
-                                    double& rIntegrationWeight
-                                   );
-
-
-    /**
-     * Calculation of the Kpp matrix
-     */
-    virtual void CalculateAndAddKpp(MatrixType& rK,
-                                    GeneralVariables & rVariables,
-                                    double& rIntegrationWeight
-                                   );
-
-
-    /**
-     * Calculation of the Kpp Stabilization Term matrix
-     */
-    virtual void CalculateAndAddKppStab(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        double& rIntegrationWeight
-                                       );
-    /**
-     * Calculation of the External Forces Vector. Fe = N * t + N * b
-     */
-    void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-                                       GeneralVariables& rVariables,
-                                       Vector& rVolumeForce,
-                                       double& rIntegrationWeight
-                                      );
-
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            double& rIntegrationWeight
-                                              );
-
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            double& rIntegrationWeight
-                                                  );
-
-    /**
-      * Calculation of the Internal Forces due to sigma. Fi = B * sigma
-      */
-    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-                                       GeneralVariables & rVariables,
-                                       double& rIntegrationWeight
-                                      );
 
     /**
      * Initialize System Matrices
@@ -376,25 +235,9 @@ protected:
      */
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
-    virtual void GetPermeabilityTensor( const double& rPermeability, const Matrix& rF, Matrix& rPermeabilityTensor);
-
-    virtual double GetPermeabilityLDTerm( const Matrix& rPermeability, const Matrix& rF, const int i, const int j, const int k, const int l);
-
-    virtual double GetElementSize( const Matrix& rDN_DX);
-
-    /**
-     * Get the Historical Deformation Gradient to calculate after finalize the step
-     */
-    virtual void GetHistoricalVariables( GeneralVariables& rVariables, 
-				 const double& rPointNumber );
-
-    /**
-     * Calculation of the Volume Change of the Element
-     */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
-  
 
     ///@}
     ///@name Protected  Access

@@ -57,14 +57,14 @@ enum {Dimension = TDimension,
 typedef SpatialSearch                                                       SearchType;
 
 typedef SearchType::PointType                                               PointType;
-typedef PointerVectorSet<Point<3>, IndexedObject>::ContainerType   ContainerType;
-typedef PointerVectorSet<Point<3>, IndexedObject>                  PointsContainerType;
+typedef PointerVectorSet<Point, IndexedObject>::ContainerType   ContainerType;
+typedef PointerVectorSet<Point, IndexedObject>                  PointsContainerType;
 
 typedef SearchType::ElementType                                             ElementType;
 typedef ContainerType::value_type                                           PointerType;
 typedef ContainerType::iterator                                             IteratorType;
 
-typedef PointerVectorSet<Point<3>, IndexedObject>::ContainerType   ResultContainerType;
+typedef PointerVectorSet<Point, IndexedObject>::ContainerType   ResultContainerType;
 
 
 typedef ResultContainerType::iterator                           ResultIteratorType;

@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -90,10 +90,10 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(QuadrilateralJacobianTest, KratosNonRectangularJacobianFastSuite) 
         {
-            Node<3>::Pointer PointA = GeneratePoint<Node<3>>();
-            Node<3>::Pointer PointB = GeneratePoint<Node<3>>();
-            Node<3>::Pointer PointC = GeneratePoint<Node<3>>();
-            Node<3>::Pointer PointD = GeneratePoint<Node<3>>();
+            Node<3>::Pointer PointA = Node<3>::Pointer(new Node<3>(1, 0.1, 0.2, 0.3));
+            Node<3>::Pointer PointB = Node<3>::Pointer(new Node<3>(2, 0.4, 0.25, 0.35));
+            Node<3>::Pointer PointC = Node<3>::Pointer(new Node<3>(3, 0.4, 0.55, 0.3));
+            Node<3>::Pointer PointD = Node<3>::Pointer(new Node<3>(4, 0.15, 0.45, 0.45));
             
             auto geom = Quadrilateral3D4<Node<3>>(PointA,PointB,PointC,PointD);
 

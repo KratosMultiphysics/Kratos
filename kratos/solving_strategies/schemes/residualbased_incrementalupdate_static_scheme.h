@@ -126,7 +126,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualBasedIncrementalUpdateStaticScheme() {}
+    ~ResidualBasedIncrementalUpdateStaticScheme() override {}
 
 
     /*@} */
@@ -138,7 +138,7 @@ public:
     Performing the update of the solution.
     */
     //***************************************************************************
-    virtual void Update(
+    void Update(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
@@ -164,7 +164,7 @@ public:
     Performing the update of the solution.
     */
     //***************************************************************************
-    virtual void Predict(
+    void Predict(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
@@ -180,10 +180,10 @@ public:
     
     /**
      * It initializes a non-linear iteration (for the element)
-     * @param rModelPart: The model of the problem to solve
-     * @param A: LHS matrix
-     * @param Dx: Incremental update of primary variables
-     * @param b: RHS Vector
+     * @param rModelPart The model of the problem to solve
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
      */
 
     void InitializeNonLinIteration(
@@ -240,8 +240,8 @@ public:
 
     /**
      * It initializes a non-linear iteration (for an individual condition)
-     * @param rCurrentConditiont: The condition to compute
-     * @param CurrentProcessInfo: The current process info instance
+     * @param rCurrentConditiont The condition to compute
+     * @param CurrentProcessInfo The current process info instance
      */
 
     void InitializeNonLinearIteration(
@@ -254,8 +254,8 @@ public:
 
     /**
      * It initializes a non-linear iteration (for an individual element)
-     * @param rCurrentElement: The element to compute
-     * @param CurrentProcessInfo: The current process info instance
+     * @param rCurrentElement The element to compute
+     * @param CurrentProcessInfo The current process info instance
      */
 
     void InitializeNonLinearIteration(
@@ -274,7 +274,7 @@ public:
     this function calculates at the same time the contribution to the LHS and to the RHS
     of the system
     */
-    virtual void CalculateSystemContributions(
+    void CalculateSystemContributions(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
@@ -294,7 +294,7 @@ public:
 
     //***************************************************************************
     //***************************************************************************
-    virtual void Calculate_RHS_Contribution(
+    void Calculate_RHS_Contribution(
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
@@ -311,7 +311,7 @@ public:
 
     //***************************************************************************
     //***************************************************************************
-    virtual void Calculate_LHS_Contribution(
+    void Calculate_LHS_Contribution(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
@@ -330,7 +330,7 @@ public:
     /** functions totally analogous to the precedent but applied to
     the "condition" objects
     */
-    virtual void Condition_CalculateSystemContributions(
+    void Condition_CalculateSystemContributions(
         Condition::Pointer rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
@@ -346,7 +346,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Condition_Calculate_RHS_Contribution(
+    void Condition_Calculate_RHS_Contribution(
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,

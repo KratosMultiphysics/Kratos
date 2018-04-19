@@ -14,11 +14,11 @@
 #define  KRATOS_ADD_ALE_VARIABLES_TO_PYTHON_H_INCLUDED
 
 // System includes
+#include <pybind11/pybind11.h>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 
 namespace Kratos
 {
@@ -26,7 +26,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddALEVariablesToPython();
+void  AddALEVariablesToPython(pybind11::module& m);
 
 }  // namespace Python.
 

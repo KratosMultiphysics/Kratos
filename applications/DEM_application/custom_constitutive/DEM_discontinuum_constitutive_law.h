@@ -35,7 +35,7 @@ namespace Kratos {
 
         virtual void Initialize(const ProcessInfo& r_process_info);
 
-        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const;
         
         virtual std::string GetTypeOfLaw();
 
@@ -132,7 +132,7 @@ namespace Kratos {
     };
 
     //This definition is done here to avoid recursive inclusion of header files
-    KRATOS_DEFINE_VARIABLE(DEMDiscontinuumConstitutiveLaw::Pointer, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, DEMDiscontinuumConstitutiveLaw::Pointer, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
 
 } /* namespace Kratos.*/
 #endif /* DEM_CONSTITUTIVE_LAW_H_INCLUDED  defined */

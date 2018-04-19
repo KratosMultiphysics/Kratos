@@ -67,7 +67,7 @@ class SphericElementGlobalPhysicsCalculator
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
                       SphericParticle& r_spheric_particle = dynamic_cast<Kratos::SphericParticle&> (*it);
                       const double particle_radius = r_spheric_particle.GetRadius();
-                      added_volume += 4.0 / 3.0 * KRATOS_M_PI * particle_radius * particle_radius * particle_radius;
+                      added_volume += 4.0 / 3.0 * Globals::Pi * particle_radius * particle_radius * particle_radius;
                   }
             }
         }
@@ -475,9 +475,12 @@ class SphericElementGlobalPhysicsCalculator
                       (it)->Calculate(MOMENTUM, particle_momentum, r_model_part.GetProcessInfo());
                       (it)->Calculate(ANGULAR_MOMENTUM, particle_local_angular_momentum, r_model_part.GetProcessInfo());
 
-                      am_x += particle_local_angular_momentum[0] + (Kratos::MathUtils<double>::CrossProduct(center_of_mass_to_particle, particle_momentum))[0];
-                      am_y += particle_local_angular_momentum[1] + (Kratos::MathUtils<double>::CrossProduct(center_of_mass_to_particle, particle_momentum))[1];
-                      am_z += particle_local_angular_momentum[2] + (Kratos::MathUtils<double>::CrossProduct(center_of_mass_to_particle, particle_momentum))[2];
+                      array_1d<double, 3> aux;
+                      Kratos::MathUtils<double>::CrossProduct(aux, particle_momentum, center_of_mass_to_particle);
+                      
+                      am_x += particle_local_angular_momentum[0] + aux[0];
+                      am_y += particle_local_angular_momentum[1] + aux[1];
+                      am_z += particle_local_angular_momentum[2] + aux[2];
                   }
               }
           }
@@ -492,7 +495,35 @@ class SphericElementGlobalPhysicsCalculator
 
       //***************************************************************************************************************
       //***************************************************************************************************************
+      // Check by how much Newton's Third Law is violated
+      array_1d<double, 3> CalculateSumOfInternalForces(ModelPart& r_model_part)
+      {
+            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(),r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+            double sum_of_contact_forces_x = 0.0;
+            double sum_of_contact_forces_y = 0.0;
+            double sum_of_contact_forces_z = 0.0;
 
+            #pragma omp parallel for reduction(+ : sum_of_contact_forces_x, sum_of_contact_forces_y, sum_of_contact_forces_z)
+            for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+
+                for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                    if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
+                        const array_1d<double, 3>& contact_force = (it)->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
+                        sum_of_contact_forces_x += contact_force[0];
+                        sum_of_contact_forces_y += contact_force[1];
+                        sum_of_contact_forces_z += contact_force[2];
+                    }
+                }
+            }
+
+            array_1d<double, 3> sum_of_contact_forces;
+            sum_of_contact_forces[0] = sum_of_contact_forces_x;
+            sum_of_contact_forces[1] = sum_of_contact_forces_y;
+            sum_of_contact_forces[2] = sum_of_contact_forces_z;
+            return sum_of_contact_forces;
+      }
+      //***************************************************************************************************************
+      //***************************************************************************************************************
         ///@}
         ///@name Access
         ///@{

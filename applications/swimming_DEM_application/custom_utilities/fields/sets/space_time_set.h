@@ -38,12 +38,34 @@ KRATOS_CLASS_POINTER_DEFINITION(SpaceTimeSet);
 
 /// Default constructor.
 
+SpaceTimeSet(const double min_time,
+             const double max_time,
+             const double min_x,
+             const double min_y,
+             const double min_z,
+             const double max_x,
+             const double max_y,
+             const double max_z)
+{
+    BoundingBoxRule::Pointer b_box_rule(new BoundingBoxRule(min_time,
+                                                            max_time,
+                                                            min_x,
+                                                            min_y,
+                                                            min_z,
+                                                            max_x,
+                                                            max_y,
+                                                            max_z));
+    std::vector<SpaceTimeRule::Pointer> union_rules;
+    union_rules.push_back(b_box_rule);
+    mUnionOfRules.push_back(union_rules);
+}
+
 SpaceTimeSet()
 {
-BoundingBoxRule::Pointer b_box_rule(new BoundingBoxRule());
-                                    std::vector<SpaceTimeRule::Pointer> union_rules;
-                                    union_rules.push_back(b_box_rule);
-                                    mUnionOfRules.push_back(union_rules);
+    BoundingBoxRule::Pointer b_box_rule(new BoundingBoxRule());
+    std::vector<SpaceTimeRule::Pointer> union_rules;
+    union_rules.push_back(b_box_rule);
+    mUnionOfRules.push_back(union_rules);
 }
 
 /// Destructor.

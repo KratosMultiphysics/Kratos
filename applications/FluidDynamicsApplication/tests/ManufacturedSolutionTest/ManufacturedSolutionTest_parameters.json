@@ -46,21 +46,15 @@
             "input_type"     : "mdpa",
             "input_filename" : "ManufacturedSolutionTest/"
         },
-        "echo_level"                   : 0,
         "compute_reactions"            : true,
-        "reform_dofs_at_each_step"     : false,
-        "time_order"                   : 2,
-        "divergence_clearance_steps"   : 0,
         "dynamic_tau"                  : 0.001,
         "maximum_iterations"           : 20,
-        "relative_velocity_tolerance"  : 0.00001,
+        "relative_velocity_tolerance"  : 1e-5,
         "absolute_velocity_tolerance"  : 1e-7,
-        "relative_pressure_tolerance"  : 0.00001,
+        "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type"         : "SuperLUSolver",
-            "tolerance"           : 1e-9,
-            "verbosity"           : 0
+            "solver_type"         : "SuperLUSolver"
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Contour"],

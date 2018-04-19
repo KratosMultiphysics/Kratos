@@ -34,6 +34,7 @@
 #include "custom_elements/laplacian_element.h"
 #include "custom_conditions/thermal_face2D.h"
 #include "custom_conditions/thermal_face3D.h"
+#include "custom_conditions/flux_condition.h"
 
 #include "includes/variables.h"
 #include "includes/condition.h"
@@ -48,9 +49,8 @@ namespace Kratos
 // Variables definition
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double,  MELT_TEMPERATURE_1)
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double,  MELT_TEMPERATURE_2)
-KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double,  ERROR)
-KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double,  ERROR_1)
-KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double,  ERROR_2)
+KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double,  BFECC_ERROR)
+KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double,  BFECC_ERROR_1)
 
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double, MEAN_SIZE)
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double, PROJECTED_SCALAR1)
@@ -110,7 +110,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
 
 
@@ -129,20 +129,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosConvectionDiffusionApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in KratosConvectionDiffusionApplication");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -224,7 +224,9 @@ private:
     const LaplacianElement mLaplacian3D27N;
     const ThermalFace2D  mThermalFace2D;
     const ThermalFace3D  mThermalFace3D;
-
+    const FluxCondition<2>  mFluxCondition2D2N;
+    const FluxCondition<3>  mFluxCondition3D3N;
+    const FluxCondition<4>  mFluxCondition3D4N;
 
     ///@}
     ///@name Private Operators
@@ -277,6 +279,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KRATOS_CONVECTION_DIFFUSION_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_KRATOS_CONVECTION_DIFFUSION_APPLICATION_H_INCLUDED  defined
 
 

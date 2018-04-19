@@ -80,7 +80,7 @@ public:
     /**
      * Constructor.
      */
-    Circle3D( Point<3> M, Point<3> e1, Point<3> e2 )
+    Circle3D(Point M,Point e1,Point e2 )
         :mM(M),mE1(e1),mE2(e2)
     {
         r1 = mE1-M;
@@ -99,7 +99,7 @@ public:
     /**
      *
      */
-    Point<3>& GetCenter()
+   Point& GetCenter()
     {
         return mM;
     }
@@ -107,7 +107,7 @@ public:
     /**
      *
      */
-    Point<3>& GetPoint( Point<3>& result, double s )
+   Point& GetPoint(Point& result, double s )
     {
         result = cos( s/radius )*r1 + sin( s/radius )*r2 + mM;
         return result;
@@ -173,9 +173,9 @@ public:
 
 private:
 
-    Point<3> mM;
-    Point<3> mE1;
-    Point<3> mE2;
+   Point mM;
+   Point mE1;
+   Point mE2;
     array_1d<double, 3> r1;
     array_1d<double, 3> r2;
     double radius;

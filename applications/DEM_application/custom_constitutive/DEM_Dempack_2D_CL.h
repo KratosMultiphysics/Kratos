@@ -8,7 +8,7 @@
 
 namespace Kratos {
 
-    class DEM_Dempack2D : public DEM_Dempack {
+    class KRATOS_API(DEM_APPLICATION) DEM_Dempack2D : public DEM_Dempack {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack2D);
@@ -24,7 +24,7 @@ namespace Kratos {
         double mHistoryDisp;
         double mHistoryShearFlag;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         ~DEM_Dempack2D() {}
 

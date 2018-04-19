@@ -105,8 +105,8 @@ namespace Kratos
                                   PropertiesType::Pointer pProperties,
                                   Condition::Pointer Master, 
                                   Condition::Pointer Slave
-                                  //Point<3>& MasterContactLocalPoint,
-                                  //Point<3>& SlaveContactLocalPoint,
+                                  //Point& MasterContactLocalPoint,
+                                  //Point& SlaveContactLocalPoint,
                                   //int SlaveIntegrationPointIndex
                                 )  : Condition( NewId, pGeometry, pProperties )
                                 {
@@ -289,7 +289,7 @@ namespace Kratos
 	    double segmentlength  = GetValue( CONTACT_LINK_MASTER )->GetGeometry().Length();
 	    double shi            = inner_prod(r,Tangential)/segmentlength;
 	    
-	    Point<3> rPoint;    
+	   Point rPoint;    
 	    rPoint[0] = shi;
 	    rPoint[1] = shi;
 	    rPoint[2] = shi;
@@ -308,7 +308,7 @@ namespace Kratos
 	   
 	    /// contact position on the target facet
 	    Condition::GeometryType& segmentgeom = GetValue( CONTACT_LINK_MASTER )->GetGeometry();
-	    Point<3> Xts;    
+	   Point Xts;    
 	    noalias(Xts) = MasterShapeFunctionValues[0]*segmentgeom[0] + MasterShapeFunctionValues[1]*segmentgeom[1];
 	   
 	    double penalty = 1.00;   //200e9 * 50.0;

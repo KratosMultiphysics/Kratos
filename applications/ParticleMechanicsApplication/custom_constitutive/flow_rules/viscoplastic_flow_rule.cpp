@@ -43,8 +43,8 @@ ViscoplasticFlowRule::ViscoplasticFlowRule(YieldCriterionPointer pYieldCriterion
 
 ViscoplasticFlowRule& ViscoplasticFlowRule::operator=(ViscoplasticFlowRule const& rOther)
 {
-   FlowRule::operator=(rOther);
-   return *this;
+    FlowRule::operator=(rOther);
+    return *this;
 }
 
 //*******************************COPY CONSTRUCTOR*************************************
@@ -61,8 +61,8 @@ ViscoplasticFlowRule::ViscoplasticFlowRule(ViscoplasticFlowRule const& rOther)
 
 FlowRule::Pointer ViscoplasticFlowRule::Clone() const
 {
-  FlowRule::Pointer p_clone(new ViscoplasticFlowRule(*this));
-  return p_clone;
+    FlowRule::Pointer p_clone(new ViscoplasticFlowRule(*this));
+    return p_clone;
 }
 
 //********************************DESTRUCTOR******************************************
@@ -105,17 +105,18 @@ void ViscoplasticFlowRule::UpdateConfiguration( RadialReturnVariables& rReturnMa
 {
     //Back Stress update
 
-        //std::cout<< " ElasticIsoStress "<<rIsoStressMatrix<<std::endl;
+    //std::cout<< " ElasticIsoStress "<<rIsoStressMatrix<<std::endl;
 
     //Plastic Strain Update
-        if( rReturnMappingVariables.NormIsochoricStress > 0 ){
+    if( rReturnMappingVariables.NormIsochoricStress > 0 )
+    {
 
-      //Stress Update:
-      double Auxiliar   = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma;
+        //Stress Update:
+        double Auxiliar   = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma;
 
-      Matrix Normal     = rIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
+        Matrix Normal     = rIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
 
-      rIsoStressMatrix -= ( Normal * Auxiliar );
+        rIsoStressMatrix -= ( Normal * Auxiliar );
 
     }
 
@@ -202,7 +203,7 @@ bool ViscoplasticFlowRule::CalculateConsistencyCondition( RadialReturnVariables&
 
 
     if(iter>MaxIterations)
-      return false;
+        return false;
 
 
     return true;

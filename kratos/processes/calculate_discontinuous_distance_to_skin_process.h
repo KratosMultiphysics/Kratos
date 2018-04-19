@@ -24,8 +24,9 @@
 
 
 // Project includes
-#include "processes/find_intersected_geometrical_objects_process.h"
 #include "includes/checks.h"
+#include "processes/process.h"
+#include "processes/find_intersected_geometrical_objects_process.h"
 
 
 namespace Kratos
@@ -40,7 +41,7 @@ namespace Kratos
   /** This process takes a volume model part (with tetrahedra mesh) and a skin model part (with triangle mesh) and
       and calcualtes the distance to the skin for all the elements and nodes of the volume model part.
   */
-  class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcess : public FindIntersectedGeometricalObjectsProcess
+  class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcess : public Process
     {
     public:
       ///@name Type Definitions
@@ -57,18 +58,18 @@ namespace Kratos
 	  CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart);
 
 	  /// Destructor.
-      virtual ~CalculateDiscontinuousDistanceToSkinProcess();
+      ~CalculateDiscontinuousDistanceToSkinProcess() override;
 
 
       ///@}
-      ///@name Deleted 
+      ///@name Deleted
       ///@{
 
 	  /// Default constructor.
 	  CalculateDiscontinuousDistanceToSkinProcess() = delete;
 
 	  /// Copy constructor.
-	  CalculateDiscontinuousDistanceToSkinProcess(FindIntersectedGeometricalObjectsProcess const& rOther) = delete;
+	  CalculateDiscontinuousDistanceToSkinProcess(Process const& rOther) = delete;
 
 	  /// Assignment operator.
 	  CalculateDiscontinuousDistanceToSkinProcess& operator=(CalculateDiscontinuousDistanceToSkinProcess const& rOther) = delete;
@@ -76,11 +77,23 @@ namespace Kratos
 	  /// Copy constructor.
 	  CalculateDiscontinuousDistanceToSkinProcess(CalculateDiscontinuousDistanceToSkinProcess const& rOther);
 
+      FindIntersectedGeometricalObjectsProcess mFindIntersectedObjectsProcess;
+
       ///@}
       ///@name Operations
       ///@{
 
-	  virtual void Execute() override;
+      virtual void Initialize();
+
+      virtual void FindIntersections();
+
+      virtual std::vector<PointerVector<GeometricalObject>>& GetIntersections();
+
+      virtual void CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects);
+
+      virtual void Clear();
+
+	  void Execute() override;
 
       ///@}
       ///@name Access
@@ -93,48 +106,23 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const;
+      std::string Info() const override;
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+      void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
+      void PrintData(std::ostream& rOStream) const override;
 
       ///@}
 
     private:
 
-		// TODO: I should move this class to a separate file but is out of scope of this branch
-		class Plane3D {
-		public:
-			using VectorType = array_1d<double, 3>;
-			using PointType = Point<3>;
-
-			Plane3D(VectorType const& TheNormal, double DistanceToOrigin) :mNormal(TheNormal), mD(DistanceToOrigin) {}
-			Plane3D() = delete;
-			Plane3D(PointType const& Point1, PointType const& Point2, PointType const& Point3) {
-				VectorType v1 = Point2 - Point1;
-				VectorType v2 = Point3 - Point1;
-				MathUtils<double>::CrossProduct(mNormal, v1, v2);
-				auto normal_length = norm_2(mNormal);
-				KRATOS_DEBUG_CHECK_GREATER(normal_length, std::numeric_limits<double>::epsilon());
-				mNormal /= normal_length;
-				mD = -inner_prod(mNormal, Point1);
-			}
-			VectorType const& GetNormal() { return mNormal; }
-			double GetDistance() { return mD; }
-			double CalculateSignedDistance(PointType const& ThePoint) {
-				return inner_prod(mNormal, ThePoint) + mD;
-			}
-
-		private:
-			VectorType mNormal;
-			double mD;
-		};
-
       ///@name Member Variables
       ///@{
+
+        ModelPart& mrSkinPart;
+        ModelPart& mrVolumePart;
 
 		ModelPart mSkinRepresentation;
 
@@ -143,7 +131,7 @@ namespace Kratos
       ///@{
 
 		void CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects);
-		
+
 		double CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon);
 
       ///@}

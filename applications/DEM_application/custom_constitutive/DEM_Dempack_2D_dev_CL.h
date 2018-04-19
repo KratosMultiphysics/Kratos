@@ -8,14 +8,14 @@
 
 namespace Kratos {
 
-    class DEM_Dempack2D_dev : public DEM_Dempack_dev {
+    class KRATOS_API(DEM_APPLICATION) DEM_Dempack2D_dev : public DEM_Dempack_dev {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack2D_dev);
 
         DEM_Dempack2D_dev() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         ~DEM_Dempack2D_dev() {}
 

@@ -23,7 +23,7 @@ namespace Kratos {
     class Properties; //forward declaration
     class SphericContinuumParticle; // forward declaration of spheric cont particle
 
-    class /*__declspec( dllexport )*/ DEMContinuumConstitutiveLaw : public Flags {
+    class KRATOS_API(DEM_APPLICATION) DEMContinuumConstitutiveLaw : public Flags {
     
     public:
 
@@ -35,7 +35,7 @@ namespace Kratos {
 
         virtual void Initialize();
 
-        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const;
         
         virtual std::string GetTypeOfLaw();
 
@@ -85,11 +85,11 @@ namespace Kratos {
         };
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
-                double &equiv_visco_damp_coeff_tangential,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                const double kn_el,
-                const double kt_el) {
+                                                double &equiv_visco_damp_coeff_tangential,
+                                                SphericContinuumParticle* element1,
+                                                SphericContinuumParticle* element2,
+                                                const double kn_el,
+                                                const double kt_el) {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) should not be called.","")
         };
         
@@ -202,7 +202,7 @@ namespace Kratos {
     };
 
     //This definition is done here to avoid recursive inclusion of header files
-    KRATOS_DEFINE_VARIABLE(DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
 
 } /* namespace Kratos.*/
 #endif /* DEM_CONSTITUTIVE_LAW_H_INCLUDED  defined */
