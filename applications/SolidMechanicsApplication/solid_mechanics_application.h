@@ -191,7 +191,7 @@ typedef array_1d<double,6> Vector6;
    ///@name Operations
    ///@{
 
-   virtual void Register();
+   void Register() override;
 
 
 
@@ -210,20 +210,20 @@ typedef array_1d<double,6> Vector6;
    ///@{
 
    /// Turn back information as a string.
-   virtual std::string Info() const
+   std::string Info() const override
    {
      return "KratosSolidMechanicsApplication";
    }
 
    /// Print information about this object.
-   virtual void PrintInfo(std::ostream& rOStream) const
+   void PrintInfo(std::ostream& rOStream) const override
    {
      rOStream << Info();
      PrintData(rOStream);
    }
 
    ///// Print object's data.
-   virtual void PrintData(std::ostream& rOStream) const
+   void PrintData(std::ostream& rOStream) const override
    {
      KRATOS_WATCH( "in KratosSolidMechanicsApplication" )
      KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )
