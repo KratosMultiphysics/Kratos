@@ -810,33 +810,30 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
         for (unsigned int d = 1; d < Dim; d++)
             residual_norm += rhs[d]*rhs[d];
 
-        //std::cout << "iter: " << iter << " u " << u << " error " << subscale_velocity_error << std::endl;
-        #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
-        mSubscaleIterationError[rData.IntegrationPointIndex] = residual_norm;
-        #endif
+        FluidElementUtilities<NumNodes>::DenseSystemSolve(J,rhs,du);
 
-        if (residual_norm > mSubscalePredictionResidualTolerance) {
+        // Update
+        noalias(u) += du;
 
-            FluidElementUtilities<NumNodes>::DenseSystemSolve(J,rhs,du);
+        // Convergence check
+        subscale_velocity_error = du[0]*du[0];
+        double subscale_velocity_norm = u[0]*u[0];
+        for(unsigned int d = 1; d < Dim; ++d) {
+            subscale_velocity_error += du[d]*du[d];
+            subscale_velocity_norm += u[d]*u[d];
+        }
 
-            // Update
-            noalias(u) += du;
+        if (subscale_velocity_norm > mSubscalePredictionVelocityTolerance)
+            subscale_velocity_error /= subscale_velocity_norm;
 
-            // Convergence check
-            subscale_velocity_error = du[0]*du[0];
-            double subscale_velocity_norm = u[0]*u[0];
-            for(unsigned int d = 1; d < Dim; ++d) {
-                subscale_velocity_error += du[d]*du[d];
-                subscale_velocity_norm += u[d]*u[d];
-            }
-
-            if (subscale_velocity_norm > mSubscalePredictionVelocityTolerance)
-                subscale_velocity_error /= subscale_velocity_norm;
-            }
-            else {
-                break; // If RHS is zero, dU is zero too, converged.
-            }
+        if (residual_norm <= mSubscalePredictionResidualTolerance) {
+            break; // If RHS is zero, dU is zero too, converged.
+        }
     }
+
+    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+    mSubscaleIterationError[rData.IntegrationPointIndex] = subscale_velocity_error;
+    #endif
 
     // Store new subscale values
     noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = u;

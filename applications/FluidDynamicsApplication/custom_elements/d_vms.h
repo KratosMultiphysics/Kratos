@@ -13,7 +13,7 @@
 #ifndef KRATOS_D_VMS_H
 #define KRATOS_D_VMS_H
 
-#define KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+//#define KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
 
 #include "includes/define.h"
 #include "includes/element.h"
