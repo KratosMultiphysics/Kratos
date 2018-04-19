@@ -162,14 +162,14 @@ public:
 
     /// Turn back information as a string.
 
-    std::string Info() const
+    std::string Info() const override
     {
         return "SUPGConv3D #";
     }
 
     /// Print information about this object.
 
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -248,12 +248,12 @@ private:
     //         {
     //         }
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
