@@ -109,7 +109,7 @@ public:
 		}
 
 		// Check the weighting factors and modify them for the case that their sum is unequal to one
-		if(test_sum_weight_facs != 1.0)
+		if(std::abs(test_sum_weight_facs - 1.0) > 1e-12)
 		{
 			for(std::size_t i = 0; i < mTracedEigenfrequencies.size(); i++)
 				mWeightingFactors[i] /= test_sum_weight_facs;
