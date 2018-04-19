@@ -77,7 +77,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
             self.InitializeSolutionStep()
             self.solver.Predict()
-            self.SolveSolutionStep()
+            self.solver.SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -99,9 +99,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
             self.output.ExecuteInitializeSolutionStep()
 
         self.solver.InitializeSolutionStep()
-
-    def SolveSolutionStep(self):
-        self.solver.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
 
