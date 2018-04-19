@@ -28,28 +28,30 @@ namespace Testing {
   // /// Factory functions
 
 namespace{
-  Geometry<Node<3>>::PointsArrayType GenerateReferenceNodes()
+  typedef Node<3> NodeType;
+
+  Geometry<NodeType>::PointsArrayType GenerateReferenceNodes()
   {
-      Geometry<Node<3>>::PointsArrayType points;
-      points.push_back(Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)));
-      points.push_back(Node<3>::Pointer(new Node<3>(2, 1.0, 0.0, 0.0)));
-      points.push_back(Node<3>::Pointer(new Node<3>(3, 0.0, 1.0, 0.0)));
-      points.push_back(Node<3>::Pointer(new Node<3>(4, 0.0, 0.0, 1.0)));
-      points.push_back(Node<3>::Pointer(new Node<3>(5, 0.5, 0.0, 0.0)));
-      points.push_back(Node<3>::Pointer(new Node<3>(6, 0.5, 0.5, 0.0)));
-      points.push_back(Node<3>::Pointer(new Node<3>(7, 0.0, 0.5, 0.0)));
-      points.push_back(Node<3>::Pointer(new Node<3>(8, 0.0, 0.0, 0.5)));
-      points.push_back(Node<3>::Pointer(new Node<3>(9, 0.5, 0.0, 0.5)));
-      points.push_back(Node<3>::Pointer(new Node<3>(10, 0.0, 0.5, 0.5)));
+      Geometry<NodeType>::PointsArrayType points;
+      points.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
+      points.push_back(NodeType::Pointer(new NodeType(2, 1.0, 0.0, 0.0)));
+      points.push_back(NodeType::Pointer(new NodeType(3, 0.0, 1.0, 0.0)));
+      points.push_back(NodeType::Pointer(new NodeType(4, 0.0, 0.0, 1.0)));
+      points.push_back(NodeType::Pointer(new NodeType(5, 0.5, 0.0, 0.0)));
+      points.push_back(NodeType::Pointer(new NodeType(6, 0.5, 0.5, 0.0)));
+      points.push_back(NodeType::Pointer(new NodeType(7, 0.0, 0.5, 0.0)));
+      points.push_back(NodeType::Pointer(new NodeType(8, 0.0, 0.0, 0.5)));
+      points.push_back(NodeType::Pointer(new NodeType(9, 0.5, 0.0, 0.5)));
+      points.push_back(NodeType::Pointer(new NodeType(10, 0.0, 0.5, 0.5)));
       return points;
   }
 
-  Geometry<Node<3>>::Pointer GenerateReferenceTetrahedra3D10() {
-      return Geometry<Node<3>>::Pointer(
-          new Tetrahedra3D10<Node<3>>(GenerateReferenceNodes()));
+  Geometry<NodeType>::Pointer GenerateReferenceTetrahedra3D10() {
+      return Geometry<NodeType>::Pointer(
+          new Tetrahedra3D10<NodeType>(GenerateReferenceNodes()));
   }
 
-  Geometry<Node<3>>::Pointer GenerateCurvedTetrahedra3D10() {
+  Geometry<NodeType>::Pointer GenerateCurvedTetrahedra3D10() {
       auto nodes = GenerateReferenceNodes();
       nodes[5].X0() = nodes[5].X() = 0.4;
       nodes[5].Y0() = nodes[5].Y() = 0.4;
@@ -61,7 +63,7 @@ namespace{
       nodes[8].Z0() = nodes[8].Z() = 0.4;
       nodes[9].Y0() = nodes[9].Y() = 0.4;
       nodes[9].Z0() = nodes[9].Z() = 0.4;
-      return Geometry<Node<3>>::Pointer(new Tetrahedra3D10<Node<3>>(nodes));
+      return Geometry<NodeType>::Pointer(new Tetrahedra3D10<NodeType>(nodes));
   }
 }
 
@@ -73,7 +75,7 @@ namespace{
   }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10FacesNumber, KratosCoreGeometriesFastSuite) {
-    Geometry<Node<3>>::Pointer geom = GenerateReferenceTetrahedra3D10();
+    Geometry<NodeType>::Pointer geom = GenerateReferenceTetrahedra3D10();
     KRATOS_CHECK_EQUAL(geom->FacesNumber(), 4);
   }
 
