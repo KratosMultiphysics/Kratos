@@ -490,6 +490,20 @@ public:
     ///@name Shape Function
     ///@{
 
+    Vector& ShapeFunctionsValues(Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
+    {
+        if(rResult.size() != 6)
+            rResult.resize(6, false);
+        const double thirdCoord = 1.0 - rCoordinates[0] - rCoordinates[1];
+        rResult[0] = thirdCoord * (2.0 * thirdCoord - 1.0);
+        rResult[1] = rCoordinates[0] * (2.0 * rCoordinates[0] - 1.0);
+        rResult[2] = rCoordinates[1] * (2.0 * rCoordinates[1] - 1.0);
+        rResult[3] = 4.0 * thirdCoord * rCoordinates[0];
+        rResult[4] = 4.0 * rCoordinates[0] * rCoordinates[1];
+        rResult[5] = 4.0 * rCoordinates[1] * thirdCoord;
+        return rResult;
+    }
+
     /**
      * TODO: implemented but not yet tested
      */
