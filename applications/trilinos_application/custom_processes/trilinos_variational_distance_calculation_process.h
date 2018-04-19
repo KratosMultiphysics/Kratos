@@ -231,7 +231,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void ReGenerateDistanceModelPart(ModelPart& base_model_part)
+    void ReGenerateDistanceModelPart(ModelPart& base_model_part) override
     {
         KRATOS_TRY
 

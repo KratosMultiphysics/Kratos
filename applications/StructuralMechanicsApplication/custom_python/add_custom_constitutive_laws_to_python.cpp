@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -21,10 +21,11 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
-#include "custom_constitutive/linear_plane_stress.h"
-#include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
+#include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/linear_plane_strain.h"
+#include "custom_constitutive/elastic_isotropic_plane_stress_uncoupled_shear.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
@@ -70,6 +71,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m, "LinearElasticAxisym2DLaw").def(init<>() )
     ;
 
+    class_< ElasticIsotropicPlaneStressUncoupledShear, typename ElasticIsotropicPlaneStressUncoupledShear::Pointer, ConstitutiveLaw >
+    (m, "ElasticPlaneStressUncoupledShear2DLaw").def(init<>() )
+    ;
+
     class_< HyperElasticIsotropicKirchhoff3D, typename HyperElasticIsotropicKirchhoff3D::Pointer, ConstitutiveLaw >
     (m, "KirchhoffSaintVenant3DLaw").def(init<>() )
     ;
@@ -94,11 +99,11 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"LinearElasticOrthotropic2DLaw").def( init<>())
     ;
 
-    class_< LinearJ2PlasticityPlaneStrain2D, typename LinearJ2PlasticityPlaneStrain2D::Pointer,  ConstitutiveLaw  >
+    class_< LinearJ2PlasticityPlaneStrain2D, typename LinearJ2PlasticityPlaneStrain2D::Pointer,  ConstitutiveLaw >
     (m,"LinearJ2PlasticityPlaneStrain2DLaw").def( init<>())
     ;
 
-    class_< LinearJ2Plasticity3D, typename LinearJ2Plasticity3D::Pointer,  ConstitutiveLaw  >
+    class_< LinearJ2Plasticity3D, typename LinearJ2Plasticity3D::Pointer,  ConstitutiveLaw >
     (m,"LinearJ2Plasticity3DLaw").def( init<>())
     ;
 }

@@ -66,11 +66,14 @@ class DamTemperaturebyDeviceProcess : public Process
         mVariableName = rParameters["variable_name"].GetString();
         mIsFixed = rParameters["is_fixed"].GetBool();
         mValue = rParameters["value"].GetDouble();
+        
+        unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        
         // Getting the values of the device coordinates
-        mDeviceCoordinates.resize(3, false);
+        mDeviceCoordinates.resize(Dim, false);
         mDeviceCoordinates[0] = rParameters["position"][0].GetDouble();
         mDeviceCoordinates[1] = rParameters["position"][1].GetDouble();
-        mDeviceCoordinates[2] = rParameters["position"][2].GetDouble();
+        if (Dim ==3) mDeviceCoordinates[2] = rParameters["position"][2].GetDouble();
 
         mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableId = rParameters["table"].GetInt();
