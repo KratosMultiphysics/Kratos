@@ -35,7 +35,7 @@
 #include "includes/kratos_flags.h"
 #include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "response_function.h"
+#include "response_function_utility.h"
 
 // ==============================================================================
 

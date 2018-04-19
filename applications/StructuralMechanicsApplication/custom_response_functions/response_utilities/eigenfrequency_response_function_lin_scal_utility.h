@@ -33,7 +33,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "utilities/variable_utils.h"
-#include "response_function.h"
+#include "response_function_utility.h"
 
 // ==============================================================================
 

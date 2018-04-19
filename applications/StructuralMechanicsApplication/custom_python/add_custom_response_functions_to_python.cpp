@@ -21,11 +21,11 @@
 //Utilities
 
 //Response Functions
-#include "custom_response_functions/response_utilities/response_function.h"
-#include "custom_response_functions/response_utilities/strain_energy_response_function.h"
-#include "custom_response_functions/response_utilities/mass_response_function.h"
-#include "custom_response_functions/response_utilities/eigenfrequency_response_function.h"
-#include "custom_response_functions/response_utilities/eigenfrequency_response_function_lin_scal.h"
+#include "custom_response_functions/response_utilities/response_function_utility.h"
+#include "custom_response_functions/response_utilities/strain_energy_response_function_utility.h"
+#include "custom_response_functions/response_utilities/mass_response_function_utility.h"
+#include "custom_response_functions/response_utilities/eigenfrequency_response_function_utility.h"
+#include "custom_response_functions/response_utilities/eigenfrequency_response_function_lin_scal_utility.h"
 
 
 namespace Kratos

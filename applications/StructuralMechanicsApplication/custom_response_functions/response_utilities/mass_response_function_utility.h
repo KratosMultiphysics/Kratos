@@ -36,7 +36,7 @@
 #include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "structural_mechanics_application_variables.h"
-#include "response_function.h"
+#include "response_function_utility.h"
 
 // ==============================================================================
 
