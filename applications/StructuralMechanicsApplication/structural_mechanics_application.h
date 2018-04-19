@@ -398,7 +398,7 @@ private:
 
     const LinearJ2Plasticity3D mLinearJ2Plasticity3D;
     const LinearJ2PlasticityPlaneStrain2D mLinearJ2PlasticityPlaneStrain2D;
-    const LinearIsotropicDamage3D mLinearIsotropicDamage3DLaw;
+    const LinearIsotropicDamage3D mLinearIsotropicDamage3D;
 
     ///@}
     ///@name Private Operators
