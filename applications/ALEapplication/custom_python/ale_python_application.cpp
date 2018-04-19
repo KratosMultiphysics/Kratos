@@ -15,7 +15,7 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "ale_application.h"
@@ -27,15 +27,16 @@ namespace Kratos {
 
 namespace Python {
 
-using namespace boost::python;
+using namespace pybind11;
 
-BOOST_PYTHON_MODULE(KratosALEApplication) {
+PYBIND11_MODULE(KratosALEApplication,m) {
 
   class_<KratosALEApplication, KratosALEApplication::Pointer,
-         bases<KratosApplication>, boost::noncopyable>("KratosALEApplication");
+         KratosApplication>(m,"KratosALEApplication")
+         .def(init<>());
 
-  AddCustomStrategiesToPython();
-  AddCustomUtilitiesToPython();
+  AddCustomStrategiesToPython(m);
+  AddCustomUtilitiesToPython(m);
 
 }
 

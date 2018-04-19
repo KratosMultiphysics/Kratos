@@ -12,10 +12,10 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_python.h"
 #include "spaces/ublas_space.h"
 #include "custom_linear_solvers/mixedulm_linear_solver.h"
 
@@ -24,8 +24,9 @@ namespace Kratos
 
 namespace Python
 {
+using namespace pybind11;
 
-void  AddCustomLinearSolversToPython()
+void  AddCustomLinearSolversToPython(pybind11::module& m)
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -34,12 +35,10 @@ void  AddCustomLinearSolversToPython()
 
     typedef MixedULMLinearSolver<SpaceType,  LocalSpaceType> MixedULMLinearSolverType;
 
-    using namespace boost::python;
-
-    class_<MixedULMLinearSolverType, MixedULMLinearSolverType::Pointer, bases<IterativeSolverType>, boost::noncopyable >("MixedULMLinearSolver",init<LinearSolverType::Pointer>())
-    .def(init<LinearSolverType::Pointer ,double, const std::size_t >())
+    class_<MixedULMLinearSolverType, typename MixedULMLinearSolverType::Pointer, IterativeSolverType>(m, "MixedULMLinearSolver")
+    .def(init<LinearSolverType::Pointer >())
+    .def(init<LinearSolverType::Pointer,double, const std::size_t >())
     .def(init<LinearSolverType::Pointer, Parameters>())
-    .def(self_ns::str(self))
     ;
 }
 

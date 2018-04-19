@@ -10,7 +10,7 @@ namespace Kratos {
 
 template <class MainCL, class CohesionCL>
 
-class DEM_compound_constitutive_law : public MainCL {
+class KRATOS_API(DEM_APPLICATION) DEM_compound_constitutive_law : public MainCL {
     
 public:
 

@@ -16,7 +16,6 @@
 // #define BOOST_NUMERIC_BINDINGS_SUPERLU_PRINT
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -47,7 +46,7 @@ public:
     typedef typename TSparseSpaceType::VectorType VectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-    
+
     AmesosSolver(Parameters settings)
     {
         Parameters default_settings( R"(
@@ -57,9 +56,9 @@ public:
         "trilinos_amesos_parameter_list": {
             }
         }  )" );
-        
+
         settings.ValidateAndAssignDefaults(default_settings);
-        
+
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
         mparameter_list = Teuchos::ParameterList();
         for(auto it = settings["trilinos_amesos_parameter_list"].begin(); it != settings["trilinos_amesos_parameter_list"].end(); it++)
@@ -68,14 +67,14 @@ public:
             else if(it->IsInt()) mparameter_list.set(it.name(), it->GetInt());
             else if(it->IsBool()) mparameter_list.set(it.name(), it->GetBool());
             else if(it->IsDouble()) mparameter_list.set(it.name(), it->GetDouble());
-            
+
         }
-        
+
         mSolverName = settings["solver_type"].GetString();
-        
+
         //check if the solver is available and throw an error otherwise
         Amesos Factory;
-        
+
         if(!Factory.Query(mSolverName))
             KRATOS_ERROR << "attempting to use Amesos solver " << mSolverName << " unfortunately the current compilation of trilinos does not include it";
     }
@@ -87,7 +86,7 @@ public:
     {
         mparameter_list = parameter_list;
         mSolverName = SolverName;
-        
+
         //check if the solver is available and throw an error otherwise
         Amesos Factory;
         if(!Factory.Query(mSolverName))
@@ -108,7 +107,7 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         KRATOS_TRY
         rA.Comm().Barrier();
@@ -141,7 +140,7 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
 
         return false;
@@ -150,7 +149,7 @@ public:
     /**
      * Print information about this object.
      */
-    void  PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Amesos solver finished.";
     }
@@ -158,7 +157,7 @@ public:
     /**
      * Print object's data.
      */
-    void  PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -208,6 +207,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_AMESOS_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_AMESOS_SOLVER_H_INCLUDED  defined
 
 

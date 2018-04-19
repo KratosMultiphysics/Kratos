@@ -56,8 +56,7 @@ class ShellT3_CoordinateTransformation;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N
-    : public BaseShellElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public BaseShellElement
 {
 public:
 

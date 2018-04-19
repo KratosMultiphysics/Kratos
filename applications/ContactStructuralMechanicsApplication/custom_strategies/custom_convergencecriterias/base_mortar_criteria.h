@@ -237,8 +237,8 @@ public:
                 mpGidIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
                 mpGidIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
             }
-            if (nodes_array.begin()->SolutionStepsDataHas(NORMAL_CONTACT_STRESS))
-                mpGidIO->WriteNodalResults(NORMAL_CONTACT_STRESS, rModelPart.Nodes(), label, 0);
+            if (nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
+                mpGidIO->WriteNodalResults(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rModelPart.Nodes(), label, 0);
             else
                 mpGidIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
             mpGidIO->WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);

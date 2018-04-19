@@ -20,17 +20,13 @@
 
 
 // System includes
-//#include <string>
-//#include <iostream>
-//#include <sstream>
-
+#include <pybind11/pybind11.h>
 
 // External includes
-#include <boost/python.hpp>
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 
 
 namespace Kratos
@@ -39,7 +35,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 ///@name Kratos Globals
 ///@{
 
@@ -63,7 +59,7 @@ using namespace boost::python;
 /** Detail class definition.
 */
 template<class TContainerType, class TVariableType>
-class SolutionStepVariableIndexingPython : public def_visitor<SolutionStepVariableIndexingPython<TContainerType, TVariableType> >
+class SolutionStepVariableIndexingPython //: public def_visitor<SolutionStepVariableIndexingPython<TContainerType, TVariableType> >
 {
 public:
     ///@name Type Definitions

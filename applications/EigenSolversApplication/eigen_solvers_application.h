@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/kratos_application.h"
 
 #include "includes/variables.h"
@@ -73,7 +73,7 @@ class KratosEigenSolversApplication : public KratosApplication
 	///@name Operations
 	///@{
 
-	virtual void Register();
+	void Register() override;
 
 	///@}
 	///@name Access
@@ -88,20 +88,20 @@ class KratosEigenSolversApplication : public KratosApplication
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const
+	std::string Info() const override
 	{
 		return "KratosEigenSolversApplication";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
+	void PrintInfo(std::ostream &rOStream) const override
 	{
 		rOStream << Info();
 		PrintData(rOStream);
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
+	void PrintData(std::ostream &rOStream) const override
 	{
 		KRATOS_WATCH("in my application");
 		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());

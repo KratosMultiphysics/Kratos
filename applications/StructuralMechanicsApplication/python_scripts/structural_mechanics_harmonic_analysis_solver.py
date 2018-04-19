@@ -77,4 +77,4 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
         return StructuralMechanicsApplication.HarmonicAnalysisStrategy(computing_model_part,
                                                                     eigen_scheme,
                                                                     builder_and_solver,
-                                                                    self.harmonic_analysis_settings["use_effective_material_damping"].GetBool())
+                                                                    self.harmonic_analysis_settings["harmonic_analysis_settings"]["use_effective_material_damping"].GetBool())

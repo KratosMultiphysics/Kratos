@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class ForwardEulerScheme : public DEMIntegrationScheme {
+    class KRATOS_API(DEM_APPLICATION) ForwardEulerScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;

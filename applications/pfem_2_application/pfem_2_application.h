@@ -7,8 +7,8 @@
 //
 
 
-#if !defined(KRATOS_PFEM_2_APPLICATION_H_INCLUDED )
-#define  KRATOS_PFEM_2_APPLICATION_H_INCLUDED
+#if !defined(KratosPFEM2Application_H_INCLUDED )
+#define  KratosPFEM2Application_H_INCLUDED
 
 
 
@@ -53,290 +53,290 @@ namespace Kratos
 	///@name Kratos Globals
 	///@{ 
 
-	// Variables definition 
-	KRATOS_DEFINE_VARIABLE(double, PRESS_GRADIENT_JUMP)
-	KRATOS_DEFINE_VARIABLE(double, PRESS_DISCONTINUITY)
-	KRATOS_DEFINE_VARIABLE(double, INV_LAPLACIAN_ENRICH)
-	KRATOS_DEFINE_VARIABLE(double, ENRICH_RHS)
-	KRATOS_DEFINE_VARIABLE(double, G_VALUE)
-	KRATOS_DEFINE_VARIABLE(double, GRADIENT_DISCONTINUITY)
-	KRATOS_DEFINE_VARIABLE(double, PREVIOUS_ITERATION_PRESSURE)
-	KRATOS_DEFINE_VARIABLE(double, FIRST_ITERATION_PRESSURE)
-	KRATOS_DEFINE_VARIABLE(double, VELOCITY_OVER_ELEM_SIZE)
-	KRATOS_DEFINE_VARIABLE(double, MEAN_SIZE)
-	KRATOS_DEFINE_VARIABLE(double, MEAN_VELOCITY_DIFFERENCE)
-	KRATOS_DEFINE_VARIABLE(double, SPECIFIC_HEAT_CAPACITY_WATER)
-	KRATOS_DEFINE_VARIABLE(double, SPECIFIC_HEAT_CAPACITY_AIR)
-	KRATOS_DEFINE_VARIABLE(double, DELTA_TEMPERATURE)
-	KRATOS_DEFINE_VARIABLE(double, AVAILABLE_AIR_VOLUME)
-	KRATOS_DEFINE_VARIABLE(double, AVAILABLE_UNBURNED_AIR_VOLUME)
-	KRATOS_DEFINE_VARIABLE(double, OXYGEN_FRACTION)
-	KRATOS_DEFINE_VARIABLE(double, CORRECTED_DISTANCE)
-	KRATOS_DEFINE_VARIABLE(double, SOLID_PRESSURE)
-	KRATOS_DEFINE_VARIABLE(double, SOLID_YP)
-	KRATOS_DEFINE_VARIABLE(double, WATER_DISTANCE)
-	KRATOS_DEFINE_VARIABLE(double, VOLUMETRIC_STRAIN)
-	KRATOS_DEFINE_VARIABLE(double, ELASTIC_PRESSURE)
+	// Variables definition KratosPFEM2Application
+  KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, PRESS_GRADIENT_JUMP)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, PRESS_DISCONTINUITY)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application, double, INV_LAPLACIAN_ENRICH)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, ENRICH_RHS)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, G_VALUE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, GRADIENT_DISCONTINUITY)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, PREVIOUS_ITERATION_PRESSURE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, FIRST_ITERATION_PRESSURE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, VELOCITY_OVER_ELEM_SIZE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, MEAN_SIZE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, MEAN_VELOCITY_DIFFERENCE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, SPECIFIC_HEAT_CAPACITY_WATER)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, SPECIFIC_HEAT_CAPACITY_AIR)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, DELTA_TEMPERATURE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, AVAILABLE_AIR_VOLUME)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, AVAILABLE_UNBURNED_AIR_VOLUME)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, OXYGEN_FRACTION)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, CORRECTED_DISTANCE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, SOLID_PRESSURE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, SOLID_YP)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, WATER_DISTANCE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, VOLUMETRIC_STRAIN)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, ELASTIC_PRESSURE)
 	
-	KRATOS_DEFINE_VARIABLE(bool, USEFUL_ELEMENT_FOR_COMBUSTION)
-	KRATOS_DEFINE_VARIABLE(Vector, ENRICH_LHS_ROW_3D)
-	KRATOS_DEFINE_VARIABLE(Vector, WATER_GAUSS_POINT)
-	KRATOS_DEFINE_VARIABLE(double, WATER_VOLUME)
-	KRATOS_DEFINE_VARIABLE(Vector, ELEMENT_MEAN_STRESS)
-	typedef PointerVector< PFEM_Particle, PFEM_Particle*, std::vector<PFEM_Particle*> > ParticlePointerVector;
-	KRATOS_DEFINE_VARIABLE( ParticlePointerVector , PARTICLE_POINTERS)	
-	typedef PointerVector< PFEM_Particle_Fluid, PFEM_Particle_Fluid*, std::vector<PFEM_Particle_Fluid*> > FluidParticlePointerVector;
-	KRATOS_DEFINE_VARIABLE( FluidParticlePointerVector , FLUID_PARTICLE_POINTERS)	
-	KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_PARTICLES)
-	KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_PARTICLES_AUX)
-	KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_WATER_PARTICLES)
-	KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_FLUID_PARTICLES)
-	KRATOS_DEFINE_VARIABLE(int, PARTICLE_POINTERS_OFFSET)	
-	KRATOS_DEFINE_VARIABLE(int, WATER_PARTICLE_POINTERS_OFFSET)
-	KRATOS_DEFINE_VARIABLE(int, USE_PRESS_PROJ)
-	//KRATOS_DEFINE_VARIABLE(double, IS_AIR)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ENRICH_LHS_ROW)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ENRICH_PRESS_PROJ_NEGATIVE)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ENRICH_PRESS_PROJ_POSITIVE)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SURFACE_NORMAL)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SURFACE_COORDINATES)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESS_PROJ_NO_RO)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DELTA_VELOCITY)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(WATER_VELOCITY)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(WATER_MESH_VELOCITY)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,bool, USEFUL_ELEMENT_FOR_COMBUSTION)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,Vector, ENRICH_LHS_ROW_3D)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,Vector, WATER_GAUSS_POINT)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, WATER_VOLUME)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,Vector, ELEMENT_MEAN_STRESS)
+    typedef PointerVector< PFEM_Particle, PFEM_Particle*, std::vector<PFEM_Particle*> > ParticlePointerVector;
+  KRATOS_DEFINE_APPLICATION_VARIABLE( KratosPFEM2Application,ParticlePointerVector , PARTICLE_POINTERS)	
+    typedef PointerVector< PFEM_Particle_Fluid, PFEM_Particle_Fluid*, std::vector<PFEM_Particle_Fluid*> > FluidParticlePointerVector;
+  KRATOS_DEFINE_APPLICATION_VARIABLE( KratosPFEM2Application,FluidParticlePointerVector , FLUID_PARTICLE_POINTERS)	
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,int, NUMBER_OF_PARTICLES)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,int, NUMBER_OF_PARTICLES_AUX)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,int, NUMBER_OF_WATER_PARTICLES)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,int, NUMBER_OF_FLUID_PARTICLES)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,int, PARTICLE_POINTERS_OFFSET)	
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,int, WATER_PARTICLE_POINTERS_OFFSET)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,int, USE_PRESS_PROJ)
+    //KRATOS_DEFINE_VARIABLE(double, IS_AIR)
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(KratosPFEM2Application,ENRICH_LHS_ROW)
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(KratosPFEM2Application,ENRICH_PRESS_PROJ_NEGATIVE)
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(KratosPFEM2Application,ENRICH_PRESS_PROJ_POSITIVE)
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(KratosPFEM2Application,SURFACE_NORMAL)
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(KratosPFEM2Application,SURFACE_COORDINATES)
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(KratosPFEM2Application,PRESS_PROJ_NO_RO)
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(KratosPFEM2Application,DELTA_VELOCITY)
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(KratosPFEM2Application,WATER_VELOCITY)
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(KratosPFEM2Application,WATER_MESH_VELOCITY)
+    
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(KratosPFEM2Application,PROJECTED_VELOCITY)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, VOLUME_CORRECTION)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(KratosPFEM2Application,double, INLET_VELOCITY)
 
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PROJECTED_VELOCITY)
-	KRATOS_DEFINE_VARIABLE(double, VOLUME_CORRECTION)
-	KRATOS_DEFINE_VARIABLE(double, INLET_VELOCITY)
+    
+    //	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
+    
+    
+    ///@} 
+    ///@name Type Definitions
+    ///@{ 
+    
+    ///@} 
+    ///@name  Enum's
+    ///@{
 
-	
-//	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
-
-
-	///@} 
-	///@name Type Definitions
-	///@{ 
-
-	///@} 
-	///@name  Enum's
-	///@{
-
-	///@}
-	///@name  Functions 
-	///@{
-
-	///@}
-	///@name Kratos Classes
-	///@{
-
-	/// Short class definition.
-	/** Detail class definition.
+    ///@}
+    ///@name  Functions 
+    ///@{
+    
+    ///@}
+    ///@name Kratos Classes
+    ///@{
+    
+    /// Short class definition.
+    /** Detail class definition.
 	*/
-	class KratosPFEM2Application : public KratosApplication
-	{
-	public:
-		///@name Type Definitions
-		///@{
-		
+    class KratosPFEM2Application : public KratosApplication
+    {
+    public:
+      ///@name Type Definitions
+      ///@{
+      
+      
+      /// Pointer definition of KratosPFEM2Application
+      KRATOS_CLASS_POINTER_DEFINITION(KratosPFEM2Application);
+      
+      ///@}
+      ///@name Life Cycle 
+      ///@{ 
 
-		/// Pointer definition of KratosPFEM2Application
-		KRATOS_CLASS_POINTER_DEFINITION(KratosPFEM2Application);
+      /// Default constructor.
+      KratosPFEM2Application();
 
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		KratosPFEM2Application();
-
-		/// Destructor.
-		virtual ~KratosPFEM2Application(){}
-
-
-		///@}
-		///@name Operators 
-		///@{
+      /// Destructor.
+      virtual ~KratosPFEM2Application(){}
 
 
-		///@}
-		///@name Operations
-		///@{
-
-		virtual void Register();
+      ///@}
+      ///@name Operators 
+      ///@{
 
 
+      ///@}
+      ///@name Operations
+      ///@{
 
-		///@}
-		///@name Access
-		///@{ 
-
-
-		///@}
-		///@name Inquiry
-		///@{
+      virtual void Register();
 
 
-		///@}      
-		///@name Input and output
-		///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "KratosPFEM2Application";
-		}
+      ///@}
+      ///@name Access
+      ///@{ 
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << Info();
-			PrintData(rOStream);
-		}
 
-		///// Print object's data.
+      ///@}
+      ///@name Inquiry
+      ///@{
+
+
+      ///@}      
+      ///@name Input and output
+      ///@{
+
+      /// Turn back information as a string.
+      virtual std::string Info() const
+      {
+	return "KratosPFEM2Application";
+      }
+
+      /// Print information about this object.
+      virtual void PrintInfo(std::ostream& rOStream) const
+      {
+	rOStream << Info();
+	PrintData(rOStream);
+      }
+
+      ///// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const
       {
       	KRATOS_WATCH("in my application");
       	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
+	rOStream << "Variables:" << std::endl;
+	KratosComponents<VariableData>().PrintData(rOStream);
+	rOStream << std::endl;
+	rOStream << "Elements:" << std::endl;
+	KratosComponents<Element>().PrintData(rOStream);
+	rOStream << std::endl;
+	rOStream << "Conditions:" << std::endl;
+	KratosComponents<Condition>().PrintData(rOStream);
       }
 
 
-		///@}      
-		///@name Friends
-		///@{
+      ///@}      
+      ///@name Friends
+      ///@{
 
 
-		///@}
+      ///@}
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
-
-
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+    protected:
+      ///@name Protected static Member Variables 
+      ///@{ 
 
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+      ///@} 
+      ///@name Protected member Variables 
+      ///@{ 
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+      ///@} 
+      ///@name Protected Operators
+      ///@{ 
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+      ///@} 
+      ///@name Protected Operations
+      ///@{ 
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+      ///@} 
+      ///@name Protected  Access 
+      ///@{ 
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+      ///@}      
+      ///@name Protected Inquiry 
+      ///@{ 
 
 
-		///@}
-
-	private:
-		///@name Static Member Variables 
-		///@{ 
+      ///@}    
+      ///@name Protected LifeCycle 
+      ///@{ 
 
 
+      ///@}
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
+    private:
+      ///@name Static Member Variables 
+      ///@{ 
+
+
+
+      ///@} 
+      ///@name Member Variables 
+      ///@{ 
  	
-  		const FractionalStepPFEM22D   mFractionalStepPFEM22D; 
-  		const FractionalStepPFEM23D   mFractionalStepPFEM23D; 
-		const MonolithicPFEM22D   mMonolithicPFEM22D; 
-		const MonolithicPFEM23D   mMonolithicPFEM23D; 
-		const NoNewtonianMonolithicPFEM22D   mNoNewtonianMonolithicPFEM22D; 
-		const NoNewtonianMonolithicPFEM23D   mNoNewtonianMonolithicPFEM23D; 
+      const FractionalStepPFEM22D   mFractionalStepPFEM22D; 
+      const FractionalStepPFEM23D   mFractionalStepPFEM23D; 
+      const MonolithicPFEM22D   mMonolithicPFEM22D; 
+      const MonolithicPFEM23D   mMonolithicPFEM23D; 
+      const NoNewtonianMonolithicPFEM22D   mNoNewtonianMonolithicPFEM22D; 
+      const NoNewtonianMonolithicPFEM23D   mNoNewtonianMonolithicPFEM23D; 
 
- 		const MonolithicAutoSlipPFEM22D   mMonolithicAutoSlipPFEM22D; 
- 		const MonolithicAutoSlipPFEM23D   mMonolithicAutoSlipPFEM23D; 
+      const MonolithicAutoSlipPFEM22D   mMonolithicAutoSlipPFEM22D; 
+      const MonolithicAutoSlipPFEM23D   mMonolithicAutoSlipPFEM23D; 
  
-  		//const VelocityEnrichedPFEM22D   mVelocityEnrichedPFEM22D; 
-		//const VelocityEnrichedPFEM22DNoPressure   mVelocityEnrichedPFEM22DNoPressure; 
+      //const VelocityEnrichedPFEM22D   mVelocityEnrichedPFEM22D; 
+      //const VelocityEnrichedPFEM22DNoPressure   mVelocityEnrichedPFEM22DNoPressure; 
  		
-		const QFluid2D mQFluid2D;
-		const QFluid3D mQFluid3D;
+      const QFluid2D mQFluid2D;
+      const QFluid3D mQFluid3D;
 
-		const FixedVelocity2D   mFixedVelocity2D; 
-		const FixedVelocity3D   mFixedVelocity3D;
- 		const FixedPressure2D   mFixedPressure2D; 
-		const FixedPressure3D   mFixedPressure3D; 
-		const MonolithicAutoSlipInlet3D   mMonolithicAutoSlipInlet3D; 
+      const FixedVelocity2D   mFixedVelocity2D; 
+      const FixedVelocity3D   mFixedVelocity3D;
+      const FixedPressure2D   mFixedPressure2D; 
+      const FixedPressure3D   mFixedPressure3D; 
+      const MonolithicAutoSlipInlet3D   mMonolithicAutoSlipInlet3D; 
  		
 
-		///@} 
-		///@name Private Operators
-		///@{ 
+      ///@} 
+      ///@name Private Operators
+      ///@{ 
 
 
-		///@} 
-		///@name Private Operations
-		///@{ 
+      ///@} 
+      ///@name Private Operations
+      ///@{ 
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+      ///@} 
+      ///@name Private  Access 
+      ///@{ 
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+      ///@}    
+      ///@name Private Inquiry 
+      ///@{ 
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+      ///@}    
+      ///@name Un accessible methods 
+      ///@{ 
 
-		/// Assignment operator.
-		KratosPFEM2Application& operator=(KratosPFEM2Application const& rOther);
+      /// Assignment operator.
+      KratosPFEM2Application& operator=(KratosPFEM2Application const& rOther);
 
-		/// Copy constructor.
-		KratosPFEM2Application(KratosPFEM2Application const& rOther);
-
-
-		///@}    
-
-	}; // Class KratosPFEM2Application 
-
-	///@} 
+      /// Copy constructor.
+      KratosPFEM2Application(KratosPFEM2Application const& rOther);
 
 
-	///@name Type Definitions       
-	///@{ 
+      ///@}    
+
+    }; // Class KratosPFEM2Application 
+
+  ///@} 
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+  ///@name Type Definitions       
+  ///@{ 
 
-	///@} 
+
+  ///@} 
+  ///@name Input and output 
+  ///@{ 
+
+  ///@} 
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PFEM_2_APPLICATION_H_INCLUDED  defined 
+#endif // KratosPFEM2Application_H_INCLUDED  defined 
 
 
