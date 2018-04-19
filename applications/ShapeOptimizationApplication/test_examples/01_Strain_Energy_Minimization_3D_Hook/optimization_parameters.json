@@ -21,14 +21,14 @@
             "use_kratos" : true,
             "kratos_response_settings":{
                 "response_type"          : "strain_energy",
-                "primal_settings"        : "primal_project_parameters.json",
+                "primal_settings"        : "primal_parameters.json",
                 "gradient_mode"          : "semi_analytic",
                 "step_size"              : 1e-5,
                 "consider_discretization": false
             }
         }],
         "design_variables" : {
-            "type"              : "vertex_morphing",
+            "type"                               : "vertex_morphing",
             "optimization_model_part_name"       : "3D_Hook",
             "design_surface_sub_model_part_name" : "design_surface",
             "domain_size"                        : 3,

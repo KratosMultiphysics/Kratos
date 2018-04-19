@@ -6,7 +6,7 @@
             "use_kratos" : true,
             "kratos_response_settings":{
                 "response_type"          : "eigenfrequency",
-                "primal_settings"        : "primal_project_parameters.json",
+                "primal_settings"        : "primal_parameters.json",
                 "gradient_mode"          : "semi_analytic",
                 "step_size"              : 1e-8,
                 "traced_eigenfrequency"  : [1,2],
