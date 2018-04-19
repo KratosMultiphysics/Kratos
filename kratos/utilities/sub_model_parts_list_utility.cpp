@@ -170,8 +170,8 @@ std::vector<std::string> SubModelPartsListUtility::GetRecursiveSubModelPartNames
     }
 
     // Check for repeated names on the submodelparts (this is not checked by model_part.h if we work with subsubmodelparts)
-    std::sort(model_part_names.begin(), model_part_names.end());
-    auto last = std::unique(model_part_names.begin(), model_part_names.end());
+    std::sort(model_part_names.begin()+1, model_part_names.end());
+    auto last = std::unique(model_part_names.begin()+1, model_part_names.end());
     KRATOS_ERROR_IF_NOT(last == model_part_names.end()) << "ERROR:: Repeated names in subsubmodelparts. Check subsubmodelparts names please" << std::endl;
 
     return model_part_names;
