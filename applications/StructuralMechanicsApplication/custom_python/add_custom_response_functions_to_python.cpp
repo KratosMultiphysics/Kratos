@@ -35,29 +35,29 @@ namespace Python
 
 using namespace pybind11;
 
-void  AddCustomResponseFunctionsToPython(pybind11::module& m)
+void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 {
 
     // Response Functions
-    class_<ResponseFunction, ResponseFunction::Pointer>(m, "ResponseFunction")
-      .def("Initialize", &ResponseFunction::Initialize)
-      .def("CalculateValue", &ResponseFunction::CalculateValue)
-      .def("CalculateGradient", &ResponseFunction::CalculateGradient);
+    class_<ResponseFunctionUtility, ResponseFunctionUtility::Pointer>(m, "ResponseFunctionUtility")
+      .def("Initialize", &ResponseFunctionUtility::Initialize)
+      .def("CalculateValue", &ResponseFunctionUtility::CalculateValue)
+      .def("CalculateGradient", &ResponseFunctionUtility::CalculateGradient);
 
-    class_<StrainEnergyResponseFunction, StrainEnergyResponseFunction::Pointer, ResponseFunction >
-      (m, "StrainEnergyResponseFunction")
+    class_<StrainEnergyResponseFunctionUtility, StrainEnergyResponseFunctionUtility::Pointer, ResponseFunctionUtility >
+      (m, "StrainEnergyResponseFunctionUtility")
       .def(init<ModelPart&, Parameters>());
 
-    class_<MassResponseFunction, MassResponseFunction::Pointer, ResponseFunction >
-      (m, "MassResponseFunction")
+    class_<MassResponseFunctionUtility, MassResponseFunctionUtility::Pointer, ResponseFunctionUtility >
+      (m, "MassResponseFunctionUtility")
       .def(init<ModelPart&, Parameters>());
 
-    class_<EigenfrequencyResponseFunction, EigenfrequencyResponseFunction::Pointer, ResponseFunction >
-      (m, "EigenfrequencyResponseFunction")
+    class_<EigenfrequencyResponseFunctionUtility, EigenfrequencyResponseFunctionUtility::Pointer, ResponseFunctionUtility >
+      (m, "EigenfrequencyResponseFunctionUtility")
       .def(init<ModelPart&, Parameters>());
 
-    class_<EigenfrequencyResponseFunctionLinScal, EigenfrequencyResponseFunctionLinScal::Pointer, ResponseFunction >
-      (m, "EigenfrequencyResponseFunctionLinScal")
+    class_<EigenfrequencyResponseFunctionLinScalUtility, EigenfrequencyResponseFunctionLinScalUtility::Pointer, ResponseFunctionUtility >
+      (m, "EigenfrequencyResponseFunctionLinScalUtility")
       .def(init<ModelPart&, Parameters>());
 }
 

@@ -10,8 +10,8 @@
 //                   Geiser Armin, https://github.com/armingeiser
 //
 
-#ifndef RESPONSE_FUNCTION_H
-#define RESPONSE_FUNCTION_H
+#ifndef RESPONSE_FUNCTION_UTILITY_H
+#define RESPONSE_FUNCTION_UTILITY_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -64,26 +64,26 @@ namespace Kratos
 
 */
 
-class ResponseFunction
+class ResponseFunctionUtility
 {
 public:
   ///@name Type Definitions
   ///@{
 
-  /// Pointer definition of ResponseFunction
-  KRATOS_CLASS_POINTER_DEFINITION(ResponseFunction);
+  /// Pointer definition of ResponseFunctionUtility
+  KRATOS_CLASS_POINTER_DEFINITION(ResponseFunctionUtility);
 
   ///@}
   ///@name Life Cycle
   ///@{
 
   /// Default constructor.
-  ResponseFunction()
+  ResponseFunctionUtility()
   {
   }
 
   /// Destructor.
-  virtual ~ResponseFunction()
+  virtual ~ResponseFunctionUtility()
   {
   }
 
@@ -124,13 +124,13 @@ public:
   /// Turn back information as a string.
   virtual std::string Info() const
   {
-    return "ResponseFunction";
+    return "ResponseFunctionUtility";
   }
 
   /// Print information about this object.
   virtual void PrintInfo(std::ostream &rOStream) const
   {
-    rOStream << "ResponseFunction";
+    rOStream << "ResponseFunctionUtility";
   }
 
   /// Print object's data.
@@ -203,14 +203,14 @@ private:
   ///@{
 
   /// Assignment operator.
-  //      ResponseFunction& operator=(ResponseFunction const& rOther);
+  //      ResponseFunctionUtility& operator=(ResponseFunctionUtility const& rOther);
 
   /// Copy constructor.
-  //      ResponseFunction(ResponseFunction const& rOther);
+  //      ResponseFunctionUtility(ResponseFunctionUtility const& rOther);
 
   ///@}
 
-}; // Class ResponseFunction
+}; // Class ResponseFunctionUtility
 
 ///@}
 

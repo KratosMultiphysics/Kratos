@@ -10,8 +10,8 @@
 //                   Geiser Armin, https://github.com/armingeiser
 //
 
-#ifndef STRAIN_ENERGY_RESPONSE_FUNCTION_H
-#define STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#ifndef STRAIN_ENERGY_RESPONSE_FUNCTION_UTILITY_H
+#define STRAIN_ENERGY_RESPONSE_FUNCTION_UTILITY_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -66,7 +66,7 @@ namespace Kratos
 
  */
 
-class StrainEnergyResponseFunction : public ResponseFunction
+class StrainEnergyResponseFunctionUtility : public ResponseFunctionUtility
 {
 public:
 	///@name Type Definitions
@@ -74,15 +74,15 @@ public:
 
 	typedef array_1d<double, 3> array_3d;
 
-	/// Pointer definition of StrainEnergyResponseFunction
-	KRATOS_CLASS_POINTER_DEFINITION(StrainEnergyResponseFunction);
+	/// Pointer definition of StrainEnergyResponseFunctionUtility
+	KRATOS_CLASS_POINTER_DEFINITION(StrainEnergyResponseFunctionUtility);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	StrainEnergyResponseFunction(ModelPart& model_part, Parameters responseSettings)
+	StrainEnergyResponseFunctionUtility(ModelPart& model_part, Parameters responseSettings)
 	: mrModelPart(model_part)
 	{
 		// Set gradient mode
@@ -100,7 +100,7 @@ public:
 	}
 
 	/// Destructor.
-	virtual ~StrainEnergyResponseFunction()
+	virtual ~StrainEnergyResponseFunctionUtility()
 	{
 	}
 
@@ -199,13 +199,13 @@ public:
 	/// Turn back information as a string.
 	virtual std::string Info() const override
 	{
-		return "StrainEnergyResponseFunction";
+		return "StrainEnergyResponseFunctionUtility";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const override
 	{
-		rOStream << "StrainEnergyResponseFunction";
+		rOStream << "StrainEnergyResponseFunctionUtility";
 	}
 
 	/// Print object's data.
@@ -501,14 +501,14 @@ private:
 	///@{
 
 	/// Assignment operator.
-	//      StrainEnergyResponseFunction& operator=(StrainEnergyResponseFunction const& rOther);
+	//      StrainEnergyResponseFunctionUtility& operator=(StrainEnergyResponseFunctionUtility const& rOther);
 
 	/// Copy constructor.
-	//      StrainEnergyResponseFunction(StrainEnergyResponseFunction const& rOther);
+	//      StrainEnergyResponseFunctionUtility(StrainEnergyResponseFunctionUtility const& rOther);
 
 	///@}
 
-}; // Class StrainEnergyResponseFunction
+}; // Class StrainEnergyResponseFunctionUtility
 
 ///@}
 
@@ -523,4 +523,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#endif // STRAIN_ENERGY_RESPONSE_FUNCTION_UTILITY_H

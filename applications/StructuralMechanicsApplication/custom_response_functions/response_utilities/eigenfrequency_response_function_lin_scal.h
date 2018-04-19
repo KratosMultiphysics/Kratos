@@ -9,8 +9,8 @@
 //  Main authors:    Fusseder Martin
 //
 
-#ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_LIN_SCAL_H
-#define EIGENFREQUENCY_RESPONSE_FUNCTION_LIN_SCAL_H
+#ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_LIN_SCAL_UTILITY_H
+#define EIGENFREQUENCY_RESPONSE_FUNCTION_LIN_SCAL_UTILITY_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -66,21 +66,21 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class EigenfrequencyResponseFunctionLinScal : public ResponseFunction
+class EigenfrequencyResponseFunctionLinScalUtility : public ResponseFunctionUtility
 {
 public:
 	///@name Type Definitions
 	///@{
 
-	/// Pointer definition of EigenfrequencyResponseFunctionLinScal
-	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunctionLinScal);
+	/// Pointer definition of EigenfrequencyResponseFunctionLinScalUtility
+	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunctionLinScalUtility);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	EigenfrequencyResponseFunctionLinScal(ModelPart& model_part, Parameters responseSettings)
+	EigenfrequencyResponseFunctionLinScalUtility(ModelPart& model_part, Parameters responseSettings)
 	: mrModelPart(model_part)
 	{
 		// Set gradient mode
@@ -125,7 +125,7 @@ public:
 	}
 
 	/// Destructor.
-	virtual ~EigenfrequencyResponseFunctionLinScal()
+	virtual ~EigenfrequencyResponseFunctionLinScalUtility()
 	{
 	}
 
@@ -243,13 +243,13 @@ public:
 	/// Turn back information as a string.
 	virtual std::string Info() const override
 	{
-		return "EigenfrequencyResponseFunctionLinScal";
+		return "EigenfrequencyResponseFunctionLinScalUtility";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const override
 	{
-		rOStream << "EigenfrequencyResponseFunctionLinScal";
+		rOStream << "EigenfrequencyResponseFunctionLinScalUtility";
 	}
 
 	/// Print object's data.
@@ -468,14 +468,14 @@ private:
 	///@{
 
 	/// Assignment operator.
-	//      EigenfrequencyResponseFunctionLinScal& operator=(EigenfrequencyResponseFunctionLinScal const& rOther);
+	//      EigenfrequencyResponseFunctionLinScalUtility& operator=(EigenfrequencyResponseFunctionLinScalUtility const& rOther);
 
 	/// Copy constructor.
-	//      EigenfrequencyResponseFunctionLinScal(EigenfrequencyResponseFunctionLinScal const& rOther);
+	//      EigenfrequencyResponseFunctionLinScalUtility(EigenfrequencyResponseFunctionLinScalUtility const& rOther);
 
 	///@}
 
-}; // Class EigenfrequencyResponseFunctionLinScal
+}; // Class EigenfrequencyResponseFunctionLinScalUtility
 
 ///@}
 
@@ -490,4 +490,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // EIGENFRQUENCY_RESPONSE_FUNCTION_H
+#endif // EIGENFREQUENCY_RESPONSE_FUNCTION_LIN_SCAL_UTILITY_H

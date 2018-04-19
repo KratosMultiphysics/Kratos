@@ -31,7 +31,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomResponseFunctionsToPython(pybind11::module& m);
+void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 

@@ -9,8 +9,8 @@
 //  Main authors:    Fusseder Martin
 //
 
-#ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_H
-#define EIGENFREQUENCY_RESPONSE_FUNCTION_H
+#ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_UTILITY_H
+#define EIGENFREQUENCY_RESPONSE_FUNCTION_UTILITY_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -66,21 +66,21 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class EigenfrequencyResponseFunction : public ResponseFunction
+class EigenfrequencyResponseFunctionUtility : public ResponseFunctionUtility
 {
 public:
 	///@name Type Definitions
 	///@{
 
-	/// Pointer definition of EigenfrequencyResponseFunction
-	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunction);
+	/// Pointer definition of EigenfrequencyResponseFunctionUtility
+	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunctionUtility);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	EigenfrequencyResponseFunction(ModelPart& model_part, Parameters responseSettings)
+	EigenfrequencyResponseFunctionUtility(ModelPart& model_part, Parameters responseSettings)
 	: mrModelPart(model_part)
 	{
 		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
@@ -96,7 +96,7 @@ public:
 	}
 
 	/// Destructor.
-	virtual ~EigenfrequencyResponseFunction()
+	virtual ~EigenfrequencyResponseFunctionUtility()
 	{
 	}
 
@@ -178,13 +178,13 @@ public:
 	/// Turn back information as a string.
 	virtual std::string Info() const override
 	{
-		return "EigenfrequencyResponseFunction";
+		return "EigenfrequencyResponseFunctionUtility";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const override
 	{
-		rOStream << "EigenfrequencyResponseFunction";
+		rOStream << "EigenfrequencyResponseFunctionUtility";
 	}
 
 	/// Print object's data.
@@ -388,14 +388,14 @@ private:
 	///@{
 
 	/// Assignment operator.
-	//      EigenfrequencyResponseFunction& operator=(SEigenfrequencyResponseFunction const& rOther);
+	//      EigenfrequencyResponseFunctionUtility& operator=(SEigenfrequencyResponseFunctionUtility const& rOther);
 
 	/// Copy constructor.
-	//      EigenfrequencyResponseFunction(EigenfrequencyResponseFunction const& rOther);
+	//      EigenfrequencyResponseFunctionUtility(EigenfrequencyResponseFunctionUtility const& rOther);
 
 	///@}
 
-}; // Class EigenfrequencyResponseFunction
+}; // Class EigenfrequencyResponseFunctionUtility
 
 ///@}
 
@@ -410,4 +410,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // EIGENFRQUENCY_RESPONSE_FUNCTION_H
+#endif // EIGENFRQUENCY_RESPONSE_FUNCTION_UTILITY_H

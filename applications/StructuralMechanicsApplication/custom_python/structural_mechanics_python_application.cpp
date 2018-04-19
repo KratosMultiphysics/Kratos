@@ -50,7 +50,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
     AddCrossSectionsToPython(m);
-    AddCustomResponseFunctionsToPython(m);
+    AddCustomResponseFunctionUtilitiesToPython(m);
 
     //registering variables in python
     // Generalized eigenvalue problem

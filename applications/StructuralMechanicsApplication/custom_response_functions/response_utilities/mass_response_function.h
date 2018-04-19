@@ -10,8 +10,8 @@
 //                   Geiser Armin, https://github.com/armingeiser
 //
 
-#ifndef MASS_RESPONSE_FUNCTION_H
-#define MASS_RESPONSE_FUNCTION_H
+#ifndef MASS_RESPONSE_FUNCTION_UTILITY_H
+#define MASS_RESPONSE_FUNCTION_UTILITY_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -67,7 +67,7 @@ namespace Kratos
 
  */
 
-class MassResponseFunction : public ResponseFunction
+class MassResponseFunctionUtility : public ResponseFunctionUtility
 {
 public:
 	///@name Type Definitions
@@ -75,15 +75,15 @@ public:
 
 	typedef array_1d<double, 3> array_3d;
 
-	/// Pointer definition of MassResponseFunction
-	KRATOS_CLASS_POINTER_DEFINITION(MassResponseFunction);
+	/// Pointer definition of MassResponseFunctionUtility
+	KRATOS_CLASS_POINTER_DEFINITION(MassResponseFunctionUtility);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	MassResponseFunction(ModelPart& model_part, Parameters responseSettings)
+	MassResponseFunctionUtility(ModelPart& model_part, Parameters responseSettings)
 	: mrModelPart(model_part)
 	{
 		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
@@ -99,7 +99,7 @@ public:
 	}
 
 	/// Destructor.
-	virtual ~MassResponseFunction()
+	virtual ~MassResponseFunctionUtility()
 	{
 	}
 
@@ -287,13 +287,13 @@ public:
 	/// Turn back information as a string.
 	virtual std::string Info() const override
 	{
-		return "MassResponseFunction";
+		return "MassResponseFunctionUtility";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const override
 	{
-		rOStream << "MassResponseFunction";
+		rOStream << "MassResponseFunctionUtility";
 	}
 
 	/// Print object's data.
@@ -372,14 +372,14 @@ private:
 	///@{
 
 	/// Assignment operator.
-	//      MassResponseFunction& operator=(MassResponseFunction const& rOther);
+	//      MassResponseFunctionUtility& operator=(MassResponseFunctionUtility const& rOther);
 
 	/// Copy constructor.
-	//      MassResponseFunction(MassResponseFunction const& rOther);
+	//      MassResponseFunctionUtility(MassResponseFunctionUtility const& rOther);
 
 	///@}
 
-}; // Class MassResponseFunction
+}; // Class MassResponseFunctionUtility
 
 ///@}
 
@@ -394,4 +394,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // MASS_RESPONSE_FUNCTION_H
+#endif // MASS_RESPONSE_FUNCTION_UTILITY_H
