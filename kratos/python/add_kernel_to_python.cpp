@@ -13,14 +13,13 @@
 
 // External includes
 
-// System includes
-#include <sstream>
-
 // Project includes
 #include "includes/define_python.h"
 #include "includes/kernel.h"
 #include "python/add_kernel_to_python.h"
 
+// System includes
+#include <sstream>
 
 namespace Kratos {
 namespace Python {

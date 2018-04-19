@@ -52,7 +52,7 @@ LinearJ2PlasticityPlaneStrain2D::~LinearJ2PlasticityPlaneStrain2D()
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponsePK1(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -60,7 +60,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponsePK1(Parameters& r
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponsePK2(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -68,7 +68,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponsePK2(Parameters& r
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseKirchhoff(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -76,7 +76,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseKirchhoff(Paramet
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseCauchy(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     Flags &Options = rValues.GetOptions();
 
@@ -175,7 +175,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseCauchy(Parameters
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponsePK1(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
@@ -183,7 +183,7 @@ void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponsePK1(Parameters& rV
 //************************************************************************************
 
 
-void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponsePK2(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
@@ -191,14 +191,14 @@ void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponsePK2(Parameters& rV
 //************************************************************************************
 
 
-void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 }
 

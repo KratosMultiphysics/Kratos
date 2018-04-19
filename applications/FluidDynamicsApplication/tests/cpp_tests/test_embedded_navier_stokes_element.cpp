@@ -121,14 +121,14 @@ namespace Kratos {
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 			KRATOS_CHECK_NEAR(RHS(0), 0.0475309, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(1), 0.0975309, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(2), -0.0546391, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(2), -0.0545696, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(3), 0.0469136, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(4), 0.0969136, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(5), 0.0176796, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(6), 16436.9, 1e-1);
+			KRATOS_CHECK_NEAR(RHS(6), 16436.9, 1e-1 );
 			KRATOS_CHECK_NEAR(RHS(7), 33830.3, 1e-1);
-			KRATOS_CHECK_NEAR(RHS(8), 0.0202928, 1e-7);
-	    }
+			KRATOS_CHECK_NEAR(RHS(8), 0.0202233, 1e-7);
+		}
 
 	    // /** Checks the EmbeddedNavierStokes3D4N element.
 	    //  * Checks the LHS and RHS computation.
