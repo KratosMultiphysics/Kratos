@@ -84,7 +84,7 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
         nodeId = 109
         self.assertAlmostEqual(self.gradient[nodeId][0], -1.7336721959838976e-05, 12)
         self.assertAlmostEqual(self.gradient[nodeId][1], 3.6004964666202887e-08, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][2], -4.4078190972845385e-10, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][2], -2.885071090097132e-09, 12)
 
 if __name__ == "__main__":
     suites = KratosUnittest.KratosSuites
