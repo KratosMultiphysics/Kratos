@@ -124,6 +124,7 @@ void DVMS<TElementData>::Initialize()
 
     #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
     mSubscaleIterationError.resize(number_of_gauss_points);
+    mSubscaleIterationCount.resize(number_of_gauss_points);
     #endif
 }
 
@@ -286,6 +287,18 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
             rValues.resize(mSubscaleIterationError.size());
             for (unsigned int g = 0; g < mSubscaleIterationError.size(); g++)
                 rValues[g] = mSubscaleIterationError[g];
+        }
+        else {
+            rValues.resize(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()));
+            for (unsigned int g = 0; g < rValues.size(); g++)
+                rValues[g] = -1.0;
+        }
+    }
+    else if (rVariable == FLAG_VARIABLE) {
+        if (mSubscaleIterationCount.size() != 0) {
+            rValues.resize(mSubscaleIterationCount.size());
+            for (unsigned int g = 0; g < mSubscaleIterationCount.size(); g++)
+                rValues[g] = mSubscaleIterationCount[g];
         }
         else {
             rValues.resize(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()));
@@ -833,6 +846,7 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
 
     #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
     mSubscaleIterationError[rData.IntegrationPointIndex] = subscale_velocity_error;
+    mSubscaleIterationCount[rData.IntegrationPointIndex] = iter;
     #endif
 
     // Store new subscale values

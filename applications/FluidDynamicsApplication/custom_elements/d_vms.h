@@ -328,6 +328,7 @@ private:
 
     #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
     std::vector< double > mSubscaleIterationError;
+    std::vector< unsigned int > mSubscaleIterationCount;
     #endif
 
     ///@}
