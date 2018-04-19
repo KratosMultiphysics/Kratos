@@ -33,9 +33,9 @@ class PfemFluidExplicitSolver(BaseSolver.PfemFluidSolver):
             },
             "dofs"                : [],
             "stabilization_factor": 1.0,
-            "reform_dofs_at_each_step": false,
+            "reform_dofs_at_each_step": true,
             "line_search": false,
-            "compute_reactions": true,
+            "compute_reactions": false,
             "compute_contact_forces": false,
             "block_builder": false,
             "clear_storage": false,
@@ -116,13 +116,20 @@ class PfemFluidExplicitSolver(BaseSolver.PfemFluidSolver):
         import linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
         
+        #self.fluid_solver = KratosPfemFluid.ExplicitStrategy(self.computing_model_part,
+        #                                                     mechanical_scheme,
+        #                                                     linear_solver,
+        #                                                     self.settings["compute_reactions"].GetBool(),
+        #                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
+        #                                                     self.settings["move_mesh_flag"].GetBool())
+
         self.fluid_solver = KratosPfemFluid.ExplicitStrategy(self.computing_model_part,
                                                              mechanical_scheme,
                                                              linear_solver,
-                                                             self.settings["compute_reactions"].GetBool(),
-                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                             self.settings["move_mesh_flag"].GetBool())
-
+                                                             False,
+                                                             True,
+                                                             True)
+                
         # Set echo_level
         self.fluid_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
 

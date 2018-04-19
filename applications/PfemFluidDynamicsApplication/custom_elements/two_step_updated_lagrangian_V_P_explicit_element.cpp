@@ -45,6 +45,19 @@ namespace Kratos {
   }
 
 
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::Initialize()
+  {
+    KRATOS_TRY;
+    // std::cout<<"INITIALIZE  !!!"<<std::endl;
+    // GeometryType& rGeom = this->GetGeometry();
+    // const SizeType NumNodes = rGeom.PointsNumber();
+    // for (SizeType i = 0; i < NumNodes; ++i){
+    //   rGeom[i].FastGetSolutionStepValue(PRESSURE)=0;
+    // }
+    KRATOS_CATCH( "" );
+  }
+
   
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
@@ -53,8 +66,9 @@ namespace Kratos {
   { 
     KRATOS_TRY;
 
-    this->CalculateExplicitContinuityEquation(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-    
+    // this->CalculateExplicitContinuityEquation(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+    this->CalculateMassMatrixMomentum(rLeftHandSideMatrix,rCurrentProcessInfo);
+    this->CalculateRightHandSideMomentum(rRightHandSideVector,rCurrentProcessInfo);
     KRATOS_CATCH("");
   }
 
@@ -1902,10 +1916,58 @@ void TwoStepUpdatedLagrangianVPExplicitElement<3>::CheckStrain2(MatrixType &Spat
     return std::sqrt(2.0*NormS);
   }
 
-
+  
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalculateMassMatrix(Matrix& rMassMatrix,
-								    ProcessInfo& rCurrentProcessInfo)
+									    ProcessInfo& rCurrentProcessInfo)
+  {
+
+    KRATOS_TRY
+
+      // std::cout<<"Calculate Mass Matrix for explicit PFEM"<<std::endl;
+
+      GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumNodes = rGeom.PointsNumber();
+
+    if(rMassMatrix.size1() != NumNodes )
+      rMassMatrix.resize(NumNodes,NumNodes);
+
+    noalias(rMassMatrix)= ZeroMatrix(NumNodes,NumNodes);
+
+    ShapeFunctionDerivativesArrayType DN_DX;
+    Matrix NContainer;
+    VectorType GaussWeights;
+    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+    const unsigned int NumGauss = GaussWeights.size();
+    double totalVolume=0;
+
+    double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
+
+    // Loop on integration points
+    for (unsigned int g = 0; g < NumGauss; g++)
+      {
+	const double GaussWeight = GaussWeights[g];
+	totalVolume+=GaussWeight;
+      }
+
+    // double timeStep=rCurrentProcessInfo[DELTA_TIME];
+    MatrixType BulkMatrix = ZeroMatrix(NumNodes,NumNodes);
+    // double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
+    double lumpedBulkCoeff =totalVolume;
+    this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkCoeff);
+    // this->ComputeBulkMatrixConsistent(BulkMatrix,lumpedBulkCoeff);
+    rMassMatrix+=BulkMatrix;
+    
+    KRATOS_CATCH( "" ) 
+
+      }
+
+
+  
+
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalculateMassMatrixMomentum(Matrix& rMassMatrix,
+										    ProcessInfo& rCurrentProcessInfo)
   {
 
     KRATOS_TRY
@@ -1980,8 +2042,111 @@ void TwoStepUpdatedLagrangianVPExplicitElement<3>::CheckStrain2(MatrixType &Spat
       }
 
 
-  template< unsigned int TDim >
+    template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+  {
+    KRATOS_TRY
+
+      // it just compute the external and internal forces terms. The inertial forces are already taken into account with the temporal scheme
+
+      GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumNodes = rGeom.PointsNumber();
+
+    MatrixType MassMatrix= ZeroMatrix(NumNodes,NumNodes);
+
+    if( rRightHandSideVector.size() != NumNodes )
+      rRightHandSideVector.resize(NumNodes);
+
+    rRightHandSideVector = ZeroVector(NumNodes);
+
+    // Shape functions and integration points
+    ShapeFunctionDerivativesArrayType DN_DX;
+    Matrix NContainer;
+    VectorType GaussWeights;
+    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+    const unsigned int NumGauss = GaussWeights.size();
+
+    double theta=this->GetThetaContinuity();
+
+    ElementalVariables rElementalVariables;
+    this->InitializeElementalVariables(rElementalVariables);
+ 
+    double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
+    double Density = this->mMaterialDensity;
+    // double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
+    // double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+    // double Tau=0;
+    // double ElemSize = this->ElementSize();
+	    
+    double totalVolume=0;
+    
+    // MatrixType BulkMatrixConsistent = ZeroMatrix(NumNodes,NumNodes);
+
+    // Loop on integration points
+    for (unsigned int g = 0; g < NumGauss; g++)
+      {
+	const double GaussWeight = GaussWeights[g];
+	totalVolume+=GaussWeight;
+	const ShapeFunctionsType& N = row(NContainer,g);
+	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
+	// bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+	bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+	if(computeElement==true){
+	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
+	  // this->ComputeBulkMatrix(BulkMatrixConsistent,N,BulkCoeff);  
+
+	  // // if(this->Is(FLUID)){
+	  // this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
+	  // double BoundLHSCoeff=Tau*4.0*GaussWeight/(ElemSize*ElemSize);
+	  // this->ComputeBoundLHSMatrix(rLeftHandSideMatrix,N,BoundLHSCoeff);
+	  // double NProjSpatialDefRate=this->CalcNormalProjectionDefRate(rElementalVariables.SpatialDefRate);
+	  // double BoundRHSCoeffAcc=Tau*Density*2*GaussWeight/ElemSize;
+	  // double BoundRHSCoeffDev=Tau*8.0*NProjSpatialDefRate*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
+	  // this->ComputeBoundRHSVector(rRightHandSideVector,N,TimeStep,BoundRHSCoeffAcc,BoundRHSCoeffDev);
+	  // double StabLaplacianWeight=Tau*GaussWeight;
+	  // this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix,rDN_DX,StabLaplacianWeight);
+	  // // }
+	    
+	  // for (SizeType i = 0; i < NumNodes; ++i)
+	  //   {
+	  //     // RHS contribution
+	  //     // Velocity divergence
+	  //     rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
+	  //     // // if(this->Is(FLUID)){
+	  //     // this->AddStabilizationNodalTermsRHS(rRightHandSideVector,Tau,Density,GaussWeight,rDN_DX,i);
+	  //     // }
+	  //   }
+
+	}
+
+      }   
+
+    MatrixType BulkMatrix = ZeroMatrix(NumNodes,NumNodes);
+    // double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
+    double lumpedBulkCoeff =totalVolume;
+    VectorType UpdatedPressure = ZeroVector(NumNodes);
+    VectorType UpdatedDensity = ZeroVector(NumNodes);
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	// RHS contribution
+	// Velocity divergence
+	UpdatedDensity[i] = Density;
+      }
+  
+    this->GetPressureValues(UpdatedPressure,0);
+    this->ComputeBulkMatrixRHS(BulkMatrix,lumpedBulkCoeff);
+    rRightHandSideVector += prod(BulkMatrix,UpdatedDensity);
+    // rRightHandSideVector += prod(BulkMatrix,UpdatedPressure);
+    // rRightHandSideVector += prod(BulkMatrixConsistent,UpdatedPressure);
+   
+
+    KRATOS_CATCH( "" )
+      }
+
+  
+
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPExplicitElement<TDim>::CalculateRightHandSideMomentum( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -2023,10 +2188,11 @@ void TwoStepUpdatedLagrangianVPExplicitElement<3>::CheckStrain2(MatrixType &Spat
 	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g]; 
 
 	double Pressure=0;
-	double OldPressure=0;
+	// double OldPressure=0;
 	this->EvaluateInPoint(Pressure,PRESSURE,N,0);
-	this->EvaluateInPoint(OldPressure,PRESSURE,N,1);
-	rElementalVariables.MeanPressure=OldPressure*(1-theta)+Pressure*theta;  
+	// this->EvaluateInPoint(OldPressure,PRESSURE,N,1);
+	// rElementalVariables.MeanPressure=OldPressure*(1-theta)+Pressure*theta;
+	rElementalVariables.MeanPressure=Pressure;
 
 	bool computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,rDN_DX,g);
 
@@ -2365,11 +2531,16 @@ void TwoStepUpdatedLagrangianVPExplicitElement<3>::CheckStrain2(MatrixType &Spat
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
  
-    // double Density  = mMaterialDensity;
-    // double DeviatoricCoeff = mMaterialVolumetricCoefficient;
     double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
-    
+    // double Density = this->mMaterialDensity;
+    // double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
+    // double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+    // double Tau=0;
+    // double ElemSize = this->ElementSize();
+	    
     double totalVolume=0;
+    
+    // MatrixType BulkMatrixConsistent = ZeroMatrix(NumNodes,NumNodes);
 
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
@@ -2382,32 +2553,47 @@ void TwoStepUpdatedLagrangianVPExplicitElement<3>::CheckStrain2(MatrixType &Spat
 	bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
 	if(computeElement==true){
 	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
-	  // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
+	  // this->ComputeBulkMatrix(BulkMatrixConsistent,N,BulkCoeff);  
 
+	  // // if(this->Is(FLUID)){
+	  // this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
+	  // double BoundLHSCoeff=Tau*4.0*GaussWeight/(ElemSize*ElemSize);
+	  // this->ComputeBoundLHSMatrix(rLeftHandSideMatrix,N,BoundLHSCoeff);
+	  // double NProjSpatialDefRate=this->CalcNormalProjectionDefRate(rElementalVariables.SpatialDefRate);
+	  // double BoundRHSCoeffAcc=Tau*Density*2*GaussWeight/ElemSize;
+	  // double BoundRHSCoeffDev=Tau*8.0*NProjSpatialDefRate*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
+	  // this->ComputeBoundRHSVector(rRightHandSideVector,N,TimeStep,BoundRHSCoeffAcc,BoundRHSCoeffDev);
+	  // double StabLaplacianWeight=Tau*GaussWeight;
+	  // this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix,rDN_DX,StabLaplacianWeight);
+	  // // }
+	    
 	  for (SizeType i = 0; i < NumNodes; ++i)
 	    {
 	      // RHS contribution
 	      // Velocity divergence
-	      double RHSi =  N[i] * rElementalVariables.VolumetricDefRate;
-	      rRightHandSideVector[i] += GaussWeight * RHSi;
+	      rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
+	      // // if(this->Is(FLUID)){
+	      // this->AddStabilizationNodalTermsRHS(rRightHandSideVector,Tau,Density,GaussWeight,rDN_DX,i);
+	      // }
 	    }
 
 	}
 
       }   
-    
-    MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
+
+    // double timeStep=rCurrentProcessInfo[DELTA_TIME];
+    MatrixType BulkMatrix = ZeroMatrix(NumNodes,NumNodes);
     double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
-    this->ComputeBulkMatrixLump(BulkVelMatrixLump,lumpedBulkCoeff);
-  
-    rLeftHandSideMatrix+=BulkVelMatrixLump;
-    // rLeftHandSideMatrix+=BulkVelMatrix;	
+    this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkCoeff);
+    // this->ComputeBulkMatrixConsistent(BulkMatrix,lumpedBulkCoeff);
+    rLeftHandSideMatrix+=BulkMatrix;
 
     VectorType UpdatedPressure = ZeroVector(NumNodes);
     this->GetPressureValues(UpdatedPressure,0);
-    rRightHandSideVector += prod(BulkVelMatrixLump,UpdatedPressure);
-    // rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
-
+    BulkMatrix = ZeroMatrix(NumNodes,NumNodes);
+    this->ComputeBulkMatrixRHS(BulkMatrix,lumpedBulkCoeff);
+    rRightHandSideVector += prod(BulkMatrix,UpdatedPressure);
+    // rRightHandSideVector += prod(BulkMatrixConsistent,UpdatedPressure);
   }
 
  
@@ -2440,12 +2626,11 @@ void TwoStepUpdatedLagrangianVPExplicitElement<3>::CheckStrain2(MatrixType &Spat
 	for (SizeType j = 0; j < NumNodes; ++j)
 	  {
 	    // LHS contribution
-	    double Mij  = Weight/12;
+	    double Mij  = Weight/12.0;
 	    if(i==j)
 	      Mij  *= 2.0;
 	    BulkMatrix(i,j) +=  Mij;
 	  }
-
       }
   
   }
@@ -2466,7 +2651,6 @@ void TwoStepUpdatedLagrangianVPExplicitElement<3>::CheckStrain2(MatrixType &Spat
 	      Mij  *= 2.0;
 	    BulkMatrix(i,j) +=  Mij;
 	  }
-
       }
   
   }

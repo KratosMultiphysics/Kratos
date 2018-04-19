@@ -225,7 +225,7 @@ namespace Kratos
 
       virtual Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
-      virtual void Initialize(){};
+      virtual void Initialize();
 
       /// Initializes the element and all geometric information required for the problem.
       virtual void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo){};
@@ -250,6 +250,9 @@ namespace Kratos
       virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
 					  ProcessInfo& rCurrentProcessInfo);
 
+      
+      void CalculateRightHandSideMomentum(VectorType& rRightHandSideVector,
+					  ProcessInfo& rCurrentProcessInfo);
  
       // The following methods have different implementations depending on TDim
       /// Provides the global indices for each one of this element's local rows
@@ -476,7 +479,10 @@ namespace Kratos
        */
       void CalculateMassMatrix(Matrix& rMassMatrix,
 			       ProcessInfo& rCurrentProcessInfo);
-
+      
+      void CalculateMassMatrixMomentum(Matrix& rMassMatrix,
+				       ProcessInfo& rCurrentProcessInfo);
+      
       /* void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix, */
       /* 				    VectorType& rRightHandSideVector, */
       /* 				    Flags& rCalculationFlags); */
@@ -526,15 +532,18 @@ namespace Kratos
 				      const double Weight);
 	  
       void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
-					 const double Weight);
+				 const double Weight);
       
       void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix,
-					       const double Weight);
+				       const double Weight);
       
        void ComputeBulkMatrix(MatrixType& BulkMatrix,
-				     const ShapeFunctionsType& rN,
-				     const double Weight);
-
+			      const ShapeFunctionsType& rN,
+			      const double Weight);
+       
+       virtual void ComputeBulkMatrixRHS(MatrixType& BulkMatrix,
+					 const double Weight){};
+       
       /* virtual void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix, */
       /* 						   const double Weight){}; */
       

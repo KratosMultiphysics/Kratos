@@ -206,10 +206,11 @@ namespace Kratos
 
       BaseType::InitializeSolutionStep(rModelPart,A,Dx,b);
 
-      if(mDeltaTime.PredictionLevel>1)
-	{
-	  this->CalculateDeltaTime(rModelPart);
-	}
+      // if(mDeltaTime.PredictionLevel>1)
+      // 	{
+      // 	  this->CalculateDeltaTime(rModelPart);
+      // 	}
+      this->CalculateDeltaTime(rModelPart);
 
       this->InitializeResidual(rModelPart);       
 	
@@ -253,74 +254,81 @@ namespace Kratos
       #pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
+
 	  NodesArrayType::iterator itNode = NodeBegin + i;
-	  
-	  // Current step information "N+1" (before step update).
-	  const double& nodal_mass                    = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
-	  array_1d<double,3>& current_residual        = (itNode)->FastGetSolutionStepValue(FORCE_RESIDUAL);
-	  
-	  array_1d<double,3>& current_velocity        = (itNode)->FastGetSolutionStepValue(VELOCITY);
-	  array_1d<double,3>& current_displacement    = (itNode)->FastGetSolutionStepValue(DISPLACEMENT);
-	  // array_1d<double,3>& middle_velocity         = (itNode)->FastGetSolutionStepValue(MIDDLE_VELOCITY);
-	  
-	  array_1d<double,3>& current_acceleration    = (itNode)->FastGetSolutionStepValue(ACCELERATION);
+	  if((itNode)->IsNot(ISOLATED)){
+	    // Current step information "N+1" (before step update).
+	    const double& nodal_mass                    = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
+	    array_1d<double,3>& current_residual        = (itNode)->FastGetSolutionStepValue(FORCE_RESIDUAL);
+	    array_1d<double,3>& current_velocity        = (itNode)->FastGetSolutionStepValue(VELOCITY);
+	    array_1d<double,3>& current_displacement    = (itNode)->FastGetSolutionStepValue(DISPLACEMENT); 
+	    array_1d<double,3>& current_acceleration    = (itNode)->FastGetSolutionStepValue(ACCELERATION);
 	  
 
-	  // Solution of the explicit equation:
-	  if((itNode)->IsFixed(ACCELERATION_X) == false)
-	    current_acceleration[0] = current_residual[0]/nodal_mass;
+	    // Solution of the explicit equation:
+	    if((itNode)->IsFixed(ACCELERATION_X) == false)
+	      current_acceleration[0] = current_residual[0]/nodal_mass;
 	  
-	  if((itNode)->IsFixed(ACCELERATION_Y) == false)
-	    current_acceleration[1] = current_residual[1]/nodal_mass;
+	    if((itNode)->IsFixed(ACCELERATION_Y) == false)
+	      current_acceleration[1] = current_residual[1]/nodal_mass;
 
-	  // For 3D cases
-	  if ((itNode)->HasDofFor(DISPLACEMENT_Z))
-	    {
-	      if((itNode)->IsFixed(ACCELERATION_Z) == false)
-		current_acceleration[2] = current_residual[2]/nodal_mass;
+	    // For 3D cases
+	    if ((itNode)->HasDofFor(DISPLACEMENT_Z))
+	      {
+		if((itNode)->IsFixed(ACCELERATION_Z) == false)
+		  current_acceleration[2] = current_residual[2]/nodal_mass;
+	      }
+	  
+	    if ((itNode)->IsFixed(VELOCITY_X)){
+	      current_acceleration[0] = 0.0;
+	      // middle_velocity[0]      = current_velocity[0];
+	    }
+	    else if((itNode)->IsFixed(DISPLACEMENT_X)){
+	      current_acceleration[0] = 0.0;
+	      // current_velocity[0] = 0.0;
+	      // middle_velocity[0]    = 0.0;
+	    }
+
+	    if ((itNode)->IsFixed(VELOCITY_Y)){
+	      current_acceleration[1] = 0.0;
+	      // middle_velocity[1]      = current_velocity[1];
+	    }
+	    else if ((itNode)->IsFixed(DISPLACEMENT_Y)){
+	      current_acceleration[1] = 0.0;
+	      // current_velocity[1] = 0.0;
+	      // middle_velocity[1]    = 0.0;	    
 	    }
 	  
-	  if ((itNode)->IsFixed(VELOCITY_X)){
-	    current_acceleration[0] = 0.0;
-	    // middle_velocity[0]      = current_velocity[0];
-	  }
-	  else if((itNode)->IsFixed(DISPLACEMENT_X)){
-	    current_acceleration[0] = 0.0;
-	    // current_velocity[0] = 0.0;
-	    // middle_velocity[0]    = 0.0;
-	  }
-
-	  if ((itNode)->IsFixed(VELOCITY_Y)){
-	    current_acceleration[1] = 0.0;
-	    // middle_velocity[1]      = current_velocity[1];
-	  }
-	  else if ((itNode)->IsFixed(DISPLACEMENT_Y)){
-	    current_acceleration[1] = 0.0;
-	    // current_velocity[1] = 0.0;
-	    // middle_velocity[1]    = 0.0;	    
-	  }
-	  
-	  // For 3D cases
-	  if ((itNode)->HasDofFor(DISPLACEMENT_Z))
-	    {
-	      if ((itNode)->IsFixed(VELOCITY_Z)){
-	  	current_acceleration[2] = 0.0;
-	  	// middle_velocity[2]      = current_velocity[2];
+	    // For 3D cases
+	    if ((itNode)->HasDofFor(DISPLACEMENT_Z))
+	      {
+		if ((itNode)->IsFixed(VELOCITY_Z)){
+		  current_acceleration[2] = 0.0;
+		  // middle_velocity[2]      = current_velocity[2];
+		}
+		else if ((itNode)->IsFixed(DISPLACEMENT_Z)){
+		  current_acceleration[2] = 0.0;
+		  // current_velocity[2] = 0.0;
+		  // middle_velocity[2]    = 0.0;	  	
+		}
 	      }
-	      else if ((itNode)->IsFixed(DISPLACEMENT_Z)){
-		current_acceleration[2] = 0.0;
-		// current_velocity[2] = 0.0;
-		// middle_velocity[2]    = 0.0;	  	
-	      }
-	    }
 	  
-	  // noalias(current_velocity)      = middle_velocity + ( mTime.Previous - mTime.PreviousMiddle ) * current_acceleration;
-	  // std::cout<<" mTime.Current "<< mTime.Current<<" mTime.Previous "<< mTime.Previous<< std::endl;
-	  noalias(current_velocity)     += ( mTime.Current - mTime.Previous ) * current_acceleration;
-	  // noalias(middle_velocity)       = current_velocity + ( mTime.Middle - mTime.Previous ) * current_acceleration; 
-	  // noalias(current_displacement) += mTime.Delta * middle_velocity;
-	   noalias(current_displacement) += mTime.Delta * current_velocity;    
+	    noalias(current_velocity)     += ( mTime.Current - mTime.Previous ) * current_acceleration;
+	    noalias(current_displacement) += mTime.Delta * current_velocity;    
   
+	  }else{
+	    std::cout<<"in updateMomentum ISOLATED NODE "<<(itNode)->X()<<" "<<(itNode)->Y()<<std::endl;
+	    array_1d<double,3>& current_velocity        = (itNode)->FastGetSolutionStepValue(VELOCITY);
+	    array_1d<double,3>& current_displacement    = (itNode)->FastGetSolutionStepValue(DISPLACEMENT);
+	    array_1d<double,3>& current_acceleration    = (itNode)->FastGetSolutionStepValue(ACCELERATION);
+	    if((itNode)->SolutionStepsDataHas(VOLUME_ACCELERATION)){
+	      array_1d<double, 3 >& VolumeAcceleration = (itNode)->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+	      current_acceleration = VolumeAcceleration;
+	      noalias(current_velocity)     += ( mTime.Current - mTime.Previous ) * current_acceleration;
+	      noalias(current_displacement) += mTime.Delta * current_velocity; 
+	    }
+	  }
+
 	}
 
       mTime.Previous = mTime.Current;
@@ -585,22 +593,10 @@ namespace Kratos
         {
 	  ElementsArrayType::iterator itElement = ElementBegin + i;
 	  //get geometric and material properties
-	  double length   = (itElement)->GetGeometry().Length();
-	  // double alpha    = (itElement)->GetProperties()[RAYLEIGH_ALPHA];
-	  // double beta     = (itElement)->GetProperties()[RAYLEIGH_BETA];
-	  double alpha = 0;
-	  double beta = 0;
-	  double E        = (itElement)->GetProperties()[YOUNG_MODULUS];
-	  double v        = (itElement)->GetProperties()[POISSON_RATIO];
-	  double ro       = (itElement)->GetProperties()[DENSITY];
+	  double inRadius   = (itElement)->GetGeometry().Inradius();
+	  double waveSpeed  = 1450;
 
-	  //compute courant criterion
-	  double bulk       = E/(3.0*(1.0-2.0*v));               
-	  double wavespeed  = sqrt(bulk/ro);
-	  double w          = 2.0*wavespeed/length;   //frequency
-
-	  double psi        = 0.5*(alpha/w + beta*w); //critical ratio;
-	  stable_delta_time = (2.0/w)*(sqrt(1.0 + psi*psi)-psi);
+	  stable_delta_time = 0.9*inRadius/waveSpeed;
 
 	  if(stable_delta_time > 0.00)
 	    {
@@ -613,24 +609,104 @@ namespace Kratos
 
 	}
 
+      
       stable_delta_time  = (*std::min_element(delta_times.begin(), delta_times.end()));
       stable_delta_time *= safety_factor;// * 0.5; //extra factor added to get an stable delta time
 
       double current_delta_time = rCurrentProcessInfo[DELTA_TIME];
-      
-      if(stable_delta_time < mDeltaTime.Maximum){
-	rCurrentProcessInfo[DELTA_TIME] = stable_delta_time;	  
-      }
-      else{
-	if( current_delta_time > mDeltaTime.Maximum/safety_factor )
-	  rCurrentProcessInfo[DELTA_TIME] = mDeltaTime.Maximum;
-      }
 
-      std::cout<< "  [EXPLICIT PREDICTION LEVEL"<<mDeltaTime.PredictionLevel<<"]:(computed stable time step = "<< stable_delta_time <<" s)"<< std::endl;
-      std::cout<< "  Using  = "<< rCurrentProcessInfo[DELTA_TIME] <<" s as time step DELTA_TIME)"<< std::endl;
+      if(stable_delta_time<current_delta_time){
+	std::cout<< " ATTENTION!!!!! Stable delta time is "<< stable_delta_time <<" and current delta time is "<< current_delta_time<<std::endl;
+      }
+      // if(stable_delta_time < mDeltaTime.Maximum){
+      // 	rCurrentProcessInfo[DELTA_TIME] = stable_delta_time;	  
+      // }
+      // else{
+      // 	if( current_delta_time > mDeltaTime.Maximum/safety_factor )
+      // 	  rCurrentProcessInfo[DELTA_TIME] = mDeltaTime.Maximum;
+      // }
+
+      // std::cout<< "  [EXPLICIT PREDICTION LEVEL"<<mDeltaTime.PredictionLevel<<"]:(computed stable time step = "<< stable_delta_time <<" s)"<< std::endl;
+      // std::cout<< "  Using  = "<< rCurrentProcessInfo[DELTA_TIME] <<" s as time step DELTA_TIME)"<< std::endl;
         
       KRATOS_CATCH("")
     }
+
+
+    // void CalculateDeltaTime(ModelPart& rModelPart)
+    // {
+
+    //   KRATOS_TRY
+
+    //   ProcessInfo& rCurrentProcessInfo= rModelPart.GetProcessInfo();
+
+    //   const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+
+    //   //most autors recommend a value near 0.80 (Belytschko - Nonlinear FE.. 2000. chap 6. pag. 315)
+    //   double safety_factor     = 0.5;  
+    //   double stable_delta_time = 0.00;
+    //   Vector delta_times(NumThreads);
+     
+    //   for(unsigned int i = 0; i < NumThreads; i++)
+    // 	delta_times[i] = mDeltaTime.Maximum/safety_factor;
+      
+    //   OpenMPUtils::PartitionVector ElementPartition;
+    //   OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(), NumThreads, ElementPartition);
+	
+    //   const int nelements = static_cast<int>(rModelPart.Elements().size());
+    //   ElementsArrayType::iterator ElementBegin = rModelPart.Elements().begin();
+
+    //   #pragma omp parallel for firstprivate(ElementBegin) private(stable_delta_time)
+    //   for(int i = 0;  i < nelements; i++)
+    //     {
+    // 	  ElementsArrayType::iterator itElement = ElementBegin + i;
+    // 	  //get geometric and material properties
+    // 	  double length   = (itElement)->GetGeometry().Length();
+    // 	  // double alpha    = (itElement)->GetProperties()[RAYLEIGH_ALPHA];
+    // 	  // double beta     = (itElement)->GetProperties()[RAYLEIGH_BETA];
+    // 	  double alpha = 0;
+    // 	  double beta = 0;
+    // 	  double E        = (itElement)->GetProperties()[YOUNG_MODULUS];
+    // 	  double v        = (itElement)->GetProperties()[POISSON_RATIO];
+    // 	  double ro       = (itElement)->GetProperties()[DENSITY];
+
+    // 	  //compute courant criterion
+    // 	  double bulk       = E/(3.0*(1.0-2.0*v));               
+    // 	  double wavespeed  = sqrt(bulk/ro);
+    // 	  double w          = 2.0*wavespeed/length;   //frequency
+
+    // 	  double psi        = 0.5*(alpha/w + beta*w); //critical ratio;
+    // 	  stable_delta_time = (2.0/w)*(sqrt(1.0 + psi*psi)-psi);
+
+    // 	  if(stable_delta_time > 0.00)
+    // 	    {
+    // 	      int thread = OpenMPUtils::ThisThread();
+    // 	      if(stable_delta_time < delta_times[thread])
+    // 		{
+    // 		  delta_times[thread] = stable_delta_time;
+    // 		}
+    // 	    }
+
+    // 	}
+
+    //   stable_delta_time  = (*std::min_element(delta_times.begin(), delta_times.end()));
+    //   stable_delta_time *= safety_factor;// * 0.5; //extra factor added to get an stable delta time
+
+    //   double current_delta_time = rCurrentProcessInfo[DELTA_TIME];
+      
+    //   if(stable_delta_time < mDeltaTime.Maximum){
+    // 	rCurrentProcessInfo[DELTA_TIME] = stable_delta_time;	  
+    //   }
+    //   else{
+    // 	if( current_delta_time > mDeltaTime.Maximum/safety_factor )
+    // 	  rCurrentProcessInfo[DELTA_TIME] = mDeltaTime.Maximum;
+    //   }
+
+    //   std::cout<< "  [EXPLICIT PREDICTION LEVEL"<<mDeltaTime.PredictionLevel<<"]:(computed stable time step = "<< stable_delta_time <<" s)"<< std::endl;
+    //   std::cout<< "  Using  = "<< rCurrentProcessInfo[DELTA_TIME] <<" s as time step DELTA_TIME)"<< std::endl;
+        
+    //   KRATOS_CATCH("")
+    // }
 
     
     //*********************************************************************************

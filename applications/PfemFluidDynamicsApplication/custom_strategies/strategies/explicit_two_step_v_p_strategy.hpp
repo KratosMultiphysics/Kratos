@@ -1,3 +1,4 @@
+
 //
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:           MSantasusana $
@@ -76,7 +77,7 @@ public:
      */
     ExplicitTwoStepVPStrategy(
         ModelPart& model_part,
-        bool MoveMeshFlag = false
+        bool MoveMeshFlag = true
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
     {
@@ -87,20 +88,23 @@ public:
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         bool CalculateReactions = false,
-        bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false
+        bool ReformDofSetAtEachStep = true,
+        bool MoveMeshFlag = true
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
     {
         KRATOS_TRY
 
-	  std::cout<<"ExplicitTwoStepVPStrategy "<<std::endl;
+	  // std::cout<<"ExplicitTwoStepVPStrategy "<<std::endl;
 
-	typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
+	// typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 
 	//set flags to default values
-        mCalculateReactionsFlag = CalculateReactions;
-        mReformDofSetAtEachStep = ReformDofSetAtEachStep;
+        // mCalculateReactionsFlag = CalculateReactions;
+        // mReformDofSetAtEachStep = ReformDofSetAtEachStep;
+
+	mCalculateReactionsFlag = false;
+        mReformDofSetAtEachStep = true;
 
 	//saving the scheme
         mpScheme = pScheme;
@@ -118,16 +122,16 @@ public:
         mSolutionStepIsInitialized  = false;
         mInitializeWasPerformed     = false;
 
-        //set EchoLevel to the deffault value (only time is displayed)
+        //set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
 
-	//set RebuildLevel to the deffault value 
+	//set RebuildLevel to the default value 
 	BaseType::SetRebuildLevel(0);  
 
-	//set it true for explicit :: taking the deffault geometry lumping factors
+	//set it true for explicit :: taking the default geometry lumping factors
 	BaseType::GetModelPart().GetProcessInfo()[COMPUTE_LUMPED_MASS_MATRIX] = true; 
 
-	BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(mpLinearSolver, PRESSURE));
+	// BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(mpLinearSolver, PRESSURE));
 	
         KRATOS_CATCH( "" )
     }
@@ -226,6 +230,8 @@ public:
 
         TSystemMatrixType mA = TSystemMatrixType();   //dummy initialization. Not used in builder and solver.
 
+	// std::cout<<" INITIALIZE  "<<std::endl;
+	
         //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
         if (pScheme->SchemeIsInitialized() == false)
             pScheme->Initialize(BaseType::GetModelPart());
@@ -244,6 +250,8 @@ public:
         
         mInitializeWasPerformed = true;
 
+	// this->UpdatePressure(r_model_part);
+
 	//std::cout<<" Rebuild Level "<<BaseType::mRebuildLevel<<std::endl;
 
         KRATOS_CATCH( "" )
@@ -256,7 +264,7 @@ public:
     {
         KRATOS_TRY
 
-	  std::cout<<" InitializeSolutionStep() in explicit two step v p"<<std::endl;
+	  // std::cout<<" InitializeSolutionStep() in explicit two step v p"<<std::endl;
 
         typename TSchemeType::Pointer pScheme                     = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
@@ -293,7 +301,7 @@ public:
   {
     KRATOS_TRY
 
-      std::cout<<" Solve() in explicit two step v p"<<std::endl;
+      // std::cout<<" Solve() in explicit two step v p"<<std::endl;
 
     //pointers needed in the solution
     typename TSchemeType::Pointer pScheme = GetScheme();
@@ -303,7 +311,8 @@ public:
     DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
     TSystemMatrixType mA  = TSystemMatrixType();
     TSystemVectorType mDx = TSystemVectorType();
-    TSystemVectorType mb  = TSystemVectorType();
+    TSystemVectorType mBmomentum  = TSystemVectorType();
+    TSystemVectorType mBcontinuity  = TSystemVectorType();
         
     //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
     //if the operations needed were already performed this does nothing
@@ -317,32 +326,39 @@ public:
 	std::cout << "CurrentTime = " << r_model_part.GetProcessInfo()[TIME] << std::endl;
       }
 
+    ProcessInfo rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+    double currentTime   = rCurrentProcessInfo[TIME]; 
+    int step   = rCurrentProcessInfo[STEP]; 
+    double timeStep     = rCurrentProcessInfo[DELTA_TIME];
 
+    
        
     //initialize solution step
     // if(mSolutionStepIsInitialized == false)
     // InitializeSolutionStep();
 
     // it predicts the timeStep, it clear the RHS of momentum and continuity
-    pScheme->InitializeSolutionStep(r_model_part, mA, mDx, mb);
+    pScheme->InitializeSolutionStep(r_model_part, mA, mDx, mBmomentum);
 
     ////////////////////// starting momentum step solution /////////////////////
 
-    pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix  
+    pBuilderAndSolver->Build(pScheme, r_model_part, mA, mBmomentum);
+    
+    // if(step==2)
+       // InitializeDensity(r_model_part);
+    
+    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mBcontinuity);
 
-    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mb);
-
-    pScheme->Update(r_model_part, rDofSet, mA, mDx, mb); // Explicitly integrates the equation of motion.
+    pScheme->Update(r_model_part, rDofSet, mA, mDx, mBmomentum); // Explicitly integrates the equation of motion.
 
     //Finalisation of the solution step,
     //operations to be done after achieving convergence, for example the
     //Final Residual Vector (mb) has to be saved in there
     //to avoid error accumulation
-    pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
-
+    pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mBmomentum);
 
     //move the mesh if needed
-    if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+    BaseType::MoveMesh();
 
     //Cleaning memory after the solution
     pScheme->Clean();
@@ -353,11 +369,18 @@ public:
     ////////////////////// momentum step solution finished /////////////////////
 
 
-    pBuilderAndSolver->Build(pScheme, r_model_part, mA, mb);
+    // pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mBcontinuity);
 
-    this->UpdatePressure(r_model_part); // Explicitly integrates the equation of motion.
+    pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix  
 
-    pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
+    // pBuilderAndSolver->Build(pScheme, r_model_part, mA, mb);
+
+    // this->UpdateDensity(r_model_part,rCurrentProcessInfo); // it computes the new density and saves the previous ones in PRESSURE,1
+    this->ComputeAndUpdatePressureFromDensity(r_model_part,rCurrentProcessInfo);
+    // if(timeStep<currentTime)
+      // this->UpdatePressure(r_model_part,rCurrentProcessInfo); // it computes the new pressures
+
+    pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mBcontinuity);
 
     pScheme->Clean();
 
@@ -367,13 +390,101 @@ public:
 
       }
 
+  
+  //   //**********************************************************************
+  //   //**********************************************************************
+  //   /*
+  //                     SOLUTION OF THE PROBLEM OF INTEREST
+  //    */
+  //   //**********************************************************************
 
-  void UpdatePressure(ModelPart& rModelPart)
+
+  // double Solve()
+  // {
+  //   KRATOS_TRY
+
+  //     // std::cout<<" Solve() in explicit two step v p"<<std::endl;
+
+  //   //pointers needed in the solution
+  //   typename TSchemeType::Pointer pScheme = GetScheme();
+  //   typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+  //   ModelPart& r_model_part                                   = BaseType::GetModelPart();
+    
+  //   DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
+  //   TSystemMatrixType mA  = TSystemMatrixType();
+  //   TSystemVectorType mDx = TSystemVectorType();
+  //   TSystemVectorType mb  = TSystemVectorType();
+        
+  //   //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
+  //   //if the operations needed were already performed this does nothing
+  //   if(mInitializeWasPerformed == false)
+  //     Initialize();
+            
+  //   //prints informations about the current time
+  //   if (this->GetEchoLevel() == 2 && r_model_part.GetCommunicator().MyPID() == 0 )
+  //     {
+  // 	std::cout << " " << std::endl;
+  // 	std::cout << "CurrentTime = " << r_model_part.GetProcessInfo()[TIME] << std::endl;
+  //     }
+
+
+       
+  //   //initialize solution step
+  //   // if(mSolutionStepIsInitialized == false)
+  //   // InitializeSolutionStep();
+
+  //   // it predicts the timeStep, it clear the RHS of momentum and continuity
+  //   pScheme->InitializeSolutionStep(r_model_part, mA, mDx, mb);
+
+  //   ////////////////////// starting momentum step solution /////////////////////
+
+  //   pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix  
+
+  //   pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mb);
+
+  //   pScheme->Update(r_model_part, rDofSet, mA, mDx, mb); // Explicitly integrates the equation of motion.
+
+  //   //Finalisation of the solution step,
+  //   //operations to be done after achieving convergence, for example the
+  //   //Final Residual Vector (mb) has to be saved in there
+  //   //to avoid error accumulation
+  //   pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
+
+
+  //   //move the mesh if needed
+  //   BaseType::MoveMesh();
+
+  //   //Cleaning memory after the solution
+  //   pScheme->Clean();
+
+  //   //reset flags for next step
+  //   mSolutionStepIsInitialized = false;
+
+  //   ////////////////////// momentum step solution finished /////////////////////
+
+
+  //   pBuilderAndSolver->Build(pScheme, r_model_part, mA, mb);
+
+  //   this->UpdatePressure(r_model_part); // Explicitly integrates the equation of motion.
+
+  //   pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
+
+  //   pScheme->Clean();
+
+  //   return 0.00;
+
+  //   KRATOS_CATCH( "" )
+
+  //     }
+
+
+    
+    void InitializeDensity(ModelPart& rModelPart)
   {
     KRATOS_TRY
 
-      // std::cout<<"Update in forward euler"<<std::endl;
 
+      std::cout<<"InitializeDensity() InitializeDensity() InitializeDensity() InitializeDensity()"<<std::endl;
       const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
       
     OpenMPUtils::PartitionVector NodePartition;
@@ -388,88 +499,203 @@ public:
 	NodesArrayType::iterator itNode = NodeBegin + i;
 	  
 	// Current step information "N+1" (before step update).
-	const double& bulk_term  = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
-	double& pressure_rhs  = (itNode)->FastGetSolutionStepValue(NODAL_ERROR);
-	double& current_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
-	double& previous_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
-
-	// // std::cout<<"PREssure_rhs  "<<pressure_rhs<<"\t";
-	// std::cout<<"p(n-1)  "<<previous_pressure<<"\t";
-	// std::cout<<"p(n)  "<<current_pressure<<"\t";
-
-	// Solution of the explicit equation:
-	// if((itNode)->IsFixed(PRESSURE) == false)
-	previous_pressure=current_pressure;
-	current_pressure =  pressure_rhs/bulk_term;
-	
-	// std::cout<<"p(n)  "<<previous_pressure<<"\t";
-	// std::cout<<"p(n+1)  "<<current_pressure<<"\n";
-
+	// double& previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
+	double& previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
+	previous_density=1000;
       }
 
     KRATOS_CATCH("")
       }
 
   
-      void UpdateKinematics()
+   void ComputeAndUpdatePressureFromDensity(ModelPart& rModelPart,ProcessInfo rCurrentProcessInfo)
   {
-    ModelPart& rModelPart = BaseType::GetModelPart();
-    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-    double timeStep = rCurrentProcessInfo[DELTA_TIME];
+    KRATOS_TRY
+
+      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
       
-    for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
-	 i != rModelPart.NodesEnd(); ++i)
+    OpenMPUtils::PartitionVector NodePartition;
+    OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
+	
+    const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+    NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+
+    // double currentTime   = rCurrentProcessInfo[TIME];  //the first step is (time = initial_time + delta time )
+    // double timeStep     = rCurrentProcessInfo[DELTA_TIME];
+
+#pragma omp parallel for firstprivate(NodeBegin)
+    for(int i = 0;  i < nnodes; i++)
       {
-
-	array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0);
-	array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
-
-	array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
-
-	array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
-	array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+	NodesArrayType::iterator itNode = NodeBegin + i;
 	  
-	CurrentDisplacement[0] = timeStep * CurrentVelocity[0] + PreviousDisplacement[0];	  
-	CurrentDisplacement[1] = timeStep * CurrentVelocity[1] + PreviousDisplacement[1];
-	CurrentDisplacement[2] = timeStep * CurrentVelocity[2] + PreviousDisplacement[2];
+	// Current step information "N+1" (before step update).
+	const double& bulk_term  = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
+	double& density_rhs  = (itNode)->FastGetSolutionStepValue(NODAL_ERROR);
+	double current_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
+	double& current_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
+	// double& previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
 
-	CurrentAcceleration[0] = (CurrentVelocity[0] - PreviousVelocity[0]) / timeStep;	  
-	CurrentAcceleration[1] = (CurrentVelocity[1] - PreviousVelocity[1]) / timeStep;
-	CurrentAcceleration[2] = (CurrentVelocity[2] - PreviousVelocity[2]) / timeStep;
-
-	// if((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID)){
-	//   UpdateAccelerations (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, timeStep);
-	// }else
-	if((i)->Is(RIGID) && ((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID))){
-	  array_1d<double, 3>  Zeros(3,0.0);
-	  (i)->FastGetSolutionStepValue(ACCELERATION,0) = Zeros;
-	  (i)->FastGetSolutionStepValue(ACCELERATION,1) = Zeros;
-	}else {
-	  (i)->FastGetSolutionStepValue(PRESSURE,0) = 0.0; 
-	  (i)->FastGetSolutionStepValue(PRESSURE,1) = 0.0; 
-	  (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,0) = 0.0; 
-	  (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,1) = 0.0; 
-	  (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,0) = 0.0; 
-	  (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,1) = 0.0; 
-	  if((i)->SolutionStepsDataHas(VOLUME_ACCELERATION)){
-	    array_1d<double, 3 >& VolumeAcceleration = (i)->FastGetSolutionStepValue(VOLUME_ACCELERATION);
-	    (i)->FastGetSolutionStepValue(ACCELERATION,0) = VolumeAcceleration;
-	    (i)->FastGetSolutionStepValue(VELOCITY,0) += VolumeAcceleration*rCurrentProcessInfo[DELTA_TIME];
+	if(bulk_term!=0){
+	  // Solution of the explicit equation:
+	  if((itNode)->IsFixed(PRESSURE) == false && (itNode)->IsNot(ISOLATED)){
+	    // (itNode)->FastGetSolutionStepValue(PRESSURE,1)=current_density;	   
+	    current_density =  density_rhs/bulk_term;
+	    double bulkModulus=2100000000;
+	    double initialDensity=1000;
+	    double gammaExponent=7.0;
+	    double densityRatio=current_density/initialDensity;
+	    double powerDensityRatio=pow(densityRatio,gammaExponent);
+	    current_pressure = - bulkModulus*(powerDensityRatio-1.0);
+	    // std::cout<<currentTime<<" s) -> current_density "<<current_density<<" density_rhs= "<<density_rhs<<"   bulk_term "<<bulk_term<<std::endl;
+	  }else	if((itNode)->Is(ISOLATED)){
+	    std::cout<<"ISOLATED NODE "<<(itNode)->X()<<" "<<(itNode)->Y()<<std::endl;
+	    current_pressure  =0;
 	  }
 	}
 
 
-      }
-  }
 
-    // inline void UpdateAccelerations(array_1d<double, 3 > & CurrentAcceleration,
-    // 				    const array_1d<double, 3 > & CurrentVelocity,
-    // 				    array_1d<double, 3 > & PreviousAcceleration,
-    // 				    const array_1d<double, 3 > & PreviousVelocity,
-    // 				    double timeStep)
-    // {
-    //   noalias(CurrentAcceleration) = (CurrentVelocity-PreviousVelocity)/timeStep;
-    // }
+
+	
+      }
+
+    KRATOS_CATCH("")
+      }
+
+  
+  void UpdateDensity(ModelPart& rModelPart,ProcessInfo rCurrentProcessInfo)
+  {
+    KRATOS_TRY
+
+      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      
+    OpenMPUtils::PartitionVector NodePartition;
+    OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
+	
+    const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+    NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+
+    // double currentTime   = rCurrentProcessInfo[TIME];  //the first step is (time = initial_time + delta time )
+    // double timeStep     = rCurrentProcessInfo[DELTA_TIME];
+
+#pragma omp parallel for firstprivate(NodeBegin)
+    for(int i = 0;  i < nnodes; i++)
+      {
+	NodesArrayType::iterator itNode = NodeBegin + i;
+	  
+	// Current step information "N+1" (before step update).
+	const double& bulk_term  = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
+	double& density_rhs  = (itNode)->FastGetSolutionStepValue(NODAL_ERROR);
+	double& current_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
+	// double& previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
+
+	if(bulk_term!=0){
+	  // Solution of the explicit equation:
+	  if((itNode)->IsFixed(PRESSURE) == false && (itNode)->IsNot(ISOLATED)){
+	    (itNode)->FastGetSolutionStepValue(PRESSURE,1)=current_density;
+	      // previous_density=current_density;
+	    // if(currentTime>timeStep){
+	    //   previous_density=current_density;
+	    // }else{
+	    //   previous_density=1000;
+	    // }
+	    current_density =  density_rhs/bulk_term;
+	    // std::cout<<currentTime<<" s) -> current_density "<<current_density<<" density_rhs= "<<density_rhs<<"   bulk_term "<<bulk_term<<std::endl;
+	  }
+	}
+
+      }
+
+    KRATOS_CATCH("")
+      }
+
+  void UpdatePressure(ModelPart& rModelPart,ProcessInfo rCurrentProcessInfo)
+  {
+    KRATOS_TRY
+
+      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      
+    OpenMPUtils::PartitionVector NodePartition;
+    OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
+	
+    const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+    NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+    
+    // double currentTime   = rCurrentProcessInfo[TIME];  //the first step is (time = initial_time + delta time )
+    // double timeStep     = rCurrentProcessInfo[DELTA_TIME];
+
+#pragma omp parallel for firstprivate(NodeBegin)
+    for(int i = 0;  i < nnodes; i++)
+      {
+	NodesArrayType::iterator itNode = NodeBegin + i;
+	  
+	// Current step information "N+1" (before step update).
+	double& current_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
+	// double current_density=current_pressure;
+	// double previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
+
+	// Solution of the explicit equation:
+	if((itNode)->IsFixed(PRESSURE) == false && (itNode)->IsNot(ISOLATED)){
+	  double bulkModulus=2100000000;
+	  double initialDensity=1000;
+	  double gammaExponent=7.0;
+	  double densityRatio=current_pressure/initialDensity;
+	  double powerDensityRatio=pow(densityRatio,gammaExponent);
+
+	  current_pressure = - bulkModulus*(powerDensityRatio-1.0);
+
+	  
+	  // std::cout<<currentTime<<" s) -> previous_density "<<previous_density<<" current_density "<<current_density<<" densityRatio="<<densityRatio<<"   powerDensityRatio="<<powerDensityRatio<<"    current_pressure  "<<current_pressure<<std::endl;
+	}
+
+	if((itNode)->Is(ISOLATED)){
+	  // std::cout<<"ISOLATED NODE "<<(itNode)->X()<<" "<<(itNode)->Y()<<std::endl;
+	  current_pressure  =0;
+	}
+      }
+
+    KRATOS_CATCH("")
+      }
+
+  //   void UpdatePressure(ModelPart& rModelPart)
+//   {
+//     KRATOS_TRY
+
+//       const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      
+//     OpenMPUtils::PartitionVector NodePartition;
+//     OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
+	
+//     const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+//     NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+
+// #pragma omp parallel for firstprivate(NodeBegin)
+//     for(int i = 0;  i < nnodes; i++)
+//       {
+// 	NodesArrayType::iterator itNode = NodeBegin + i;
+	  
+// 	// Current step information "N+1" (before step update).
+// 	const double& bulk_term  = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
+// 	double& pressure_rhs  = (itNode)->FastGetSolutionStepValue(NODAL_ERROR);
+// 	double& current_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
+// 	double& previous_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
+
+// 	if(bulk_term!=0){
+// 	  // Solution of the explicit equation:
+// 	  if((itNode)->IsFixed(PRESSURE) == false && (itNode)->IsNot(ISOLATED)){
+// 	    previous_pressure=current_pressure;
+// 	    current_pressure =  pressure_rhs/bulk_term;
+// 	  }
+// 	}
+// 	if((itNode)->Is(ISOLATED)){
+// 	  // std::cout<<"ISOLATED NODE "<<(itNode)->X()<<" "<<(itNode)->Y()<<std::endl;
+// 	    current_pressure  =0;
+// 	    previous_pressure  =0;
+// 	}
+//       }
+
+//     KRATOS_CATCH("")
+//       }
 
   
     //**********************************************************************

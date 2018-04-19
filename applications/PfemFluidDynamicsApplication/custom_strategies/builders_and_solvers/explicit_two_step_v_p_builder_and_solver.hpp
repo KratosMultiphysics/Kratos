@@ -124,7 +124,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-	std::cout<<"BuildLHS for the momentum equation "<<std::endl;
+	// std::cout<<"BuildLHS for the momentum equation "<<std::endl;
 
       //Set Nodal Mass to zero
       NodesArrayType& pNodes             = r_model_part.Nodes();
@@ -163,7 +163,7 @@ namespace Kratos
 
       }
       //Calculate and assemble Mass Matrix on nodes
-      unsigned int index = 0;
+      // unsigned int index = 0;
 
       bool CalculateLumpedMassMatrix = false;
       if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ){
@@ -184,12 +184,12 @@ namespace Kratos
 		 
 	    (itElem)->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo); 
 
-	    const unsigned int dimension   = geometry.WorkingSpaceDimension();
+	    // const unsigned int dimension   = geometry.WorkingSpaceDimension();
 
-	    index = 0;
+	    // index = 0;
 	    for (unsigned int i = 0; i <geometry.size(); i++)
 	      {
-		index = i*dimension;
+		// index = i*dimension;
 		double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
 
 		geometry(i)->SetLock();
@@ -197,11 +197,11 @@ namespace Kratos
 		if(!CalculateLumpedMassMatrix){
 		  for (unsigned int j = 0; j <MassMatrix.size2(); j++)
 		    {
-		      mass += MassMatrix(index,j);
+		      mass += MassMatrix(i,j);
 		    }
 		}
 		else{
-		  mass += MassMatrix(index,index);
+		  mass += MassMatrix(i,i);
 		}
 
 		geometry(i)->UnSetLock();
@@ -211,7 +211,7 @@ namespace Kratos
 
       rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = CalculateLumpedMassMatrix;
 
-      std::cout<<"....BuildLHS done!!"<<std::endl;
+      // std::cout<<"....BuildLHS done!!"<<std::endl;
 
       KRATOS_CATCH( "" )
 
@@ -227,15 +227,36 @@ namespace Kratos
     {
       KRATOS_TRY
 
-	std::cout<<"BuildRHS for momentum equations "<<std::endl;
+	ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+      ElementsArrayType& pElements        = r_model_part.Elements();
 
-      // Compute condition contributions to RHS.
-      CalculateAndAddConditionsRHS(pScheme, r_model_part);
+#ifdef _OPENMP
+      int number_of_threads = omp_get_max_threads();
+#else
+      int number_of_threads = 1;
+#endif
 
-      // Compute element contributions to RHS.
-      CalculateAndAddElementsRHS(pScheme, r_model_part);
+      vector<unsigned int> element_partition;
+      OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
-      std::cout<<"....BuildRHS done!!"<<std::endl;
+#pragma omp parallel
+      {
+	int k = OpenMPUtils::ThisThread();
+	typename ElementsArrayType::iterator ElemBegin = pElements.begin() + element_partition[k];
+	typename ElementsArrayType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
+
+	for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  //MSI: To be parallelized
+	  {
+	    LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+	    Element::EquationIdVectorType EquationId; //Dummy
+
+	    //basic operations for the element considered
+	    (itElem)-> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+	    //add explicit contribution of the Element Residual (RHS) to nodal Force Residual (nodal RHS)
+	    (itElem)-> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, NODAL_ERROR, rCurrentProcessInfo);
+	  }
+      }
+     
 
       KRATOS_CATCH( "" )
 
@@ -255,7 +276,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-	std::cout<<"Build for the continuity equation "<<std::endl;
+	// std::cout<<"Build for the continuity equation "<<std::endl;
 
       //Set Nodal Mass to zero
       NodesArrayType& pNodes             = r_model_part.Nodes();
@@ -293,7 +314,9 @@ namespace Kratos
 	  }
 
       }
-      
+
+      unsigned int index = 0;
+
       //Calculate and assemble Mass Matrix on nodes
       bool CalculateLumpedMassMatrix = false;
       if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ){
@@ -316,10 +339,12 @@ namespace Kratos
 
 	    (itElem)->CalculateLocalSystem(MassMatrix, RHS_Contribution, rCurrentProcessInfo); 
 
-	    // const unsigned int dimension   = geometry.WorkingSpaceDimension();
+	    const unsigned int dimension   = geometry.WorkingSpaceDimension();
 
+	    index = 0;
 	    for (unsigned int i = 0; i <geometry.size(); i++)
 	      {
+		index = i*dimension;
 		double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
 
 		geometry(i)->SetLock();
@@ -327,17 +352,17 @@ namespace Kratos
 		if(!CalculateLumpedMassMatrix){
 		  for (unsigned int j = 0; j <MassMatrix.size2(); j++)
 		    {
-		      mass += MassMatrix(i,j);
+		      mass += MassMatrix(index,j);
 		    }
 		}
 		else{
-		  mass += MassMatrix(i,i);
+		  mass += MassMatrix(index,index);
 		}
 
 		geometry(i)->UnSetLock();
 	      }
 
-	    itElem -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, NODAL_ERROR, rCurrentProcessInfo);	  
+	    itElem -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
 	  }
       }
 
@@ -347,6 +372,242 @@ namespace Kratos
       KRATOS_CATCH( "" )
 
 	}
+
+    
+
+// //     //**************************************************************************
+// //     //**************************************************************************
+
+//     void BuildLHS(
+// 		  typename TSchemeType::Pointer pScheme,
+// 		  ModelPart& r_model_part,
+// 		  TSystemMatrixType& A)
+//     {
+//       KRATOS_TRY
+
+// 	// std::cout<<"BuildLHS for the momentum equation "<<std::endl;
+
+//       //Set Nodal Mass to zero
+//       NodesArrayType& pNodes             = r_model_part.Nodes();
+//       ElementsArrayType& pElements       = r_model_part.Elements();
+//       ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
+
+// #ifdef _OPENMP
+//       int number_of_threads = omp_get_max_threads();
+// #else
+//       int number_of_threads = 1;
+// #endif
+
+//       vector<unsigned int> node_partition;
+//       OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+
+//       vector<unsigned int> element_partition;
+//       OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+
+// #pragma omp parallel
+//       {
+
+// #pragma omp for
+
+// 	for(int k=0; k<number_of_threads; k++)
+// 	  {
+// 	    typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+// 	    typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+
+// 	    for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
+// 	      {
+// 		double& nodal_mass    =  i->FastGetSolutionStepValue(NODAL_MASS);
+// 		nodal_mass = 0.0;
+// 	      }
+// 	  }
+
+//       }
+//       //Calculate and assemble Mass Matrix on nodes
+//       unsigned int index = 0;
+
+//       bool CalculateLumpedMassMatrix = false;
+//       if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ){
+// 	CalculateLumpedMassMatrix = rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX];	   
+//       }
+     
+// #pragma omp parallel
+//       {
+// 	int k = OpenMPUtils::ThisThread();
+// 	typename ElementsArrayType::iterator ElemBegin = pElements.begin() + element_partition[k];
+// 	typename ElementsArrayType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
+
+// 	for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  //MSI: To be parallelized
+// 	  {
+// 	    Matrix MassMatrix;
+
+// 	    Element::GeometryType& geometry = itElem->GetGeometry();
+		 
+// 	    (itElem)->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo); 
+
+// 	    const unsigned int dimension   = geometry.WorkingSpaceDimension();
+
+// 	    index = 0;
+// 	    for (unsigned int i = 0; i <geometry.size(); i++)
+// 	      {
+// 		index = i*dimension;
+// 		double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
+
+// 		geometry(i)->SetLock();
+		     
+// 		if(!CalculateLumpedMassMatrix){
+// 		  for (unsigned int j = 0; j <MassMatrix.size2(); j++)
+// 		    {
+// 		      mass += MassMatrix(index,j);
+// 		    }
+// 		}
+// 		else{
+// 		  mass += MassMatrix(index,index);
+// 		}
+
+// 		geometry(i)->UnSetLock();
+// 	      }
+// 	  }
+//       }
+
+//       rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = CalculateLumpedMassMatrix;
+
+//       // std::cout<<"....BuildLHS done!!"<<std::endl;
+
+//       KRATOS_CATCH( "" )
+
+// 	}
+
+//     //**************************************************************************
+//     //**************************************************************************
+
+//     void BuildRHS(
+// 		  typename TSchemeType::Pointer pScheme,
+// 		  ModelPart& r_model_part,
+// 		  TSystemVectorType& b)
+//     {
+//       KRATOS_TRY
+
+// 	// std::cout<<"BuildRHS for momentum equations "<<std::endl;
+
+//       // // Compute condition contributions to RHS.
+//       // CalculateAndAddConditionsRHS(pScheme, r_model_part);
+
+//       // Compute element contributions to RHS.
+//       CalculateAndAddElementsRHS(pScheme, r_model_part);
+
+//       // std::cout<<"....BuildRHS done!!"<<std::endl;
+
+//       KRATOS_CATCH( "" )
+
+// 	}
+
+
+
+
+//         //**************************************************************************
+//     //**************************************************************************
+
+//     void Build(
+// 	       typename TSchemeType::Pointer pScheme,
+// 	       ModelPart& r_model_part,
+// 	       TSystemMatrixType& A,
+// 	       TSystemVectorType& b)
+//     {
+//       KRATOS_TRY
+
+// 	// std::cout<<"Build for the continuity equation "<<std::endl;
+
+//       //Set Nodal Mass to zero
+//       NodesArrayType& pNodes             = r_model_part.Nodes();
+//       ElementsArrayType& pElements       = r_model_part.Elements();
+//       ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
+
+// #ifdef _OPENMP
+//       int number_of_threads = omp_get_max_threads();
+// #else
+//       int number_of_threads = 1;
+// #endif
+
+//       vector<unsigned int> node_partition;
+//       OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+
+//       vector<unsigned int> element_partition;
+//       OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+
+// #pragma omp parallel
+//       {
+
+// #pragma omp for
+
+// 	for(int k=0; k<number_of_threads; k++)
+// 	  {
+// 	    typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+// 	    typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+
+// 	    for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
+// 	      {
+// 		double& nodal_mass    =  i->FastGetSolutionStepValue(NODAL_MASS); //it is the bulk contribution
+// 		nodal_mass = 0.0;
+// 	      }
+// 	  }
+
+//       }
+      
+//       //Calculate and assemble Mass Matrix on nodes
+//       bool CalculateLumpedMassMatrix = false;
+//       if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ){
+// 	CalculateLumpedMassMatrix = rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX];	   
+//       }
+     
+// #pragma omp parallel
+//       {
+// 	int k = OpenMPUtils::ThisThread();
+// 	typename ElementsArrayType::iterator ElemBegin = pElements.begin() + element_partition[k];
+// 	typename ElementsArrayType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
+
+// 	for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  //MSI: To be parallelized
+// 	  {
+// 	    Matrix MassMatrix;
+
+// 	    Element::GeometryType& geometry = itElem->GetGeometry();
+
+// 	    LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+// 	    (itElem)->CalculateLocalSystem(MassMatrix, RHS_Contribution, rCurrentProcessInfo); 
+
+// 	    // const unsigned int dimension   = geometry.WorkingSpaceDimension();
+
+// 	    for (unsigned int i = 0; i <geometry.size(); i++)
+// 	      {
+// 		double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
+
+// 		geometry(i)->SetLock();
+		     
+// 		if(!CalculateLumpedMassMatrix){
+// 		  for (unsigned int j = 0; j <MassMatrix.size2(); j++)
+// 		    {
+// 		      mass += MassMatrix(i,j);
+// 		    }
+// 		}
+// 		else{
+// 		  mass += MassMatrix(i,i);
+// 		}
+
+// 		geometry(i)->UnSetLock();
+// 	      }
+
+// 	    itElem -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, NODAL_ERROR, rCurrentProcessInfo);
+// 	  }
+//       }
+
+//       rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = CalculateLumpedMassMatrix;
+
+
+//       KRATOS_CATCH( "" )
+
+// 	}
 
     
     
@@ -403,7 +664,7 @@ namespace Kratos
 
       KRATOS_TRY
 
-	std::cout<<"   CalculateAndAddElementsRHS "<<std::endl;
+	// std::cout<<"   CalculateAndAddElementsRHS "<<std::endl;
       ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
       ElementsArrayType& pElements        = r_model_part.Elements();
 
@@ -433,7 +694,7 @@ namespace Kratos
             }
         }
 
-      std::cout<<"CalculateAndAddElementsRHS done"<<std::endl;
+      // std::cout<<"CalculateAndAddElementsRHS done"<<std::endl;
 
       KRATOS_CATCH("")
 	}
@@ -447,17 +708,8 @@ namespace Kratos
 
       KRATOS_TRY
 
-	// int thread = OpenMPUtils::ThisThread();
-
       //basic operations for the element considered
       (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-
-      // if(mRayleighDamping)
-      // 	{
-      // 	  (rCurrentElement) -> CalculateDampingMatrix(mMatrix[thread], rCurrentProcessInfo);
-
-      // 	  AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix[thread], rCurrentProcessInfo);
-      // 	}
 
       // //add explicit contribution of the Element Residual (RHS) to nodal Force Residual (nodal RHS)
       (rCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);

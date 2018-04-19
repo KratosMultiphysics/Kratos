@@ -33,12 +33,10 @@ namespace Kratos {
   }
 
 
-
-
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::Initialize()
   {
-    KRATOS_TRY; 
+    KRATOS_TRY;
     KRATOS_CATCH( "" );
   }
   
@@ -1141,7 +1139,8 @@ namespace Kratos {
 								     const double Viscosity,
 								     const ProcessInfo& rCurrentProcessInfo)
   {
-    double DeltaTime = rCurrentProcessInfo.GetValue(DELTA_TIME);
+    double DeltaTime = 0.0001;
+    // double DeltaTime =rCurrentProcessInfo.GetValue(DELTA_TIME);
     if(rCurrentProcessInfo.GetValue(DELTA_TIME)<rCurrentProcessInfo.GetValue(PREVIOUS_DELTA_TIME)){
       DeltaTime = 0.5*rCurrentProcessInfo.GetValue(DELTA_TIME)+0.5*rCurrentProcessInfo.GetValue(PREVIOUS_DELTA_TIME);
     }
@@ -1555,6 +1554,25 @@ namespace Kratos {
   }
 
 
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::ComputeBulkMatrixRHS(Matrix& BulkMatrix,
+									     const double Weight)
+  {
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	for (SizeType j = 0; j < NumNodes; ++j)
+	  {
+	    // LHS contribution
+	    double Mij  = Weight/12.0;
+	    if(i==j)
+	      Mij  *= 2.0;
+	    BulkMatrix(i,j) +=  Mij;
+	  }
+      }
+  }
+
+  
   // template< unsigned int TDim >
   // void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
   // {

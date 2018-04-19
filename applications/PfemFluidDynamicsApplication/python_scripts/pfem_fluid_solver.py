@@ -3,7 +3,6 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -151,7 +150,7 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.MIDDLE_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_ERROR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
 
 

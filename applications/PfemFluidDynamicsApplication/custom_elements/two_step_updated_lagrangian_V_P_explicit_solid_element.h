@@ -357,6 +357,9 @@ namespace Kratos
       /* 				       const ShapeFunctionsType& rN, */
       /* 				       const double Weight); */
 
+      void ComputeBulkMatrixRHS(MatrixType& BulkMatrix,
+				const double Weight);
+      
      void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
 				const ShapeFunctionsType& rN,
 				const double Weight){};
