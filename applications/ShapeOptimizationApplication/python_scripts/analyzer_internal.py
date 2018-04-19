@@ -16,7 +16,6 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics.StructuralMechanicsApplication import *
 
 # Additional imports
-from structural_mechanics_analysis import StructuralMechanicsAnalysis
 import response_function_factory
 import time as timer
 
