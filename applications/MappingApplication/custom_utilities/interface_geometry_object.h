@@ -375,7 +375,7 @@ private:
     {
         if (mConstructionIndex == 0)
         {
-            this->Coordinates() = mpGeometry->Center();
+			this->Coordinates() = N * pos;
         }
         else
         {

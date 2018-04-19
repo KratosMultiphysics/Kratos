@@ -481,79 +481,79 @@ namespace Kratos
 
 	void NurbsBrepModeler::GetInterfaceConditions(ModelPart& rParticleModelPart, ModelPart& rConditionModelPart, ModelPart& rSearchModelPart)
 	{
-		for (auto element = rParticleModelPart.ElementsBegin(); element != rParticleModelPart.ElementsEnd(); element++)
-		{
-			Vector friction = ZeroVector(3);
-			//Vector local_parameters_of_nearest_point;
-			//unsigned int face_id_of_nearest_point;
-			Node<3>::Pointer node = Kratos::make_shared<Node<3>>(0); // ::Pointer(new Node<3>(0));
-			Node<3>::Pointer node_on_geometry = Node<3>::Pointer(new Node<3>(0));
-			std::vector<Condition::Pointer> point_conditions = (*element).GetValue(WALL_POINT_CONDITION_POINTERS);
-			if (point_conditions.size() > 0)
-			{
-				Condition::Pointer closestElement = point_conditions[0];
-				//friction = closestElement->GetValue(FRICTION);
-				Vector location;
-				closestElement->GetValuesVector(location);
-				//noalias(node->Coordinates()) = location;
-				node->X() = location[0];
-				node->Y() = location[1];
-				node->Z() = location[2];
-				node_on_geometry->SetValue(LOCAL_PARAMETERS, closestElement->GetValue(LOCAL_PARAMETERS));
-				node_on_geometry->SetValue(FACE_BREP_ID, closestElement->GetValue(FACE_BREP_ID));
-				point_conditions.pop_back();
-				rConditionModelPart.RemoveConditionFromAllLevels(point_conditions[0]);
-			}
-			else
-			{
-				std::vector<Node<3>::Pointer> list_of_nodes;
-				list_of_nodes.reserve(rSearchModelPart.NumberOfNodes());
-				for (ModelPart::NodesContainerType::iterator i_node = rSearchModelPart.NodesBegin(); i_node != rSearchModelPart.NodesEnd(); i_node++)
-				{
-					(list_of_nodes).push_back(*(i_node.base()));
-				}
-				const int bucket_size = 20;
-				tree search_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-				*node = element->GetGeometry()[0];
-				node_on_geometry = search_tree.SearchNearestPoint(*node);
-			}
-			double distance_to_closest_element = sqrt(pow(node->X() - node_on_geometry->X(), 2) + pow(node->Y() - node_on_geometry->Y(), 2) + pow(node->Y() - node_on_geometry->Y(), 2));
-			double search_radius = 5;
-			if (distance_to_closest_element < search_radius)
-			{
-				//Vector local_parameters_of_nearest_point = node_on_geometry->GetValue(LOCAL_PARAMETERS);
-				//unsigned int face_id_of_nearest_point = node_on_geometry->GetValue(FACE_BREP_ID);
-				//std::cout << "face_id_of_nearest_point: " << face_id_of_nearest_point << std::endl;
-				//std::cout << "local_parameters_of_nearest_point: " << local_parameters_of_nearest_point << std::endl;
-				unsigned int face_id_of_nearest_point = node_on_geometry->GetValue(FACE_BREP_ID);
+		//for (auto element = rParticleModelPart.ElementsBegin(); element != rParticleModelPart.ElementsEnd(); element++)
+		//{
+		//	Vector friction = ZeroVector(3);
+		//	//Vector local_parameters_of_nearest_point;
+		//	//unsigned int face_id_of_nearest_point;
+		//	Node<3>::Pointer node = Kratos::make_shared<Node<3>>(0); // ::Pointer(new Node<3>(0));
+		//	Node<3>::Pointer node_on_geometry = Node<3>::Pointer(new Node<3>(0));
+		//	std::vector<Condition::Pointer> point_conditions = (*element).GetValue(WALL_POINT_CONDITION_POINTERS);
+		//	if (point_conditions.size() > 0)
+		//	{
+		//		Condition::Pointer closestElement = point_conditions[0];
+		//		//friction = closestElement->GetValue(FRICTION);
+		//		Vector location;
+		//		closestElement->GetValuesVector(location);
+		//		//noalias(node->Coordinates()) = location;
+		//		node->X() = location[0];
+		//		node->Y() = location[1];
+		//		node->Z() = location[2];
+		//		node_on_geometry->SetValue(LOCAL_PARAMETERS, closestElement->GetValue(LOCAL_PARAMETERS));
+		//		node_on_geometry->SetValue(FACE_BREP_ID, closestElement->GetValue(FACE_BREP_ID));
+		//		point_conditions.pop_back();
+		//		rConditionModelPart.RemoveConditionFromAllLevels(point_conditions[0]);
+		//	}
+		//	else
+		//	{
+		//		std::vector<Node<3>::Pointer> list_of_nodes;
+		//		list_of_nodes.reserve(rSearchModelPart.NumberOfNodes());
+		//		for (ModelPart::NodesContainerType::iterator i_node = rSearchModelPart.NodesBegin(); i_node != rSearchModelPart.NodesEnd(); i_node++)
+		//		{
+		//			(list_of_nodes).push_back(*(i_node.base()));
+		//		}
+		//		const int bucket_size = 20;
+		//		tree search_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
+		//		*node = element->GetGeometry()[0];
+		//		node_on_geometry = search_tree.SearchNearestPoint(*node);
+		//	}
+		//	double distance_to_closest_element = sqrt(pow(node->X() - node_on_geometry->X(), 2) + pow(node->Y() - node_on_geometry->Y(), 2) + pow(node->Y() - node_on_geometry->Y(), 2));
+		//	double search_radius = 5;
+		//	if (distance_to_closest_element < search_radius)
+		//	{
+		//		//Vector local_parameters_of_nearest_point = node_on_geometry->GetValue(LOCAL_PARAMETERS);
+		//		//unsigned int face_id_of_nearest_point = node_on_geometry->GetValue(FACE_BREP_ID);
+		//		//std::cout << "face_id_of_nearest_point: " << face_id_of_nearest_point << std::endl;
+		//		//std::cout << "local_parameters_of_nearest_point: " << local_parameters_of_nearest_point << std::endl;
+		//		unsigned int face_id_of_nearest_point = node_on_geometry->GetValue(FACE_BREP_ID);
 
-				BrepFace& face = GetFace(face_id_of_nearest_point);
+		//		BrepFace& face = GetFace(face_id_of_nearest_point);
 
-				face.GetClosestIntegrationNode(node_on_geometry, node, 2, 1e-7, 30);
+		//		face.GetClosestIntegrationNode(node_on_geometry, node, 2, 1e-7, 30);
 
-				double distance_radius = std::sqrt(std::pow(node->X() - node_on_geometry->X(), 2) + 
-												   std::pow(node->Y() - node_on_geometry->Y(), 2) + 
-												   std::pow(node->Z() - node_on_geometry->Z(), 2));
+		//		double distance_radius = std::sqrt(std::pow(node->X() - node_on_geometry->X(), 2) + 
+		//										   std::pow(node->Y() - node_on_geometry->Y(), 2) + 
+		//										   std::pow(node->Z() - node_on_geometry->Z(), 2));
 
-				double radius = 2.0;
-				if (distance_radius < radius)
-				{
-					Vector node_ids = node_on_geometry->GetValue(CONTROL_POINT_IDS);
-					std::vector<int> node_ids_int(node_ids.size());
-					for (int i = 0; i < node_ids.size(); i++)
-					{
-						node_ids_int[i] = static_cast<int>(node_ids[i]);
-					}
-					//Condition& cond = rConditionModelPart.CreateNewCondition("Condition", 0, node_ids_int);
-					//cond->SetValue(LOCAL_PARAMETERS, node_on_geometry->GetValue(LOCAL_PARAMETERS));
-					//cond->SetValue(FACE_BREP_ID, node_on_geometry->GetValue(FACE_BREP_ID));
-					//cond->SetValue(NURBS_SHAPE_FUNCTIONS, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTIONS));
-					////cond->SetValue(FRICTION, friction);
-					//point_conditions.push_back(cond);
-					//element->SetValue(WALL_POINT_CONDITION_POINTERS, point_conditions);
-				}
-			}
-		}
+		//		double radius = 2.0;
+		//		if (distance_radius < radius)
+		//		{
+		//			Vector node_ids = node_on_geometry->GetValue(CONTROL_POINT_IDS);
+		//			std::vector<int> node_ids_int(node_ids.size());
+		//			for (int i = 0; i < node_ids.size(); i++)
+		//			{
+		//				node_ids_int[i] = static_cast<int>(node_ids[i]);
+		//			}
+		//			//Condition& cond = rConditionModelPart.CreateNewCondition("Condition", 0, node_ids_int);
+		//			//cond->SetValue(LOCAL_PARAMETERS, node_on_geometry->GetValue(LOCAL_PARAMETERS));
+		//			//cond->SetValue(FACE_BREP_ID, node_on_geometry->GetValue(FACE_BREP_ID));
+		//			//cond->SetValue(NURBS_SHAPE_FUNCTIONS, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTIONS));
+		//			////cond->SetValue(FRICTION, friction);
+		//			//point_conditions.push_back(cond);
+		//			//element->SetValue(WALL_POINT_CONDITION_POINTERS, point_conditions);
+		//		}
+		//	}
+		//}
 	}
 
 	void NurbsBrepModeler::ComputeArea(ModelPart& rModelPart)

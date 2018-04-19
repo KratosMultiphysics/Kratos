@@ -2,11 +2,11 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosNurbBrepApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-file(GLOB KRATOS_NURBS_BREP_APPLICATION_PYTHON_SOURCES
-                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.h"
-                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp")
 file(GLOB KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.h"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp"
@@ -15,6 +15,13 @@ file(GLOB KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES
 file(GLOB KRATOS_NURBS_BREP_APPLICATION_MAIN_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
+## Define python interface sources
+set( KRATOS_NURBS_BREP_APPLICATION_PYTHON_INTERFACE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/nurbs_brep_python_application.cpp
+)
+												
 #groups
 #source_group("Main" FILES ${KRATOS_NURBS_BREP_APPLICATION_MAIN_SOURCES})
 #source_group("Python" FILES ${KRATOS_NURBS_BREP_APPLICATION_PYTHON_SOURCES})
@@ -22,11 +29,16 @@ file(GLOB KRATOS_NURBS_BREP_APPLICATION_MAIN_SOURCES "${CMAKE_CURRENT_SOURCE_DIR
 
 
 # define library Kratos which defines the basic python interface
-add_library(KratosNurbsBrepApplication SHARED ${KRATOS_NURBS_BREP_APPLICATION_MAIN_SOURCES}
-                                              ${KRATOS_NURBS_BREP_APPLICATION_PYTHON_SOURCES}
-                                              ${KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES})
-target_link_libraries(KratosNurbsBrepApplication KratosCore )
+add_library(KratosNurbsBrepCore SHARED ${KRATOS_NURBS_BREP_APPLICATION_MAIN_SOURCES}
+                                       ${KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES})
+target_link_libraries(KratosNurbsBrepCore PRIVATE KratosCore )
+
+## PoromechanicsApplication python module
+pybind11_add_module(KratosNurbsBrepApplication MODULE ${KRATOS_NURBS_BREP_APPLICATION_PYTHON_INTERFACE_SOURCES})
+target_link_libraries(KratosNurbsBrepApplication PRIVATE KratosNurbsBrepCore )
 set_target_properties(KratosNurbsBrepApplication PROPERTIES PREFIX "")
+
+install(TARGETS KratosNurbsBrepCore DESTINATION libs )
 install(TARGETS KratosNurbsBrepApplication DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)

@@ -2,6 +2,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosIGAStructuralMechanicsApplication ****")
 
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 #include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication ) 
@@ -13,11 +15,7 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	## MAIN FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/iga_structural_mechanics_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/iga_structural_mechanics_application_variables.cpp
-	
-	## CUSTOM PYTHON
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/iga_structural_mechanics_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_constitutive_laws_to_python.cpp
+
 	
 	## UTILITIES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/NurbsShapeFunctionModeler.cpp		
@@ -49,11 +47,23 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/damage_tc_plane_stress_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plane_stress_tc_damage_law.cpp
 )
-
+## generate variables with the sources
+set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE
+	## CUSTOM PYTHON
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/iga_structural_mechanics_python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_constitutive_laws_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+)
 # define library Kratos which defines the basic python interface
-add_library(KratosIGAStructuralMechanicsApplication SHARED ${KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES})
-target_link_libraries(KratosIGAStructuralMechanicsApplication KratosStructuralMechanicsApplication KratosCore )
+add_library(KratosIGAStructuralMechanicsCore SHARED ${KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES})
+target_link_libraries( KratosIGAStructuralMechanicsCore PRIVATE KratosCore KratosStructuralMechanicsCore)
+
+pybind11_add_module(KratosIGAStructuralMechanicsApplication MODULE ${KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosIGAStructuralMechanicsApplication PRIVATE KratosIGAStructuralMechanicsCore )
 set_target_properties(KratosIGAStructuralMechanicsApplication PROPERTIES PREFIX "")
+
+install(TARGETS KratosIGAStructuralMechanicsCore DESTINATION libs )
 install(TARGETS KratosIGAStructuralMechanicsApplication DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)

@@ -54,13 +54,13 @@ MeshlessShellElement::MeshlessShellElement(
 {
 }
 
-Element::Pointer MeshlessShellElement::Create(
-	IndexType NewId, 
-	NodesArrayType const& ThisNodes,  
-	PropertiesType::Pointer pProperties) const
-{
-	return boost::make_shared< MeshlessShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
-}
+//Element::Pointer MeshlessShellElement::Create(
+//	IndexType NewId, 
+//	NodesArrayType const& ThisNodes,  
+//	PropertiesType::Pointer pProperties) const
+//{
+//	return boost::make_shared< MeshlessShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+//}
 
 MeshlessShellElement::~MeshlessShellElement()
 {

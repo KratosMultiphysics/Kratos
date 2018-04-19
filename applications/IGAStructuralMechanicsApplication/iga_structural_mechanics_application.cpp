@@ -68,7 +68,7 @@ void KratosIGAStructuralMechanicsApplication::Register() {
  	std::cout << "     Initializing KratosIGAStructuralMechanicsApplication... " << std::endl;
 
 
-	KRATOS_REGISTER_VARIABLE( INTEGRATION_WEIGHT)
+	//KRATOS_REGISTER_VARIABLE( INTEGRATION_WEIGHT)
 
 	KRATOS_REGISTER_VARIABLE( SHAPE_FUNCTION_VALUES)
 	KRATOS_REGISTER_VARIABLE( SHAPE_FUNCTION_LOCAL_DERIVATIVES)

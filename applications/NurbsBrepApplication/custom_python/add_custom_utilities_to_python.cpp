@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:     BSD License
-//           Kratos default license: kratos/NurbBrepApplication/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/NurbsBrepApplication/license.txt
 //
 //  Main authors:    Tobias Teschemacher
 //                   Riccardo Rossi
@@ -14,11 +14,9 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-
 
 // Project includes
+#include "includes/define_python.h"
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -26,7 +24,6 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-#include "custom_utilities/brep/BrepModel.h"
 #include "custom_utilities/NurbsBrepModeler.h"
 #include "custom_utilities/BrepModelGeometryReader.h"
 
@@ -36,21 +33,18 @@ namespace Kratos
 namespace Python
 {
 
-
-	void  AddCustomUtilitiesToPython()
+	void  AddCustomUtilitiesToPython(pybind11::module& m)
 	{
-		using namespace boost::python;
+		using namespace pybind11;
 
 
 		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-		typedef std::vector<BrepModel> BrepModelVector;
-		typedef std::vector<BrepFace>  BrepFacesVector;
-		typedef std::vector<BrepEdge>  BrepEdgesVector;
 
-		class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<ModelPart&>())
+		class_<NurbsBrepModeler, typename NurbsBrepModeler::Pointer>(m, "NurbsBrepModeler")
+			.def(init<ModelPart&>())
 			.def("LoadGeometry", &NurbsBrepModeler::LoadGeometry)
 			.def("CreateIntegrationDomain", &NurbsBrepModeler::CreateIntegrationDomain)
 			.def("ApplyGeometryRefinement", &NurbsBrepModeler::ApplyGeometryRefinement)
@@ -58,7 +52,8 @@ namespace Python
 			.def("MapNode", &NurbsBrepModeler::MapNode)
 			;
 
-		class_<BrepModelGeometryReader, boost::noncopyable>("BrepModelGeometryReader", init<Parameters&>())
+		class_<BrepModelGeometryReader, typename BrepModelGeometryReader::Pointer>(m, "BrepModelGeometryReader")
+			.def(init<Parameters&>())
 			.def("ReadGeometry", &BrepModelGeometryReader::ReadGeometry)
 			.def("WriteGaussPoints", &BrepModelGeometryReader::WriteGaussPoints)
 			.def("WriteGaussPointsJson", &BrepModelGeometryReader::WriteGaussPointsJson)

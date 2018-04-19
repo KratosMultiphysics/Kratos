@@ -172,7 +172,7 @@ public:
     ///@}
     ///@name Operations
 
-	Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
+	//Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 	
 
 	void EquationIdVector(
