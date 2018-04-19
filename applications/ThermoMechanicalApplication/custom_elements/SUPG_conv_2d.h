@@ -95,7 +95,7 @@ namespace Kratos
 /**
 ASGS is an abriviation for Algebraic Sub-Grid Scale element. It is implemented to solve
 Implicitly the NS equations in a variotionally consistant sub-grid scale methid. It also has the OSS swith
-to use Orthogonal Sub Scales to use impose explicity the orthogonality condition on subscales� estimation.
+to use Orthogonal Sub Scales to use impose explicity the orthogonality condition on subscales estimation.
 The "Dynamic_Tau" swith allows the use of "Dt", time step, in calculation of Tau.
 This element just work with Monolithic schemes like "monolithic_solver_eulerian" or "monolithic_solver_lagranigan".
 The detailed description of the formulation could be fined in
