@@ -87,16 +87,10 @@ class FluidDynamicsAnalysis(AnalysisStage):
         for process in self.list_of_processes:
             process.ExecuteFinalize()
 
-        if self.have_output:
-            self.output.ExecuteFinalize()
-
     def InitializeSolutionStep(self):
 
         for process in self.list_of_processes:
             process.ExecuteInitializeSolutionStep()
-
-        if self.have_output:
-            self.output.ExecuteInitializeSolutionStep()
 
         self.solver.InitializeSolutionStep()
 
@@ -107,9 +101,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
         # shouldn't this go at the end of the iteration???
         for process in self.list_of_processes:
             process.ExecuteFinalizeSolutionStep()
-
-        if self.have_output:
-            self.output.ExecuteFinalizeSolutionStep()
 
     def OutputSolutionStep(self):
 
@@ -141,6 +132,11 @@ class FluidDynamicsAnalysis(AnalysisStage):
         self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
         self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["auxiliar_process_list"] )
 
+        #TODO this should be generic
+        # initialize GiD  I/O
+        self.output = _SetUpGiDOutput()
+        self.list_of_processes += [output,]
+
     def _SetUpAnalysis(self):
         '''
         Initialize the Python solver and its auxiliary tools and processes.
@@ -152,10 +148,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
             process.ExecuteInitialize()
 
         self.solver.Initialize()
-
-        #TODO this should be generic
-        # initialize GiD  I/O
-        self._SetUpGiDOutput()
 
     def _PrepareSolutionLoop(self):
         '''
@@ -179,9 +171,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
 
-        if self.have_output:
-            self.output.ExecuteBeforeSolutionLoop()
-
 
     def _SetUpGiDOutput(self):
         '''Initialize self.output as a GiD output instance.'''
@@ -192,11 +181,11 @@ class FluidDynamicsAnalysis(AnalysisStage):
             elif self.parallel_type == "MPI":
                 from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
-            self.output = OutputProcess(self.solver.GetComputingModelPart(),
-                                        self.project_parameters["problem_data"]["problem_name"].GetString() ,
-                                        self.project_parameters["output_configuration"])
+            output = OutputProcess(self.solver.GetComputingModelPart(),
+                                   self.project_parameters["problem_data"]["problem_name"].GetString() ,
+                                   self.project_parameters["output_configuration"])
 
-            self.output.ExecuteInitialize()
+        return output
 
     def _SetUpRestart(self):
         """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""
