@@ -1,3 +1,4 @@
+"""This module contains the available structural response functions and their base class"""
 from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
@@ -7,6 +8,11 @@ import structural_mechanics_analysis
 import time as timer
 
 class ResponseFunctionBase(object):
+    """The base class for structural response functions. Each response function
+    is able to calculate its response value and gradient.
+    All the necessary steps have to be implemented, like e.g. initializing,
+    solving of primal (and adjoint) analysis ...
+    """
 
     def __init__(self, identifier, project_parameters):
         self.identifier = identifier
@@ -28,6 +34,17 @@ class ResponseFunctionBase(object):
         pass
 
 class StrainEnergyResponseFunction(ResponseFunctionBase):
+    """Linear strain energy response function. It triggers the primal analysis and
+    uses the primal analysis results to evaluate response value and gradient.
+
+    Attributes
+    ----------
+    primal_analysis : Object
+        Primal analysis object of the response function
+    response_function_utility: Object
+        Cpp utilities object that does the actual computation of response value and
+        gradient.
+    """
 
     def __init__(self, identifier, project_parameters, response_function_utility, model_part = None):
         super(StrainEnergyResponseFunction, self).__init__(identifier, project_parameters)
@@ -70,12 +87,34 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
         self.primal_analysis.Finalize()
 
 class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
+    """Eigenfrequency response function. The internal procedure is the same as
+    for the StrainEnergyResponseFunction. It triggers the primal analysis and
+    uses the primal analysis results to evaluate response value and gradient.
+
+    Attributes
+    ----------
+    primal_analysis : Object
+        Primal analysis object of the response function
+    response_function_utility: Object
+        Cpp utilities object that does the actual computation of response value and
+        gradient.
+    """
 
     def __init__(self, identifier, project_parameters, response_function_utility, model_part = None):
-        """works the same way as the StrainEnergyResponse, this class exists for better readbility"""
         super(EigenFrequencyResponseFunction, self).__init__(identifier, project_parameters, response_function_utility, model_part)
 
 class MassResponseFunction(ResponseFunctionBase):
+    """Mass response function. It reads the materials for the model part and
+    calculates response value and gradient.
+
+    Attributes
+    ----------
+    model_part : Object
+        Model part of the response function
+    response_function_utility: Object
+        Cpp utilities object that does the actual computation of response value and
+        gradient.
+    """
 
     def __init__(self, identifier, project_parameters, response_function_utility, model_part):
         super(MassResponseFunction, self).__init__(identifier, project_parameters)
