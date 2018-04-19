@@ -281,11 +281,16 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
         }
     }
     #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
-    else if (rVariable == TEMPERATURE) {
+    else if (rVariable == RESIDUAL_NORM) {
         if (mSubscaleIterationError.size() != 0) {
             rValues.resize(mSubscaleIterationError.size());
             for (unsigned int g = 0; g < mSubscaleIterationError.size(); g++)
                 rValues[g] = mSubscaleIterationError[g];
+        }
+        else {
+            rValues.resize(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()));
+            for (unsigned int g = 0; g < rValues.size(); g++)
+                rValues[g] = -1.0;
         }
     }
     #endif
@@ -805,6 +810,11 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
         for (unsigned int d = 1; d < Dim; d++)
             residual_norm += rhs[d]*rhs[d];
 
+        //std::cout << "iter: " << iter << " u " << u << " error " << subscale_velocity_error << std::endl;
+        #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+        mSubscaleIterationError[rData.IntegrationPointIndex] = residual_norm;
+        #endif
+
         if (residual_norm > mSubscalePredictionResidualTolerance) {
 
             FluidElementUtilities<NumNodes>::DenseSystemSolve(J,rhs,du);
@@ -827,10 +837,6 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
                 break; // If RHS is zero, dU is zero too, converged.
             }
     }
-
-    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
-    mSubscaleIterationError[rData.IntegrationPointIndex] = subscale_velocity_error;
-    #endif
 
     // Store new subscale values
     noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = u;
