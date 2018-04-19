@@ -134,8 +134,8 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
         #TODO this should be generic
         # initialize GiD  I/O
-        self.output = _SetUpGiDOutput()
-        self.list_of_processes += [output,]
+        self.output = self._SetUpGiDOutput()
+        self.list_of_processes += [self.output,]
 
     def _SetUpAnalysis(self):
         '''

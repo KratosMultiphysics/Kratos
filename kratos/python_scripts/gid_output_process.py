@@ -282,6 +282,11 @@ class GiDOutputProcess(Process):
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()
 
+    def ExecuteBeforeOutputStep(self):
+        pass
+
+    def ExecuteAfterOutputStep(self):
+        pass
 
     def ExecuteFinalize(self):
         '''Finalize files and free resources.'''
@@ -504,7 +509,7 @@ class GiDOutputProcess(Process):
         if self.cut_io is not None:
             self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
             for variable in self.nodal_variables:
-                self.cut_io.WriteNodalResults(variable, self.cut_model_part.GetCommunicator().LocalMesh().Nodes, label, 0)      
+                self.cut_io.WriteNodalResults(variable, self.cut_model_part.GetCommunicator().LocalMesh().Nodes, label, 0)
 
     def __write_gp_results(self, label):
 
