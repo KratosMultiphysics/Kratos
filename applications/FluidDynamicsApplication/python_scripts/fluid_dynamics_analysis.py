@@ -59,12 +59,17 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
         self.model.AddModelPart(self.main_model_part)
 
+        # this should let eventual derived stages modify the model after reading.
+        self.ModifyInitialProperties()
+        self.ModifyInitialGeometry()
+
         self._SetUpListOfProcesses()
         self._SetUpAnalysis()
 
     def RunSolutionLoop(self):
 
-        self._PrepareSolutionLoop()
+        for process in self.list_of_processes:
+            process.ExecuteBeforeSolutionLoop()
 
         while self.time < self.end_time:
 
@@ -91,6 +96,10 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
         for process in self.list_of_processes:
             process.ExecuteInitializeSolutionStep()
+
+        # these two should let derived stages modify the input before solving the next step
+        self.ApplyBoundaryConditions()
+        self.ChangeMaterialProperties()
 
         self.solver.InitializeSolutionStep()
 
@@ -149,10 +158,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
         self.solver.Initialize()
 
-    def _PrepareSolutionLoop(self):
-        '''
-        Initialize solution loop variables and prepare processes.
-        '''
         ## If the echo level is high enough, print the complete list of settings used to run the simualtion
         if self.is_printing_rank and self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
@@ -167,9 +172,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
         else:
             self.time = 0.0
             self.step = 0
-
-        for process in self.list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
 
 
     def _SetUpGiDOutput(self):
