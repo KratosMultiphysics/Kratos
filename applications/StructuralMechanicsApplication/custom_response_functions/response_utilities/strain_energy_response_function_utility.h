@@ -18,7 +18,6 @@
 // ------------------------------------------------------------------------------
 #include <iostream>
 #include <string>
-#include <algorithm>
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -27,12 +26,7 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
 #include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "response_function_utility.h"
@@ -197,7 +191,7 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const override
+	std::string Info() const override
 	{
 		return "StrainEnergyResponseFunctionUtility";
 	}

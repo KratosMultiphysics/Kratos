@@ -27,13 +27,7 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
-#include "includes/model_part.h"
-#include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
 
 // ==============================================================================
 
