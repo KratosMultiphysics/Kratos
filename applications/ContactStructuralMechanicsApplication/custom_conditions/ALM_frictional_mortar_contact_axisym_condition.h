@@ -55,7 +55,7 @@ namespace Kratos
  * @todo Complete this
  * @author Vicente Mataix Ferrandiz
  */
-template< unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TNumNodes, bool TNormalVariation >
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition
     : public AugmentedLagrangianMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>
 {
@@ -100,7 +100,7 @@ public:
 
     typedef DerivativeDataFrictional<2, TNumNodes, TNormalVariation>                                                DerivativeDataType;
 
-    static constexpr unsigned int MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
+    static constexpr IndexType MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
 
     ///@}
     ///@name Life Cycle

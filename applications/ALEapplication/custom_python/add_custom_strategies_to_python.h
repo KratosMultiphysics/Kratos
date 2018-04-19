@@ -15,17 +15,16 @@
 #define KRATOS_STRATEGIES_PYTHON_H_INCLUDED
 
 // System includes
-
-// External includes
+#include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 
 namespace Kratos {
 
 namespace Python {
 
-void AddCustomStrategiesToPython();
+void AddCustomStrategiesToPython(pybind11::module& m);
 
 } // namespace Python.
 

@@ -80,6 +80,7 @@
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/elastic_isotropic_plane_stress_uncoupled_shear.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
@@ -121,7 +122,7 @@ namespace Kratos
  * This application features Elements, Conditions, Constitutive laws and Utilities
  * for structural analysis problems
  */
-class KratosStructuralMechanicsApplication : public KratosApplication
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) KratosStructuralMechanicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -388,6 +389,7 @@ private:
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+    const ElasticIsotropicPlaneStressUncoupledShear  mElasticIsotropicPlaneStressUncoupledShear;
     const HyperElasticIsotropicKirchhoff3D  mHyperElasticIsotropicKirchhoff3D;
     const HyperElasticIsotropicKirchhoffPlaneStress2D  mHyperElasticIsotropicKirchhoffPlaneStress2D;
     const HyperElasticIsotropicKirchhoffPlaneStrain2D  mHyperElasticIsotropicKirchhoffPlaneStrain2D;

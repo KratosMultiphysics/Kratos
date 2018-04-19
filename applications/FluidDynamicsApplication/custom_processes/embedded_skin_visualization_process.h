@@ -71,7 +71,7 @@ namespace Kratos
  * modify shape functions utility. 
  * @author Ruben Zorrilla
  */
-class EmbeddedSkinVisualizationProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) EmbeddedSkinVisualizationProcess : public Process
 {
 public:
     ///@name Type Definitions
