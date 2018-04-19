@@ -27,10 +27,10 @@ class ResponseFunctionBase(object):
     def Finalize(self):
         pass
 
-class SimpleResponseFunctionWrapper(ResponseFunctionBase):
+class StrainEnergyResponseFunction(ResponseFunctionBase):
 
     def __init__(self, identifier, project_parameters, response_function_utility, model_part = None):
-        super(SimpleResponseFunctionWrapper, self).__init__(identifier, project_parameters)
+        super(StrainEnergyResponseFunction, self).__init__(identifier, project_parameters)
 
         with open(project_parameters["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters( parameters_file.read() )
@@ -69,11 +69,16 @@ class SimpleResponseFunctionWrapper(ResponseFunctionBase):
     def Finalize(self):
         self.primal_analysis.Finalize()
 
+class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
 
-class MassResponseFunctionWrapper(ResponseFunctionBase):
+    def __init__(self, identifier, project_parameters, response_function_utility, model_part = None):
+        """works the same way as the StrainEnergyResponse, this class exists for better readbility"""
+        super(EigenFrequencyResponseFunction, self).__init__(identifier, project_parameters, response_function_utility, model_part)
+
+class MassResponseFunction(ResponseFunctionBase):
 
     def __init__(self, identifier, project_parameters, response_function_utility, model_part):
-        super(MassResponseFunctionWrapper, self).__init__(identifier, project_parameters)
+        super(MassResponseFunction, self).__init__(identifier, project_parameters)
         self.response_function_utility = response_function_utility
         self.model_part = model_part
         self.model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)

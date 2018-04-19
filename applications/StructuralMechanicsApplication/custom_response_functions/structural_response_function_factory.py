@@ -9,11 +9,11 @@ def CreateResponseFunction(response_id, response_settings, model_part):
 
     if response_type == "strain_energy":
         response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility( model_part, response_settings )
-        return structural_response.SimpleResponseFunctionWrapper(response_id, response_settings, response_function_utility, model_part)
+        return structural_response.StrainEnergyResponseFunction(response_id, response_settings, response_function_utility, model_part)
 
     elif response_type == "mass":
         response_function_utility = StructuralMechanicsApplication.MassResponseFunctionUtility( model_part, response_settings )
-        return structural_response.MassResponseFunctionWrapper(response_id, response_settings, response_function_utility, model_part)
+        return structural_response.MassResponseFunction(response_id, response_settings, response_function_utility, model_part)
 
     elif response_type == "eigenfrequency":
         if not response_settings.Has("weighting_method") or response_settings["weighting_method"].GetString() == "none":
@@ -23,7 +23,7 @@ def CreateResponseFunction(response_id, response_settings, model_part):
         else:
             raise NameError("The following weighting_method is not valid for eigenfrequency response: " + response_settings["weighting_method"].GetString() +
                             ".\nAvailable weighting methods are: 'none', 'linear_scaling'. Default: 'none'")
-        return structural_response.SimpleResponseFunctionWrapper(response_id, response_settings, response_function_utility, model_part)
+        return structural_response.EigenFrequencyResponseFunction(response_id, response_settings, response_function_utility, model_part)
 
     else:
         raise NameError("The type of the following response function is not specified: "+ response_id +
