@@ -80,7 +80,7 @@ public:
 	///@{
 
 	/// Default constructor.
-	EigenfrequencyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
+	EigenfrequencyResponseFunction(ModelPart& model_part, Parameters responseSettings)
 	: mrModelPart(model_part)
 	{
 		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
@@ -109,13 +109,13 @@ public:
 	///@{
 
 	// ==============================================================================
-	void Initialize()
+	void Initialize() override
 	{
 		//not needed because only semi-analytical sensitivity analysis is implemented yet
 	}
 
 	// --------------------------------------------------------------------------
-	double CalculateValue()
+	double CalculateValue() override
 	{
 		KRATOS_TRY;
 
@@ -133,7 +133,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void CalculateGradient()
+	void CalculateGradient() override
 	{
 		KRATOS_TRY;
 
@@ -176,19 +176,19 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const
+	virtual std::string Info() const override
 	{
 		return "EigenfrequencyResponseFunction";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
+	virtual void PrintInfo(std::ostream &rOStream) const override
 	{
 		rOStream << "EigenfrequencyResponseFunction";
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
+	virtual void PrintData(std::ostream &rOStream) const override
 	{
 	}
 
@@ -332,7 +332,7 @@ protected:
 		KRATOS_CATCH("");
 	}
 
-	virtual void ConsiderDiscretization()
+	virtual void ConsiderDiscretization() override
 	{
 	}
 

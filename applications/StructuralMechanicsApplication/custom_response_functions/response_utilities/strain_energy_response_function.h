@@ -113,12 +113,12 @@ public:
 	///@{
 
 	// ==============================================================================
-	void Initialize()
+	void Initialize() override
 	{
 	}
 
 	// --------------------------------------------------------------------------
-	double CalculateValue()
+	double CalculateValue() override
 	{
 		KRATOS_TRY;
 
@@ -147,7 +147,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void CalculateGradient()
+	void CalculateGradient() override
 	{
 		KRATOS_TRY;
 
@@ -197,19 +197,19 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const
+	virtual std::string Info() const override
 	{
 		return "StrainEnergyResponseFunction";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
+	virtual void PrintInfo(std::ostream &rOStream) const override
 	{
 		rOStream << "StrainEnergyResponseFunction";
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
+	virtual void PrintData(std::ostream &rOStream) const override
 	{
 	}
 
@@ -426,7 +426,8 @@ protected:
 	}
 
 	// --------------------------------------------------------------------------
-  	virtual void ConsiderDiscretization(){
+  	virtual void ConsiderDiscretization() override
+	{
 
 
 		// Start process to identify element neighbors for every node

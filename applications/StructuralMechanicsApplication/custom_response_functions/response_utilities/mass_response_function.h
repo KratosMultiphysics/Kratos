@@ -112,11 +112,11 @@ public:
 	///@{
 
 	// ==============================================================================
-	void Initialize()
+	void Initialize() override
 	{}
 
 	// --------------------------------------------------------------------------
-	double CalculateValue()
+	double CalculateValue() override
 	{
 		KRATOS_TRY;
 
@@ -139,7 +139,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void CalculateGradient()
+	void CalculateGradient() override
 	{
 		KRATOS_TRY;
 
@@ -231,7 +231,8 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-  	virtual void ConsiderDiscretization(){
+  	virtual void ConsiderDiscretization() override
+	{
 
 		std::cout<< "> Considering discretization size!" << std::endl;
 		for(auto& node_i : mrModelPart.Nodes())
@@ -284,19 +285,19 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const
+	virtual std::string Info() const override
 	{
 		return "MassResponseFunction";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
+	virtual void PrintInfo(std::ostream &rOStream) const override
 	{
 		rOStream << "MassResponseFunction";
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
+	virtual void PrintData(std::ostream &rOStream) const  override
 	{
 	}
 

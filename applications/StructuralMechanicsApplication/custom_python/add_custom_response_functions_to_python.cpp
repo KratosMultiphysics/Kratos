@@ -12,10 +12,10 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/stl.h>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 //Utilities
@@ -33,28 +33,32 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomResponseFunctionsToPython()
+using namespace pybind11;
+
+void  AddCustomResponseFunctionsToPython(pybind11::module& m)
 {
-    using namespace boost::python;
 
     // Response Functions
-    class_<ResponseFunction, boost::noncopyable >
-      ("ResponseFunction", no_init)
+    class_<ResponseFunction, ResponseFunction::Pointer>(m, "ResponseFunction")
       .def("Initialize", &ResponseFunction::Initialize)
       .def("CalculateValue", &ResponseFunction::CalculateValue)
       .def("CalculateGradient", &ResponseFunction::CalculateGradient);
 
-    class_<StrainEnergyResponseFunction, bases<ResponseFunction>, boost::noncopyable >
-      ("StrainEnergyResponseFunction", init<ModelPart&, Parameters>());
+    class_<StrainEnergyResponseFunction, StrainEnergyResponseFunction::Pointer, ResponseFunction >
+      (m, "StrainEnergyResponseFunction")
+      .def(init<ModelPart&, Parameters>());
 
-    class_<MassResponseFunction, bases<ResponseFunction>, boost::noncopyable >
-      ("MassResponseFunction", init<ModelPart&, Parameters>());
+    class_<MassResponseFunction, MassResponseFunction::Pointer, ResponseFunction >
+      (m, "MassResponseFunction")
+      .def(init<ModelPart&, Parameters>());
 
-    class_<EigenfrequencyResponseFunction, bases<ResponseFunction>, boost::noncopyable >
-      ("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>());
+    class_<EigenfrequencyResponseFunction, EigenfrequencyResponseFunction::Pointer, ResponseFunction >
+      (m, "EigenfrequencyResponseFunction")
+      .def(init<ModelPart&, Parameters>());
 
-    class_<EigenfrequencyResponseFunctionLinScal, bases<ResponseFunction>, boost::noncopyable >
-      ("EigenfrequencyResponseFunctionLinScal", init<ModelPart&, Parameters&>());
+    class_<EigenfrequencyResponseFunctionLinScal, EigenfrequencyResponseFunctionLinScal::Pointer, ResponseFunction >
+      (m, "EigenfrequencyResponseFunctionLinScal")
+      .def(init<ModelPart&, Parameters>());
 }
 
 }  // namespace Python.
