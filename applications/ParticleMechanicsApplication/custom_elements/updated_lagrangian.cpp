@@ -1321,7 +1321,6 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
             NodalInertia[j] = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
 
         }
-        // Added by Ricardo
 
 GetGeometry()[i].SetLock();
         GetGeometry()[i].GetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
@@ -1582,9 +1581,6 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
                 //MP_Velocity[j] += NodalMomentum[j]/(rVariables.N[i] * MP_Mass * MP_number);
                 //MP_Velocity[j] += DeltaTime * rVariables.N[i] * NodalAcceleration[j];////
 
-
-
-
             }
         }
 
@@ -1592,10 +1588,12 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 
 
     //**************************************************************************************************************************
-    //Another way to update the MP velocity (see paper Guilkey and Weiss, 2003)
+    //Another way to update the MP velocity (see paper Guilkey and Weiss, 2003) 
+    //this assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration
     MP_Velocity = MP_PreviousVelocity + 0.5 * DeltaTime * (MP_Acceleration + MP_PreviousAcceleration);
+    
     //MP_Acceleration = 4/(DeltaTime * DeltaTime) * delta_xg - 4/DeltaTime * MP_PreviousVelocity;
-    //MP_Velocity = 2/DeltaTime * delta_xg - MP_PreviousVelocity;
+    //MP_Velocity = 2.0/DeltaTime * delta_xg - MP_PreviousVelocity;
 
     this -> SetValue(MP_VELOCITY,MP_Velocity );
 

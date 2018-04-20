@@ -243,9 +243,9 @@ public:
 
 
 
-            UpdateVelocityUpdate     (CurrentVelocity, DeltaDisplacement, PreviousVelocity);
+            UpdateVelocity(CurrentVelocity, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
 
-            UpdateAcceleration (CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
+            UpdateAcceleration(CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
 		}
 
 
@@ -341,7 +341,7 @@ public:
 
 
 
-            UpdateVelocityPredict     (CurrentVelocity, CurrentDisplacement, PreviousVelocity, PreviousAcceleration);
+            UpdateVelocity(CurrentVelocity, CurrentDisplacement, PreviousVelocity, PreviousAcceleration);
 
             UpdateAcceleration (CurrentAcceleration, CurrentDisplacement, PreviousVelocity, PreviousAcceleration);
 			
@@ -605,52 +605,39 @@ public:
 
                     // Where the boundary condition is defined
 
-                    if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
-                    {
+                    // if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
+                    // {
                         DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
                         DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
-                    }
-                    else
-                    {
-                        // #pragma omp critical
-                        // counter++;
+                    // }
+                    // else
+                    // {
+                    //     DeltaNodalVelocity[0] = 0.0;
+                    //     DeltaNodalAcceleration[0] = 0.0;
 
-                        DeltaNodalVelocity[0] = 0.0;
-                        DeltaNodalAcceleration[0] = 0.0;
-                        //DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
-
-                    }
-                    if ((i->pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
-                    {
-
-
-                        DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
+                    // }
+                    // if ((i->pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
+                    // {
                         DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
-
-
-                        
-                    }
-                    else
-                    {
-                        DeltaNodalVelocity[1] = 0.0;
-                        DeltaNodalAcceleration[1] = 0.0;
-                        //DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
-
-                    }
+                        DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
+                    // }
+                    // else
+                    // {
+                    //     DeltaNodalVelocity[1] = 0.0;
+                    //     DeltaNodalAcceleration[1] = 0.0;
+                    // }
                     if (i->HasDofFor(DISPLACEMENT_Z))
                     {
-                        if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
-                        {
+                        // if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
+                        // {
                             DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
                             DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
-                        }
-                        else
-                        {
-                            DeltaNodalVelocity[2] = 0.0;
-                            DeltaNodalAcceleration[2] = 0.0;
-                            //DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
-
-                        }
+                        // }
+                        // else
+                        // {
+                        //     DeltaNodalVelocity[2] = 0.0;
+                        //     DeltaNodalAcceleration[2] = 0.0;
+                        // }
                     }
 //************************************************************************************************************************************************************
                  
@@ -785,33 +772,32 @@ public:
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
         
 //*********************************************************************************************************************************************
-        for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
-                i != rModelPart.NodesEnd(); ++i)
-        {
-            array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY,0);
-            array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,0);
+        // for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
+        //         i != rModelPart.NodesEnd(); ++i)
+        // {
+        //     array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY,0);
+        //     array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,0);
             
-            //NODAL VELOCITY AND NODAL ACCELERATION ARE SET TO ZERO FOR FIXED NODE, BEFORE MAPPING FROM NODES TO PARTICLES
-            //THE NODAL INFORMATION (I am not sure..)
-            if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == true)
-            {
-                NodalVelocity[0] = 0.0;
-                NodalAcceleration[0] = 0.0;
+        //     //NODAL VELOCITY AND NODAL ACCELERATION ARE SET TO ZERO FOR FIXED NODE, BEFORE MAPPING FROM NODES TO PARTICLES
+        //     if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == true)
+        //     {
+        //         NodalVelocity[0] = 0.0;
+        //         NodalAcceleration[0] = 0.0;
 
-            }
-            if ((i->pGetDof(DISPLACEMENT_Y))->IsFixed() == true)
-            {
-                NodalVelocity[1] = 0.0;
-                NodalAcceleration[1] = 0.0;
+        //     }
+        //     if ((i->pGetDof(DISPLACEMENT_Y))->IsFixed() == true)
+        //     {
+        //         NodalVelocity[1] = 0.0;
+        //         NodalAcceleration[1] = 0.0;
 
-            }
-            if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == true)
-            {
-                NodalVelocity[2] = 0.0;
-                NodalAcceleration[2] = 0.0;
+        //     }
+        //     if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == true)
+        //     {
+        //         NodalVelocity[2] = 0.0;
+        //         NodalAcceleration[2] = 0.0;
 
-            }
-        }
+        //     }
+        // }
 //*********************************************************************************************************************************************
         int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
@@ -1222,8 +1208,7 @@ protected:
     //*********************************************************************************
     //Updating first time Derivative
     //*********************************************************************************
-
-    inline void UpdateVelocityPredict(array_1d<double, 3 > & CurrentVelocity,
+    inline void UpdateVelocity(array_1d<double, 3 > & CurrentVelocity,
                                       const array_1d<double, 3 > & DeltaDisplacement,
                                       const array_1d<double, 3 > & PreviousVelocity,
                                       const array_1d<double, 3 > & PreviousAcceleration)
@@ -1233,14 +1218,26 @@ protected:
                                      - mNewmark.c5 * PreviousAcceleration) * mNewmark.static_dynamic;
 
     }
-    inline void UpdateVelocityUpdate(array_1d<double, 3 > & CurrentVelocity,
-                                     const array_1d<double, 3 > & DeltaDisplacement,
-                                     const array_1d<double, 3 > & PreviousVelocity)
-    {
 
-        noalias(CurrentVelocity) =  (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity) * mNewmark.static_dynamic;
+    // Combine into one functions UpdateVelocity
+    // inline void UpdateVelocityPredict(array_1d<double, 3 > & CurrentVelocity,
+    //                                   const array_1d<double, 3 > & DeltaDisplacement,
+    //                                   const array_1d<double, 3 > & PreviousVelocity,
+    //                                   const array_1d<double, 3 > & PreviousAcceleration)
+    // {
 
-    }
+    //     noalias(CurrentVelocity) =  (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
+    //                                  - mNewmark.c5 * PreviousAcceleration) * mNewmark.static_dynamic;
+
+    // }
+    // inline void UpdateVelocityUpdate(array_1d<double, 3 > & CurrentVelocity,
+    //                                  const array_1d<double, 3 > & DeltaDisplacement,
+    //                                  const array_1d<double, 3 > & PreviousVelocity)
+    // {
+
+    //     noalias(CurrentVelocity) =  (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity) * mNewmark.static_dynamic;
+
+    // }
 
 
     //*********************************************************************************
