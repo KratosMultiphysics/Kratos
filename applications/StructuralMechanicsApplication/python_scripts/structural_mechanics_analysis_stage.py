@@ -52,8 +52,30 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
             self.SolveTimeStep()
             self.FinalizeTimeStep()
 
+    def _RunSolutionLoop(self):
+        """This function executes the solution loop of the AnalysisStage
+        It can be overridden by derived classes
+        """
+        while self.time < self.end_time:
+            self.time = self.solver.AdvanceInTime(self.time)
+            self.InitializeSolutionStep()
+            self.solver.Predict()
+            self.solver.SolveSolutionStep()
+            self.FinalizeSolutionStep()
+            self.OutputSolutionStep()
+
     def Initialize(self):
+        self.ModifyInitialProperties()
+        self.ModifyInitialGeometry()
         self._ExecuteInitialize()
+        self._SetUpListOfProcesses()
+        ## Processes initialization
+        for process in self.list_of_processes:
+            process.ExecuteInitialize()
+
+        ## Solver initialization
+        self.solver.Initialize()
+
         self._ExecuteBeforeSolutionLoop()
 
     def InitializeTimeStep(self):
@@ -139,19 +161,20 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
             for properties in self.main_model_part.Properties:
                 KratosMultiphysics.Logger.PrintInfo("Property " + str(properties.Id), properties)
 
-        ## Processes construction
-        import process_factory
-        self.list_of_processes = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(self.project_parameters["constraints_process_list"])
-        self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(self.project_parameters["loads_process_list"])
+    def _SetUpListOfProcesses(self):
+        from process_factory import KratosProcessFactory
+        factory = KratosProcessFactory(self.model)
+        self.list_of_processes = factory.ConstructListOfProcesses(self.project_parameters["constraints_process_list"])
+        self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["loads_process_list"])
         if (self.project_parameters.Has("list_other_processes") == True):
-            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(self.project_parameters["list_other_processes"])
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["list_other_processes"])
         if (self.project_parameters.Has("json_output_process") == True):
-            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(self.project_parameters["json_output_process"])
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_output_process"])
         # Processes for tests
         if (self.project_parameters.Has("json_check_process") == True):
-            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(self.project_parameters["json_check_process"])
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_check_process"])
         if (self.project_parameters.Has("check_analytic_results_process") == True):
-            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
 
         if self.is_printing_rank and self.echo_level > 1:
             count = 0
@@ -159,12 +182,6 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
                 count += 1
                 # KratosMultiphysics.Logger.PrintInfo("Process " + str(count), process) # FIXME
 
-        ## Processes initialization
-        for process in self.list_of_processes:
-            process.ExecuteInitialize()
-
-        ## Solver initialization
-        self.solver.Initialize()
 
     def _ExecuteBeforeSolutionLoop(self):
         """ Perform Operations before the SolutionLoop """
