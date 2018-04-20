@@ -216,15 +216,15 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         except ImportError as e:
             self.skipTest("HDF5Application not found: Skipping harmonic analysis mdpa test")
 
-        import structural_mechanics_analysis
+        import structural_mechanics_analysis_stage
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             #run simulation and write to hdf5 file
             project_parameter_file_name = "harmonic_analysis_test/harmonic_analysis_test_eigenproblem_parameters.json"
-            test = structural_mechanics_analysis.StructuralMechanicsAnalysis(project_parameter_file_name)
+            test = structural_mechanics_analysis_stage.StructuralMechanicsAnalysisStage(project_parameter_file_name)
             test.Run()
             #start new simulation and read from hdf5 file
             project_parameter_file_name = "harmonic_analysis_test/harmonic_analysis_test_parameters.json"
-            test = structural_mechanics_analysis.StructuralMechanicsAnalysis(project_parameter_file_name)
+            test = structural_mechanics_analysis_stage.StructuralMechanicsAnalysisStage(project_parameter_file_name)
             test.Run()
             # remove hdf5 file
             kratos_utils.DeleteFileIfExisting("harmonic_analysis_test/eigen_results.h5")

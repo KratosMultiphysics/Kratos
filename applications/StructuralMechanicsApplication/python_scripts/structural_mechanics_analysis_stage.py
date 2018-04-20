@@ -16,10 +16,13 @@ try:
 except ImportError:
     KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
 
+# Importing the base class
+from base_analysis_stage import AnalysisStage
+
 # Other imports
 import sys
 
-class StructuralMechanicsAnalysis(object): # TODO in the future this could derive from a BaseClass in the Core
+class StructuralMechanicsAnalysisStage(object): # TODO in the future this could derive from a BaseClass in the Core
     """
     This class is the main-script of the StructuralMechanicsApplication put in a class
 
@@ -282,9 +285,9 @@ if __name__ == "__main__":
         err_msg =  'Too many input arguments!\n'
         err_msg += 'Use this script in the following way:\n'
         err_msg += '- With default ProjectParameters (read from "ProjectParameters.json"):\n'
-        err_msg += '    "python3 structural_mechanics_analysis.py"\n'
+        err_msg += '    "python3 structural_mechanics_analysis_stage.py"\n'
         err_msg += '- With custom ProjectParameters:\n'
-        err_msg += '    "python3 structural_mechanics_analysis.py CustomProjectParameters.json"\n'
+        err_msg += '    "python3 structural_mechanics_analysis_stage.py CustomProjectParameters.json"\n'
         raise Exception(err_msg)
 
     if len(argv) == 2: # ProjectParameters is being passed from outside
@@ -292,4 +295,4 @@ if __name__ == "__main__":
     else: # using default name
         project_parameters_file_name = "ProjectParameters.json"
 
-    StructuralMechanicsAnalysis(project_parameters_file_name).Run()
+    StructuralMechanicsAnalysisStage(project_parameters_file_name).Run()

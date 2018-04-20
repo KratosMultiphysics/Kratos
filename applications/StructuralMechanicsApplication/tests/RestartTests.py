@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import structural_mechanics_analysis
+import structural_mechanics_analysis_stage
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -72,8 +72,8 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
     def test_execution(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            structural_mechanics_analysis.StructuralMechanicsAnalysis(self.project_parameters_save).Run()
-            structural_mechanics_analysis.StructuralMechanicsAnalysis(self.project_parameters_load).Run()
+            structural_mechanics_analysis_stage.StructuralMechanicsAnalysisStage(self.project_parameters_save).Run()
+            structural_mechanics_analysis_stage.StructuralMechanicsAnalysisStage(self.project_parameters_load).Run()
 
     def tearDown(self):
         # remove the created restart files

@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import structural_mechanics_analysis
+import structural_mechanics_analysis_stage
 
 # Other imports
 import os
@@ -36,7 +36,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             # Creating the test
-            self.test = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParameters)
+            self.test = structural_mechanics_analysis_stage.StructuralMechanicsAnalysisStage(ProjectParameters)
             self.test.Initialize()
 
     def test_execution(self):
