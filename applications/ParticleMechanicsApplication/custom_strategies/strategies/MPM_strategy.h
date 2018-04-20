@@ -756,12 +756,7 @@ public:
     virtual void SearchElement(
         ModelPart& grid_model_part,
         ModelPart& mpm_model_part)
-    {
-        
-        
-        
-
-        
+    { 
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
 			
@@ -772,11 +767,8 @@ public:
             elemItr ->GetGeometry()[2].Reset(ACTIVE);
             if (TDim ==3)
             {
-
                 elemItr ->GetGeometry()[3].Reset(ACTIVE);
             }
-			
-			
 		}
         
         
@@ -787,65 +779,49 @@ public:
         if (m_GeometryElement == "Triangle")
         {
             const int max_results = 1000;
-            array_1d<double, TDim + 1 > N;
 
             BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
             SearchStructure.UpdateSearchDatabase();
 
 			#pragma omp parallel
 			{
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+                array_1d<double, TDim + 1 > N;
+                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
+                #pragma omp for
+                for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
-
-			#pragma omp for
-            for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
-
-				auto elemItr = mpm_model_part.Elements().begin() + i;
-				
-				array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
-				//KRATOS_WATCH(xg);
-                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                Element::Pointer pelem;
-
-                //FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, max_results);
-
-                if (is_found == true)
-                {
-                    pelem->Set(ACTIVE);
+                    auto elemItr = mpm_model_part.Elements().begin() + i;
                     
+                    array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
+                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-                    elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
-                    elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
-                    elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
+                    Element::Pointer pelem;
 
-                    pelem->GetGeometry()[0].Set(ACTIVE);
-                    pelem->GetGeometry()[1].Set(ACTIVE);
-                    pelem->GetGeometry()[2].Set(ACTIVE);
-					
-                    if (TDim ==3)
+                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, max_results);
+
+                    if (is_found == true)
                     {
-
-                        elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
-                        pelem->GetGeometry()[3].Set(ACTIVE);
-                    }
+                        pelem->Set(ACTIVE);
                     
+                        elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
+                        elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
+                        elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
 
-
+                        pelem->GetGeometry()[0].Set(ACTIVE);
+                        pelem->GetGeometry()[1].Set(ACTIVE);
+                        pelem->GetGeometry()[2].Set(ACTIVE);
+                        
+                        if (TDim ==3)
+                        {
+                            elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
+                            pelem->GetGeometry()[3].Set(ACTIVE);
+                        }
+                    }
                 }
-
-
-			}
-		}
-
-            
-
+		    }
         }
-
-      
-
 
         //******************SEARCH FOR QUADRILATERALS************************
         else if(m_GeometryElement == "Quadrilateral")
@@ -856,47 +832,36 @@ public:
             QuadBinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
             SearchStructure.UpdateSearchDatabase();
 
-	    #pragma omp parallel
+	        #pragma omp parallel
 			{
-            typename QuadBinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+                typename QuadBinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
+                //loop over the material points
+                #pragma omp for
+                for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
+                    auto elemItr = mpm_model_part.Elements().begin() + i;
+                            
+                    array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
+                    typename QuadBinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-            //loop over the material points
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
+                    Element::Pointer pelem;
 
-		auto elemItr = mpm_model_part.Elements().begin() + i;
+                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                    bool is_found = SearchStructure.FindPointOnMesh(xg, pelem, result_begin, max_results);
                 
-                array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
-                typename QuadBinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                Element::Pointer pelem;
-
-                //FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg, pelem, result_begin, max_results);
-                
-                if (is_found == true)
-                {
-                    pelem->Set(ACTIVE);
-                    
-
-                    elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
-                    elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
-                    elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
-                    elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
-                    
-                    
-
+                    if (is_found == true)
+                    {
+                        pelem->Set(ACTIVE);
+                        
+                        elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
+                        elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
+                        elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
+                        elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
+                    }
                 }
-
-
             }
-
         }
-		
-       }
-        
     }
 
 
