@@ -193,6 +193,8 @@ public:
    */
   virtual int Check(const ProcessInfo& rCurrentProcessInfo);
 
+  //TODO bring "CleanMemory" back => VertexMorphing
+
   ///@}
   ///@name Access
   ///@{

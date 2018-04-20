@@ -73,6 +73,9 @@ namespace Kratos
         // for local_nodes:
         //     global_elements[i] = node.GetValue(INTERFACE_EQUATION_ID); // Is it that easy?
 
+        // for mapper_conditions:
+        //     mapper_cond.GetValue(Interface_eq_Ids)
+
         // Epetra_Map (long long NumGlobalElements, int NumMyElements, const long long *MyGlobalElements, int IndexBase, const Epetra_Comm &Comm)
 
         const int num_global_elements = -1; // computed by Epetra_Map
@@ -87,6 +90,8 @@ namespace Kratos
 
         const int num_indices_per_row = 25; // TODO this is to be tested
 
+        // TODO I should construct the graph with two maps! => one for row and one for column
+        // Performance optimization see https://trilinos.org/docs/dev/packages/epetra/doc/html/classEpetra__CrsGraph.html
         Epetra_FECrsGraph epetra_graph(Epetra_DataAccess::Copy,
                                        epetra_map,
                                        num_indices_per_row);
