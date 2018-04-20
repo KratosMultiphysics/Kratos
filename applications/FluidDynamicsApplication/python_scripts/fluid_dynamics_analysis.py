@@ -34,13 +34,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
         import python_solvers_wrapper_fluid
         self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
 
-
-    def Run(self):
-        '''Wrapper function for the solution.'''
-        self.Initialize()
-        self.RunSolutionLoop()
-        self.Finalize()
-
     def Initialize(self):
         '''
         Construct and initialize all classes and tools used in the simulation loop.
@@ -72,14 +65,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
             process.ExecuteBeforeSolutionLoop()
 
         while self.time < self.end_time:
-
             self.time = self.solver.AdvanceInTime(self.time)
-            self.step = self.main_model_part.ProcessInfo[Kratos.STEP]
-
-            if self.is_printing_rank:
-                Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.step)
-                Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
-
             self.InitializeSolutionStep()
             self.solver.Predict()
             self.solver.SolveSolutionStep()
@@ -94,14 +80,11 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
     def InitializeSolutionStep(self):
 
-        for process in self.list_of_processes:
-            process.ExecuteInitializeSolutionStep()
+        if self.is_printing_rank:
+            Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.main_model_part.ProcessInfo[Kratos.STEP])
+            Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
 
-        # these two should let derived stages modify the input before solving the next step
-        self.ApplyBoundaryConditions()
-        self.ChangeMaterialProperties()
-
-        self.solver.InitializeSolutionStep()
+        super(FluidDynamicsAnalysis,self).InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
 
@@ -168,10 +151,8 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
         if self.main_model_part.ProcessInfo[Kratos.IS_RESTARTED]:
             self.time = self.main_model_part.ProcessInfo[Kratos.TIME]
-            self.step = self.main_model_part.ProcessInfo[Kratos.STEP]
         else:
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
-            self.step = 0
 
 
     def _SetUpGiDOutput(self):
