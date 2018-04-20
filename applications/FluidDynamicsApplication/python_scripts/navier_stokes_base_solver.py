@@ -98,12 +98,9 @@ class NavierStokesBaseSolver(object):
     def AdvanceInTime(self, current_time):
         dt = self.ComputeDeltaTime()
         new_time = current_time + dt
-        self.step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
 
         self.main_model_part.CloneTimeStep(new_time)
-
-        self.step += 1
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.step
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
 
         return new_time
 
@@ -233,4 +230,4 @@ class NavierStokesBaseSolver(object):
 
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input)
-        return self.step + 1 >= self.GetMinimumBufferSize()
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
