@@ -170,7 +170,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
             self.time = self.main_model_part.ProcessInfo[Kratos.TIME]
             self.step = self.main_model_part.ProcessInfo[Kratos.STEP]
         else:
-            self.time = 0.0
+            self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
             self.step = 0
 
 
