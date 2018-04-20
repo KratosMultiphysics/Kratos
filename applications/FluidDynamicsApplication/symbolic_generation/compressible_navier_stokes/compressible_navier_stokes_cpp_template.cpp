@@ -124,27 +124,27 @@ void CompressibleNavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matri
     const int BlockSize = dim+2;
     const double h = data.h; 
  
-    const double& bdf0 = data.bdf0;
-    const double& bdf1 = data.bdf1;
-    const double& bdf2 = data.bdf2;
+//     const double& bdf0 = data.bdf0;
+//     const double& bdf1 = data.bdf1;
+//     const double& bdf2 = data.bdf2;
  
     const bounded_matrix<double,nnodes,BlockSize>& U = data.U;
-    const bounded_matrix<double,nnodes,BlockSize>& Un = data.Un;
-    const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
-    const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
-    const array_1d<double,nnodes>& r = data.r;
-    const double mu = data.mu;
+//     const bounded_matrix<double,nnodes,BlockSize>& Un = data.Un;
+//     const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
+//     const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
+//     const array_1d<double,nnodes>& r = data.r;
+//     const double mu = data.mu;
     const double nu = data.nu;
     const double lambda = data.lambda;
     const double c_v = data.c_v;
     const double gamma = data.gamma;
     const double cp = c_v*gamma;
-    const double v_sc = data_v_sc;
-    const double k_sc = data_k_sc;
+//     const double v_sc = data_v_sc;
+//     const double k_sc = data_k_sc;
  
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+//     const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
     
     // Stabilization parameters
     const double stab_c1 = 4.0;
@@ -164,9 +164,9 @@ void CompressibleNavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matri
     double tau2inv = stab_c1*nu/(h*h)+tau1inv;
     double tau3inv = stab_c1*lambda/(U_gauss(0)*cp*h*h)+tau1inv;
         
-    const double tau1 = 1/tau1inv;
-    const double tau2 = 1/tau2inv;
-    const double tau3 = 1/tau3inv;
+//     const double tau1 = 1/tau1inv;
+//     const double tau2 = 1/tau2inv;
+//     const double tau3 = 1/tau3inv;
     
     //substitute_lhs_3D
 
@@ -238,27 +238,27 @@ void CompressibleNavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<doub
     const int BlockSize = dim+2;
     const double h = data.h; 
 
-    const double& bdf0 = data.bdf0;
-    const double& bdf1 = data.bdf1;
-    const double& bdf2 = data.bdf2;
+//     const double& bdf0 = data.bdf0;
+//     const double& bdf1 = data.bdf1;
+//     const double& bdf2 = data.bdf2;
     
     const bounded_matrix<double,nnodes,BlockSize>& U = data.U;
-    const bounded_matrix<double,nnodes,BlockSize>& Un = data.Un;
-    const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
-    const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
-    const array_1d<double,nnodes>& r = data.r;
-    const double mu = data.mu;
+//     const bounded_matrix<double,nnodes,BlockSize>& Un = data.Un;
+//     const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
+//     const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
+//     const array_1d<double,nnodes>& r = data.r;
+//     const double mu = data.mu;
     const double nu = data.nu;
     const double lambda = data.lambda;
     const double c_v = data.c_v;
     const double gamma = data.gamma;
     const double cp = c_v*gamma;
-    const double v_sc = data_v_sc;
-    const double k_sc = data_k_sc;
+//     const double v_sc = data_v_sc;
+//     const double k_sc = data_k_sc;
     
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+//     const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,BlockSize> U_gauss = prod(trans(U), N);
@@ -281,9 +281,9 @@ void CompressibleNavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<doub
     double tau2inv = stab_c1*nu/(h*h)+tau1inv;
     double tau3inv = stab_c1*lambda/(U_gauss(0)*cp*h*h)+tau1inv;
         
-    const double tau1 = 1/tau1inv;
-    const double tau2 = 1/tau2inv;
-    const double tau3 = 1/tau3inv;
+//     const double tau1 = 1/tau1inv;
+//     const double tau2 = 1/tau2inv;
+//     const double tau3 = 1/tau3inv;
 
     //substitute_rhs_3D
 }
