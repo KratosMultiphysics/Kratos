@@ -210,13 +210,9 @@ public:
 
     void Test()
     {
-        CalculateBoundaryContour();
     }
 
 
-    void CalculateBoundaryContour()
-    {
-    }
 
 
 
