@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos

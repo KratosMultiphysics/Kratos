@@ -10,8 +10,10 @@
 //  Collaborators:
 //
 
+// Project includes
 #include "linear_isotropic_damage_3D_law.h"
 #include "structural_mechanics_application_variables.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
