@@ -238,11 +238,7 @@ public:
             array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
 
-
-
-
             UpdateVelocity(CurrentVelocity, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
-
             UpdateAcceleration(CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
 		}
 
@@ -570,8 +566,8 @@ public:
 
                     // if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
                     // {
-                        DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
-                        DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
+                    DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
+                    DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
                     // }
                     // else
                     // {
@@ -581,8 +577,8 @@ public:
                     // }
                     // if ((i->pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
                     // {
-                        DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
-                        DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
+                    DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
+                    DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
                     // }
                     // else
                     // {
@@ -593,8 +589,8 @@ public:
                     {
                         // if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
                         // {
-                            DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
-                            DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
+                        DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
+                        DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
                         // }
                         // else
                         // {
