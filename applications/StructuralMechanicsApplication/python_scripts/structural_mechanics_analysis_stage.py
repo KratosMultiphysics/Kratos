@@ -84,7 +84,13 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
         self._SolveSolutionStep()
 
     def Finalize(self):
-        self._ExecuteFinalize()
+        super(StructuralMechanicsAnalysisStage, self).Finalize()
+
+        if (self.output_post == True):
+            self.gid_output.ExecuteFinalize()
+
+        if self.is_printing_rank:
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
 
     #### Internal functions ####
@@ -248,17 +254,6 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
             process.ExecuteAfterOutputStep()
 
         self.solver.SaveRestart() # whether a restart-file is written is decided internally
-
-    def _ExecuteFinalize(self):
-        """ Operations to be performed at the end of the Analysis """
-        for process in self.list_of_processes:
-            process.ExecuteFinalize()
-
-        if (self.output_post == True):
-            self.gid_output.ExecuteFinalize()
-
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
     def GetModelPart(self):
         return self.main_model_part
