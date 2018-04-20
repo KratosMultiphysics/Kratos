@@ -23,7 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/variables.h"
 #include "custom_utilities/pfem_particle.h" 
 #include "custom_utilities/pfem_particle_fluidonly.h" 

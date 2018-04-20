@@ -47,7 +47,7 @@
 
 // External includes
 
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 // #include "external_includes/superlu/superlu.hpp"
 
 #include "SRC/slu_ddefs.h"

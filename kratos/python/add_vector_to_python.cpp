@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "containers/array_1d.h"
 #include "python/add_vector_to_python.h"
 

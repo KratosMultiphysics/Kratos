@@ -9,7 +9,7 @@
 #include "includes/properties.h"
 #include "geometries/geometry.h"
 #include "constitutive_laws_application.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 /**
  * wrapper function for calling the UMAT fortran subroutine

@@ -17,7 +17,7 @@
 #include "includes/kratos_application.h"
 
 #include "includes/variables.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 #include "custom_elements/small_displacement_interface_element.hpp"
 #include "custom_elements/opt_triangle_element.hpp"

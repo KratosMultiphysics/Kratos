@@ -13,7 +13,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/variables.h"
 
 #include "custom_conditions/meshless_base_condition.h"

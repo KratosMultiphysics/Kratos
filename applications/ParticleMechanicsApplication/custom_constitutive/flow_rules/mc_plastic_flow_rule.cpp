@@ -14,7 +14,7 @@
 #include<cmath>
 
 // External includes
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 // Project includes
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"

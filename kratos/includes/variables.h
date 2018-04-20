@@ -28,7 +28,7 @@
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
 #include "includes/kratos_components.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
 #include "containers/periodic_variables_container.h"

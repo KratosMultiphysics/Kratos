@@ -34,8 +34,9 @@ namespace Kratos
 ///@}
 ///@name Type	Definitions
 ///@{
-
-using template<typename TDataType, std::size_t TSize1> array_1d = AMatrix::Matrix<TDataType, TSize1, 1>;
+    
+template<typename TDataType, std::size_t TSize1> 
+using array_1d = AMatrix::Matrix<TDataType, TSize1, 1>;
 
 ///@}
 

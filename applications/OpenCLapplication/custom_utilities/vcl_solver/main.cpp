@@ -1,7 +1,7 @@
 #include "../opencl_linear_solver.h"
 
 #include "includes/matrix_market_interface.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 #ifdef USE_CPU
 

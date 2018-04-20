@@ -61,7 +61,7 @@
 // External includes
 #include "boost/smart_ptr.hpp"
 // #include "utilities/superlu_interface.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 //#include "boost/numeric/bindings/superlu/superlu.hpp"
 // #include "boost/numeric/bindings/traits/traits.hpp"
 // #include <boost/numeric/bindings/traits/ublas_sparse.hpp>

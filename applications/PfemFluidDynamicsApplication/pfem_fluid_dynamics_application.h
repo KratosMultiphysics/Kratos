@@ -44,7 +44,7 @@
 //constitutive laws
 #include "containers/flags.h"
 #include "includes/variables.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 #include "geometries/triangle_3d_3.h"
 #include "geometries/line_2d.h"

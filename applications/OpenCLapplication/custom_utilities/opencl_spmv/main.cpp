@@ -1,7 +1,7 @@
 #include <iostream>
 #include "../opencl_interface.h"
 #include "includes/matrix_market_interface.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 #define ROWS_PER_WORKGROUP_BITS 5
 #define ROWS_PER_WORKGROUP (1 << ROWS_PER_WORKGROUP_BITS)

@@ -22,7 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 namespace Kratos
 {

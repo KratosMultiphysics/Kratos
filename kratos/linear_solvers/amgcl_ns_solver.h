@@ -28,7 +28,7 @@
 #include "boost/smart_ptr.hpp"
 #include <iostream>
 
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 // Project includes
 #include "includes/define.h"

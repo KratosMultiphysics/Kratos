@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "structural_application.h"
 #include "custom_utilities/tensor_utils.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/properties.h"
 #include "includes/variables.h"
 

@@ -11,7 +11,7 @@
 #include "pfem_2_application.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h" 
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/variables.h" 
 #include "includes/model_part.h"
 #include "includes/node.h"

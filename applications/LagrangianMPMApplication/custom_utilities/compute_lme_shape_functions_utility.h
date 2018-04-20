@@ -15,7 +15,7 @@
 /* Project includes */
 #include "includes/define.h"
 
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 // Project includes
 #include "lagrangian_mpm_application_variables.h"
 #include "utilities/math_utils.h"

@@ -25,7 +25,7 @@
 #include "containers/array_1d.h"
 #include "includes/model_part.h"
 #include "includes/communicator.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "utilities/math_utils.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"

@@ -34,7 +34,7 @@
 #include "includes/variables.h"
 
 #include "includes/condition.h"   //#include "costum_conditions/nuova_condizione.h nel caso non sia gia stata definita
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 #include "containers/flags.h"
 

@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
 

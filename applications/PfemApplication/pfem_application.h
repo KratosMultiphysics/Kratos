@@ -34,7 +34,7 @@
 //constitutive laws
 #include "containers/flags.h"
 #include "includes/variables.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/kratos_application.h"
 
 #include "containers/flags.h"

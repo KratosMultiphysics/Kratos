@@ -23,7 +23,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/variables.h" 
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "custom_elements/primitive_var_element.hpp"
 
 namespace Kratos

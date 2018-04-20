@@ -18,7 +18,7 @@
 /* System includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-//#include "includes/ublas_interface.h"
+//#include "includes/amatrix_interface.h"
 
 /* External includes */
 

@@ -21,7 +21,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "custom_solvers/solution_schemes/solution_scheme.hpp"
 
 // Application includes

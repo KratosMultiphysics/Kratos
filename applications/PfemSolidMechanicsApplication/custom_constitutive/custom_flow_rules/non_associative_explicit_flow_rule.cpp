@@ -12,7 +12,7 @@
 #include<cmath>
 
 // External includes
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 // Project includes
 #include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"

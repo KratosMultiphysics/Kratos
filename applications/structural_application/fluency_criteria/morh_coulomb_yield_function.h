@@ -47,7 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "fluency_criteria/fluency_criteria.h"
 #include "soft_hard_behavior/softening_hardening_criteria.h"
 #include "utilities/math_utils.h"

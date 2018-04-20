@@ -30,7 +30,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "containers/array_1d.h"
 
 

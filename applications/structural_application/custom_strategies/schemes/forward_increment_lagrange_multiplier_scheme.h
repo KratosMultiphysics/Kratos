@@ -29,7 +29,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"

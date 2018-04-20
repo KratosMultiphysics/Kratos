@@ -40,7 +40,7 @@
 #include "custom_conditions/Point_Neumann2D.h"
 #include "custom_conditions/Point_Neumann_Axisym.h"
 #include "custom_elements/surface_tension.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 namespace Kratos
 {

@@ -52,7 +52,7 @@
 #include <boost/timer.hpp>
 
 // #include "utilities/superlu_interface.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 // #include "external_includes/bindings/superlu/superlu.hpp"
 // #include "external_includes/bindings/traits/traits.hpp"
 // #include <boost/numeric/bindings/traits/ublas_sparse.hpp>

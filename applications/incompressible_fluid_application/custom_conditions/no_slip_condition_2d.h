@@ -63,7 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes														////sono moduli ocn operazioni definite? c'e' condition.h
 #include "includes/define.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/variables.h"
 
 #include "includes/serializer.h"

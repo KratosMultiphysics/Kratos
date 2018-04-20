@@ -32,7 +32,7 @@
 #include "custom_elements/TLF_MLSparticle.h"
 #include "custom_elements/ULF_MLSparticle.h"
 
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "meshless_application_variables.h"
 #include "custom_conditions/lagrange_multiplier_condition.h"
 #include "custom_conditions/lagrange_multiplier_condition_x.h"

@@ -63,7 +63,7 @@
 //constitutive laws
 #include "containers/flags.h"
 #include "includes/variables.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 // yield Criteria
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"

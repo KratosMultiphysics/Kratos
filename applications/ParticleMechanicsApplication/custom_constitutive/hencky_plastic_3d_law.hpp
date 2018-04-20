@@ -21,7 +21,7 @@
 // Project includes
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 namespace Kratos
 {

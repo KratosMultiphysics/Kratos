@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/condition.h"
 #include "includes/serializer.h"
-//#include "includes/ublas_interface.h"
+//#include "includes/amatrix_interface.h"
 #include "includes/variables.h"
 #include "geometries/line_2d_2.h"
 //#include "geometries/point_2d.h"

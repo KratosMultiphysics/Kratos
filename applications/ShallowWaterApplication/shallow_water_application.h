@@ -34,7 +34,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 // Shallow water includes
 #include "shallow_water_application_variables.h"

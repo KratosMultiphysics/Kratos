@@ -44,7 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define	_KRATOS_AMGPRECONDITIONER_H
 
 #include "AMGpreconditioner.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include <cstdio>
 #include <cstdlib>
 

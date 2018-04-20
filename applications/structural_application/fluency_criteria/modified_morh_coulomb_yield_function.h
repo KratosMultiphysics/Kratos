@@ -47,7 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #include "custom_utilities/tensor_utils.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "fluency_criteria/fluency_criteria.h"
 #include "fluency_criteria/morh_coulomb_yield_function.h"
 #include "fluency_criteria/isotropic_rankine_yield_function.h"

@@ -33,7 +33,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/matrix_market_interface.h"
 
 

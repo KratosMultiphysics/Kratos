@@ -51,7 +51,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "boost/smart_ptr.hpp"
 
 #include "custom_utilities/tensor_utils.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/properties.h"
 #include "soft_hard_behavior/lineal_softening.h"
 #include <cmath>

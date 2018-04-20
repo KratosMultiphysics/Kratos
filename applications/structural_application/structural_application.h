@@ -120,7 +120,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/legacy_structural_app_vars.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 
 

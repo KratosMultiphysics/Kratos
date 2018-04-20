@@ -14,7 +14,7 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/variables.h"
 
 #include "solid_mechanics_application_variables.h"

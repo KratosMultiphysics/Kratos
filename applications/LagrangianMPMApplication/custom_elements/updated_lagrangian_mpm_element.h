@@ -31,7 +31,7 @@
 #include "custom_elements/meshless_base_element.h"
 #include "includes/serializer.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 #include "includes/model_part.h"

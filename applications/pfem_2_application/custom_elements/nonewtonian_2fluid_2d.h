@@ -47,7 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/variables.h" 
 #include "custom_elements/monolithic_2fluid_2d.h"
 

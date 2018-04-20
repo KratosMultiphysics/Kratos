@@ -17,7 +17,7 @@
 
 // Project includes
 #include "custom_constitutive/non_linear_hencky_plastic_U_P_3D_law.hpp"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 
 namespace Kratos

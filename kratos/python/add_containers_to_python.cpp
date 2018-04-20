@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "containers/data_value_container.h"
 //#include "containers/hash_data_value_container.h"
 #include "containers/variables_list_data_value_container.h"

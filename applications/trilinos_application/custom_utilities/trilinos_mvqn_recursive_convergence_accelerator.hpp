@@ -19,7 +19,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 
 #include "../FSIapplication/custom_utilities/convergence_accelerator.hpp"
 

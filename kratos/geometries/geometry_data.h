@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "integration/integration_point.h"
 
 

@@ -2,7 +2,7 @@
 #include "pybind11/pybind11.h"
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "spaces/ublas_space.h"
 #include "solving_strategies/schemes/scheme.h"
 

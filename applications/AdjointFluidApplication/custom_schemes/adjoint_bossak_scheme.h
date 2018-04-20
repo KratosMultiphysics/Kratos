@@ -22,7 +22,7 @@
 #include "includes/model_part.h"
 #include "includes/process_info.h"
 #include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"

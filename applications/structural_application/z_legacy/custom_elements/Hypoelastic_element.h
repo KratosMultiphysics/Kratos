@@ -14,7 +14,7 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h" //for vec & mat manipulation
+#include "includes/amatrix_interface.h" //for vec & mat manipulation
 #include "includes/variables.h" //insert kratos varibles
 #include "includes/constitutive_law.h"
 

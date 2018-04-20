@@ -24,7 +24,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/prettywriter.h"

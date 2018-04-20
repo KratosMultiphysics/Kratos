@@ -31,7 +31,7 @@ extern "C" {
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
-#include "includes/ublas_interface.h"
+#include "includes/amatrix_interface.h"
 #include "includes/ublas_complex_interface.h"
 #include "spaces/ublas_space.h"
 
