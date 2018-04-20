@@ -238,14 +238,14 @@ void CompressibleNavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<doub
     const int BlockSize = dim+2;
     const double h = data.h; 
 
-//     const double& bdf0 = data.bdf0;
-//     const double& bdf1 = data.bdf1;
-//     const double& bdf2 = data.bdf2;
+    const double& bdf0 = data.bdf0;
+    const double& bdf1 = data.bdf1;
+    const double& bdf2 = data.bdf2;
     
     const bounded_matrix<double,nnodes,BlockSize>& U = data.U;
-//     const bounded_matrix<double,nnodes,BlockSize>& Un = data.Un;
-//     const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
-//     const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
+    const bounded_matrix<double,nnodes,BlockSize>& Un = data.Un;
+    const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
+    const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
 //     const array_1d<double,nnodes>& r = data.r;
 //     const double mu = data.mu;
     const double nu = data.nu;
@@ -258,7 +258,7 @@ void CompressibleNavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<doub
     
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-//     const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,BlockSize> U_gauss = prod(trans(U), N);
