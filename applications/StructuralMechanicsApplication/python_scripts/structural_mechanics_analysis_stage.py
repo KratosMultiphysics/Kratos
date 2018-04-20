@@ -41,10 +41,10 @@ class StructuralMechanicsAnalysisStage(object): # TODO in the future this could 
     #### Public functions to run the Analysis ####
     def Run(self):
         self.Initialize()
-        self.RunMainTemporalLoop()
+        self.RunSolutionLoop()
         self.Finalize()
 
-    def RunMainTemporalLoop(self):
+    def RunSolutionLoop(self):
         while self.time < self.end_time:
             self.InitializeTimeStep()
             self.SolveTimeStep()

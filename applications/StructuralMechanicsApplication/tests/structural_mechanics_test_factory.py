@@ -42,7 +42,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
     def test_execution(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.RunMainTemporalLoop()
+            self.test.RunSolutionLoop()
 
     def tearDown(self):
         # Within this location context:
