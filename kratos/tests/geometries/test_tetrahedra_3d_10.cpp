@@ -30,7 +30,7 @@ namespace Testing {
 namespace{
   typedef Node<3> NodeType;
 
-  Geometry<NodeType>::PointsArrayType GenerateReferenceNodes()
+  Geometry<NodeType>::PointsArrayType GenerateReferenceNodes3D10()
   {
       Geometry<NodeType>::PointsArrayType points;
       points.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -48,11 +48,11 @@ namespace{
 
   Geometry<NodeType>::Pointer GenerateReferenceTetrahedra3D10() {
       return Geometry<NodeType>::Pointer(
-          new Tetrahedra3D10<NodeType>(GenerateReferenceNodes()));
+          new Tetrahedra3D10<NodeType>(GenerateReferenceNodes3D10()));
   }
 
   Geometry<NodeType>::Pointer GenerateCurvedTetrahedra3D10() {
-      auto nodes = GenerateReferenceNodes();
+      auto nodes = GenerateReferenceNodes3D10();
       nodes[5].X0() = nodes[5].X() = 0.4;
       nodes[5].Y0() = nodes[5].Y() = 0.4;
       nodes[6].X0() = nodes[6].X() = 0.1;

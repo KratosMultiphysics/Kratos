@@ -28,7 +28,7 @@ typedef Node<3> NodeType;
 
 // /// Factory functions
 namespace {
-  Geometry<NodeType>::PointsArrayType GenerateReferenceNodes()
+  Geometry<NodeType>::PointsArrayType GenerateReferenceNodes2D6()
   {
       Geometry<NodeType>::PointsArrayType points;
       points.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -42,11 +42,11 @@ namespace {
 
   Geometry<NodeType>::Pointer GenerateReferenceTriangle2D6() {
       return Geometry<NodeType>::Pointer(
-          new Triangle2D6<NodeType>(GenerateReferenceNodes()));
+          new Triangle2D6<NodeType>(GenerateReferenceNodes2D6()));
   }
 
   Geometry<NodeType>::Pointer GenerateCurvedTriangle2D6() {
-      auto nodes = GenerateReferenceNodes();
+      auto nodes = GenerateReferenceNodes2D6();
       nodes[3].Y0() = nodes[3].Y() = 0.1;
       nodes[4].X0() = nodes[4].X() = 0.4;
       nodes[4].Y0() = nodes[4].Y() = 0.4;
