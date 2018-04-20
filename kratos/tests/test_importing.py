@@ -10,7 +10,6 @@ def GetFilePath(fileName):
 
 
 class TestImporting(KratosUnittest.TestCase):
-    @KratosUnittest.expectedFailure
     def test_importing(self):
         #import KratosMultiphysics.FluidDynamicsApplication
         model_part = ModelPart("Main")

@@ -8,6 +8,7 @@
 //
 
 // System includes 
+#include <pybind11/stl.h>
 
 // External includes 
 
@@ -35,26 +36,11 @@ namespace Python
 
 typedef std::vector<Flags>  FlagsContainer;
     
-    
-void Push_Back_Flags( FlagsContainer& ThisFlagContainer,
-                      Flags ThisFlag )
-{
-  ThisFlagContainer.push_back( ThisFlag );
-}
-
-    
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 
   using namespace pybind11;
-
       
-  class_< FlagsContainer >(m,"FlagsContainer")
-      .def( init<>() )
-      .def( "PushBack", Push_Back_Flags )
-      ;
-    
-
   //**********TRANSFER NODES TO MODEL PART*********//
 
   class_<TransferNodesToModelPartProcess, Process>(m,"TransferNodesProcess")

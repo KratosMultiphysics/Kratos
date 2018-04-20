@@ -685,7 +685,7 @@ public:
 
       double vol = Volume();
 
-      return std::copysign(normFactor * std::pow(9 * vol * vol, 1.0 / 3.0) / (sa + sb + sc + sd + se + sf), vol);
+      return std::abs(normFactor * std::pow(9 * vol * vol, 1.0 / 3.0) / (sa + sb + sc + sd + se + sf)) * (vol < 0 ? -1 : 1);
     }
 
     /** Calculates the volume to average edge lenght quality metric.
@@ -1012,7 +1012,6 @@ public:
      * value of the shape function is calculated
      *
      * @return the value of the shape function at the given point
-     * TODO: TO BE VERIFIED
      */
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint) const override
@@ -1519,9 +1518,6 @@ private:
      */
 
     /**
-     * TODO: TO BE VERIFIED
-     */
-    /**
      * Calculates the gradients in terms of local coordinateds
      * of all shape functions in a given point.
      *
@@ -1547,9 +1543,6 @@ private:
         return rResult;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1585,9 +1578,6 @@ private:
         return shape_function_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the local gradients of all shape functions in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1670,9 +1660,6 @@ private:
         return shape_functions_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     static const ShapeFunctionsLocalGradientsContainerType
     AllShapeFunctionsLocalGradients()
     {

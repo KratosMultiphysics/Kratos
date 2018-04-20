@@ -114,7 +114,7 @@ public:
      */
     /*@{ */
 
-    virtual int Check(ModelPart& rModelPart) override
+    int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 

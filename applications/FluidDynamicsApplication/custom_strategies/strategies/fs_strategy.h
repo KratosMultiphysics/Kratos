@@ -227,7 +227,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() override 
+    void Initialize() override
     {}
 
     int Check() override
@@ -314,6 +314,12 @@ public:
 
 
         return NormDp;
+    }
+
+    bool SolveSolutionStep() override
+    {
+        double norm_dp = this->Solve();
+        return this->CheckPressureConvergence(norm_dp);
     }
 
 
@@ -831,7 +837,7 @@ protected:
         {
             ModelPart::NodeIterator itNode = rModelPart.NodesBegin() + i;
             const Node<3>& r_const_node = *itNode;
-            
+
             if ( r_const_node.GetValue(rSlipWallFlag) != 0.0 )
             {
                 const array_1d<double,3>& rNormal = itNode->FastGetSolutionStepValue(NORMAL);

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -100,6 +100,11 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, DENSITY )
     KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS )
     KRATOS_DEFINE_VARIABLE( double, POISSON_RATIO )
+    KRATOS_DEFINE_VARIABLE( double, SHEAR_MODULUS_GAMMA12)
+    KRATOS_DEFINE_VARIABLE( double, SHEAR_MODULUS_GAMMA12_2)
+    KRATOS_DEFINE_VARIABLE( double, SHEAR_MODULUS_GAMMA12_3)
+    KRATOS_DEFINE_VARIABLE( double, SHEAR_MODULUS_GAMMA12_4)
+
     KRATOS_DEFINE_VARIABLE( double, THICKNESS )
     KRATOS_DEFINE_VARIABLE( double, EQUIVALENT_YOUNG_MODULUS )
 
