@@ -32,9 +32,9 @@ namespace Kratos
 {
 
 template<
-    class TSolver,
-    class TSparseSpaceType = typename TSolver::TGlobalSpace,
-    class TDenseSpaceType = typename TSolver::TLocalSpace,
+    class TSolverType,
+    class TSparseSpaceType = typename TSolverType::TGlobalSpace,
+    class TDenseSpaceType = typename TSolverType::TLocalSpace,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigensystemSolver
@@ -178,7 +178,7 @@ class EigensystemSolver
             r(ij, j) = 1.0;
         }
 
-        typename TSolver::TSolver solver;
+        typename TSolverType::TSolver solver;
         solver.compute(a);
 
         int iteration = 0;

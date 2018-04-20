@@ -15,7 +15,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
@@ -32,11 +31,11 @@ void register_solver(pybind11::module& m, const std::string& name)
 {
 	using namespace pybind11;
 
-	using Space = SpaceType<typename SolverType::TScalar>;
+	using Base = DirectSolver<typename SolverType::TGlobalSpace, typename SolverType::TLocalSpace>;
 
-	using Base = DirectSolver<typename Space::Global, typename Space::Local>;
+	using EigenDirectSolverType = EigenDirectSolver<SolverType>;
 
-	class_<EigenDirectSolver<SolverType>, Base >
+	class_<EigenDirectSolverType, typename EigenDirectSolverType::Pointer, Base >
 		(m, name.c_str())
 		.def(init<>())
 		.def(init<Parameters>())
@@ -48,11 +47,11 @@ void register_eigensystem_solver(pybind11::module& m, const std::string& name = 
 {
 	using namespace pybind11;
 
-	using Space = SpaceType<typename SolverType::TScalar>;
+	using Base = LinearSolver<typename SolverType::TGlobalSpace, typename SolverType::TLocalSpace>;
 
-	using Base = LinearSolver<typename Space::Global, typename Space::Local>;
+	using EigenSystemSolverType = EigensystemSolver<SolverType>;
 
-	class_<EigensystemSolver<SolverType>, Base >
+	class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
 		(m, name.c_str())
 		.def(init<Parameters>())
 	;

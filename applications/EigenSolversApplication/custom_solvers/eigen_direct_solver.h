@@ -56,7 +56,7 @@ struct SolverType
     using TScalar = scalar_t;
 
     using TSparseMatrix = Eigen::SparseMatrix<scalar_t, Eigen::RowMajor, int>;
-    
+
     using TGlobalSpace = typename SpaceType<scalar_t>::Global;
 
     using TLocalSpace = typename SpaceType<scalar_t>::Local;
@@ -105,14 +105,14 @@ struct PardisoLU : SolverType<scalar_t>
 #endif
 
 template <
-    class TSolver,
-    class TSparseSpaceType = typename TSolver::TGlobalSpace,
-    class TDenseSpaceType = typename TSolver::TLocalSpace,
+    class TSolverType,
+    class TSparseSpaceType = typename TSolverType::TGlobalSpace,
+    class TDenseSpaceType = typename TSolverType::TLocalSpace,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigenDirectSolver
     : public DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
 {
-    typename TSolver::TSolver m_solver;
+    typename TSolverType::TSolver m_solver;
 
     EigenDirectSolver &operator=(const EigenDirectSolver &Other);
 
@@ -206,7 +206,7 @@ class EigenDirectSolver
      */
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << "EigenDirectSolver<" << TSolver::Name << "> finished.";
+        rOStream << "EigenDirectSolver<" << TSolverType::Name << "> finished.";
     }
 
     /**
@@ -221,13 +221,13 @@ class EigenDirectSolver
  * input stream function
  */
 template<
-    class TSolver,
+    class TSolverType,
     class TSparseSpaceType,
     class TDenseSpaceType,
     class TReordererType>
 inline std::istream &operator>>(
     std::istream &rIStream,
-    EigenDirectSolver<TSolver, TSparseSpaceType, TDenseSpaceType, TReordererType> &rThis)
+    EigenDirectSolver<TSolverType, TSparseSpaceType, TDenseSpaceType, TReordererType> &rThis)
 {
     return rIStream;
 }
@@ -236,14 +236,14 @@ inline std::istream &operator>>(
  * output stream function
  */
 template<
-    class TSolver,
+    class TSolverType,
     class TSparseSpaceType,
     class TDenseSpaceType,
     class TReordererType
     >
 inline std::ostream &operator<<(
     std::ostream &rOStream,
-    const EigenDirectSolver<TSolver, TSparseSpaceType, TDenseSpaceType, TReordererType> &rThis)
+    const EigenDirectSolver<TSolverType, TSparseSpaceType, TDenseSpaceType, TReordererType> &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
