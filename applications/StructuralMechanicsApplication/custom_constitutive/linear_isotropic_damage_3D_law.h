@@ -279,8 +279,8 @@ protected:
     ///@name Protected member Variables
     ///@{
     bool mInelasticFlag; /// Flags when in inelastic regime
-    double mDamageThreshold;
-    double mDamageThresholdOld;
+    double mStrainVariable;
+    double mStrainVariableOld;
     ///@}
 
     ///@name Protected Operators
@@ -289,7 +289,7 @@ protected:
 
     ///@name Protected Operations
     ///@{
-    double EvaluateHardeningLaw(double DamageThreshold, const Properties &rMaterialProperties);
+    double EvaluateHardeningLaw(double StrainVariable, const Properties &rMaterialProperties);
     virtual void CalculateConstitutiveMatrix(Matrix &rConstitTensor, const Properties &rMaterialProperties);
     ///@}
 

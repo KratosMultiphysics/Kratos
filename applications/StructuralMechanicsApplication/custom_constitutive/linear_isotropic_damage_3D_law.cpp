@@ -97,7 +97,7 @@ void LinearIsotropicDamage3D::InitializeMaterial(
 {
     const double yield_stress = rMaterialProperties[YIELD_STRESS];
     const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
-    mDamageThresholdOld = yield_stress / std::sqrt(young_modulus);
+    mStrainVariableOld = yield_stress / std::sqrt(young_modulus);
 }
 
 //************************************************************************************
@@ -110,7 +110,7 @@ void LinearIsotropicDamage3D::FinalizeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo)
 {
     // update of damage threshold
-    mDamageThresholdOld = mDamageThreshold;
+    mStrainVariableOld = mStrainVariable;
 }
 
 //************************************************************************************
@@ -163,28 +163,29 @@ void LinearIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& rValue
         noalias(stress_vector) = prod(constitutive_matrix, strain_vector);
 
         const double strain_norm = std::sqrt(inner_prod(stress_vector, strain_vector));
-        if (strain_norm <= mDamageThresholdOld)
+        if (strain_norm <= mStrainVariableOld)
         {
             // ELASTIC
             mInelasticFlag = false;
-            mDamageThreshold = mDamageThresholdOld;
-            const double q = EvaluateHardeningLaw(mDamageThreshold, rMaterialProperties);
-            const double d = 1. - q / mDamageThreshold;
-            constitutive_matrix *= (1 - d);
-            stress_vector *= (1 - d);
+            mStrainVariable = mStrainVariableOld;
+            const double stress_variable = EvaluateHardeningLaw(mStrainVariable, rMaterialProperties);
+            const double damage_variable = 1. - stress_variable / mStrainVariable;
+            constitutive_matrix *= (1 - damage_variable);
+            stress_vector *= (1 - damage_variable);
         }
         else
         {
             // INELASTIC
             mInelasticFlag = true;
-            mDamageThreshold = strain_norm;
-            const double q = EvaluateHardeningLaw(mDamageThreshold, rMaterialProperties);
-            const double d = 1. - q / mDamageThreshold;
-            const double H = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-            const double dpointcoeff = (q - H * mDamageThreshold) / (mDamageThreshold * mDamageThreshold * mDamageThreshold);
-            constitutive_matrix *= (1. - d);
-            constitutive_matrix -= dpointcoeff * outer_prod(stress_vector, stress_vector);
-            stress_vector *= (1. - d);
+            mStrainVariable = strain_norm;
+            const double stress_variable = EvaluateHardeningLaw(mStrainVariable, rMaterialProperties);
+            const double damage_variable = 1. - stress_variable / mStrainVariable;
+            const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
+            const double damage_rate = (stress_variable - hardening_modulus * mStrainVariable)
+                                       / (mStrainVariable * mStrainVariable * mStrainVariable);
+            constitutive_matrix *= (1. - damage_variable);
+            constitutive_matrix -= damage_rate * outer_prod(stress_vector, stress_vector);
+            stress_vector *= (1. - damage_variable);
         }
     }
 }
@@ -206,10 +207,10 @@ double& LinearIsotropicDamage3D::CalculateValue(
         const Properties& rMaterialProperties = rParameterValues.GetMaterialProperties();
         Matrix& constitutive_matrix = rParameterValues.GetConstitutiveMatrix();
         CalculateConstitutiveMatrix(constitutive_matrix, rMaterialProperties);
-        const double q = EvaluateHardeningLaw(mDamageThresholdOld, rMaterialProperties);
-        const double d = 1. - q / mDamageThresholdOld;
+        const double stress_like_variable = EvaluateHardeningLaw(mStrainVariableOld, rMaterialProperties);
+        const double damage_variable = 1. - stress_like_variable / mStrainVariableOld;
 
-        rValue = 0.5 * ((1. - d) * inner_prod(strain_vector,
+        rValue = 0.5 * ((1. - damage_variable) * inner_prod(strain_vector,
                                               prod(constitutive_matrix, strain_vector)));
     }
     return(rValue);
@@ -247,24 +248,24 @@ void LinearIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rValues
 //************************************************************************************
 
 double LinearIsotropicDamage3D::EvaluateHardeningLaw(
-        double DamageThreshold,
+        double StrainVariable,
         const Properties &rMaterialProperties
 )
 {
     const double yield_stress = rMaterialProperties[YIELD_STRESS];
     const double inf_yield_stress = rMaterialProperties[INFINITY_YIELD_STRESS];
     const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
-    const double H = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double damage_threshold_original = yield_stress / std::sqrt(young_modulus);
-    const double q_inf = inf_yield_stress / std::sqrt(young_modulus);
-    double q;
+    const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
+    const double strain_variable_init = yield_stress / std::sqrt(young_modulus);
+    const double stress_variable_inf = inf_yield_stress / std::sqrt(young_modulus);
+    double stress_variable;
 
-    if (DamageThreshold < damage_threshold_original)
-        return DamageThreshold;
-    q = damage_threshold_original + H * (DamageThreshold - damage_threshold_original);
-    if ((H > 0 && q > q_inf) || (H < 0 && q < q_inf))
-        q = q_inf;
-    return q;
+    if (StrainVariable < strain_variable_init)
+        return StrainVariable;
+    stress_variable = strain_variable_init + hardening_modulus * (StrainVariable - strain_variable_init);
+    if ((hardening_modulus > 0 && stress_variable > stress_variable_inf) || (hardening_modulus < 0 && stress_variable < stress_variable_inf))
+        stress_variable = stress_variable_inf;
+    return stress_variable;
 }
 
 //************************************************************************************
@@ -348,8 +349,8 @@ void LinearIsotropicDamage3D::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.save("mInelasticFlag", mInelasticFlag);
-    rSerializer.save("mDamageThreshold", mDamageThreshold);
-    rSerializer.save("mDamageThresholdOld", mDamageThresholdOld);
+    rSerializer.save("mStrainVariable", mStrainVariable);
+    rSerializer.save("mStrainVariableOld", mStrainVariableOld);
 }
 
 //************************************************************************************
@@ -359,8 +360,8 @@ void LinearIsotropicDamage3D::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.load("mInelasticFlag", mInelasticFlag);
-    rSerializer.save("mDamageThreshold", mDamageThreshold);
-    rSerializer.save("mDamageThresholdOld", mDamageThresholdOld);
+    rSerializer.save("mStrainVariable", mStrainVariable);
+    rSerializer.save("mStrainVariableOld", mStrainVariableOld);
 }
 
 } /* namespace Kratos.*/
