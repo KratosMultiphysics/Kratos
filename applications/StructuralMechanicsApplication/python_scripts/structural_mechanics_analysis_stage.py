@@ -51,6 +51,7 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
             self.InitializeTimeStep()
             self.SolveTimeStep()
             self.FinalizeTimeStep()
+            self.OutputSolutionStep()
 
     def _RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
@@ -241,6 +242,9 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
         if (self.output_post == True):
             self.gid_output.ExecuteFinalizeSolutionStep()
 
+
+    def OutputSolutionStep(self):
+        """ Printing the output. Called once per timestep """
         for process in self.list_of_processes:
             process.ExecuteBeforeOutputStep()
 
