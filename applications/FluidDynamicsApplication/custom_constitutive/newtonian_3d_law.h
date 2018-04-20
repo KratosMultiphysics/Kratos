@@ -28,7 +28,7 @@ namespace Kratos
  * This material law is defined by the parameters:
  * 1) DYNAMIC_VISCOSITY
  */
-class Newtonian3DLaw : public FluidConstitutiveLaw
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) Newtonian3DLaw : public FluidConstitutiveLaw
 {
 public:
     /**

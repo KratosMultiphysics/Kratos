@@ -53,9 +53,9 @@ proc WriteConstraintVectorProcess {FileVar GroupNum Groups EntityType VarName Ta
         set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] $EntityType]
         if {[llength $Entities] > 0} {
             incr MyGroupNum
-            puts $MyFileVar "        \"python_module\": \"apply_constraint_vector_table_process\","
+            puts $MyFileVar "        \"python_module\": \"apply_vector_constraint_table_process\","
             puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $MyFileVar "        \"process_name\":  \"ApplyConstraintVectorTableProcess\","
+            puts $MyFileVar "        \"process_name\":  \"ApplyVectorConstraintTableProcess\","
             puts $MyFileVar "        \"Parameters\":    \{"
             puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "            \"variable_name\":   \"$VarName\","
@@ -83,9 +83,9 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
         set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] $EntityType]
         if {[llength $Entities] > 0} {
             incr MyGroupNum
-            puts $MyFileVar "        \"python_module\": \"apply_pore_pressure_table_process\","
+            puts $MyFileVar "        \"python_module\": \"apply_scalar_constraint_table_process\","
             puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $MyFileVar "        \"process_name\":  \"ApplyPorePressureTableProcess\","
+            puts $MyFileVar "        \"process_name\":  \"ApplyScalarConstraintTableProcess\","
             puts $MyFileVar "        \"Parameters\":    \{"
             puts $MyFileVar "            \"model_part_name\":      \"[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "            \"variable_name\":        \"$VarName\","
@@ -126,9 +126,9 @@ proc WriteLoadVectorProcess {FileVar GroupNum Groups VarName TableDict NumGroups
 
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         incr MyGroupNum
-        puts $MyFileVar "        \"python_module\": \"apply_load_vector_table_process\","
+        puts $MyFileVar "        \"python_module\": \"apply_vector_constraint_table_process\","
         puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-        puts $MyFileVar "        \"process_name\":  \"ApplyLoadVectorTableProcess\","
+        puts $MyFileVar "        \"process_name\":  \"ApplyVectorConstraintTableProcess\","
         puts $MyFileVar "        \"Parameters\":    \{"
         puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
         puts $MyFileVar "            \"variable_name\":   \"$VarName\","
@@ -202,9 +202,9 @@ proc WriteLoadScalarProcess {FileVar GroupNum Groups VarName TableDict NumGroups
 
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         incr MyGroupNum
-        puts $MyFileVar "        \"python_module\": \"apply_load_scalar_table_process\","
+        puts $MyFileVar "        \"python_module\": \"apply_scalar_constraint_table_process\","
         puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-        puts $MyFileVar "        \"process_name\":  \"ApplyLoadScalarTableProcess\","
+        puts $MyFileVar "        \"process_name\":  \"ApplyScalarConstraintTableProcess\","
         puts $MyFileVar "        \"Parameters\":    \{"
         puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
         puts $MyFileVar "            \"variable_name\":   \"$VarName\","

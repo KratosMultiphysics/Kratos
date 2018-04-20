@@ -40,7 +40,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             this_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
-            this_model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS);
+            this_model_part.AddNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
             
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;

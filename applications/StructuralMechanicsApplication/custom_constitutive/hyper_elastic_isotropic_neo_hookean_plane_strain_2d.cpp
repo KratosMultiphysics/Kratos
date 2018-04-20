@@ -137,7 +137,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixKi
 //************************************************************************************
 
 void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateCauchyGreenStrain(
-    Parameters& rValues,
+    ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
     )
 {
@@ -156,7 +156,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateCauchyGreenStrain(
 //************************************************************************************
 
 void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateAlmansiStrain(
-    Parameters& rValues,
+    ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
     )
 {

@@ -20,12 +20,6 @@
 #include <algorithm>
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/io.hpp>
-
-// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "../../kratos/includes/define.h"
@@ -121,11 +115,11 @@ public:
 	///@{
 
 	// ==============================================================================
-	void Initialize()
+	void Initialize() override
 	{}
 
 	// --------------------------------------------------------------------------
-	void CalculateValue()
+	void CalculateValue() override
 	{
 		KRATOS_TRY;
 
@@ -151,7 +145,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void CalculateGradient()
+	void CalculateGradient() override
 	{
 		KRATOS_TRY;
 
@@ -272,7 +266,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	double GetValue()
+	double GetValue() override
 	{
 		KRATOS_TRY;
 
@@ -282,16 +276,16 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	boost::python::dict GetGradient()
+	pybind11::dict GetGradient() override
 	{
 		KRATOS_TRY;
 
 		// Dictionary to store all sensitivities along with Ids of corresponding nodes
-		boost::python::dict dFdX;
+		pybind11::dict dFdX;
 
 		// Fill dictionary with gradient information
 		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT);
+			dFdX[pybind11::cast(node_i->Id())] = node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT);
 
 		return dFdX;
 
@@ -299,7 +293,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-  	virtual void ConsiderDiscretization(){
+  	void ConsiderDiscretization() override {
 
 		std::cout<< "> Considering discretization size!" << std::endl;
 		for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
@@ -350,19 +344,19 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const
+	std::string Info() const override
 	{
 		return "MassResponseFunction";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
+	void PrintInfo(std::ostream &rOStream) const override
 	{
 		rOStream << "MassResponseFunction";
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
+	void PrintData(std::ostream &rOStream) const override
 	{
 	}
 

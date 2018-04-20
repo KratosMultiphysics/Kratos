@@ -20,12 +20,6 @@
 #include <algorithm>
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/io.hpp>
-
-// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "../../kratos/includes/define.h"
@@ -155,13 +149,13 @@ public:
 	///@{
 
 	// ==============================================================================
-	void Initialize()
+	void Initialize() override
 	{
 		//not needed because only semi-analytical sensitivity analysis is implemented yet
 	}
 
 	// --------------------------------------------------------------------------
-	void CalculateValue()
+	void CalculateValue() override
 	{
 		KRATOS_TRY;
 
@@ -222,7 +216,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void CalculateGradient()
+	void CalculateGradient() override
 	{
 		KRATOS_TRY;
 
@@ -249,7 +243,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	double GetValue()
+	double GetValue() override
 	{
 		KRATOS_TRY;
 
@@ -259,16 +253,16 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	boost::python::dict GetGradient()
+	pybind11::dict GetGradient() override
 	{
 		KRATOS_TRY;
 
 		// Dictionary to store all sensitivities along with Ids of corresponding nodes
-		boost::python::dict dFdX;
+		pybind11::dict dFdX;
 
 		// Fill dictionary with gradient information
 		for (auto& node_i : mr_model_part.Nodes())
-			dFdX[node_i.Id()] = node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT);
+			dFdX[pybind11::cast(node_i.Id())] = node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT);
 
 		return dFdX;
 
@@ -290,19 +284,19 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const
+	std::string Info() const override
 	{
 		return "EigenfrequencyResponseFunctionLinScal";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
+	void PrintInfo(std::ostream &rOStream) const override
 	{
 		rOStream << "EigenfrequencyResponseFunctionLinScal";
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
+	void PrintData(std::ostream &rOStream) const override
 	{
 	}
 
@@ -462,7 +456,7 @@ protected:
 		KRATOS_CATCH("");
 	}
 
-	virtual void ConsiderDiscretization(){
+	void ConsiderDiscretization() override {
 	}
 
 	// ==============================================================================

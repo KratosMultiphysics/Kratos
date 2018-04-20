@@ -8,7 +8,7 @@
 
 namespace Kratos {
 
-    class DEM_D_Linear_Custom_Constants : public DEM_D_Linear_viscous_Coulomb {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Linear_Custom_Constants : public DEM_D_Linear_viscous_Coulomb {
     
     public:
 
