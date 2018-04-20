@@ -65,6 +65,9 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
 
     #### Internal functions ####
+    def SetTimeStep(self,new_dt):
+        self.delta_time = new_dt
+
     def _CreateSolver(self, external_model_part=None):
         """ Create the Solver (and create and import the ModelPart if it is not passed from outside) """
         if external_model_part != None:

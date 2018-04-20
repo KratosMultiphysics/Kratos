@@ -433,17 +433,32 @@ class Solution(object):
             self.FinalizeTimeStep(self.time)
 
 
+    def ReturnDeltaTime(self):
+        return self.dt
+
+    def SetDeltaTime(self,new_dt,**kwargs):
+        if kwargs.get("reset"):
+            self.Setdt()
+        else:
+            if kwargs.get("multiply"):
+                self.Setdt()
+                self.dt = self.dt*kwargs.get("multiply")
+            else:
+                self.dt = new_dt
+
     def InitializeTime(self):
         self.step = 0
         self.time = 0.0
         self.time_old_print = 0.0    
 
-    def RunSingleTemporalLoop(self):
+    def UpdateTimeParameters(self):
         self.InitializeTimeStep()
         self.time = self.time + self.dt
         self.step += 1
 
         self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step)
+        
+    def SolveSingleTemporalLoop(self):
 
         self.BeforeSolveOperations(self.time)
 
@@ -451,6 +466,7 @@ class Solution(object):
 
         self.AfterSolveOperations()
 
+    def FinalizeSingleTimeStep(self):
         self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.dt)
         #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
@@ -462,6 +478,8 @@ class Solution(object):
         if stepinfo:
             self.KRATOSprint(stepinfo)
 
+
+    def OutputSingleTimeLoop(self):
         #### PRINTING GRAPHS ####
         os.chdir(self.graphs_path)
         self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time)
@@ -485,7 +503,6 @@ class Solution(object):
             self.time_old_print = self.time
 
         self.FinalizeTimeStep(self.time)
-
         
 
     def IsTimeToPrintPostProcess(self):
