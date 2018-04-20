@@ -50,30 +50,23 @@ public:
     , mRank(Rank) {
   }
 
-  /** Constructor by boost::shared_ptr
-   * Constructor by boost::shared_ptr
+  /** Constructor by Kratos::shared_ptr
+   * Constructor by Kratos::shared_ptr
    * @param DataPointer Boost Shared Pointer to the Data.
    */
-  GlobalPointer(boost::shared_ptr<TDataType> DataPointer, int Rank = 0)
+  GlobalPointer(Kratos::shared_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.get())
     , mRank(Rank) {
   }
 
-  /** Constructor by boost::weak_ptr
-   * Constructor by boost::weak_ptr
-   * @param DataPointer Boost Weak Pointer to the Data.
+  /** Constructor by Kratos::weak_ptr
+   * Constructor by Kratos::weak_ptr
+   * @param DataPointer Kratos Weak Pointer to the Data.
    */
-  GlobalPointer(boost::weak_ptr<TDataType> DataPointer, int Rank = 0)
+  GlobalPointer(Kratos::weak_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.lock().get())
     , mRank(Rank) {
   }
-
-  /** Constructor by boost::unique_ptr
-   * Constructor by boost::unique_ptr
-   * @param DataPointer Std Unique Pointer to the Data.
-   */
-  /// Note: Not currently even imported on kratos.
-  // GlobalPointer(boost::unique_ptr<TDataType> DataPointer) = delete;
 
   /** Constructor by std::shared_ptr
    * Constructor by std::shared_ptr
