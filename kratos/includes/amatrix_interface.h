@@ -21,7 +21,7 @@
 
 
 // External includes
-#include "include/amatrix.h"
+#include "amatrix.h"
 
 // Project includes
 #include "includes/define.h"
