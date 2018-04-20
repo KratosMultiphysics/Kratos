@@ -48,9 +48,10 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
 
     def RunSolutionLoop(self):
         while self.time < self.end_time:
-            self.InitializeTimeStep()
-            self.SolveTimeStep()
-            self.FinalizeTimeStep()
+            self.InitializeSolutionStep()
+            self.solver.Predict()
+            self.solver.SolveSolutionStep()
+            self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
     def _RunSolutionLoop(self):
@@ -79,14 +80,8 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
 
         self._ExecuteBeforeSolutionLoop()
 
-    def InitializeTimeStep(self):
-        self._ExecuteInitializeSolutionStep()
-
     def SolveTimeStep(self):
         self._SolveSolutionStep()
-
-    def FinalizeTimeStep(self):
-        self._ExecuteFinalizeSolutionStep()
 
     def Finalize(self):
         self._ExecuteFinalize()
@@ -203,19 +198,18 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
 
-    def _ExecuteInitializeSolutionStep(self):
+    def InitializeSolutionStep(self):
         """ Initialize the timestep and advance in time. Called once per timestep """
         self.time += self.delta_time
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         self.main_model_part.CloneTimeStep(self.time)
 
+        super(StructuralMechanicsAnalysisStage, self).InitializeSolutionStep()
+
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
             KratosMultiphysics.Logger.PrintInfo("TIME: ", self.time)
         sys.stdout.flush()
-
-        for process in self.list_of_processes:
-            process.ExecuteInitializeSolutionStep()
 
         if (self.output_post == True):
             self.gid_output.ExecuteInitializeSolutionStep()
@@ -234,10 +228,9 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
         """ Function to be called after solving. Can be executed several times per timestep """
         pass
 
-    def _ExecuteFinalizeSolutionStep(self):
+    def FinalizeSolutionStep(self):
         """ Finalizing the timestep and printing the output. Called once per timestep """
-        for process in self.list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
+        super(StructuralMechanicsAnalysisStage, self).FinalizeSolutionStep()
 
         if (self.output_post == True):
             self.gid_output.ExecuteFinalizeSolutionStep()
