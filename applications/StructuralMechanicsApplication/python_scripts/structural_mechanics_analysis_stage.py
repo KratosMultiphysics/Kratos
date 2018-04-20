@@ -105,15 +105,6 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
                                                       self.project_parameters["problem_data"]["domain_size"].GetInt())
             self.using_external_model_part = False
 
-        ## Structure model part definition
-        if self.using_external_model_part:
-            self.main_model_part = external_model_part
-        else:
-            main_model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-            self.main_model_part = KratosMultiphysics.ModelPart(main_model_part_name)
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
-                                                      self.project_parameters["problem_data"]["domain_size"].GetInt())
-
         ## Solver construction
         import python_solvers_wrapper_structural
         self.solver = python_solvers_wrapper_structural.CreateSolver(self.main_model_part, self.project_parameters)
