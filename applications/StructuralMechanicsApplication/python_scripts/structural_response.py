@@ -14,10 +14,6 @@ class ResponseFunctionBase(object):
     solving of primal (and adjoint) analysis ...
     """
 
-    def __init__(self, identifier, project_parameters):
-        self.identifier = identifier
-        self.project_parameters = project_parameters
-
     def Initialize(self):
         pass
 
@@ -46,14 +42,16 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
         gradient.
     """
 
-    def __init__(self, identifier, project_parameters, response_function_utility, model_part = None):
-        super(StrainEnergyResponseFunction, self).__init__(identifier, project_parameters)
+    def __init__(self, identifier, response_settings, model_part = None):
+        self.identifier = identifier
+        self.response_settings = response_settings
 
-        with open(project_parameters["primal_settings"].GetString()) as parameters_file:
+        self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility( model_part, response_settings )
+
+        with open(response_settings["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters( parameters_file.read() )
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal, model_part)
         self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
-        self.response_function_utility = response_function_utility
 
     def Initialize(self):
         self.primal_analysis.Initialize()
@@ -90,6 +88,7 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
     """Eigenfrequency response function. The internal procedure is the same as
     for the StrainEnergyResponseFunction. It triggers the primal analysis and
     uses the primal analysis results to evaluate response value and gradient.
+    Only the response_function_utility is a different object.
 
     Attributes
     ----------
@@ -100,8 +99,23 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
         gradient.
     """
 
-    def __init__(self, identifier, project_parameters, response_function_utility, model_part = None):
-        super(EigenFrequencyResponseFunction, self).__init__(identifier, project_parameters, response_function_utility, model_part)
+    def __init__(self, identifier, response_settings, model_part = None):
+        self.identifier = identifier
+        self.response_settings = response_settings
+
+        if not response_settings.Has("weighting_method") or response_settings["weighting_method"].GetString() == "none":
+            self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility( model_part, response_settings )
+        elif response_settings["weighting_method"].GetString() == "linear_scaling":
+            self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionLinScalUtility( model_part, response_settings )
+        else:
+            raise NameError("The following weighting_method is not valid for eigenfrequency response: " + response_settings["weighting_method"].GetString() +
+                            ".\nAvailable weighting methods are: 'none', 'linear_scaling'. Default: 'none'")
+
+        with open(response_settings["primal_settings"].GetString()) as parameters_file:
+            ProjectParametersPrimal = Parameters( parameters_file.read() )
+        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal, model_part)
+        self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
+
 
 class MassResponseFunction(ResponseFunctionBase):
     """Mass response function. It reads the materials for the model part and
@@ -116,9 +130,12 @@ class MassResponseFunction(ResponseFunctionBase):
         gradient.
     """
 
-    def __init__(self, identifier, project_parameters, response_function_utility, model_part):
-        super(MassResponseFunction, self).__init__(identifier, project_parameters)
-        self.response_function_utility = response_function_utility
+    def __init__(self, identifier, response_settings, model_part):
+        self.identifier = identifier
+        self.response_settings = response_settings
+
+        self.response_function_utility = StructuralMechanicsApplication.MassResponseFunctionUtility( model_part, response_settings )
+
         self.model_part = model_part
         self.model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
@@ -128,7 +145,7 @@ class MassResponseFunction(ResponseFunctionBase):
         model = Model()
         model.AddModelPart(self.model_part)
         # Add constitutive laws and material properties from json file to model parts.
-        read_materials_process.ReadMaterialsProcess(model, self.project_parameters["material_import_settings"])
+        read_materials_process.ReadMaterialsProcess(model, self.response_settings["material_import_settings"])
         self.response_function_utility.Initialize()
 
     def CalculateValue(self):
