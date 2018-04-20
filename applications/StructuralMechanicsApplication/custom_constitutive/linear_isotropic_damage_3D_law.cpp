@@ -259,11 +259,13 @@ double LinearIsotropicDamage3D::EvaluateHardeningLaw(
     const double strain_variable_init = yield_stress / std::sqrt(young_modulus);
     const double stress_variable_inf = inf_yield_stress / std::sqrt(young_modulus);
     double stress_variable;
+    const double tolerance = std::numeric_limits<double>::epsilon();
 
     if (StrainVariable < strain_variable_init)
         return StrainVariable;
     stress_variable = strain_variable_init + hardening_modulus * (StrainVariable - strain_variable_init);
-    if ((hardening_modulus > 0 && stress_variable > stress_variable_inf) || (hardening_modulus < 0 && stress_variable < stress_variable_inf))
+    if ((hardening_modulus > tolerance && stress_variable > stress_variable_inf) ||
+        (hardening_modulus < tolerance && stress_variable < stress_variable_inf))
         stress_variable = stress_variable_inf;
     return stress_variable;
 }
@@ -319,22 +321,24 @@ int LinearIsotropicDamage3D::Check(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    const double tolerance = std::numeric_limits<double>::epsilon();
+
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
     KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));
     KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS));
     KRATOS_CHECK(rMaterialProperties.Has(INFINITY_YIELD_STRESS));
     KRATOS_CHECK(rMaterialProperties.Has(ISOTROPIC_HARDENING_MODULUS));
-    KRATOS_CHECK_GREATER(rMaterialProperties[YIELD_STRESS], 0.);
-    KRATOS_CHECK_GREATER(rMaterialProperties[INFINITY_YIELD_STRESS], 0.);
+    KRATOS_CHECK_GREATER(rMaterialProperties[YIELD_STRESS], tolerance);
+    KRATOS_CHECK_GREATER(rMaterialProperties[INFINITY_YIELD_STRESS], tolerance);
     KRATOS_CHECK_LESS(rMaterialProperties[ISOTROPIC_HARDENING_MODULUS], 1.);
-    KRATOS_CHECK_NOT_EQUAL(rMaterialProperties[ISOTROPIC_HARDENING_MODULUS], 0.);
+    KRATOS_CHECK_NOT_EQUAL(rMaterialProperties[ISOTROPIC_HARDENING_MODULUS], tolerance);
 
-    if (rMaterialProperties[ISOTROPIC_HARDENING_MODULUS] > 0 &&
+    if (rMaterialProperties[ISOTROPIC_HARDENING_MODULUS] > tolerance &&
         rMaterialProperties[INFINITY_YIELD_STRESS] <= rMaterialProperties[YIELD_STRESS])
         KRATOS_ERROR << "If ISOTROPIC_HARDENING_MODULUS is positive, "
             "INFINITY_YIELD_STRESS must be greater than YIELD_STRESS" << std::endl;
 
-    if (rMaterialProperties[ISOTROPIC_HARDENING_MODULUS] < 0 &&
+    if (rMaterialProperties[ISOTROPIC_HARDENING_MODULUS] < tolerance &&
         rMaterialProperties[INFINITY_YIELD_STRESS] >= rMaterialProperties[YIELD_STRESS])
         KRATOS_ERROR << "If ISOTROPIC_HARDENING_MODULUS is negative, "
                 "INFINITY_YIELD_STRESS must be lesser than YIELD_STRESS" << std::endl;
