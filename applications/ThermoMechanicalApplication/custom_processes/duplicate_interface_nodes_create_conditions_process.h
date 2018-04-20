@@ -101,7 +101,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
         KRATOS_WATCH("INSIDE DuplicateInterfaceNodesCreateConditionsProcess");
 
@@ -311,7 +311,7 @@ public:
 
                     /*					pCond_prop->SetId(condtion_prop_id);*/
                     Condition::Pointer p_cond = mrCndHeat.Create(cnd_id, temp, mr_model_part.GetMesh().pGetProperties(1));
-                    p_cond->Set(ACTIVE,true); 
+                    p_cond->Set(ACTIVE,true);
                     p_cond->SetValue( REF_ID,condition_ref_id );
                     mr_model_part.Conditions().push_back(p_cond);
 
@@ -324,8 +324,8 @@ public:
                     int prop_id = nd->GetValue(NODE_PROPERTY_ID);
 
                     Condition::Pointer p_env_cond_first = KratosComponents<Condition>::Get("EnvironmentContact").Create(cnd_id, env_temp, mr_model_part.GetMesh().pGetProperties(prop_id));
-                    
-                    p_env_cond_first->Set(ACTIVE,false); 
+
+                    p_env_cond_first->Set(ACTIVE,false);
                     p_env_cond_first->SetValue( REF_ID, (prop_id*mr_Nmax + prop_id) );
                     mr_model_part.Conditions().push_back(p_env_cond_first);
 
@@ -338,7 +338,7 @@ public:
                     prop_id = sc_nd->GetValue(NODE_PROPERTY_ID);
 
                     Condition::Pointer p_env_cond_second = KratosComponents<Condition>::Get("EnvironmentContact").Create(cnd_id, env_temp, mr_model_part.GetMesh().pGetProperties(prop_id));
-                    p_env_cond_second->Set(ACTIVE,false); 
+                    p_env_cond_second->Set(ACTIVE,false);
                     p_env_cond_second->SetValue( REF_ID, (prop_id*mr_Nmax + prop_id) );
                     mr_model_part.Conditions().push_back(p_env_cond_second);
 
@@ -590,6 +590,6 @@ private:
 
 }//end of namespace Kratos
 
-#endif // KRATOS_DUPLICATE_INTERFACE_NODES_CREATE_CONDITIONS_PROCESS  defined 
+#endif // KRATOS_DUPLICATE_INTERFACE_NODES_CREATE_CONDITIONS_PROCESS  defined
 
 
