@@ -5,10 +5,10 @@
 #include <limits>
 #include "matrix_storage.h"
 
-namespace AMatrix {
+namespace Kratos {
 
 template <typename TDataType, std::size_t TSize1, std::size_t TSize2>
-class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
+class DenseMatrix : public AMatrix::MatrixExpression<DenseMatrix<TDataType, TSize1, TSize2>,
                    row_major_access>,
                public MatrixStorage<TDataType, TSize1, TSize2> {
    public:
@@ -19,37 +19,37 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
     using base_type::size1;
     using base_type::size2;
 
-    Matrix() {}
+    DenseMatrix() {}
 
-    explicit Matrix(std::size_t TheSize1, std::size_t TheSize2)
+    explicit DenseMatrix(std::size_t TheSize1, std::size_t TheSize2)
         : base_type(TheSize1, TheSize2) {}
 
-    Matrix(Matrix const& Other) : base_type(Other) {}
+    DenseMatrix(DenseMatrix const& Other) : base_type(Other) {}
 
-    Matrix(Matrix&& Other) : base_type(Other) {}
+    DenseMatrix(DenseMatrix&& Other) : base_type(Other) {}
 
     template <typename TExpressionType, std::size_t TCategory>
-    explicit Matrix(MatrixExpression<TExpressionType, TCategory> const& Other)
+    explicit DenseMatrix(AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other)
         : base_type(Other) {}
 
     template <typename TOtherMatrixType>
-    explicit Matrix(TOtherMatrixType const& Other) : base_type(Other) {}
+    explicit DenseMatrix(TOtherMatrixType const& Other) : base_type(Other) {}
 
-    explicit Matrix(std::initializer_list<TDataType> InitialValues)
+    explicit DenseMatrix(std::initializer_list<TDataType> InitialValues)
         : base_type(InitialValues) {}
 
     template <typename TOtherMatrixType>
-    Matrix& operator=(TOtherMatrixType const& Other) {
+    DenseMatrix& operator=(TOtherMatrixType const& Other) {
         base_type::operator=(Other);
         return *this;
     }
 
-    Matrix& operator=(Matrix const& Other) {
+    DenseMatrix& operator=(DenseMatrix const& Other) {
         base_type::operator=(Other);
         return *this;
     }
 
-    Matrix& operator=(Matrix&& Other) {
+    DenseMatrix& operator=(DenseMatrix&& Other) {
         base_type::operator=(Other);
         return *this;
     }
@@ -58,7 +58,7 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
 
     TDataType const& operator()(std::size_t i) const { return at(i); }
 
-    friend bool operator==(Matrix const& First, Matrix const& Second) {
+    friend bool operator==(DenseMatrix const& First, DenseMatrix const& Second) {
         for (std::size_t i = 0; i < First.size(); i++)
             if (First._data[i] != Second._data[i])
                 return false;
@@ -66,8 +66,8 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
     }
 
     template <typename TExpressionType, std::size_t TCategory>
-    Matrix& operator+=(
-        MatrixExpression<TExpressionType, TCategory> const& Other) {
+    DenseMatrix& operator+=(
+        AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other) {
         for (std::size_t i = 0; i < size1(); i++)
             for (std::size_t j = 0; j < size2(); j++)
                 at(i, j) += Other(i, j);
@@ -76,8 +76,8 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
     }
 
     template <typename TExpressionType>
-    Matrix& operator+=(
-        MatrixExpression<TExpressionType, row_major_access> const& Other) {
+    DenseMatrix& operator+=(
+        AMatrix::MatrixExpression<TExpressionType, row_major_access> const& Other) {
         for (std::size_t i = 0; i < size(); i++)
             at(i) += Other.expression()[i];
 
@@ -85,8 +85,8 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
     }
 
     template <typename TExpressionType, std::size_t TCategory>
-    Matrix& operator-=(
-        MatrixExpression<TExpressionType, TCategory> const& Other) {
+    DenseMatrix& operator-=(
+        AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other) {
         for (std::size_t i = 0; i < size1(); i++)
             for (std::size_t j = 0; j < size2(); j++)
                 at(i, j) -= Other(i, j);
@@ -95,22 +95,22 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
     }
 
     template <typename TExpressionType>
-    Matrix& operator-=(
-        MatrixExpression<TExpressionType, row_major_access> const& Other) {
+    DenseMatrix& operator-=(
+        AMatrix::MatrixExpression<TExpressionType, row_major_access> const& Other) {
         for (std::size_t i = 0; i < size(); i++)
             at(i) -= Other.expression()[i];
 
         return *this;
     }
 
-    Matrix& operator*=(data_type TheValue) {
+    DenseMatrix& operator*=(data_type TheValue) {
         for (std::size_t i = 0; i < size(); i++)
             at(i) *= TheValue;
 
         return *this;
     }
 
-    Matrix& operator/=(data_type TheValue) {
+    DenseMatrix& operator/=(data_type TheValue) {
         auto inverse_of_value = 1.00 / TheValue;
         for (std::size_t i = 0; i < size(); i++)
             at(i) *= inverse_of_value;
@@ -133,7 +133,7 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
 
     template <typename TExpressionType>
     data_type dot(
-        MatrixExpression<TExpressionType, row_major_access> const& Other)
+        AMatrix::MatrixExpression<TExpressionType, row_major_access> const& Other)
         const {
         data_type result = data_type();
         for (std::size_t i = 0; i < size(); ++i) {
@@ -156,23 +156,23 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
         }
     }
 
-    Matrix& noalias() { return *this; }
+    DenseMatrix& noalias() { return *this; }
 
-    TransposeMatrix<Matrix<TDataType, TSize1, TSize2>> transpose() {
-        return TransposeMatrix<Matrix<TDataType, TSize1, TSize2>>(*this);
+    TransposeMatrix<DenseMatrix<TDataType, TSize1, TSize2>> transpose() {
+        return TransposeMatrix<DenseMatrix<TDataType, TSize1, TSize2>>(*this);
     }
 };
 
 template <typename TDataType, std::size_t TSize1, std::size_t TSize2>
-bool operator!=(Matrix<TDataType, TSize1, TSize2> const& First,
-    Matrix<TDataType, TSize1, TSize2> const& Second) {
+bool operator!=(DenseMatrix<TDataType, TSize1, TSize2> const& First,
+    DenseMatrix<TDataType, TSize1, TSize2> const& Second) {
     return !(First == Second);
 }
 
 /// output stream function
 template <typename TDataType, std::size_t TSize1, std::size_t TSize2>
 inline std::ostream& operator<<(std::ostream& rOStream,
-    Matrix<TDataType, TSize1, TSize2> const& TheMatrix) {
+    DenseMatrix<TDataType, TSize1, TSize2> const& TheMatrix) {
     rOStream << "{";
     for (std::size_t i = 0; i < TheMatrix.size1(); i++) {
         for (std::size_t j = 0; j < TheMatrix.size2(); j++)
@@ -184,4 +184,4 @@ inline std::ostream& operator<<(std::ostream& rOStream,
     return rOStream;
 }
 
-}  // namespace AMatrix
+}  // namespace Kratos
