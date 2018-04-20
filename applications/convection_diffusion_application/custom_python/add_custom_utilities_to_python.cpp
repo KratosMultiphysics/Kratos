@@ -50,11 +50,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/face_heat_utilities.h"
@@ -88,12 +88,12 @@ void GenerateModelPart(FaceHeatUtilities& FaceHeatUtilities,ModelPart& origin_mo
     }
 }
 
-void  AddCustomUtilitiesToPython()
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
 
-    class_<FaceHeatUtilities>("FaceHeatUtilities", init<>())
+    class_<FaceHeatUtilities>(m,"FaceHeatUtilities").def(init<>())
     .def("ApplyFaceHeat",&FaceHeatUtilities::ApplyFaceHeat)
     .def("ConditionModelPart",&FaceHeatUtilities::ConditionModelPart)
     .def("GenerateModelPart",GenerateModelPart)
@@ -103,47 +103,47 @@ void  AddCustomUtilitiesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    class_< PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("PureConvectionUtilities2D", init<	>() )
+    class_< PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >>(m,"PureConvectionUtilities2D").def(init<	>() )
     .def("ConstructSystem",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::ConstructSystem)
     .def("CalculateProjection",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::CalculateProjection)
     .def("ConvectScalarVar",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
     .def("ClearSystem",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::ClearSystem)
     ;
 
-    class_< PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("PureConvectionUtilities3D", init<	>() )
+    class_< PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >>(m,"PureConvectionUtilities3D").def(init<	>() )
     .def("ConstructSystem",&PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >::ConstructSystem)
     .def("CalculateProjection",&PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >::CalculateProjection)
     .def("ConvectScalarVar",&PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
     .def("ClearSystem",&PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
     ;
 
-    class_< PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("PureConvectionCrankNUtilities2D", init<	>() )
+    class_< PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >>(m,"PureConvectionCrankNUtilities2D").def(init<	>() )
     .def("ConstructSystem",&PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >::ConstructSystem)
     .def("CalculateProjection",&PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >::CalculateProjection)
     .def("ConvectScalarVar",&PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
     .def("ClearSystem",&PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >::ClearSystem)
     ;
 
-    class_< PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("PureConvectionCrankNUtilities3D", init<	>() )
+    class_< PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >>(m,"PureConvectionCrankNUtilities3D").def(init<	>() )
     .def("ConstructSystem",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ConstructSystem)
     .def("CalculateProjection",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::CalculateProjection)
     .def("ConvectScalarVar",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
     .def("ClearSystem",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
     ;
 
-    class_<BFECCConvection<2> > ("BFECCConvection2D", init< BinBasedFastPointLocator < 2 >::Pointer >())
+    class_<BFECCConvection<2> > (m,"BFECCConvection2D").def(init< BinBasedFastPointLocator < 2 >::Pointer >())
     .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect)
     .def("ResetBoundaryConditions", &BFECCConvection<2>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<2>::CopyScalarVarToPreviousTimeStep)
     ;
 
-    class_<BFECCConvection<3> > ("BFECCConvection3D", init< BinBasedFastPointLocator < 3 >::Pointer >())
+    class_<BFECCConvection<3> > (m,"BFECCConvection3D").def(init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect)
     .def("ResetBoundaryConditions", &BFECCConvection<3>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<3>::CopyScalarVarToPreviousTimeStep)
     ;
 
-    class_< MoveParticleUtilityScalarTransport<2> > ("MoveParticleUtilityScalarTransport2D", init<ModelPart& , int >())
+    class_< MoveParticleUtilityScalarTransport<2> > (m,"MoveParticleUtilityScalarTransport2D").def(init<ModelPart& , int >())
     .def("MountBin", &MoveParticleUtilityScalarTransport<2>::MountBin)
     .def("MoveParticles", &MoveParticleUtilityScalarTransport<2>::MoveParticles)
     .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveParticleUtilityScalarTransport<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
@@ -157,7 +157,7 @@ void  AddCustomUtilitiesToPython()
     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityScalarTransport<2>::ExecuteParticlesPritingTool)
     ;
 
-    class_< MoveParticleUtilityScalarTransport<3> > ("MoveParticleUtilityScalarTransport3D", init<ModelPart& , int >())
+    class_< MoveParticleUtilityScalarTransport<3> > (m,"MoveParticleUtilityScalarTransport3D").def(init<ModelPart& , int >())
     .def("MountBin", &MoveParticleUtilityScalarTransport<3>::MountBin)
     .def("MoveParticles", &MoveParticleUtilityScalarTransport<3>::MoveParticles)
     .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveParticleUtilityScalarTransport<3>::CorrectParticlesWithoutMovingUsingDeltaVariables)
@@ -171,11 +171,11 @@ void  AddCustomUtilitiesToPython()
     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityScalarTransport<3>::ExecuteParticlesPritingTool)
     ;
 
-	class_<BFECCLimiterConvection<2> > ("BFECCLimiterConvection2D", init< BinBasedFastPointLocator < 2 >::Pointer >())
+	class_<BFECCLimiterConvection<2> > (m,"BFECCLimiterConvection2D").def(init< BinBasedFastPointLocator < 2 >::Pointer >())
     .def("BFECCconvect", &BFECCLimiterConvection<2>::BFECCconvect)
     ;
 
-	class_<BFECCLimiterConvection<3> > ("BFECCLimiterConvection3D", init< BinBasedFastPointLocator < 3 >::Pointer >())
+	class_<BFECCLimiterConvection<3> > (m,"BFECCLimiterConvection3D").def(init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def("BFECCconvect", &BFECCLimiterConvection<3>::BFECCconvect)
     ;
 

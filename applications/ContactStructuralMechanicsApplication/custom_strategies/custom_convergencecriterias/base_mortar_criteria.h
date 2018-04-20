@@ -134,11 +134,15 @@ public:
         const TSystemVectorType& b
         ) override
     {
+        // The current process info
+        ProcessInfo& process_info = rModelPart.GetProcessInfo();
+
         // We update the normals if necessary
-        if (static_cast<NormalDerivativesComputation>(rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION]) != NO_DERIVATIVES_COMPUTATION)
+        const auto normal_variation = process_info.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(process_info.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
+        if (normal_variation != NO_DERIVATIVES_COMPUTATION)
             MortarUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); // Update normal of the conditions
         
-        const bool adapt_penalty = rModelPart.GetProcessInfo()[ADAPT_PENALTY];
+        const bool adapt_penalty = process_info.Has(ADAPT_PENALTY) ? process_info.GetValue(ADAPT_PENALTY) : false;
         const bool dynamic_case = rModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X);
         
         /* Compute weighthed gap */
@@ -148,12 +152,11 @@ public:
             
             ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
         
-            if (conditions_array.size() == 0) 
-                KRATOS_TRACE("Empty model part") << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
+            KRATOS_TRACE_IF("Empty model part", conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
             
             #pragma omp parallel for
             for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
-                (conditions_array.begin() + i)->AddExplicitContribution(rModelPart.GetProcessInfo());
+                (conditions_array.begin() + i)->AddExplicitContribution(process_info);
         }
          
 //         // In dynamic case
@@ -234,8 +237,8 @@ public:
                 mpGidIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
                 mpGidIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
             }
-            if (nodes_array.begin()->SolutionStepsDataHas(NORMAL_CONTACT_STRESS))
-                mpGidIO->WriteNodalResults(NORMAL_CONTACT_STRESS, rModelPart.Nodes(), label, 0);
+            if (nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
+                mpGidIO->WriteNodalResults(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rModelPart.Nodes(), label, 0);
             else
                 mpGidIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
             mpGidIO->WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
@@ -277,9 +280,9 @@ public:
         // GiD IO for debugging
         if (mIODebug == true) {
             mpGidIO->CloseResultFile();
-            std::string new_name = "POST_LINEAR_ITER_STEP=";
-            new_name.append(std::to_string(rModelPart.GetProcessInfo()[STEP]));
-            mpGidIO->ChangeOutputName(new_name);
+            std::ostringstream new_name ;
+            new_name << "POST_LINEAR_ITER_STEP=""POST_LINEAR_ITER_STEP=" << rModelPart.GetProcessInfo()[STEP];
+            mpGidIO->ChangeOutputName(new_name.str());
         }
     }
     

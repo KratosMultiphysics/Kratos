@@ -18,7 +18,7 @@
 #include <algorithm>
 
 // External includes
-#include <boost/smart_ptr.hpp>
+#include <memory>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
 #include <amgcl/value_type/complex.hpp>

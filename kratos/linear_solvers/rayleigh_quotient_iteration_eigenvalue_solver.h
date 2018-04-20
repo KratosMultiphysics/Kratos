@@ -206,7 +206,7 @@ public:
         SparseMatrixType& M,
         DenseVectorType& Eigenvalues,
         DenseMatrixType& Eigenvectors
-    )
+    ) override
     {
         using boost::numeric::ublas::trans;
 
@@ -411,7 +411,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Power iteration eigenvalue solver with " << BaseType::GetPreconditioner()->Info();
@@ -419,13 +419,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
     }

@@ -12,7 +12,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -28,10 +27,9 @@ namespace Kratos
 namespace Python
 {
 
-template <typename SolverType>
-void register_solver(const std::string& name)
+void AddCustomSolversToPython(pybind11::module& m)
 {
-	using namespace boost::python;
+	using namespace pybind11;
 
 	using Space = SpaceType<typename SolverType::TScalar>;
 

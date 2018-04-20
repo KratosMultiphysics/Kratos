@@ -46,7 +46,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesSmallStrainUmatModel : public SmallStrainUmatModel
+   class KRATOS_API(UMAT_APPLICATION) VonMisesSmallStrainUmatModel : public SmallStrainUmatModel
    {
 
 

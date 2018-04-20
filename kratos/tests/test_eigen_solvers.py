@@ -51,6 +51,11 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             self.assertLessEqual(abs(eigenvalue - 11.959)/11.959, 5.0e-3)
 
     def test_lowest_power_in_core(self):
+        try:
+            import KratosMultiphysics.ExternalSolversApplication
+        except:
+            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+            
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -74,6 +79,11 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             """)
 
     def test_highest_power_in_core(self):
+        try:
+            import KratosMultiphysics.ExternalSolversApplication
+        except:
+            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+            
         self._RunParametrized("""
             {
                 "test_list" : [

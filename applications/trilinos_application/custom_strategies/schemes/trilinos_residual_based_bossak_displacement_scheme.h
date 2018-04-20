@@ -1,14 +1,14 @@
-//  KRATOS  _____     _ _ _                 
-//         |_   _| __(_) (_)_ __   ___  ___ 
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
 //           | || '__| | | | '_ \ / _ \/ __|
-//           | || |  | | | | | | | (_) \__ 
+//           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License 
+//  License:             BSD License
 //                                       Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrándiz
-//      
+//
 
 #if !defined(KRATOS_TRILINOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME )
 #define  KRATOS_TRILINOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME
@@ -16,7 +16,6 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 #include "Epetra_Import.h"
 
 /* Project includes */
@@ -117,8 +116,8 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b 
-        )
+        TSystemVectorType& b
+        ) override
     {
         KRATOS_TRY;
 
@@ -130,24 +129,24 @@ public:
         }
 
         const int system_size = TSparseSpace::Size1(A);
-        
+
         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 
         // Defining a temporary vector to gather all of the values needed
         Epetra_Vector temp( mpDofImporter->TargetMap() );
-        
+
         // Importing in the new temp vector the values
         const unsigned int ierr = temp.Import(Dx,*mpDofImporter,Insert);
-        if(ierr != 0) 
+        if(ierr != 0)
         {
             KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
         }
-        
+
         double* temp_values; //DO NOT make delete of this one!!
         temp.ExtractView( &temp_values );
 
         Dx.Comm().Barrier();
-        
+
         // Update of displacement (by DOF)
         OpenMPUtils::PartitionVector DofPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofPartition);
@@ -204,15 +203,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
-    void Clear()
+
+    void Clear() override
     {
         BaseType::Clear();
-        
+
         mpDofImporter.reset();
         mImporterIsInitialized = false;
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -225,7 +224,7 @@ public:
     {
         return mImporterIsInitialized;
     }
-    
+
     ///@}
     ///@name Input and output
     ///@{
@@ -299,7 +298,7 @@ protected:
 
         mImporterIsInitialized = true;
     }
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -311,12 +310,12 @@ protected:
      * DofImporterIsInitialized or initialize it with InitializeDofImporter.
      * @return Importer
      */
-    
+
     Kratos::shared_ptr<Epetra_Import> pGetImporter()
     {
         return mpDofImporter;
     }
-    
+
     ///@}
     ///@name Protected Inquiry
     ///@{
@@ -330,7 +329,7 @@ private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -338,7 +337,7 @@ private:
     bool mImporterIsInitialized;
 
     Kratos::shared_ptr<Epetra_Import> mpDofImporter;
-    
+
     ///@}
     ///@name Private Operators
     ///@{

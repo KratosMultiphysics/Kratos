@@ -80,6 +80,8 @@ public:
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
     typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
+    
+    typedef std::size_t                                                        IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -158,7 +160,7 @@ public:
         BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
         
         // Defining the convergence
-        unsigned int is_converged = 0;
+        IndexType is_converged = 0;
         
 //         const double epsilon = rModelPart.GetProcessInfo()[INITIAL_PENALTY]; 
         const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
@@ -172,7 +174,7 @@ public:
             
             const double epsilon = it_node->GetValue(INITIAL_PENALTY);
             
-            const double augmented_normal_pressure = scale_factor * it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);     
+            const double augmented_normal_pressure = scale_factor * it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 
             it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 

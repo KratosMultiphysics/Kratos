@@ -38,7 +38,7 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","CONTACT_Contact_Auto1","SelfWeight3D_Self_weight_Auto1"],
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver"
+            "solver_type" : "SkylineLUFactorizationSolver"
         }
     },
     "constraints_process_list" : [{
@@ -93,8 +93,9 @@
             "model_part_name"           : "Structure",
             "assume_master_slave"       : "Parts_Parts_Auto1",
             "contact_type"              : "Frictionless",
-            "stiffness_factor"          : 10.0,
-            "check_gap"                 : "DirectCheck"
+            "search_parameters" : {
+                "check_gap"             : "direct_check"
+            }
         }
     }],
     "json_check_process" : [
@@ -118,6 +119,7 @@
             "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_LM.json",
             "model_part_name"      : "CONTACT_Contact_Auto1",
+            "check_for_flag"       : "ACTIVE",
             "historical_value"     : false,
             "relative_tolerance"   : 1e-2,
             "time_frequency"       : 1.0
@@ -145,6 +147,7 @@
             "output_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_LM.json",
             "model_part_name"      : "CONTACT_Contact_Auto1",
+            "check_for_flag"       : "ACTIVE",
             "historical_value"     : false,
             "time_frequency"       : 1.00
         }
@@ -164,7 +167,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP","VOLUME_ACCELERATION"],
+            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE","WEIGHTED_GAP","VOLUME_ACCELERATION"],
             "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
