@@ -159,7 +159,7 @@ set_target_properties(KratosSolidMechanicsCore PROPERTIES COMPILE_DEFINITIONS "S
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosSolidMechanicsApplication MODULE ${KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE})
+pybind11_add_module(KratosSolidMechanicsApplication MODULE THIN_LTO ${KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosSolidMechanicsApplication PRIVATE KratosSolidMechanicsCore)
 set_target_properties(KratosSolidMechanicsApplication PROPERTIES PREFIX "")
 
