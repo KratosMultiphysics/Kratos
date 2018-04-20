@@ -280,8 +280,8 @@ protected:
     ///@name Protected member Variables
     ///@{
     bool mInelasticFlag; /// Flags when in inelastic regime
-    double r; /// Damage threshold
-    double r_prev; /// Previous damage threshold
+    double mDamageThreshold;
+    double mDamageThresholdOld;
     ///@}
 
     ///@name Protected Operators
@@ -290,7 +290,7 @@ protected:
 
     ///@name Protected Operations
     ///@{
-    double CalculateQ(double r, const Properties& rMaterialProperties);
+    double EvaluateHardeningLaw(double DamageThreshold, const Properties &rMaterialProperties);
     virtual void CalculateConstitutiveMatrix(Matrix &rConstitTensor, const Properties &rMaterialProperties);
     ///@}
 
