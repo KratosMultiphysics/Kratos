@@ -1,6 +1,7 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -55,7 +56,6 @@ from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProce
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
 from SmallTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
-from SmallTests import TotalLagrangianTest as TTotalLagrangianTest
 
 ##### NIGHTLY TESTS #####
 # Patch test Small Displacements
@@ -221,7 +221,6 @@ def AssembleTestSuites():
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
-    smallSuite.addTest(TTotalLagrangianTest('test_execution'))
     # Basic restart test (leave these in the smallSuite to have the Exection script tested)
     smallSuite.addTest(TTestSmallDisplacement2D4N('test_execution'))
     smallSuite.addTest(TTestTotalLagrangian2D3N('test_execution'))
@@ -353,3 +352,4 @@ def AssembleTestSuites():
 
 if __name__ == '__main__':
     KratosUnittest.runTests(AssembleTestSuites())
+    run_cpp_unit_tests.run()

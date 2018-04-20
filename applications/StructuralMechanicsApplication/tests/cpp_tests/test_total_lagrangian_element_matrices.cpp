@@ -148,7 +148,7 @@ void CreateTotalLagrangianTestModelPart(std::string const& rElementName, ModelPa
     KRATOS_CATCH("");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_CalculateLocalSystem, KratosTotalLagrangianFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_CalculateLocalSystem, KratosStructuralMechanicsFastSuite)
 {
     ModelPart test_model_part("test");
     CreateTotalLagrangianTestModelPart("TotalLagrangianElement2D3N", test_model_part);
@@ -206,7 +206,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_CalculateLocalSystem, KratosTotalLa
         KRATOS_CHECK_NEAR(rhs(i), rhs_ref(i), 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_CalculateLocalSystem, KratosTotalLagrangianFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_CalculateLocalSystem, KratosStructuralMechanicsFastSuite)
 {
     ModelPart test_model_part("test");
     CreateTotalLagrangianTestModelPart("TotalLagrangianElement3D4N", test_model_part);
@@ -378,7 +378,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_CalculateLocalSystem, KratosTotalLa
         KRATOS_CHECK_NEAR(rhs(i), rhs_ref(i), 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_MassMatrix, KratosTotalLagrangianFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_MassMatrix, KratosStructuralMechanicsFastSuite)
 {
     ModelPart test_model_part("test");
     CreateTotalLagrangianTestModelPart("TotalLagrangianElement2D3N", test_model_part);
@@ -427,7 +427,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_MassMatrix, KratosTotalLagrangianFa
             KRATOS_CHECK_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_DampingMatrix, KratosTotalLagrangianFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_DampingMatrix, KratosStructuralMechanicsFastSuite)
 {
     ModelPart test_model_part("test");
     CreateTotalLagrangianTestModelPart("TotalLagrangianElement2D3N", test_model_part);

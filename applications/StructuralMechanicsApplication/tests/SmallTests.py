@@ -4,6 +4,3 @@ import structural_mechanics_test_factory
 # (aka by the continuous integration tool before merging to master) !!!
 class SimpleMeshMovingTest(structural_mechanics_test_factory.StructuralMechanicsTestFactory):
     file_name = "mesh_moving_test/simple_mesh_moving_test"
-
-class TotalLagrangianTest(structural_mechanics_test_factory.StructuralMechanicsCppTestFactory):
-    cpp_test_name = 'TestTotalLagrangian*'
