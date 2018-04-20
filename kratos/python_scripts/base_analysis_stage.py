@@ -87,13 +87,15 @@ class AnalysisStage(object):
         """
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
-        solver.InitializeSolutionStep()
+        self.solver.InitializeSolutionStep()
 
 
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed
         (for each step) AFTER solving the solution step.
         """
+        self.solver.FinalizeSolutionStep()
+
         for process in self.list_of_processes:
             process.ExecuteFinalizeSolutionStep()
 
