@@ -70,7 +70,6 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
         self._ExecuteBeforeSolutionLoop()
 
     def InitializeSolutionStep(self):
-        """ Initialize the timestep and advance in time. Called once per timestep """
         super(StructuralMechanicsAnalysisStage, self).InitializeSolutionStep()
 
         if self.is_printing_rank:
@@ -82,15 +81,12 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
             self.gid_output.ExecuteInitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        """ Finalizing the timestep and printing the output. Called once per timestep """
         super(StructuralMechanicsAnalysisStage, self).FinalizeSolutionStep()
 
         if (self.output_post == True):
             self.gid_output.ExecuteFinalizeSolutionStep()
 
-
     def OutputSolutionStep(self):
-        """ Printing the output. Called once per timestep """
         for process in self.list_of_processes:
             process.ExecuteBeforeOutputStep()
 
