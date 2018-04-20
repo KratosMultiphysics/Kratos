@@ -284,6 +284,21 @@ class MechanicalSolver(object):
         if self.using_newton_raphson_strategy:
             self.get_mechanical_solution_strategy().FinalizeSolutionStep()
 
+    def AdvanceInTime(self, current_time):
+        dt = self.ComputeDeltaTime()
+        new_time = current_time + dt
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.main_model_part.CloneTimeStep(new_time)
+
+        return new_time
+
+    def ComputeDeltaTime(self):
+        return self.delta_time
+
+    def SetDeltaTime(self, dt):
+        # This is a TEMPORARY function until the solver can compute dt!
+        self.delta_time = dt
+
     def SetEchoLevel(self, level):
         self.get_mechanical_solution_strategy().SetEchoLevel(level)
 

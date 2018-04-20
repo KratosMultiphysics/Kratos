@@ -48,17 +48,6 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
 
     def RunSolutionLoop(self):
         while self.time < self.end_time:
-            self.InitializeSolutionStep()
-            self.solver.Predict()
-            self.solver.SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
-
-    def _RunSolutionLoop(self):
-        """This function executes the solution loop of the AnalysisStage
-        It can be overridden by derived classes
-        """
-        while self.time < self.end_time:
             self.time = self.solver.AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self.solver.Predict()
@@ -191,7 +180,7 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
             f.close()
 
         ## Stepping and time settings
-        self.delta_time = self.project_parameters["problem_data"]["time_step"].GetDouble()
+        self.solver.SetDeltaTime(self.project_parameters["problem_data"]["time_step"].GetDouble())
         start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
@@ -206,9 +195,9 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
 
     def InitializeSolutionStep(self):
         """ Initialize the timestep and advance in time. Called once per timestep """
-        self.time += self.delta_time
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-        self.main_model_part.CloneTimeStep(self.time)
+        # self.time += self.delta_time
+        # self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        # self.main_model_part.CloneTimeStep(self.time)
 
         super(StructuralMechanicsAnalysisStage, self).InitializeSolutionStep()
 
