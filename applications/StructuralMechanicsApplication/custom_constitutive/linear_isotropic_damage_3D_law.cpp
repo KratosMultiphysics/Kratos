@@ -161,45 +161,8 @@ void LinearIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& rValue
 
         CalculateConstitutiveMatrix(constitutive_matrix, rMaterialProperties);
         noalias(stress_vector) = prod(constitutive_matrix, strain_vector);
-        // For use in TRACTION_ONLY case.
-        Vector stress_vector_pos = prod(constitutive_matrix, strain_vector);
 
-        // Uncomment when implemented TRACTION_ONLY
-        // In symmetrical case, it is always stress_vector_pos = stress_vector
-        // The TRACTION_ONLY variant modifies stress_vector_pos
-        /*
-        const bool TRACTION_ONLY = rMaterialProperties[FLOW_RULE_IS_TRACTION_ONLY];
-        double sigma_xx, sigma_yy, sigma_zz, sigma_xz, sigma_yz, sigma_xy;
-        double hyp, sigma_1, sigma_2, sigma_3, angle, cos_a, sin_a;
-        if (TRACTION_ONLY)
-        {
-            // Compute the invariants of the stress tensor
-            sigma_xx = stress_vector(0);
-            sigma_yy = stress_vector(1);
-            sigma_xy = stress_vector(2);
-            hyp = std::hypot(0.5 * (sigma_xx - sigma_yy), sigma_xy);
-            sigma_1 = 0.5 * (sigma_xx + sigma_yy) + hyp;
-            sigma_2 = 0.5 * (sigma_xx + sigma_yy) - hyp;
-            angle = 0.5 * std::atan2(2.0 * sigma_xy, sigma_xx - sigma_yy);
-            cos_a = std::cos(angle);
-            sin_a = std::sin(angle);
-            stress_vector_pos(0) = 0.0;
-            stress_vector_pos(1) = 0.0;
-            stress_vector_pos(2) = 0.0;
-            if(sigma_1 > 0){
-                stress_vector_pos(0) += sigma_1 * cos_a * cos_a;
-                stress_vector_pos(1) += sigma_1 * sin_a * sin_a;
-                stress_vector_pos(2) += sigma_1 * sin_a * cos_a;
-            }
-            if(sigma_2 > 0){
-                stress_vector_pos(0) += sigma_2 * sin_a * sin_a;
-                stress_vector_pos(1) += sigma_2 * cos_a * cos_a;
-                stress_vector_pos(2) -= sigma_2 * sin_a * cos_a;
-            }
-        }
-        */
-
-        const double strain_norm = std::sqrt(inner_prod(stress_vector_pos, strain_vector));
+        const double strain_norm = std::sqrt(inner_prod(stress_vector, strain_vector));
         if (strain_norm <= mDamageThresholdOld)
         {
             // ELASTIC
@@ -220,7 +183,7 @@ void LinearIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& rValue
             const double H = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
             const double dpointcoeff = (q - H * mDamageThreshold) / (mDamageThreshold * mDamageThreshold * mDamageThreshold);
             constitutive_matrix *= (1. - d);
-            constitutive_matrix -= dpointcoeff * outer_prod(stress_vector_pos, stress_vector);
+            constitutive_matrix -= dpointcoeff * outer_prod(stress_vector, stress_vector);
             stress_vector *= (1. - d);
         }
     }
