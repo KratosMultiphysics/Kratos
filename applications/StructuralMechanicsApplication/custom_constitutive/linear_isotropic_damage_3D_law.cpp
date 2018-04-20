@@ -38,8 +38,7 @@ LinearIsotropicDamage3D::LinearIsotropicDamage3D(const LinearIsotropicDamage3D &
 
 ConstitutiveLaw::Pointer LinearIsotropicDamage3D::Clone() const
 {
-    LinearIsotropicDamage3D::Pointer p_clone(new LinearIsotropicDamage3D(*this));
-    return p_clone;
+    return Kratos::make_shared<LinearIsotropicDamage3D>(LinearIsotropicDamage3D(*this));
 }
 
 //********************************DESTRUCTOR******************************************
