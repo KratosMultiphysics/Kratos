@@ -17,52 +17,21 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
-class EmbeddedReservoirTest(UnitTest.TestCase):
-    def testEmbeddedReservoir2D(self):
-        self.distance = 0.5
-        self.slip_level_set = False
-        self.work_folder = "EmbeddedReservoirTest"   
-        self.reference_file = "reference_reservoir_2D"
-        self.settings = "EmbeddedReservoir2DTest_parameters.json"
-        self.ExecuteEmbeddedReservoirTest()
-
-    def testEmbeddedReservoir3D(self):
-        self.distance = 0.5
-        self.slip_level_set = False
-        self.work_folder = "EmbeddedReservoirTest"   
-        self.reference_file = "reference_reservoir_3D"
-        self.settings = "EmbeddedReservoir3DTest_parameters.json"
-        self.ExecuteEmbeddedReservoirTest()
-
-    def testEmbeddedSlipReservoir2D(self):
-        self.distance = 0.5
-        self.slip_level_set = True
-        self.work_folder = "EmbeddedReservoirTest"   
-        self.reference_file = "reference_slip_reservoir_2D"
-        self.settings = "EmbeddedReservoir2DTest_parameters.json"
-        self.ExecuteEmbeddedReservoirTest()
-
-    def testEmbeddedSlipReservoir3D(self):
-        self.distance = 0.5
-        self.slip_level_set = True
-        self.work_folder = "EmbeddedReservoirTest"   
-        self.reference_file = "reference_slip_reservoir_3D"
-        self.settings = "EmbeddedReservoir3DTest_parameters.json"
-        self.ExecuteEmbeddedReservoirTest()
-
-    def ExecuteEmbeddedReservoirTest(self):
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+class ArtificialCompressibilityTest(UnitTest.TestCase):
+    def testArtificialCompressibility(self):
+        self.setUp()
+        self.setUpProblem()
+        self.runTest()
+        self.tearDown()
+        self.checkResults()
 
     def setUp(self):
         self.check_tolerance = 1e-6
         self.print_output = False
         self.print_reference_values = False
+        self.work_folder = "ArtificialCompressibilityTest"   
+        self.reference_file = "reference_cavity_compressibility"
+        self.settings = "ArtificialCompressibilityTestParameters.json"
 
     def tearDown(self):
         with WorkFolderScope(self.work_folder):
@@ -115,30 +84,6 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
             for process in self.list_of_processes:
                 process.ExecuteInitialize()
 
-    def setUpDistanceField(self):
-        # Set the distance function
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): 
-            for node in self.main_model_part.Nodes:
-                distance = node.Y-self.distance
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
-        elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3): 
-            for node in self.main_model_part.Nodes:
-                distance = node.Z-self.distance
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
-
-        # Set the ELEMENTAL_DISTANCES value
-        n_nodes = len(self.main_model_part.Elements[1].GetNodes())
-        for element in self.main_model_part.Elements:
-            elem_dist = KratosMultiphysics.Vector(n_nodes)
-            elem_nodes = element.GetNodes()
-            for i_node in range(0,n_nodes):
-                elem_dist[i_node] = elem_nodes[i_node].GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-            element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, elem_dist)
-
-        # If proceeds, set the SLIP flag
-        if (self.slip_level_set):
-            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, True, self.main_model_part.Elements)
-
     def runTest(self):
         with WorkFolderScope(self.work_folder):
             if (self.print_output):
@@ -173,8 +118,7 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
                 for process in self.list_of_processes:
                     process.ExecuteInitializeSolutionStep()
 
-                if(step >= 3):
-                    self.solver.Solve()
+                self.solver.Solve()
 
                 for process in self.list_of_processes:
                     process.ExecuteFinalizeSolutionStep()
@@ -200,10 +144,10 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
         with WorkFolderScope(self.work_folder):
             if self.print_reference_values:
                 with open(self.reference_file+'.csv','w') as ref_file:
-                    ref_file.write("#ID, PRESSURE\n")
+                    ref_file.write("#ID, VELOCITY_X, VELOCITY_Y\n")
                     for node in self.main_model_part.Nodes:
-                        pres = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
-                        ref_file.write("{0}, {1}\n".format(node.Id, pres))
+                        vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
+                        ref_file.write("{0}, {1}, {2}\n".format(node.Id, vel[0], vel[1]))
             else:
                 with open(self.reference_file+'.csv','r') as reference_file:
                     reference_file.readline() # skip header
@@ -212,27 +156,21 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
                     for node in self.main_model_part.Nodes:
                         values = [ float(i) for i in line.rstrip('\n ').split(',') ]
                         node_id = values[0]
-                        reference_pres = values[1]
+                        reference_vel_x = values[1]
+                        reference_vel_y = values[2]
 
-                        pres = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
-                        self.assertAlmostEqual(reference_pres, pres, delta = self.check_tolerance)
+                        velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                        self.assertAlmostEqual(reference_vel_x, velocity[0], delta = self.check_tolerance)
+                        self.assertAlmostEqual(reference_vel_y, velocity[1], delta = self.check_tolerance)
 
                         line = reference_file.readline()
                     if line != '': # If we did not reach the end of the reference file
                         self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
 
 if __name__ == '__main__':
-    test = EmbeddedReservoirTest()
+    test = ArtificialCompressibilityTest()
     test.setUp()
-    test.distance = 0.5
-    test.slip_level_set = False
-    test.print_output = False
-    test.print_reference_values = False
-    test.work_folder = "EmbeddedReservoirTest"
-    test.reference_file = "reference_slip_reservoir_2D"   
-    test.settings = "EmbeddedReservoir2DTest_parameters.json"
     test.setUpProblem()
-    test.setUpDistanceField()
     test.runTest()
     test.tearDown()
     test.checkResults()
