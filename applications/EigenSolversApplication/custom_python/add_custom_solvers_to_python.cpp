@@ -27,7 +27,8 @@ namespace Kratos
 namespace Python
 {
 
-void AddCustomSolversToPython(pybind11::module& m)
+template <typename SolverType>
+void register_solver(pybind11::module& m, const std::string& name)
 {
 	using namespace pybind11;
 
@@ -35,60 +36,60 @@ void AddCustomSolversToPython(pybind11::module& m)
 
 	using Base = DirectSolver<typename Space::Global, typename Space::Local>;
 
-	class_<EigenDirectSolver<SolverType>, bases<Base>, boost::noncopyable>
-		(name.c_str(), init<>())
+	class_<EigenDirectSolver<SolverType>, Base >
+		(m, name.c_str())
+		.def(init<>())
 		.def(init<Parameters>())
 	;
 }
 
 template <typename SolverType>
-void register_eigensystem_solver(const std::string& name = SolverType::Name)
+void register_eigensystem_solver(pybind11::module& m, const std::string& name = SolverType::Name)
 {
-	using namespace boost::python;
+	using namespace pybind11;
 
 	using Space = SpaceType<typename SolverType::TScalar>;
 
 	using Base = LinearSolver<typename Space::Global, typename Space::Local>;
 
-	using EigenSolver = EigensystemSolver<SolverType>;
-
-	class_<EigenSolver, bases<Base>, boost::noncopyable>
-		(name.c_str(), init<Parameters>())
+	class_<EigensystemSolver<SolverType>, Base >
+		(m, name.c_str())
+		.def(init<Parameters>())
 	;
 }
 
-void AddCustomSolversToPython()
+void AddCustomSolversToPython(pybind11::module& m)
 {
-	using namespace boost::python;
+	using namespace pybind11;
 
 	using complex = std::complex<double>;
 
 	// --- direct solvers
 
-	register_solver<SparseLU<double>>("SparseLUSolver");
-	register_solver<SparseLU<complex>>("ComplexSparseLUSolver");
+	register_solver<SparseLU<double>>(m, "SparseLUSolver");
+	register_solver<SparseLU<complex>>(m, "ComplexSparseLUSolver");
 
-	register_solver<SparseQR<double>>("SparseQRSolver");
-	register_solver<SparseQR<complex>>("ComplexSparseQRSolver");
+	register_solver<SparseQR<double>>(m, "SparseQRSolver");
+	register_solver<SparseQR<complex>>(m, "ComplexSparseQRSolver");
 
 	#if defined USE_EIGEN_MKL
 	// The commented complex solvers need to be tested first
-	// register_solver<PardisoLLT<double>>("PardisoLLTSolver");
-	// register_solver<PardisoLLT<complex>>("ComplexPardisoLLTSolver");
+	register_solver<PardisoLLT<double>>(m, "PardisoLLTSolver");
+	// register_solver<PardisoLLT<complex>>(m, "ComplexPardisoLLTSolver");
 
-	// register_solver<PardisoLDLT<double>>("PardisoLDLTSolver");
-	// register_solver<PardisoLDLT<complex>>("ComplexPardisoLDLTSolver");
+	register_solver<PardisoLDLT<double>>(m, "PardisoLDLTSolver");
+	// register_solver<PardisoLDLT<complex>>(m, "ComplexPardisoLDLTSolver");
 
-	register_solver<PardisoLU<double>>("PardisoLUSolver");
-	register_solver<PardisoLU<complex>>("ComplexPardisoLUSolver");
+	register_solver<PardisoLU<double>>(m, "PardisoLUSolver");
+	register_solver<PardisoLU<complex>>(m, "ComplexPardisoLUSolver");
 	#endif // defined USE_EIGEN_MKL
 
 	// --- eigensystem solver
 
 	#if !defined USE_EIGEN_MKL
-	register_eigensystem_solver<SparseLU<double>>("EigensystemSolver");
+	register_eigensystem_solver<SparseLU<double>>(m, "EigensystemSolver");
 	#else  // !defined USE_EIGEN_MKL
-	register_eigensystem_solver<PardisoLDLT<double>>("EigensystemSolver");
+	register_eigensystem_solver<PardisoLDLT<double>>(m, "EigensystemSolver");
 	#endif // !defined USE_EIGEN_MKL
 }
 
