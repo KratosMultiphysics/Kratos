@@ -45,9 +45,6 @@ class AnalysisStage(object):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-        for process in self.list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
         while self.time < self.end_time:
             self.AdvanceInTime()
             self.InitializeSolutionStep()
@@ -70,6 +67,9 @@ class AnalysisStage(object):
             process.ExecuteInitialize()
 
         solver.Initialize()
+
+        for process in self.list_of_processes:
+            process.ExecuteBeforeSolutionLoop()
 
 
     def Finalize(self):
