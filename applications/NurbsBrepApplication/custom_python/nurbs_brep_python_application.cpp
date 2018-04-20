@@ -35,7 +35,7 @@ namespace Kratos
 		using namespace pybind11;
 
 
-		PYBIND11_MODULE(KratosNurbsBrepApplication)
+		PYBIND11_MODULE(KratosNurbsBrepApplication, m)
 		{
 
 			class_<KratosNurbsBrepApplication,
@@ -46,7 +46,6 @@ namespace Kratos
 
 			AddCustomStrategiesToPython(m);
 			AddCustomUtilitiesToPython(m);
-			AddConstitutiveLawsToPython(m);
 
 			//To enhance weighting to nodes:
 			KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTROL_POINT_WEIGHT)

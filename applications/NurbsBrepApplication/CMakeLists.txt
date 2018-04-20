@@ -33,7 +33,7 @@ add_library(KratosNurbsBrepCore SHARED ${KRATOS_NURBS_BREP_APPLICATION_MAIN_SOUR
                                        ${KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES})
 target_link_libraries(KratosNurbsBrepCore PRIVATE KratosCore )
 
-## PoromechanicsApplication python module
+
 pybind11_add_module(KratosNurbsBrepApplication MODULE ${KRATOS_NURBS_BREP_APPLICATION_PYTHON_INTERFACE_SOURCES})
 target_link_libraries(KratosNurbsBrepApplication PRIVATE KratosNurbsBrepCore )
 set_target_properties(KratosNurbsBrepApplication PROPERTIES PREFIX "")

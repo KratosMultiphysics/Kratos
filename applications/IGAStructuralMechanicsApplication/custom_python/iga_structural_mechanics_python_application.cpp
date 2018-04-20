@@ -37,7 +37,7 @@ namespace Python
 
 
 
-  PYBIND11_MODULE(KratosIGAStructuralMechanicsApplication)
+  PYBIND11_MODULE(KratosIGAStructuralMechanicsApplication, m)
   {
 
 	  class_<KratosIGAStructuralMechanicsApplication,
@@ -48,7 +48,7 @@ namespace Python
 
 	AddCustomStrategiesToPython(m);
 	AddCustomUtilitiesToPython(m);
-	AddConstitutiveLawsToPython(m);
+	//AddConstitutiveLawsToPython(m);
 
 	//registering variables in python
 

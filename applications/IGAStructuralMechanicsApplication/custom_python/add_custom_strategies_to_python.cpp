@@ -20,7 +20,6 @@
 #include "includes/define_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "includes/define.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 
 #include "spaces/ublas_space.h"
 
