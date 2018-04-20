@@ -183,7 +183,7 @@ public:
 
     /*@{ */
 
-    MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", int NumPar = 3)
+    MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", int NumPar = 3, bool BlockBuilder = false)
         : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
     {
 
@@ -349,7 +349,16 @@ public:
 
 
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
+            if(BlockBuilder == true){
+                std::cout << "Block Builder is used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
+            else{
+                std::cout << "Block Builder is not used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
 
             double ratio_tolerance = 1e-04;
             double always_converged_norm = 1e-09;
@@ -370,7 +379,15 @@ public:
             double Dynamic;
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, Alpham = 0.0, Dynamic=1) );
 
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
+            if(BlockBuilder == true){
+                std::cout << "Block Builder is used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
+            else{
+                std::cout << "Block Builder is not used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
 
             double ratio_tolerance = 0.00005;
             double always_converged_norm = 1e-09;
@@ -391,7 +408,15 @@ public:
             double Dynamic;
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, Alpham = 0.00, Dynamic=0) );
 
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
+            if(BlockBuilder == true){
+                std::cout << "Block Builder is used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
+            else{
+                std::cout << "Block Builder is not used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
 
             double ratio_tolerance = 0.0001;
             double always_converged_norm = 1e-09;

@@ -605,9 +605,6 @@ public:
 
                     NodalPressure += DeltaNodalPressure;
 
-                   
-
-
                     NormDeltaVel += (DeltaNodalVelocity[0]*DeltaNodalVelocity[0]+DeltaNodalVelocity[1]*DeltaNodalVelocity[1]+DeltaNodalVelocity[2]*DeltaNodalVelocity[2]);
                     NormDeltaAcc += (DeltaNodalAcceleration[0]*DeltaNodalAcceleration[0]+DeltaNodalAcceleration[1]*DeltaNodalAcceleration[1]+DeltaNodalAcceleration[2]*DeltaNodalAcceleration[2]);
                     NormDeltaPres += (DeltaNodalPressure * DeltaNodalPressure);
@@ -619,10 +616,9 @@ public:
                     ++nodes_counter;
                 }
 			
-			
             }
             
-            std::cout << " ============ " <<  NormVel << " ============ " << std::cout;
+            //std::cout << " ============ " <<  NormVel << " ============ " << std::cout;
 
             //  std::cout << "Node Count = " << nodes_counter << std::endl;
             
