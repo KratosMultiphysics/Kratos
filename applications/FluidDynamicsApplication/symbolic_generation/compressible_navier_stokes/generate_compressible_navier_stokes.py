@@ -24,10 +24,6 @@ elif (dim_to_compute == "3D"):
 elif (dim_to_compute == "Both"):
     dim_vector = [2,3]
 
-## Read the template file
-templatefile = open("compressible_navier_stokes_cpp_template.cpp")
-outstring = templatefile.read()
-
 for dim in dim_vector:
 
     if(dim == 2):
