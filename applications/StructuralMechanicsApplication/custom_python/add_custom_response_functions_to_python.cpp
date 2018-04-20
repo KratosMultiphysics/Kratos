@@ -21,7 +21,6 @@
 //Utilities
 
 //Response Functions
-#include "custom_response_functions/response_utilities/response_function_utility.h"
 #include "custom_response_functions/response_utilities/strain_energy_response_function_utility.h"
 #include "custom_response_functions/response_utilities/mass_response_function_utility.h"
 #include "custom_response_functions/response_utilities/eigenfrequency_response_function_utility.h"
@@ -39,26 +38,33 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 {
 
     // Response Functions
-    class_<ResponseFunctionUtility, ResponseFunctionUtility::Pointer>(m, "ResponseFunctionUtility")
-      .def("Initialize", &ResponseFunctionUtility::Initialize)
-      .def("CalculateValue", &ResponseFunctionUtility::CalculateValue)
-      .def("CalculateGradient", &ResponseFunctionUtility::CalculateGradient);
-
-    class_<StrainEnergyResponseFunctionUtility, StrainEnergyResponseFunctionUtility::Pointer, ResponseFunctionUtility >
+    class_<StrainEnergyResponseFunctionUtility, StrainEnergyResponseFunctionUtility::Pointer >
       (m, "StrainEnergyResponseFunctionUtility")
-      .def(init<ModelPart&, Parameters>());
+      .def(init<ModelPart&, Parameters>())
+      .def("Initialize", &StrainEnergyResponseFunctionUtility::Initialize)
+      .def("CalculateValue", &StrainEnergyResponseFunctionUtility::CalculateValue)
+      .def("CalculateGradient", &StrainEnergyResponseFunctionUtility::CalculateGradient);
 
-    class_<MassResponseFunctionUtility, MassResponseFunctionUtility::Pointer, ResponseFunctionUtility >
+    class_<MassResponseFunctionUtility, MassResponseFunctionUtility::Pointer >
       (m, "MassResponseFunctionUtility")
-      .def(init<ModelPart&, Parameters>());
+      .def(init<ModelPart&, Parameters>())
+      .def("Initialize", &MassResponseFunctionUtility::Initialize)
+      .def("CalculateValue", &MassResponseFunctionUtility::CalculateValue)
+      .def("CalculateGradient", &MassResponseFunctionUtility::CalculateGradient);
 
-    class_<EigenfrequencyResponseFunctionUtility, EigenfrequencyResponseFunctionUtility::Pointer, ResponseFunctionUtility >
+    class_<EigenfrequencyResponseFunctionUtility, EigenfrequencyResponseFunctionUtility::Pointer >
       (m, "EigenfrequencyResponseFunctionUtility")
-      .def(init<ModelPart&, Parameters>());
+      .def(init<ModelPart&, Parameters>())
+      .def("Initialize", &EigenfrequencyResponseFunctionUtility::Initialize)
+      .def("CalculateValue", &EigenfrequencyResponseFunctionUtility::CalculateValue)
+      .def("CalculateGradient", &EigenfrequencyResponseFunctionUtility::CalculateGradient);
 
-    class_<EigenfrequencyResponseFunctionLinScalUtility, EigenfrequencyResponseFunctionLinScalUtility::Pointer, ResponseFunctionUtility >
+    class_<EigenfrequencyResponseFunctionLinScalUtility, EigenfrequencyResponseFunctionLinScalUtility::Pointer >
       (m, "EigenfrequencyResponseFunctionLinScalUtility")
-      .def(init<ModelPart&, Parameters>());
+      .def(init<ModelPart&, Parameters>())
+      .def("Initialize", &EigenfrequencyResponseFunctionLinScalUtility::Initialize)
+      .def("CalculateValue", &EigenfrequencyResponseFunctionLinScalUtility::CalculateValue)
+      .def("CalculateGradient", &EigenfrequencyResponseFunctionLinScalUtility::CalculateGradient);
 }
 
 }  // namespace Python.

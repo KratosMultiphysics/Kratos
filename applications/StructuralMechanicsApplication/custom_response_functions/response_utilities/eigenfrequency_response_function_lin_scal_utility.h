@@ -25,9 +25,10 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
+#include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
-#include "response_function_utility.h"
 
 // ==============================================================================
 
@@ -60,7 +61,7 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class EigenfrequencyResponseFunctionLinScalUtility : public ResponseFunctionUtility
+class EigenfrequencyResponseFunctionLinScalUtility
 {
 public:
 	///@name Type Definitions
@@ -132,13 +133,13 @@ public:
 	///@{
 
 	// ==============================================================================
-	void Initialize() override
+	void Initialize()
 	{
 		//not needed because only semi-analytical sensitivity analysis is implemented yet
 	}
 
 	// --------------------------------------------------------------------------
-	double CalculateValue() override
+	double CalculateValue()
 	{
 		KRATOS_TRY;
 
@@ -194,7 +195,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void CalculateGradient() override
+	void CalculateGradient()
 	{
 		KRATOS_TRY;
 
@@ -235,19 +236,19 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	std::string Info() const override
+	std::string Info() const
 	{
 		return "EigenfrequencyResponseFunctionLinScalUtility";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const override
+	virtual void PrintInfo(std::ostream &rOStream) const
 	{
 		rOStream << "EigenfrequencyResponseFunctionLinScalUtility";
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const override
+	virtual void PrintData(std::ostream &rOStream) const
 	{
 	}
 
@@ -405,10 +406,6 @@ protected:
 
 		}// End loop over elements
 		KRATOS_CATCH("");
-	}
-
-	virtual void ConsiderDiscretization() override
-	{
 	}
 
 	// ==============================================================================

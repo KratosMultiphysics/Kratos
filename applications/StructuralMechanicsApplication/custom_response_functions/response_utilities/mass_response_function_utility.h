@@ -26,11 +26,12 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
+#include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "structural_mechanics_application_variables.h"
-#include "response_function_utility.h"
 
 // ==============================================================================
 
@@ -61,7 +62,7 @@ namespace Kratos
 
  */
 
-class MassResponseFunctionUtility : public ResponseFunctionUtility
+class MassResponseFunctionUtility
 {
 public:
 	///@name Type Definitions
@@ -106,11 +107,11 @@ public:
 	///@{
 
 	// ==============================================================================
-	void Initialize() override
+	void Initialize()
 	{}
 
 	// --------------------------------------------------------------------------
-	double CalculateValue() override
+	double CalculateValue()
 	{
 		KRATOS_TRY;
 
@@ -133,7 +134,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void CalculateGradient() override
+	void CalculateGradient()
 	{
 		KRATOS_TRY;
 
@@ -225,7 +226,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-  	virtual void ConsiderDiscretization() override
+  	virtual void ConsiderDiscretization()
 	{
 
 		std::cout<< "> Considering discretization size!" << std::endl;
@@ -279,19 +280,19 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	std::string Info() const override
+	std::string Info() const
 	{
 		return "MassResponseFunctionUtility";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const override
+	virtual void PrintInfo(std::ostream &rOStream) const
 	{
 		rOStream << "MassResponseFunctionUtility";
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const  override
+	virtual void PrintData(std::ostream &rOStream) const
 	{
 	}
 
