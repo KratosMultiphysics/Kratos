@@ -43,6 +43,10 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
             with open(self.file_name + "_parameters.json", 'r') as parameter_file:
                 self.project_parameters_save = KratosMultiphysics.Parameters(parameter_file.read())
 
+            # To avoid many prints
+            if (self.project_parameters_save["problem_data"]["echo_level"].GetInt() == 0):
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
             # Set common settings
             self.time_step = 1.5
             self.start_time = 0.0

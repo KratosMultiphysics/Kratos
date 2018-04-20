@@ -31,6 +31,19 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
     def __init__(self, model, project_parameters):
         super(StructuralMechanicsAnalysisStage, self).__init__(model, project_parameters)
 
+        ## Get echo level and parallel type
+        self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
+        self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
+
+        ## Import parallel modules if needed
+        if (self.parallel_type == "MPI"):
+            import KratosMultiphysics.mpi as KratosMPI
+            import KratosMultiphysics.MetisApplication as MetisApplication
+            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+            self.is_printing_rank = (KratosMPI.mpi.rank == 0)
+        else:
+            self.is_printing_rank = True
+
         self._CreateSolver()
 
     def RunSolutionLoop(self):
@@ -70,23 +83,6 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
                                                       self.project_parameters["problem_data"]["domain_size"].GetInt())
             self.using_external_model_part = False
 
-        ## Get echo level and parallel type
-        self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
-        self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
-
-        # To avoid many prints # TODO leave this?
-        if (self.echo_level == 0):
-            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-
-        ## Import parallel modules if needed
-        if (self.parallel_type == "MPI"):
-            import KratosMultiphysics.mpi as KratosMPI
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-            self.is_printing_rank = (KratosMPI.mpi.rank == 0)
-        else:
-            self.is_printing_rank = True
-
         ## Structure model part definition
         if self.using_external_model_part:
             self.main_model_part = external_model_part
@@ -124,7 +120,6 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
 
     def _ExecuteInitialize(self):
         """ Initializing the Analysis """
-
         ## ModelPart is being prepared to be used by the solver
         self.solver.PrepareModelPartForSolver()
 

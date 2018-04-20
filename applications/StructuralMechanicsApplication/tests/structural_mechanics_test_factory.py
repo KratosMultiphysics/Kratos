@@ -35,6 +35,10 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
+            # To avoid many prints
+            if (ProjectParameters["problem_data"]["echo_level"].GetInt() == 0):
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
             # Creating the test
             model = KratosMultiphysics.Model()
             self.test = structural_mechanics_analysis_stage.StructuralMechanicsAnalysisStage(model, ProjectParameters)
