@@ -69,8 +69,38 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
 
         self._ExecuteBeforeSolutionLoop()
 
-    def SolveTimeStep(self):
-        self._SolveSolutionStep()
+    def InitializeSolutionStep(self):
+        """ Initialize the timestep and advance in time. Called once per timestep """
+        super(StructuralMechanicsAnalysisStage, self).InitializeSolutionStep()
+
+        if self.is_printing_rank:
+            KratosMultiphysics.Logger.PrintInfo("STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
+            KratosMultiphysics.Logger.PrintInfo("TIME: ", self.time)
+        sys.stdout.flush()
+
+        if (self.output_post == True):
+            self.gid_output.ExecuteInitializeSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        """ Finalizing the timestep and printing the output. Called once per timestep """
+        super(StructuralMechanicsAnalysisStage, self).FinalizeSolutionStep()
+
+        if (self.output_post == True):
+            self.gid_output.ExecuteFinalizeSolutionStep()
+
+
+    def OutputSolutionStep(self):
+        """ Printing the output. Called once per timestep """
+        for process in self.list_of_processes:
+            process.ExecuteBeforeOutputStep()
+
+        if (self.output_post == True) and (self.gid_output.IsOutputStep()):
+            self.gid_output.PrintOutput()
+
+        for process in self.list_of_processes:
+            process.ExecuteAfterOutputStep()
+
+        self.solver.SaveRestart() # whether a restart-file is written is decided internally
 
     def Finalize(self):
         super(StructuralMechanicsAnalysisStage, self).Finalize()
@@ -192,57 +222,6 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
 
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
-
-    def InitializeSolutionStep(self):
-        """ Initialize the timestep and advance in time. Called once per timestep """
-        # self.time += self.delta_time
-        # self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-        # self.main_model_part.CloneTimeStep(self.time)
-
-        super(StructuralMechanicsAnalysisStage, self).InitializeSolutionStep()
-
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
-            KratosMultiphysics.Logger.PrintInfo("TIME: ", self.time)
-        sys.stdout.flush()
-
-        if (self.output_post == True):
-            self.gid_output.ExecuteInitializeSolutionStep()
-
-    def _ExecuteBeforeSolve(self):
-        """ Function to be called before solving. Can be executed several times per timestep """
-        pass
-
-    def _SolveSolutionStep(self):
-        """ Solving one step. Can be called several times per timestep """
-        self._ExecuteBeforeSolve()
-        self.solver.Solve()
-        self._ExecuteAfterSolve()
-
-    def _ExecuteAfterSolve(self):
-        """ Function to be called after solving. Can be executed several times per timestep """
-        pass
-
-    def FinalizeSolutionStep(self):
-        """ Finalizing the timestep and printing the output. Called once per timestep """
-        super(StructuralMechanicsAnalysisStage, self).FinalizeSolutionStep()
-
-        if (self.output_post == True):
-            self.gid_output.ExecuteFinalizeSolutionStep()
-
-
-    def OutputSolutionStep(self):
-        """ Printing the output. Called once per timestep """
-        for process in self.list_of_processes:
-            process.ExecuteBeforeOutputStep()
-
-        if (self.output_post == True) and (self.gid_output.IsOutputStep()):
-            self.gid_output.PrintOutput()
-
-        for process in self.list_of_processes:
-            process.ExecuteAfterOutputStep()
-
-        self.solver.SaveRestart() # whether a restart-file is written is decided internally
 
     def GetModelPart(self):
         return self.main_model_part
