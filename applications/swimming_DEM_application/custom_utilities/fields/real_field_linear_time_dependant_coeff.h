@@ -17,8 +17,6 @@
 #include <omp.h>
 #endif
 
-#include "boost/smart_ptr.hpp"
-
 /* Project includes */
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
@@ -47,7 +45,7 @@ virtual ~LinearRealField(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-double Evaluate(const double time, const array_1d<double, 3>& coor)
+double Evaluate(const double time, const array_1d<double, 3>& coor) override
 {
     return mX0 + mFx.Evaluate(time) * coor[0] + mY0 + mFy.Evaluate(time) * coor[1] + mZ0 + mFz.Evaluate(time) * coor[2];
 }
@@ -55,7 +53,7 @@ double Evaluate(const double time, const array_1d<double, 3>& coor)
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
+double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor) override
 {
     return mFx.CalculateDerivative(time) * coor[0] + mY0 + mFy.CalculateDerivative(time) * coor[1] + mZ0 + mFz.CalculateDerivative(time) * coor[2];;
 }
@@ -63,7 +61,7 @@ double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coo
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient)
+void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient) override
 {
     gradient = ZeroVector(3);
 }
@@ -71,7 +69,7 @@ void CalculateGradient(const double time, const array_1d<double, 3>& coor, array
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian)
+void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian) override
 {
     laplacian = ZeroVector(3);
 }
@@ -90,20 +88,20 @@ void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, arra
 
 /// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
-virtual std::string Info() const
+virtual std::string Info() const override
 {
 return "";
 }
 
 /// Print information about this object.
 
-virtual void PrintInfo(std::ostream& rOStream) const
+virtual void PrintInfo(std::ostream& rOStream) const override
 {
 }
 
 /// Print object's data.
 
-virtual void PrintData(std::ostream& rOStream) const
+virtual void PrintData(std::ostream& rOStream) const override
 {
 }
 

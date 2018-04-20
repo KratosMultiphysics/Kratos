@@ -2,14 +2,18 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 from KratosMultiphysics import *
 import KratosMultiphysics.FluidDynamicsApplication
-import KratosMultiphysics.IncompressibleFluidApplication
+#import KratosMultiphysics.IncompressibleFluidApplication
 import KratosMultiphysics.DEMApplication
 import KratosMultiphysics.SwimmingDEMApplication
 import KratosMultiphysics.ExternalSolversApplication
 import KratosSwimmingDEM as script
 import json
 import os
-import candelier_algorithm
+
+import sys
+print(sys.path)
+
+from . import candelier_algorithm
 
 def PrintMessage(run_name, radial_error, tolerance):
         run_name += ': '
