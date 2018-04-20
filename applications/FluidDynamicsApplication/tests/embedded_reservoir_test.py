@@ -24,14 +24,7 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
         self.work_folder = "EmbeddedReservoirTest"   
         self.reference_file = "reference_reservoir_2D"
         self.settings = "EmbeddedReservoir2DTest_parameters.json"
-
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+        self.ExecuteEmbeddedReservoirTest()
 
     def testEmbeddedReservoir3D(self):
         self.distance = 0.5
@@ -39,14 +32,7 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
         self.work_folder = "EmbeddedReservoirTest"   
         self.reference_file = "reference_reservoir_3D"
         self.settings = "EmbeddedReservoir3DTest_parameters.json"
-
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+        self.ExecuteEmbeddedReservoirTest()
 
     def testEmbeddedSlipReservoir2D(self):
         self.distance = 0.5
@@ -54,14 +40,7 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
         self.work_folder = "EmbeddedReservoirTest"   
         self.reference_file = "reference_slip_reservoir_2D"
         self.settings = "EmbeddedReservoir2DTest_parameters.json"
-
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+        self.ExecuteEmbeddedReservoirTest()
 
     def testEmbeddedSlipReservoir3D(self):
         self.distance = 0.5
@@ -69,7 +48,9 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
         self.work_folder = "EmbeddedReservoirTest"   
         self.reference_file = "reference_slip_reservoir_3D"
         self.settings = "EmbeddedReservoir3DTest_parameters.json"
+        self.ExecuteEmbeddedReservoirTest()
 
+    def ExecuteEmbeddedReservoirTest(self):
         with WorkFolderScope(self.work_folder):
             self.setUp()
             self.setUpProblem()

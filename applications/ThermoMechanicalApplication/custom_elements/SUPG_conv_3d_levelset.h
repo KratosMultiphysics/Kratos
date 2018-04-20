@@ -102,14 +102,14 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
 	void CalculatePenalty(VectorType& penalty);
 
 	void CalculateDistanceGradient(array_1d<double,3>& grad_D);
-	
+
 	//void CalculateRightHandSide(VectorType	ightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     //void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
@@ -133,13 +133,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "SUPGConvLevelSet " ;
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -230,12 +230,12 @@ private:
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SUPGConv3D);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SUPGConv3D);
     }
@@ -301,4 +301,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SUPG_CONV_DIFF_PHASE_CHANGE_3D_LINEARIZED_INCLUDED  defined 
+#endif // KRATOS_SUPG_CONV_DIFF_PHASE_CHANGE_3D_LINEARIZED_INCLUDED  defined

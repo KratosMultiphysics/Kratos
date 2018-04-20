@@ -39,6 +39,7 @@ PYBIND11_MODULE(KratosFSIApplication,m)
     class_<KratosFSIApplication,
            KratosFSIApplication::Pointer,
            KratosApplication>(m,"KratosFSIApplication")
+           .def(init<>());
            ;
 
     AddCustomUtilitiesToPython(m);
