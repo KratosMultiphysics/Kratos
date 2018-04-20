@@ -18,6 +18,7 @@ class DenseMatrix : public AMatrix::MatrixExpression<DenseMatrix<TDataType, TSiz
     using base_type::size;
     using base_type::size1;
     using base_type::size2;
+    using base_type::operator();
 
     DenseMatrix() {}
 
@@ -119,15 +120,14 @@ class DenseMatrix : public AMatrix::MatrixExpression<DenseMatrix<TDataType, TSiz
     }
 
 
-    void resize(std::size_t NewSize1, std::size_t NewSize2){
+    void resize(std::size_t NewSize1, std::size_t NewSize2, bool preserve = 0){
+        KRATOS_DEBUG_ERROR_IF(preserve) << "The preserve is not supported anymore" << std::endl;
+
         base_type::resize(NewSize1,NewSize2);
     }
 
-    void resize(std::size_t NewSize1, std::size_t NewSize2, bool preserve){
-        base_type::resize(NewSize1,NewSize2);
-    }
-
-    void resize(std::size_t NewSize){
+    void resize(std::size_t NewSize, bool preserve = 0){
+        KRATOS_DEBUG_ERROR_IF(preserve) << "The preserve is not supported anymore" << std::endl;
         base_type::resize(NewSize);
     }
 
