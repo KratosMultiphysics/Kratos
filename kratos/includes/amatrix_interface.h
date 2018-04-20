@@ -25,6 +25,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/dense_matrix.h"
 
 namespace Kratos
 {
@@ -36,9 +37,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-using Matrix = AMatrix::Matrix<double,AMatrix::dynamic, AMatrix::dynamic>;
+using Matrix = DenseMatrix<double,AMatrix::dynamic, AMatrix::dynamic>;
 
-using Vector = AMatrix::Matrix<double,AMatrix::dynamic, 1>;
+using Vector = DenseMatrix<double,AMatrix::dynamic, 1>;
 
 template <typename T> T& noalias(T& TheMatrix){return TheMatrix.noalias();}
 
