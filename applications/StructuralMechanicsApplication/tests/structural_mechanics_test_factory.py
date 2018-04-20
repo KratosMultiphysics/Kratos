@@ -48,3 +48,14 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Finalize()
+
+class StructuralMechanicsCppTestFactory(KratosUnittest.TestCase):
+    def setUp(self):
+        pass
+        
+    def test_execution(self):
+        KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.TESTS_OUTPUTS)
+        KratosMultiphysics.Tester.RunTestCases(self.cpp_test_name)
+    
+    def tearDown(self):
+        pass

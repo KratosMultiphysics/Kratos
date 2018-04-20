@@ -55,6 +55,7 @@ from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProce
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
 from SmallTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
+from SmallTests import TotalLagrangianTest as TTotalLagrangianTest
 
 ##### NIGHTLY TESTS #####
 # Patch test Small Displacements
@@ -163,7 +164,7 @@ from RestartTests import TestSmallDisplacement2D4N  as TTestSmallDisplacement2D4
 from RestartTests import TestTotalLagrangian2D3N    as TTestTotalLagrangian2D3N
 from RestartTests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D8N
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -220,6 +221,7 @@ def AssambleTestSuites():
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
+    smallSuite.addTest(TTotalLagrangianTest('test_execution'))
     # Basic restart test (leave these in the smallSuite to have the Exection script tested)
     smallSuite.addTest(TTestSmallDisplacement2D4N('test_execution'))
     smallSuite.addTest(TTestTotalLagrangian2D3N('test_execution'))
@@ -350,4 +352,4 @@ def AssambleTestSuites():
 
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
