@@ -20,7 +20,7 @@ def CreateSolver(model_part, custom_settings):
     return ALENavierStokesSolverFractionalStep(model_part, custom_settings)
 
 
-class ALENavierStokesSolverFractionalStep(navier_stokes_solver_fractionalstep.NavierStokesSolver_FractionalStep):
+class ALENavierStokesSolverFractionalStep(navier_stokes_solver_fractionalstep.NavierStokesSolverFractionalStep):
     def __init__(self, model_part, custom_settings):
         # remove the ale_settings so we can use the navier stokes constructor
         navier_stokes_settings = custom_settings.Clone()

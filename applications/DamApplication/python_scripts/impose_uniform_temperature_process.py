@@ -5,17 +5,17 @@ from KratosMultiphysics.DamApplication import *
 ## In this case, the scalar value is not automatically fixed, so the fixicity must be introduced before.
 
 def Factory(settings, Model):
-    if(type(settings) != Parameters):
+    if not isinstance(settings, Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ImposeUniformTemperatureProcess(Model, settings["Parameters"])
 
 class ImposeUniformTemperatureProcess(Process):
-    
+
     def __init__(self, Model, settings ):
 
         Process.__init__(self)
         model_part = Model[settings["model_part_name"].GetString()]
- 
+
         if settings["table"].GetInt() == 0:
             param = Parameters("{}")
             param.AddValue("model_part_name",settings["model_part_name"])
@@ -34,6 +34,6 @@ class ImposeUniformTemperatureProcess(Process):
 
     def ExecuteInitializeSolutionStep(self):
         self.process.ExecuteInitializeSolutionStep()
-            
+
     def ExecuteFinalizeSolutionStep(self):
         self.process.ExecuteFinalizeSolutionStep()
