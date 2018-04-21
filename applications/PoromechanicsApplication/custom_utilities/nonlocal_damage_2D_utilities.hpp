@@ -48,11 +48,11 @@ public:
     ///------------------------------------------------------------------------------------
 
     /// Destructor
-    virtual ~NonlocalDamage2DUtilities() {}
+    ~NonlocalDamage2DUtilities() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    void SearchGaussPointsNeighbours (Parameters* pParameters, ModelPart& rModelPart)
+    void SearchGaussPointsNeighbours (Parameters* pParameters, ModelPart& rModelPart) override
     {
         std::cout << "Starting non-local search of neighbours ..." << std::endl;
         
@@ -213,7 +213,7 @@ protected:
     void ComputeNeighbourDistance(
         double& rDistance,
         const GaussPoint& ReceiverPoint,
-        const GaussPoint& SourcePoint)
+        const GaussPoint& SourcePoint) override
     {
         rDistance = sqrt((SourcePoint.Coordinates[0]-ReceiverPoint.Coordinates[0])*(SourcePoint.Coordinates[0]-ReceiverPoint.Coordinates[0]) +
                          (SourcePoint.Coordinates[1]-ReceiverPoint.Coordinates[1])*(SourcePoint.Coordinates[1]-ReceiverPoint.Coordinates[1]));
