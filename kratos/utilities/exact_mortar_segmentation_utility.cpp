@@ -29,7 +29,7 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
     )
 {
     // We take the geometry GP from the core
-    const double tolerance = 1.0e-6;  // std::numeric_limits<double>::epsilon();
+    const double tolerance = 1.0e3 * std::numeric_limits<double>::epsilon();
 
     double total_weight = 0.0;
     array_1d<double, 2> auxiliar_coordinates(2 , 0.0);
@@ -306,7 +306,7 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
     )
 {
     // We take the geometry GP from the core
-    const double tolerance = 1.0e-6;  // std::numeric_limits<double>::epsilon();
+    const double tolerance = 1.0e3 * std::numeric_limits<double>::epsilon();
 
     double total_weight = 0.0;
     array_1d<double, 2> auxiliar_coordinates(2, 0.0);

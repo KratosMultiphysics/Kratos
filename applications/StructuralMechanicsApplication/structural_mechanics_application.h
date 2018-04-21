@@ -80,6 +80,7 @@
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/elastic_isotropic_plane_stress_uncoupled_shear.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
@@ -88,6 +89,7 @@
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 #include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/linear_j2_plasticity_3d.h"
+#include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
 /* UTILITIES */
 // Cross sections
@@ -388,6 +390,7 @@ private:
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+    const ElasticIsotropicPlaneStressUncoupledShear  mElasticIsotropicPlaneStressUncoupledShear;
     const HyperElasticIsotropicKirchhoff3D  mHyperElasticIsotropicKirchhoff3D;
     const HyperElasticIsotropicKirchhoffPlaneStress2D  mHyperElasticIsotropicKirchhoffPlaneStress2D;
     const HyperElasticIsotropicKirchhoffPlaneStrain2D  mHyperElasticIsotropicKirchhoffPlaneStrain2D;
@@ -397,6 +400,7 @@ private:
 
     const LinearJ2Plasticity3D mLinearJ2Plasticity3D;
     const LinearJ2PlasticityPlaneStrain2D mLinearJ2PlasticityPlaneStrain2D;
+    const LinearIsotropicDamage3D mLinearIsotropicDamage3D;
 
     ///@}
     ///@name Private Operators

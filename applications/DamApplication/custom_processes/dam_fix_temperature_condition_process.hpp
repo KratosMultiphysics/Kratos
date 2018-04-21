@@ -81,7 +81,7 @@ class DamFixTemperatureConditionProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Execute()
+    void Execute() override
     {
 
         KRATOS_TRY;
@@ -112,7 +112,7 @@ class DamFixTemperatureConditionProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -149,10 +149,10 @@ class DamFixTemperatureConditionProcess : public Process
 
         KRATOS_CATCH("");
     }
-    
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -163,7 +163,7 @@ class DamFixTemperatureConditionProcess : public Process
 
         if (nnodes != 0)
         {
-            
+
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
             #pragma omp parallel for
@@ -178,19 +178,19 @@ class DamFixTemperatureConditionProcess : public Process
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "FixTemperatureConditionProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "FixTemperatureConditionProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 

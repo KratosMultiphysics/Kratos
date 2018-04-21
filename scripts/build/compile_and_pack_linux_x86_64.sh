@@ -69,7 +69,6 @@ cmake ..  																		                                 \
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3   " 								               \
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3   " 									                 \
 -DBOOST_LIBRARYDIR="${BOOST_ROOT}/stage/lib"									                 \
--DPYTHON_INCLUDE_PATH="/home/odin/Python-3.3.4/Include"							           \
 -DPYTHON_EXECUTABLE="/usr/bin/python${PYTHON_VERSION_S}.${PYTHON_VERSION_M}"                    \
 -DCMAKE_BUILD_TYPE=Release  													                         \
 -DINCOMPRESSIBLE_FLUID_APPLICATION=ON  											                   \
