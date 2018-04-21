@@ -140,7 +140,7 @@ protected:
     void ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& VoigtSize);
 
 
-    void CaculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo ) override;
     
     
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;

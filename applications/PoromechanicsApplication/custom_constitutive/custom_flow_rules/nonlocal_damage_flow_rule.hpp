@@ -62,7 +62,7 @@ protected:
     
     void CalculateLocalInternalVariables(RadialReturnVariables& rReturnMappingVariables);
     
-    bool CalculateInternalVariables(RadialReturnVariables& rReturnMappingVariables);
+    bool CalculateInternalVariables(RadialReturnVariables& rReturnMappingVariables) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -108,7 +108,7 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    virtual void CaculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo );
+    virtual void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo );
     
     virtual void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 

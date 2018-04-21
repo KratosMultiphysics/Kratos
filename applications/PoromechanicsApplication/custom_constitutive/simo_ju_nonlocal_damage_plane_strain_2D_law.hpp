@@ -63,7 +63,7 @@ protected:
         
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry );
+    void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry ) override;
 
 private:
     
