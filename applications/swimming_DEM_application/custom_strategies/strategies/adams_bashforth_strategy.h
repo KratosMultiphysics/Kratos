@@ -28,8 +28,6 @@
 
 #define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
-//#include "boost/smart_ptr.hpp"
-
 /* Project includes */
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
@@ -106,7 +104,7 @@ namespace Kratos {
             Timer::PrintTimingInformation();
         }
 
-        double Solve();
+        double Solve() override;
 
     protected:
 
