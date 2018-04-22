@@ -126,6 +126,7 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
 
+
     ///@}
     ///@name Friends
     ///@{
@@ -136,22 +137,21 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
 
-    ModelPart&                                                    mrModelPart;
-    double                                                 mDistanceThreshold;
-    bool                                                          mIsModified;
-    bool                                                  mContinuousDistance;
-    bool                                                     mCheckAtEachStep;
-    bool                                                 mNegElemDeactivation;
-    bool                                             mRecoverOriginalDistance;
-    bool                                            mAvoidAlmostEmptyElements;
-    std::vector<std::vector<unsigned int>>              mModifiedDistancesIDs;
-    std::vector<std::vector<double>>                 mModifiedDistancesValues;
-    std::vector<std::vector<Vector>>        mModifiedElementalDistancesValues;
+    ModelPart&                                       mrModelPart;
+    double                                    mDistanceThreshold;
+    bool                                             mIsModified;
+    bool                                     mContinuousDistance;
+    bool                                        mCheckAtEachStep;
+    bool                                    mNegElemDeactivation;
+    bool                               mAvoidAlmostEmptyElements;
+    bool                                mRecoverOriginalDistance;
+    std::vector<unsigned int>              mModifiedDistancesIDs;
+    std::vector<double>                 mModifiedDistancesValues;
+    std::vector<Vector>        mModifiedElementalDistancesValues;
 
     ///@}
     ///@name Protected Operators

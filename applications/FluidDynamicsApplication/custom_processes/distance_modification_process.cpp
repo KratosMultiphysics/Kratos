@@ -134,18 +134,18 @@ void DistanceModificationProcess::ExecuteFinalizeSolutionStep() {
 
 void DistanceModificationProcess::ModifyDistance() {
 
-    ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
+    ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
     ModelPart::ElementsContainerType& rElements = mrModelPart.Elements();
 
     // Distance modification
     // Case in where the original distance does not need to be preserved (e.g. CFD)
     if (mRecoverOriginalDistance == false) {
         #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(rNodes.size()); ++k) {
-            ModelPart::NodesContainerType::iterator itNode = rNodes.begin() + k;
-            const double h = itNode->FastGetSolutionStepValue(NODAL_H);
+        for (int k = 0; k < static_cast<int>(r_nodes.size()); ++k) {
+            auto it_node = r_nodes.begin() + k;
+            const double h = it_node->FastGetSolutionStepValue(NODAL_H);
             const double tol_d = mDistanceThreshold*h;
-            double& d = itNode->FastGetSolutionStepValue(DISTANCE);
+            double& d = it_node->FastGetSolutionStepValue(DISTANCE);
 
             // Check if the distance values are close to zero
             // If proceeds, set the tolerance as distance value
@@ -165,30 +165,32 @@ void DistanceModificationProcess::ModifyDistance() {
     }
     // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
     else {
-        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-        std::vector<std::vector<unsigned int>> AuxModifiedDistancesIDs(NumThreads);
-        std::vector<std::vector<double>> AuxModifiedDistancesValues(NumThreads);
 
-        #pragma omp parallel shared(AuxModifiedDistancesIDs, AuxModifiedDistancesValues)
+        const unsigned int num_chunks = 2 * OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector partition_vec;
+        OpenMPUtils::DivideInPartitions(r_nodes.size(),num_chunks,partition_vec);
+
+        #pragma omp parallel for
+        for (unsigned int i_chunk = 0; i_chunk < num_chunks; ++i_chunk)
         {
-            const int ThreadId = OpenMPUtils::ThisThread();             // Get the thread id
-            std::vector<unsigned int>   LocalModifiedDistancesIDs;      // Local modified distances nodes id vector
-            std::vector<double>      LocalModifiedDistancesValues;      // Local modified distances original values vector
+            auto nodes_begin = r_nodes.begin() + partition_vec[i_chunk];
+            auto nodes_end = r_nodes.begin() + partition_vec[i_chunk + 1];
 
-            #pragma omp for
-            for (int k = 0; k < static_cast<int>(rNodes.size()); ++k) {
-                ModelPart::NodesContainerType::iterator itNode = rNodes.begin() + k;
-                const double h = itNode->FastGetSolutionStepValue(NODAL_H);
+            for (auto it_node = nodes_begin; it_node != nodes_end; ++it_node) {
+                const double h = it_node->FastGetSolutionStepValue(NODAL_H);
                 const double tol_d = mDistanceThreshold*h;
-                double &d = itNode->FastGetSolutionStepValue(DISTANCE);
+                double &d = it_node->FastGetSolutionStepValue(DISTANCE);
 
                 // Check if the distance values are close to zero
                 // If proceeds, set the tolerance as distance value
                 if(std::abs(d) < tol_d){
 
                     // Store the original distance to be recovered at the end of the step
-                    LocalModifiedDistancesIDs.push_back(itNode->Id());
-                    LocalModifiedDistancesValues.push_back(d);
+                    #pragma omp critical
+                    {
+                        mModifiedDistancesIDs.push_back(it_node->Id());
+                        mModifiedDistancesValues.push_back(d);
+                    }
 
                     if (d <= 0.0){
                         d = -tol_d;
@@ -202,13 +204,7 @@ void DistanceModificationProcess::ModifyDistance() {
                     }
                 }
             }
-
-            AuxModifiedDistancesIDs[ThreadId] = LocalModifiedDistancesIDs;
-            AuxModifiedDistancesValues[ThreadId] = LocalModifiedDistancesValues;
         }
-
-        mModifiedDistancesIDs = AuxModifiedDistancesIDs;
-        mModifiedDistancesValues = AuxModifiedDistancesValues;
     }
 
     // Syncronize data between partitions (the modified distance has always a lower value)
@@ -217,13 +213,15 @@ void DistanceModificationProcess::ModifyDistance() {
 
 void DistanceModificationProcess::ModifyDiscontinuousDistance(){
 
+    auto r_elems = mrModelPart.Elements();
     auto elems_begin = mrModelPart.ElementsBegin();
-    const std::size_t n_elems = mrModelPart.NumberOfElements();
+    const auto n_elems = mrModelPart.NumberOfElements();
 
     // Distance modification
     if (mRecoverOriginalDistance == false) {
         // Case in where the original distance does not need to be preserved (e.g. CFD)
-        for (unsigned int i_elem = 0; i_elem < n_elems; ++i_elem){
+        #pragma omp parallel for
+        for (int i_elem = 0; i_elem < static_cast<int>(n_elems); ++i_elem){
             auto it_elem = elems_begin + i_elem;
 
             // Compute the distance tolerance
@@ -239,43 +237,37 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
         }
     } else {
         // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
-        const unsigned int n_threads = OpenMPUtils::GetNumThreads();
-        std::vector<std::vector<unsigned int>> mod_dist_elems_ids(n_threads);
-        std::vector<std::vector<Vector>> orig_dist_values(n_threads);
 
-        #pragma omp parallel shared(mod_dist_elems_ids, orig_dist_values)
+        const unsigned int num_chunks = 2 * OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector partition_vec;
+        OpenMPUtils::DivideInPartitions(n_elems,num_chunks,partition_vec);
+
+        #pragma omp parallel for
+        for (unsigned int i_chunk = 0; i_chunk < num_chunks; ++i_chunk)
         {
-            const int i_thread = OpenMPUtils::ThisThread();         // Get the thread id
-            std::vector<unsigned int> local_mod_dist_elems_ids;     // Local modified distances elemental id vector
-            std::vector<Vector> local_orig_dist_values;             // Local modified distances original values vector
+            auto elems_begin = r_elems.begin() + partition_vec[i_chunk];
+            auto elems_end = r_elems.begin() + partition_vec[i_chunk + 1];
 
-            #pragma omp for
-            for (int i_elem = 0; i_elem < static_cast<int>(n_elems); ++i_elem){
-                auto it_elem = elems_begin + i_elem;
-
+            for (auto it_elem = elems_begin; it_elem != elems_end; ++it_elem){
                 // Compute the distance tolerance
-                const double tol_d = mDistanceThreshold*(it_elem->GetGeometry()).Length();
+                const double tol_d = mDistanceThreshold * (it_elem->GetGeometry()).Length();
 
                 bool is_saved = false;
                 Vector &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
                 for (unsigned int i_node = 0; i_node < r_elem_dist.size(); ++i_node){
                     if (std::abs(r_elem_dist(i_node)) < tol_d){
                         if (!is_saved){
-                            local_mod_dist_elems_ids.push_back(it_elem->Id());
-                            local_orig_dist_values.push_back(r_elem_dist);
+                            #pragma omp critical
+                            {
+                                mModifiedDistancesIDs.push_back(it_elem->Id());
+                                mModifiedElementalDistancesValues.push_back(r_elem_dist);
+                            }
                         }
                         r_elem_dist(i_node) = -tol_d;
                     }
                 }
-
             }
-
-            mod_dist_elems_ids[i_thread] = local_mod_dist_elems_ids;
-            orig_dist_values[i_thread] = local_orig_dist_values;
         }
-
-        mModifiedDistancesIDs = mod_dist_elems_ids;
-        mModifiedElementalDistancesValues = orig_dist_values;
     }
 }
 
@@ -302,16 +294,10 @@ void DistanceModificationProcess::RecoverDeactivationPreviousState(){
 }
 
 void DistanceModificationProcess::RecoverOriginalDistance() {
-    #pragma omp parallel
-    {
-        const int i_thread = OpenMPUtils::ThisThread();
-        const std::vector<unsigned int> local_mod_dist_ids = mModifiedDistancesIDs[i_thread];
-        const std::vector<double> loc_mod_dist_values = mModifiedDistancesValues[i_thread];
-
-        for(unsigned int i = 0; i < local_mod_dist_ids.size(); ++i) {
-            const unsigned int node_id = local_mod_dist_ids[i];
-            mrModelPart.GetNode(node_id).FastGetSolutionStepValue(DISTANCE) = loc_mod_dist_values[i];
-        }
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mModifiedDistancesIDs.size()); ++i) {
+        const auto node_id = mModifiedDistancesIDs[i];
+        mrModelPart.GetNode(node_id).FastGetSolutionStepValue(DISTANCE) = mModifiedDistancesValues[i];
     }
 
     // Syncronize data between partitions (the modified distance has always a lower value)
@@ -325,16 +311,11 @@ void DistanceModificationProcess::RecoverOriginalDistance() {
 }
 
 void DistanceModificationProcess::RecoverOriginalDiscontinuousDistance() {
-    #pragma omp parallel
-    {
-        const int i_thread = OpenMPUtils::ThisThread();
-        const std::vector<unsigned int> local_mod_dist_elems_ids = mModifiedDistancesIDs[i_thread];
-        const std::vector<Vector> local_orig_dist_values = mModifiedElementalDistancesValues[i_thread];
-
-        for(unsigned int i = 0; i < local_mod_dist_elems_ids.size(); ++i) {
-            const unsigned int i_elem = local_mod_dist_elems_ids[i];
-            mrModelPart.GetElement(i_elem).SetValue(ELEMENTAL_DISTANCES,local_orig_dist_values[i]);
-        }
+    #pragma omp parallel for
+    for (int i_elem = 0; i_elem < static_cast<int>(mModifiedDistancesIDs.size()); ++i_elem) {
+        const unsigned int elem_id = mModifiedDistancesIDs[i_elem];
+        const auto elem_dist = mModifiedElementalDistancesValues[i_elem];
+        mrModelPart.GetElement(elem_id).SetValue(ELEMENTAL_DISTANCES,elem_dist);
     }
 
     // Empty the modified distance vectors
