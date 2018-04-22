@@ -156,6 +156,9 @@ public:
         const TSystemVectorType& b
         ) override
     {
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array(3, 0.0);
+
         // We call the base class
         BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
         
@@ -166,8 +169,6 @@ public:
 //         const double epsilon = rModelPart.GetProcessInfo()[INITIAL_PENALTY]; 
         const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
         const double tangent_factor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
-        
-        const array_1d<double,3> zero_vector(3, 0.0);
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
@@ -217,6 +218,7 @@ public:
                     }
                 }   
             } else {
+                it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array;
                 if (it_node->Is(ACTIVE)) {
                     it_node->Set(ACTIVE, false);
                     is_converged_active += 1;
@@ -340,14 +342,13 @@ protected:
     
     void ResetWeightedGap(ModelPart& rModelPart) override
     {
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array(3, 0.0);
+
         // We reset the weighted values
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
-            it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = it_node->FastGetSolutionStepValue(WEIGHTED_SLIP, 1);
-        }
+        VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
     }
     
     ///@}

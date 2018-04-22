@@ -418,6 +418,36 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief It calculates the matrix containing the tangent vector of the slip (for frictional contact)
+     * @param ThisNodes The geometry to calculate
+     * @return tangent_matrix The matrix containing the tangent vectors of the slip
+     */
+
+    static inline bounded_matrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& ThisNodes) {
+        /* DEFINITIONS */
+        // Zero tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+        // Tangent matrix
+        bounded_matrix<double, TNumNodes, TDim> tangent_matrix;
+
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            const array_1d<double, 3>& slip = ThisNodes[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
+            const double norm_slip = norm_2(slip);
+            if (norm_slip > zero_tolerance) { // Non zero slip
+                const array_1d<double, 3> tangent_slip = slip/norm_slip;
+                for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
+                    tangent_matrix(i_node, i_dof) = tangent_slip[i_dof];
+            } else { // We consider the tangent direction as auxiliar
+                const array_1d<double, 3>& tangent_xi = ThisNodes[i_node].GetValue(TANGENT_XI);
+                for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
+                    tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+            }
+        }
+
+        return tangent_matrix;
+    }
+
     ///@}
     ///@name Private  Access
     ///@{

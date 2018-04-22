@@ -1386,11 +1386,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeWeightedReaction()
         case TypeSolution::VectorLagrangeMultiplier :
             if (mrMainModelPart.Is(SLIP)) {
                 VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
-                #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-                    auto it_node = nodes_array.begin() + i;
-                    it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = it_node->FastGetSolutionStepValue(WEIGHTED_SLIP, 1);
-                }
+                VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
             } else if (mrMainModelPart.Is(CONTACT)) {
                 VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
             } else
