@@ -85,7 +85,7 @@ target_link_libraries( KratosFluidDynamicsCore PUBLIC KratosCore)
 set_target_properties( KratosFluidDynamicsCore PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 
 ## FluidDynamicsApplication python module
-pybind11_add_module( KratosFluidDynamicsApplication MODULE ${KRATOS_FLUID_DYNAMICS_PYTHON_INTERFACE_SOURCES} )
+pybind11_add_module( KratosFluidDynamicsApplication MODULE THIN_LTO ${KRATOS_FLUID_DYNAMICS_PYTHON_INTERFACE_SOURCES} )
 target_link_libraries( KratosFluidDynamicsApplication PRIVATE KratosFluidDynamicsCore)
 set_target_properties( KratosFluidDynamicsApplication PROPERTIES PREFIX "")
 
