@@ -15,7 +15,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 [kratos-master-status]: https://travis-ci.org/KratosMultiphysics/Kratos.svg?branch=master
 [travis-branches]: https://travis-ci.org/KratosMultiphysics/Kratos/branches
 
-[appveyor-image]: https://ci.appveyor.com/api/projects/status/f9p57hci9ufkqkf5?svg=true
+[appveyor-image]: https://ci.appveyor.com/api/projects/status/f9p57hci9ufkqkf5/branch/master?svg=true
 [appveyor-master]: https://ci.appveyor.com/project/KratosMultiphysics/kratos
 
 
