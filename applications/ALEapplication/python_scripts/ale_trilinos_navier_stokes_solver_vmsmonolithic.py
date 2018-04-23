@@ -20,7 +20,7 @@ def CreateSolver(model_part, custom_settings):
     return ALETrilinosNavierStokesSolverVMSMonolithic(model_part, custom_settings)
 
 
-class ALETrilinosNavierStokesSolverVMSMonolithic(trilinos_navier_stokes_solver_vmsmonolithic.NavierStokesMPISolver_VMSMonolithic):
+class ALETrilinosNavierStokesSolverVMSMonolithic(trilinos_navier_stokes_solver_vmsmonolithic.TrilinosNavierStokesSolverMonolithic):
     def __init__(self, model_part, custom_settings):
         # remove the ale_settings so we can use the navier stokes constructor
         navier_stokes_settings = custom_settings.Clone()

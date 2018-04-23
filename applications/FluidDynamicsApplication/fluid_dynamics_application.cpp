@@ -94,7 +94,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mEmbeddedAusasNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
     mEmbeddedAusasNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
     mEmbeddedAusasNavierStokesWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-    mEmbeddedAusasNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3))))
+    mEmbeddedAusasNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+    // Compressible Navier-Stokes symbolic elements
+    mCompressibleNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mCompressibleNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
 
 {}
 
@@ -132,6 +135,12 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(VORTICITY_MAGNITUDE);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(RECOVERED_PRESSURE_GRADIENT);
     KRATOS_REGISTER_VARIABLE(NODAL_WEIGHTS);
+
+    // Compressible fluid variables
+    KRATOS_REGISTER_VARIABLE(HEAT_CAPACITY_RATIO)
+    KRATOS_REGISTER_VARIABLE(REACTION_DENSITY)
+    KRATOS_REGISTER_VARIABLE(REACTION_ENERGY)
+    KRATOS_REGISTER_VARIABLE(MACH)
 
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
@@ -190,6 +199,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("EmbeddedNavierStokes3D4N", mEmbeddedNavierStokes3D);
     KRATOS_REGISTER_ELEMENT("EmbeddedAusasNavierStokes2D3N", mEmbeddedAusasNavierStokes2D);
     KRATOS_REGISTER_ELEMENT("EmbeddedAusasNavierStokes3D4N", mEmbeddedAusasNavierStokes3D);
+
+    // Compressible Navier-Stokes symbolic elements
+    KRATOS_REGISTER_ELEMENT("CompressibleNavierStokes2D3N",mCompressibleNavierStokes2D);
+    KRATOS_REGISTER_ELEMENT("CompressibleNavierStokes3D4N",mCompressibleNavierStokes3D);
 
     // Register Conditions
     KRATOS_REGISTER_CONDITION("WallCondition2D2N", mWallCondition2D);  //this is the name the element should have according to the naming convention
