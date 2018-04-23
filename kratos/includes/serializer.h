@@ -1125,7 +1125,7 @@ private:
 //        }
 
     template<class TDataType>
-    void read(boost::numeric::ublas::matrix<TDataType>& rData)
+    void read(DenseMatrix<TDataType>& rData)
     {
         KRATOS_SERIALIZER_MODE_BINARY
 
@@ -1157,7 +1157,7 @@ private:
     }
 
     template<class TDataType>
-    void write(boost::numeric::ublas::matrix<TDataType> const& rData)
+    void write(DenseMatrix<TDataType> const& rData)
     {
         KRATOS_SERIALIZER_MODE_BINARY
 

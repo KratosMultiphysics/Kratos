@@ -975,7 +975,7 @@ public:
     }
 
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
         NodesInFaces.resize(4, 4, false);
         NodesInFaces(0,0)=0;//face or other node
