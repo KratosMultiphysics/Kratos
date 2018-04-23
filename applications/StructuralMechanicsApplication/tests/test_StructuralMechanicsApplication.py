@@ -1,6 +1,7 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -163,7 +164,7 @@ from RestartTests import TestSmallDisplacement2D4N  as TTestSmallDisplacement2D4
 from RestartTests import TestTotalLagrangian2D3N    as TTestTotalLagrangian2D3N
 from RestartTests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D8N
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -350,4 +351,5 @@ def AssambleTestSuites():
 
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
+    run_cpp_unit_tests.run()

@@ -115,7 +115,7 @@ endif()
 set_target_properties( KratosPoromechanicsCore PROPERTIES COMPILE_DEFINITIONS "POROMECHANICS_APPLICATION=EXPORT,API")
 
 ## PoromechanicsApplication python module
-pybind11_add_module(KratosPoromechanicsApplication MODULE ${KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES})
+pybind11_add_module(KratosPoromechanicsApplication MODULE THIN_LTO ${KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES})
 target_link_libraries(KratosPoromechanicsApplication PRIVATE KratosPoromechanicsCore)
 set_target_properties(KratosPoromechanicsApplication PROPERTIES PREFIX "")
 

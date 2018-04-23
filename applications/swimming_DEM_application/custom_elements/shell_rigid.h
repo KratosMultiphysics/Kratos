@@ -57,8 +57,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -122,39 +120,39 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
 
 //		void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-    void GetValuesVector(Vector& values, int Step);
-    void GetFirstDerivativesVector(Vector& values, int Step = 0);
-    void GetSecondDerivativesVector(Vector& values, int Step = 0);
+    void GetValuesVector(Vector& values, int Step) override;
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
+    void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Initialize();
+    void Initialize() override;
 
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-    int  Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -500,12 +498,12 @@ private:
     // A private default constructor necessary for serialization
     ShellRigid(){}
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
     }

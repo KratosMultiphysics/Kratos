@@ -250,7 +250,7 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
 
         return Element::Pointer(new MonolithicDEMCoupled(NewId, GetGeometry().Create(ThisNodes), pProperties));
@@ -269,7 +269,7 @@ public:
      */
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
             const unsigned int LocalSize = (TDim + 1) * TNumNodes;
@@ -303,10 +303,10 @@ public:
      * @param rCurrentProcessInfo Process info instance
      */
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+                                       ProcessInfo& rCurrentProcessInfo) override
     {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
-            
+
             const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
             if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
@@ -335,7 +335,7 @@ public:
      * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
      */
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        ProcessInfo& rCurrentProcessInfo) override
     {
         // Calculate this element's geometric parameters
         double Area;
@@ -466,7 +466,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
 //        rMassMatrix.resize(0,0,false);
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
@@ -577,7 +577,7 @@ public:
      */
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -661,7 +661,7 @@ public:
         noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
     }
 
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
 //             if(this->GetValue(TRACK_SUBSCALES) == 1)
 //             {
@@ -721,7 +721,7 @@ public:
      */
     virtual void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == ERROR_RATIO)
         {
@@ -827,7 +827,7 @@ public:
      */
     virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == ADVPROJ) // Compute residual projections for OSS
         {
@@ -943,7 +943,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+                                  ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a list of the element's Dofs
     /**
@@ -951,21 +951,21 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo);
+                            ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
     /**
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0);
+    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0) override;
 
     /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
     /**
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0);
+    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0) override;
 
     /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
     /**
@@ -979,7 +979,7 @@ public:
      */
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Obtain a double elemental variable, evaluated on gauss points.
     /**
@@ -995,7 +995,7 @@ public:
      */
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU)
         {
@@ -1111,19 +1111,19 @@ public:
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
             std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
     virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     ///@}
@@ -1143,7 +1143,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -1230,7 +1230,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "MonolithicDEMCoupled #" << Id();
@@ -1238,7 +1238,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MonolithicDEMCoupled" << TDim << "D";
     }
@@ -1865,7 +1865,7 @@ protected:
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 //G
         double FluidFraction, FluidFractionRate;
-        array_1d<double,3> FluidFractionGradient(3,0.0);       
+        array_1d<double,3> FluidFractionGradient(3,0.0);
         this->EvaluateInPoint(FluidFraction, FLUID_FRACTION, rShapeFunc);
         this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, FLUID_FRACTION, rShapeDeriv);
         this->EvaluateInPoint(FluidFractionRate,FLUID_FRACTION_RATE,rShapeFunc);
@@ -1887,7 +1887,7 @@ protected:
 //G
     //          rElementalMassRes -= Weight * rShapeDeriv(i, d) * rVelocity[d];
                 rElementalMassRes -= Weight * (FluidFraction * rShapeDeriv(i, d) * rVelocity[d] + FluidFractionGradient[d] * rShapeFunc[i] * rVelocity[d]);
-            }            
+            }
 
         }
 
@@ -2551,12 +2551,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

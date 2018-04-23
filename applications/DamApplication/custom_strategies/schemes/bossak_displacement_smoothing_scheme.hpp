@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosDamApplication   $
 //   Last Modified by:    $Author:Lorenzo Gracia $
 //   Date:                $Date:    October 2016 $
@@ -33,32 +33,32 @@ public:
 
     ///Constructor
     BossakDisplacementSmoothingScheme(double rAlpham = 0.0, double rayleigh_m = 0.0, double rayleigh_k = 0.0)
-        : ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(rAlpham) 
-    
+        : ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(rAlpham)
+
     {
-        
+
         mRayleighAlpha = rayleigh_m;
         mRayleighBeta = rayleigh_k;
-            
+
     }
-    
+
     //------------------------------------------------------------------------------------
-    
+
     ///Destructor
     virtual ~BossakDisplacementSmoothingScheme() {}
 
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Initialize(ModelPart& r_model_part)
+    void Initialize(ModelPart& r_model_part) override
     {
         KRATOS_TRY
 
         r_model_part.GetProcessInfo()[RAYLEIGH_ALPHA] = mRayleighAlpha;
         r_model_part.GetProcessInfo()[RAYLEIGH_BETA] = mRayleighBeta;
-                
+
         mSchemeIsInitialized = true;
-        
+
         KRATOS_CATCH("")
     }
 
@@ -68,15 +68,15 @@ public:
         ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
-        
+
         unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        
+
         // Clear nodal variables
         #pragma omp parallel
-        {        
+        {
             ModelPart::NodeIterator NodesBegin;
             ModelPart::NodeIterator NodesEnd;
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
@@ -94,10 +94,10 @@ public:
         }
 
         BaseType::FinalizeSolutionStep(rModelPart,A,Dx,b);
-        
+
         // Compute smoothed nodal variables
         #pragma omp parallel
-        {        
+        {
             ModelPart::NodeIterator NodesBegin;
             ModelPart::NodeIterator NodesEnd;
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
@@ -126,18 +126,18 @@ public:
                 }
             }
         }
-                
+
         KRATOS_CATCH("")
     }
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-    
+
     //Member variables
     double mRayleighAlpha;
     double mRayleighBeta;
-    
+
 
 }; // Class BossakDisplacementSmoothingScheme
 }  // namespace Kratos

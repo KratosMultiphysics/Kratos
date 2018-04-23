@@ -42,6 +42,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_orthotropic_2D_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_j2_plasticity_plane_strain_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_j2_plasticity_3d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_3D_law.cpp
 
   ## ELEMENTS
   #Adding truss element
@@ -117,7 +118,7 @@ set_target_properties(KratosStructuralMechanicsCore PROPERTIES COMPILE_DEFINITIO
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosStructuralMechanicsApplication MODULE ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})
+pybind11_add_module(KratosStructuralMechanicsApplication MODULE THIN_LTO ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosStructuralMechanicsApplication PUBLIC KratosStructuralMechanicsCore)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
 

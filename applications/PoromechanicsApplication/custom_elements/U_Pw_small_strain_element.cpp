@@ -726,7 +726,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::CaculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
+void UPwSmallStrainElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
 {    
     KRATOS_TRY
 

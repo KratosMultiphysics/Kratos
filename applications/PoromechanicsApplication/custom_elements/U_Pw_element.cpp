@@ -414,7 +414,7 @@ void UPwElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatr
     // Compute Stiffness matrix
     MatrixType StiffnessMatrix(element_size,element_size);
         
-    this->CaculateStiffnessMatrix(StiffnessMatrix,rCurrentProcessInfo);
+    this->CalculateStiffnessMatrix(StiffnessMatrix,rCurrentProcessInfo);
     
     // Compute Damping Matrix
     if ( rDampingMatrix.size1() != element_size )
@@ -575,11 +575,11 @@ void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints( const Variable<Con
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CaculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
+void UPwElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
 {    
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CaculateStiffnessMatrix method for a particular element ... illegal operation!!", "" )
+    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateStiffnessMatrix method for a particular element ... illegal operation!!", "" )
 
     KRATOS_CATCH( "" )
 }
