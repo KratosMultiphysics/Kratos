@@ -18,11 +18,11 @@
 namespace Kratos {
 Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
                 std::string("KratosMultiphysics"))) {
-    std::cout << " |  /           |             " << std::endl;
-    std::cout << " ' /   __| _` | __|  _ \\   __|" << std::endl;
-    std::cout << " . \\  |   (   | |   (   |\\__ \\ " << std::endl;
-    std::cout << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/" << std::endl;
-    std::cout << "           Multi-Physics " << KRATOS_VERSION << std::endl;
+    KRATOS_INFO("Kratos Core Load") << " |  /           |             " << std::endl;
+    KRATOS_INFO("Kratos Core Load") << " ' /   __| _` | __|  _ \\   __|" << std::endl;
+    KRATOS_INFO("Kratos Core Load") << " . \\  |   (   | |   (   |\\__ \\ " << std::endl;
+    KRATOS_INFO("Kratos Core Load") << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/" << std::endl;
+    KRATOS_INFO("Kratos Core Load") << "           Multi-Physics " << KRATOS_VERSION << std::endl;
 
     if (!IsImported("KratosMultiphysics")) {
         mpKratosCoreApplication->RegisterVariables();
