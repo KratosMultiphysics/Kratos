@@ -1,20 +1,27 @@
 import os
 import KratosMultiphysics as Kratos
+from KratosMultiphysics import Logger
 from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import main_script
+
+import KratosMultiphysics.kratos_utilities as kratos_utils
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+
 
 class AnalyticsTestSolution(main_script.Solution):
 
     def GetInputParameters(self):
         input_parameters = Kratos.Parameters(("""
-        {    
+        {
             "problem_name":"analytics_test_1",
             "PostNormalImpactVelocity"              : true,
             "PostTangentialImpactVelocity"          : true,
             "PostFaceNormalImpactVelocity"          : true,
             "PostFaceTangentialImpactVelocity"      : true,
-            "FinalTime"                             : 0.6, 
+            "FinalTime"                             : 0.6,
             "OutputTimeStep"                        : 1e-2
         }
         """))
@@ -101,5 +108,11 @@ class TestAnalytics(KratosUnittest.TestCase):
     def test_Analytics_2(self):
         pass
 
-if __name__ == '__main__':
-    AnalyticsTestSolution().Run()
+    def tearDown(self):
+        file_to_remove = os.path.join("analytics_tests_files", "TimesPartialRelease")
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+
+
+if __name__ == "__main__":
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+    KratosUnittest.main()
