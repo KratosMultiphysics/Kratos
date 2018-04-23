@@ -15,7 +15,7 @@
 // ------------------------------------------------------------------------------
 // External includes
 // ------------------------------------------------------------------------------
-#include <boost/python.hpp>
+// #include <boost/python.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -30,8 +30,8 @@
 #include "brep/BrepEdge.h"
 
 #include "includes/kratos_parameters.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/node.h"
+#include "includes/model_part.h"
+#include "includes/node.h"
 
 //#include "nurbs_utilities.h"
 
@@ -39,15 +39,15 @@ namespace Kratos
 {
 
   ///@name Kratos Globals
-  ///@{ 
-  ///@} 
+  ///@{
+  ///@}
   ///@name Type Definitions
-  ///@{ 
+  ///@{
   ///@}
   ///@name  Enum's
   ///@{
   ///@}
-  ///@name  Functions 
+  ///@name  Functions
   ///@{
   ///@}
   ///@name Kratos Classes
@@ -60,13 +60,13 @@ namespace Kratos
   public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of KratosNurbsTestcaseApplication
     KRATOS_CLASS_POINTER_DEFINITION(BrepModelGeometryReader);
 
     ///@}
-    ///@name Life Cycle 
-    ///@{ 
+    ///@name Life Cycle
+    ///@{
 	//Parameters WriteGeometry(ModelPart& model_part);
     std::vector<BrepModel> ReadGeometry(ModelPart& model_part);
 	double ReadModelTolerance();
@@ -81,68 +81,68 @@ namespace Kratos
     virtual ~BrepModelGeometryReader();
 
   protected:
-    ///@name Protected static Member Variables 
+    ///@name Protected static Member Variables
     ///@{
-    ///@} 
-    ///@name Protected member Variables 
+    ///@}
+    ///@name Protected member Variables
     ///@{
-    ///@} 
+    ///@}
     ///@name Protected Operators
-    ///@{ 
-    ///@} 
+    ///@{
+    ///@}
     ///@name Protected Operations
-    ///@{ 
-    ///@} 
-    ///@name Protected  Access 
-    ///@{ 
-    ///@}      
-    ///@name Protected Inquiry 
-    ///@{ 
-    ///@}    
-    ///@name Protected LifeCycle 
+    ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+    ///@}
+    ///@name Protected LifeCycle
     ///@{
     ///@}
   private:
-    ///@name Static Member Variables 
-    ///@{ 
-    //       static const ApplicationCondition  msApplicationCondition; 
-    ///@} 
+    ///@name Static Member Variables
+    ///@{
+    //       static const ApplicationCondition  msApplicationCondition;
+    ///@}
         ///@name Member Variables
-    ///@{ 
+    ///@{
 
     Parameters m_cad_geometry_in_json;
 
-    ///@} 
+    ///@}
     ///@name Private Operators
-    ///@{ 
-    ///@} 
+    ///@{
+    ///@}
     ///@name Private Operations
-    ///@{ 
-    ///@} 
-    ///@name Private  Access 
-    ///@{ 
-    ///@}    
-    ///@name Private Inquiry 
-    ///@{ 
-    ///@}    
-    ///@name Un accessible methods 
-    ///@{ 
+    ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
     /// Assignment operator.
     BrepModelGeometryReader& operator=(BrepModelGeometryReader const& rOther);
 
     /// Copy constructor.
     BrepModelGeometryReader(BrepModelGeometryReader const& rOther);
-    ///@}    
+    ///@}
 
-  }; // Class BrepModelGeometryReader 
+  }; // Class BrepModelGeometryReader
   ///@}
-  ///@name Type Definitions       
-  ///@{ 
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-  ///@} 
+  ///@name Type Definitions
+  ///@{
+  ///@}
+  ///@name Input and output
+  ///@{
+  ///@}
 
 
 }  // namespace Kratos.

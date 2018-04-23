@@ -20,7 +20,7 @@
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/io/wkt/wkt.hpp>
-#include <boost/geometry/algorithms/reverse.hpp> 
+#include <boost/geometry/algorithms/reverse.hpp>
 
 //#include <boost/geometry/geometries/cartesian2d.hpp>
 //#include <boost/geometry/geometries/adapted/c_array_cartesian.hpp>
@@ -45,15 +45,15 @@ namespace Kratos
     long index2;
   };
   ///@name Kratos Globals
-  ///@{ 
-  ///@} 
+  ///@{
+  ///@}
   ///@name Type Definitions
-  ///@{ 
+  ///@{
   ///@}
   ///@name  Enum's
   ///@{
   ///@}
-  ///@name  Functions 
+  ///@name  Functions
   ///@{
   ///@}
   ///@name Kratos Classes
@@ -74,11 +74,11 @@ namespace Kratos
 
     /// Pointer definition of KratosNurbsTestcaseApplication
     KRATOS_CLASS_POINTER_DEFINITION(Polygon);
-    
+
 
     std::vector<Matrix> Triangulate();
     ///@}
-    ///@name Life Cycle 
+    ///@name Life Cycle
     ///@{
     Polygon clipByKnotSpan(const Vector& parameter_span_u, const Vector& parameter_span_v);
 
@@ -91,7 +91,7 @@ namespace Kratos
 
     bool m_is_full_knot_span = false;
 
-	Polygon Polygon::GetDifference(Polygon Substractor);
+	Polygon GetDifference(Polygon Substractor);
 
     //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.
@@ -109,14 +109,14 @@ namespace Kratos
 
     /// Assignment operator.
     //Polygon& operator=(Polygon const& rOther);
-    ///@} 
+    ///@}
   protected:
 
   private:
 
 
     ///@name Private methods
-    ///@{ 
+    ///@{
     bool Triangulate_OPT(const PolygonType& polygon,
       std::vector<Matrix>& triangles);
 
@@ -149,15 +149,15 @@ namespace Kratos
     bool GetOrientation();
     void Invert();
     double GetAreaOfTriangle(const Matrix& triangle);
-    ///@} 
+    ///@}
     ///@name Member Variables
-    ///@{ 
+    ///@{
 
     PolygonVectorType m_polygon_list;
 
-    ///@}    
+    ///@}
 
-  }; // Class Polygon 
+  }; // Class Polygon
 
 }  // namespace Kratos.
 

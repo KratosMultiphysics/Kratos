@@ -36,7 +36,7 @@ namespace Kratos
 		return (int) m_q;
 	}
 
-	BrepTrimmingCurve BrepFace::GetTrimmingCurve(const int& trim_index)
+	BrepTrimmingCurve& BrepFace::GetTrimmingCurve(const int& trim_index)
 	{
 		for (unsigned int i = 0; i < m_trimming_loops.size(); i++)
 		{
@@ -310,14 +310,14 @@ namespace Kratos
 
 		for (unsigned int i = 0; i < knot_vector_u.size() - 1; i++)
 		{
-			if (abs(knot_vector_u[i + 1] - knot_vector_u[i]) > 1)
+			if (std::abs(knot_vector_u[i + 1] - knot_vector_u[i]) > 1)
 			{
 				parameter_span_u[0] = m_knot_vector_u[i];
 				parameter_span_u[1] = m_knot_vector_u[i + 1];
 
 				for (unsigned int j = 0; j < knot_vector_v.size() - 1; j++)
 				{
-					if (abs(knot_vector_v[j + 1] - knot_vector_v[j]) > 1)
+					if (std::abs(knot_vector_v[j + 1] - knot_vector_v[j]) > 1)
 					{
 						parameter_span_v[0] = m_knot_vector_v[j];
 						parameter_span_v[1] = m_knot_vector_v[j + 1];
@@ -376,14 +376,14 @@ namespace Kratos
 
 		for (unsigned int i = 0; i < knot_vector_u.size() - 1; i++)
 		{
-			if (abs(knot_vector_u[i + 1] - knot_vector_u[i]) > 1)
+			if (std::abs(knot_vector_u[i + 1] - knot_vector_u[i]) > 1)
 			{
 				parameter_span_u[0] = m_knot_vector_u[i];
 				parameter_span_u[1] = m_knot_vector_u[i + 1];
 
 				for (unsigned int j = 0; j < knot_vector_v.size() - 1; j++)
 				{
-					if (abs(knot_vector_v[j + 1] - knot_vector_v[j]) > 1)
+					if (std::abs(knot_vector_v[j + 1] - knot_vector_v[j]) > 1)
 					{
 						parameter_span_v[0] = m_knot_vector_v[j];
 						parameter_span_v[1] = m_knot_vector_v[j + 1];
@@ -443,7 +443,7 @@ namespace Kratos
 
 		int number_of_knots = (m_knot_vector_u.size() + m_knot_vector_v.size());
 		std::vector<double> intersections = trimming_curve.GetKnotIntersections(m_p, m_q, m_knot_vector_u, m_knot_vector_v, number_of_knots*10);
-		
+
 		int degree = m_p + m_q + 1;
 
 		std::vector<array_1d<double, 3>> quadrature_points = trimming_curve.GetQuadraturePoints(intersections, degree);
@@ -460,9 +460,9 @@ namespace Kratos
 
 	std::vector<Node<3>::Pointer> BrepFace::GetIntegrationNodesTrimmingCurveMaster(
 		const std::vector<Point>& rPoints,
-		const int& rShapefunctionOrder, 
-		const int& rTrimIndex, 
-		const int& rPQSlave, 
+		const int& rShapefunctionOrder,
+		const int& rTrimIndex,
+		const int& rPQSlave,
 		const double& rAccuracy, const double& rModelTolerance, const int& rMaxIterations)
 	{
 		std::vector<array_1d<double, 2>> slave_knot_intersection_points = GetClosestPointsTrimmingCurve(rPoints, rTrimIndex, rAccuracy, rMaxIterations);
@@ -481,7 +481,7 @@ namespace Kratos
 		intersections.push_back(slave_knot_intersection_parameters[0]);
 		for (unsigned int i = 1; i < slave_knot_intersection_parameters.size(); i++)
 		{
-			if (abs(slave_knot_intersection_parameters[i - 1] - slave_knot_intersection_parameters[i]) > rAccuracy)
+			if (std::abs(slave_knot_intersection_parameters[i - 1] - slave_knot_intersection_parameters[i]) > rAccuracy)
 			{
 				intersections.push_back(slave_knot_intersection_parameters[i]);
 			}
@@ -504,7 +504,7 @@ namespace Kratos
 		const int& rTrimIndex,
 		const int& rShapefunctionOrder)
 	{
-		Node<3>::Pointer node = Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)); 
+		Node<3>::Pointer node = Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0));
 		for (int i = 0; i < m_embedded_points.size(); i++)
 		{
 			if (m_embedded_points[i].trim_index == rTrimIndex)
@@ -548,7 +548,7 @@ namespace Kratos
 				+ (point3d[1] - derivatives[0][1]) * (point3d[1] - derivatives[0][1]));
 			//if (error_distance > rAccuracy*100)
 			//	KRATOS_ERROR <<  "Bad projection: " << error_distance << std::endl;
-			
+
 			EvaluateIntegrationNodeSlave(closest_points[i][0], closest_points[i][1], rShapefunctionOrder, rNodes[i]);
 			rNodes[i]->SetValue(TANGENTS_BASIS_VECTOR_SLAVE, derivatives[1]);
 		}
@@ -758,7 +758,7 @@ namespace Kratos
 
 
 	void BrepFace::EvaluateIntegrationNode(
-		const double& rU, const double& rV, 
+		const double& rU, const double& rV,
 		const int& rShapefunctionOrder,
 		Node<3>::Pointer pNode)
 	{
@@ -802,7 +802,7 @@ namespace Kratos
 		pNode->X() = new_point(0);
 		pNode->Y() = new_point(1);
 		pNode->Z() = new_point(2);
-		
+
 		if (rShapefunctionOrder > -1)
 			pNode->SetValue(NURBS_SHAPE_FUNCTIONS, N);
 
@@ -822,7 +822,7 @@ namespace Kratos
 	}
 
 	void BrepFace::EvaluateIntegrationNodeSlave(const double& rU, const double& rV,
-		const int& rShapefunctionOrder, 
+		const int& rShapefunctionOrder,
 		Node<3>::Pointer pNode)
 	{
 		int span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, rU);
@@ -892,7 +892,7 @@ namespace Kratos
 		pNode->SetValue(LOCAL_PARAMETERS_SLAVE, local_parameter);
 		pNode->SetValue(CONTROL_POINT_IDS_SLAVE, ControlPointIDs);
 	}
-	
+
 	/* Uses Newton Raphson scheme to project a certain point (rPoint) towards its
 	*  closest point on the surface. u and v are used as initial guess.
 	*/
@@ -918,7 +918,7 @@ namespace Kratos
 			Vector gradient = ZeroVector(2);
 			// The distance is used to compute Hessian and gradient
 			EvaluateGradientsForClosestPointSearch(difference, hessian, gradient, u, v);
-			
+
 			double det_H = 0;
 			Matrix inv_H = ZeroMatrix(2, 2);
 
@@ -934,7 +934,7 @@ namespace Kratos
 			difference(2) = newton_raphson_point[2] - rPoint[2];
 
 			norm_delta_u = norm_2(difference);
-			
+
 			if (norm_delta_u < rAccuracy)
 				return true;
 		}
@@ -1030,7 +1030,7 @@ namespace Kratos
 	}
 
 	std::vector<array_1d<double, 2>> BrepFace::GetClosestNodesTrimmingCurve(
-		const std::vector<Node<3>::Pointer>& rNodes, 
+		const std::vector<Node<3>::Pointer>& rNodes,
 		const int& rTrimIndex,
 		const double& rAccuracy, const double& rModelTolerance, const int& rMaxIterations)
 	{
@@ -1156,7 +1156,7 @@ namespace Kratos
   //  }
   //}
 
-	/* Obtains the closest surface point including the specified number of 
+	/* Obtains the closest surface point including the specified number of
 	*  shape function and derivatives, the local parameter location, the
 	*/
 	void BrepFace::GetClosestIntegrationNode(
@@ -1189,7 +1189,7 @@ namespace Kratos
   //  Q_k(0) = node_on_geometry->X();
   //  Q_k(1) = node_on_geometry->Y();
   //  Q_k(2) = node_on_geometry->Z();
-  //  // Initialize what's needed in the Newton-Raphson iteration				
+  //  // Initialize what's needed in the Newton-Raphson iteration
   //  Vector Q_minus_P = ZeroVector(3); // Distance between current Q_k and P
   //  Matrix myHessian = ZeroMatrix(2, 2);
   //  Vector myGradient = ZeroVector(2);
@@ -1361,7 +1361,7 @@ namespace Kratos
 	{
 		std::vector<double> Ru, Rv; //reduced vectors for knots that exceed the borders
 		double tolerance = 10e-8;
-		for (int i = 0; i < rRu.size(); i++) // 
+		for (int i = 0; i < rRu.size(); i++) //
 		{
 			if ((m_knot_vector_u[0] - rRu[i]) < tolerance && (rRu[i] - m_knot_vector_u[m_knot_vector_u.size() - 1]) < tolerance)
 			{
@@ -1676,7 +1676,7 @@ namespace Kratos
 					rbz = ph - ((r + 1) / 2);
 				else
 					rbz = ph;
-			  
+
 				Vector alfs = ZeroVector(m_p - mult + 1);
 				if (r>0)
 				{
@@ -2098,15 +2098,15 @@ namespace Kratos
   //
   // ======================================================================================
   //  \param[in]  QminP    	 	Distance Vector
-  //  \param[in]  H		     	Hessian reference	
+  //  \param[in]  H		     	Hessian reference
   //  \param[in]  Gradient    	Gradient reference
   //  \param[in]  v    			parameter
-  //  \param[in]  u 				parameter 
+  //  \param[in]  u 				parameter
   //
   // ======================================================================================
   //  \author     Giovanni Filomeno (1/2017) && Massimo Sferza (1/2017)
   //
-  //########################################################################################	
+  //########################################################################################
   void BrepFace::EvaluateGradientsForClosestPointSearch(Vector QminP, Matrix& Hessian, Vector& Gradient, double& u, double& v)
   {
     // The derivatives of the basis functions are evaluated
@@ -2316,11 +2316,11 @@ namespace Kratos
       //  - r[k] * ddsum[0] / sum_2
       //  + 2.0*r[k] * dsum[0] * dsum[0] / sum_3;
       //DDN_DDe(k, 1) = DDN_DDe(k, 1) / sum - 2.0*DN_De(k, 1)*dsum[1] / sum_2
-      //  - r[k] * ddsum[1] / sum_2 
+      //  - r[k] * ddsum[1] / sum_2
       //  + 2.0*r[k] * dsum[1] * dsum[1] / sum_3;
       //DDN_DDe(k, 2) = DDN_DDe(k, 2) / sum - DN_De(k, 0)*dsum[1] / sum_2
       //  - DN_De(k, 1)*dsum[0] / sum_2
-      //  - r[k] * ddsum[2] / sum_2 
+      //  - r[k] * ddsum[2] / sum_2
       //  + 2.0*r[k] * dsum[0] * dsum[1] / sum_3;
       //DN_De(k, 0) = DN_De(k, 0) / sum - r[k] * dsum[0] / sum_2;
       //DN_De(k, 1) = DN_De(k, 1) / sum - r[k] * dsum[1] / sum_2;
@@ -2409,10 +2409,10 @@ namespace Kratos
 		TrimmingLoopVector& trimming_loops,
 		TrimmingLoopVector& embedded_loops,
 		std::vector<EmbeddedPoint>& embedded_points,
-		Vector& knot_vector_u, 
+		Vector& knot_vector_u,
 		Vector& knot_vector_v,
-		unsigned int& p, 
-		unsigned int& q, 
+		unsigned int& p,
+		unsigned int& q,
 		IntVector& control_point_ids,
 		ModelPart::Pointer model_part)
 		  : m_trimming_loops(trimming_loops),

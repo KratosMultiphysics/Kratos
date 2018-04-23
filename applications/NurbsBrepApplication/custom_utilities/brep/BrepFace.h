@@ -41,7 +41,7 @@
 namespace Kratos
 {
   ///@name Type Definitions
-  ///@{ 
+  ///@{
   typedef std::vector<int> IntVector;
   ///@}
   ///@name Kratos Classes
@@ -109,8 +109,8 @@ namespace Kratos
 	/// Pointer definition of KratosNurbsBrepApplication
 	KRATOS_CLASS_POINTER_DEFINITION(BrepFace);
     ///@}
-    ///@name Life Cycle 
-    ///@{ 
+    ///@name Life Cycle
+    ///@{
 
 
 	//Refinement functions
@@ -124,7 +124,7 @@ namespace Kratos
 	bool GetClosestPoint(const Point& rPoint, double& u, double& v,
 		const double& rAccuracy, const int& rMaxIterations);
 	std::vector<array_1d<double, 2>> GetClosestPointsTrimmingCurve(
-		const std::vector<Point>& rPoints, 
+		const std::vector<Point>& rPoints,
 		const int& rTrimIndex,
 		const double& rAccuracy, const int& rMaxIterations);
 	std::vector<array_1d<double, 2>> GetClosestNodesTrimmingCurve(
@@ -149,14 +149,14 @@ namespace Kratos
 	//Node<3>::Pointer EvaluateNode(double u, double v, const int& shapefunction_order);
 	// Enhance nicht ausreichend
 	//void EnhanceNode(Node<3>::Pointer& node, const double& u, const double& v, const int& shapefunction_order);
-	// gleiches Spiel - hier wird noch mehr gemacht wie beispielweise die Projektion auf die Oberfläche
+	// gleiches Spiel - hier wird noch mehr gemacht wie beispielweise die Projektion auf die Oberflï¿½che
 	// das muss auf jeden Fall generalisiert werden, wie beispielweise mit einer Funkion
 	// Project node
     //void EnhanceShapeFunctionsSlave(
     //  std::vector<Node<3>::Pointer>& nodes, const int& trim_index, const int& shapefunction_order);
-	// name is wrong - hier werden nodes aus points erstellt -- 
+	// name is wrong - hier werden nodes aus points erstellt --
 	//std::vector<Node<3>::Pointer> EnhanceShapeFunctions(std::vector<array_1d<double, 3>>& points, const int& shapefunction_order);
-	// wird das überhaupt gebraucht
+	// wird das ï¿½berhaupt gebraucht
 	void EvaluateSurfacePoint(Point& rSurfacePoint, const double& u, const double& v);
 	//void EvaluateShapeFunctionsSlaveNode(const double& u, const double& v, const int& shapefunction_order, Node<3>::Pointer node);
 
@@ -167,7 +167,7 @@ namespace Kratos
 	//std::vector<Node<3>::Pointer> GetQuadraturePointsTrimmed(const int& shapefunction_order);
 	//std::vector<Node<3>::Pointer> GetQuadraturePointsEmbedded(const int& shapefunction_order);
 	//std::vector<Node<3>::Pointer> GetQuadraturePointsReversed(const int& shapefunction_order);
-	//// Curves - gleicher Name eventuell nur überladen vor allem erste Funktion nochmal verwenden wenn möglich
+	//// Curves - gleicher Name eventuell nur ï¿½berladen vor allem erste Funktion nochmal verwenden wenn mï¿½glich
 	//std::vector<Node<3>::Pointer> GetQuadraturePointsOfTrimmingCurve(const int& shapefunction_order, const int& trim_index);
 	//std::vector<Node<3>::Pointer> GetQuadraturePointsOfTrimmingCurveWithPoints(
 	//	const int& shapefunction_order, const int& trim_index, std::vector<Point> intersection_points);
@@ -176,7 +176,7 @@ namespace Kratos
 	std::vector<Node<3>::Pointer> GetIntegrationNodesSurface(
 		const int& rShapefunctionOrder, const int& rPolygonDiscretization);
 	std::vector<Node<3>::Pointer> GetIntegrationNodesSurface(
-		Polygon& rBoundaryPolygon, 
+		Polygon& rBoundaryPolygon,
 		const int& rShapefunctionOrder);
 	std::vector<Node<3>::Pointer> GetIntegrationNodesEmbedded(
 		const int& rShapefunctionOrder, const int& rPolygonDiscretization);
@@ -187,22 +187,22 @@ namespace Kratos
 	std::vector<Node<3>::Pointer> GetIntegrationNodesTrimmingCurve(
 		const int& rShapefunctionOrder, const int& rTrimIndex, const double& rAccuracy);
 	std::vector<Node<3>::Pointer> GetIntegrationNodesTrimmingCurveMaster(
-		const std::vector<Point>& rPoints, 
+		const std::vector<Point>& rPoints,
 		const int& rShapefunctionOrder, const int& rTrimIndex, const int& rPQSlave,
 		const double& rAccuracy, const double& rModelTolerance, const int& rMaxIterations);
 
 	// Integration domain points
-	Node<3>::Pointer BrepFace::GetIntegrationNodePoint(
+	Node<3>::Pointer GetIntegrationNodePoint(
 		const int& rTrimIndex,
 		const int& rShapefunctionOrder);
 
 	void EvaluateIntegrationNodesTrimmingCurveSlave(
 		std::vector<Node<3>::Pointer>& rNodes, const int& rShapefunctionOrder,
-		const int& rTrimIndex, 
+		const int& rTrimIndex,
 		const double& rAccuracy, const double& rModelTolerance, const int& rMaxIterations);
 
 	std::vector<Node<3>::Pointer> GetIntegrationNodes(
-		std::vector<array_1d<double, 3>>& rPoints, 
+		std::vector<array_1d<double, 3>>& rPoints,
 		const int& rShapefunctionOrder);
 
 	std::vector<Node<3>::Pointer> GetIntegrationNodes(
@@ -214,7 +214,7 @@ namespace Kratos
 		Node<3>::Pointer pNode);
 	void EvaluateIntegrationNodeSlave(
 		const double& rU, const double& rV,
-		const int& rShapefunctionOrder, 
+		const int& rShapefunctionOrder,
 		Node<3>::Pointer pNode);
 
 	// Compute knot intersections
@@ -226,7 +226,7 @@ namespace Kratos
 	IntVector GetIntegerVector(const Vector& vector, const int& tolerance);
 
     //TODO: you need to give reading access to your internals through the Calculate function
-	BrepTrimmingCurve GetTrimmingCurve(const int& trim_index);
+	BrepTrimmingCurve& GetTrimmingCurve(const int& trim_index);
 	//Get functions
 	Vector& GetUKnotVector();
 	Vector& GetVKnotVector();
@@ -240,20 +240,20 @@ namespace Kratos
 		TrimmingLoopVector& embedded_loops,
 		std::vector<EmbeddedPoint>& embedded_points,
 		Vector& knot_vector_u, Vector& knot_vector_v,
-		unsigned int& p, unsigned int& q, 
+		unsigned int& p, unsigned int& q,
 		IntVector& control_point_ids,
 		ModelPart::Pointer model_part);
 
     /// Destructor.
     virtual ~BrepFace();
 
-    ///@} 
+    ///@}
   protected:
 
 private:
 
     ///@name Private methods
-    ///@{ 
+    ///@{
 	//Refinement functions
 	void RefineKnotVector(const Vector& rRu, const Vector& rRv);
 	void DegreeElevate(const int& tp, const int& tq);
@@ -266,9 +266,9 @@ private:
     void EvaluateNURBSFunctionsDerivatives(int span_u, int span_v, double _u, double _v, Matrix& _dR, Matrix& _ddR);
     void EvaluateNURBSFunctionsAndDerivative(int span_u, int span_v, double _u, double _v, Matrix& R, std::vector<Matrix>& dR);
 
-    ///@} 
+    ///@}
     ///@name Member Variables
-    ///@{ 
+    ///@{
 	bool m_is_trimmed;
 	bool m_is_rational;
     TrimmingLoopVector m_trimming_loops;
@@ -280,9 +280,9 @@ private:
     unsigned int m_q;
     IntVector m_control_points_ids;
     ModelPart::Pointer mp_model_part;
-    ///@}    
+    ///@}
 
-  }; // Class BrepFace 
+  }; // Class BrepFace
 
 }  // namespace Kratos.
 
