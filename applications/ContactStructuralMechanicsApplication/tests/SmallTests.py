@@ -113,3 +113,6 @@ class ComponentsALMThreeDPatchMatchingTestContact(TestFactory):
 class ComponentsALMThreeDPatchNotMatchingTestContact(TestFactory):
     frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_nonmatching_test"
+
+class ALMHyperSimplePatchFrictionalTestContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/hyper_simple_patch_test"

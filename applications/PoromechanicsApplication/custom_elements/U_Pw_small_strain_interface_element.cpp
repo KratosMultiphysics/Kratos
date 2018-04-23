@@ -728,7 +728,7 @@ void UPwSmallStrainInterfaceElement<3,8>::CalculateInitialGap(const GeometryType
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CaculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
+void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
 {    
     KRATOS_TRY
 

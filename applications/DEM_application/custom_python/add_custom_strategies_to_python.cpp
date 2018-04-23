@@ -2,9 +2,6 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-// External includes
-#include "spaces/ublas_space.h"
-
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
 

@@ -163,9 +163,9 @@ public:
                 rDerivativeData.DeltaDetjSlave[i + 1] = rVariables.jSlave( 1, 0 ) * rVariables.DNDeSlave( i_slave, 0) / rVariables.DetjSlave;
             }
         } else {
-            const array_1d<double, 3> x1cell = DecompGeom[0].Coordinates();
-            const array_1d<double, 3> x2cell = DecompGeom[1].Coordinates();
-            const array_1d<double, 3> x3cell = DecompGeom[2].Coordinates();
+            const array_1d<double, 3>& x1cell = DecompGeom[0].Coordinates();
+            const array_1d<double, 3>& x2cell = DecompGeom[1].Coordinates();
+            const array_1d<double, 3>& x3cell = DecompGeom[2].Coordinates();
 
             const array_1d<double, 3> x21cell = x2cell - x1cell;
             const array_1d<double, 3> x31cell = x3cell - x1cell;
@@ -933,10 +933,10 @@ public:
 
             DecompositionType decomp_geom( points_array );
 
-            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, SlaveGeometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, SlaveGeometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
 
             if (bad_shape == false) {
-                const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
+                const GeometryType::IntegrationPointsArrayType integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
 
                 // Integrating the mortar operators
                 for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {

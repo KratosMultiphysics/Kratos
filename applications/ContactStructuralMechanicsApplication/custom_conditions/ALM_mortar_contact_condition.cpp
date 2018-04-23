@@ -325,7 +325,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
             
             DecompositionType decomp_geom( points_array );
             
-            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
             
             if (bad_shape == false) {
                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
@@ -355,8 +355,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
         const bounded_matrix<double, TNumNodes, TNumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
         
         // Current coordinates 
-        const bounded_matrix<double, TNumNodes, TDim>& x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(slave_geometry);
-        const bounded_matrix<double, TNumNodes, TDim>& x2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(master_geometry);
+        const bounded_matrix<double, TNumNodes, TDim> x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(slave_geometry);
+        const bounded_matrix<double, TNumNodes, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(master_geometry);
 
         const bounded_matrix<double, TNumNodes, TDim> D_x1_M_x2 = prod(DOperator, x1) - prod(MOperator, x2); 
         
@@ -369,32 +369,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
             #pragma omp atomic
             weighted_gap += inner_prod(aux_array, - subrange(normal, 0, TDim)); 
         }
-        
-        if (TFrictional == FrictionalCase::FRICTIONAL) { // TODO: Check this!!!
-            // Old coordinates 
-            const bounded_matrix<double, TNumNodes, TDim>& x1_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(slave_geometry, false, 1);
-            const bounded_matrix<double, TNumNodes, TDim>& x2_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(master_geometry, false, 1);
-    
-            const bounded_matrix<double, TNumNodes, TDim> D_x1_old_M_x2_old = prod(DOperator, x1_old) - prod(MOperator, x2_old); 
-            
-            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                // We compute the tangent
-                const array_1d<double, 3>& normal = slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
-                const array_1d<double, 3>& lm = slave_geometry[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                const double lm_normal = inner_prod(normal, lm);
-                array_1d<double, 3> tangent_lm = lm - lm_normal * normal;
-                tangent_lm /= norm_2(tangent_lm); 
-                const array_1d<double, TDim>& tangent = subrange(tangent_lm, 0, TDim);
-                
-                const array_1d<double, TDim>& aux_array = row(D_x1_old_M_x2_old, i_node);
-                            
-                double& weighted_slip = slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
 
-                #pragma omp atomic
-                weighted_slip += inner_prod(aux_array, tangent); 
-            }
-        }
-        
         // We reset the flag
         this->Set(ISOLATED, false);
     } else {
@@ -485,7 +460,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
             
             DecompositionType decomp_geom( points_array );
             
-            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
             
             if (bad_shape == false) {
                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
@@ -528,11 +503,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
         
         // Assemble of the matrix is required
         if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_LHS_MATRIX ) )
-            this->CalculateLocalLHS( rLeftHandSideMatrix, rThisMortarConditionMatrices, rDerivativeData, active_inactive);
+            this->CalculateLocalLHS( rLeftHandSideMatrix, rThisMortarConditionMatrices, rDerivativeData, active_inactive, rCurrentProcessInfo);
         
         // Assemble of the vector is required
         if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_RHS_VECTOR ))
-            this->CalculateLocalRHS(rRightHandSideVector, rThisMortarConditionMatrices, rDerivativeData, active_inactive);
+            this->CalculateLocalRHS(rRightHandSideVector, rThisMortarConditionMatrices, rDerivativeData, active_inactive, rCurrentProcessInfo);
         
     } else { //If not inside we fill we zero the local matrices
         this->Set(ISOLATED, true); // We set the corresponding flag
@@ -719,7 +694,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -733,7 +709,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -747,7 +724,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -761,7 +739,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -775,7 +754,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -789,7 +769,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -803,7 +784,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -817,7 +799,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -831,7 +814,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -845,7 +829,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -859,7 +844,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -873,7 +859,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -887,7 +874,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -901,7 +889,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -915,7 +904,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -929,7 +919,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -943,7 +934,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -957,7 +949,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -971,7 +964,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -985,7 +979,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -999,7 +994,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1013,7 +1009,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1027,7 +1024,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1041,7 +1039,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1055,7 +1054,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1069,7 +1069,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1083,7 +1084,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1097,7 +1099,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1111,7 +1114,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1125,7 +1129,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1139,7 +1144,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1153,7 +1159,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1167,7 +1174,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1181,7 +1189,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1195,7 +1204,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1209,7 +1219,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const IndexType rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1233,8 +1244,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo 
-)
+    ProcessInfo& rCurrentProcessInfo
+    )
 {
     KRATOS_ERROR << "You are calling to the base class method GetDofList, check your condition definition" << std::endl;
 }
