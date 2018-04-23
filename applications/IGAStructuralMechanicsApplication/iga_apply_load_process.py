@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import python_process
 
 ##all the processes python processes should be derived from "python_process"
@@ -9,7 +10,7 @@ class IGAApplyLoad(python_process.PythonProcess):
         variable = globals().get(variable_name)
         #print(model_part)
         for condition in model_part.GetMesh(mesh_id).Conditions:
-            condition.SetValue(KratosMultiphysics.SolidMechanicsApplication.POINT_LOAD,[direction[0].GetDouble(),direction[1].GetDouble(),direction[2].GetDouble()])
+            condition.SetValue(KratosMultiphysics.StructuralMechanicsApplication.POINT_LOAD,[direction[0].GetDouble(),direction[1].GetDouble(),direction[2].GetDouble()])
         #print(direction[0].GetDouble(),direction[1].GetDouble(),direction[2].GetDouble())
         print("Finished construction of IGAApplyLoad Process")
         

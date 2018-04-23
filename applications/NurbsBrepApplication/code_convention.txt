@@ -1,0 +1,23 @@
+NurbsBrepApplication
+
+Doxygen function header:
+/**
+ * @Author Me (me@example.com)
+ * @date   September, 2008
+ * @brief   Example actions available.
+ *
+ * This API provides certain actions as an example.
+ *
+ * @param [in] repeat  Number of times to do nothing.
+ *
+ * @retval TRUE   Successfully did nothing.
+ * @retval FALSE  Oops, did something.
+ *
+ * Example Usage:
+ * @code
+ *    example_nada(3); // Do nothing 3 times.
+ * @endcode
+ */
+
+Code design:
+Tabs -> 2*Spaces

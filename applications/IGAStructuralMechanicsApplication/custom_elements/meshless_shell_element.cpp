@@ -29,7 +29,6 @@
 #include "utilities/math_utils.h"
 
 #include "geometries/geometry.h"
-//#include "custom_geometries/meshless_geometry.h"
 
 namespace Kratos
 {
@@ -55,13 +54,13 @@ MeshlessShellElement::MeshlessShellElement(
 {
 }
 
-Element::Pointer MeshlessShellElement::Create(
-	IndexType NewId, 
-	NodesArrayType const& ThisNodes,  
-	PropertiesType::Pointer pProperties) const
-{
-	return boost::make_shared< MeshlessShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
-}
+//Element::Pointer MeshlessShellElement::Create(
+//	IndexType NewId, 
+//	NodesArrayType const& ThisNodes,  
+//	PropertiesType::Pointer pProperties) const
+//{
+//	return boost::make_shared< MeshlessShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+//}
 
 MeshlessShellElement::~MeshlessShellElement()
 {
@@ -117,41 +116,35 @@ void MeshlessShellElement::GetDofList(
 void MeshlessShellElement::Initialize()
 
 {
-	//std::cout << "start function Initialize in Meshless Shell Element" << std::endl;
 	KRATOS_TRY
-		//KRATOS_WATCH( "INITIALIZE ELEMENT" )
-		//getting all "Actual" info from the geometry
-		//const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-
 	// Get values of shape functions and derivatives. Derivatives are first and sevon column: first dreivatives. Third, fourth and fith are second derivatives
 	double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 	Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
 	Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-
-
+	Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
 	// Initialize Variables
 	mdensity = GetProperties()[DENSITY];
 	mThickness0 = GetProperties()[THICKNESS];
+	//WIRD DAS GEBRAUCHT??
+
 	mThickness = 0.00;
 
 	// Initialize Material
 	mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-
+	ProcessInfo emptyProcessInfo = ProcessInfo();
+	//mConstitutiveLawVector->SetValue(INTEGRATION_WEIGHT, integration_weight, emptyProcessInfo);
+	//mConstitutiveLawVector->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES), emptyProcessInfo);
 	mConstitutiveLawVector->InitializeMaterial(GetProperties(), GetGeometry(), ShapeFunctionsN);
 
-	// Initialize Jacobian
+	//Initialize Jacobian
 	Matrix J0;
+	//Calculate Jacobian
 	Jacobian(DN_De, J0);
 
-	//auxiliary terms
-	array_1d<double, 3> g1;
-	array_1d<double, 3> g2;
-	array_1d<double, 3> g3;
+	//Basis Vectors
+	array_1d<double, 3> g1, g2, g3;
 
-	// calculating the inverse J0
-
-	//calculating and storing inverse of the jacobian and the parameters needed
 	g1[0] = J0(0, 0);
 	g2[0] = J0(0, 1);
 	g1[1] = J0(1, 0);
@@ -159,94 +152,64 @@ void MeshlessShellElement::Initialize()
 	g1[2] = J0(2, 0);
 	g2[2] = J0(2, 1);
 
-	//basis vector g3
+	//Basis Vector g3
 	CrossProduct(g3, g1, g2);
-	//differential area dA
+	//Differential Area dA
 	double dA = norm_2(g3);
-	//normal vector n
+	//Normal Vector n
 	array_1d<double, 3> n = g3 / dA;
 
-	//GetCovariantMetric
-	//array_1d<double, 3> gab_ref;
+	//Covariant Metric
 	mGab0[0] = pow(g1[0], 2) + pow(g1[1], 2) + pow(g1[2], 2);
 	mGab0[1] = pow(g2[0], 2) + pow(g2[1], 2) + pow(g2[2], 2);
 	mGab0[2] = g1[0] * g2[0] + g1[1] * g2[1] + g1[2] * g2[2];
 
 	double inverse_determinant_gab = 1.0 / (mGab0[0] * mGab0[1] - mGab0[2] * mGab0[2]);
 
+	//Contravariant Metric
 	array_1d<double, 3> gab_contravariant;
 	gab_contravariant[0] = inverse_determinant_gab*mGab0[1];
 	gab_contravariant[1] = -inverse_determinant_gab*mGab0[2];
 	gab_contravariant[2] = inverse_determinant_gab*mGab0[0];
 
+	array_1d<double, 3> g_contravariant_1 = g1*gab_contravariant[0] + g2*gab_contravariant[1];
+	array_1d<double, 3> g_contravariant_2 = g1*gab_contravariant[1] + g2*gab_contravariant[2];
 
-	array_1d<double, 3> gab_contravariant_1 = g1*gab_contravariant[0] + g2*gab_contravariant[1];
-	array_1d<double, 3> gab_contravariant_2 = g1*gab_contravariant[1] + g2*gab_contravariant[2];
-
+	//Hessian Matrix
 	Matrix H = ZeroMatrix(3, 3);
-	Hessian(H, DN_De);
+	Hessian(H, DDN_DDe);
 
-	//array_1d<double, 3> curvature_coefficient;
 	mCurvature0[0] = H(0, 0)*n[0] + H(1, 0)*n[1] + H(2, 0)*n[2];
 	mCurvature0[1] = H(0, 1)*n[0] + H(1, 1)*n[1] + H(2, 1)*n[2];
 	mCurvature0[2] = H(0, 2)*n[0] + H(1, 2)*n[1] + H(2, 2)*n[2];
 
+	double length_g1 = norm_2(g1);
+	array_1d<double, 3> e1 = g1 / length_g1;
+	double lg_contravariant_2 = norm_2(g_contravariant_2);
+	array_1d<double, 3> e2 = g_contravariant_2 / lg_contravariant_2;
 
-	double lg1 = norm_2(g1);
-	array_1d<double, 3> e1 = g1 / lg1;
-	double lg_contravariant_2 = norm_2(gab_contravariant_2);
-	array_1d<double, 3> e2 = gab_contravariant_2 / lg_contravariant_2;
+	Matrix mG = ZeroMatrix(2, 2);
+	mG(0, 0) = inner_prod(e1, g_contravariant_1);
+	mG(0, 1) = inner_prod(e1, g_contravariant_2);
+	mG(1, 0) = inner_prod(e2, g_contravariant_1);
+	mG(1, 1) = inner_prod(e2, g_contravariant_2);
 
-	boost::numeric::ublas::bounded_matrix<double, 2, 2> mG;
-	mG(0, 0) = inner_prod(e1, gab_contravariant_1);
-	mG(0, 1) = inner_prod(e1, gab_contravariant_2);
-	mG(1, 0) = inner_prod(e2, gab_contravariant_1);
-	mG(1, 1) = inner_prod(e2, gab_contravariant_2);
-
-	mG_Vector = ZeroMatrix(2, 2);
-	//saving the G matrix for the point number
-	noalias(mG_Vector) = mG;
-
-	//calculating and storing inverse of the jacobian and the parameters needed
-
-
-	////calculate base vectors
-	//CrossProduct(V3, g01, g02);
-	//N = V3;
-	//N /= norm_2(V3);
-	//V1 = g01;
-	//V1 /= norm_2(V1);
-	//CrossProduct(V2, N, V1);
-
-	////saving the initial local base vectors
-	//mV1 = V1;
-	//mV2 = V2;
-
-	//// Calculation of Matrix G (a sort of inverse jacobian)
-	//double J11 = norm_2(g01);
-	//double J12 = inner_prod(g01, g02) / norm_2(g01);
-	//double J22 = norm_2(V3) / norm_2(g01);
-
-	//Matrix G(2, 2);
-	//G(0, 0) = 1 / J11;
-	//G(0, 1) = -J12 / (J11 * J22);
-	//G(1, 0) = 0.00;
-	//G(1, 1) = 1 / J22;
-
-
+	boost::numeric::ublas::bounded_matrix<double, 3, 3> Q = ZeroMatrix(3,3);
+	CalculateQ(Q, mG);
+	mQ = Q;
 
 	//Calculate the reduced mass matrix
 	mDetJ0 = norm_2(g3); //norm_2(V3);
 
+
 	//calculating the total area
-	mTotalDomainInitialSize = mDetJ0 * integration_weight;
+	//mTotalDomainInitialSize = mDetJ0 * integration_weight;
 
 	KRATOS_CATCH("")
 }
 
 //***********************************************************************************
 //***********************************************************************************
-
 void MeshlessShellElement::CalculateRightHandSide(
 	VectorType& rRightHandSideVector,
 	ProcessInfo& rCurrentProcessInfo)
@@ -276,154 +239,233 @@ void MeshlessShellElement::CalculateLocalSystem(
 	CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 }
 
-//***********************************************************************************
-//***********************************************************************************
-
+//************************************************************************************
+//************************************************************************************
 void MeshlessShellElement::CalculateOnIntegrationPoints(
-	const Variable<Matrix>& rVariable,
-	std::vector<Matrix>& Output,
-	const ProcessInfo& rCurrentProcessInfo)
-
+  const Variable<double>& rVariable,
+  std::vector<double>& rOutput,
+  const ProcessInfo& rCurrentProcessInfo
+  )
 {
-	std::cout << "CalculateOnIntegrationPoints not yet implemented" << std::endl;
-	////reading integration points and local gradients
-	//const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-	////const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
+  if (rOutput.size() != 1)
+  {
+    rOutput.resize(1);
+  }
 
-	////calculating actual jacobian
-	//GeometryType::JacobiansType J;
-	//J = GetGeometry().Jacobian(J);
+  if (rVariable == VON_MISES_STRESS)
+  {
+    //reading in of integration weight, shape function values and shape function derivatives
+    double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
+    Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
+    Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+    Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
-	////auxiliary terms
-	//boost::numeric::ublas::bounded_matrix<double, 2, 2> j;
-	//boost::numeric::ublas::bounded_matrix<double, 2, 2> g;
-	//boost::numeric::ublas::bounded_matrix<double, 2, 2> C;
-	//array_1d<double, 3> ge;
-	//array_1d<double, 3> gn;
-	//array_1d<double, 3> v3;
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = 3; // get value from dimension of derivatives
+    const unsigned int strain_size = 3;// mConstitutiveLawVector[0]->GetStrainSize();
 
-	//Vector StrainVector(3);
-	//Vector StressVector(3);
+    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    ConstitutiveVariables this_constitutive_variables(strain_size);
 
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-	//if (Output.size() != integration_points.size())
-	//	Output.resize(integration_points.size());
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions = Values.GetOptions();
+	///////////////////////////////////////////////////make back
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-	//for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
-	//{
-	//	//double IntegrationWeight = GetGeometry().IntegrationPoints()[PointNumber].Weight();
+    //Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
-	//	ge[0] = J[PointNumber](0, 0);
-	//	gn[0] = J[PointNumber](0, 1);
-	//	ge[1] = J[PointNumber](1, 0);
-	//	gn[1] = J[PointNumber](1, 1);
-	//	ge[2] = J[PointNumber](2, 0);
-	//	gn[2] = J[PointNumber](2, 1);
+// StrainStress
+    // covariant metric in deformed system
+    // curvature covariant metric in deformed system
+    array_1d<double, 3> curvature;
 
-	//	CrossProduct(v3, ge, gn);
-	//	CalculateJ(j, ge, gn, v3);
+    // Transformation Matrix Q - 
+    boost::numeric::ublas::bounded_matrix<double, 3, 3>  Q = mQ;
 
-	//	// Calculation of matrix g = jtrans*j;
-	//	noalias(g) = prod(trans(j), j);
+    Vector StrainVector = ZeroVector(3);
+    Vector CurvatureVector = ZeroVector(3);
 
-	//	// calculation of the Right Cauchy-Green Tensor C = Gtrans*g*G
-	//	boost::numeric::ublas::bounded_matrix<double, 2, 2> tmp;
-	//	tmp = prod(g, mG_Vector[PointNumber]);
-	//	noalias(C) = prod(trans(mG_Vector[PointNumber]), tmp);
-
-	//	// Calculation of the StrainVector
-	//	CalculateStrain(StrainVector, C);
-
-	//	ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-	//	Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-	//	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-	//	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
-	//	// if strain has to be computed inside of the constitutive law with PK2
-	//	//rValues.SetDeformationGradientF(rVariables.F); //in this case F is the whole deformation gradient
-
-	//	Values.SetStrainVector(StrainVector); //this is the input  parameter
-	//	Values.SetStressVector(StressVector); //this is the output parameter
+    // basis vectors in deformed system
+    //array_1d<double, 3> g1, g2;
+    MetricVariables DeformedMetric(3);
+    CalculateMetricDeformed(DN_De, DDN_DDe, DeformedMetric);
+    // covariant metric in deformed system
+	array_1d<double, 3> gab;
+	gab[0] = DeformedMetric.gab[0];
+	gab[1] = DeformedMetric.gab[1];
+	gab[2] = DeformedMetric.gab[2];
 
 
-	//	mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+    CalculateStrain(StrainVector, gab, mGab0);
+
+    this_constitutive_variables.StrainVector = prod(Q, StrainVector);
+	//////VERMUTLICH FALSCH!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    CalculateCurvature(CurvatureVector, curvature, mCurvature0);
+    this_constitutive_variables.CurvatureVector = prod(Q, CurvatureVector);
+
+    //Constitive Matrices DMembrane and DCurvature
+    //Matrix DMembrane = ZeroMatrix(3, 3);
+    //Matrix DCurvature = ZeroMatrix(3, 3);
+
+    Values.SetStrainVector(StrainVector); //this is the input parameter
+    Vector StressVector;
+    Values.SetStressVector(StressVector); //this is an ouput parameter
+    Values.SetConstitutiveMatrix(this_constitutive_variables.DMembrane); //this is an ouput parameter
+                                             //KRATOS_WATCH(DMembrane)
+
+    mConstitutiveLawVector->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+    //KRATOS_WATCH(DMembrane)
+    double thickness = this->GetProperties().GetValue(THICKNESS);
+    //KRATOS_WATCH(this_constitutive_variables.DMembrane)
+    this_constitutive_variables.DCurvature = this_constitutive_variables.DMembrane*(pow(thickness, 2) / 12);
+
+    //Local Cartesian Foreces and Moments
+    //Vector ForceVector_in_Q_coordinates = prod(trans(DMembrane), StrainVector_in_Q_coordinates);
+    //Vector MomentVector_in_Q_coordinates = prod(trans(DCurvature), CurvatureVector_in_Q_coordinates);
+    //Vector ForceVector_in_Q_coordinates = ZeroVector(3);
+    //Vector MomentVector_in_Q_coordinates = ZeroVector(3);
 
 
-	//	noalias(mStressesVector[PointNumber]) = ZeroVector(6);
-	//	Calculate_GlobalStressVector(mStressesVector[PointNumber], StressVector, mV1[PointNumber], mV2[PointNumber]); //saving the stress vector
+//end Strain Stress
 
+    double detF = DeformedMetric.dA / mDetJ0;
 
-	//	if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
-	//	{
-	//		//             if ( Output[PointNumber].size2() != StrainVector.size() )
-	//		//                 Output[PointNumber].resize( 1, StrainVector.size() );
-	//		//
-	//		//             for ( unsigned int ii = 0; ii < StrainVector.size(); ii++ )
-	//		//                 Output[PointNumber]( 0, ii ) = StrainVector[ii];
+//elemental stiffness
 
-	//		//BIG CHAPUZA! need to have this to look like a stress
-	//		Vector strain_as_stress = StrainVector;
-	//		strain_as_stress[2] *= 0.5;
-	//		array_1d<double, 6> global_strain = ZeroVector(6);
-	//		Calculate_GlobalStressVector(global_strain, strain_as_stress, mV1[PointNumber], mV2[PointNumber]);
+    double youngs_modulus = this->GetProperties().GetValue(YOUNG_MODULUS);
+    double poisson_ratio = this->GetProperties().GetValue(POISSON_RATIO);
+    Matrix dm = ZeroMatrix(3, 3);
+    Matrix db = ZeroMatrix(3, 3);
+    dm(0, 0) = 1.0;
+    dm(0, 1) = poisson_ratio;
+    dm(1, 0) = poisson_ratio;
+    dm(1, 1) = 1.0;
+    dm(2, 2) = (1.0 - poisson_ratio) / 2.0;
+    db = youngs_modulus*pow(thickness, 3) / (12.0*(1.0 - poisson_ratio*poisson_ratio))*dm;
+    dm = youngs_modulus*thickness / (1.0 - poisson_ratio*poisson_ratio)*dm;
 
-	//		Matrix StrainMatrix = MathUtils<double>::StrainVectorToTensor(global_strain);
-	//		Output[PointNumber] = StrainMatrix;
-	//	}
-	//	else if (rVariable == PK2_STRESS_TENSOR)
-	//	{
-	//		//             if ( Output[PointNumber].size2() != 6 )
-	//		//                 Output[PointNumber].resize( 1, 6 );
-	//		//
-	//		//             for ( unsigned int ii = 0; ii < 6; ii++ )
-	//		//                 Output[PointNumber]( 0, ii ) = mStressesVector[PointNumber][ii];
+    Vector n_pk2_ca = prod(dm, this_constitutive_variables.StrainVector);
 
-	//		Matrix StressMatrix = MathUtils<double>::StressVectorToTensor(mStressesVector[PointNumber]);
-	//		Output[PointNumber] = StressMatrix;
-	//	}
-	//	else if (rVariable == CAUCHY_STRESS_TENSOR)  // to compute Cauchy_Stress
-	//	{
-	//		//             if(Output[PointNumber].size2() != 6)
-	//		//                 Output[PointNumber].resize(1,6);
+    Matrix T_E_G = ZeroMatrix(3, 3);
+    T_E_G(0, 0) = mQ(0, 0);
+    T_E_G(0, 1) = mQ(1, 0);
+    T_E_G(0, 2) = mQ(2, 0);
+    T_E_G(1, 0) = mQ(0, 1);
+    T_E_G(1, 1) = mQ(1, 1);
+    T_E_G(1, 2) = mQ(2, 1);
+    T_E_G(2, 0) = mQ(0, 2)*0.5;
+    T_E_G(2, 1) = mQ(1, 2)*0.5;
+    T_E_G(2, 2) = mQ(2, 2)*0.5;
 
-	//		boost::numeric::ublas::bounded_matrix<double, 2, 2> F;
-	//		noalias(F) = tmp; //VM
-	//		Vector CauchyStressVector = StressVector;
-	//		double detF = MathUtils<double>::Det(F);
+    Vector n_pk2 = prod(T_E_G, n_pk2_ca);
+    //array_1d<double, 3> n_pk2 = prod(T_E_G, n_pk2_ca);
+    // Cauchy normal force in g1,g2
+    array_1d<double, 3> n_cau = 1.0 / detF*n_pk2; ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                                                  //c_vector<cfloat,3> n_cau = n_pk2;
+    Vector n = ZeroVector(7);
+    // Cauchy normal force in normalized g1,g2
+    n[0] = sqrt(DeformedMetric.gab[0] / DeformedMetric.gab_con[0])*n_cau[0];
+    n[1] = sqrt(DeformedMetric.gab[1] / DeformedMetric.gab_con[1])*n_cau[1];
+    n[2] = sqrt(DeformedMetric.gab[0] / DeformedMetric.gab_con[1])*n_cau[2];
+    // Cauchy normal force in local cartesian e1,e2
+    array_1d<double, 3> n_e = prod(DeformedMetric.T, n_cau);
+    n[0] = n_e[0];
+    n[1] = n_e[1];
+    n[2] = n_e[2];
+    // Principal normal forces
+    n[3] = 0.5*(n_e[0] + n_e[1] + sqrt(pow(n_e[0] - n_e[1], 2) + 4.0*pow(n_e[2], 2)));
+    n[4] = 0.5*(n_e[0] + n_e[1] - sqrt(pow(n_e[0] - n_e[1], 2) + 4.0*pow(n_e[2], 2)));
 
-	//		//calculate base vectors in the current configuration
-	//		array_1d<double, 3> v1, v2, n;
-	//		CrossProduct(v3, ge, gn);
-	//		n = v3;
-	//		n /= norm_2(v3);
-	//		v1 = ge;
-	//		v1 /= norm_2(v1);
-	//		CrossProduct(v2, n, v1);
+    // -------------------  moments -------------------------
+    // PK2 moment in local cartesian E1,E2
+    array_1d<double, 3> m_pk2_ca = prod(db, this_constitutive_variables.CurvatureVector);
+    // PK2 moment in G1,G2
+    array_1d<double, 3> m_pk2 = prod(T_E_G, m_pk2_ca);
+    // Cauchy moment in g1,g2
+    array_1d<double, 3> m_cau = 1.0 / detF*m_pk2; ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                                                  //c_vector<cfloat,3> m_cau = m_pk2;
+                                                  // Cauchy moment in normalized g1,g2
+    Vector m = ZeroVector(7);
+    m[0] = sqrt(DeformedMetric.gab[0] / DeformedMetric.gab_con[0])*m_cau[0];
+    m[1] = sqrt(DeformedMetric.gab[1] / DeformedMetric.gab_con[1])*m_cau[1];
+    m[2] = sqrt(DeformedMetric.gab[0] / DeformedMetric.gab_con[1])*m_cau[2];
+    // Cauchy moment in local cartesian e1,e2
+    array_1d<double, 3> m_e = prod(DeformedMetric.T, m_cau);
+    m[0] = m_e[0];
+    m[1] = m_e[1];
+    m[2] = m_e[2];
+    // principal moment
+    m[3] = 0.5*(m_e[0] + m_e[1] + sqrt(pow(m_e[0] - m_e[1], 2) + 4.0*pow(m_e[2], 2)));
+    m[4] = 0.5*(m_e[0] + m_e[1] - sqrt(pow(m_e[0] - m_e[1], 2) + 4.0*pow(m_e[2], 2)));
 
+    double W = pow(thickness, 2) / 6.0;
+    double sigma_1_top = m[0] / W + n[0] / thickness;
+    double sigma_2_top = m[1] / W + n[1] / thickness;
+    double sigma_3_top = m[2] / W + n[2] / thickness;
+    double vMises = pow(pow(sigma_1_top, 2) + pow(sigma_2_top, 2) - sigma_1_top*sigma_2_top + 3 * pow(sigma_3_top, 2), 0.5);
 
-	//		mConstitutiveLawVector[PointNumber]->TransformPK2Stresses(CauchyStressVector, F, detF, ConstitutiveLaw::StressMeasure_Cauchy);
+    rOutput[0] = vMises;
+    //// Reading integration points
+    //const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
 
-	//		noalias(mCauchyStressesVector[PointNumber]) = ZeroVector(6);
-	//		Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, v1, v2);   //saving the stress vector
-	//																										// Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, mV1[PointNumber], mV2[PointNumber]);	//saving the stress vector
+    //// Displacements vector
+    //Vector displacements;
+    //GetValuesVector(displacements);
 
-	//																										// for(unsigned int ii = 0; ii<6; ii++)
-	//																										//   Output[PointNumber](0,ii) = mCauchyStressesVector[PointNumber][ii];
+    ////for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
+    ////{
+    //  // Compute element kinematics B, F, DN_DX ...
+    //  CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
 
-	//		Matrix StressMatrix = MathUtils<double>::StressVectorToTensor(mCauchyStressesVector[PointNumber]);
-	//		Output[PointNumber] = StressMatrix;
+    //  // Compute material reponse
+    //  CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
 
-	//	}
-	//	else
-	//	{
-	//		Output[PointNumber] = mConstitutiveLawVector[PointNumber]->GetValue(rVariable, Output[PointNumber]);
-	//	}
+    //  const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(this_constitutive_variables.StressVector);
 
+    //  double sigma_equivalent = 0.0;
 
-	//}
+    //  if (dimension == 2)
+    //  {
+    //    sigma_equivalent = std::pow((stress_tensor(0, 0) - stress_tensor(1, 1)), 2.0) +
+    //      3 * (stress_tensor(0, 1) * stress_tensor(1, 0));
+    //  }
+    //  else
+    //  {
+    //    sigma_equivalent = 0.5*(std::pow((stress_tensor(0, 0) - stress_tensor(1, 1)), 2.0) +
+    //      std::pow((stress_tensor(1, 1) - stress_tensor(2, 2)), 2.0) +
+    //      std::pow((stress_tensor(2, 2) - stress_tensor(0, 0)), 2.0) +
+    //      6 * (stress_tensor(0, 1) * stress_tensor(1, 0) +
+    //        stress_tensor(1, 2) * stress_tensor(2, 1) +
+    //        stress_tensor(2, 0) * stress_tensor(0, 2)));
+    //  }
 
+      //if (sigma_equivalent < 0.0)
+      //{
+      //  rOutput[0] = 0.0;
+      //}
+      //else
+      //{
+        //rOutput[0] = 5;// std::sqrt(sigma_equivalent);
+      //}
+  }
+  else if (rVariable == DAMAGE_T)
+  {
+	  mConstitutiveLawVector->GetValue(DAMAGE_T, rOutput[0]);
+  }
+  else if (rVariable == DAMAGE_C)
+  {
+	  mConstitutiveLawVector->GetValue(DAMAGE_C, rOutput[0]);
+  }
+  else
+  {
+    rOutput[0] = 0.0;// mConstitutiveLawVector[0]->GetValue(rVariable, rOutput[0]);
+  }
 }
-
 
 //***********************************************************************************
 //***********************************************************************************
@@ -452,79 +494,6 @@ void MeshlessShellElement::FinalizeSolutionStep(
 
 }
 
-////***********************************************************************************
-////***********************************************************************************
-//
-//void MeshlessShellElement::GetValuesVector(
-//	Vector& values,
-//	int Step)
-//
-//{
-//	const unsigned int number_of_nodes = GetGeometry().size();
-//	const unsigned int MatSize = number_of_nodes * 3;
-//
-//	if (values.size() != MatSize)
-//		values.resize(MatSize);
-//
-//	for (unsigned int i = 0; i < number_of_nodes; i++)
-//	{
-//		const array_1d<double, 3>& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-//		unsigned int index = i * 3;
-//		values[index] = disp[0];
-//		values[index + 1] = disp[1];
-//		values[index + 2] = disp[2];
-//	}
-//}
-//
-////***********************************************************************************
-////***********************************************************************************
-//
-//void MeshlessShellElement::GetFirstDerivativesVector(
-//	Vector& values,
-//	int Step)
-//
-//{
-//	const unsigned int number_of_nodes = GetGeometry().size();
-//	const unsigned int MatSize = number_of_nodes * 3;
-//
-//	if (values.size() != MatSize)
-//		values.resize(MatSize);
-//
-//	for (unsigned int i = 0; i < number_of_nodes; i++)
-//	{
-//		const array_1d<double, 3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-//		unsigned int index = i * 3;
-//		values[index] = vel[0];
-//		values[index + 1] = vel[1];
-//		values[index + 2] = vel[2];
-//	}
-//
-//}
-//
-////***********************************************************************************
-////***********************************************************************************
-//
-//void MeshlessShellElement::GetSecondDerivativesVector(
-//	Vector& values,
-//	int Step)
-//
-//{
-//	const unsigned int number_of_nodes = GetGeometry().size();
-//	const unsigned int MatSize = number_of_nodes * 3;
-//
-//	if (values.size() != MatSize)
-//		values.resize(MatSize);
-//
-//	for (unsigned int i = 0; i < number_of_nodes; i++)
-//	{
-//		const array_1d<double, 3>& acc = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-//		unsigned int index = i * 3;
-//		values[index] = acc[0];
-//		values[index + 1] = acc[1];
-//		values[index + 2] = acc[2];
-//	}
-//}
-
 //***********************************************************************************
 //***********************************************************************************
 // --------- //
@@ -532,7 +501,6 @@ void MeshlessShellElement::FinalizeSolutionStep(
 // --------- //
 //***********************************************************************************
 //***********************************************************************************
-
 void MeshlessShellElement::CalculateAndAddKm(
 	Matrix& K,
 	Matrix& B,
@@ -569,7 +537,6 @@ void MeshlessShellElement::CalculateAndAddNonlinearKm(
 	KRATOS_TRY
 		
 	unsigned int number_of_nodes = GetGeometry().size();
-	//Matrix TestK = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
 
 	for (unsigned int n = 0; n < number_of_nodes; n++)
 	{
@@ -582,46 +549,21 @@ void MeshlessShellElement::CalculateAndAddNonlinearKm(
 					check = i + 1;
 				for (unsigned int j = 0; j < check; j++)
 				{
-					K(3*n + i, 3*m + j) += (SD[0] * B11(3*n + i, 3*m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
-					//TestK(3*n + i, 3*m + j) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
-					K(3*m + j, 3*n + i) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
-					//TestK(3*m + i, 3*n + j) = TestK(3*n + i, 3*m + j);
+					unsigned int nbase = 3 * n + i;
+					unsigned int mbase = 3 * m + j;
+
+					K(nbase, mbase) += (SD[0] * B11(nbase, mbase) 
+						+ SD[1] * B22(nbase, mbase) 
+						+ SD[2] * B12(nbase, mbase))*weight;
+					K(mbase, nbase) += (SD[0] * B11(nbase, mbase) 
+						+ SD[1] * B22(nbase, mbase) 
+						+ SD[2] * B12(nbase, mbase))*weight;
 				}
 			}
 		}
 	}
-	//KRATOS_WATCH(TestK)
-
 	KRATOS_CATCH("")
 }
-//
-//
-////***********************************************************************************
-////***********************************************************************************
-//void MeshlessShellElement::ClearNodalForces()
-//{
-//	KRATOS_TRY
-//
-//		const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-//	for (unsigned int i = 0; i < number_of_nodes; i++)
-//	{
-//		if (GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_FORCE) && GetGeometry()[i].SolutionStepsDataHas(INTERNAL_FORCE))
-//		{
-//
-//			array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-//			array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
-//
-//			GetGeometry()[i].SetLock();
-//			ExternalForce.clear();
-//			InternalForce.clear();
-//			GetGeometry()[i].UnSetLock();
-//
-//		}
-//
-//	}
-//
-//	KRATOS_CATCH("")
-//}
 
 //***********************************************************************************
 //***********************************************************************************
@@ -671,7 +613,7 @@ void MeshlessShellElement::CalculateBMembrane(
 		//first line
 		b(0, index)     = DN_De(i, 0) * g1[0];
 		b(0, index + 1) = DN_De(i, 0) * g1[1];
-		b(0, index + 2) = DN_De(i, 0) * g2[2];
+		b(0, index + 2) = DN_De(i, 0) * g1[2];
 
 		//second line
 		b(1, index)     = DN_De(i, 1) * g2[0];
@@ -691,9 +633,10 @@ void MeshlessShellElement::CalculateBMembrane(
 
 
 void MeshlessShellElement::CalculateBCurvature(
-	Matrix& B,
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
-	const Matrix& DN_De,
+  Matrix& B,
+  boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+  const Matrix& DN_De,
+  const Matrix& DDN_DDe,
 	const array_1d<double, 3>& g1,
 	const array_1d<double, 3>& g2)
 {
@@ -705,7 +648,8 @@ void MeshlessShellElement::CalculateBCurvature(
 
 	//calculation of Hessian H
 	Matrix H = ZeroMatrix(3, 3);
-	Hessian(H, DN_De);
+	Hessian(H, DDN_DDe);
+
 
 	//basis vector g3
 	array_1d<double, 3> g3;
@@ -724,17 +668,17 @@ void MeshlessShellElement::CalculateBCurvature(
 	for (unsigned int i = 0; i < number_of_nodes; i++)
 	{
 		unsigned int index = 3 * i;
-		//first line --- dg(1,0)*g2(2)-dg(2,0)*g2(1) + g1(1)*dg(2,1)-g1(2)*dg(1,1);
+		//first line
 		dg3(0, 0) = 0;
 		dg3(0, 1) = -DN_De(i, 0) * g2[2] + DN_De(i, 1)*g1[2];
 		dg3(0, 2) = DN_De(i, 0) * g2[1] - DN_De(i, 1)*g1[1];
 
-		//second line --- dg(2,0)*g2(0)-dg(0,0)*g2(2) + g1(2)*dg(0,1)-g1(0)*dg(2,1);
+		//second line
 		dg3(1, 0) = DN_De(i, 0) * g2[2] - DN_De(i, 1)*g1[2];
 		dg3(1, 1) = 0;
 		dg3(1, 2) = -DN_De(i, 0)*g2[0] + DN_De(i, 1)*g1[0];
 
-		//third line --- dg(0,0)*g2(1)-dg(1,0)*g2(0) + g1(0)*dg(1,1)-g1(1)*dg(0,1);
+		//third line
 		dg3(2, 0) = - DN_De(i, 0) * g2[1] + DN_De(i, 1) * g1[1];
 		dg3(2, 1) = DN_De(i, 0) * g2[0] - DN_De(i, 1) * g1[0];
 		dg3(2, 2) = 0;
@@ -744,43 +688,28 @@ void MeshlessShellElement::CalculateBCurvature(
 		for (unsigned int j = 0; j < 3; j++)
 		{
 			double g3dg3lg3 = (g3[0] * dg3(j, 0) + g3[1] * dg3(j, 1) + g3[2] * dg3(j, 2))*inddA3;
-			//g3dg3lg3[1] = (g3[0] * dg3(0, 1) + g3[1] * dg3(1, 1) + g3[2] * dg3(2, 1))*inddA3;
-			//g3dg3lg3[2] = (g3[0] * dg3(0, 2) + g3[1] * dg3(1, 2) + g3[2] * dg3(2, 2))*inddA3;
-			//std::cout << "g3dg3lg3" << g3dg3lg3 << std::endl;
-			//std::cout << "invdA" << invdA << std::endl;
-			//std::cout << "invdA3" << inddA3 << std::endl;
-			//first line
+
 			dn(j, 0) = dg3(j, 0)*invdA - g3[0] * g3dg3lg3;
 			dn(j, 1) = dg3(j, 1)*invdA - g3[1] * g3dg3lg3;
 			dn(j, 2) = dg3(j, 2)*invdA - g3[2] * g3dg3lg3;
-
-			
-			////second line
-			//dn(1, 0) = dg3(1, 0)*invdA - g3[1] * g3dg3lg3[0];
-			//dn(1, 1) = dg3(1, 1)*invdA - g3[1] * g3dg3lg3[1];
-			//dn(1, 2) = dg3(1, 2)*invdA - g3[1] * g3dg3lg3[2];
-
-			////third line
-			//dn(2, 0) = dg3(2, 0)*invdA - g3[2] * g3dg3lg3[0];
-			//dn(2, 1) = dg3(2, 1)*invdA - g3[2] * g3dg3lg3[1];
-			//dn(2, 2) = dg3(2, 2)*invdA - g3[2] * g3dg3lg3[2];
 		}
-		// curvature vector [K11,K22,K12] referred to curvilinear coor sys
-		//first line --- dK_cu[0] = 0 -(S_ddR(k,0)*n[dir] + _h(0,0)*dn[0]+_h(1,0)*dn[1]+_h(2,0)*dn[2]);
-		b(0, index)		= 0 - (DN_De(i, 2) * n[0] + H(0, 0)*dn(0, 0) + H(1, 0)*dn(0, 1) + H(2, 0)*dn(0, 2));
-		b(0, index + 1) = 0 - (DN_De(i, 2) * n[1] + H(0, 0)*dn(1, 0) + H(1, 0)*dn(1, 1) + H(2, 0)*dn(1, 2));
-		b(0, index + 2) = 0 - (DN_De(i, 2) * n[2] + H(0, 0)*dn(2, 0) + H(1, 0)*dn(2, 1) + H(2, 0)*dn(2, 2));
+
+		// curvature vector [K11,K22,K12] referred to curvilinear coordinate system
+		b(0, index)		= 0 - (DDN_DDe(i, 0) * n[0] + H(0, 0)*dn(0, 0) + H(1, 0)*dn(0, 1) + H(2, 0)*dn(0, 2));
+		b(0, index + 1) = 0 - (DDN_DDe(i, 0) * n[1] + H(0, 0)*dn(1, 0) + H(1, 0)*dn(1, 1) + H(2, 0)*dn(1, 2));
+		b(0, index + 2) = 0 - (DDN_DDe(i, 0) * n[2] + H(0, 0)*dn(2, 0) + H(1, 0)*dn(2, 1) + H(2, 0)*dn(2, 2));
 
 		//second line
-		b(1, index)		= 0 - (DN_De(i, 3) * n[0] + H(0, 1)*dn(0, 0) + H(1, 1)*dn(0, 1) + H(2, 1)*dn(0, 2));
-		b(1, index + 1) = 0 - (DN_De(i, 3) * n[1] + H(0, 1)*dn(1, 0) + H(1, 1)*dn(1, 1) + H(2, 1)*dn(1, 2));
-		b(1, index + 2) = 0 - (DN_De(i, 3) * n[2] + H(0, 1)*dn(2, 0) + H(1, 1)*dn(2, 1) + H(2, 1)*dn(2, 2));
+		b(1, index)		= 0 - (DDN_DDe(i, 1) * n[0] + H(0, 1)*dn(0, 0) + H(1, 1)*dn(0, 1) + H(2, 1)*dn(0, 2));
+		b(1, index + 1) = 0 - (DDN_DDe(i, 1) * n[1] + H(0, 1)*dn(1, 0) + H(1, 1)*dn(1, 1) + H(2, 1)*dn(1, 2));
+		b(1, index + 2) = 0 - (DDN_DDe(i, 1) * n[2] + H(0, 1)*dn(2, 0) + H(1, 1)*dn(2, 1) + H(2, 1)*dn(2, 2));
 
 		//third line
-		b(2, index)		= 0 - (DN_De(i, 4) * n[0] + H(0, 2)*dn(0, 0) + H(1, 2)*dn(0, 1) + H(2, 2)*dn(0, 2));
-		b(2, index + 1) = 0 - (DN_De(i, 4) * n[1] + H(0, 2)*dn(1, 0) + H(1, 2)*dn(1, 1) + H(2, 2)*dn(1, 2));
-		b(2, index + 2) = 0 - (DN_De(i, 4) * n[2] + H(0, 2)*dn(2, 0) + H(1, 2)*dn(2, 1) + H(2, 2)*dn(2, 2));
+		b(2, index)		= 0 - (DDN_DDe(i, 2) * n[0] + H(0, 2)*dn(0, 0) + H(1, 2)*dn(0, 1) + H(2, 2)*dn(0, 2));
+		b(2, index + 1) = 0 - (DDN_DDe(i, 2) * n[1] + H(0, 2)*dn(1, 0) + H(1, 2)*dn(1, 1) + H(2, 2)*dn(1, 2));
+		b(2, index + 2) = 0 - (DDN_DDe(i, 2) * n[2] + H(0, 2)*dn(2, 0) + H(1, 2)*dn(2, 1) + H(2, 2)*dn(2, 2));
 	}
+
 	B = prod(Q, b);
 	KRATOS_CATCH("")
 }
@@ -821,28 +750,29 @@ void MeshlessShellElement::CalculateCurvature(
 
 //***********************************************************************************
 //***********************************************************************************
-void MeshlessShellElement::CalculateMetricDeformed(Matrix DN_De, 
+void MeshlessShellElement::CalculateMetricDeformed(const Matrix& DN_De,
+  const Matrix& DDN_DDe,
 	array_1d<double, 3>& gab,
 	array_1d<double, 3>& curvature_coefficient,
 	array_1d<double, 3>& g1,
 	array_1d<double, 3>& g2)
 {
-	Matrix J0;
-	Jacobian(DN_De, J0);
+	Matrix J;
+	Jacobian(DN_De, J);
+
+  //KRATOS_WATCH(J)
 
 	//auxiliary terms
-	//array_1d<double, 3> g1;
-	//array_1d<double, 3> g2;
 	array_1d<double, 3> g3;
 
 	//double IntegrationWeight = GetGeometry().IntegrationPoints()[0].Weight();
 
-	g1[0] = J0(0, 0);
-	g2[0] = J0(0, 1);
-	g1[1] = J0(1, 0);
-	g2[1] = J0(1, 1);
-	g1[2] = J0(2, 0);
-	g2[2] = J0(2, 1);
+	g1[0] = J(0, 0);
+	g2[0] = J(0, 1);
+	g1[1] = J(1, 0);
+	g2[1] = J(1, 1);
+	g1[2] = J(2, 0);
+	g2[2] = J(2, 1);
 
 	//basis vector g3
 	CrossProduct(g3, g1, g2);
@@ -857,26 +787,131 @@ void MeshlessShellElement::CalculateMetricDeformed(Matrix DN_De,
 	gab[2] = g1[0] * g2[0] + g1[1] * g2[1] + g1[2] * g2[2];
 
 	Matrix H = ZeroMatrix(3, 3);
-	Hessian(H, DN_De);
+	Hessian(H, DDN_DDe);
 
-
-	//KRATOS_WATCH(H)
-	//	KRATOS_WATCH(n)
-	//array_1d<double, 3> curvature_coefficient;
 	curvature_coefficient[0] = H(0, 0)*n[0] + H(1, 0)*n[1] + H(2, 0)*n[2];
 	curvature_coefficient[1] = H(0, 1)*n[0] + H(1, 1)*n[1] + H(2, 1)*n[2];
 	curvature_coefficient[2] = H(0, 2)*n[0] + H(1, 2)*n[1] + H(2, 2)*n[2];
-}
 
+  ////contravariant metric gab_con and base vectors g_con
+  //Vector gab_con = ZeroVector(3);
+  //double invdetGab = 1.0 / (gab[0] * gab[1] - gab[2] * gab[2]);
+  //gab_con[0] = invdetGab*gab[1];
+  //gab_con[2] = -invdetGab*gab[2];
+  //gab_con[1] = invdetGab*gab[0];
+
+  //array_1d<double, 3> g_con_1 = g1*gab_con[0] + g2*gab_con[2];
+  //array_1d<double, 3> g_con_2 = g1*gab_con[2] + g2*gab_con[1];
+
+  ////local cartesian coordinates
+  //double lg1 = norm_2(g1);
+  //array_1d<double, 3> e1 = g1 / lg1;
+  //double lg_con2 = norm_2(g_con_2);
+  //array_1d<double, 3> e2 = g_con_2 / lg_con2;
+
+  //Matrix T_G_E = ZeroMatrix(3, 3);
+  ////Transformation matrix T from contravariant to local cartesian basis
+  //double eG11 = inner_prod(e1, g1);
+  //double eG12 = inner_prod(e1, g2);
+  //double eG21 = inner_prod(e2, g1);
+  //double eG22 = inner_prod(e2, g2);
+  //T_G_E(0, 0) = eG11*eG11;
+  //T_G_E(0, 1) = eG12*eG12;
+  //T_G_E(0, 2) = 2.0*eG11*eG12;
+  //T_G_E(1, 0) = eG21*eG21;
+  //T_G_E(1, 1) = eG22*eG22;
+  //T_G_E(1, 2) = 2.0*eG21*eG22;
+  //T_G_E(2, 0) = eG11*eG21;
+  //T_G_E(2, 1) = eG12*eG22;
+  //T_G_E(2, 2) = eG11*eG22 + eG12*eG21;
+}
 //***********************************************************************************
 //***********************************************************************************
-void MeshlessShellElement::CalculateSecondVariationStrainCurvature(Matrix DN_De,
-	Matrix& Strain_curvilinear11,
-	Matrix& Strain_curvilinear22,
-	Matrix& Strain_curvilinear12,
-	Matrix& Curvature_curvilinear11,
-	Matrix& Curvature_curvilinear22,
-	Matrix& Curvature_curvilinear12,
+void MeshlessShellElement::CalculateMetricDeformed(
+  const Matrix& DN_De,
+  const Matrix& DDN_DDe, 
+  MetricVariables& metric)
+{
+  Matrix J;
+  Jacobian(DN_De, J);
+
+  
+  metric.g1[0] = J(0, 0);
+  metric.g2[0] = J(0, 1);
+  metric.g1[1] = J(1, 0);
+  metric.g2[1] = J(1, 1);
+  metric.g1[2] = J(2, 0);
+  metric.g2[2] = J(2, 1);
+
+  //basis vector g3
+  CrossProduct2(metric.g3, metric.g1, metric.g2);
+  //differential area dA
+  metric.dA = norm_2(metric.g3);
+  //normal vector _n
+  array_1d<double, 3> n = metric.g3 / metric.dA;
+
+  
+  //GetCovariantMetric
+  metric.gab[0] = pow(metric.g1[0], 2) + pow(metric.g1[1], 2) + pow(metric.g1[2], 2);
+  metric.gab[1] = pow(metric.g2[0], 2) + pow(metric.g2[1], 2) + pow(metric.g2[2], 2);
+  metric.gab[2] = metric.g1[0] * metric.g2[0] + metric.g1[1] * metric.g2[1] + metric.g1[2] * metric.g2[2];
+
+  
+  Hessian(metric.H, DDN_DDe);
+
+  
+  metric.curvature[0] = metric.H(0, 0)*n[0] + metric.H(1, 0)*n[1] + metric.H(2, 0)*n[2];
+  metric.curvature[1] = metric.H(0, 1)*n[0] + metric.H(1, 1)*n[1] + metric.H(2, 1)*n[2];
+  metric.curvature[2] = metric.H(0, 2)*n[0] + metric.H(1, 2)*n[1] + metric.H(2, 2)*n[2];
+
+  
+  //contravariant metric gab_con and base vectors g_con
+  //Vector gab_con = ZeroVector(3);
+  double invdetGab = 1.0 / (metric.gab[0] * metric.gab[1] - metric.gab[2] * metric.gab[2]);
+  metric.gab_con[0] = invdetGab*metric.gab[1];
+  metric.gab_con[2] = -invdetGab*metric.gab[2];
+  metric.gab_con[1] = invdetGab*metric.gab[0];
+
+  
+  array_1d<double, 3> g_con_1 = metric.g1*metric.gab_con[0] + metric.g2*metric.gab_con[2];
+  array_1d<double, 3> g_con_2 = metric.g1*metric.gab_con[2] + metric.g2*metric.gab_con[1];
+
+  
+  //local cartesian coordinates
+  double lg1 = norm_2(metric.g1);
+  array_1d<double, 3> e1 = metric.g1 / lg1;
+  double lg_con2 = norm_2(g_con_2);
+  array_1d<double, 3> e2 = g_con_2 / lg_con2;
+
+  //Matrix T_G_E = ZeroMatrix(3, 3);
+  //Transformation matrix T from contravariant to local cartesian basis
+  double eG11 = inner_prod(e1, metric.g1);
+  double eG12 = inner_prod(e1, metric.g2);
+  double eG21 = inner_prod(e2, metric.g1);
+  double eG22 = inner_prod(e2, metric.g2);
+
+  metric.T = ZeroMatrix(3, 3);
+  metric.T(0, 0) = eG11*eG11;
+  metric.T(0, 1) = eG12*eG12;
+  metric.T(0, 2) = 2.0*eG11*eG12;
+  metric.T(1, 0) = eG21*eG21;
+  metric.T(1, 1) = eG22*eG22;
+  metric.T(1, 2) = 2.0*eG21*eG22;
+  metric.T(2, 0) = eG11*eG21;
+  metric.T(2, 1) = eG12*eG22;
+  metric.T(2, 2) = eG11*eG22 + eG12*eG21;
+}
+//***********************************************************************************
+//***********************************************************************************
+void MeshlessShellElement::CalculateSecondVariationStrainCurvature(
+  const Matrix& DN_De,
+  const Matrix& DDN_DDe,
+	Matrix& Strain_in_Q_coordinates11,
+	Matrix& Strain_in_Q_coordinates22,
+	Matrix& Strain_in_Q_coordinates12,
+	Matrix& Curvature_in_Q_coordinates11,
+	Matrix& Curvature_in_Q_coordinates22,
+	Matrix& Curvature_in_Q_coordinates12,
 	boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
 	array_1d<double, 3>& g1,
 	array_1d<double, 3>& g2)
@@ -898,9 +933,9 @@ void MeshlessShellElement::CalculateSecondVariationStrainCurvature(Matrix DN_De,
 
 	CrossProduct(g3, g1, g2);
 
-	Matrix Hessian = ZeroMatrix(3, 3);
+	Matrix H = ZeroMatrix(3, 3);
 
-	this->Hessian(Hessian, DN_De);
+	this->Hessian(H, DDN_DDe);
 
 	//differential area dA
 	double dA = norm_2(g3);
@@ -974,9 +1009,9 @@ void MeshlessShellElement::CalculateSecondVariationStrainCurvature(Matrix DN_De,
 						ddStrain_curvilinear[1] = DN_De(n, 1)*DN_De(m, 1);
 						ddStrain_curvilinear[2] = 0.5*(DN_De(n, 0)*DN_De(m, 1) + DN_De(n, 1)*DN_De(m, 0));
 						 
-						Strain_curvilinear11(3*n + i, 3*m + j) = Q(0, 0)*ddStrain_curvilinear[0] + Q(0, 1)*ddStrain_curvilinear[1] + Q(0, 2)*ddStrain_curvilinear[2];
-						Strain_curvilinear22(3*n + i, 3*m + j) = Q(1, 0)*ddStrain_curvilinear[0] + Q(1, 1)*ddStrain_curvilinear[1] + Q(1, 2)*ddStrain_curvilinear[2];
-						Strain_curvilinear12(3*n + i, 3*m + j) = Q(2, 0)*ddStrain_curvilinear[0] + Q(2, 1)*ddStrain_curvilinear[1] + Q(2, 2)*ddStrain_curvilinear[2];
+						Strain_in_Q_coordinates11(3*n + i, 3*m + j) = Q(0, 0)*ddStrain_curvilinear[0] + Q(0, 1)*ddStrain_curvilinear[1] + Q(0, 2)*ddStrain_curvilinear[2];
+						Strain_in_Q_coordinates22(3*n + i, 3*m + j) = Q(1, 0)*ddStrain_curvilinear[0] + Q(1, 1)*ddStrain_curvilinear[1] + Q(1, 2)*ddStrain_curvilinear[2];
+						Strain_in_Q_coordinates12(3*n + i, 3*m + j) = Q(2, 0)*ddStrain_curvilinear[0] + Q(2, 1)*ddStrain_curvilinear[1] + Q(2, 2)*ddStrain_curvilinear[2];
 
 					}
 					// curvature
@@ -1008,22 +1043,77 @@ void MeshlessShellElement::CalculateSecondVariationStrainCurvature(Matrix DN_De,
 					ddn[1] = ddg3[1] * invdA3 - g3dg3lg3m * dg3_n(i,1) - g3dg3lg3n * dg3_m(j,1) + (c + d)*g3[1];
 					ddn[2] = ddg3[2] * invdA3 - g3dg3lg3m * dg3_n(i,2) - g3dg3lg3n * dg3_m(j,2) + (c + d)*g3[2];
 
-					ddCurvature_curvilinear[0] = DN_De(n, 2)*dn_m(j,i) + DN_De(m, 2)*dn_n(i,j)
-						+ Hessian(0, 0)*ddn[0] + Hessian(1, 0)*ddn[1] + Hessian(2, 0)*ddn[2];
-					ddCurvature_curvilinear[1] = DN_De(n, 3)*dn_m(j,i) + DN_De(m, 3)*dn_n(i,j)
-						+ Hessian(0, 1)*ddn[0] + Hessian(1, 1)*ddn[1] + Hessian(2, 1)*ddn[2];
-					ddCurvature_curvilinear[2] = DN_De(n, 4)*dn_m(j,i) + DN_De(m, 4)*dn_n(i,j)
-						+ Hessian(0, 2)*ddn[0] + Hessian(1, 2)*ddn[1] + Hessian(2, 2)*ddn[2];
+					ddCurvature_curvilinear[0] = DDN_DDe(n, 0)*dn_m(j,i) + DDN_DDe(m, 0)*dn_n(i,j)
+						+ H(0, 0)*ddn[0] + H(1, 0)*ddn[1] + H(2, 0)*ddn[2];
+					ddCurvature_curvilinear[1] = DDN_DDe(n, 1)*dn_m(j,i) + DDN_DDe(m, 1)*dn_n(i,j)
+						+ H(0, 1)*ddn[0] + H(1, 1)*ddn[1] + H(2, 1)*ddn[2];
+					ddCurvature_curvilinear[2] = DDN_DDe(n, 2)*dn_m(j,i) + DDN_DDe(m, 2)*dn_n(i,j)
+						+ H(0, 2)*ddn[0] + H(1, 2)*ddn[1] + H(2, 2)*ddn[2];
 
-					Curvature_curvilinear11(3*n + i, 3*m + j) = Q(0, 0)*ddCurvature_curvilinear[0] + Q(0, 1)*ddCurvature_curvilinear[1] + Q(0, 2)*ddCurvature_curvilinear[2];
-					Curvature_curvilinear22(3*n + i, 3*m + j) = Q(1, 0)*ddCurvature_curvilinear[0] + Q(1, 1)*ddCurvature_curvilinear[1] + Q(1, 2)*ddCurvature_curvilinear[2];
-					Curvature_curvilinear12(3*n + i, 3*m + j) = Q(2, 0)*ddCurvature_curvilinear[0] + Q(2, 1)*ddCurvature_curvilinear[1] + Q(2, 2)*ddCurvature_curvilinear[2];
+					Curvature_in_Q_coordinates11(3*n + i, 3*m + j) = Q(0, 0)*ddCurvature_curvilinear[0] + Q(0, 1)*ddCurvature_curvilinear[1] + Q(0, 2)*ddCurvature_curvilinear[2];
+					Curvature_in_Q_coordinates22(3*n + i, 3*m + j) = Q(1, 0)*ddCurvature_curvilinear[0] + Q(1, 1)*ddCurvature_curvilinear[1] + Q(1, 2)*ddCurvature_curvilinear[2];
+					Curvature_in_Q_coordinates12(3*n + i, 3*m + j) = Q(2, 0)*ddCurvature_curvilinear[0] + Q(2, 1)*ddCurvature_curvilinear[1] + Q(2, 2)*ddCurvature_curvilinear[2];
 				}
 			}
 		}
 	}
 }
+void MeshlessShellElement::CalculateMassMatrix(
+	MatrixType& rMassMatrix,
+	ProcessInfo& rCurrentProcessInfo
+)
+{
+	KRATOS_TRY;
 
+	//double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
+	//Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
+	//Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+
+	//double density = this->GetProperties().GetValue(DENSITY);
+
+	//KRATOS_WATCH(DN_De)
+
+	//Vector g1, g2, g3;
+
+	//Matrix J;
+	//Jacobian(DN_De, J);
+	//KRATOS_WATCH(J)
+
+	//g1[0] = J(0, 0);
+	//g2[0] = J(0, 1);
+	//g1[1] = J(1, 0);
+	//g2[1] = J(1, 1);
+	//g1[2] = J(2, 0);
+	//g2[2] = J(2, 1);
+
+	//CrossProduct2(g3, g1, g2);
+	////differential area dA
+	//double dA = norm_2(g3);
+	//KRATOS_WATCH(dA)
+
+	//unsigned int dimension = 3;
+	//unsigned int number_of_nodes = ShapeFunctionsN.size();
+	//unsigned int mat_size = dimension * number_of_nodes;
+	//
+	//if (rMassMatrix.size1() != mat_size)
+	//{
+	//	rMassMatrix.resize(mat_size, mat_size, false);
+	//}
+	//rMassMatrix = ZeroMatrix(mat_size, mat_size);
+	//KRATOS_WATCH(rMassMatrix)
+	//for (int r = 0; r<number_of_nodes; r++)
+	//{
+	//	for (int s = 0; s<number_of_nodes; s++)
+	//	{
+	//		rMassMatrix(3 * s, 3 * r) = ShapeFunctionsN(s)*ShapeFunctionsN(r) * density * dA * integration_weight;
+	//		rMassMatrix(3 * s + 1, 3 * r + 1) = rMassMatrix(3 * s, 3 * r);
+	//		rMassMatrix(3 * s + 2, 3 * r + 2) = rMassMatrix(3 * s, 3 * r);
+	//	}
+	//}
+	//KRATOS_WATCH(rMassMatrix)
+
+	KRATOS_CATCH("")
+}
 //***********************************************************************************
 //***********************************************************************************
 void MeshlessShellElement::CalculateAll(
@@ -1046,12 +1136,6 @@ void MeshlessShellElement::CalculateAll(
 	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-	//Matrix B(3, MatSize);
-	Vector StrainVector(3);
-	Vector StressVector(3);
-
-	Vector CurvatureVector(3);
-
 	//resizing as needed the LHS
 	if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
 	{
@@ -1071,92 +1155,104 @@ void MeshlessShellElement::CalculateAll(
 	double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 	Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
 	Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+	Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
 	// covariant metric in deformed system
 	array_1d<double, 3> gab;
 	// curvature covariant metric in deformed system
 	array_1d<double, 3> curvature;
 
-	// Transformation Vector Q
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>  Q = ZeroMatrix(3, 3);
-	CalculateQ(Q, mG_Vector);
+	// Transformation Matrix Q - 
+	boost::numeric::ublas::bounded_matrix<double, 3, 3>  Q = mQ;
 
-	// basis vectors in deformed system
-	array_1d<double, 3> g1;
-	array_1d<double, 3> g2;
-	CalculateMetricDeformed(DN_De, gab, curvature, g1, g2);
-	CalculateStrain(StrainVector, gab, mGab0);
+  Vector StrainVector = ZeroVector(3);
+  Vector CurvatureVector = ZeroVector(3);
 
-	Vector CartesianStrainVector = prod(Q, StrainVector);
+  // basis vectors in deformed system
+  array_1d<double, 3> g1, g2;
+  CalculateMetricDeformed(DN_De, DDN_DDe, gab, curvature, g1, g2);
+  CalculateStrain(StrainVector, gab, mGab0);
 
-	CalculateCurvature(CurvatureVector, curvature, mCurvature0);
-	Vector CartesianCurvatureVector = prod(Q, CurvatureVector);
+  Vector StrainVector_in_Q_coordinates = prod(Q, StrainVector);
+  CalculateCurvature(CurvatureVector, curvature, mCurvature0);
+  Vector CurvatureVector_in_Q_coordinates = prod(Q, CurvatureVector);
 
-	//// if strain has to be computed inside of the constitutive law with PK2
-	////rValues.SetDeformationGradientF(rVariables.F); //in this case F is the whole deformation gradient
+  //Constitive Matrices DMembrane and DCurvature
+  Matrix DMembrane = ZeroMatrix(3, 3);
+  Matrix DCurvature = ZeroMatrix(3, 3);
 
-	//Constitive Matrices DMembrane and DCurvature
-	Matrix DMembrane = ZeroMatrix(3, 3);
-	Matrix DCurvature = ZeroMatrix(3, 3);
-
-	Values.SetStrainVector(StrainVector); //this is the input parameter
-	Values.SetStressVector(StressVector); //this is an ouput parameter
+	Values.SetStrainVector(StrainVector_in_Q_coordinates); //this is the input parameter
+	Vector StressVector;
+	Values.SetStressVector(StressVector);    //this is an ouput parameter
 	Values.SetConstitutiveMatrix(DMembrane); //this is an ouput parameter
-
 	mConstitutiveLawVector->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
-
 	double thickness = this->GetProperties().GetValue(THICKNESS);
 	DCurvature = DMembrane*(pow(thickness, 2) / 12);
 
-	//Deformations for Non-linear force Vector
-	Vector StrainDeformation;
-	Vector CurvatureDeformation;
+	//Local Cartesian Foreces and Moments
+	//Vector ForceVector_in_Q_coordinates = prod(trans(DMembrane), StrainVector_in_Q_coordinates);
+	//Vector MomentVector_in_Q_coordinates = prod(trans(DCurvature), CurvatureVector_in_Q_coordinates);
+	Vector ForceVector_in_Q_coordinates = ZeroVector(3);
+	Vector MomentVector_in_Q_coordinates = ZeroVector(3);
 
-	StrainDeformation = prod(trans(DMembrane), CartesianStrainVector);
-	CurvatureDeformation = prod( trans(DCurvature), CartesianCurvatureVector);
+	ForceVector_in_Q_coordinates = prod(trans(DMembrane), StrainVector_in_Q_coordinates);
+	MomentVector_in_Q_coordinates = prod(trans(DCurvature), CurvatureVector_in_Q_coordinates);
 
+	//std::cout << "Id of element: " << Id() << std::endl;
+	//KRATOS_WATCH(ForceVector_in_Q_coordinates)
+	//KRATOS_WATCH(MomentVector_in_Q_coordinates)
+	//double damage_t = 0.0;
+	//mConstitutiveLawVector->GetValue(DAMAGE_T, damage_t);
+	////KRATOS_WATCH(damage_t)
+	//double damage_c = 0.0;
+	//mConstitutiveLawVector->GetValue(DAMAGE_C, damage_c);
+	//KRATOS_WATCH(damage_c)
+
+	//KRATOS_WATCH(Q)
 	// calculate B MATRICES
 	//B matrices:
 	Matrix BMembrane = ZeroMatrix(3, MatSize);
 	Matrix BCurvature = ZeroMatrix(3, MatSize);
 	CalculateBMembrane(BMembrane, Q, DN_De, g1, g2);
-	CalculateBCurvature(BCurvature, Q, DN_De, g1, g2);
+	CalculateBCurvature(BCurvature, Q, DN_De, DDN_DDe, g1, g2);
 
 	// integration on the REFERENCE CONFIGURATION
 	double DetJ0 = mDetJ0;
 	double IntToReferenceWeight = integration_weight * DetJ0 * mThickness0;
 
 	// Nonlinear Deformation
-	Matrix Strain_curvilinear11 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
-	Matrix Strain_curvilinear22 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
-	Matrix Strain_curvilinear12 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
-	Matrix Curvature_curvilinear11 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
-	Matrix Curvature_curvilinear22 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
-	Matrix Curvature_curvilinear12 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
-	CalculateSecondVariationStrainCurvature(DN_De,
-		Strain_curvilinear11, Strain_curvilinear22, Strain_curvilinear12,
-		Curvature_curvilinear11, Curvature_curvilinear22, Curvature_curvilinear12, Q, g1, g2);
+	Matrix Strain_in_Q_coordinates11    = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
+	Matrix Strain_in_Q_coordinates22    = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
+	Matrix Strain_in_Q_coordinates12    = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
+	Matrix Curvature_in_Q_coordinates11 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
+	Matrix Curvature_in_Q_coordinates22 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
+	Matrix Curvature_in_Q_coordinates12 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
+	CalculateSecondVariationStrainCurvature(DN_De, DDN_DDe,
+		Strain_in_Q_coordinates11, Strain_in_Q_coordinates22, Strain_in_Q_coordinates12,
+		Curvature_in_Q_coordinates11, Curvature_in_Q_coordinates22, Curvature_in_Q_coordinates12, Q, g1, g2);
 
 	// LEFT HAND SIDE MATRIX
 	if (CalculateStiffnessMatrixFlag == true)
 	{
 		//adding membrane contributions to the stiffness matrix
 		CalculateAndAddKm(rLeftHandSideMatrix, BMembrane, DMembrane, IntToReferenceWeight);
+		//KRATOS_WATCH(DMembrane)
 		//adding curvature contributions to the stiffness matrix
 		CalculateAndAddKm(rLeftHandSideMatrix, BCurvature, DCurvature, IntToReferenceWeight);
+		//KRATOS_WATCH(DCurvature)
 
 		// adding  non-linear-contribution to Stiffness-Matrix
 		CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
-			Strain_curvilinear11, Strain_curvilinear22, Strain_curvilinear12,
-			StrainDeformation,
+			Strain_in_Q_coordinates11, Strain_in_Q_coordinates22, Strain_in_Q_coordinates12,
+			ForceVector_in_Q_coordinates,
 			IntToReferenceWeight);
 
 		CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
-			Curvature_curvilinear11, Curvature_curvilinear22, Curvature_curvilinear12,
-			CurvatureDeformation,
+			Curvature_in_Q_coordinates11, Curvature_in_Q_coordinates22, Curvature_in_Q_coordinates12,
+			MomentVector_in_Q_coordinates,
 			IntToReferenceWeight);
 	}
-
+	//KRATOS_WATCH(rLeftHandSideMatrix)
 	//if(this->Id() == 30) //TODO: remove this! it is just for debugging purposes
 	//{
 	//	KRATOS_WATCH(StrainVector)
@@ -1167,17 +1263,27 @@ void MeshlessShellElement::CalculateAll(
 	if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
 	{
 		// operation performed: rRightHandSideVector -= Weight*IntForce
-		//KRATOS_WATCH(BMembrane)
-		noalias(rRightHandSideVector) -= IntToReferenceWeight * prod(trans(BMembrane), StrainDeformation);
-		//std::cout << "Membrane" << IntToReferenceWeight * prod(trans(BMembrane), StrainDeformation) << std::endl;
-		noalias(rRightHandSideVector) += IntToReferenceWeight * prod(trans(BCurvature), CurvatureDeformation);
-		//std::cout << "Curvature" << IntToReferenceWeight * prod(trans(BCurvature), CurvatureDeformation) << std::endl;
+		noalias(rRightHandSideVector) -= IntToReferenceWeight * prod(trans(BMembrane), ForceVector_in_Q_coordinates);
+		noalias(rRightHandSideVector) += IntToReferenceWeight * prod(trans(BCurvature), MomentVector_in_Q_coordinates);
 	}
-	//if (this->Id() == 30) //TODO: remove this! it is just for debugging purposes
-	//{
-	//	KRATOS_WATCH(rLeftHandSideMatrix)
-	//		KRATOS_WATCH(rRightHandSideVector)
-	//		Vector displacements;
+	//KRATOS_WATCH(rRightHandSideVector)
+
+  //if (this->Id() == 1) //TODO: remove this! it is just for debugging purposes
+  //{
+
+    //KRATOS_WATCH(ShapeFunctionsN)
+    //KRATOS_WATCH(DN_De)
+    //KRATOS_WATCH(DDN_DDe)
+
+    //KRATOS_WATCH(IntToReferenceWeight)
+
+    //KRATOS_WATCH(BMembrane)
+    //KRATOS_WATCH(BCurvature)
+
+    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH(rRightHandSideVector)
+  //}
+  //		Vector displacements;
 	//	this->GetValuesVector(displacements, 0);
 	//	KRATOS_WATCH(displacements);
 
@@ -1194,89 +1300,112 @@ void MeshlessShellElement::CalculateAll(
 }
 
 
-//************************************************************************************
-//************************************************************************************
-void MeshlessShellElement::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-	std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
+////************************************************************************************
+////************************************************************************************
+//void MeshlessShellElement::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+//	std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
+//{
+//	//std::cout << "GetValueOnIntegrationPoints" << std::endl;
+//	//if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
+//	//{
+//	//	double damage_t;
+//	//	mConstitutiveLawVector->GetValue(DAMAGE_T, damage_t);
+//
+//	//}
+//
+//	//if (rVariable == PK2_STRESS_TENSOR)
+//	//{
+//	//	CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+//	//}
+//	//// VM
+//	//if (rVariable == CAUCHY_STRESS_TENSOR)
+//	//{
+//	//	CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+//	//}
+//	// VM
+//}
+void MeshlessShellElement::GetValueOnIntegrationPoints(
+	const Variable<double>& rVariable,
+	std::vector<double>& rValues,
+	const ProcessInfo& rCurrentProcessInfo
+)
 {
-	std::cout << "GetValueOnIntegrationPoints" << std::endl;
-	if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
+	if (rValues.size() != 1)
 	{
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+		rValues.resize(1);
 	}
 
-	if (rVariable == PK2_STRESS_TENSOR)
+	if (rVariable == DAMAGE_T)
+	{
+		mConstitutiveLawVector->GetValue(DAMAGE_T, rValues[0]);
+	}
+	else if (rVariable == DAMAGE_C)
+	{
+		mConstitutiveLawVector->GetValue(DAMAGE_C, rValues[0]);
+	}
+	else
 	{
 		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 	}
-	// VM
-	if (rVariable == CAUCHY_STRESS_TENSOR)
-	{
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	}
-	// VM
 }
 
 int  MeshlessShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
 	KRATOS_TRY
 
-		//verify that the variables are correctly initialized
+	//verify that the variables are correctly initialized
 
-		if (VELOCITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "")
+	if (VELOCITY.Key() == 0)
+		KRATOS_THROW_ERROR(std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "")
 
-			if (DISPLACEMENT.Key() == 0)
-				KRATOS_THROW_ERROR(std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "")
+	if (DISPLACEMENT.Key() == 0)
+		KRATOS_THROW_ERROR(std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "")
 
-				if (ACCELERATION.Key() == 0)
-					KRATOS_THROW_ERROR(std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "")
+	if (ACCELERATION.Key() == 0)
+		KRATOS_THROW_ERROR(std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "")
 
-					if (DENSITY.Key() == 0)
-						KRATOS_THROW_ERROR(std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "")
+	if (DENSITY.Key() == 0)
+		KRATOS_THROW_ERROR(std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "")
 
-						if (VOLUME_ACCELERATION.Key() == 0)
-							KRATOS_THROW_ERROR(std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "")
+	if (VOLUME_ACCELERATION.Key() == 0)
+		KRATOS_THROW_ERROR(std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "")
 
-							if (THICKNESS.Key() == 0)
-								KRATOS_THROW_ERROR(std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "")
+	if (THICKNESS.Key() == 0)
+		KRATOS_THROW_ERROR(std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "")
 
-								//verify that the dofs exist
-								for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
-								{
-									if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-										KRATOS_THROW_ERROR(std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id())
+	//verify that the dofs exist
+	for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
+	{
+		if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
+			KRATOS_THROW_ERROR(std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id())
 
-										if (this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
-											KRATOS_THROW_ERROR(std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id())
-								}
+		if (this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
+			KRATOS_THROW_ERROR(std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id())
+	}
 
 	//verify that the constitutive law exists
+	KRATOS_ERROR_IF_NOT(this->GetProperties().Has(CONSTITUTIVE_LAW)) << "constitutive law not provided for property" << std::endl;
 	if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
-	{
-		KRATOS_THROW_ERROR(std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id())
-	}
+
 
 	//verify that the constitutive law has the correct dimension
 	if (this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() != 3)
 		KRATOS_THROW_ERROR(std::logic_error, "wrong constitutive law used. This is a 3D element with expected strain size is 3 (el id = ) ", this->Id())
 
-		//check constitutive law
-		//for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
-		//{
-			mConstitutiveLawVector->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
 
-			ConstitutiveLaw::Features LawFeatures;
-			mConstitutiveLawVector->GetLawFeatures(LawFeatures);
+	mConstitutiveLawVector->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
 
-			if (LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW))
-				KRATOS_THROW_ERROR(std::logic_error, "Constitutive law is compatible only with a plane stress 2D law for membrane element with Id", this->Id())
+	ConstitutiveLaw::Features LawFeatures;
+	mConstitutiveLawVector->GetLawFeatures(LawFeatures);
 
-				if (LawFeatures.mOptions.IsNot(ConstitutiveLaw::INFINITESIMAL_STRAINS))
-					KRATOS_THROW_ERROR(std::logic_error, "Constitutive law is compatible only with a law using infinitessimal strains for membrane element with Id", this->Id())
+	if (LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW))
+		KRATOS_THROW_ERROR(std::logic_error, "Constitutive law is compatible only with a plane stress 2D law for membrane element with Id", this->Id())
 
-					if (LawFeatures.mStrainSize != 3) KRATOS_THROW_ERROR(std::logic_error, "Constitutive law expects a strain size different from 3 for membrane element with Id", this->Id())
-		//}
+	if (LawFeatures.mOptions.IsNot(ConstitutiveLaw::INFINITESIMAL_STRAINS))
+		KRATOS_THROW_ERROR(std::logic_error, "Constitutive law is compatible only with a law using infinitessimal strains for membrane element with Id", this->Id())
+
+	if (LawFeatures.mStrainSize != 3) KRATOS_THROW_ERROR(std::logic_error, "Constitutive law expects a strain size different from 3 for membrane element with Id", this->Id())
+
 
 	return 0;
 

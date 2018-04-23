@@ -24,7 +24,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include "geometries/nurbs_3d.h"
+// #include "geometries/nurbs_3d.h"
 #include "geometries/nurbs_2d.h"
 //#include "custom_elements/meshless_base_element.h"
 #include "geometries/nurbs_base_geometry.h"
@@ -47,14 +47,14 @@ namespace Kratos
  * Typedefs for search
  */
 
-	typedef PointerVectorSet< Node<3>, IndexedObject> NodesContainerType;
-	typedef Node<3> PointType;
-	typedef Node<3>::Pointer PointTypePointer;
-	typedef std::vector<PointType::Pointer >           PointVector;
-	typedef typename std::vector<PointType::Pointer >::iterator PointIterator;
-	typedef std::vector<double>               DistanceVector;
-	typedef typename std::vector<double>::iterator     DistanceIterator;
-	typedef Bins< 3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > StaticBins;
+	//typedef PointerVectorSet< Node<3>, IndexedObject> NodesContainerType;
+	//typedef Node<3> PointType;
+	//typedef Node<3>::Pointer PointTypePointer;
+	//typedef std::vector<PointType::Pointer >           PointVector;
+	//typedef typename std::vector<PointType::Pointer >::iterator PointIterator;
+	//typedef std::vector<double>               DistanceVector;
+	//typedef typename std::vector<double>::iterator     DistanceIterator;
+	//typedef Bins< 3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > StaticBins;
 	///@}
 	///@name  Enum's
 	///@{

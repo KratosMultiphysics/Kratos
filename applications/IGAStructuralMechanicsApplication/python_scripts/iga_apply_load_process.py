@@ -3,31 +3,15 @@ import python_process
 
 ##all the processes python processes should be derived from "python_process"
 class IGAApplyLoad(python_process.PythonProcess):
-    def __init__(self, model_part, variable_name, factor, direction, condition_type, mesh_id=0 ):
+    def __init__(self, model_part, variables, mesh_id=0 ):
         python_process.PythonProcess.__init__(self) 
         
-        variable = globals().get(variable_name)
-        #print(model_part)
-        for condition in model_part.GetMesh(mesh_id).Conditions:
-            conditionTypeInt = 0;
+        for condition in model_part.Conditions:
+            for variable_key in variables:
+                condition.SetValue(eval(variable_key), variables[variable_key])
 
-            condition.SetValue(KratosMultiphysics.IGAStructuralMechanicsApplication.DISTRIBUTED_LOAD_FACTOR,factor)
-            #condition.SetValue(KratosMultiphysics.IGAStructuralMechanicsApplication.CONDITION_TYPE_DEFINITION,condition_type)
 
-            if (condition_type == "EDGE_LOAD"):
-                conditionTypeInt = 1
-                condition.SetValue(KratosMultiphysics.DIRECTION,[direction[0].GetDouble(),direction[1].GetDouble(),direction[2].GetDouble()])
-
-            if (condition_type == "SURFACE_DEAD"):
-                conditionTypeInt = 10
-                condition.SetValue(KratosMultiphysics.DIRECTION,[direction[0].GetDouble(),direction[1].GetDouble(),direction[2].GetDouble()])
-
-            if (condition_type == "SURFACE_PRESSURE"):
-                conditionTypeInt = 100
-
-            condition.SetValue(KratosMultiphysics.IGAStructuralMechanicsApplication.LOAD_TYPE,conditionTypeInt)
-
-            #print("Finished construction of IGAApplyLoad Process")
+        print("Finished construction of IGAApplyLoad Process")
         
     def ExecuteInitialize(self):
         pass
@@ -59,14 +43,31 @@ class IGAApplyLoad(python_process.PythonProcess):
 def Factory(settings, Model):
 	params = settings["parameters"]
 	#print(params["model_part_name"].GetString())
-	model_part = Model.get(  params["model_part_name"].GetString() , "model part not found" )
+	#model_part = Model.get(  params["model_part_name"].GetString() , "model part not found" )
+	model_part = Model[params["model_part_name"].GetString()].GetSubModelPart(params["sub_model_part_name"].GetString())# , "model part not found" )
 	mesh_id = params["mesh_id"]
 
+	variables = {}
 	#if(settings["process_name"] == "IGAApplyLoad"):
-	variable_name = params["variable_name"] 
-	factor = params["factor"].GetDouble()
-	direction = params["direction"]
+	for variable_i in range (0,params["variables"].size()):
+		variable_name = params["variables"][variable_i]["variable_name"].GetString()
+		if (variable_name == "KratosMultiphysics.IGAStructuralMechanicsApplication.LOAD_TYPE"):
+			condition_type = params["variables"][variable_i]["variable"].GetString()
+			if (condition_type == "EDGE_LOAD"):
+				conditionTypeInt = 1
+			if (condition_type == "SURFACE_DEAD"):
+				conditionTypeInt = 10
+			if (condition_type == "SURFACE_PRESSURE"):
+				conditionTypeInt = 100
+			variables.update({variable_name : conditionTypeInt})
+		if (variable_name == "KratosMultiphysics.IGAStructuralMechanicsApplication.DISTRIBUTED_LOAD_FACTOR"):
+			variables.update({variable_name : params["variables"][variable_i]["variable"].GetDouble()})
+		if (variable_name == "KratosMultiphysics.DIRECTION"):
+			direction = KratosMultiphysics.Vector(3)
+			direction[0] = params["variables"][variable_i]["variable"]["x"].GetDouble()
+			direction[1] = params["variables"][variable_i]["variable"]["y"].GetDouble()
+			direction[2] = params["variables"][variable_i]["variable"]["z"].GetDouble()
+			variables.update({variable_name : direction})
 
-	condition_type = settings["condition_type_description"].GetString()
 
-	return IGAApplyLoad(model_part, variable_name, factor, direction, condition_type)
+	return IGAApplyLoad(model_part, variables)

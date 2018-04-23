@@ -55,6 +55,9 @@ MAPPING_APPLICATION;\
 EIGEN_SOLVERS_APPLICATION;\
 STABILIZED_CFD_APPLICATION;\
 HDF5_APPLICATION;\
+IGA_STRUCTURAL_MECHANICS_APPLICATION;\
+NURBS_BREP_APPLICATION;\
+IGA_DEM_APPLICATION;\
 ")
 
 message( " ")
@@ -241,6 +244,18 @@ if(${NURBS_APPLICATION} MATCHES ON)
   add_subdirectory(nurbs_application)
 endif(${NURBS_APPLICATION} MATCHES ON)
 
+if(${IGA_STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(IGAStructuralMechanicsApplication)
+endif(${IGA_STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
+
+if(${NURBS_BREP_APPLICATION} MATCHES ON)
+  add_subdirectory(NurbsBrepApplication)
+endif(${NURBS_BREP_APPLICATION} MATCHES ON)
+
+if(${PFEM2_APPLICATION} MATCHES ON)
+  add_subdirectory(pfem_2_application)
+endif(${PFEM2_APPLICATION} MATCHES ON)
+
 if(${FREEZING_SOIL_APPLICATION} MATCHES ON)
   add_subdirectory(freezing_soil_application)
 endif(${FREEZING_SOIL_APPLICATION} MATCHES ON)
@@ -304,6 +319,10 @@ endif(${EIGEN_SOLVERS_APPLICATION} MATCHES ON)
 if(${STABILIZED_CFD_APPLICATION} MATCHES ON)
   add_subdirectory(StabilizedCFDApplication)
 endif(${STABILIZED_CFD_APPLICATION} MATCHES ON)
+
+if(${IGA_DEM_APPLICATION} MATCHES ON)
+  add_subdirectory(IGA_DEM_Application)
+endif(${IGA_DEM_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")

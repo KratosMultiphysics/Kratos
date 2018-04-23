@@ -1,0 +1,1354 @@
+{
+  
+  "problem_data": {
+    "problem_name": "Oilsump_kratos",
+    "model_part_name": "IGAModelPart",
+    "domain_size": 5,
+    "start_time": 0,
+    "end_time": 0,
+    "time_step": 0.01
+  },
+  "Parameters": { "materials_filename": "materials.json" },
+  "solver_settings": {
+    "solver_type": "iga_structural_mechanics_solver",
+    "model_import_settings": {
+      "input_type": "txt",
+      "input_filename": "Oilsump_elements.txt"
+    },
+    "maximum_iterations": 1,
+    "echo_level": 3,
+    "compute_reactions": false,
+    "reform_dofs_at_each_iteration": false,
+    "relative_tolerance": 1E-07,
+    "absolute_tolerance": 1E-07,
+    "linear_solver_settings": {
+      "solver_type": "Super_LU",
+      "scaling": false,
+      "verbosity": 0
+    },
+    "problem_domain_sub_model_part_list": [ ],
+    "processes_sub_model_part_list": [ "SUPPORT_109878", "LOAD_109446", "COUPLING" ],
+    "rotation_dofs": "false"
+  },
+  "output_configuration": {
+    "result_file_configuration": {
+      "gidpost_flags": {
+        "GiDPostMode": "GiD_PostAscii",
+        "WriteDeformedMeshFlag": "WriteUndeformed",
+        "WriteConditionsFlag": "WriteConditions",
+        "MultiFileFlag": "SingleFile"
+      },
+      "file_label": "step",
+      "output_control_type": "step",
+      "output_frequency": 1,
+      "body_output": false,
+      "node_output": true,
+      "skin_output": false,
+      "plane_output": [ ],
+      "nodal_results": [ "DISPLACEMENT" ],
+      "gauss_point_results": [ ]
+    },
+    "point_data_configuration": [ ]
+  },
+  "constraints_process_list": [
+    {
+      "python_module": "iga_apply_support_process",
+      "kratos_module": "KratosMultiphysics.IGAStructuralMechanicsApplication",
+      "help": "This process adds a dirichlet condition",
+      "process_name": "IGAApplySupport",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 109878,
+        "model_part_name": "SUPPORT_109878",
+        "variable_name": "DISPLACEMENT",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true,
+        "value": [ 0, 0, 0 ]
+      }
+    }
+  ],
+  "loads_process_list": [
+    {
+      "python_module": "iga_apply_load_process",
+      "kratos_module": "KratosMultiphysics.IGAStructuralMechanicsApplication",
+      "help": "This process adds a load condition. The variable DISTRIBUTED_LOAD_FACTOR stands for the distributed load for the quadrature points. It has to be multiplied to the weighting before applied to the condition.",
+      "description": "Surface",
+      "condition_name": "MeshlessLoadCondition",
+      "condition_type_description": "SURFACE_PRESSURE",
+      "process_name": "IGAApplyLoad",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 109446,
+        "model_part_name": "LOAD_109446",
+        "variable_name": "KratosMultiphysics.IGAStructuralMechanicsApplication.DISTRIBUTED_LOAD_FACTOR",
+        "factor": -50,
+        "direction": [ 0, 0, -1 ]
+      }
+    }
+  ],
+  "coupling_condition_list": [
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110873  ,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 109751  ,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110807  ,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110907  ,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110389  ,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110889,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110893,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110887,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110867,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110869,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+        {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110809,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110901,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 109488,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110815,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110366,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110817,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110881,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110841,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 109602,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110885,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+        {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110903,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110803,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110821,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110839,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110829,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110169,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110801,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110895,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110865,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 109709,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+        {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110919,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 109730,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110909,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110833,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110917,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110819,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110827,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110196,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110877,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110871  ,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+        {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 109465,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110921,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110913,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110923,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110851,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110897,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110855,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110813  ,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110340  ,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110805  ,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+        {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110911  ,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110795,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110789,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110853,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110883,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110849,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110395,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110837,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110787,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110915,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+        {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110857,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 109627,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110879,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110859,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110835,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110905,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110791,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110793,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110145,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110899,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+        {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110891,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110861,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110797,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110785,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110823,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110863,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110811,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110825,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110799,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110843,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+        {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110831,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110845,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110847,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    },
+    {
+      "type": "coupling_condition",
+      "parameters": {
+        "mesh_id": 0,
+        "brep_id": 110875,
+        "model_part_name": "COUPLING_1003",
+        "variable_name": "DISPLACEMENT",
+        "condition_name": "MeshlessLagrangeCouplingCondition",
+        "penalty_factor": 2.10000e+7,
+        "is_fixed_x": true,
+        "is_fixed_y": true,
+        "is_fixed_z": true,
+        "is_fixed_rot": true
+      }
+    }
+  ]
+}

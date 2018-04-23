@@ -87,6 +87,8 @@ public:
 
     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
 
+    void GetShapeFunctions(Vector& N, Vector& NLambda);
+
     ///@}
     ///@name Access
     ///@{

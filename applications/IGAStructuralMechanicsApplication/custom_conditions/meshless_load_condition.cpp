@@ -70,7 +70,6 @@ namespace Kratos
 	* CalculateLocalSystem
 	* Returns only rRightHandSideVector as there is no impact on the 
 	* siffness due to loads
-	*
 	*/
 	void MeshlessLoadCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
@@ -86,10 +85,20 @@ namespace Kratos
 			rRightHandSideVector.resize(number_of_points * 3, false);
 		rRightHandSideVector = ZeroVector(number_of_points * 3); //resetting RHS
 
+		if (!Has(SHAPE_FUNCTION_VALUES))
+			KRATOS_ERROR << "No SHAPE_FUNCTION_VALUES assigned!" << std::endl;
 		Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
+
+		if (!Has(SHAPE_FUNCTION_LOCAL_DERIVATIVES))
+			KRATOS_ERROR << "No SHAPE_FUNCTION_LOCAL_DERIVATIVES assigned!" << std::endl;
 		Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+
+		if (!Has(INTEGRATION_WEIGHT))
+			KRATOS_ERROR << "No INTEGRATION_WEIGHT assigned!" << std::endl;
 		double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 
+		if (!this->Has(DISTRIBUTED_LOAD_FACTOR))
+			KRATOS_ERROR << "No DISTRIBUTED_LOAD_FACTOR assigned!" << std::endl;
 		double load = this->GetValue(DISTRIBUTED_LOAD_FACTOR);
 
 		//TODO: find better way to pass condition type
@@ -115,6 +124,9 @@ namespace Kratos
 		}
 		else if (SURFACE_DEAD == 1)
 		{
+			if (!Has(DIRECTION))
+				KRATOS_ERROR << "No DIRECTION assigned!" << std::endl;
+
 			direction = this->GetValue(DIRECTION);
 
 			CrossProduct(g3, g1, g2);
@@ -125,11 +137,12 @@ namespace Kratos
 		}
 		else if (EDGE_LOAD == 1)
 		{
-			/** Edge Load:
-			* simulates self weight.
-			* needs direction of forces.
-			* 
-			*/
+			// Edge Load:
+			// simulates self weight.
+			// needs direction of forces.
+			if (!Has(DIRECTION))
+				KRATOS_ERROR << "No DIRECTION assigned!" << std::endl;
+
 			direction = this->GetValue(DIRECTION);
 
 			Vector Tangents = this->GetValue(TANGENTS);
@@ -144,14 +157,11 @@ namespace Kratos
 
 		for (unsigned int i = 0; i < number_of_points; i++)
 		{
-			const array_1d<double, 3> pload = GetGeometry()[i].FastGetSolutionStepValue(POINT_LOAD);
-			
 			int index = 3 * i;
 			fLoads[index]	  = - load * integration_weight * direction[0] * ShapeFunctionsN[i];
 			fLoads[index + 1] = - load * integration_weight * direction[1] * ShapeFunctionsN[i];
 			fLoads[index + 2] = - load * integration_weight * direction[2] * ShapeFunctionsN[i];
 		}
-
 		noalias(rRightHandSideVector) -= fLoads;
 		KRATOS_CATCH("")
 	}

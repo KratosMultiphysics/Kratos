@@ -126,6 +126,15 @@ add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGIN
 target_link_libraries(KratosCore PUBLIC gidpost) #${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 
+## Define library KratosTests if enabled
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    add_library(KratosTests SHARED ${KRATOS_TEST_SOURCES})
+    target_link_libraries(KratosTests KratosCore)
+    set_target_properties(KratosTests PROPERTIES COMPILE_DEFINITIONS "KRATOS_TESTS=IMPORT,API")
+    set_target_properties(KratosTests PROPERTIES PREFIX "")
+    set(KRATOS_TEST_LIBRARIES KratosTests)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
 ## Define library Kratos which defines the basic python interface
 pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
 # add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})

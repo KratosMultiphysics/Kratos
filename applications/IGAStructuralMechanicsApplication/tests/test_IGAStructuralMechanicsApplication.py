@@ -1,6 +1,5 @@
 # import Kratos
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.IGAStructuralMechanicsApplication import *
 
@@ -9,10 +8,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
-from SmallTests import Shell_Bending_Test as TShell_Bending_Test
-from SmallTests import Plate_Bending_Test as TPlate_Bending_Test
-from SmallTests import Shell_Bending_Test_Lagrange as TShell_Bending_Test_Lagrange
-#from SmallTests import 3PatchesTestCases as T3PatchesTestCases
+from SmallTests import Penalty_Test as TPenalty_Test
+from SmallTests import Lagrange_Test as TLagrange_Test
 
 
 
@@ -35,10 +32,8 @@ def AssambleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTest(TShell_Bending_Test('test_execution'))
-    smallSuite.addTest(TPlate_Bending_Test('test_execution'))
-    smallSuite.addTest(TShell_Bending_Test_Lagrange('test_execution'))
-    #smallSuite.addTest(T3PatchesTestCases('test_execution'))
+    smallSuite.addTest(TPenalty_Test('test_execution'))
+    smallSuite.addTest(TLagrange_Test('test_execution'))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -53,10 +48,8 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TShell_Bending_Test,
-			TPlate_Bending_Test,
-			TShell_Bending_Test_Lagrange
-			#T3PatchesTestCases
+            TPenalty_Test,
+			TLagrange_Test
         ])
     )
 
