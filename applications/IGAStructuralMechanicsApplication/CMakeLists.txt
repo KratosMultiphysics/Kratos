@@ -58,13 +58,13 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE
 # define library Kratos which defines the basic python interface
 add_library(KratosIGAStructuralMechanicsCore SHARED ${KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES})
 target_link_libraries( KratosIGAStructuralMechanicsCore PRIVATE KratosCore KratosStructuralMechanicsCore)
+set_target_properties(KratosIGAStructuralMechanicsCore PROPERTIES PREFIX "")
 
 pybind11_add_module(KratosIGAStructuralMechanicsApplication MODULE ${KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosIGAStructuralMechanicsApplication PRIVATE KratosIGAStructuralMechanicsCore )
 set_target_properties(KratosIGAStructuralMechanicsApplication PROPERTIES PREFIX "")
 
-install(TARGETS KratosIGAStructuralMechanicsCore DESTINATION libs )
-install(TARGETS KratosIGAStructuralMechanicsApplication DESTINATION libs )
+
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -81,6 +81,9 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 	get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
+install(TARGETS KratosIGAStructuralMechanicsCore DESTINATION libs )
+install(TARGETS KratosIGAStructuralMechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/IGAStructuralMechanicsApplication.py" DESTINATION KratosMultiphysics )

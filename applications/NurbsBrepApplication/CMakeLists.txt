@@ -32,14 +32,14 @@ set( KRATOS_NURBS_BREP_APPLICATION_PYTHON_INTERFACE_SOURCES
 add_library(KratosNurbsBrepCore SHARED ${KRATOS_NURBS_BREP_APPLICATION_MAIN_SOURCES}
                                        ${KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES})
 target_link_libraries(KratosNurbsBrepCore PRIVATE KratosCore )
+set_target_properties(KratosNurbsBrepCore PROPERTIES PREFIX "")
 
 
 pybind11_add_module(KratosNurbsBrepApplication MODULE ${KRATOS_NURBS_BREP_APPLICATION_PYTHON_INTERFACE_SOURCES})
 target_link_libraries(KratosNurbsBrepApplication PRIVATE KratosNurbsBrepCore )
 set_target_properties(KratosNurbsBrepApplication PROPERTIES PREFIX "")
 
-install(TARGETS KratosNurbsBrepCore DESTINATION libs )
-install(TARGETS KratosNurbsBrepApplication DESTINATION libs )
+
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -56,6 +56,9 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
+install(TARGETS KratosNurbsBrepCore DESTINATION libs )
+install(TARGETS KratosNurbsBrepApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/NurbsBrepApplication.py" DESTINATION KratosMultiphysics )

@@ -24,7 +24,7 @@
 #include "iga_structural_mechanics_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_constitutive_laws_to_python.h"
+//#include "custom_python/add_constitutive_laws_to_python.h"
 
 
 namespace Kratos
