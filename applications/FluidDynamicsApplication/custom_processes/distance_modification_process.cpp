@@ -171,7 +171,7 @@ void DistanceModificationProcess::ModifyDistance() {
         OpenMPUtils::DivideInPartitions(r_nodes.size(),num_chunks,partition_vec);
 
         #pragma omp parallel for
-        for (unsigned int i_chunk = 0; i_chunk < num_chunks; ++i_chunk)
+        for (int i_chunk = 0; i_chunk < num_chunks; ++i_chunk)
         {
             auto nodes_begin = r_nodes.begin() + partition_vec[i_chunk];
             auto nodes_end = r_nodes.begin() + partition_vec[i_chunk + 1];
@@ -251,7 +251,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
         OpenMPUtils::DivideInPartitions(n_elems,num_chunks,partition_vec);
 
         #pragma omp parallel for
-        for (unsigned int i_chunk = 0; i_chunk < num_chunks; ++i_chunk)
+        for (int i_chunk = 0; i_chunk < num_chunks; ++i_chunk)
         {
             auto elems_begin = r_elems.begin() + partition_vec[i_chunk];
             auto elems_end = r_elems.begin() + partition_vec[i_chunk + 1];
