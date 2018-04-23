@@ -96,7 +96,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                 else:
                     value.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
             else:
-                if (not self.values[n-1].value_is_numeric) || (not self.values[n].value_is_numeric):
+                if (not self.values[n-1].value_is_numeric) or (not self.values[n].value_is_numeric):
                     if (not self.values[n-1].value_is_numeric):
                         msg_val = self.values[n-1].function_string
                     elif (not self.values[n].value_is_numeric):
