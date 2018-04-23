@@ -269,8 +269,8 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerBoundedVector, KratosCoreFastSuite)
         {
-            using Vector5Double = bounded_vector<double,5>;
-            using Vector6Int = bounded_vector<int,6>;
+            using Vector5Double = BoundedVector<double,5>;
+            using Vector6Int = BoundedVector<int,6>;
 
             Vector5Double object_to_be_saved_1;
             Vector5Double object_to_be_loaded_1;

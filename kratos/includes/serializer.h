@@ -391,7 +391,7 @@ public:
     }
 
     template<class TDataType, std::size_t TDimension>
-    void load(std::string const & rTag, bounded_vector<TDataType, TDimension>& rObject)
+    void load(std::string const & rTag, BoundedVector<TDataType, TDimension>& rObject)
     {
         load_trace_point(rTag);
 
@@ -602,7 +602,7 @@ public:
     }
 
     template<class TDataType, std::size_t TDimension>
-    void save(std::string const & rTag, bounded_vector<TDataType, TDimension> const& rObject)
+    void save(std::string const & rTag, BoundedVector<TDataType, TDimension> const& rObject)
     {
         save_trace_point(rTag);
 
