@@ -232,10 +232,10 @@ public:
 
 
             array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0);
-            array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
+            const array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 
             array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
-            array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
+            const array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
 
             UpdateVelocity(CurrentVelocity, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
@@ -264,11 +264,11 @@ public:
 		{
 			
 			auto i = r_model_part.NodesBegin() + iter;
-			array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
-            array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+			const array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
+            const array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
             array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
             //array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);
-            array_1d<double, 3 > & PreviousAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
+            const array_1d<double, 3 > & PreviousAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
             if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
             {
@@ -304,7 +304,7 @@ public:
 
             if (i->HasDofFor(PRESSURE))
             {
-                double& PreviousPressure    = (i)->FastGetSolutionStepValue(PRESSURE, 1);
+                const double& PreviousPressure    = (i)->FastGetSolutionStepValue(PRESSURE, 1);
                 double& CurrentPressure     = (i)->FastGetSolutionStepValue(PRESSURE);
 
                 if ((i->pGetDof(PRESSURE))->IsFixed() == false)
@@ -562,12 +562,13 @@ public:
                         DeltaNodalPressure = NodalMPressure/NodalMass;
                     }
 
+//************************************************************************************************************************************************************
                     // Where the boundary condition is defined
 
                     // if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
                     // {
-                    DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
-                    DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
+                    // DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
+                    // DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
                     // }
                     // else
                     // {
@@ -577,29 +578,32 @@ public:
                     // }
                     // if ((i->pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
                     // {
-                    DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
-                    DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
+                    // DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
+                    // DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
                     // }
                     // else
                     // {
                     //     DeltaNodalVelocity[1] = 0.0;
                     //     DeltaNodalAcceleration[1] = 0.0;
                     // }
-                    if (i->HasDofFor(DISPLACEMENT_Z))
-                    {
-                        // if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
-                        // {
-                        DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
-                        DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
-                        // }
-                        // else
-                        // {
-                        //     DeltaNodalVelocity[2] = 0.0;
-                        //     DeltaNodalAcceleration[2] = 0.0;
-                        // }
-                    }
+                    // if (i->HasDofFor(DISPLACEMENT_Z))
+                    // {
+                    //     if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
+                    //     {
+                    //     DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
+                    //     DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
+                    //     }
+                    //     else
+                    //     {
+                    //         DeltaNodalVelocity[2] = 0.0;
+                    //         DeltaNodalAcceleration[2] = 0.0;
+                    //     }
+                    // }
 //************************************************************************************************************************************************************
                  
+                    DeltaNodalVelocity = NodalMomentum/NodalMass;
+                    DeltaNodalAcceleration = NodalInertia/NodalMass;
+
                     NodalVelocity += DeltaNodalVelocity;
                     NodalAcceleration += DeltaNodalAcceleration;
 

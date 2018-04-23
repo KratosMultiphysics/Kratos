@@ -1087,7 +1087,7 @@ void UpdatedLagrangian::Calculate(const Variable<double>& rVariable,
 
         {
             GetGeometry()[i].SetLock();
-            GetGeometry()[i].GetSolutionStepValue(AUX_R) += Variables.N[i] * (MP_Mass);// - AUX_MP_Mass);
+            GetGeometry()[i].FastGetSolutionStepValue(AUX_R) += Variables.N[i] * (MP_Mass);// - AUX_MP_Mass);
             GetGeometry()[i].UnSetLock();
             //if(GetGeometry()[i].Id() == 538 )
             //{
@@ -1182,7 +1182,7 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
                 NodalAuxRVel[j] = Variables.N[i] * MP_Mass * MP_Velocity[j];
             }
             GetGeometry()[i].SetLock();
-            GetGeometry()[i].GetSolutionStepValue(AUX_R_VEL) += NodalAuxRVel;
+            GetGeometry()[i].FastGetSolutionStepValue(AUX_R_VEL) += NodalAuxRVel;
             GetGeometry()[i].UnSetLock();
 
             //std::cout<<" Variables.N[i] "<< Variables.N[i]<<std::endl;
@@ -1218,7 +1218,7 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
                 NodalAuxRAcc[j] = Variables.N[i] * MP_Mass * MP_Acceleration[j];
             }
             GetGeometry()[i].SetLock();
-            GetGeometry()[i].GetSolutionStepValue(AUX_R_ACC) += NodalAuxRAcc;
+            GetGeometry()[i].FastGetSolutionStepValue(AUX_R_ACC) += NodalAuxRAcc;
             GetGeometry()[i].UnSetLock();
         }
     }
@@ -1322,12 +1322,12 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
 
         }
 
-GetGeometry()[i].SetLock();
-        GetGeometry()[i].GetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
-        GetGeometry()[i].GetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
+    GetGeometry()[i].SetLock();
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
 
-        GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
-GetGeometry()[i].UnSetLock();
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
+    GetGeometry()[i].UnSetLock();
 
 
 
@@ -1379,7 +1379,7 @@ void UpdatedLagrangian::IterativeExtrapolation( ProcessInfo& rCurrentProcessInfo
     array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
     array_1d<double,3>& AUX_MP_Velocity = this->GetValue(AUX_MP_VELOCITY);
     array_1d<double,3>& AUX_MP_Acceleration = this->GetValue(AUX_MP_ACCELERATION);
-    double MP_Mass = this->GetValue(MP_MASS);
+    const double MP_Mass = this->GetValue(MP_MASS);
     array_1d<double,3> MP_Momentum;
     array_1d<double,3> MP_Inertia;
     array_1d<double,3> NodalMomentum;
@@ -1416,8 +1416,8 @@ void UpdatedLagrangian::IterativeExtrapolation( ProcessInfo& rCurrentProcessInfo
 
         }
         GetGeometry()[i].SetLock();
-        GetGeometry()[i].GetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
-        GetGeometry()[i].GetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
         //GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
         GetGeometry()[i].UnSetLock();
 
@@ -1530,13 +1530,13 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
-    array_1d<double,3> MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
-    array_1d<double,3> MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
+    const array_1d<double,3> MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
+    const array_1d<double,3> MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
     //double MP_Mass = this->GetValue(MP_MASS);
     array_1d<double,3> delta_xg = ZeroVector(3);
     array_1d<double,3> MP_Acceleration = ZeroVector(3);
     array_1d<double,3> MP_Velocity = ZeroVector(3);
-    double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+    const double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
 
     rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
@@ -1552,10 +1552,10 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
         if (rVariables.N[i] > 1e-16)
         {
             array_1d<double, 3 > & NodalAcceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double, 3 > & NodalVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            double NodalMass = GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0);
-            array_1d<double,3> NodalMomentum = NodalMass * NodalVelocity;
-            array_1d<double,3> NodalInertia = NodalMass * NodalAcceleration;
+            // array_1d<double, 3 > & NodalVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+            // const double NodalMass = GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+            // array_1d<double,3> NodalMomentum = NodalMass * NodalVelocity;
+            // array_1d<double,3> NodalInertia = NodalMass * NodalAcceleration;
 
             //if (this->Id() == 1518 || this->Id() == 1513)
             //{
@@ -2675,11 +2675,11 @@ void UpdatedLagrangian::GetValuesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dim;
-        values[index] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+        values[index] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
+        values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
 
         if ( dim == 3 )
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+            values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
     }
 }
 
@@ -2698,11 +2698,11 @@ void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dim;
-        values[index] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+        values[index] = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+        values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
 
         if ( dim == 3 )
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
+            values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
     }
 }
 
@@ -2720,11 +2720,11 @@ void UpdatedLagrangian::GetSecondDerivativesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dim;
-        values[index] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
+        values[index] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+        values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
 
         if ( dim == 3 )
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
+            values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
     }
 }
 //************************************************************************************
