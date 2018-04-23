@@ -148,7 +148,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateWeakPtr, KratosCoreFastSuit)
         KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), weak_var.lock()->getVar());
         KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), weak_var.lock()->getVar());
     } else {
-        KRATOS_CHECK_EQUAL("Error", "Unable to lock Kratos::weakptr");
+        KRATOS_CHECK_EQUAL(strcmp("Error", "Unable to lock Kratos::weakptr"), 0);
     }
 }
 
@@ -166,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstWeakPtr, KratosCoreFastSuit)
         KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), weak_var.lock()->getVar());
         KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), weak_var.lock()->getVar());
     } else {
-        KRATOS_CHECK_EQUAL("Error", "Unable to lock Kratos::weakptr");
+        KRATOS_CHECK_EQUAL(strcmp("Error", "Unable to lock Kratos::weakptr"), 0);
     }
 }
 
@@ -187,7 +187,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyWeakPtr, KratosCoreFastSuit)
         KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), weak_var.lock()->getVar());
         KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), weak_var.lock()->getVar());
     } else {
-        KRATOS_CHECK_EQUAL("Error", "Unable to lock Kratos::weakptr");
+        KRATOS_CHECK_EQUAL(strcmp("Error", "Unable to lock Kratos::weakptr"), 0);
     }
 }
 
