@@ -96,6 +96,10 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.SimoMethod(),
                                              'ROTATION': KratosSolid.SimoMethod()}) #shells
             mechanical_scheme = KratosSolid.DisplacementSimoScheme()
+        elif(integration_method == "BackwardEuler"):
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BackwardEulerMethod(),
+                                             'ROTATION': KratosSolid.BackwardEulerMethod()}) #shells
+            mechanical_scheme = KratosSolid.DisplacementBackwardEulerScheme()
         elif(integration_method == "RotationNewmark"):
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.NewmarkStepMethod(),
                                              'ROTATION': KratosSolid.NewmarkStepRotationMethod()}) #beams

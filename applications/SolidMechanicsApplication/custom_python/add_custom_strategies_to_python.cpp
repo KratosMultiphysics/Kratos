@@ -48,6 +48,7 @@
 #include "custom_solvers/solution_schemes/displacement_rotation_static_scheme.hpp"
 #include "custom_solvers/solution_schemes/displacement_rotation_emc_scheme.hpp"
 #include "custom_solvers/solution_schemes/displacement_simo_scheme.hpp"
+#include "custom_solvers/solution_schemes/displacement_backward_euler_scheme.hpp"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -115,6 +116,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef DisplacementRotationBossakScheme<SparseSpaceType, LocalSpaceType>    DisplacementRotationBossakSchemeType;
 
   typedef DisplacementSimoScheme<SparseSpaceType, LocalSpaceType>                        DisplacementSimoSchemeType;
+  typedef DisplacementBackwardEulerScheme<SparseSpaceType, LocalSpaceType>      DisplacementBackwardEulerSchemeType;
 
   typedef DisplacementRotationSimoScheme<SparseSpaceType, LocalSpaceType>        DisplacementRotationSimoSchemeType;
   typedef DisplacementRotationEmcScheme<SparseSpaceType, LocalSpaceType>          DisplacementRotationEmcSchemeType;
@@ -138,7 +140,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef NewmarkMethod<VariableComponentType, double>                            NewmarkMethodType;
   typedef BossakMethod<VariableComponentType, double>                              BossakMethodType;
   typedef SimoMethod<VariableComponentType, double>                                  SimoMethodType;
-
+  typedef BackwardEulerMethod<VariableComponentType, double>                BackwardEulerMethodType;
+  
   typedef StaticStepMethod<VariableComponentType, double>                      StaticStepMethodType;	    
   typedef NewmarkStepMethod<VariableComponentType, double>                    NewmarkStepMethodType;
   typedef BossakStepMethod<VariableComponentType, double>                      BossakStepMethodType;
@@ -344,6 +347,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<Flags&>())
       ;
 
+  // Displacement Simo Scheme Type
+  class_<DisplacementBackwardEulerSchemeType,  typename DisplacementBackwardEulerSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementBackwardEulerScheme")
+      .def(init<>())
+      .def(init<Flags&>())
+      ;
+  
   // Displacement Rotation Simo Scheme Type
   class_<DisplacementRotationSimoSchemeType, typename DisplacementRotationSimoSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementRotationSimoScheme")
       .def(init<>())
@@ -456,6 +465,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<>())
       ;
       
+  class_<BackwardEulerMethodType, typename BackwardEulerMethodType::Pointer,
+         TimeIntegrationComponentMethodType>(m,"BackwardEulerMethod")
+      .def(init<>())
+      ;
+
   class_<StaticStepMethodType, typename StaticStepMethodType::Pointer,
          TimeIntegrationComponentMethodType>(m,"StaticStepMethod")
       .def(init<>())
