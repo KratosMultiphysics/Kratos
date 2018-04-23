@@ -418,7 +418,7 @@ public:
     
 		static inline void CalculateGeometryData(
 			const bounded_matrix<double, 3, 3 > & coordinates,
-			boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
+			BoundedMatrix<double,3,2>& DN_DX,
 			array_1d<double,3>& N,
 			double& Area)
 		{

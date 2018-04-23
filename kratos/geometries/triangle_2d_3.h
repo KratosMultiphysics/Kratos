@@ -898,7 +898,7 @@ public:
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        BoundedMatrix<double,3,2> DN_DX;
         double x10 = this->Points()[1].X() - this->Points()[0].X();
         double y10 = this->Points()[1].Y() - this->Points()[0].Y();
 
@@ -941,7 +941,7 @@ public:
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        BoundedMatrix<double,3,2> DN_DX;
         double x10 = this->Points()[1].X() - this->Points()[0].X();
         double y10 = this->Points()[1].Y() - this->Points()[0].Y();
 

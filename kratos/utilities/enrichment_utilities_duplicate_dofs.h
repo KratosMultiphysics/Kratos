@@ -629,7 +629,7 @@ static inline double CalculateVol(const double x0, const double y0, const double
 //2d
 static inline void CalculateGeometryData(
     const bounded_matrix<double, 3, 3 > & coordinates,
-    boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
+    BoundedMatrix<double,3,2>& DN_DX,
     array_1d<double,3>& N,
     double& Area)
 {
@@ -720,7 +720,7 @@ static inline double CalculateVol(const double x0, const double y0,
 
 static inline void CalculateGeometryData(
     const bounded_matrix<double, 3, 3 > & coordinates,
-    boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
+    BoundedMatrix<double,3,2>& DN_DX,
     double& Area)
 {
     double x10 = coordinates(1,0) - coordinates(0,0);

@@ -130,7 +130,7 @@ public:
 
 
         //getting data for the given geometry
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
         double Volume;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
@@ -168,12 +168,12 @@ public:
 //         for(unsigned int i=0; i<TNumNodes; i++) if(phi[i] < 0.0) nneg++;
 //         if(nneg > 0) beta = 1.0; //beta = 0.1;
 
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
+        BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
+        BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
         bounded_matrix<double,TNumNodes, TDim> tmp;
 
             
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
         for(unsigned int igauss=0; igauss<TDim+1; igauss++)
         {
@@ -347,7 +347,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim>& DN_DX, const double Volume)
+    double ComputeH(BoundedMatrix<double,TNumNodes, TDim>& DN_DX, const double Volume)
     {
         double h=0.0;
                  for(unsigned int i=0; i<TNumNodes; i++)
@@ -364,7 +364,7 @@ protected:
     }
     
     //gauss points for the 3D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4, 4>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4, 4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
         Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;	
@@ -373,7 +373,7 @@ protected:
     }
 
     //gauss points for the 2D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
     {
         const double one_sixt = 1.0/6.0;
         const double two_third = 2.0/3.0;

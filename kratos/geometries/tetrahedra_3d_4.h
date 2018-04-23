@@ -1098,7 +1098,7 @@ public:
         if(integration_points_number == 0)
             KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+        BoundedMatrix<double,4,3> DN_DX;
         const double x10 = this->Points()[1].X() - this->Points()[0].X();
         const double y10 = this->Points()[1].Y() - this->Points()[0].Y();
         const double z10 = this->Points()[1].Z() - this->Points()[0].Z();
@@ -1150,7 +1150,7 @@ public:
         if(integration_points_number == 0)
             KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+        BoundedMatrix<double,4,3> DN_DX;
         const double x10 = this->Points()[1].X() - this->Points()[0].X();
         const double y10 = this->Points()[1].Y() - this->Points()[0].Y();
         const double z10 = this->Points()[1].Z() - this->Points()[0].Z();

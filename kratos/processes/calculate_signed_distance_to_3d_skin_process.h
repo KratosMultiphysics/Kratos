@@ -615,7 +615,7 @@ public:
             //define a vector oriented as x21
             array_1d<double,3> v1 = x21 / norm_2(x21);
 
-            boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+            BoundedMatrix<double,4,3> DN_DX;
             array_1d<double,4> msN;
             double Area;
             GeometryUtils::CalculateGeometryData( geom, DN_DX, msN, Area );
@@ -1605,7 +1605,7 @@ public:
                     //define a vector oriented as x21
                     array_1d<double,3> v1 = x21 / norm_2(x21);
 
-                    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+                    BoundedMatrix<double,4,3> DN_DX;
                     array_1d<double,4> msN;
                     double Area;
                     GeometryUtils::CalculateGeometryData( geom, DN_DX, msN, Area );
