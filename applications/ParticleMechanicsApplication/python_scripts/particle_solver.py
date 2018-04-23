@@ -263,6 +263,9 @@ def CreateSolver(model_part1, model_part2, model_part3, new_element, config, geo
     # definition of the linear solver
     import linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
+        if(config.echo_level > 1):
+            print("::[Particle Solver]:: LINEAR SOLVER : ", config.linear_solver_config.solver_type)
+        
         if(config.linear_solver_config.solver_type == "AMGCL"):
             params = Parameters( """ {
                                     "solver_type" : "AMGCL",
@@ -283,8 +286,6 @@ def CreateSolver(model_part1, model_part2, model_part3, new_element, config, geo
             structural_solver.block_builder = True
             
         else:
-            if(config.echo_level > 1):
-                print("::[Particle Solver]:: LINEAR SOLVER : ", config.linear_solver_config.solver_type)
             structural_solver.linear_solver = linear_solver_factory.ConstructSolver(config.linear_solver_config)
             structural_solver.block_builder = False
 
