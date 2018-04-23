@@ -49,7 +49,7 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 )
 
 ###############################################################
-pybind11_add_module(KratosParticleMechanicsApplication MODULE ${KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES})
+pybind11_add_module(KratosParticleMechanicsApplication MODULE THIN_LTO ${KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES})
 target_link_libraries(KratosParticleMechanicsApplication PUBLIC KratosCore KratosSolidMechanicsCore)
 set_target_properties(KratosParticleMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PARTICLE_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")

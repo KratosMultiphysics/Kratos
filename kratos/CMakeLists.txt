@@ -136,7 +136,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define library Kratos which defines the basic python interface
-pybind11_add_module(Kratos MODULE ${KRATOS_PYTHON_SOURCES})
+pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
 # add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
 # set_target_properties(Kratos PROPERTIES PREFIX "")
