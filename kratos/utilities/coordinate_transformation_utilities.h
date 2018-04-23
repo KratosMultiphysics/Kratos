@@ -438,7 +438,7 @@ protected:
 		unsigned int Index = 0;
 		int rotations_needed = 0;
 		const unsigned int NumBlocks = LocalSize / TBlockSize;
-		boost::numeric::ublas::vector<bool> NeedRotation( NumBlocks, false);
+		DenseVector<bool> NeedRotation( NumBlocks, false);
 
 		std::vector< boost::numeric::ublas::bounded_matrix<double,TBlockSize,TBlockSize> > rRot(NumBlocks);
 		for(unsigned int j = 0; j < NumBlocks; ++j)
@@ -869,7 +869,7 @@ private:
 		unsigned int Index = 0;
 		int rotations_needed = 0;
 		const unsigned int NumBlocks = LocalSize / mBlockSize;
-		boost::numeric::ublas::vector<bool> NeedRotation( NumBlocks, false);
+		DenseVector<bool> NeedRotation( NumBlocks, false);
 
 		std::vector< boost::numeric::ublas::bounded_matrix<double,TDim,TDim> > rRot(NumBlocks);
 		for(unsigned int j = 0; j < NumBlocks; ++j)

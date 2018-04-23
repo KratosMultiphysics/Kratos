@@ -76,7 +76,7 @@ public:
     
     typedef unsigned int IndexType;
 
-    typedef boost::numeric::ublas::indirect_array<boost::numeric::ublas::vector<std::size_t>> IndirectArrayType;
+    typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
 
     ///@}
     ///@name Life Cycle

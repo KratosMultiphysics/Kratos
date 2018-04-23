@@ -170,7 +170,7 @@ public:
     integration points. Jacobian and InverseOfJacobian functions
     return this type as their result.
     */
-    typedef boost::numeric::ublas::vector<Matrix > JacobiansType;
+    typedef DenseVector<Matrix > JacobiansType;
 
     /** A third order tensor to hold shape functions'  gradients.
     ShapefunctionsGradients function return this
@@ -190,7 +190,7 @@ public:
 
     /** Type of the normal vector used for normal to edges in geomety.
      */
-    typedef boost::numeric::ublas::vector<double> NormalType;
+    typedef DenseVector<double> NormalType;
 
 
     typedef typename BaseType::iterator              iterator;
@@ -1079,7 +1079,7 @@ public:
     }
 
     //Connectivities of faces required
-    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& rNumberNodesInFaces) const
+    virtual void NumberNodesInFaces (DenseVector<unsigned int>& rNumberNodesInFaces) const
     {
         KRATOS_ERROR << "Calling base class NumberNodesInFaces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
     }

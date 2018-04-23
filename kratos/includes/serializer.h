@@ -344,7 +344,7 @@ public:
     }
 
     template<class TDataType>
-    void load(std::string const & rTag, boost::numeric::ublas::vector<TDataType>& rObject)
+    void load(std::string const & rTag, DenseVector<TDataType>& rObject)
     {
         load_trace_point(rTag);
         SizeType size;
@@ -449,7 +449,7 @@ public:
     }
 
     template<class TDataType>
-    void save(std::string const & rTag, boost::numeric::ublas::vector<TDataType> const& rObject)
+    void save(std::string const & rTag, DenseVector<TDataType> const& rObject)
     {
         save_trace_point(rTag);
         SizeType size = rObject.size();
@@ -655,7 +655,7 @@ public:
     }
 
     template<class TDataType>
-    void load_base(std::string const & rTag, boost::numeric::ublas::vector<TDataType>& rObject)
+    void load_base(std::string const & rTag, DenseVector<TDataType>& rObject)
     {
         load_trace_point(rTag);
         load(rTag, rObject);
@@ -676,7 +676,7 @@ public:
     }
 
     template<class TDataType>
-    void save_base(std::string const & rTag, boost::numeric::ublas::vector<TDataType> const& rObject)
+    void save_base(std::string const & rTag, DenseVector<TDataType> const& rObject)
     {
         save_trace_point(rTag);
         save(rTag, rObject);
@@ -1108,7 +1108,7 @@ private:
 //        }
 //
 //        template<class TDataType>
-//        void read(boost::numeric::ublas::vector<TDataType>& rData)
+//        void read(DenseVector<TDataType>& rData)
 //        {
 //            std::size_t size;
 //            *mpBuffer >> size;
@@ -1118,7 +1118,7 @@ private:
 //        }
 //
 //        template<class TDataType>
-//        void write(boost::numeric::ublas::vector<TDataType> const& rData)
+//        void write(DenseVector<TDataType> const& rData)
 //        {
 //            *mpBuffer << rData.size() << std::endl;
 //            write(rData.begin(), rData.end());

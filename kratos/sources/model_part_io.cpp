@@ -4328,7 +4328,7 @@ namespace Kratos
         WriteInAllFiles(OutputFiles, "NEIGHBOURS_INDICES    ");
         for(SizeType i_partition = 0 ; i_partition < NumberOfPartitions ; i_partition++)
         {
-            boost::numeric::ublas::vector<int> indices = row(DomainsColoredGraph, i_partition);
+            DenseVector<int> indices = row(DomainsColoredGraph, i_partition);
             *(OutputFiles[i_partition]) << indices << std::endl;
         }
 
@@ -4345,7 +4345,7 @@ namespace Kratos
         // Writing the max colors
         for(SizeType i_partition = 0 ; i_partition < NumberOfPartitions ; i_partition++)
         {
-            boost::numeric::ublas::vector<int> indices = row(DomainsColoredGraph, i_partition);
+            DenseVector<int> indices = row(DomainsColoredGraph, i_partition);
             *(OutputFiles[i_partition]) << "NUMBER_OF_COLORS    " << number_of_colors << std::endl;
         }
 
