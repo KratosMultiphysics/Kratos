@@ -105,13 +105,12 @@ namespace Kratos
     {
      KRATOS_TRY
 
-     double delta_time = rCurrentProcessInfo[DELTA_TIME];
+     const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
 
      if (delta_time < 1.0e-24)
         {
 	  KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Method DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part " << std::endl;
         }
-
 
      mDeltaTime = delta_time;
 
@@ -189,7 +188,6 @@ namespace Kratos
 
      KRATOS_CATCH( "" )
     }
-
 
 
     ///@}

@@ -31,6 +31,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             "solving_strategy_settings":{
                 "bossak_factor" :-0.3,
                 "dynamic_factor": 1.0,
+                "time_integration_order": 1,
                 "lumped_mass_matrix" : true,
                 "consistent_mass_matrix" : false,
                 "rayleigh_damping": false,
@@ -98,9 +99,22 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
                                              'ROTATION': KratosSolid.SimoMethod()}) #shells
             mechanical_scheme = KratosSolid.DisplacementSimoScheme()
         elif(integration_method == "BackwardEuler"):
+            buffer_size = self.time_integration_settings["buffer_size"].GetInt()
+            if( buffer_size < 3 ):
+                raise Exception("BackwardEuler method needs minimum a buffer size of 3, supplied: "+str(buffer_size)+" ")
+            
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.BackwardEulerMethod(),
                                              'ROTATION': KratosSolid.BackwardEulerMethod()}) #shells
             mechanical_scheme = KratosSolid.DisplacementBackwardEulerScheme()
+        elif(integration_method == "BDF"):
+            buffer_size = self.time_integration_settings["buffer_size"].GetInt()
+            time_integration_order = self.implicit_solver_settings["time_integration_order"].GetInt()
+            if( buffer_size <= time_integration_order ):
+                raise Exception("BDF"+str(time_integration_order)+" method needs minimum a buffer size of "+str(time_integration_order+1)+", supplied: "+str(buffer_size))
+            self.process_info[KratosSolid.TIME_INTEGRATION_ORDER] = time_integration_order
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BackwardEulerMethod(),
+                                             'ROTATION': KratosSolid.BackwardEulerMethod()}) #shells
+            mechanical_scheme = KratosSolid.DisplacementBdfScheme()
         elif(integration_method == "RotationNewmark"):
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.NewmarkStepMethod(),
                                              'ROTATION': KratosSolid.NewmarkStepRotationMethod()}) #beams

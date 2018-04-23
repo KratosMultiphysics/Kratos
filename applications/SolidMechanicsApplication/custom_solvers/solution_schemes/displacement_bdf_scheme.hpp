@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_DISPLACEMENT_BACKWARD_EULER_SCHEME_H_INCLUDED)
-#define  KRATOS_DISPLACEMENT_BACKWARD_EULER_SCHEME_H_INCLUDED
+#if !defined(KRATOS_DISPLACEMENT_BDF_SCHEME_H_INCLUDED)
+#define  KRATOS_DISPLACEMENT_BDF_SCHEME_H_INCLUDED
 
 // System includes
 
@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_solvers/solution_schemes/displacement_newmark_scheme.hpp"
-#include "custom_solvers/time_integration_methods/backward_euler_method.hpp"
+#include "custom_solvers/time_integration_methods/bdf_method.hpp"
 
 namespace Kratos
 {
@@ -38,13 +38,13 @@ namespace Kratos
   /** @brief Bossak integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class DisplacementBackwardEulerScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
+  class DisplacementBdfScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
   {   
   public:
     
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( DisplacementBackwardEulerScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( DisplacementBdfScheme );
 
     typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
     typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
@@ -63,19 +63,19 @@ namespace Kratos
     ///@{
 
     /// Default Constructor.
-    DisplacementBackwardEulerScheme()
+    DisplacementBdfScheme()
       :DerivedType()
     {
     }
 
     /// Constructor.
-    DisplacementBackwardEulerScheme(Flags& rOptions)
+    DisplacementBdfScheme(Flags& rOptions)
       :DerivedType(rOptions)
     {
     }
     
     /// Copy Constructor.
-    DisplacementBackwardEulerScheme(DisplacementBackwardEulerScheme& rOther)
+    DisplacementBdfScheme(DisplacementBdfScheme& rOther)
       :DerivedType(rOther)
     {
     }
@@ -83,11 +83,11 @@ namespace Kratos
     /// Clone.
     BasePointerType Clone() override
     {
-      return BasePointerType( new DisplacementBackwardEulerScheme(*this) );
+      return BasePointerType( new DisplacementBdfScheme(*this) );
     }
 
     /// Destructor.
-    ~DisplacementBackwardEulerScheme() override {}
+    ~DisplacementBdfScheme() override {}
 
     ///@}
     ///@name Operators
@@ -105,12 +105,12 @@ namespace Kratos
     {
         KRATOS_TRY
 
-	DerivedType::Initialize(rModelPart);  
-
-	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+	DerivedType::Initialize(rModelPart);
+        
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 	
 	this->mVector.ap.resize(NumThreads);
-
+        
 	KRATOS_CATCH("")
     }
    
@@ -130,20 +130,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Displacement BackwardEulerScheme";
+        buffer << "Displacement BdfScheme";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Displacement BackwardEulerScheme";
+        rOStream << "Displacement BdfScheme";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Displacement BackwardEulerScheme Data";     
+      rOStream << "Displacement BdfScheme Data";     
     }
     
     ///@}
@@ -171,7 +171,7 @@ namespace Kratos
     
     void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
     {
-      this->mpIntegrationMethod = IntegrationPointerType( new BackwardEulerMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+      this->mpIntegrationMethod = IntegrationPointerType( new BdfMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
       // Set scheme variables
       this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
@@ -200,24 +200,24 @@ namespace Kratos
 			  ProcessInfo& rCurrentProcessInfo) override
     {
       int thread = OpenMPUtils::ThisThread();
-
+      
+      double parameter = 1;
       // Adding inertia contribution
       if (rM.size1() != 0)
-        {
-	  double parameter = this->mpIntegrationMethod->GetMethodParameter(parameter);
-	  
-          rCurrentElement->GetValuesVector(this->mVector.a[thread],  0); //displacement
-          rCurrentElement->GetValuesVector(this->mVector.ap[thread], 1); //previous displacement
-	  rCurrentElement->GetFirstDerivativesVector(this->mVector.v[thread], 1); //previous velocity
-          
-	  noalias(this->mVector.ap[thread]) -= this->mVector.a[thread];
-	  noalias(this->mVector.ap[thread]) += parameter * this->mVector.v[thread];
-          
-          parameter = this->mpIntegrationMethod->GetSecondDerivativeParameter(parameter);
-
-	  noalias(rRHS_Contribution) += parameter * prod(rM, this->mVector.ap[thread]);
+        {  
+          //parameter = this->mpIntegrationMethod->GetSecondDerivativeParameter(parameter);
+          rCurrentElement->GetSecondDerivativesVector(this->mVector.a[thread],  0);
+         
+	  noalias(rRHS_Contribution) -= parameter * prod(rM, this->mVector.a[thread]);
         }
-
+      
+      // Adding damping contribution
+      if (rD.size1() != 0)
+        {
+          //parameter = this->mpIntegrationMethod->GetFirstDerivativeParameter(parameter);
+	  rCurrentElement->GetFirstDerivativesVector(this->mVector.v[thread], 0);
+	  noalias(rRHS_Contribution) -= parameter * prod(rD, this->mVector.v[thread]);
+        }
     }
 
     /**
@@ -236,22 +236,23 @@ namespace Kratos
 			  ProcessInfo& rCurrentProcessInfo) override
     {
       int thread = OpenMPUtils::ThisThread();
-
+     
+      double parameter = 1;
       // Adding inertia contribution
       if (rM.size1() != 0)
+        {  
+          //parameter = this->mpIntegrationMethod->GetSecondDerivativeParameter(parameter);
+          rCurrentCondition->GetSecondDerivativesVector(this->mVector.a[thread],  0); 
+          
+	  noalias(rRHS_Contribution) -= parameter * prod(rM, this->mVector.a[thread]);
+        }
+      
+      // Adding damping contribution
+      if (rD.size1() != 0)
         {
-	  double parameter = this->mpIntegrationMethod->GetMethodParameter(parameter);
-	  
-          rCurrentCondition->GetValuesVector(this->mVector.a[thread],  0); //displacement
-          rCurrentCondition->GetValuesVector(this->mVector.ap[thread], 1); //previous displacement
-	  rCurrentCondition->GetFirstDerivativesVector(this->mVector.v[thread], 1); //previous velocity
-          
-	  noalias(this->mVector.ap[thread]) -= this->mVector.a[thread];
-	  noalias(this->mVector.ap[thread]) += parameter * this->mVector.v[thread];
-          
-          parameter = this->mpIntegrationMethod->GetSecondDerivativeParameter(parameter);
-
-	  noalias(rRHS_Contribution) += parameter * prod(rM, this->mVector.ap[thread]);
+          //parameter = this->mpIntegrationMethod->GetFirstDerivativeParameter(parameter);
+	  rCurrentCondition->GetFirstDerivativesVector(this->mVector.v[thread], 0);
+	  noalias(rRHS_Contribution) -= parameter * prod(rD, this->mVector.v[thread]);
         }
 
     }
@@ -304,7 +305,7 @@ namespace Kratos
     ///@{
   
     ///@}
-  }; // Class DisplacementBackwardEulerScheme
+  }; // Class DisplacementBdfScheme
   ///@}
 
   ///@name Type Definitions
@@ -322,4 +323,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_DISPLACEMENT_BACKWARD_EULER_SCHEME_H_INCLUDED defined
+#endif // KRATOS_DISPLACEMENT_BDF_SCHEME_H_INCLUDED defined

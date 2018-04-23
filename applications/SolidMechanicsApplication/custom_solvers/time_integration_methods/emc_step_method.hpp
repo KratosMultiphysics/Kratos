@@ -274,10 +274,10 @@ namespace Kratos
 
       if( this->mpStepVariable != nullptr )
         KRATOS_ERROR << " time integration method Variable not set " <<std::endl;
+
+      return ErrorCode;
       
       KRATOS_CATCH("")
-
-      return 0;
     }
     
     ///@}
