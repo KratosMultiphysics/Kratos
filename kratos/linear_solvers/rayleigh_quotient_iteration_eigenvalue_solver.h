@@ -208,7 +208,7 @@ public:
         DenseMatrixType& Eigenvectors
     ) override
     {
-        using boost::numeric::ublas::trans;
+        using trans;
 
         SizeType size = K.size1();
         SizeType max_iteration = BaseType::GetMaxIterationsNumber();

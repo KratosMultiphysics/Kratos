@@ -360,7 +360,7 @@ public:
 
 					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
 					for(unsigned int i = 0; i < 3; i++) Vel[i] = rVelocity[i];
-					noalias(Tmp) = prod(boost::numeric::ublas::trans(rRot),Vel);
+					noalias(Tmp) = prod(trans(rRot),Vel);
 					for(unsigned int i = 0; i < 3; i++) rVelocity[i] = Tmp[i];
 				}
 				else
@@ -370,7 +370,7 @@ public:
 
 					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
 					for(unsigned int i = 0; i < 2; i++) Vel[i] = rVelocity[i];
-					noalias(Tmp) = prod(boost::numeric::ublas::trans(rRot),Vel);
+					noalias(Tmp) = prod(trans(rRot),Vel);
 					for(unsigned int i = 0; i < 2; i++) rVelocity[i] = Tmp[i];
 				}
 			}
