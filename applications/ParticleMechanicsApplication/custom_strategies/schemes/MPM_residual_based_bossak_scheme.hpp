@@ -186,7 +186,7 @@ public:
     /**
      * Clone
      */
-    virtual BaseTypePointer Clone()
+    BaseTypePointer Clone() override
     {
         return BaseTypePointer( new MPMResidualBasedBossakScheme(*this) );
     }
@@ -210,7 +210,7 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b )
+        TSystemVectorType& b ) override
     {
         KRATOS_TRY
 
@@ -257,7 +257,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
 		#pragma omp parallel for
 		for(int iter = 0; iter < static_cast<int>(r_model_part.Nodes().size()); ++iter)
@@ -332,7 +332,7 @@ public:
     this is the place to initialize the elements.
     This is intended to be called just once when the strategy is initialized
      */
-    void InitializeElements(ModelPart& rModelPart)
+    void InitializeElements(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -367,7 +367,7 @@ public:
     this is the place to initialize the conditions.
     This is intended to be called just once when the strategy is initialized
     */
-    void InitializeConditions(ModelPart& rModelPart)
+    void InitializeConditions(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -410,7 +410,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -724,7 +724,7 @@ public:
         ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
         //finalizes solution step for all of the elements
@@ -808,7 +808,7 @@ public:
     void InitializeNonLinIteration(ModelPart& r_model_part,
                                    TSystemMatrixType& A,
                                    TSystemVectorType& Dx,
-                                   TSystemVectorType& b)
+                                   TSystemVectorType& b) override
     {
         KRATOS_TRY
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -831,7 +831,7 @@ public:
     //***************************************************************************
 
     void InitializeNonLinearIteration(Condition::Pointer rCurrentCondition,
-                                      ProcessInfo& CurrentProcessInfo)
+                                      ProcessInfo& CurrentProcessInfo) override
     {
         (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
@@ -841,7 +841,7 @@ public:
     //***************************************************************************
 
     void InitializeNonLinearIteration(Element::Pointer rCurrentElement,
-                                      ProcessInfo& CurrentProcessInfo)
+                                      ProcessInfo& CurrentProcessInfo) override
     {
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
         for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
@@ -867,7 +867,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -915,7 +915,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
 
         KRATOS_TRY
@@ -959,7 +959,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
 
 
@@ -1006,7 +1006,7 @@ public:
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -1050,7 +1050,7 @@ public:
     void GetElementalDofList(
         Element::Pointer rCurrentElement,
         Element::DofsVectorType& ElementalDofList,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
     }
@@ -1064,7 +1064,7 @@ public:
     void GetConditionDofList(
         Condition::Pointer rCurrentCondition,
         Element::DofsVectorType& ConditionDofList,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
     }
@@ -1079,7 +1079,7 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_model_part)
+    int Check(ModelPart& r_model_part) override
     {
         KRATOS_TRY
 

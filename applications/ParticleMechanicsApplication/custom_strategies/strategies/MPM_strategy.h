@@ -460,21 +460,21 @@ public:
     operation to predict the solution ... if it is not called a trivial predictor is used in which the
     values of the solution step of interest are assumed equal to the old values
      */
-    virtual void Predict()
+    void Predict() override
     {
     }
 
     /**
     Initialization of member variables and prior operations
      */
-    virtual void Initialize()
+    void Initialize() override
     {
     }
 
     /**
     the problem of interest is solved
      */
-    virtual double Solve()
+    double Solve() override
     {
         //check which nodes and elements are ACTIVE and populate the MPM model part
 		//std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -896,7 +896,7 @@ public:
      * function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
-    virtual int Check()
+    int Check() override
     {
         KRATOS_TRY
 
