@@ -98,13 +98,7 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
         self.identifier = identifier
         self.response_settings = response_settings
 
-        if not response_settings.Has("weighting_method") or response_settings["weighting_method"].GetString() == "none":
-            self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(model_part, response_settings)
-        elif response_settings["weighting_method"].GetString() == "linear_scaling":
-            self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionLinScalUtility(model_part, response_settings)
-        else:
-            raise NameError("The following weighting_method is not valid for eigenfrequency response: " + response_settings["weighting_method"].GetString() +
-                            ".\nAvailable weighting methods are: 'none', 'linear_scaling'. Default: 'none'")
+        self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(model_part, response_settings)
 
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters(parameters_file.read())
