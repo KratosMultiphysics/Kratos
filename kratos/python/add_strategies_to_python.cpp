@@ -232,12 +232,19 @@ namespace Kratos
                     (m, "ResidualBasedIncrementalUpdateStaticScheme")
                     .def(init< >()
                     );
-
+                    
+            
+            typedef typename ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>::RotationToolPointerType RotationToolPointerType;
+            
+            
+                   
             class_< ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>,
                     typename ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>::Pointer,
                     ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> >
                     (m,"ResidualBasedIncrementalUpdateStaticSchemeSlip")
-                    .def(init<unsigned int, unsigned int>());
+                    .def(init<unsigned int, unsigned int>())
+                    .def(init<RotationToolPointerType>());                   
+ 
 
 	         // Residual Based Bossak Scheme Type
 	         class_< ResidualBasedBossakDisplacementSchemeType,
