@@ -286,8 +286,8 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerBoundedMatrix, KratosCoreFastSuite)
         {
-            using Matrix53Double = bounded_matrix<double,5,3>;
-            using Matrix26Int = bounded_matrix<int,2,6>;
+            using Matrix53Double = BoundedMatrix<double,5,3>;
+            using Matrix26Int = BoundedMatrix<int,2,6>;
 
             Matrix53Double object_to_be_saved_1;
             Matrix53Double object_to_be_loaded_1;

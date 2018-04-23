@@ -1655,8 +1655,8 @@ private:
         const bool IsInside = false
         )
     {
-        bounded_matrix<double, 3, 3> X;
-        bounded_matrix<double, 3, 2> DN;
+        BoundedMatrix<double, 3, 3> X;
+        BoundedMatrix<double, 3, 2> DN;
         for(unsigned int i=0; i<this->size();i++)
         {
             X(0,i ) = this->GetPoint( i ).X();
@@ -1668,8 +1668,8 @@ private:
         static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
         static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
 
-        bounded_matrix<double, 2, 2> J = ZeroMatrix( 2, 2 );
-        bounded_matrix<double, 2, 2> invJ = ZeroMatrix( 2, 2 );
+        BoundedMatrix<double, 2, 2> J = ZeroMatrix( 2, 2 );
+        BoundedMatrix<double, 2, 2> invJ = ZeroMatrix( 2, 2 );
 
         //starting with xi = 0
         noalias(rResult) = ZeroVector( 3 );

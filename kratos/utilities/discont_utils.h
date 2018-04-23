@@ -115,7 +115,7 @@ public:
         // The divided part length from second node of edge respect to the edge length
         array_1d<double, n_edges> edge_division_j = ZeroVector(n_edges); // The 0 is for no split
 
-        bounded_matrix<double, 8, 3 > aux_coordinates; //8 is the max number of nodes and aux_nodes
+        BoundedMatrix<double, 8, 3 > aux_coordinates; //8 is the max number of nodes and aux_nodes
         for (unsigned int i = 0; i < 4; i++)
             for (unsigned int j = 0; j < 3; j++)
                 aux_coordinates(i, j) = rPoints(i, j);
@@ -125,7 +125,7 @@ public:
 
         int split_edge[] = {0, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1};
         int new_node_id = 4;
-        bounded_matrix<double, 4, 4 > length = ZeroMatrix(4, 4);
+        BoundedMatrix<double, 4, 4 > length = ZeroMatrix(4, 4);
 
         int n_negative_distance_nodes = 0;
         int n_positive_distance_nodes = 0;
@@ -433,14 +433,14 @@ public:
 
 
     //2D
-    static int CalculateDiscontinuousShapeFunctions(const bounded_matrix<double,(2+1), 2 >& rPoints,
-                                                    bounded_matrix<double, (2+1), 2 >& rDN_DX,
+    static int CalculateDiscontinuousShapeFunctions(const BoundedMatrix<double,(2+1), 2 >& rPoints,
+                                                    BoundedMatrix<double, (2+1), 2 >& rDN_DX,
                                                     array_1d<double,(2+1)>& rDistances,
                                                     array_1d<double,(3*(2-1))>& rVolumes,
-                                                    bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
+                                                    BoundedMatrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
                                                     array_1d<double,(3*(2-1))>& rPartitionsSign,
                                                     std::vector<Matrix>& rGradientsValue,
-                                                    bounded_matrix<double,3*(2-1), (2+1)>& rNenriched,
+                                                    BoundedMatrix<double,3*(2-1), (2+1)>& rNenriched,
                                                     array_1d<double,3>& rEdgeAreas)
     {
         KRATOS_TRY
@@ -471,9 +471,9 @@ public:
         //END OF TRICK. REMEMBER TO OVERWRITE THE DISTANCE VARIABLE IN THE ELEMENT IN CASE THESE LINES HAVE MODIFIED THEM (distances)
 
         const double one_third = 1.0/3.0;
-        bounded_matrix<double, 3, 2> aux_points;      // For auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
-        bounded_matrix<double, 3, 2> coord_subdomain; // Used to pass arguments when we must calculate areas, shape functions, etc
-        bounded_matrix<double, 3, 2> DN_DX_subdomain; // Used to retrieve derivatives
+        BoundedMatrix<double, 3, 2> aux_points;      // For auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
+        BoundedMatrix<double, 3, 2> coord_subdomain; // Used to pass arguments when we must calculate areas, shape functions, etc
+        BoundedMatrix<double, 3, 2> DN_DX_subdomain; // Used to retrieve derivatives
 
         // Area of the complete element
         const double Area = CalculateVol(rPoints(0,0), rPoints(0,1),
@@ -482,7 +482,7 @@ public:
 
         array_1d<bool, 3> cut_edges;
         array_1d<double, 3> aux_nodes_relative_locations;
-        bounded_matrix<int, 3, 2> aux_nodes_father_nodes;
+        BoundedMatrix<int, 3, 2> aux_nodes_father_nodes;
 
         // Check whether the element is cut or not by the interface
         if( (rDistances(0)*rDistances(1))>0.0 && (rDistances(0)*rDistances(2))>0.0 ) // The element IS NOT cut by the interfase. we must return data of a normal, non-enriched element
@@ -544,7 +544,7 @@ public:
 
         // Compute the edge areas
         unsigned int aux_counter = 0;
-        bounded_matrix<double, 2, 2> intersection_aux_points;
+        BoundedMatrix<double, 2, 2> intersection_aux_points;
 
         for (unsigned int iedge = 0; iedge<3; ++iedge)
         {
@@ -570,7 +570,7 @@ public:
         rNenriched=ZeroMatrix(3,3);
         rGPShapeFunctionValues=ZeroMatrix(3,3);
 
-        bounded_matrix<unsigned int, 4, 3> partition_nodes_id;
+        BoundedMatrix<unsigned int, 4, 3> partition_nodes_id;
 
         // Now we must check the 4 created partitions of the domain.
         // One has been collapsed, so we discard it and therefore save only one.
@@ -583,7 +583,7 @@ public:
 
             const unsigned int j_aux = (i+2 > 2) ? i-1 : i+2;
 
-            bounded_matrix<int,3,2> partition_father_nodes;
+            BoundedMatrix<int,3,2> partition_father_nodes;
             array_1d<double,3> N;
 
             partition_nodes_id(i,0) = i;
@@ -963,7 +963,7 @@ private:
         rShapeFunctionValues(Volume2Id, i) -= delta2;
     }
 
-    static double ComputeSubTetraVolumeAndCenter(const bounded_matrix<double, 3, 8 > & rAuxCoordinates,
+    static double ComputeSubTetraVolumeAndCenter(const BoundedMatrix<double, 3, 8 > & rAuxCoordinates,
                                                  array_1d<double, 3 > & rCenterPosition,
                                                  const int i0, const int i1, const int i2, const int i3)
     {
@@ -1052,8 +1052,8 @@ private:
         return 0.5 * ((x1 - x0)*(y2 - y0)- (y1 - y0)*(x2 - x0));
     }
 
-    static inline void CalculateGeometryData(const bounded_matrix<double, 3, 3 > & rCoordinates,
-                                             bounded_matrix<double,3,2>& rDN_DX,
+    static inline void CalculateGeometryData(const BoundedMatrix<double, 3, 3 > & rCoordinates,
+                                             BoundedMatrix<double,3,2>& rDN_DX,
                                              double& rArea)
     {
         const double x10 = rCoordinates(1,0) - rCoordinates(0,0);
@@ -1081,8 +1081,8 @@ private:
         rArea = 0.5*detJ;
     }
 
-    static inline void CalculateGeometryData(bounded_matrix<double, 4, 3 > & rCoordinates,
-                                             bounded_matrix<double,4,3>& rDN_DX,
+    static inline void CalculateGeometryData(BoundedMatrix<double, 4, 3 > & rCoordinates,
+                                             BoundedMatrix<double,4,3>& rDN_DX,
                                              double& rVolume)
     {
         const double x10 = rCoordinates(1,0) - rCoordinates(0,0);
@@ -1117,7 +1117,7 @@ private:
         rVolume = detJ / 6.0;
     }
 
-    static inline void CalculatePosition(const bounded_matrix<double, 3, 3 > & rCoordinates,
+    static inline void CalculatePosition(const BoundedMatrix<double, 3, 3 > & rCoordinates,
                                          const double xc,
                                          const double yc,
                                          const double zc,

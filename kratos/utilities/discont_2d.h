@@ -320,7 +320,7 @@ public:
 		unsigned int i_aux,j_aux,k_aux; //
 		type_of_cut = 0;   // 0 means no cuts, 1 means element is cut through edges ij,ik;    2 ij,jk ;    3 ik , kj ;   INTERFASES ON nodes are not contemplated   
 		const double one_third=1.0/3.0;
-		bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
+		BoundedMatrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
 		BoundedMatrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
 		double Area;//area of the complete element
 		rGPShapeFunctionValues(0,0)=one_third; rGPShapeFunctionValues(0,1)=one_third; rGPShapeFunctionValues(0,2)=one_third; //default, when no interfase has been found
@@ -669,7 +669,7 @@ public:
     private:
     
 		static inline void CalculateGeometryData(
-			const bounded_matrix<double, 3, 3 > & coordinates,
+			const BoundedMatrix<double, 3, 3 > & coordinates,
 			BoundedMatrix<double,3,2>& DN_DX,
 			double& Area)
 		{
@@ -701,7 +701,7 @@ public:
 		
 		//template<class TMatrixType, class TVectorType, class TGradientType>
 		static inline double CalculateVolume2D(
-			const bounded_matrix<double, 3, 3 > & coordinates)
+			const BoundedMatrix<double, 3, 3 > & coordinates)
 		{
 			double x10 = coordinates(1,0) - coordinates(0,0);
 			double y10 = coordinates(1,1) - coordinates(0,1);
@@ -712,7 +712,7 @@ public:
 			return 0.5*detJ;
 		}
 		
-		static inline bool CalculatePosition(const bounded_matrix<double, 3, 3 > & coordinates,
+		static inline bool CalculatePosition(const BoundedMatrix<double, 3, 3 > & coordinates,
                 const double xc, const double yc, const double zc,
                 array_1d<double, 3 > & N
                 )

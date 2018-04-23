@@ -170,7 +170,7 @@ public:
 
         BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
         BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
-        bounded_matrix<double,TNumNodes, TDim> tmp;
+        BoundedMatrix<double,TNumNodes, TDim> tmp;
 
             
         BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
@@ -208,7 +208,7 @@ public:
                 const double res = -time_derivative -inner_prod(vel_gauss, grad_phi_halfstep);
                 
                 const double disc_capturing_coeff = 0.5*C*h*fabs(res/norm_grad);
-                bounded_matrix<double,TDim,TDim> D = disc_capturing_coeff*( IdentityMatrix(TDim,TDim));
+                BoundedMatrix<double,TDim,TDim> D = disc_capturing_coeff*( IdentityMatrix(TDim,TDim));
                 const double norm_vel_squared = norm_vel*norm_vel;
                 D += (std::max( disc_capturing_coeff - tau*norm_vel_squared , 0.0) - disc_capturing_coeff)/(norm_vel_squared) * outer_prod(vel_gauss,vel_gauss);
 

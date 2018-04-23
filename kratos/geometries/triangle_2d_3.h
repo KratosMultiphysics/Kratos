@@ -724,7 +724,7 @@ public:
         const TPointType& point_0 = this->GetPoint(0);
 
         // Compute the Jacobian matrix and its determinant
-        bounded_matrix<double, 2, 2> J;
+        BoundedMatrix<double, 2, 2> J;
         J(0,0) = this->GetPoint(1).X() - this->GetPoint(0).X();
         J(0,1) = this->GetPoint(2).X() - this->GetPoint(0).X();
         J(1,0) = this->GetPoint(1).Y() - this->GetPoint(0).Y();

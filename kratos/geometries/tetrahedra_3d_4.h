@@ -826,7 +826,7 @@ public:
         const double z43 = z4 - z3;
         
         // Compute LHS
-        bounded_matrix<double, 4,4> invJ;
+        BoundedMatrix<double, 4,4> invJ;
         const double aux_volume = 1.0/(6.0*this->Volume());
         invJ(0,0) = aux_volume * (x2*(y3*z4-y4*z3)+x3*(y4*z2-y2*z4)+x4*(y2*z3-y3*z2));
         invJ(1,0) = aux_volume * (x1*(y4*z3-y3*z4)+x3*(y1*z4-y4*z1)+x4*(y3*z1-y1*z3));

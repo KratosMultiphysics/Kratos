@@ -1482,8 +1482,8 @@ private:
         const bool IsInside = false
         )
     {
-        bounded_matrix<double,3,4> X;
-        bounded_matrix<double,3,2> DN;
+        BoundedMatrix<double,3,4> X;
+        BoundedMatrix<double,3,2> DN;
         for(IndexType i=0; i<this->size();i++) {
             X(0, i) = this->GetPoint( i ).X();
             X(1, i) = this->GetPoint( i ).Y();
