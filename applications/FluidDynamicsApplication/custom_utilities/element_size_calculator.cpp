@@ -359,7 +359,7 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >
     // Invert Matrix Q
     typedef permutation_matrix<std::size_t> pmatrix;
     // create a working copy of the input matrix
-    matrix<T> A(Q);
+    Matrix A(Q);
     // create a permutation matrix for the LU-factorization
     pmatrix pm(A.size1());
     // perform LU-factorization

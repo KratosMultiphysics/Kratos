@@ -104,13 +104,11 @@ int FIC<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 
     // Extra variables
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
 
     for(unsigned int i=0; i<NumNodes; ++i)
     {
         Node<3>& rNode = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,rNode);
     }
 
     return out;
@@ -119,57 +117,46 @@ int FIC<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FIC<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 3 > > const& rVariable,
-                                            std::vector<array_1d<double, 3 > >& rValues,
-                                            ProcessInfo const& rCurrentProcessInfo)
+void FIC<TElementData>::GetValueOnIntegrationPoints(
+    Variable<array_1d<double, 3 > > const& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
-    if (rVariable == VORTICITY)
-    {
-        // Get Shape function data
-        Vector GaussWeights;
-        Matrix ShapeFunctions;
-        ShapeFunctionDerivativesArrayType ShapeDerivatives;
-        this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-        const unsigned int NumGauss = GaussWeights.size();
-
-        rValues.resize(NumGauss);
-
-        for (unsigned int g = 0; g < NumGauss; g++)
-        {
-            this->IntegrationPointVorticity(ShapeDerivatives[g],rValues[g]);
-        }
-    }
+    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
-
 
 template< class TElementData >
-void FIC<TElementData>::GetValueOnIntegrationPoints(Variable<double> const& rVariable,
-                                            std::vector<double>& rValues,
-                                            ProcessInfo const& rCurrentProcessInfo)
+void FIC<TElementData>::GetValueOnIntegrationPoints(
+    Variable<double> const& rVariable,
+    std::vector<double>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
     FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void FIC<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
-                                                    std::vector<array_1d<double, 6>>& rValues,
-                                                    ProcessInfo const& rCurrentProcessInfo)
+void FIC<TElementData>::GetValueOnIntegrationPoints(
+    Variable<array_1d<double, 6>> const& rVariable,
+    std::vector<array_1d<double, 6>>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
     FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void FIC<TElementData>::GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
-                                                    std::vector<Vector>& rValues,
-                                                    ProcessInfo const& rCurrentProcessInfo)
+void FIC<TElementData>::GetValueOnIntegrationPoints(
+    Variable<Vector> const& rVariable,
+    std::vector<Vector>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
     FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void FIC<TElementData>::GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
-                                                    std::vector<Matrix>& rValues,
-                                                    ProcessInfo const& rCurrentProcessInfo)
+void FIC<TElementData>::GetValueOnIntegrationPoints(
+    Variable<Matrix> const& rVariable,
+    std::vector<Matrix>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
     FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
@@ -194,6 +181,36 @@ void FIC<TElementData>::PrintInfo(std::ostream& rOStream) const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected functions
+
+template< class TElementData >
+void FIC<TElementData>::ASGSMomentumResidual(
+    TElementData& rData,
+    array_1d<double,3> &rMomentumRes)
+{
+    const GeometryType rGeom = this->GetGeometry();
+
+    array_1d<double, 3> convective_velocity =
+        this->Interpolate(rData.Velocity, rData.N) -
+        this->Interpolate(rData.MeshVelocity, rData.N);
+    
+    Vector AGradN;
+    this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
+
+    double density = rData.Density;
+    const auto& r_body_forces = rData.BodyForce;
+    const auto& r_velocities = rData.Velocity;
+    const auto& r_pressures = rData.Pressure;
+
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        const array_1d<double,3>& rAcc = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
+
+        for (unsigned int d = 0; d < Dim; d++)
+        {
+            rMomentumRes[d] += density * ( rData.N[i]*(r_body_forces(i,d) - rAcc[d]) - AGradN[i]*r_velocities(i,d)) - rData.DN_DX(i,d)*r_pressures[i];
+        }
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Evaluation of system terms on Gauss Points
@@ -407,12 +424,47 @@ void FIC<TElementData>::AddMassStabilization(
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 template <class TElementData>
 void FIC<TElementData>::AddBoundaryIntegral(TElementData& rData,
     const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
 
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
+    FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
+
+    const auto& constitutive_matrix = rData.C;
+    
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+
+    boost::numeric::ublas::bounded_matrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
+    FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal,normal_projection);
+    
+    // Contribution to boundary stress from 2*mu*symmetric_gradient(velocity)*n
+    boost::numeric::ublas::bounded_matrix<double,Dim,LocalSize> normal_stress_operator = boost::numeric::ublas::prod(normal_projection,shear_stress_matrix);
+
+    // Contribution to boundary stress from p*n
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        const double ni = rData.N[i];
+        for (unsigned int d = 0; d < Dim; d++) {
+            const std::size_t pressure_column = i*BlockSize + Dim;
+            normal_stress_operator(d,pressure_column) = -rUnitNormal[d]*ni;
+        }
+    }
+
+    // RHS: stress computed using current solution
+    array_1d<double,Dim> shear_stress = boost::numeric::ublas::prod(normal_projection,rData.ShearStress);
+    const double p_gauss = this->Interpolate(rData.Pressure,rData.N);
+
+    // Add -Ni*normal_stress_operator to the LHS, Ni*current_stress to the RHS
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        const double wni = rData.Weight*rData.N[i];
+        for (unsigned int d = 0; d < Dim; d++) {
+            const unsigned int row = i*BlockSize + d;
+            for (unsigned int col = 0; col < LocalSize; col++) {
+                rLHS(row,col) -= wni*normal_stress_operator(d,col);
+            }
+            rRHS[row] += wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
+        }
+    }
 }
 
 template <class TElementData>
@@ -442,7 +494,7 @@ void FIC<TElementData>::CalculateTau(
     const array_1d<double,3> &Velocity,
     double &TauIncompr,
     double &TauMomentum,
-    array_1d<double,3> &TauGrad)
+    array_1d<double,3> &TauGrad) const
 {
     GeometryType& rGeom = this->GetGeometry();
 
@@ -491,7 +543,7 @@ void FIC<TElementData>::CalculateTau(
 template< class TElementData >
 void FIC<TElementData>::CalculateTauGrad(
     const TElementData& rData, 
-    array_1d<double,3> &TauGrad)
+    array_1d<double,3> &TauGrad) const
 {
     // Small constant to prevent division by zero
     const double Small = 1.0e-12;
@@ -528,36 +580,6 @@ void FIC<TElementData>::CalculateTauGrad(
 
         // Coefficients for shock capturing term (remember to multiply by momentum residual!)
         TauGrad[d] = Hg[d] / (2.*GradNorm[d] + Small);
-    }
-}
-
-template< class TElementData >
-void FIC<TElementData>::ASGSMomentumResidual(
-    TElementData& rData,
-    array_1d<double,3> &rMomentumRes)
-{
-    const GeometryType rGeom = this->GetGeometry();
-
-    array_1d<double, 3> convective_velocity =
-        this->Interpolate(rData.Velocity, rData.N) -
-        this->Interpolate(rData.MeshVelocity, rData.N);
-    
-    Vector AGradN;
-    this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
-
-    double density = rData.Density;
-    const auto& r_body_forces = rData.BodyForce;
-    const auto& r_velocities = rData.Velocity;
-    const auto& r_pressures = rData.Pressure;
-
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        const array_1d<double,3>& rAcc = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-
-        for (unsigned int d = 0; d < Dim; d++)
-        {
-            rMomentumRes[d] += density * ( rData.N[i]*(r_body_forces(i,d) - rAcc[d]) - AGradN[i]*r_velocities(i,d)) - rData.DN_DX(i,d)*r_pressures[i];
-        }
     }
 }
 

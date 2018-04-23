@@ -288,16 +288,18 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
-    void AddMassStabilization(
-        TElementData& rData,
-        MatrixType& rMassMatrix);
-
     // This function integrates the traction over a cut. It is only required to implement embedded formulations
     void AddBoundaryIntegral(
         TElementData& rData,
         const Vector& rUnitNormal,
         MatrixType& rLHS,
         VectorType& rRHS) override;
+    
+    // Implementation details of FIC ////////////////////////////////////////
+
+    void AddMassStabilization(
+        TElementData& rData,
+        MatrixType& rMassMatrix);
 
     void AddViscousTerm(
         const TElementData& rData,
@@ -309,14 +311,18 @@ protected:
         const array_1d<double,3> &Velocity,
         double &TauIncompr,
         double &TauMomentum,
-        array_1d<double,3> &TauGrad);
+        array_1d<double,3> &TauGrad) const;
+
+    virtual void CalculateTauGrad(
+        const TElementData& rData, 
+        array_1d<double,3> &TauGrad) const;
+
+    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
 
     virtual void ASGSMomentumResidual(
         TElementData& rData,
         array_1d<double,3>& rMomentumRes);
     
-    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
-
     ///@}
     ///@name Protected  Access
     ///@{
