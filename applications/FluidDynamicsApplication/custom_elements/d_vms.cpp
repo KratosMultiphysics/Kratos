@@ -791,6 +791,7 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
 
     // Newton-Raphson iterations for the subscale
     unsigned int iter = 0;
+    bool converged = false;
     double subscale_velocity_error = 2.0 * mSubscalePredictionVelocityTolerance;
 
     boost::numeric::ublas::bounded_matrix<double,Dim,Dim> J = ZeroMatrix(Dim,Dim);
@@ -798,7 +799,7 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
     array_1d<double,Dim> u = mPredictedSubscaleVelocity[rData.IntegrationPointIndex]; // Use last result as initial guess
     array_1d<double,Dim> du(Dim,0.0);
 
-    while (iter++ < mSubscalePredictionMaxIterations && subscale_velocity_error > mSubscalePredictionVelocityTolerance) {
+    while ( (!converged) && (iter++ < mSubscalePredictionMaxIterations) ) {
 
         // Calculate new Tau
         double convection_velocity_norm = 0.0;
@@ -839,8 +840,10 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
         if (subscale_velocity_norm > mSubscalePredictionVelocityTolerance)
             subscale_velocity_error /= subscale_velocity_norm;
 
-        if (residual_norm <= mSubscalePredictionResidualTolerance) {
-            break; // If RHS is zero, dU is zero too, converged.
+        if ( (subscale_velocity_error <= mSubscalePredictionVelocityTolerance) ||
+            (residual_norm <= mSubscalePredictionResidualTolerance) ) // If RHS is zero, dU is zero too, converged.
+        {
+            converged = true; // If RHS is zero, dU is zero too, converged.
         }
     }
 
@@ -849,8 +852,9 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
     mSubscaleIterationCount[rData.IntegrationPointIndex] = iter;
     #endif
 
-    // Store new subscale values
-    noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = u;
+    // Store new subscale values or discard the calculation
+    // If not converged, we will not use the subscale in the convective term.
+    noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = converged ? u : array_1d<double,Dim>(Dim,0.0);
 }
 
 template< class TElementData >
