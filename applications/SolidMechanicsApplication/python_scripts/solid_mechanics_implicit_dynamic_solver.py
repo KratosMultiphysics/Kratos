@@ -31,7 +31,6 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             "solving_strategy_settings":{
                 "bossak_factor" :-0.3,
                 "dynamic_factor": 1.0,
-                "time_integration_order": 1,
                 "lumped_mass_matrix" : true,
                 "consistent_mass_matrix" : false,
                 "rayleigh_damping": false,
@@ -70,7 +69,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         else:
             self.process_info[KratosSolid.RAYLEIGH_ALPHA] = 0.0
             self.process_info[KratosSolid.RAYLEIGH_BETA]  = 0.0
-                        
+
         # compute mass lumped matrix
         if( self.implicit_solver_settings["lumped_mass_matrix"].GetBool() == True ):
             self.process_info[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
@@ -83,7 +82,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         if(integration_method.find("Bossak") != -1 or integration_method.find("Simo") != -1):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
-                
+
         # set solution scheme and integration method dictionary
         self.integration_methods = {}
         if(integration_method == "Newmark"):
@@ -99,19 +98,11 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
                                              'ROTATION': KratosSolid.SimoMethod()}) #shells
             mechanical_scheme = KratosSolid.DisplacementSimoScheme()
         elif(integration_method == "BackwardEuler"):
-            buffer_size = self.time_integration_settings["buffer_size"].GetInt()
-            if( buffer_size < 3 ):
-                raise Exception("BackwardEuler method needs minimum a buffer size of 3, supplied: "+str(buffer_size)+" ")
-            
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.BackwardEulerMethod(),
                                              'ROTATION': KratosSolid.BackwardEulerMethod()}) #shells
             mechanical_scheme = KratosSolid.DisplacementBackwardEulerScheme()
         elif(integration_method == "BDF"):
-            buffer_size = self.time_integration_settings["buffer_size"].GetInt()
-            time_integration_order = self.implicit_solver_settings["time_integration_order"].GetInt()
-            if( buffer_size <= time_integration_order ):
-                raise Exception("BDF"+str(time_integration_order)+" method needs minimum a buffer size of "+str(time_integration_order+1)+", supplied: "+str(buffer_size))
-            self.process_info[KratosSolid.TIME_INTEGRATION_ORDER] = time_integration_order
+            self.process_info[KratosSolid.TIME_INTEGRATION_ORDER] = self.time_integration_settings["time_integration_order"].GetInt()
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.BackwardEulerMethod(),
                                              'ROTATION': KratosSolid.BackwardEulerMethod()}) #shells
             mechanical_scheme = KratosSolid.DisplacementBdfScheme()
