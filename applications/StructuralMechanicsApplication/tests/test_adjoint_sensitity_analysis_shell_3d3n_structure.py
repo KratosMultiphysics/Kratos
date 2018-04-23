@@ -40,7 +40,7 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         adjoint_analysis.Run()
 
         # Check sensitivities for the parameter THICKNESS
-        reference_values = [1.7140339404943918, -6.857593034277518, 0.14749301178647778]
+        reference_values = [1.7135092490964121, -6.860092387341681, 0.14749301178647778]
         sensitivities_to_check = []
         element_list = [1,2,8]
         for element_id in element_list:

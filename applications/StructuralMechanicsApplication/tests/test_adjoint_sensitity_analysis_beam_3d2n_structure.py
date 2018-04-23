@@ -39,7 +39,7 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         adjoint_analysis.Run()
 
         # Check sensitivities for the parameter I22
-        reference_values = [-87622.77104412294, 38125.18068136205, 625.0023331716436]
+        reference_values = [-87622.77104412294, 38125.18069794169, 625.0023331716436]
         sensitivities_to_check = []
         element_list = [1,6,10]
         for element_id in element_list:
