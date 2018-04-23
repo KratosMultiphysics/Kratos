@@ -57,7 +57,7 @@ set( KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES
 # ###############################################################
 # ## define library Kratos which defines the basic python interface
 # add_library(KratosExternalSolversApplication SHARED ${KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES})
-pybind11_add_module(KratosExternalSolversApplication MODULE ${KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES})
+pybind11_add_module(KratosExternalSolversApplication MODULE THIN_LTO ${KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES})
 
 
 if(${INCLUDE_PASTIX} MATCHES ON)

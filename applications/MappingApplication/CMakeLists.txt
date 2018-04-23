@@ -66,7 +66,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 # define library Kratos which defines the basic python interface
-pybind11_add_module(KratosMappingApplication MODULE ${KRATOS_MAPPING_APPLICATION_SOURCES} ${KRATOS_MAPPING_APPLICATION_SOURCES_MPI} ${KRATOS_MAPPING_TESTING_SOURCES})
+pybind11_add_module(KratosMappingApplication MODULE THIN_LTO ${KRATOS_MAPPING_APPLICATION_SOURCES} ${KRATOS_MAPPING_APPLICATION_SOURCES_MPI} ${KRATOS_MAPPING_TESTING_SOURCES})
 target_link_libraries(KratosMappingApplication PRIVATE KratosCore ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS})
 set_target_properties(KratosMappingApplication PROPERTIES PREFIX "")
 install(TARGETS KratosMappingApplication DESTINATION libs )
