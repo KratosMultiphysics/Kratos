@@ -468,14 +468,17 @@ namespace Kratos
         const int num_nodes = this->GetGeometry().PointsNumber();
         const int dimension = this->GetGeometry().WorkingSpaceDimension();
         const int num_dofs = num_nodes * dimension * 2;
-        Vector stress_vector_undist;
-        Vector stress_vector_dist;
         ProcessInfo copy_process_info = rCurrentProcessInfo;
-        double initial_value_of_state_variable = 0.0;
 
-        // Get disturbance measure
-        double dist_measure = this->GetValue(DISTURBANCE_MEASURE);
+        Vector initial_state_variables;
+        initial_state_variables.resize(num_dofs);
+        Vector stress_derivatives_vector;
 
+        Vector dummy;
+        this->Calculate(rStressVariable, dummy, rCurrentProcessInfo);
+        rOutput.resize(num_dofs, dummy.size() );
+        rOutput.clear();
+        
         // Built vector of variables containing the DOF-variables of the primal problem 
         std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list;
         primal_solution_variable_list.push_back(DISPLACEMENT_X);       
@@ -485,7 +488,53 @@ namespace Kratos
         primal_solution_variable_list.push_back(ROTATION_Y);       
         primal_solution_variable_list.push_back(ROTATION_Z);       
         
-        this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+        // Concept A: Analytic apporoch ###################################################
+
+        for (int i = 0; i < num_nodes; i++) 
+        {	
+            int index = i * dimension * 2;
+            for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
+            {
+                initial_state_variables[index + j] = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
+                this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 0.0;
+            }
+        }
+
+        for (int i = 0; i < num_nodes; i++) 
+        {	
+            int index = i * dimension * 2;
+            for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
+            {
+                this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 1.0;
+                
+                this->Calculate(rStressVariable, stress_derivatives_vector, rCurrentProcessInfo);
+                
+                for(unsigned int k = 0; k < stress_derivatives_vector.size(); k++)
+                    rOutput(index+j, k) = stress_derivatives_vector[k];
+                
+                stress_derivatives_vector.clear();
+                
+                this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 0.0;
+            }
+        }
+       
+        for (int i = 0; i < num_nodes; i++) 
+        {	
+            int index = i * dimension * 2;
+            for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
+                this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_state_variables[index + j];
+        }
+
+        // Concept B: Derive by finite differences ###################################################
+
+        /*this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+        Vector stress_vector_undist;
+        Vector stress_vector_dist;
+        double initial_value_of_state_variable = 0.0;
+
+        // Get disturbance measure
+        //double dist_measure = this->GetValue(DISTURBANCE_MEASURE);
+
         unsigned int size_stress_vec = stress_vector_undist.size();	
             
         rOutput.resize(num_dofs, size_stress_vec);
@@ -513,8 +562,8 @@ namespace Kratos
                 stress_vector_dist.clear();
                 index++;
             }
-        }
-        
+        }*/
+
         KRATOS_CATCH("")
     }
 

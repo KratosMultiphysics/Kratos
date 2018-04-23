@@ -701,6 +701,67 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
 {
     KRATOS_TRY;
 
+    const int num_nodes = this->GetGeometry().PointsNumber();
+    const int dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType num_dofs = GetNumberOfDofs();
+    const SizeType num_gps = GetNumberOfGPs();
+    //const int num_dofs = num_nodes * dimension * 2;
+    ProcessInfo copy_process_info = rCurrentProcessInfo;
+    Vector initial_state_variables;
+    Vector stress_derivatives_vector;
+
+    rOutput.resize(num_dofs, num_gps);
+    rOutput.clear();
+    initial_state_variables.resize(num_dofs);
+    
+    // Built vector of variables containing the DOF-variables of the primal problem 
+    std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list;
+    primal_solution_variable_list.push_back(DISPLACEMENT_X);       
+    primal_solution_variable_list.push_back(DISPLACEMENT_Y);       
+    primal_solution_variable_list.push_back(DISPLACEMENT_Z);       
+    primal_solution_variable_list.push_back(ROTATION_X);       
+    primal_solution_variable_list.push_back(ROTATION_Y);       
+    primal_solution_variable_list.push_back(ROTATION_Z);       
+    
+    // Concept A: Analytic apporoch ###################################################
+    KRATOS_ERROR_IF(rCurrentProcessInfo.Has(NL_ITERATION_NUMBER)) 
+        << "Stress displacement derivative computation is currently only for linear cases availible!" << std::endl;
+	
+    for (int i = 0; i < num_nodes; i++) 
+    {	
+        int index = i * dimension * 2;
+        for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
+        {
+            initial_state_variables[index + j] = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
+            this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 0.0;
+        }
+    }
+    for (int i = 0; i < num_nodes; i++) 
+    {	
+        int index = i * dimension * 2;
+        for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
+        {
+            this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 1.0;
+            
+            this->Calculate(rStressVariable, stress_derivatives_vector, rCurrentProcessInfo);
+            
+            for(unsigned int k = 0; k < stress_derivatives_vector.size(); k++)
+                rOutput(index+j, k) = stress_derivatives_vector[k];
+            
+            stress_derivatives_vector.clear();
+            
+            this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 0.0;
+        }
+    }
+    for (int i = 0; i < num_nodes; i++) 
+    {	
+        int index = i * dimension * 2;
+        for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
+            this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_state_variables[index + j];
+    }
+
+    // Concept B: derive by finite differnces #####################################################################################
+    /*
     Vector stress_vector_undist;
     Vector stress_vector_dist;
     ProcessInfo copy_process_info = rCurrentProcessInfo;
@@ -749,7 +810,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
             index++;
         }
     }
-
+    */
     KRATOS_CATCH("")
 }   
 
