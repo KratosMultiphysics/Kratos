@@ -19,6 +19,9 @@ set( KRATOS_UMAT_APPLICATION_SOURCES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/mises_umat.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/hypoplastic_umat.f
+	#${CMAKE_CURRENT_SOURCE_DIR}/umat_models/NiceNames.f
+	#${CMAKE_CURRENT_SOURCE_DIR}/umat_models/TensorModule.f
+	#${CMAKE_CURRENT_SOURCE_DIR}/umat_models/CompLib_new.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/umat_fortran_wrapper.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/xit.f
 	
