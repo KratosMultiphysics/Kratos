@@ -69,7 +69,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         else:
             self.process_info[KratosSolid.RAYLEIGH_ALPHA] = 0.0
             self.process_info[KratosSolid.RAYLEIGH_BETA]  = 0.0
-
+                        
         # compute mass lumped matrix
         if( self.implicit_solver_settings["lumped_mass_matrix"].GetBool() == True ):
             self.process_info[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
@@ -79,9 +79,10 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
                 self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = True
 
         # set bossak factor
-        bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
-        self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
-
+        if(integration_method.find("Bossak") != -1 or integration_method.find("Simo") != -1):
+            bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
+            self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
+                
         # set solution scheme and integration method dictionary
         self.integration_methods = {}
         if(integration_method == "Newmark"):
