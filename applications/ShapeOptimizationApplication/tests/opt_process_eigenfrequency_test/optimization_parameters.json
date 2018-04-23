@@ -21,7 +21,6 @@
                 "step_size"              : 1e-6,
                 "traced_eigenfrequency"  : [1,2],
                 "weighting_method"       : "linear_scaling",
-                "KS_parameter"           : 1,
                 "weighting_factors"      : [1.0, 1.0],
                 "consider_discretization": false
             }
