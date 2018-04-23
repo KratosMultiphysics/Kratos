@@ -68,24 +68,6 @@ public:
     , mRank(Rank) {
   }
 
-  /** Constructor by std::shared_ptr
-   * Constructor by std::shared_ptr
-   * @param DataPointer Std Shared Pointer to the Data.
-   */
-  GlobalPointer(std::shared_ptr<TDataType> DataPointer, int Rank = 0)
-    : mDataPointer(DataPointer.get())
-    , mRank(Rank) {
-  }
-
-  /** Constructor by std::weak_ptr
-   * Constructor by std::weak_ptr
-   * @param DataPointer Std Weak Pointer to the Data.
-   */
-  GlobalPointer(std::weak_ptr<TDataType> DataPointer, int Rank = 0)
-    : mDataPointer(DataPointer.lock().get())
-    , mRank(Rank) {
-    }
-
   /** Constructor by std::unique_ptr
    * Constructor by std::unique_ptr
    * @param DataPointer Std Unique Pointer to the Data.
