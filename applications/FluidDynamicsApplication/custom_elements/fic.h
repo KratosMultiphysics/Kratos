@@ -51,7 +51,7 @@ namespace Kratos
 // Forward decalration of auxiliary class
 namespace Internals {
 template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystem;
+class FICSpecializedAddTimeIntegratedSystem;
 }
 
 template< class TElementData >
@@ -352,7 +352,7 @@ private:
     ///@name Friends
     ///@{
 
-    friend class Internals::SpecializedAddTimeIntegratedSystem<TElementData, TElementData::ElementManagesTimeIntegration>;
+    friend class Internals::FICSpecializedAddTimeIntegratedSystem<TElementData, TElementData::ElementManagesTimeIntegration>;
     ///@}
     ///@name Serialization
     ///@{
@@ -433,28 +433,22 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 namespace Internals {
 
-template <unsigned int TDim>
-void AddViscousTerm(double DynamicViscosity,
-                    double GaussWeight,
-                    const Kratos::Matrix& rDN_DX,
-                    Kratos::Matrix& rLHS);
-
 template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystem {
+class FICSpecializedAddTimeIntegratedSystem {
    public:
     static void AddSystem(FIC<TElementData>* pElement,
         TElementData& rData, Matrix& rLHS, Vector& rRHS);
 };
 
 template <class TElementData>
-class SpecializedAddTimeIntegratedSystem<TElementData, true> {
+class FICSpecializedAddTimeIntegratedSystem<TElementData, true> {
    public:
     static void AddSystem(FIC<TElementData>* pElement,
         TElementData& rData, Matrix& rLHS, Vector& rRHS);
 };
 
 template <class TElementData>
-class SpecializedAddTimeIntegratedSystem<TElementData, false> {
+class FICSpecializedAddTimeIntegratedSystem<TElementData, false> {
    public:
     static void AddSystem(FIC<TElementData>* pElement,
         TElementData& rData, Matrix& rLHS, Vector& rRHS);

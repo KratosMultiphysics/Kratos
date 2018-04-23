@@ -367,7 +367,7 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >
     if( res != 0 )
         return false;
     // create identity matrix of "inverse"
-    QInv.assign(boost::numeric::ublas::identity_matrix<T>(A.size1()));
+    QInv.assign(boost::numeric::ublas::identity_matrix<double>(A.size1()));
     // backsubstitute to get the inverse
     lu_substitute(A, pm, QInv);
 

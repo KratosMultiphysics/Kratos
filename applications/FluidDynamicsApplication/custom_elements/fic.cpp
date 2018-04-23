@@ -15,8 +15,8 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
-#include "custom_utilities/qsvms_data.h"
-#include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/fic_data.h"
+#include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "custom_utilities/element_size_calculator.h"
 
@@ -220,7 +220,7 @@ void FIC<TElementData>::AddTimeIntegratedSystem(
     TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
 
     // Call specialized implementation (it is on a helper class to avoid partial template specialization problems)
-    Internals::SpecializedAddTimeIntegratedSystem<TElementData,
+    Internals::FICSpecializedAddTimeIntegratedSystem<TElementData,
         TElementData::ElementManagesTimeIntegration>::AddSystem(this, rData,
         rLHS, rRHS);
 }
@@ -496,7 +496,7 @@ void FIC<TElementData>::CalculateTau(
     double &TauMomentum,
     array_1d<double,3> &TauGrad) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const Geometry< Node<3> >& r_geometry = this->GetGeometry();
 
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
@@ -504,7 +504,7 @@ void FIC<TElementData>::CalculateTau(
     const double Beta = rData.FICBeta;
     const double Nobeta = 1.0-Beta;
 
-    double Havg = ElementSizeCalculator<Dim,NumNodes>::AverageElementSize(rGeom);
+    double Havg = ElementSizeCalculator<Dim,NumNodes>::AverageElementSize(r_geometry);
 
     double velocity_norm = Velocity[0]*Velocity[0];
     for (unsigned int d = 1; d < Dim; d++)
@@ -514,7 +514,7 @@ void FIC<TElementData>::CalculateTau(
     double Hvel = Havg;
     if (velocity_norm > 1.0e-6)
     {
-        Hvel = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(rGeom,Velocity);
+        Hvel = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(r_geometry,Velocity);
     }
 
     double InvTau = rData.Density * ( c1 * rData.EffectiveViscosity / (Havg*Havg) + c2 * velocity_norm / Havg );
@@ -548,8 +548,6 @@ void FIC<TElementData>::CalculateTauGrad(
     // Small constant to prevent division by zero
     const double Small = 1.0e-12;
 
-    GeometryType& rGeom = this->GetGeometry();
-
     // Evaluate velocity gradient
     const auto& r_velocities = rData.Velocity;
     boost::numeric::ublas::bounded_matrix<double,3,3> Gradient = ZeroMatrix(3,3);
@@ -565,6 +563,7 @@ void FIC<TElementData>::CalculateTauGrad(
     }
 
     // Calculate characteristic lenghts on the gradient directions and gradient norms
+    const Geometry< Node<3> >& r_geometry = this->GetGeometry();
     array_1d<double,3> Hg(3,0.0);
     array_1d<double,3> GradNorm(3,0.0);
     for (unsigned int d = 0; d < Dim; d++)
@@ -574,7 +573,7 @@ void FIC<TElementData>::CalculateTauGrad(
         Gi[1] = Gradient(d,1);
         Gi[2] = Gradient(d,2);
 
-        Hg[d] = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(rGeom,Gi);
+        Hg[d] = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(r_geometry,Gi);
 
         GradNorm[d] = std::sqrt(Gi[0]*Gi[0]+Gi[1]*Gi[1]+Gi[2]*Gi[2]);
 
@@ -623,7 +622,7 @@ namespace Internals {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class TElementData>
-void SpecializedAddTimeIntegratedSystem<TElementData, false>::AddSystem(
+void FICSpecializedAddTimeIntegratedSystem<TElementData, false>::AddSystem(
     FIC<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
     Vector& rRHS) {
     KRATOS_TRY;
@@ -638,7 +637,7 @@ void SpecializedAddTimeIntegratedSystem<TElementData, false>::AddSystem(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class TElementData>
-void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
+void FICSpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
     FIC<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
     Vector& rRHS) {
         Matrix mass_matrix = ZeroMatrix(rLHS.size1(),rLHS.size2());
@@ -680,5 +679,8 @@ template class FIC< FICData<3,4> >;
 
 template class FIC< FICData<2,4> >;
 template class FIC< FICData<3,8> >;
+
+template class FIC< TimeIntegratedFICData<2,3> >;
+template class FIC< TimeIntegratedFICData<3,4> >;
 
 } // namespace Kratos
