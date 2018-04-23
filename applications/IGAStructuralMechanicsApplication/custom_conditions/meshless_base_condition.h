@@ -135,7 +135,7 @@ protected:
 		array_1d<double, 3>& g2,
 		array_1d<double, 3>& g3);
 
-	void MeshlessBaseCondition::GetBasisVectors(
+	void GetBasisVectors(
 		const Matrix& DN_De,
 		Vector& g1,
 		Vector& g2,
@@ -185,7 +185,7 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
 
     ///@}
     ///@name Member Variables
@@ -209,7 +209,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
     }
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -274,6 +274,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESHLESS_BASE_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_MESHLESS_BASE_CONDITION_H_INCLUDED  defined
 
 

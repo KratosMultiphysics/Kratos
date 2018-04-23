@@ -173,7 +173,7 @@ public:
     ///@name Operations
 
 	//Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
-	
+
 
 	void EquationIdVector(
 		EquationIdVectorType& rResult,
@@ -351,7 +351,7 @@ private:
 		array_1d<double, 3>& g1,
 		array_1d<double, 3>& g2);
 
-  void MeshlessShellElement::CalculateMetricDeformed(
+  void CalculateMetricDeformed(
     const Matrix& DN_De,
     const Matrix& DDN_DDe,
     MetricVariables& metric);
@@ -478,4 +478,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESHLESS_MESHLESS_SHELL_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_MESHLESS_MESHLESS_SHELL_ELEMENT_H_INCLUDED  defined
