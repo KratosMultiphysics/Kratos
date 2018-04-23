@@ -9,8 +9,6 @@
 //
 //  Main authors:    Carlos A. Roig
 
-#include "boost/smart_ptr.hpp"
-
 #include "testing/testing.h"
 #include "includes/global_pointer.h"
 
@@ -98,98 +96,98 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyClass, KratosCoreFastSuit)
     KRATOS_CHECK_EQUAL((*from_raw).getVar(), sample_var.getVar());
 }
 
-// Boost::shared_ptr
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateBoostSharedPtr, KratosCoreFastSuit)
+// Kratos::shared_ptr
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateSharedPtr, KratosCoreFastSuit)
 {
-    typedef boost::shared_ptr<TestClass> BoostPtrType;
+    typedef Kratos::shared_ptr<TestClass> PtrType;
 
-    auto sample_var = BoostPtrType(new TestClass(1337));
-    auto from_boost = GlobalPointer<TestClass>(sample_var);
+    auto sample_var = PtrType(new TestClass(1337));
+    auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
 
-    KRATOS_CHECK_EQUAL(from_boost->getVar(), sample_var->getVar());
-    KRATOS_CHECK_EQUAL((*from_boost).getVar(), sample_var->getVar());
+    KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), sample_var->getVar());
+    KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), sample_var->getVar());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstBoostSharedPtr, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstSharedPtr, KratosCoreFastSuit)
 {
-    typedef boost::shared_ptr<TestClass> BoostPtrType;
+    typedef Kratos::shared_ptr<TestClass> PtrType;
 
-    const auto sample_var = BoostPtrType(new TestClass(1337));
-    auto from_boost = GlobalPointer<TestClass>(sample_var);
+    const auto sample_var = PtrType(new TestClass(1337));
+    auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
 
-    KRATOS_CHECK_EQUAL(from_boost->getVar(), sample_var->getVar());
-    KRATOS_CHECK_EQUAL((*from_boost).getVar(), sample_var->getVar());
+    KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), sample_var->getVar());
+    KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), sample_var->getVar());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyBoostSharedPtr, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifySharedPtr, KratosCoreFastSuit)
 {
-    typedef boost::shared_ptr<TestClass> BoostPtrType;
+    typedef Kratos::shared_ptr<TestClass> PtrType;
 
-    auto sample_var = BoostPtrType(new TestClass(1337));
-    auto from_boost = GlobalPointer<TestClass>(sample_var);
+    auto sample_var = PtrType(new TestClass(1337));
+    auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
 
-    from_boost->setVar(42);
+    from_shared_ptr->setVar(42);
     sample_var->setVar(42);
 
-    KRATOS_CHECK_EQUAL(from_boost->getVar(), sample_var->getVar());
-    KRATOS_CHECK_EQUAL((*from_boost).getVar(), sample_var->getVar());
+    KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), sample_var->getVar());
+    KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), sample_var->getVar());
 }
 
-// Boost::weak_ptr
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateBoostWeakPtr, KratosCoreFastSuit)
+// Kratos::weak_ptr
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateWeakPtr, KratosCoreFastSuit)
 {
-    typedef boost::shared_ptr<TestClass> BoostPtrType;
-    typedef boost::weak_ptr<TestClass> BoostWeakPtrType;
+    typedef Kratos::shared_ptr<TestClass> PtrType;
+    typedef Kratos::weak_ptr<TestClass> WeakPtrType;
 
-    auto sample_var = BoostPtrType(new TestClass(1337));
-    BoostWeakPtrType weak_var = sample_var;
+    auto sample_var = PtrType(new TestClass(1337));
+    WeakPtrType weak_var = sample_var;
 
-    auto from_boost = GlobalPointer<TestClass>(sample_var);
+    auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
 
     if(weak_var.lock()) {
-        KRATOS_CHECK_EQUAL(from_boost->getVar(), weak_var.lock()->getVar());
-        KRATOS_CHECK_EQUAL((*from_boost).getVar(), weak_var.lock()->getVar());
+        KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), weak_var.lock()->getVar());
+        KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), weak_var.lock()->getVar());
     } else {
-        KRATOS_CHECK_EQUAL("Error", "Unable to lock boost::weakptr");
+        KRATOS_CHECK_EQUAL("Error", "Unable to lock Kratos::weakptr");
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstBoostWeakPtr, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstWeakPtr, KratosCoreFastSuit)
 {
-    typedef boost::shared_ptr<TestClass> BoostPtrType;
-    typedef boost::weak_ptr<TestClass> BoostWeakPtrType;
+    typedef Kratos::shared_ptr<TestClass> PtrType;
+    typedef Kratos::weak_ptr<TestClass> WeakPtrType;
 
-    auto sample_var = BoostPtrType(new TestClass(1337));
-    const BoostWeakPtrType weak_var = sample_var;
+    auto sample_var = PtrType(new TestClass(1337));
+    const WeakPtrType weak_var = sample_var;
 
-    auto from_boost = GlobalPointer<TestClass>(weak_var);
+    auto from_shared_ptr = GlobalPointer<TestClass>(weak_var);
 
     if(weak_var.lock()) {
-        KRATOS_CHECK_EQUAL(from_boost->getVar(), weak_var.lock()->getVar());
-        KRATOS_CHECK_EQUAL((*from_boost).getVar(), weak_var.lock()->getVar());
+        KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), weak_var.lock()->getVar());
+        KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), weak_var.lock()->getVar());
     } else {
-        KRATOS_CHECK_EQUAL("Error", "Unable to lock boost::weakptr");
+        KRATOS_CHECK_EQUAL("Error", "Unable to lock Kratos::weakptr");
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyBoostWeakPtr, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyWeakPtr, KratosCoreFastSuit)
 {
-    typedef boost::shared_ptr<TestClass> BoostPtrType;
-    typedef boost::weak_ptr<TestClass> BoostWeakPtrType;
+    typedef Kratos::shared_ptr<TestClass> PtrType;
+    typedef Kratos::weak_ptr<TestClass> WeakPtrType;
 
-    auto sample_var = BoostPtrType(new TestClass(1337));
-    BoostWeakPtrType weak_var = sample_var;
+    auto sample_var = PtrType(new TestClass(1337));
+    WeakPtrType weak_var = sample_var;
 
-    auto from_boost = GlobalPointer<TestClass>(sample_var);
+    auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
 
     if(weak_var.lock()) {
-        from_boost->setVar(42);
+        from_shared_ptr->setVar(42);
         weak_var.lock()->setVar(42);
 
-        KRATOS_CHECK_EQUAL(from_boost->getVar(), weak_var.lock()->getVar());
-        KRATOS_CHECK_EQUAL((*from_boost).getVar(), weak_var.lock()->getVar());
+        KRATOS_CHECK_EQUAL(from_shared_ptr->getVar(), weak_var.lock()->getVar());
+        KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), weak_var.lock()->getVar());
     } else {
-        KRATOS_CHECK_EQUAL("Error", "Unable to lock boost::weakptr");
+        KRATOS_CHECK_EQUAL("Error", "Unable to lock Kratos::weakptr");
     }
 }
 
