@@ -72,6 +72,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<const std::string&, Parameters>())
     .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
     .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
+    .def("DependsOnTime", &PythonGenericFunctionUtility::DependsOnTime)
     .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
     .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
     ;
@@ -166,8 +167,8 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("AddDof", &VariableUtils::AddDof< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def("AddDof", &VariableUtils::AddDofWithReaction< Variable<double> > )
     .def("AddDof", &VariableUtils::AddDofWithReaction< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
-	.def("CheckVariableKeys", &VariableUtils::CheckVariableKeys)
-	.def("CheckDofs", &VariableUtils::CheckDofs)
+    .def("CheckVariableKeys", &VariableUtils::CheckVariableKeys)
+    .def("CheckDofs", &VariableUtils::CheckDofs)
     ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
@@ -271,15 +272,15 @@ void AddUtilitiesToPython(pybind11::module& m)
     ;
 
 
-    // 	  class_<SignedDistanceCalculationBinBased<2> >(m,"SignedDistanceCalculationBinBased2D", init<>())
-    // 			  .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
+    //    class_<SignedDistanceCalculationBinBased<2> >(m,"SignedDistanceCalculationBinBased2D", init<>())
+    //            .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
     //                           .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<2>::FindMaximumEdgeSize )
-    // 			  ;
+    //            ;
     //
-    // 	  class_<SignedDistanceCalculationBinBased<3> >(m,"SignedDistanceCalculationBinBased3D", init<>())
-    // 			  .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
+    //    class_<SignedDistanceCalculationBinBased<3> >(m,"SignedDistanceCalculationBinBased3D", init<>())
+    //            .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
     //                           .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
-    // 			  ;
+    //            ;
 
     class_<DivideElemUtils >(m,"DivideElemUtils")
     .def(init<>())
@@ -293,7 +294,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def_static("Stop", &Timer::Stop)
 //     .staticmethod("Start")
 //     .staticmethod("Stop")
-    // 	    .def("PrintTimingInformation",Timer::PrintTimingInformation)
+    //      .def("PrintTimingInformation",Timer::PrintTimingInformation)
     .def("__repr__",&Timer::Info)
     ;
 
@@ -312,7 +313,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     //                     ;
 
 
-    // 	  def("PrintTimingInformation",Timer::PrintTimingInformation);
+    //    def("PrintTimingInformation",Timer::PrintTimingInformation);
 
     class_<OpenMPUtils >(m,"OpenMPUtils")
     .def(init<>())

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -91,6 +91,11 @@ public:
             mdepends_on_space = false;
         }
 
+        // check if it depends on time
+        if (function_body.find(std::string("t")) == std::string::npos)
+        {
+            mdepends_on_time = false;
+        }
     }
 
 //         PythonGenericFunctionUtility(  pybind11::object obj, const Matrix& R, const Vector& xc): mpy_obj(obj), muse_local_system(true), mR(R), mxc(xc)
@@ -112,6 +117,10 @@ public:
         return mdepends_on_space;
     }
 
+    bool DependsOnTime()
+    {
+        return mdepends_on_time;
+    }
 
     double RotateAndCallFunction(const double x, const double y, const double z, const double t)
     {
@@ -129,8 +138,7 @@ public:
         main_namespace["y"] = y;
         main_namespace["z"] = z;
         main_namespace["t"] = t;
-        
-        
+
 
 //         #if PY_MAJOR_VERSION >= 3
 //         PyObject* res = PyEval_EvalCode(mbytecode.ptr(),main_namespace.ptr(),main_namespace.ptr());
@@ -148,6 +156,7 @@ private:
     pybind11::object mbytecode;
 
     bool mdepends_on_space = true;
+    bool mdepends_on_time = true;
     bool muse_local_system = false;
     boost::numeric::ublas::bounded_matrix<double, 3, 3> mR;
     array_1d<double, 3> mxc;
