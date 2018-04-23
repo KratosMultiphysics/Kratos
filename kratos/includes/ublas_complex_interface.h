@@ -54,7 +54,7 @@ typedef compressed_vector<std::complex<double>> ComplexCompressedVector;
 typedef coordinate_vector<std::complex<double>> ComplexCoordinateVector;
 typedef vector_range<ComplexVector> ComplexVectorRange;
 typedef vector_slice<ComplexVector> ComplexVectorSlice;
-typedef matrix<std::complex<double>> ComplexMatrix;
+typedef DenseMatrix<std::complex<double>> ComplexMatrix;
 typedef identity_matrix<std::complex<double>> ComplexIdentityMatrix;
 typedef zero_matrix<std::complex<double>> ComplexZeroMatrix;
 typedef scalar_matrix<std::complex<double>> ComplexScalarMatrix;
