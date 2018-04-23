@@ -176,6 +176,10 @@ void DistanceModificationProcess::ModifyDistance() {
             auto nodes_begin = r_nodes.begin() + partition_vec[i_chunk];
             auto nodes_end = r_nodes.begin() + partition_vec[i_chunk + 1];
 
+            // Auxiliar chunk arrays
+            std::vector<unsigned int> aux_modified_distances_ids;
+            std::vector<double> aux_modified_distance_values;
+
             for (auto it_node = nodes_begin; it_node != nodes_end; ++it_node) {
                 const double h = it_node->FastGetSolutionStepValue(NODAL_H);
                 const double tol_d = mDistanceThreshold*h;
@@ -186,11 +190,8 @@ void DistanceModificationProcess::ModifyDistance() {
                 if(std::abs(d) < tol_d){
 
                     // Store the original distance to be recovered at the end of the step
-                    #pragma omp critical
-                    {
-                        mModifiedDistancesIDs.push_back(it_node->Id());
-                        mModifiedDistancesValues.push_back(d);
-                    }
+                    aux_modified_distances_ids.push_back(it_node->Id());
+                    aux_modified_distance_values.push_back(d);
 
                     if (d <= 0.0){
                         d = -tol_d;
@@ -203,6 +204,13 @@ void DistanceModificationProcess::ModifyDistance() {
                         }
                     }
                 }
+            }
+
+            // Save the auxiliar chunk arrays
+            #pragma omp critical
+            {
+                mModifiedDistancesIDs.insert(mModifiedDistancesIDs.end(),aux_modified_distances_ids.begin(),aux_modified_distances_ids.end());
+                mModifiedDistancesValues.insert(mModifiedDistancesValues.end(), aux_modified_distance_values.begin(), aux_modified_distance_values.end());
             }
         }
     }
@@ -248,6 +256,10 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
             auto elems_begin = r_elems.begin() + partition_vec[i_chunk];
             auto elems_end = r_elems.begin() + partition_vec[i_chunk + 1];
 
+            // Auxiliar chunk arrays
+            std::vector<unsigned int> aux_modified_distances_ids;
+            std::vector<Vector> aux_modified_elemental_distances;
+
             for (auto it_elem = elems_begin; it_elem != elems_end; ++it_elem){
                 // Compute the distance tolerance
                 const double tol_d = mDistanceThreshold * (it_elem->GetGeometry()).Length();
@@ -257,15 +269,19 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
                 for (unsigned int i_node = 0; i_node < r_elem_dist.size(); ++i_node){
                     if (std::abs(r_elem_dist(i_node)) < tol_d){
                         if (!is_saved){
-                            #pragma omp critical
-                            {
-                                mModifiedDistancesIDs.push_back(it_elem->Id());
-                                mModifiedElementalDistancesValues.push_back(r_elem_dist);
-                            }
+                            aux_modified_distances_ids.push_back(it_elem->Id());
+                            aux_modified_elemental_distances.push_back(r_elem_dist);
                         }
                         r_elem_dist(i_node) = -tol_d;
                     }
                 }
+            }
+
+            // Save the auxiliar chunk arrays
+            #pragma omp critical
+            {
+                mModifiedDistancesIDs.insert(mModifiedDistancesIDs.end(),aux_modified_distances_ids.begin(),aux_modified_distances_ids.end());
+                mModifiedElementalDistancesValues.insert(mModifiedElementalDistancesValues.end(),aux_modified_elemental_distances.begin(),aux_modified_elemental_distances.end());
             }
         }
     }
