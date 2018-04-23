@@ -215,7 +215,7 @@ namespace Kratos
           
           parameter = this->mpIntegrationMethod->GetSecondDerivativeParameter(parameter);
 
-	  noalias(rRHS_Contribution) -= parameter * prod(rM, this->mVector.ap[thread]);
+	  noalias(rRHS_Contribution) += parameter * prod(rM, this->mVector.ap[thread]);
         }
 
     }
@@ -251,7 +251,7 @@ namespace Kratos
           
           parameter = this->mpIntegrationMethod->GetSecondDerivativeParameter(parameter);
 
-	  noalias(rRHS_Contribution) -= parameter * prod(rM, this->mVector.ap[thread]);
+	  noalias(rRHS_Contribution) += parameter * prod(rM, this->mVector.ap[thread]);
         }
 
     }
