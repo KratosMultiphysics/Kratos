@@ -101,8 +101,6 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
-    this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1); //BORRAR
-    this->FillFromHistoricalNodalData(Pressure_OldStep2,PRESSURE,r_geometry,2); //BORRAR
     //this->FillFromProperties(Density,DENSITY,r_properties);
     //this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
@@ -187,9 +185,12 @@ bool IsAir() {
 }
 
 void CalculateAirMaterialResponse() {
-	unsigned int strain_size = 6;
+	unsigned int strain_size;
 
-	if (Dim == 2) strain_size = 3;
+	if (TDim == 2)
+		strain_size = 3;
+	else if (TDim == 3)
+		strain_size = 6;
 
 	if(C.size1() != strain_size)
 		C.resize(strain_size,strain_size,false);
@@ -202,9 +203,10 @@ void CalculateAirMaterialResponse() {
 	const double c1 = 2.0*nu;
 	const double c2 = nu;
 
-	//here we shall call the constitutive law
 	C.clear();
-	if (Dim == 2) {
+
+	if (TDim == 2) 
+	{
 		C(0, 0) = 2.0*nu;
 		C(1, 1) = 2.0*nu;
 		C(2, 2) = nu;
@@ -214,7 +216,7 @@ void CalculateAirMaterialResponse() {
 		ShearStress[2] = StrainRate[2];
 	}
 
-	else
+	else if (TDim == 3)
 	{
 		C(0, 0) = 2.0*nu;
 		C(1, 1) = 2.0*nu;

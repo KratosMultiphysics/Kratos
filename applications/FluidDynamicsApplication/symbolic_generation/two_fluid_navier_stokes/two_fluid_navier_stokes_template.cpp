@@ -348,8 +348,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     const auto& vconv = v - vmesh;
     const auto& f = rData.BodyForce;
     const auto& p = rData.Pressure;
-    const auto& pn = rData.Pressure_OldStep1;
-    const auto& pnn = rData.Pressure_OldStep2;
     const auto& stress = rData.ShearStress;
 
     // Get shape function values
@@ -392,8 +390,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
     const auto& vconv = v - vmesh;
     const auto& f = rData.BodyForce;
     const auto& p = rData.Pressure;
-    const auto& pn = rData.Pressure_OldStep1;
-    const auto& pnn = rData.Pressure_OldStep2;
     const auto& stress = rData.ShearStress;
 
     // Get shape function values
@@ -439,8 +435,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
 	const auto& vconv = v - vmesh;
 	const auto& f = rData.BodyForce;
 	const auto& p = rData.Pressure;
-	const auto& pn = rData.Pressure_OldStep1;
-	const auto& pnn = rData.Pressure_OldStep2;
 	const auto& stress = rData.ShearStress;
 
 	// Get shape function values
@@ -502,8 +496,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
 	const auto& vconv = v - vmesh;
 	const auto& f = rData.BodyForce;
 	const auto& p = rData.Pressure;
-	const auto& pn = rData.Pressure_OldStep1;
-	const auto& pnn = rData.Pressure_OldStep2;
 	const auto& stress = rData.ShearStress;
 
 	// Get shape function values
