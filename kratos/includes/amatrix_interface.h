@@ -271,13 +271,18 @@ AMatrix::MatrixProductExpression<TExpression1Type, TExpression2Type> prod(
         First.expression(), Second.expression());
 }
 
-
 template <typename TExpression1Type, typename TExpression2Type,
     std::size_t TCategory1, std::size_t TCategory2>
 typename TExpression1Type::data_type inner_prod(
     AMatrix::MatrixExpression<TExpression1Type, TCategory1> const& First,
     AMatrix::MatrixExpression<TExpression2Type, TCategory2> const& Second) {
     return First.dot(Second);
+}
+
+template <typename TExpressionType,
+    std::size_t TCategory> typename TExpressionType::data_type norm_2(
+    AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
+    return TheExpression.norm();
 }
 
 ///@}
