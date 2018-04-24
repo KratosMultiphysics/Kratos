@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -216,7 +216,7 @@ public:
     {
         return Kratos::make_shared< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
-    
+
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
@@ -1584,7 +1584,7 @@ protected:
         const unsigned int BlockSize = TDim + 1;
         const unsigned int StrainSize = (TDim*TNumNodes)/2;
 
-        vector<unsigned int> aux(TDim*TNumNodes);
+        DenseVector<unsigned int> aux(TDim*TNumNodes);
         for(unsigned int i=0; i<TNumNodes; i++)
         {
             int base_index = TDim*i;
@@ -1704,7 +1704,7 @@ protected:
             }
         }
 
-    } 
+    }
 
     /// Calculate the strain rate matrix
     /**
