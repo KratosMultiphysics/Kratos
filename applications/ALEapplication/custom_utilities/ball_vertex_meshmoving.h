@@ -154,9 +154,7 @@ public:
 
     //           double aaa = 1.0/double(TDim+1.0);
 
-    boost::numeric::ublas::bounded_matrix<double, (TDim + 1) * TDim,
-                                          (TDim + 1) * TDim>
-        K_matrix;
+    BoundedMatrix<double, (TDim + 1) * TDim, (TDim + 1) * TDim> K_matrix;
     array_1d<double, (TDim + 1) * TDim> rhs_vector;
     array_1d<double, (TDim + 1) * TDim> disps;
     array_1d<unsigned int, (TDim + 1) * TDim> local_indices;
@@ -279,23 +277,25 @@ private:
   DofsArrayType mDofSet;
 
   //**************************************************************************
-  void AssembleLHS(
-      TSystemMatrixType &A,
-      const boost::numeric::ublas::bounded_matrix<
-          double, (TDim + 1) * TDim, (TDim + 1) * TDim> &LHS_Contribution,
-      const array_1d<unsigned int, (TDim + 1) * TDim> &EquationId) {
-    unsigned int local_size = LHS_Contribution.size1();
+  void AssembleLHS(TSystemMatrixType& A,
+                   const BoundedMatrix<double, (TDim + 1) * TDim, (TDim + 1) * TDim>& LHS_Contribution,
+                   const array_1d<unsigned int, (TDim + 1) * TDim>& EquationId)
+  {
+      unsigned int local_size = LHS_Contribution.size1();
 
-    for (unsigned int i_local = 0; i_local < local_size; i_local++) {
-      unsigned int i_global = EquationId[i_local];
-      if (i_global < mEquationSystemSize) {
-        for (unsigned int j_local = 0; j_local < local_size; j_local++) {
-          unsigned int j_global = EquationId[j_local];
-          if (j_global < mEquationSystemSize)
-            A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-        }
+      for (unsigned int i_local = 0; i_local < local_size; i_local++)
+      {
+          unsigned int i_global = EquationId[i_local];
+          if (i_global < mEquationSystemSize)
+          {
+              for (unsigned int j_local = 0; j_local < local_size; j_local++)
+              {
+                  unsigned int j_global = EquationId[j_local];
+                  if (j_global < mEquationSystemSize)
+                      A(i_global, j_global) += LHS_Contribution(i_local, j_local);
+              }
+          }
       }
-    }
   }
 
   //**************************************************************************
@@ -316,294 +316,256 @@ private:
   }
 
   //*****************************************************************************
-  void BallVertex2D(
-      const Geometry<Node<3>> &geom,
-      boost::numeric::ublas::bounded_matrix<double, (TDim + 1) * TDim,
-                                            (TDim + 1) * TDim> &K_matrix) {
+  void BallVertex2D(const Geometry<Node<3>>& geom,
+                    BoundedMatrix<double, (TDim + 1) * TDim, (TDim + 1) * TDim>& K_matrix)
+  {
+      array_1d<double, 3> x, y;
 
-    array_1d<double, 3> x, y;
+      x[0] = geom[0].X();
+      y[0] = geom[0].Y();
+      x[1] = geom[1].X();
+      y[1] = geom[1].Y();
+      x[2] = geom[2].X();
+      y[2] = geom[2].Y();
 
-    x[0] = geom[0].X();
-    y[0] = geom[0].Y();
-    x[1] = geom[1].X();
-    y[1] = geom[1].Y();
-    x[2] = geom[2].X();
-    y[2] = geom[2].Y();
+      noalias(K_matrix) = ZeroMatrix(6, 6);
 
-    noalias(K_matrix) = ZeroMatrix(6, 6);
+      BoundedMatrix<double, 2, 2> v12_mat;
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> v12_mat;
+      // edge 12 e 21
 
-    // edge 12 e 21
+      double invl12q = 1.0 / (pow((x[1] - x[0]), 2) + pow((y[1] - y[0]), 2));
+      double invl12 = 1.0 / sqrt(pow((x[1] - x[0]), 2) + pow((y[1] - y[0]), 2));
 
-    double invl12q = 1.0 / (pow((x[1] - x[0]), 2) + pow((y[1] - y[0]), 2));
-    double invl12 = 1.0 / sqrt(pow((x[1] - x[0]), 2) + pow((y[1] - y[0]), 2));
+      v12_mat(0, 0) = pow((x[1] - x[0]), 2);
+      v12_mat(0, 1) = ((x[1] - x[0]) * (y[1] - y[0]));
+      v12_mat(1, 0) = ((x[1] - x[0]) * (y[1] - y[0]));
+      v12_mat(1, 1) = pow((y[1] - y[0]), 2);
 
-    v12_mat(0, 0) = pow((x[1] - x[0]), 2);
-    v12_mat(0, 1) = ((x[1] - x[0]) * (y[1] - y[0]));
-    v12_mat(1, 0) = ((x[1] - x[0]) * (y[1] - y[0]));
-    v12_mat(1, 1) = pow((y[1] - y[0]), 2);
+      v12_mat = v12_mat * invl12q;
 
-    v12_mat = v12_mat * invl12q;
+      // edge 13 e 31
+      BoundedMatrix<double, 2, 2> v13_mat;
 
-    // edge 13 e 31
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> v13_mat;
+      double invl13q = 1.0 / (pow((x[2] - x[0]), 2) + pow((y[2] - y[0]), 2));
+      double invl13 = 1.0 / sqrt(pow((x[2] - x[0]), 2) + pow((y[2] - y[0]), 2));
 
-    double invl13q = 1.0 / (pow((x[2] - x[0]), 2) + pow((y[2] - y[0]), 2));
-    double invl13 = 1.0 / sqrt(pow((x[2] - x[0]), 2) + pow((y[2] - y[0]), 2));
+      v13_mat(0, 0) = pow((x[2] - x[0]), 2);
+      v13_mat(0, 1) = ((x[2] - x[0]) * (y[2] - y[0]));
+      v13_mat(1, 0) = ((x[2] - x[0]) * (y[2] - y[0]));
+      v13_mat(1, 1) = pow((y[2] - y[0]), 2);
 
-    v13_mat(0, 0) = pow((x[2] - x[0]), 2);
-    v13_mat(0, 1) = ((x[2] - x[0]) * (y[2] - y[0]));
-    v13_mat(1, 0) = ((x[2] - x[0]) * (y[2] - y[0]));
-    v13_mat(1, 1) = pow((y[2] - y[0]), 2);
+      v13_mat = v13_mat * invl13q;
 
-    v13_mat = v13_mat * invl13q;
+      // edge 23 e 32
+      BoundedMatrix<double, 2, 2> v23_mat;
 
-    // edge 23 e 32
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> v23_mat;
+      double invl23q = 1.0 / (pow((x[2] - x[1]), 2) + pow((y[2] - y[1]), 2));
+      double invl23 = 1.0 / sqrt(pow((x[2] - x[1]), 2) + pow((y[2] - y[1]), 2));
 
-    double invl23q = 1.0 / (pow((x[2] - x[1]), 2) + pow((y[2] - y[1]), 2));
-    double invl23 = 1.0 / sqrt(pow((x[2] - x[1]), 2) + pow((y[2] - y[1]), 2));
+      v23_mat(0, 0) = pow((x[2] - x[1]), 2);
+      v23_mat(0, 1) = ((x[2] - x[1]) * (y[2] - y[1]));
+      v23_mat(1, 0) = ((x[2] - x[1]) * (y[2] - y[1]));
+      v23_mat(1, 1) = pow((y[2] - y[1]), 2);
 
-    v23_mat(0, 0) = pow((x[2] - x[1]), 2);
-    v23_mat(0, 1) = ((x[2] - x[1]) * (y[2] - y[1]));
-    v23_mat(1, 0) = ((x[2] - x[1]) * (y[2] - y[1]));
-    v23_mat(1, 1) = pow((y[2] - y[1]), 2);
+      v23_mat = v23_mat * invl23q;
 
-    v23_mat = v23_mat * invl23q;
+      K_matrix(0, 0) = invl12 * v12_mat(0, 0) + invl13 * v13_mat(0, 0);
+      K_matrix(0, 1) = invl12 * v12_mat(0, 1) + invl13 * v13_mat(0, 1);
+      K_matrix(1, 0) = invl12 * v12_mat(1, 0) + invl13 * v13_mat(1, 0);
+      K_matrix(1, 1) = invl12 * v12_mat(1, 1) + invl13 * v13_mat(1, 1);
 
-    K_matrix(0, 0) = invl12 * v12_mat(0, 0) + invl13 * v13_mat(0, 0);
-    K_matrix(0, 1) = invl12 * v12_mat(0, 1) + invl13 * v13_mat(0, 1);
-    K_matrix(1, 0) = invl12 * v12_mat(1, 0) + invl13 * v13_mat(1, 0);
-    K_matrix(1, 1) = invl12 * v12_mat(1, 1) + invl13 * v13_mat(1, 1);
+      K_matrix(0, 2) = -invl12 * v12_mat(0, 0);
+      K_matrix(0, 3) = -invl12 * v12_mat(0, 1);
+      K_matrix(1, 2) = -invl12 * v12_mat(1, 0);
+      K_matrix(1, 3) = -invl12 * v12_mat(1, 1);
 
-    K_matrix(0, 2) = -invl12 * v12_mat(0, 0);
-    K_matrix(0, 3) = -invl12 * v12_mat(0, 1);
-    K_matrix(1, 2) = -invl12 * v12_mat(1, 0);
-    K_matrix(1, 3) = -invl12 * v12_mat(1, 1);
+      K_matrix(0, 4) = -invl13 * v13_mat(0, 0);
+      K_matrix(0, 5) = -invl13 * v13_mat(0, 1);
+      K_matrix(1, 4) = -invl13 * v13_mat(1, 0);
+      K_matrix(1, 5) = -invl13 * v13_mat(1, 1);
 
-    K_matrix(0, 4) = -invl13 * v13_mat(0, 0);
-    K_matrix(0, 5) = -invl13 * v13_mat(0, 1);
-    K_matrix(1, 4) = -invl13 * v13_mat(1, 0);
-    K_matrix(1, 5) = -invl13 * v13_mat(1, 1);
+      K_matrix(2, 0) = -invl12 * v12_mat(0, 0);
+      K_matrix(2, 1) = -invl12 * v12_mat(0, 1);
+      K_matrix(3, 0) = -invl12 * v12_mat(1, 0);
+      K_matrix(3, 1) = -invl12 * v12_mat(1, 1);
 
-    K_matrix(2, 0) = -invl12 * v12_mat(0, 0);
-    K_matrix(2, 1) = -invl12 * v12_mat(0, 1);
-    K_matrix(3, 0) = -invl12 * v12_mat(1, 0);
-    K_matrix(3, 1) = -invl12 * v12_mat(1, 1);
+      K_matrix(2, 2) = invl12 * v12_mat(0, 0) + invl23 * v23_mat(0, 0);
+      K_matrix(2, 3) = invl12 * v12_mat(0, 1) + invl23 * v23_mat(0, 1);
+      K_matrix(3, 2) = invl12 * v12_mat(1, 0) + invl23 * v23_mat(1, 0);
+      K_matrix(3, 3) = invl12 * v12_mat(1, 1) + invl23 * v23_mat(1, 1);
 
-    K_matrix(2, 2) = invl12 * v12_mat(0, 0) + invl23 * v23_mat(0, 0);
-    K_matrix(2, 3) = invl12 * v12_mat(0, 1) + invl23 * v23_mat(0, 1);
-    K_matrix(3, 2) = invl12 * v12_mat(1, 0) + invl23 * v23_mat(1, 0);
-    K_matrix(3, 3) = invl12 * v12_mat(1, 1) + invl23 * v23_mat(1, 1);
+      K_matrix(2, 4) = -invl23 * v23_mat(0, 0);
+      K_matrix(2, 5) = -invl23 * v23_mat(0, 1);
+      K_matrix(3, 4) = -invl23 * v23_mat(1, 0);
+      K_matrix(3, 5) = -invl23 * v23_mat(1, 1);
 
-    K_matrix(2, 4) = -invl23 * v23_mat(0, 0);
-    K_matrix(2, 5) = -invl23 * v23_mat(0, 1);
-    K_matrix(3, 4) = -invl23 * v23_mat(1, 0);
-    K_matrix(3, 5) = -invl23 * v23_mat(1, 1);
+      K_matrix(4, 0) = -invl13 * v13_mat(0, 0);
+      K_matrix(4, 1) = -invl13 * v13_mat(0, 1);
+      K_matrix(5, 0) = -invl13 * v13_mat(1, 0);
+      K_matrix(5, 1) = -invl13 * v13_mat(1, 1);
 
-    K_matrix(4, 0) = -invl13 * v13_mat(0, 0);
-    K_matrix(4, 1) = -invl13 * v13_mat(0, 1);
-    K_matrix(5, 0) = -invl13 * v13_mat(1, 0);
-    K_matrix(5, 1) = -invl13 * v13_mat(1, 1);
+      K_matrix(4, 2) = -invl23 * v23_mat(0, 0);
+      K_matrix(4, 3) = -invl23 * v23_mat(0, 1);
+      K_matrix(5, 2) = -invl23 * v23_mat(1, 0);
+      K_matrix(5, 3) = -invl23 * v23_mat(1, 1);
 
-    K_matrix(4, 2) = -invl23 * v23_mat(0, 0);
-    K_matrix(4, 3) = -invl23 * v23_mat(0, 1);
-    K_matrix(5, 2) = -invl23 * v23_mat(1, 0);
-    K_matrix(5, 3) = -invl23 * v23_mat(1, 1);
+      K_matrix(4, 4) = invl13 * v13_mat(0, 0) + invl23 * v23_mat(0, 0);
+      K_matrix(4, 5) = invl13 * v13_mat(0, 1) + invl23 * v23_mat(0, 1);
+      K_matrix(5, 4) = invl13 * v13_mat(1, 0) + invl23 * v23_mat(1, 0);
+      K_matrix(5, 5) = invl13 * v13_mat(1, 1) + invl23 * v23_mat(1, 1);
 
-    K_matrix(4, 4) = invl13 * v13_mat(0, 0) + invl23 * v23_mat(0, 0);
-    K_matrix(4, 5) = invl13 * v13_mat(0, 1) + invl23 * v23_mat(0, 1);
-    K_matrix(5, 4) = invl13 * v13_mat(1, 0) + invl23 * v23_mat(1, 0);
-    K_matrix(5, 5) = invl13 * v13_mat(1, 1) + invl23 * v23_mat(1, 1);
+      /////////////////////////////////////////////////////////////////////////////
 
-    /////////////////////////////////////////////////////////////////////////////
+      // edge 1p
 
-    // edge 1p
+      double xp =
+          x[1] - (v23_mat(0, 0) * (x[1] - x[0]) + v23_mat(0, 1) * (y[1] - y[0]));
+      double yp =
+          y[1] - (v23_mat(1, 0) * (x[1] - x[0]) + v23_mat(1, 1) * (y[1] - y[0]));
 
-    double xp =
-        x[1] - (v23_mat(0, 0) * (x[1] - x[0]) + v23_mat(0, 1) * (y[1] - y[0]));
-    double yp =
-        y[1] - (v23_mat(1, 0) * (x[1] - x[0]) + v23_mat(1, 1) * (y[1] - y[0]));
+      // double LL1=sqrt(pow((x[1]-xp),2)+pow((y[1]-yp),2))*invl23;
+      double L1 = sqrt(pow((x[2] - xp), 2) + pow((y[2] - yp), 2)) * invl23;
+      double LL1 = 1.0 - L1;
 
-    // double LL1=sqrt(pow((x[1]-xp),2)+pow((y[1]-yp),2))*invl23;
-    double L1 = sqrt(pow((x[2] - xp), 2) + pow((y[2] - yp), 2)) * invl23;
-    double LL1 = 1.0 - L1;
+      BoundedMatrix<double, 2, 2> v1p_mat;
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> v1p_mat;
+      double invl1pq = 1.0 / (pow((xp - x[0]), 2) + pow((yp - y[0]), 2));
+      double invl1p = 1.0 / sqrt(pow((xp - x[0]), 2) + pow((yp - y[0]), 2));
 
-    double invl1pq = 1.0 / (pow((xp - x[0]), 2) + pow((yp - y[0]), 2));
-    double invl1p = 1.0 / sqrt(pow((xp - x[0]), 2) + pow((yp - y[0]), 2));
+      v1p_mat(0, 0) = pow((xp - x[0]), 2);
+      v1p_mat(0, 1) = (xp - x[0]) * (yp - y[0]);
+      v1p_mat(1, 0) = (xp - x[0]) * (yp - y[0]);
+      v1p_mat(1, 1) = pow((yp - y[0]), 2);
 
-    v1p_mat(0, 0) = pow((xp - x[0]), 2);
-    v1p_mat(0, 1) = (xp - x[0]) * (yp - y[0]);
-    v1p_mat(1, 0) = (xp - x[0]) * (yp - y[0]);
-    v1p_mat(1, 1) = pow((yp - y[0]), 2);
+      v1p_mat = v1p_mat * invl1pq;
 
-    v1p_mat = v1p_mat * invl1pq;
+      // edge 2r
 
-    // edge 2r
+      double xr =
+          x[2] - (v13_mat(0, 0) * (x[2] - x[1]) + v13_mat(0, 1) * (y[2] - y[1]));
+      double yr =
+          y[2] - (v13_mat(1, 0) * (x[2] - x[1]) + v13_mat(1, 1) * (y[2] - y[1]));
 
-    double xr =
-        x[2] - (v13_mat(0, 0) * (x[2] - x[1]) + v13_mat(0, 1) * (y[2] - y[1]));
-    double yr =
-        y[2] - (v13_mat(1, 0) * (x[2] - x[1]) + v13_mat(1, 1) * (y[2] - y[1]));
+      // double LL2=sqrt(pow((x[2]-xr),2)+pow((y[2]-yr),2))*invl13;
+      double L2 = sqrt(pow((x[0] - xr), 2) + pow((y[0] - yr), 2)) * invl13;
+      double LL2 = 1.0 - L2;
 
-    // double LL2=sqrt(pow((x[2]-xr),2)+pow((y[2]-yr),2))*invl13;
-    double L2 = sqrt(pow((x[0] - xr), 2) + pow((y[0] - yr), 2)) * invl13;
-    double LL2 = 1.0 - L2;
+      BoundedMatrix<double, 2, 2> v2r_mat;
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> v2r_mat;
+      double invl2rq = 1.0 / (pow((xr - x[1]), 2) + pow((yr - y[1]), 2));
+      double invl2r = 1.0 / sqrt(pow((xr - x[1]), 2) + pow((yr - y[1]), 2));
 
-    double invl2rq = 1.0 / (pow((xr - x[1]), 2) + pow((yr - y[1]), 2));
-    double invl2r = 1.0 / sqrt(pow((xr - x[1]), 2) + pow((yr - y[1]), 2));
+      v2r_mat(0, 0) = pow((xr - x[1]), 2);
+      v2r_mat(0, 1) = (xr - x[1]) * (yr - y[1]);
+      v2r_mat(1, 0) = (xr - x[1]) * (yr - y[1]);
+      v2r_mat(1, 1) = pow((yr - y[1]), 2);
 
-    v2r_mat(0, 0) = pow((xr - x[1]), 2);
-    v2r_mat(0, 1) = (xr - x[1]) * (yr - y[1]);
-    v2r_mat(1, 0) = (xr - x[1]) * (yr - y[1]);
-    v2r_mat(1, 1) = pow((yr - y[1]), 2);
+      v2r_mat = v2r_mat * invl2rq;
 
-    v2r_mat = v2r_mat * invl2rq;
+      // edge 3s
 
-    // edge 3s
+      double xs =
+          x[1] - (v12_mat(0, 0) * (x[1] - x[2]) + v12_mat(0, 1) * (y[1] - y[2]));
+      double ys =
+          y[1] - (v12_mat(1, 0) * (x[1] - x[2]) + v12_mat(1, 1) * (y[1] - y[2]));
 
-    double xs =
-        x[1] - (v12_mat(0, 0) * (x[1] - x[2]) + v12_mat(0, 1) * (y[1] - y[2]));
-    double ys =
-        y[1] - (v12_mat(1, 0) * (x[1] - x[2]) + v12_mat(1, 1) * (y[1] - y[2]));
+      // double LL3=sqrt(pow((x[0]-xs),2)+pow((y[0]-ys),2))*invl12;
+      double L3 = sqrt(pow((x[1] - xs), 2) + pow((y[1] - ys), 2)) * invl12;
+      double LL3 = 1.0 - L3;
 
-    // double LL3=sqrt(pow((x[0]-xs),2)+pow((y[0]-ys),2))*invl12;
-    double L3 = sqrt(pow((x[1] - xs), 2) + pow((y[1] - ys), 2)) * invl12;
-    double LL3 = 1.0 - L3;
+      BoundedMatrix<double, 2, 2> v3s_mat;
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> v3s_mat;
+      double invl3sq = 1.0 / (pow((xs - x[2]), 2) + pow((ys - y[2]), 2));
+      double invl3s = 1.0 / sqrt(pow((xs - x[2]), 2) + pow((ys - y[2]), 2));
 
-    double invl3sq = 1.0 / (pow((xs - x[2]), 2) + pow((ys - y[2]), 2));
-    double invl3s = 1.0 / sqrt(pow((xs - x[2]), 2) + pow((ys - y[2]), 2));
+      v3s_mat(0, 0) = pow((xs - x[2]), 2);
+      v3s_mat(0, 1) = (xs - x[2]) * (ys - y[2]);
+      v3s_mat(1, 0) = (xs - x[2]) * (ys - y[2]);
+      v3s_mat(1, 1) = pow((ys - y[2]), 2);
 
-    v3s_mat(0, 0) = pow((xs - x[2]), 2);
-    v3s_mat(0, 1) = (xs - x[2]) * (ys - y[2]);
-    v3s_mat(1, 0) = (xs - x[2]) * (ys - y[2]);
-    v3s_mat(1, 1) = pow((ys - y[2]), 2);
+      v3s_mat = v3s_mat * invl3sq;
 
-    v3s_mat = v3s_mat * invl3sq;
+      K_matrix(0, 0) += invl1p * v1p_mat(0, 0) + pow((LL2), 2) * invl2r * v2r_mat(0, 0) +
+                        pow(L3, 2) * invl3s * v3s_mat(0, 0);
+      K_matrix(0, 1) += invl1p * v1p_mat(0, 1) + pow((LL2), 2) * invl2r * v2r_mat(0, 1) +
+                        pow(L3, 2) * invl3s * v3s_mat(0, 1);
+      K_matrix(1, 0) += invl1p * v1p_mat(1, 0) + pow((LL2), 2) * invl2r * v2r_mat(1, 0) +
+                        pow(L3, 2) * invl3s * v3s_mat(1, 0);
+      K_matrix(1, 1) += invl1p * v1p_mat(1, 1) + pow((LL2), 2) * invl2r * v2r_mat(1, 1) +
+                        pow(L3, 2) * invl3s * v3s_mat(1, 1);
 
-    K_matrix(0, 0) += invl1p * v1p_mat(0, 0) +
-                      pow((LL2), 2) * invl2r * v2r_mat(0, 0) +
-                      pow(L3, 2) * invl3s * v3s_mat(0, 0);
-    K_matrix(0, 1) += invl1p * v1p_mat(0, 1) +
-                      pow((LL2), 2) * invl2r * v2r_mat(0, 1) +
-                      pow(L3, 2) * invl3s * v3s_mat(0, 1);
-    K_matrix(1, 0) += invl1p * v1p_mat(1, 0) +
-                      pow((LL2), 2) * invl2r * v2r_mat(1, 0) +
-                      pow(L3, 2) * invl3s * v3s_mat(1, 0);
-    K_matrix(1, 1) += invl1p * v1p_mat(1, 1) +
-                      pow((LL2), 2) * invl2r * v2r_mat(1, 1) +
-                      pow(L3, 2) * invl3s * v3s_mat(1, 1);
+      K_matrix(0, 2) += -L1 * invl1p * v1p_mat(0, 0) - (LL2)*invl2r * v2r_mat(0, 0) +
+                        L3 * (LL3)*invl3s * v3s_mat(0, 0);
+      K_matrix(0, 3) += -L1 * invl1p * v1p_mat(0, 1) - (LL2)*invl2r * v2r_mat(0, 1) +
+                        L3 * (LL3)*invl3s * v3s_mat(0, 1);
+      K_matrix(1, 2) += -L1 * invl1p * v1p_mat(1, 0) - (LL2)*invl2r * v2r_mat(1, 0) +
+                        L3 * (LL3)*invl3s * v3s_mat(1, 0);
+      K_matrix(1, 3) += -L1 * invl1p * v1p_mat(1, 1) - (LL2)*invl2r * v2r_mat(1, 1) +
+                        L3 * (LL3)*invl3s * v3s_mat(1, 1);
 
-    K_matrix(0, 2) += -L1 * invl1p * v1p_mat(0, 0) -
-                      (LL2)*invl2r * v2r_mat(0, 0) +
-                      L3 * (LL3)*invl3s * v3s_mat(0, 0);
-    K_matrix(0, 3) += -L1 * invl1p * v1p_mat(0, 1) -
-                      (LL2)*invl2r * v2r_mat(0, 1) +
-                      L3 * (LL3)*invl3s * v3s_mat(0, 1);
-    K_matrix(1, 2) += -L1 * invl1p * v1p_mat(1, 0) -
-                      (LL2)*invl2r * v2r_mat(1, 0) +
-                      L3 * (LL3)*invl3s * v3s_mat(1, 0);
-    K_matrix(1, 3) += -L1 * invl1p * v1p_mat(1, 1) -
-                      (LL2)*invl2r * v2r_mat(1, 1) +
-                      L3 * (LL3)*invl3s * v3s_mat(1, 1);
+      K_matrix(0, 4) += -(LL1)*invl1p * v1p_mat(0, 0) +
+                        L2 * (LL2)*invl2r * v2r_mat(0, 0) - L3 * invl3s * v3s_mat(0, 0);
+      K_matrix(0, 5) += -(LL1)*invl1p * v1p_mat(0, 1) +
+                        L2 * (LL2)*invl2r * v2r_mat(0, 1) - L3 * invl3s * v3s_mat(0, 1);
+      K_matrix(1, 4) += -(LL1)*invl1p * v1p_mat(1, 0) +
+                        L2 * (LL2)*invl2r * v2r_mat(1, 0) - L3 * invl3s * v3s_mat(1, 0);
+      K_matrix(1, 5) += -(LL1)*invl1p * v1p_mat(1, 1) +
+                        L2 * (LL2)*invl2r * v2r_mat(1, 1) - L3 * invl3s * v3s_mat(1, 1);
 
-    K_matrix(0, 4) += -(LL1)*invl1p * v1p_mat(0, 0) +
-                      L2 * (LL2)*invl2r * v2r_mat(0, 0) -
-                      L3 * invl3s * v3s_mat(0, 0);
-    K_matrix(0, 5) += -(LL1)*invl1p * v1p_mat(0, 1) +
-                      L2 * (LL2)*invl2r * v2r_mat(0, 1) -
-                      L3 * invl3s * v3s_mat(0, 1);
-    K_matrix(1, 4) += -(LL1)*invl1p * v1p_mat(1, 0) +
-                      L2 * (LL2)*invl2r * v2r_mat(1, 0) -
-                      L3 * invl3s * v3s_mat(1, 0);
-    K_matrix(1, 5) += -(LL1)*invl1p * v1p_mat(1, 1) +
-                      L2 * (LL2)*invl2r * v2r_mat(1, 1) -
-                      L3 * invl3s * v3s_mat(1, 1);
+      K_matrix(2, 0) += -L1 * invl1p * v1p_mat(0, 0) - (LL2)*invl2r * v2r_mat(0, 0) +
+                        L3 * (LL3)*invl3s * v3s_mat(0, 0);
+      K_matrix(2, 1) += -L1 * invl1p * v1p_mat(0, 1) - (LL2)*invl2r * v2r_mat(0, 1) +
+                        L3 * (LL3)*invl3s * v3s_mat(0, 1);
+      K_matrix(3, 0) += -L1 * invl1p * v1p_mat(1, 0) - (LL2)*invl2r * v2r_mat(1, 0) +
+                        L3 * (LL3)*invl3s * v3s_mat(1, 0);
+      K_matrix(3, 1) += -L1 * invl1p * v1p_mat(1, 1) - (LL2)*invl2r * v2r_mat(1, 1) +
+                        L3 * (LL3)*invl3s * v3s_mat(1, 1);
 
-    K_matrix(2, 0) += -L1 * invl1p * v1p_mat(0, 0) -
-                      (LL2)*invl2r * v2r_mat(0, 0) +
-                      L3 * (LL3)*invl3s * v3s_mat(0, 0);
-    K_matrix(2, 1) += -L1 * invl1p * v1p_mat(0, 1) -
-                      (LL2)*invl2r * v2r_mat(0, 1) +
-                      L3 * (LL3)*invl3s * v3s_mat(0, 1);
-    K_matrix(3, 0) += -L1 * invl1p * v1p_mat(1, 0) -
-                      (LL2)*invl2r * v2r_mat(1, 0) +
-                      L3 * (LL3)*invl3s * v3s_mat(1, 0);
-    K_matrix(3, 1) += -L1 * invl1p * v1p_mat(1, 1) -
-                      (LL2)*invl2r * v2r_mat(1, 1) +
-                      L3 * (LL3)*invl3s * v3s_mat(1, 1);
+      K_matrix(2, 2) += pow(L1, 2) * invl1p * v1p_mat(0, 0) + invl2r * v2r_mat(0, 0) +
+                        pow((LL3), 2) * invl3s * v3s_mat(0, 0);
+      K_matrix(2, 3) += pow(L1, 2) * invl1p * v1p_mat(0, 1) + invl2r * v2r_mat(0, 1) +
+                        pow((LL3), 2) * invl3s * v3s_mat(0, 1);
+      K_matrix(3, 2) += pow(L1, 2) * invl1p * v1p_mat(1, 0) + invl2r * v2r_mat(1, 0) +
+                        pow((LL3), 2) * invl3s * v3s_mat(1, 0);
+      K_matrix(3, 3) += pow(L1, 2) * invl1p * v1p_mat(1, 1) + invl2r * v2r_mat(1, 1) +
+                        pow((LL3), 2) * invl3s * v3s_mat(1, 1);
 
-    K_matrix(2, 2) += pow(L1, 2) * invl1p * v1p_mat(0, 0) +
-                      invl2r * v2r_mat(0, 0) +
-                      pow((LL3), 2) * invl3s * v3s_mat(0, 0);
-    K_matrix(2, 3) += pow(L1, 2) * invl1p * v1p_mat(0, 1) +
-                      invl2r * v2r_mat(0, 1) +
-                      pow((LL3), 2) * invl3s * v3s_mat(0, 1);
-    K_matrix(3, 2) += pow(L1, 2) * invl1p * v1p_mat(1, 0) +
-                      invl2r * v2r_mat(1, 0) +
-                      pow((LL3), 2) * invl3s * v3s_mat(1, 0);
-    K_matrix(3, 3) += pow(L1, 2) * invl1p * v1p_mat(1, 1) +
-                      invl2r * v2r_mat(1, 1) +
-                      pow((LL3), 2) * invl3s * v3s_mat(1, 1);
+      K_matrix(2, 4) += L1 * (LL1)*invl1p * v1p_mat(0, 0) -
+                        L2 * invl2r * v2r_mat(0, 0) - (LL3)*invl3s * v3s_mat(0, 0);
+      K_matrix(2, 5) += L1 * (LL1)*invl1p * v1p_mat(0, 1) -
+                        L2 * invl2r * v2r_mat(0, 1) - (LL3)*invl3s * v3s_mat(0, 1);
+      K_matrix(3, 4) += L1 * (LL1)*invl1p * v1p_mat(1, 0) -
+                        L2 * invl2r * v2r_mat(1, 0) - (LL3)*invl3s * v3s_mat(1, 0);
+      K_matrix(3, 5) += L1 * (LL1)*invl1p * v1p_mat(1, 1) -
+                        L2 * invl2r * v2r_mat(1, 1) - (LL3)*invl3s * v3s_mat(1, 1);
 
-    K_matrix(2, 4) += L1 * (LL1)*invl1p * v1p_mat(0, 0) -
-                      L2 * invl2r * v2r_mat(0, 0) -
-                      (LL3)*invl3s * v3s_mat(0, 0);
-    K_matrix(2, 5) += L1 * (LL1)*invl1p * v1p_mat(0, 1) -
-                      L2 * invl2r * v2r_mat(0, 1) -
-                      (LL3)*invl3s * v3s_mat(0, 1);
-    K_matrix(3, 4) += L1 * (LL1)*invl1p * v1p_mat(1, 0) -
-                      L2 * invl2r * v2r_mat(1, 0) -
-                      (LL3)*invl3s * v3s_mat(1, 0);
-    K_matrix(3, 5) += L1 * (LL1)*invl1p * v1p_mat(1, 1) -
-                      L2 * invl2r * v2r_mat(1, 1) -
-                      (LL3)*invl3s * v3s_mat(1, 1);
+      K_matrix(4, 0) += -(LL1)*invl1p * v1p_mat(0, 0) +
+                        L2 * (LL2)*invl2r * v2r_mat(0, 0) - L3 * invl3s * v3s_mat(0, 0);
+      K_matrix(4, 1) += -(LL1)*invl1p * v1p_mat(0, 1) +
+                        L2 * (LL2)*invl2r * v2r_mat(0, 1) - L3 * invl3s * v3s_mat(0, 1);
+      K_matrix(5, 0) += -(LL1)*invl1p * v1p_mat(1, 0) +
+                        L2 * (LL2)*invl2r * v2r_mat(1, 0) - L3 * invl3s * v3s_mat(1, 0);
+      K_matrix(5, 1) += -(LL1)*invl1p * v1p_mat(1, 1) +
+                        L2 * (LL2)*invl2r * v2r_mat(1, 1) - L3 * invl3s * v3s_mat(1, 1);
 
-    K_matrix(4, 0) += -(LL1)*invl1p * v1p_mat(0, 0) +
-                      L2 * (LL2)*invl2r * v2r_mat(0, 0) -
-                      L3 * invl3s * v3s_mat(0, 0);
-    K_matrix(4, 1) += -(LL1)*invl1p * v1p_mat(0, 1) +
-                      L2 * (LL2)*invl2r * v2r_mat(0, 1) -
-                      L3 * invl3s * v3s_mat(0, 1);
-    K_matrix(5, 0) += -(LL1)*invl1p * v1p_mat(1, 0) +
-                      L2 * (LL2)*invl2r * v2r_mat(1, 0) -
-                      L3 * invl3s * v3s_mat(1, 0);
-    K_matrix(5, 1) += -(LL1)*invl1p * v1p_mat(1, 1) +
-                      L2 * (LL2)*invl2r * v2r_mat(1, 1) -
-                      L3 * invl3s * v3s_mat(1, 1);
+      K_matrix(4, 2) += L1 * (LL1)*invl1p * v1p_mat(0, 0) -
+                        L2 * invl2r * v2r_mat(0, 0) - (LL3)*invl3s * v3s_mat(0, 0);
+      K_matrix(4, 3) += L1 * (LL1)*invl1p * v1p_mat(0, 1) -
+                        L2 * invl2r * v2r_mat(0, 1) - (LL3)*invl3s * v3s_mat(0, 1);
+      K_matrix(5, 2) += L1 * (LL1)*invl1p * v1p_mat(1, 0) -
+                        L2 * invl2r * v2r_mat(1, 0) - (LL3)*invl3s * v3s_mat(1, 0);
+      K_matrix(5, 3) += L1 * (LL1)*invl1p * v1p_mat(1, 1) -
+                        L2 * invl2r * v2r_mat(1, 1) - (LL3)*invl3s * v3s_mat(1, 1);
 
-    K_matrix(4, 2) += L1 * (LL1)*invl1p * v1p_mat(0, 0) -
-                      L2 * invl2r * v2r_mat(0, 0) -
-                      (LL3)*invl3s * v3s_mat(0, 0);
-    K_matrix(4, 3) += L1 * (LL1)*invl1p * v1p_mat(0, 1) -
-                      L2 * invl2r * v2r_mat(0, 1) -
-                      (LL3)*invl3s * v3s_mat(0, 1);
-    K_matrix(5, 2) += L1 * (LL1)*invl1p * v1p_mat(1, 0) -
-                      L2 * invl2r * v2r_mat(1, 0) -
-                      (LL3)*invl3s * v3s_mat(1, 0);
-    K_matrix(5, 3) += L1 * (LL1)*invl1p * v1p_mat(1, 1) -
-                      L2 * invl2r * v2r_mat(1, 1) -
-                      (LL3)*invl3s * v3s_mat(1, 1);
-
-    K_matrix(4, 4) += pow((LL1), 2) * invl1p * v1p_mat(0, 0) +
-                      pow(L2, 2) * invl2r * v2r_mat(0, 0) +
-                      invl3s * v3s_mat(0, 0);
-    K_matrix(4, 5) += pow((LL1), 2) * invl1p * v1p_mat(0, 1) +
-                      pow(L2, 2) * invl2r * v2r_mat(0, 1) +
-                      invl3s * v3s_mat(0, 1);
-    K_matrix(5, 4) += pow((LL1), 2) * invl1p * v1p_mat(1, 0) +
-                      pow(L2, 2) * invl2r * v2r_mat(1, 0) +
-                      invl3s * v3s_mat(1, 0);
-    K_matrix(5, 5) += pow((LL1), 2) * invl1p * v1p_mat(1, 1) +
-                      pow(L2, 2) * invl2r * v2r_mat(1, 1) +
-                      invl3s * v3s_mat(1, 1);
+      K_matrix(4, 4) += pow((LL1), 2) * invl1p * v1p_mat(0, 0) +
+                        pow(L2, 2) * invl2r * v2r_mat(0, 0) + invl3s * v3s_mat(0, 0);
+      K_matrix(4, 5) += pow((LL1), 2) * invl1p * v1p_mat(0, 1) +
+                        pow(L2, 2) * invl2r * v2r_mat(0, 1) + invl3s * v3s_mat(0, 1);
+      K_matrix(5, 4) += pow((LL1), 2) * invl1p * v1p_mat(1, 0) +
+                        pow(L2, 2) * invl2r * v2r_mat(1, 0) + invl3s * v3s_mat(1, 0);
+      K_matrix(5, 5) += pow((LL1), 2) * invl1p * v1p_mat(1, 1) +
+                        pow(L2, 2) * invl2r * v2r_mat(1, 1) + invl3s * v3s_mat(1, 1);
   }
 };
 
