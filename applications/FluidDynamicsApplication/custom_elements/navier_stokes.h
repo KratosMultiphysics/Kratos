@@ -21,7 +21,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
@@ -71,10 +70,10 @@ public:
 
     struct ElementDataStruct
     {
-        bounded_matrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;
+        BoundedMatrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;
         array_1d<double,TNumNodes> p, pn, pnn, rho, mu;
 
-        bounded_matrix<double, TNumNodes, TDim > DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
 
         Matrix C;
@@ -152,7 +151,7 @@ public:
         this->FillElementData(data, rCurrentProcessInfo);
 
         // Allocate memory needed
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
+        BoundedMatrix<double,MatrixSize, MatrixSize> lhs_local;
         array_1d<double,MatrixSize> rhs_local;
 
         // Loop on gauss points
@@ -160,7 +159,7 @@ public:
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Gauss point position
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
 
         for(unsigned int igauss = 0; igauss<Ncontainer.size2(); igauss++)
@@ -202,7 +201,7 @@ public:
         array_1d<double,MatrixSize> rhs_local;
 
         // Gauss point position
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
 
         // Loop on gauss point
@@ -355,7 +354,7 @@ protected:
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ElementDataStruct& data);
+    void ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ElementDataStruct& data);
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ElementDataStruct& data);
 
     double SubscaleErrorEstimate(const ElementDataStruct& data);
@@ -432,7 +431,7 @@ protected:
     }
 
     //~ template< unsigned int TDim, unsigned int TNumNodes=TDim+1>
-    double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim>& DN_DX)
+    double ComputeH(BoundedMatrix<double,TNumNodes, TDim>& DN_DX)
     {
         double h=0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
@@ -449,7 +448,7 @@ protected:
     }
 
     // 3D tetrahedra shape functions values at Gauss points
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4,4>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4,4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
         Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
@@ -458,7 +457,7 @@ protected:
     }
 
     // 2D triangle shape functions values at Gauss points
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
     {
         const double one_sixt = 1.0/6.0;
         const double two_third = 2.0/3.0;
@@ -468,13 +467,13 @@ protected:
     }
 
     // 3D tetrahedra shape functions values at centered Gauss point
-    void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,4>& Ncontainer)
+    void GetShapeFunctionsOnUniqueGauss(BoundedMatrix<double,1,4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.25; Ncontainer(0,1) = 0.25; Ncontainer(0,2) = 0.25; Ncontainer(0,3) = 0.25;
     }
 
     // 2D triangle shape functions values at centered Gauss point
-    void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,3>& Ncontainer)
+    void GetShapeFunctionsOnUniqueGauss(BoundedMatrix<double,1,3>& Ncontainer)
     {
         Ncontainer(0,0) = 1.0/3.0; Ncontainer(0,1) = 1.0/3.0; Ncontainer(0,2) = 1.0/3.0;
     }
@@ -482,8 +481,8 @@ protected:
     // Computes the strain rate in Voigt notation
     void ComputeStrain(ElementDataStruct& rData, const unsigned int& strain_size)
     {
-        const bounded_matrix<double, TNumNodes, TDim>& v = rData.v;
-        const bounded_matrix<double, TNumNodes, TDim>& DN = rData.DN_DX;
+        const BoundedMatrix<double, TNumNodes, TDim>& v = rData.v;
+        const BoundedMatrix<double, TNumNodes, TDim>& DN = rData.DN_DX;
 
         // Compute strain (B*v)
         // 3D strain computation
