@@ -504,7 +504,7 @@ public:
      */
     virtual void Clear()
     {
-        this->mDofSet.clear();
+        this->mDofSet = DofsArrayType();
         if (this->mpReactionsVector != nullptr) TSparseSpace::Clear(this->mpReactionsVector);
         if (this->mpLinearSystemSolver != nullptr) this->mpLinearSystemSolver->Clear();
 
