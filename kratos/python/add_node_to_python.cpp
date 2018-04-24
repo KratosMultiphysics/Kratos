@@ -177,7 +177,7 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<double> >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<array_1d<double, 3> > >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<vector<double> > >);
-    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<matrix<double> > >);
+    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<DenseMatrix<double> > >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
     node_binder.def("__repr__", &NodeType::Info);
     node_binder.def("OverwriteSolutionStepData", &NodeType::OverwriteSolutionStepData);

@@ -189,6 +189,28 @@ public:
         const array_1d<double, 3>& rUnitNormal,
         boost::numeric::ublas::bounded_matrix<double, 3, 3>& rTangProjMatrix);
 
+    /**
+     * Invert a system with 2 unknowns, defined using bounded matrix types.
+     * @param[in] rA the 2x2 system matrix.
+     * @param[in] rB the right hand side vector.
+     * @param[out] rX the solution of the system.
+     */
+    static void DenseSystemSolve(
+        const boost::numeric::ublas::bounded_matrix<double,2,2> &rA,
+        const array_1d<double,2> &rB,
+        array_1d<double,2> &rX);
+
+    /**
+     * Invert a system with 3 unknowns, defined using bounded matrix types.
+     * @param[in] rA the 3x3 system matrix.
+     * @param[in] rB the right hand side vector.
+     * @param[out] rX the solution of the system.
+     */
+    static void DenseSystemSolve(
+        const boost::numeric::ublas::bounded_matrix<double,3,3> &rA,
+        const array_1d<double,3> &rB,
+        array_1d<double,3> &rX);
+
     ///@}
 
 };  // Class FluidElementUtilities

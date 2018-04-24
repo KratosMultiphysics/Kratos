@@ -47,7 +47,7 @@ public:
      */
     static inline void CalculateGeometryData(
         Element::GeometryType& geom,
-        boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,
+        BoundedMatrix<double,4,3>& DN_DX,
         array_1d<double,4>& N,
         double& Volume)
     {
@@ -120,7 +120,7 @@ public:
      */
     static inline void CalculateGeometryData(
         Element::GeometryType& geom,
-        boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
+        BoundedMatrix<double,3,2>& DN_DX,
         array_1d<double,3>& N,
         double& Area)
     {
@@ -204,7 +204,7 @@ public:
 
     static inline void CalculateGeometryData(
         Element::GeometryType& geom,
-        boost::numeric::ublas::bounded_matrix<double,2,1>& DN_DX,
+        BoundedMatrix<double,2,1>& DN_DX,
         array_1d<double,2>& N,
         double& Area)
     {

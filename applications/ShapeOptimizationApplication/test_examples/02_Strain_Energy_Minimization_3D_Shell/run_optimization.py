@@ -6,7 +6,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Read parameters
-with open("ProjectParameters.json",'r') as parameter_file:
+with open("optimization_parameters.json",'r') as parameter_file:
     parameters = Parameters(parameter_file.read())
 
 # Defining the model_part
