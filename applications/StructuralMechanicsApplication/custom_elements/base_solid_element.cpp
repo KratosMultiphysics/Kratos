@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "custom_elements/base_solid_element.h"
 #include "utilities/math_utils.h"
+#include "utilities/geometry_utilities.h"
 #include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -87,9 +88,6 @@ void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     Values.SetStrainVector(this_constitutive_variables.StrainVector);
-
-    // Reading integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
 
     // Reading integration points
     for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
@@ -1140,24 +1138,15 @@ double BaseSolidElement::CalculateDerivativesOnReferenceConfiguration(
     IntegrationMethod ThisIntegrationMethod
     )
 {
-    rJ0.clear();
-
+    GeometryType& r_geom = GetGeometry();
+    GeometryUtils::JacobianOnInitialConfiguration(
+        r_geom,
+        r_geom.IntegrationPoints(ThisIntegrationMethod)[PointNumber], rJ0);
     double detJ0;
-
-    const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
-
-    for ( unsigned int i = 0; i < GetGeometry().size(); ++i ) {
-        const array_1d<double, 3>& coords = GetGeometry()[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
-        for(unsigned int k = 0; k < GetGeometry().WorkingSpaceDimension(); ++k) {
-            for(unsigned int m = 0; m < GetGeometry().LocalSpaceDimension(); ++m)
-                rJ0(k,m) += coords[k]*DN_De(i,m);
-        }
-    }
-
-    MathUtils<double>::InvertMatrix( rJ0, rInvJ0, detJ0 );
-
-    noalias( rDN_DX ) = prod( DN_De, rInvJ0);
-
+    MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
+    const Matrix& rDN_De =
+        GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
+    GeometryUtils::ShapeFunctionsGradients(rDN_De, rInvJ0, rDN_DX);
     return detJ0;
 }
 
@@ -1173,15 +1162,10 @@ double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
     )
 {
     double detJ;
-
     rJ = GetGeometry().Jacobian( rJ, PointNumber, ThisIntegrationMethod );
-
     const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
-
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
-
-    noalias( rDN_DX ) = prod( DN_De, rInvJ);
-
+    GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
     return detJ;
 }
 
