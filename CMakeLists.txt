@@ -341,6 +341,14 @@ else( ZLIB_FOUND )
   set( ZLIB_LIBRARIES zlib )
 endif( ZLIB_FOUND )
 
+# including the AMatrix
+if( AMATRIX_DIR )
+    message("AMATRIX_DIR : ${AMATRIX_DIR}")
+    include_directories ( "${AMATRIX_DIR}/include" )
+    add_definitions(-DKRATOS_USE_AMATRIX)
+else()
+    message( "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
+endif()
 
 ##echo user options
 message( " ")

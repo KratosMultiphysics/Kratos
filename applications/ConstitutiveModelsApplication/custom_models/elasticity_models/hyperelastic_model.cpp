@@ -226,6 +226,9 @@ namespace Kratos
     HyperElasticDataType Variables;
     this->CalculateStrainData(rValues,Variables);
 
+    //Set constitutive matrix to zero before adding
+    rConstitutiveMatrix.clear();
+    
     //Calculate Constitutive Matrix
     this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);   
     	
@@ -277,6 +280,9 @@ namespace Kratos
     this->CalculateAndAddStressTensor(Variables,rStressMatrix);
     
     rValues.StressMatrix = rStressMatrix; //store total stress as StressMatrix
+
+    //Set constitutive matrix to zero before adding
+    rConstitutiveMatrix.clear();
     
     //Calculate Constitutive Matrix
     this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);
@@ -299,6 +305,9 @@ namespace Kratos
     this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);
 
     rValues.StressMatrix = rStressMatrix; //store isochoric stress as StressMatrix
+
+    //Set constitutive matrix to zero before adding
+    rConstitutiveMatrix.clear();
     
     //Calculate Constitutive Matrix
     this->CalculateAndAddIsochoricConstitutiveTensor(Variables,rConstitutiveMatrix);       
@@ -321,6 +330,9 @@ namespace Kratos
     this->CalculateAndAddVolumetricStressTensor(Variables,rStressMatrix);
 
     rValues.StressMatrix = rStressMatrix; //store volumetric stress as StressMatrix
+
+    //Set constitutive matrix to zero before adding
+    rConstitutiveMatrix.clear();
     
     //Calculate Constitutive Matrix
     this->CalculateAndAddVolumetricConstitutiveTensor(Variables,rConstitutiveMatrix);       

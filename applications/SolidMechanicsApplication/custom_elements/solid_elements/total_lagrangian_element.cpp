@@ -291,8 +291,8 @@ void TotalLagrangianElement::CalculateKinetics(ElementVariables& rVariables, con
 //************************************************************************************
 
 void TotalLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
-        Matrix& rF,
-        Matrix& rDN_DX)
+                                                        const Matrix& rF,
+                                                        const Matrix& rDN_DX)
 {
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();

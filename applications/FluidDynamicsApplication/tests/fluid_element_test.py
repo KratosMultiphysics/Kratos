@@ -21,8 +21,9 @@ class FluidElementTest(UnitTest.TestCase):
     def setUp(self):
         self.domain_size = 2
         self.input_file = "cavity10"
-        self.reference_file = "reference10"
+        self.reference_file = "reference10_qasgs"
         self.work_folder = "FluidElementTest"
+        self.element = "QSVMS2D3N"
 
         self.dt = 0.1
         self.nsteps = 10
@@ -51,11 +52,29 @@ class FluidElementTest(UnitTest.TestCase):
             self.runTest()
 
             self.checkResults()
-            if self.print_output:
-                self.printOutput()
 
-    def testCavityOSS(self):
-        self.reference_file = "reference10_oss"
+    
+    def testCavityQSASGS(self):
+        self.reference_file = "reference10_qsasgs"
+        self.element = "QSVMS2D3N"
+        self.oss_switch = 0
+        self.testCavity()
+
+    def testCavityQSOSS(self):
+        self.reference_file = "reference10_qsoss"
+        self.element = "QSVMS2D3N"
+        self.oss_switch = 1
+        self.testCavity()
+    
+    def testCavityDASGS(self):
+        self.reference_file = "reference10_dasgs"
+        self.element = "DVMS2D3N"
+        self.oss_switch = 0
+        self.testCavity()
+
+    def testCavityDOSS(self):
+        self.reference_file = "reference10_doss"
+        self.element = "DVMS2D3N"
         self.oss_switch = 1
         self.testCavity()
 
@@ -72,9 +91,10 @@ class FluidElementTest(UnitTest.TestCase):
 
         ## Replace element and conditions
         replace_settings = Parameters("""{
-            "element_name":"QSVMS2D3N",
             "condition_name": "MonolithicWallCondition2D"
         }""")
+        replace_settings.AddEmptyValue("element_name")
+        replace_settings["element_name"].SetString(self.element)
 
         ReplaceElementsAndConditionsProcess(self.fluid_model_part, replace_settings).Execute()
 
@@ -87,6 +107,7 @@ class FluidElementTest(UnitTest.TestCase):
         rel_pres_tol = 1e-5
         abs_pres_tol = 1e-7
         self.fluid_solver.conv_criteria = VelPrCriteria(rel_vel_tol,abs_vel_tol,rel_pres_tol,abs_pres_tol)
+        self.fluid_solver.conv_criteria.SetEchoLevel(0)
 
         alpha = -0.3
         move_mesh = 0
@@ -145,10 +166,20 @@ class FluidElementTest(UnitTest.TestCase):
     def runTest(self):
         time = 0.0
 
+        if self.print_output:
+            self.__InitializeOutput()
+
         for step in range(self.nsteps):
             time = time+self.dt
             self.fluid_model_part.CloneTimeStep(time)
             self.fluid_solver.Solve()
+
+            if self.print_output:
+                self.__PrintResults()
+
+        if self.print_output:
+            self.__FinializeOutput()
+
 
     def checkResults(self):
 
@@ -181,30 +212,36 @@ class FluidElementTest(UnitTest.TestCase):
                 if line != '': # If we did not reach the end of the reference file
                     self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
 
-    def printOutput(self):
+    def __InitializeOutput(self):
         gid_mode = GiDPostMode.GiD_PostBinary
         multifile = MultiFileFlag.SingleFile
         deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
         write_conditions = WriteConditionsFlag.WriteElementsOnly
-        gid_io = GidIO(self.input_file,gid_mode,multifile,deformed_mesh_flag, write_conditions)
+        self.gid_io = GidIO(self.input_file,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
         mesh_name = 0.0
-        gid_io.InitializeMesh( mesh_name)
-        gid_io.WriteMesh( self.fluid_model_part.GetMesh() )
-        gid_io.FinalizeMesh()
-        gid_io.InitializeResults(mesh_name,(self.fluid_model_part).GetMesh())
+        self.gid_io.InitializeMesh( mesh_name)
+        self.gid_io.WriteMesh( self.fluid_model_part.GetMesh() )
+        self.gid_io.FinalizeMesh()
+        self.gid_io.InitializeResults(mesh_name,(self.fluid_model_part).GetMesh())
 
+    def __PrintResults(self):
         label = self.fluid_model_part.ProcessInfo[TIME]
-        gid_io.WriteNodalResults(VELOCITY,self.fluid_model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(PRESSURE,self.fluid_model_part.Nodes,label,0)
+        self.gid_io.WriteNodalResults(VELOCITY,self.fluid_model_part.Nodes,label,0)
+        self.gid_io.WriteNodalResults(PRESSURE,self.fluid_model_part.Nodes,label,0)
+        self.gid_io.PrintOnGaussPoints(SUBSCALE_VELOCITY,self.fluid_model_part,label)
+        self.gid_io.PrintOnGaussPoints(SUBSCALE_PRESSURE,self.fluid_model_part,label)
 
-        gid_io.FinalizeResults()
+    def __FinializeOutput(self):
+        self.gid_io.FinalizeResults()
 
 if __name__ == '__main__':
     test = FluidElementTest()
     test.setUp()
     test.print_reference_values = False
     test.print_output = True
-    test.testCavityOSS()
-    #test.testCavity()
+    #test.testCavityQSASGS()
+    #test.testCavityQSOSS()
+    #test.testCavityDASGS()
+    test.testCavityDOSS()
     test.tearDown()

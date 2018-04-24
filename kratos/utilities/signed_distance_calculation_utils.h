@@ -142,12 +142,12 @@ public:
             it->GetValue(IS_VISITED) = 0;
         }
 
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        BoundedMatrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N, distances;
         array_1d<double,TDim> grad_d;
         array_1d<double,3> coord_on_0(3,0.0);
         array_1d<double,3> temp;
-        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> free_surface_points;
+        BoundedMatrix<double, TDim, TDim> free_surface_points;
 
         //fill the list of the first elements to be solved for the "distance"
         for(ElementsArrayType::iterator it =  r_model_part.ElementsBegin(); it !=r_model_part.ElementsEnd(); it++)
@@ -528,7 +528,7 @@ private:
 //                                 Geometry< Node<3> >& geom,
 //                                 double xi, double eta,
 //                                 array_1d<double, 3 > N,
-//                                 const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> free_surface_points,
+//                                 const BoundedMatrix<double, TDim, TDim> free_surface_points,
 //                                 Variable<double>& rDistanceVar )
 //                 {
 //                     Point<3> aux(0.0, 0.0, 0.0);

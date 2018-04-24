@@ -3,29 +3,29 @@
 namespace Kratos {
 
 
-void Stokes3DTwoFluid::ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const element_data<4,3>& data)
+void Stokes3DTwoFluid::ComputeGaussPointLHSContribution(BoundedMatrix<double,16,16>& lhs, const element_data<4,3>& data)
     {
         const int nnodes = 4;
         const int dim = 3;
-        
+
         const double rho = inner_prod(data.N, data.rho);
         const double& bdf0 = data.bdf0;
-        
-        //get constitutive matrix 
+
+        //get constitutive matrix
         const Matrix& C = data.C;
-        
+
         //get shape function values
-        const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+        const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
         const array_1d<double,nnodes>& N = data.N;
-        
-        
+
+
         //compute an equivalent tau by Bitrans*c*Bi
         const double tau_denom =             (C(3,3) + C(4,4) + C(5,5))*(pow(DN(0,0), 2) + pow(DN(0,1), 2) + pow(DN(0,2), 2) + pow(DN(1,0), 2) + pow(DN(1,1), 2) + pow(DN(1,2), 2) + pow(DN(2,0), 2) + pow(DN(2,1), 2) + pow(DN(2,2), 2) + pow(DN(3,0), 2) + pow(DN(3,1), 2) + pow(DN(3,2), 2));
 
         const double tau1 = 1.0/(tau_denom*rho);
         const double tau2 = (C(3,3) + C(4,4) + C(5,5))/(6.0*rho);
 
-        
+
         const double clhs0 =             bdf0*rho;
 const double clhs1 =             pow(N[0], 2)*clhs0;
 const double clhs2 =             pow(DN(0,0), 2);
@@ -1008,38 +1008,38 @@ void Stokes3DTwoFluid::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs
     {
         const int nnodes = 4;
         const int dim = 3;
-        
+
         const double rho = inner_prod(data.N, data.rho);
         const double& bdf0 = data.bdf0;
         const double& bdf1 = data.bdf1;
         const double& bdf2 = data.bdf2;
-        
-        const bounded_matrix<double,nnodes,dim>& v = data.v;
-        const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-        const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-        const bounded_matrix<double,nnodes,dim>& f = data.f;
+
+        const BoundedMatrix<double,nnodes,dim>& v = data.v;
+        const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+        const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+        const BoundedMatrix<double,nnodes,dim>& f = data.f;
         const array_1d<double,nnodes>& p = data.p;
-        
-        //get constitutive matrix 
+
+        //get constitutive matrix
         const Matrix& C = data.C;
         const Vector& stress = data.stress;
-        
+
         //get shape function values
-        const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+        const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
         const array_1d<double,nnodes>& N = data.N;
-        
+
         //compute an equivalent tau by Bitrans*c*Bi
         const double tau_denom =             (C(3,3) + C(4,4) + C(5,5))*(pow(DN(0,0), 2) + pow(DN(0,1), 2) + pow(DN(0,2), 2) + pow(DN(1,0), 2) + pow(DN(1,1), 2) + pow(DN(1,2), 2) + pow(DN(2,0), 2) + pow(DN(2,1), 2) + pow(DN(2,2), 2) + pow(DN(3,0), 2) + pow(DN(3,1), 2) + pow(DN(3,2), 2));
 
         const double tau1 = 1.0/(tau_denom*rho);
         const double tau2 = (C(3,3) + C(4,4) + C(5,5))/(6.0*rho);
-        
+
         //auxiliary variables used in the calculation of the RHS
         const array_1d<double,dim> fgauss = prod(trans(f), N);
         const array_1d<double,dim> vgauss = prod(trans(v), N);
         const array_1d<double,dim> grad_p = prod(trans(DN), p);
         const double pgauss = inner_prod(N,p);
-        
+
         array_1d<double,dim> acch = bdf0*vgauss;
         noalias(acch) += bdf1*prod(trans(vn), N);
         noalias(acch) += bdf2*prod(trans(vnn), N);
@@ -1124,56 +1124,56 @@ const double crhs61 =             C(3,5)*DN(3,0);
             rhs[15]=-DN(3,0)*crhs32 - DN(3,1)*crhs33 - DN(3,2)*crhs34 - N[3]*crhs1;
 
     }
-    
-                            
+
+
 void Stokes3DTwoFluid::ComputeGaussPointEnrichmentContributions(
-    boost::numeric::ublas::bounded_matrix<double,4,16>& H,
-    boost::numeric::ublas::bounded_matrix<double,16,4>& V,
-    boost::numeric::ublas::bounded_matrix<double,4,4>&  Kee,
+    BoundedMatrix<double,4,16>& H,
+    BoundedMatrix<double,16,4>& V,
+    BoundedMatrix<double,4,4>&  Kee,
     array_1d<double,4>& rhs_ee,
     const element_data<4,3>& data,
     const array_1d<double,4>& distances,
     const array_1d<double,4>& Nenr,
-    const boost::numeric::ublas::bounded_matrix<double,4,4>& DNenr
+    const BoundedMatrix<double,4,4>& DNenr
     )
     {
         const int nnodes = 4;
         const int dim = 3;
-        
+
         const double rho = inner_prod(data.N, data.rho);
         const double& bdf0 = data.bdf0;
         const double& bdf1 = data.bdf1;
         const double& bdf2 = data.bdf2;
-        
-        const bounded_matrix<double,nnodes,dim>& v = data.v;
-        const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-        const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-        const bounded_matrix<double,nnodes,dim>& f = data.f;
+
+        const BoundedMatrix<double,nnodes,dim>& v = data.v;
+        const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+        const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+        const BoundedMatrix<double,nnodes,dim>& f = data.f;
         const array_1d<double,nnodes>& p = data.p;
-        
-        //get constitutive matrix 
+
+        //get constitutive matrix
         const Matrix& C = data.C;
 //         const Vector& stress = data.stress;
-        
+
         //get shape function values
-        const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+        const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
         const array_1d<double,nnodes>& N = data.N;
-        
+
         //compute an equivalent tau by Bitrans*c*Bi
         const double tau_denom =             (C(3,3) + C(4,4) + C(5,5))*(pow(DN(0,0), 2) + pow(DN(0,1), 2) + pow(DN(0,2), 2) + pow(DN(1,0), 2) + pow(DN(1,1), 2) + pow(DN(1,2), 2) + pow(DN(2,0), 2) + pow(DN(2,1), 2) + pow(DN(2,2), 2) + pow(DN(3,0), 2) + pow(DN(3,1), 2) + pow(DN(3,2), 2));
 
         const double tau1 = 1.0/(tau_denom*rho);
-        
+
         //auxiliary variables used in the calculation of the RHS
         const array_1d<double,dim> fgauss = prod(trans(f), N);
         const array_1d<double,dim> vgauss = prod(trans(v), N);
         const array_1d<double,dim> grad_p = prod(trans(DN), p);
 //         const double pgauss = inner_prod(N,p);
-        
+
         array_1d<double,dim> acch = bdf0*vgauss;
         noalias(acch) += bdf1*prod(trans(vn), N);
         noalias(acch) += bdf2*prod(trans(vnn), N);
-        
+
         array_1d<double,4> penr = ZeroVector(4); //penriched is considered to be zero as we do not want to store it
 
         const double cV0 =             rho*tau1;
@@ -1242,7 +1242,7 @@ void Stokes3DTwoFluid::ComputeGaussPointEnrichmentContributions(
             V(15,2)=cV0*(DN(3,0)*DNenr(2,0) + DN(3,1)*DNenr(2,1) + DN(3,2)*DNenr(2,2));
             V(15,3)=cV0*(DN(3,0)*DNenr(3,0) + DN(3,1)*DNenr(3,1) + DN(3,2)*DNenr(3,2));
 
-        
+
         const double cH0 =             pow(rho, 2);
 const double cH1 =             DNenr(0,0)*bdf0*cH0*tau1;
 const double cH2 =             DNenr(0,1)*bdf0*cH0*tau1;
@@ -1322,7 +1322,7 @@ const double cH13 =             DNenr(3,2)*bdf0*cH0*tau1;
             H(3,14)=N[3]*cH13;
             H(3,15)=cH4*(DN(3,0)*DNenr(3,0) + DN(3,1)*DNenr(3,1) + DN(3,2)*DNenr(3,2));
 
-        
+
         const double cKee0 =             rho*tau1;
 const double cKee1 =             cKee0*(DNenr(0,0)*DNenr(1,0) + DNenr(0,1)*DNenr(1,1) + DNenr(0,2)*DNenr(1,2));
 const double cKee2 =             cKee0*(DNenr(0,0)*DNenr(2,0) + DNenr(0,1)*DNenr(2,1) + DNenr(0,2)*DNenr(2,2));
@@ -1347,7 +1347,7 @@ const double cKee6 =             cKee0*(DNenr(2,0)*DNenr(3,0) + DNenr(2,1)*DNenr
             Kee(3,2)=cKee6;
             Kee(3,3)=cKee0*(pow(DNenr(3,0), 2) + pow(DNenr(3,1), 2) + pow(DNenr(3,2), 2));
 
-        
+
         const double crhs_ee0 =             rho*tau1;
 const double crhs_ee1 =             DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] + DN(3,0)*p[3] + DNenr(0,0)*penr[0] + DNenr(1,0)*penr[1] + DNenr(2,0)*penr[2] + DNenr(3,0)*penr[3] - N[0]*f(0,0) - N[1]*f(1,0) - N[2]*f(2,0) - N[3]*f(3,0) + rho*(N[0]*(bdf0*v(0,0) + bdf1*vn(0,0) + bdf2*vnn(0,0)) + N[1]*(bdf0*v(1,0) + bdf1*vn(1,0) + bdf2*vnn(1,0)) + N[2]*(bdf0*v(2,0) + bdf1*vn(2,0) + bdf2*vnn(2,0)) + N[3]*(bdf0*v(3,0) + bdf1*vn(3,0) + bdf2*vnn(3,0)));
 const double crhs_ee2 =             DN(0,1)*p[0] + DN(1,1)*p[1] + DN(2,1)*p[2] + DN(3,1)*p[3] + DNenr(0,1)*penr[0] + DNenr(1,1)*penr[1] + DNenr(2,1)*penr[2] + DNenr(3,1)*penr[3] - N[0]*f(0,1) - N[1]*f(1,1) - N[2]*f(2,1) - N[3]*f(3,1) + rho*(N[0]*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1)) + N[1]*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1)) + N[2]*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1)) + N[3]*(bdf0*v(3,1) + bdf1*vn(3,1) + bdf2*vnn(3,1)));
@@ -1357,8 +1357,8 @@ const double crhs_ee3 =             DN(0,2)*p[0] + DN(1,2)*p[1] + DN(2,2)*p[2] +
             rhs_ee[2]=-crhs_ee0*(DNenr(2,0)*crhs_ee1 + DNenr(2,1)*crhs_ee2 + DNenr(2,2)*crhs_ee3);
             rhs_ee[3]=-crhs_ee0*(DNenr(3,0)*crhs_ee1 + DNenr(3,1)*crhs_ee2 + DNenr(3,2)*crhs_ee3);
 
-        
-        
+
+
     }
 
 }

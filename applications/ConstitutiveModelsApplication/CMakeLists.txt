@@ -25,6 +25,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/large_strain_laws/large_strain_3D_law.cpp
 
 	#strain rate laws
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/strain_rate_laws/strain_rate_3D_law.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/strain_rate_laws/newtonian_3D_law.cpp
 
 	#general constitutive models
@@ -67,7 +68,7 @@ set_target_properties(KratosConstitutiveModelsCore PROPERTIES COMPILE_DEFINITION
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosConstitutiveModelsApplication MODULE ${KRATOS_CONSTITUTIVE_MODELS_APPLICATION_PYTHON_INTERFACE})
+pybind11_add_module(KratosConstitutiveModelsApplication MODULE THIN_LTO ${KRATOS_CONSTITUTIVE_MODELS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosConstitutiveModelsApplication PRIVATE KratosConstitutiveModelsCore)
 set_target_properties(KratosConstitutiveModelsApplication PROPERTIES PREFIX "")
 
