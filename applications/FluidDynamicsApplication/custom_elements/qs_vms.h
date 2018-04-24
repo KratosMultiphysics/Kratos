@@ -305,7 +305,7 @@ protected:
 
     void AddViscousTerm(
         const TElementData& rData,
-        boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+        BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
         VectorType& rRHS);
 
     /**
