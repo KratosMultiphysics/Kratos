@@ -290,7 +290,7 @@ private:
 ///@name Input and output
 ///@{
 
-/* typedef UblasSpace<double, CompressedMatrix, Vector> UblasSparseSpaceType;
+/* typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 typedef UblasSpace<double, Matrix, Vector> UblasDenseSpaceType;
 
 // template<>
@@ -300,10 +300,10 @@ typedef UblasSpace<double, Matrix, Vector> UblasDenseSpaceType;
 // }
 
 template<>
-std::unordered_map<std::string, typename Mapper<UblasSparseSpaceType,
-    UblasDenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<UblasSparseSpaceType, UblasDenseSpaceType>()
+std::unordered_map<std::string, typename Mapper<SparseSpaceType,
+    UblasDenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<SparseSpaceType, UblasDenseSpaceType>()
 {
-    static std::unordered_map<std::string, typename Mapper<UblasSparseSpaceType, UblasDenseSpaceType>::Pointer> registered_mappers;
+    static std::unordered_map<std::string, typename Mapper<SparseSpaceType, UblasDenseSpaceType>::Pointer> registered_mappers;
 
     return registered_mappers;
 } */

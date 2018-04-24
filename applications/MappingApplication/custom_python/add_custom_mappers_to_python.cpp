@@ -156,18 +156,18 @@ void  AddCustomMappersToPython(pybind11::module& m)
     using namespace pybind11;
 
     typedef MapperDefinitions::DenseSpaceType DenseSpaceType;
-    typedef MapperDefinitions::UblasSparseSpaceType UblasSparseSpaceType;
-    MapperToPython::ExposeMapperToPython<UblasSparseSpaceType, DenseSpaceType>(m, "Mapper");
+    typedef MapperDefinitions::SparseSpaceType SparseSpaceType;
+    MapperToPython::ExposeMapperToPython<SparseSpaceType, DenseSpaceType>(m, "Mapper");
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    typedef MapperDefinitions::TrilinosSparseSpaceType TrilinosSparseSpaceType;
-    MapperToPython::ExposeMapperToPython<TrilinosSparseSpaceType, DenseSpaceType>(m, "MPIMapper");
+    typedef MapperDefinitions::MPISparseSpaceType MPISparseSpaceType;
+    MapperToPython::ExposeMapperToPython<MPISparseSpaceType, DenseSpaceType>(m, "MPIMapper");
 #endif
 
     // Exposing the MapperFactory
     class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
-        .def_static("CreateMapper", &MapperFactory::CreateMapper<UblasSparseSpaceType, DenseSpaceType>)
+        .def_static("CreateMapper", &MapperFactory::CreateMapper<SparseSpaceType, DenseSpaceType>)
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-        .def_static("CreateMPIMapper", &MapperFactory::CreateMapper<TrilinosSparseSpaceType, DenseSpaceType>)
+        .def_static("CreateMPIMapper", &MapperFactory::CreateMapper<MPISparseSpaceType, DenseSpaceType>)
 #endif
         ;
 }

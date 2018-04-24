@@ -173,7 +173,7 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeInterfaceCommunicator()
 }
 
 template<>
-void Mapper<MapperDefinitions::UblasSparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
+void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
 {
     KRATOS_WATCH("Without MPI")
     mpMappingOperationUtility = CreateMappingOperationUtility(mpInterfaceModelPart);
@@ -181,7 +181,7 @@ void Mapper<MapperDefinitions::UblasSparseSpaceType, MapperDefinitions::DenseSpa
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 template<>
-void Mapper<MapperDefinitions::TrilinosSparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
+void Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
 {
     KRATOS_WATCH("With MPI")
     mpMappingOperationUtility = CreateMappingOperationUtility(mpInterfaceModelPart);
@@ -201,9 +201,9 @@ void Mapper<MapperDefinitions::TrilinosSparseSpaceType, MapperDefinitions::Dense
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class Mapper< MapperDefinitions::UblasSparseSpaceType, MapperDefinitions::DenseSpaceType >;
+template class Mapper< MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType >;
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-template class Mapper< MapperDefinitions::TrilinosSparseSpaceType, MapperDefinitions::DenseSpaceType >;
+template class Mapper< MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType >;
 #endif
 
 }  // namespace Kratos.

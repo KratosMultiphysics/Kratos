@@ -28,17 +28,17 @@ namespace Kratos
     /***********************************************************************************/
 
     template<>
-    MatrixBasedMappingOperationUtility<MapperDefinitions::TrilinosSparseSpaceType,
+    MatrixBasedMappingOperationUtility<MapperDefinitions::MPISparseSpaceType,
         MapperDefinitions::DenseSpaceType>::MatrixBasedMappingOperationUtility(
         ModelPartPointerType pInterfaceModelPart)
-        : MappingOperationUtility<MapperDefinitions::TrilinosSparseSpaceType,
+        : MappingOperationUtility<MapperDefinitions::MPISparseSpaceType,
           MapperDefinitions::DenseSpaceType>(pInterfaceModelPart)
     {
 
         KRATOS_WATCH("MPI-Consructor")
 
 
-        typedef MapperDefinitions::TrilinosSparseSpaceType SparseSpaceType;
+        typedef MapperDefinitions::MPISparseSpaceType SparseSpaceType;
 
         typedef typename SparseSpaceType::MatrixType SystemMatrixType; // Epetra_FECrsMatrix
         typedef typename SparseSpaceType::MatrixPointerType SystemMatrixPointerType;
@@ -127,6 +127,6 @@ namespace Kratos
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class MatrixBasedMappingOperationUtility< MapperDefinitions::TrilinosSparseSpaceType, MapperDefinitions::DenseSpaceType >;
+template class MatrixBasedMappingOperationUtility< MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType >;
 
 }  // namespace Kratos.

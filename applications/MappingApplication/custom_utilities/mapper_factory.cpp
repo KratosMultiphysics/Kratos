@@ -30,20 +30,20 @@ namespace Kratos
 //     {
 //         typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
 
-//         typedef UblasSpace<double, CompressedMatrix, Vector> UblasSparseSpaceType;
-//         typedef typename Mapper<UblasSparseSpaceType, DenseSpaceType>::Pointer MapperPointer;
+//         typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+//         typedef typename Mapper<SparseSpaceType, DenseSpaceType>::Pointer MapperPointer;
 //         typedef std::unordered_map<std::string, MapperPointer> MapperPointerMap;
 
 // #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-//         typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-//         typedef typename Mapper<TrilinosSparseSpaceType, DenseSpaceType>::Pointer MPIMapperPointer;
+//         typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> MPISparseSpaceType;
+//         typedef typename Mapper<MPISparseSpaceType, DenseSpaceType>::Pointer MPIMapperPointer;
 //         typedef std::unordered_map<std::string, MPIMapperPointer> MPIMapperPointerMap;
 // #endif
 //     }
 
 //     // Template instantiations
-//     template<MapperTypedefs::UblasSparseSpaceType, MapperTypedefs::DenseSpaceType>
-//     typename Mapper<MapperTypedefs::UblasSparseSpaceType, MapperTypedefs::DenseSpaceType>::Pointer MapperFactory::CreateMapper(
+//     template<MapperTypedefs::SparseSpaceType, MapperTypedefs::DenseSpaceType>
+//     typename Mapper<MapperTypedefs::SparseSpaceType, MapperTypedefs::DenseSpaceType>::Pointer MapperFactory::CreateMapper(
 //         ModelPart& rModelPartOrigin,
 //         ModelPart& rModelPartDestination,
 //         Parameters MapperSettings)
@@ -51,7 +51,7 @@ namespace Kratos
 
 //     }
 
-//     typename Mapper<MapperTypedefs::TrilinosSparseSpaceType, MapperTypedefs::DenseSpaceType>::Pointer MapperFactory::CreateMapper(
+//     typename Mapper<MapperTypedefs::MPISparseSpaceType, MapperTypedefs::DenseSpaceType>::Pointer MapperFactory::CreateMapper(
 //         ModelPart& rModelPartOrigin,
 //         ModelPart& rModelPartDestination,
 //         Parameters MapperSettings)
@@ -60,7 +60,7 @@ namespace Kratos
 //     }
 
 //     void MapperFactory::Register(const std::string& rMapperName,
-//                                  typename Mapper<MapperTypedefs::UblasSparseSpaceType,
+//                                  typename Mapper<MapperTypedefs::SparseSpaceType,
 //                                     MapperTypedefs::DenseSpaceType>::Pointer pMapperPrototype)
 //     {
 //         GetRegisteredMappersList().insert(
@@ -68,26 +68,26 @@ namespace Kratos
 //     }
 
 //     void MapperFactory::Register(const std::string& rMapperName,
-//                                  typename Mapper<MapperTypedefs::TrilinosSparseSpaceType,
+//                                  typename Mapper<MapperTypedefs::MPISparseSpaceType,
 //                                     MapperTypedefs::DenseSpaceType>::Pointer pMapperPrototype)
 //     {
 //         GetRegisteredMappersList().insert(
 //             make_pair(rMapperName, pMapperPrototype)); // TODO std::?
 //     }
 
-//     std::unordered_map<std::string, typename Mapper<MapperTypedefs::UblasSparseSpaceType,
+//     std::unordered_map<std::string, typename Mapper<MapperTypedefs::SparseSpaceType,
 //         MapperTypedefs::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList()
 //     {
-//         static std::unordered_map<std::string, typename Mapper<MapperTypedefs::UblasSparseSpaceType,
+//         static std::unordered_map<std::string, typename Mapper<MapperTypedefs::SparseSpaceType,
 //         MapperTypedefs::DenseSpaceType>::Pointer> registered_mappers;
 
 //         return registered_mappers;
 //     }
 
-//     std::unordered_map<std::string, typename Mapper<MapperTypedefs::TrilinosSparseSpaceType,
+//     std::unordered_map<std::string, typename Mapper<MapperTypedefs::MPISparseSpaceType,
 //         MapperTypedefs::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList()
 //     {
-//         static std::unordered_map<std::string, typename Mapper<MapperTypedefs::TrilinosSparseSpaceType,
+//         static std::unordered_map<std::string, typename Mapper<MapperTypedefs::MPISparseSpaceType,
 //         MapperTypedefs::DenseSpaceType>::Pointer> registered_mappers;
 
 //         return registered_mappers;
@@ -248,26 +248,26 @@ namespace Kratos
 
     // TODO is doing this ok or do I pollute the namespace?
 
-//     typedef UblasSpace<double, CompressedMatrix, Vector> UblasSparseSpaceType;
+//     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 //     typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
 
 //     template<>
-//     std::unordered_map<std::string, typename Mapper<UblasSparseSpaceType,
-//         DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<UblasSparseSpaceType, DenseSpaceType>()
+//     std::unordered_map<std::string, typename Mapper<SparseSpaceType,
+//         DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<SparseSpaceType, DenseSpaceType>()
 //     {
-//         static std::unordered_map<std::string, typename Mapper<UblasSparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
+//         static std::unordered_map<std::string, typename Mapper<SparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
 
 //         return registered_mappers;
 //     }
 
 // #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-//     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+//     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> MPISparseSpaceType;
 
 //     template<>
-//     std::unordered_map<std::string, typename Mapper<TrilinosSparseSpaceType,
-//         DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<TrilinosSparseSpaceType, DenseSpaceType>()
+//     std::unordered_map<std::string, typename Mapper<MPISparseSpaceType,
+//         DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MPISparseSpaceType, DenseSpaceType>()
 //     {
-//         static std::unordered_map<std::string, typename Mapper<TrilinosSparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
+//         static std::unordered_map<std::string, typename Mapper<MPISparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
 
 //         return registered_mappers;
 //     }

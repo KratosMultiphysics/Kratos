@@ -51,9 +51,9 @@ namespace Kratos
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class NearestElementMapper< MapperDefinitions::UblasSparseSpaceType, MapperDefinitions::DenseSpaceType >;
+template class NearestElementMapper< MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType >;
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-template class NearestElementMapper< MapperDefinitions::TrilinosSparseSpaceType, MapperDefinitions::DenseSpaceType >;
+template class NearestElementMapper< MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType >;
 #endif
 
 }  // namespace Kratos.

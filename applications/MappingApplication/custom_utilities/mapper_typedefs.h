@@ -32,10 +32,10 @@ namespace Kratos
     {
         typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
 
-        typedef UblasSpace<double, CompressedMatrix, Vector> UblasSparseSpaceType;
+        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-        typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+        typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> MPISparseSpaceType;
 #endif
     }
 

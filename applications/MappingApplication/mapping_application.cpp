@@ -77,20 +77,20 @@ void KratosMappingApplication::Register()
     ModelPart dummy_model_part;
     dummy_model_part = ModelPart();
 
-    MapperFactory::Register<MapperDefinitions::UblasSparseSpaceType, MapperDefinitions::DenseSpaceType>
+    MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>
         ("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper<
-        MapperDefinitions::UblasSparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
-    MapperFactory::Register<MapperDefinitions::UblasSparseSpaceType,MapperDefinitions::DenseSpaceType>
+        MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
+    MapperFactory::Register<MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>
         ("nearest_element",  Kratos::make_shared<NearestElementMapper<
-        MapperDefinitions::UblasSparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
+        MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    MapperFactory::Register<MapperDefinitions::TrilinosSparseSpaceType, MapperDefinitions::DenseSpaceType>
+    MapperFactory::Register<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>
         ("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper<
-        MapperDefinitions::TrilinosSparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
-    MapperFactory::Register<MapperDefinitions::TrilinosSparseSpaceType,MapperDefinitions::DenseSpaceType>
+        MapperDefinitions::MPISparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
+    MapperFactory::Register<MapperDefinitions::MPISparseSpaceType,MapperDefinitions::DenseSpaceType>
         ("nearest_element",  Kratos::make_shared<NearestElementMapper<
-        MapperDefinitions::TrilinosSparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
+        MapperDefinitions::MPISparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
 #endif
 
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )

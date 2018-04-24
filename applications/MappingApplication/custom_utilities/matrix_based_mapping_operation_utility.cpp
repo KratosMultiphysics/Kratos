@@ -27,10 +27,10 @@ namespace Kratos
     /* PUBLIC Methods */
     /***********************************************************************************/
     template<>
-    MatrixBasedMappingOperationUtility<MapperDefinitions::UblasSparseSpaceType,
+    MatrixBasedMappingOperationUtility<MapperDefinitions::SparseSpaceType,
         MapperDefinitions::DenseSpaceType>::MatrixBasedMappingOperationUtility(
         ModelPartPointerType pInterfaceModelPart)
-        : MappingOperationUtility<MapperDefinitions::UblasSparseSpaceType,
+        : MappingOperationUtility<MapperDefinitions::SparseSpaceType,
           MapperDefinitions::DenseSpaceType>(pInterfaceModelPart)
     {
         KRATOS_WATCH("Non-MPI-Consructor")
@@ -48,7 +48,7 @@ namespace Kratos
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class MatrixBasedMappingOperationUtility< MapperDefinitions::UblasSparseSpaceType, MapperDefinitions::DenseSpaceType >;
+template class MatrixBasedMappingOperationUtility< MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType >;
 
 
 }  // namespace Kratos.
