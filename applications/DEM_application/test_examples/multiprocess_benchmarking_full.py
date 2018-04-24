@@ -12,12 +12,12 @@ import shutil
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 
-kratos_benchmarking_path = '../../../benchmarking'
+kratos_benchmarking_path = os.path.join('..','..','..','benchmarking')
 sys.path.append(kratos_benchmarking_path)
-path = '../test_examples'
+path = os.path.join('..','test_examples')
 sys.path.append(path)
 path = os.getcwd()
-path += '/basic_benchmarks'
+path = os.path.join(path,'basic_benchmarks')
 os.chdir(path)
 initial_number_of_threads = os.environ['OMP_NUM_THREADS']
 os.environ['OMP_NUM_THREADS']='1'
@@ -59,12 +59,13 @@ def GetFilePath(fileName):
 def run(benchmark):
     out_file_name = '{0}.info'.format(benchmark)
     f = open(out_file_name, 'wb')
-    path_py = os.getcwd()
-    path_py += '/../../python_scripts'
+
+    path_to_callable_script = os.path.join(path,"DEM_benchmarks.py")
+
     if sys.version_info >= (3, 0):
-        subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark)], stdout=f, stderr=f)
+        subprocess.check_call(["python3", path_to_callable_script, str(benchmark)], stdout=f, stderr=f)
     else:
-        subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark)], stdout=f, stderr=f)
+        subprocess.check_call(["python", "-3", path_to_callable_script, str(benchmark)], stdout=f, stderr=f)
 
     f.close()
 
