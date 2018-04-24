@@ -292,10 +292,16 @@ typename TExpression1Type::data_type inner_prod(
     return First.dot(Second);
 }
 
-template <typename TExpressionType,
-    std::size_t TCategory> typename TExpressionType::data_type norm_2(
+template <typename TExpressionType, std::size_t TCategory> 
+    typename TExpressionType::data_type norm_2(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
     return TheExpression.norm();
+}
+
+template <typename TExpressionType, std::size_t TCategory> 
+    AMatrix::SubMatrix<TExpressionType> row(
+    AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t RowIndex) {
+    return AMatrix::SubMatrix<TExpressionType>(TheExpression, RowIndex,0,1,TheExpression.size2());
 }
 
 ///@}
