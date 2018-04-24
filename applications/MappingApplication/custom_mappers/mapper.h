@@ -367,7 +367,7 @@ protected:
     {
         mpInverseMapper = Clone(mrModelPartDestination, // TODO needs "this->" ?
                                 mrModelPartOrigin,
-                                mGeneralMapperSettings); // TODO how to handle this ...?
+                                mGeneralMapperSettings); // TODO how to handle this ...? => some parameters wil be validated in the derived clases (Mappers)
 
         mInverseMapperIsInitialized = true;
     }

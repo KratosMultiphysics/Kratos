@@ -84,7 +84,7 @@ class InterfacePreprocessor
     ///@name Operations
     ///@{
 
-    void GenerateInterfaceModelPart(Parameters Interfaceparameters);
+    void GenerateInterfaceModelPart(Parameters InterfaceParameters);
 
 
     ///@}
@@ -167,6 +167,17 @@ private:
     ///@name Member Variables
     ///@{
 
+    ModelPart& mrModelPartDestination;
+    ModelPartPointerType mpInterfaceModelPart;
+
+    Parameters mDefaultParameters = Parameters( R"(
+    {
+        "mapper_condition_name" : "",
+        "use_nodes"             : true
+    }  )" );
+    // Use "use_nodes" if the geometry on the destination is not needed
+
+
 
     ///@}
     ///@name Private Operators
@@ -176,6 +187,10 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void CheckAndValidateParameters(Parameters InterfaceParameters);
+
+    void CreateMapperConditions();
 
 
     ///@}
@@ -196,7 +211,7 @@ private:
     // InterfacePreprocessor& operator=(InterfacePreprocessor const& rOther) {}
 
     /// Copy constructor.
-    InterfacePreprocessor(InterfacePreprocessor const& rOther) {}
+    // InterfacePreprocessor(InterfacePreprocessor const& rOther) {}
 
     ///@}
 

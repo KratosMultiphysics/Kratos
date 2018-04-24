@@ -136,11 +136,10 @@ Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
     // ValidateParameters(MapperSettings);
     // mEchoLevel = MapperSettings["echo_level"].GetInt();
 
-    // mpInterfaceModelPart = Kratos::make_shared<ModelPart>("Mapper-Interface");
-    // mpInterfacePreprocessor = Kratos::make_shared<InterfacePreprocessor>(mrModelPartDestination,
-    //                                                                      mpInterfaceModelPart);
+    mpInterfacePreprocessor = Kratos::make_shared<InterfacePreprocessor>(mrModelPartDestination,
+                                                                         mpInterfaceModelPart);
 
-    // GenerateInterfaceModelPart();
+    GenerateInterfaceModelPart();
     Initialize();
 }
 
