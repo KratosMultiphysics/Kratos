@@ -165,69 +165,59 @@ void TotalLagrangian::CalculateKinematicVariables(
 
     // Axisymmetric case
     const unsigned int strain_size = (rThisKinematicVariables.B).size1();
-    if (strain_size == 4) {
-        rThisKinematicVariables.F.resize(3, 3); // We keep the old values
-        for (unsigned int index = 0; index < 1; ++index) {
-            rThisKinematicVariables.F(index, 2) = 0.0;
-            rThisKinematicVariables.F(2, index) = 0.0;
+    if (strain_size == 4)
+    {
+        BoundedMatrix<double, 2, 2> F2x2 = rThisKinematicVariables.F;
+        rThisKinematicVariables.F.resize(3, 3, false);
+        for (unsigned i = 0; i < 2; ++i)
+        {
+            for (unsigned j = 0; j < 2; ++j)
+                rThisKinematicVariables.F(i, j) = F2x2(i, j);
+            rThisKinematicVariables.F(i, 2) = rThisKinematicVariables.F(2, i) = 0.0;
         }
+        rThisKinematicVariables.N =
+            row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
+        const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(
+            rThisKinematicVariables.N, this->GetGeometry(), Current);
+        const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(
+            rThisKinematicVariables.N, this->GetGeometry(), Initial);
+        rThisKinematicVariables.F(2, 2) = current_radius / initial_radius;
 
-        rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
-        const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, this->GetGeometry(), Current);
-        const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, this->GetGeometry(), Initial);
-        rThisKinematicVariables.F(2, 2) = current_radius/initial_radius;
+        CalculateAxisymmetricB(
+            rThisKinematicVariables.B, rThisKinematicVariables.F,
+            rThisKinematicVariables.DN_DX, rThisKinematicVariables.N);
     }
-    
+    else
+    {
+        CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.F,
+                   rThisKinematicVariables.DN_DX);
+    }
+
     rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
     
-    // Calculating operator B
-    this->CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.F, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangian::CalculateB(
-    Matrix& rB,
-    const Matrix& rF,
-    const Matrix& rDN_DX,
-    const unsigned int StrainSize,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const unsigned int PointNumber
-    )
+void TotalLagrangian::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
 {
     KRATOS_TRY
     
     const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
     const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-
-    // rFor axisymmetric case
-    Vector N;
-    double Radius = 0.0f;
-    
-    if ( StrainSize == 4 ) {
-        N = row(this->GetGeometry().ShapeFunctionsValues(), PointNumber);
-        Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, this->GetGeometry());
-    }
+    const unsigned strain_size = GetProperties()[CONSTITUTIVE_LAW]->GetStrainSize();
     
     for ( unsigned int i = 0; i < number_of_nodes; ++i ){
         const unsigned int index = dimension * i;
 
-        if ( StrainSize == 3 ) {
+        if ( strain_size == 3 ) {
             rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
             rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
             rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
             rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
             rB( 2, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
             rB( 2, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
-        } else if ( StrainSize == 4 ) {
-            rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
-            rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
-            rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
-            rB( 2, index + 0 ) = N[i]/Radius;
-            rB( 3, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
-            rB( 3, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
         } else {
             rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
             rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
@@ -251,6 +241,33 @@ void TotalLagrangian::CalculateB(
     }
 
     KRATOS_CATCH( "" )
+}
+
+void TotalLagrangian::CalculateAxisymmetricB(Matrix& rB,
+                                             const Matrix& rF,
+                                             const Matrix& rDN_DX,
+                                             const Vector& rN)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
+    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    double radius = 0.0;
+    radius = StructuralMechanicsMathUtilities::CalculateRadius(rN, this->GetGeometry());
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
+    {
+        const unsigned int index = dimension * i;
+
+            rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
+            rB(0, index + 1) = rF(1, 0) * rDN_DX(i, 0);
+            rB(1, index + 1) = rF(0, 1) * rDN_DX(i, 1);
+            rB(1, index + 1) = rF(1, 1) * rDN_DX(i, 1);
+            rB(2, index + 0) = rN[i] / radius;
+            rB(3, index + 0) = rF(0, 0) * rDN_DX(i, 1) + rF(0, 1) * rDN_DX(i, 0);
+            rB(3, index + 1) = rF(1, 0) * rDN_DX(i, 1) + rF(1, 1) * rDN_DX(i, 0);
+    }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/

@@ -277,12 +277,14 @@ void UpdatedLagrangian::CalculateKinematicVariables(
     
     // Axisymmetric case
     if (strain_size == 4) {
-        DF.resize(3, 3); // We keep the old values
-        for (unsigned int index = 0; index < 1; index++) {
-            DF(index, 2) = 0.0;
-            DF(2, index) = 0.0;
+        BoundedMatrix<double, 2, 2> DF2x2 = DF;
+        DF.resize(3, 3, false);
+        for (unsigned i = 0; i < 2; ++i)
+        {
+            for (unsigned j = 0; j < 2; ++j)
+                DF(i, j) = DF2x2(i, j);
+            DF(i, 2) = DF(2, i) = 0.0;
         }
-
         rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
         const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Current);
         const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Initial);
