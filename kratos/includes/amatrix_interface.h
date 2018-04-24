@@ -51,6 +51,16 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     using iterator = AMatrix::RandomAccessIterator<TDataType>;
     using const_iterator = AMatrix::RandomAccessIterator<const TDataType>;
 
+    //ublas compatibility definitions
+    using value_type = TDataType;
+    using size_type = std::size_t;
+    using difference_type = std::size_t;
+    using const_reference = const TDataType&;
+    using reference = TDataType&;
+    using const_pointer = TDataType*;
+    using pointer = TDataType*;
+
+
     Matrix() {}
 
     explicit Matrix(std::size_t TheSize1, std::size_t TheSize2)
@@ -235,6 +245,10 @@ using Vector = Internals::Matrix<double,AMatrix::dynamic, 1>;
 template <typename TDataType> using DenseMatrix=Internals::Matrix<TDataType,AMatrix::dynamic, AMatrix::dynamic>;
 
 template <typename TDataType> using DenseVector=Internals::Matrix<TDataType,AMatrix::dynamic, 1>;
+
+template <typename TDataType, std::size_t TSize> using BoundedVector=Internals::Matrix<TDataType,TSize, 1>;
+
+template <typename TDataType, std::size_t TSize1, std::size_t TSize2> using BoundedMatrix=Internals::Matrix<TDataType,TSize1, TSize2>;
 
 template <typename TDataType, std::size_t TSize> using BoundedVector=Internals::Matrix<TDataType,TSize, 1>;
 
