@@ -371,6 +371,7 @@ public:
         load_map(rTag, rObject);
     }
 
+#ifndef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
 
     template<class TDataType, std::size_t TDimension>
     void load(std::string const & rTag, array_1d<TDataType, TDimension>& rObject)
@@ -381,6 +382,7 @@ public:
             load("E", rObject[i]);
 //    read(rObject);
     }
+#endif // ifndef KRATOS_USE_AMATRIX
 
     template<class TFirstType, class TSecondType>
     void load(std::string const & rTag, std::pair<TFirstType, TSecondType>& rObject)
@@ -461,6 +463,8 @@ public:
 //    write(rObject);
     }
 
+#ifndef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+
     template<class TDataType, std::size_t TDimension>
     void save(std::string const & rTag, array_1d<TDataType, TDimension> const& rObject)
     {
@@ -471,6 +475,7 @@ public:
 //    write(rObject);
     }
 
+#endif // ifndef KRATOS_USE_AMATRIX
 
     template<class TKeyType, class TDataType>
     void save(std::string const & rTag, std::map<TKeyType, TDataType> const& rObject)
@@ -661,12 +666,14 @@ public:
         load(rTag, rObject);
     }
 
+#ifndef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
     template<class TDataType, std::size_t TDimension>
     void load_base(std::string const & rTag, array_1d<TDataType, TDimension>& rObject)
     {
         load_trace_point(rTag);
         load(rTag, rObject);
     }
+#endif // ifndef KRATOS_USE_AMATRIX
 
     template<class TDataType>
     void save_base(std::string const & rTag, std::vector<TDataType> const& rObject)
@@ -682,12 +689,14 @@ public:
         save(rTag, rObject);
     }
 
+#ifndef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
     template<class TDataType, std::size_t TDimension>
     void save_base(std::string const & rTag, array_1d<TDataType, TDimension> const& rObject)
     {
         save_trace_point(rTag);
         save(rTag, rObject);
     }
+#endif // ifndef KRATOS_USE_AMATRIX
 
     template<class TDataType>
     void save_base(std::string const & rTag, TDataType const& rObject)
