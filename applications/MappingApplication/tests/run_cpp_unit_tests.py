@@ -23,7 +23,7 @@ def run():
         Tester.RunTestSuite("KratosMappingApplicationMPITestSuite")
 
     # This suite runs both with and without MPI
-    Tester.RunTestSuite("KratosMappingApplicationGeneralTestSuite")
+    # Tester.RunTestSuite("KratosMappingApplicationGeneralTestSuite")
 
 if __name__ == '__main__':
     run()

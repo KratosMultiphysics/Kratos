@@ -25,8 +25,15 @@ void CreateNodesForMapping(ModelPart& rModelPart, const int NumNodes)
         rModelPart.CreateNewNode(i+1, i*0.1, i*0.2, i*0.3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCommunicatorInterfaceEquationIds, KratosMappingApplicationGeneralTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCommunicatorInterfaceEquationIds, KratosMappingApplicationSerialTestSuite)
 {
+    /*
+    Note:
+    This test case also exists for MPI even though the implementation is generic.
+    This is because the ModelPart Communicator has to be replaced manually
+    with the MPICommunicator
+    */
+
     const int num_nodes_1 = 11;
     const int num_nodes_2 = 23;
     ModelPart model_part("ForTest");
@@ -36,17 +43,11 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCommunicatorInterfaceEquationIds, KratosMappi
     CreateNodesForMapping(model_part, num_nodes_1);
     CreateNodesForMapping(*p_model_part, num_nodes_2);
 
-    // std::cout << model_part << std::endl;
-    // std::cout << *p_model_part << std::endl;
-
     InterfaceCommunicator interface_comm(model_part, p_model_part);
 
     int idx = 0;
     for (const auto& r_node : model_part.Nodes())
     {
-        // std::cout << "Idx = " << idx << " ; INTERFACE_EQUATION_ID = "
-        //     << r_node.GetValue(INTERFACE_EQUATION_ID) << std::endl; // Print for debugging
-
         KRATOS_CHECK_EQUAL(idx, r_node.GetValue(INTERFACE_EQUATION_ID));
         idx += 1;
     }
@@ -54,16 +55,9 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCommunicatorInterfaceEquationIds, KratosMappi
     idx = 0;
     for (const auto& r_node : p_model_part->Nodes())
     {
-        // std::cout << "Idx = " << idx << " ; 222 INTERFACE_EQUATION_ID = "
-        //     << r_node.GetValue(INTERFACE_EQUATION_ID) << std::endl; // Print for debugging
-
-        KRATOS_CHECK_EQUAL(idx, r_node.GetValue(INTERFACE_EQUATION_ID));
+          KRATOS_CHECK_EQUAL(idx, r_node.GetValue(INTERFACE_EQUATION_ID));
         idx += 1;
     }
-
-
-    // KRATOS_CHECK(false);
-
 }
 
 }  // namespace Testing
