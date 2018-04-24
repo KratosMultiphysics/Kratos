@@ -442,6 +442,7 @@ public:
         }
         else
         {   
+            using namespace boost::numeric::ublas;
             const unsigned int size1 = InputMatrix.size1();
             const unsigned int size2 = InputMatrix.size2();
             if(InvertedMatrix.size1() != size1 || InvertedMatrix.size2() != size2)
@@ -454,7 +455,7 @@ public:
             Matrix A(InputMatrix);
             pmatrix pm(A.size1());
             singular = lu_factorize(A,pm);
-            InvertedMatrix.assign( IdentityMatrix(A.size1()));
+            noalias(InvertedMatrix) = IdentityMatrix(A.size1());
             lu_substitute(A, pm, InvertedMatrix);
              
             // Calculating determinant
