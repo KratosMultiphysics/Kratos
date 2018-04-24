@@ -286,7 +286,7 @@ namespace Testing {
 
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceMultipleIntersections, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleIntersections, KratosCoreFastSuite)
     {
         // Generate the tetrahedron element
         ModelPart volume_part("Volume");
@@ -334,7 +334,7 @@ namespace Testing {
 
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceStandard, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessStandard, KratosCoreFastSuite)
     {
         // Generate the tetrahedron element
         ModelPart volume_part("Volume");
@@ -414,7 +414,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(r_elem_dist[3], 0.0222594, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceBoundaryIntersection, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessBoundaryIntersection, KratosCoreFastSuite)
     {
         // Generate the tetrahedron element
         ModelPart volume_part("Volume");
