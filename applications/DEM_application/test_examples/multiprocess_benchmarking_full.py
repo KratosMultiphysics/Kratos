@@ -53,24 +53,22 @@ Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two iden
                   "Running DEM Benchmark 32... Fiber cluster bouncing without any damping (Velocity Verlet + Zhao scheme)\n",
                   "Running DEM Benchmark 33... Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n"]
 
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+
 def run(benchmark):
     out_file_name = '{0}.info'.format(benchmark)
     f = open(out_file_name, 'wb')
     path_py = os.getcwd()
     path_py += '/../../python_scripts'
     if sys.version_info >= (3, 0):
-        subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+        subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark)], stdout=f, stderr=f)
     else:
-        subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+        subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark)], stdout=f, stderr=f)
 
     f.close()
 
-    file_to_remove = os.path.join("basic_benchmarks", out_file_name)
-    if int(benchmark) == 1:
-        aaaa = GetFilePath(file_to_remove)
-        print("[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]")
-        print(aaaa)
-
+    file_to_remove = out_file_name
     kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
 
 def worker(queue):
