@@ -1146,7 +1146,12 @@ private:
 
         rData.resize(size1,size2);
 
+
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+        read(rData.begin(), rData.end(), sizeof(TDataType));
+#else
         read(rData.data().begin(), rData.data().end(), sizeof(TDataType));
+#endif // ifdef KRATOS_USE_AMATRIX
 
         KRATOS_SERIALIZER_MODE_ASCII
 
@@ -1160,7 +1165,11 @@ private:
 
         rData.resize(size1,size2);
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+        read(rData.begin(), rData.end(),0);
+#else
         read(rData.data().begin(), rData.data().end(),0);
+#endif // ifdef KRATOS_USE_AMATRIX
 
         KRATOS_SERIALIZER_MODE_END
     }
@@ -1179,14 +1188,22 @@ private:
         mpBuffer->write(data1,sizeof(SizeType));
         mpBuffer->write(data2,sizeof(SizeType));
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+        write(rData.begin(), rData.end(), sizeof(TDataType));
+#else
         write(rData.data().begin(), rData.data().end(), sizeof(TDataType));
+#endif // ifdef KRATOS_USE_AMATRIX
 
         KRATOS_SERIALIZER_MODE_ASCII
 
         *mpBuffer << rData.size1() << std::endl;
         *mpBuffer << rData.size2() << std::endl;
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+        write(rData.begin(), rData.end(),0);
+#else
         write(rData.data().begin(), rData.data().end(),0);
+#endif // ifdef KRATOS_USE_AMATRIX
 
         KRATOS_SERIALIZER_MODE_END
     }
