@@ -96,7 +96,7 @@ namespace Kratos
             // We calculate the integral of the mass matrix (assuming constant density)
             GeometryNodeType::IntegrationPointsArrayType integration_points = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             
-            bounded_matrix<double, 3, 3> mass_matrix_0 = ZeroMatrix(3, 3);
+            BoundedMatrix<double, 3, 3> mass_matrix_0 = ZeroMatrix(3, 3);
             
             for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
             {
@@ -111,7 +111,7 @@ namespace Kratos
                         mass_matrix_0(i_node, j_node) += det_j * weight * N(i_node) * N(j_node);
             }
      
-            bounded_matrix<double, 3, 3> mass_matrix_1 = ZeroMatrix(3, 3);
+            BoundedMatrix<double, 3, 3> mass_matrix_1 = ZeroMatrix(3, 3);
             
             for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
             {
@@ -205,7 +205,7 @@ namespace Kratos
             GeometryNodeType::IntegrationPointsArrayType integration_pointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             GeometryNodeType::IntegrationPointsArrayType integration_pointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             
-            bounded_matrix<double, 4, 4> mass_matrix_0 = ZeroMatrix(4, 4);
+            BoundedMatrix<double, 4, 4> mass_matrix_0 = ZeroMatrix(4, 4);
             
             for (IndexType point_number = 0; point_number < integration_pointsQuadrilateral.size(); ++point_number)
             {
@@ -220,7 +220,7 @@ namespace Kratos
                         mass_matrix_0(i_node, j_node) += det_j * weight * N[i_node] * N[j_node];
             }
      
-            bounded_matrix<double, 4, 4> mass_matrix_1 = ZeroMatrix(4, 4);
+            BoundedMatrix<double, 4, 4> mass_matrix_1 = ZeroMatrix(4, 4);
             
             for (IndexType point_number = 0; point_number < integration_pointsTriangle.size(); ++point_number)
             {
@@ -329,7 +329,7 @@ namespace Kratos
             GeometryNodeType::IntegrationPointsArrayType integration_pointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             GeometryNodeType::IntegrationPointsArrayType integration_pointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             
-            bounded_matrix<double, 4, 4> mass_matrix_0 = ZeroMatrix(4, 4);
+            BoundedMatrix<double, 4, 4> mass_matrix_0 = ZeroMatrix(4, 4);
             
             for (IndexType point_number = 0; point_number < integration_pointsQuadrilateral.size(); ++point_number)
             {
@@ -344,7 +344,7 @@ namespace Kratos
                         mass_matrix_0(i_node, j_node) += det_j * weight * N[i_node] * N[j_node];
             }
      
-            bounded_matrix<double, 4, 4> mass_matrix_1 = ZeroMatrix(4, 4);
+            BoundedMatrix<double, 4, 4> mass_matrix_1 = ZeroMatrix(4, 4);
             
             for (IndexType point_number = 0; point_number < integration_pointsTriangle.size(); ++point_number)
             {
