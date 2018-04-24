@@ -49,7 +49,7 @@ if(${MPI_NEEDED} MATCHES ON )
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure_mpi.cpp
         # Utilities
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_communicator_mpi.cpp
-        # ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility_mpi.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility_mpi.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities_mpi.cpp
     )
 

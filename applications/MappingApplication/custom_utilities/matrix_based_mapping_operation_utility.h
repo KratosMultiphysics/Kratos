@@ -104,7 +104,7 @@ class MatrixBasedMappingOperationUtility
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "MatrixBasedMappingOperationUtility";
     }
