@@ -260,6 +260,8 @@ template <typename TExpressionType> using vector_expression = AMatrix::MatrixExp
 
 using ZeroMatrix = AMatrix::ZeroMatrix<double>;
 
+using ZeroVector = AMatrix::ZeroMatrix<double>;
+
 using IdentityMatrix = AMatrix::IdentityMatrix<double>;
 
 template <typename TExpression1Type, typename TExpression2Type,
