@@ -107,8 +107,9 @@ typedef matrix_slice<Matrix> MatrixSlice;
 
 #endif // ifndef KRATOS_USE_AMATRIX
 
+
 // As the first step we will use the compressed matrix of ublas
-typedef compressed_matrix<double> CompressedMatrix;
+typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrix;
 
 ///@}
 ///@name  Enum's
