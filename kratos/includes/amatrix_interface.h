@@ -172,6 +172,12 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
         base_type::resize(NewSize);
     }
 
+    void resize(std::size_t NewSize, TDataType const& TheValue){
+        base_type::resize(NewSize);
+         for (std::size_t i = 0; i < size(); i++)
+            at(i) = TheValue;
+     }
+
     iterator begin() { return iterator(data()); }
 
     iterator end() { return iterator(data() + size()); }
@@ -209,6 +215,11 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
 
     AMatrix::TransposeMatrix<Matrix<TDataType, TSize1, TSize2>> transpose() {
         return AMatrix::TransposeMatrix<Matrix<TDataType, TSize1, TSize2>>(*this);
+    }
+
+    void clear(){
+         for (std::size_t i = 0; i < size(); i++)
+            at(i) = TDataType();
     }
 };
 
