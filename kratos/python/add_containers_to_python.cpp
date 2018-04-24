@@ -175,8 +175,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def( "__repr__", &Variable<array_1d<double, 6> >::Info )
     ;
 
-    class_<Variable<matrix<double> >,VariableData>(m, "MatrixVariable")
-    .def( "__repr__", &Variable<matrix<double> >::Info )
+    class_<Variable<DenseMatrix<double> >,VariableData>(m, "MatrixVariable")
+    .def( "__repr__", &Variable<DenseMatrix<double> >::Info )
     ;
 
     class_<Variable<ConstitutiveLaw::Pointer>,VariableData>(m, "ConstitutuveLawVariable")
@@ -224,7 +224,7 @@ void  AddContainersToPython(pybind11::module& m)
     //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<double> >() )
     //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<array_1d<double, 3> > >() )
     //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<vector<double> > >() )
-    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<matrix<double> > >() )
+    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<DenseMatrix<double> > >() )
     //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<ConvectionDiffusionSettings::Pointer > >() )
     //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<RadiationSettings::Pointer > >() )
     //.def( VariableIndexingPython<AllVariablesDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >() )

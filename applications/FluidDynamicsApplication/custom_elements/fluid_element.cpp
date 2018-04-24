@@ -126,7 +126,7 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
 
-            data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+            data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
 
             this->CalculateMaterialResponse(data);
@@ -161,7 +161,7 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+            data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
 
             this->CalculateMaterialResponse(data);
@@ -194,7 +194,7 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+            data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
 
             this->CalculateMaterialResponse(data);
@@ -234,7 +234,7 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
             const auto& r_dndx = shape_derivatives[g];
             data.UpdateGeometryValues(
-                gauss_weights[g], row(shape_functions, g), r_dndx);
+                g, gauss_weights[g], row(shape_functions, g), r_dndx);
             
             this->CalculateMaterialResponse(data);
 
@@ -267,7 +267,7 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+            data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
 
             this->CalculateMaterialResponse(data);
@@ -522,8 +522,9 @@ void FluidElement<TElementData>::PrintInfo(std::ostream& rOStream) const
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class TElementData>
-double FluidElement<TElementData>::Interpolate(const typename TElementData::NodalScalarData& rValues,
-                                               const typename TElementData::ShapeFunctionsType& rN) const
+double FluidElement<TElementData>::GetAtCoordinate(
+    const typename TElementData::NodalScalarData& rValues,
+    const typename TElementData::ShapeFunctionsType& rN) const
 {
     double result = 0.0;
 
@@ -535,7 +536,7 @@ double FluidElement<TElementData>::Interpolate(const typename TElementData::Noda
 }
 
 template <class TElementData>
-array_1d<double, 3> FluidElement<TElementData>::Interpolate(
+array_1d<double, 3> FluidElement<TElementData>::GetAtCoordinate(
     const typename TElementData::NodalVectorData& rValues,
     const typename TElementData::ShapeFunctionsType& rN) const
 {
@@ -548,6 +549,14 @@ array_1d<double, 3> FluidElement<TElementData>::Interpolate(
     }
 
     return result;
+}
+
+template <class TElementData>
+double FluidElement<TElementData>::GetAtCoordinate(
+    const double Value,
+    const typename TElementData::ShapeFunctionsType& rN) const
+{
+    return Value;
 }
 
 template <class TElementData>
@@ -599,7 +608,7 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
 template< class TElementData >
 void FluidElement<TElementData>::ConvectionOperator(Vector &rResult,
                                    const array_1d<double,3> &rConvVel,
-                                   const ShapeFunctionDerivativesType &DN_DX)
+                                   const ShapeFunctionDerivativesType &DN_DX) const
 {
     if(rResult.size() != NumNodes) rResult.resize(NumNodes,false);
 

@@ -826,7 +826,7 @@ public:
         const double z43 = z4 - z3;
         
         // Compute LHS
-        bounded_matrix<double, 4,4> invJ;
+        BoundedMatrix<double, 4,4> invJ;
         const double aux_volume = 1.0/(6.0*this->Volume());
         invJ(0,0) = aux_volume * (x2*(y3*z4-y4*z3)+x3*(y4*z2-y2*z4)+x4*(y2*z3-y3*z2));
         invJ(1,0) = aux_volume * (x1*(y4*z3-y3*z4)+x3*(y1*z4-y4*z1)+x4*(y3*z1-y1*z3));
@@ -963,7 +963,7 @@ public:
     }
 
     //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         NumberNodesInFaces.resize(4, false);
         // Linear Tetrahedra have elements of 3 nodes as faces
@@ -975,7 +975,7 @@ public:
     }
 
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
         NodesInFaces.resize(4, 4, false);
         NodesInFaces(0,0)=0;//face or other node
@@ -1098,7 +1098,7 @@ public:
         if(integration_points_number == 0)
             KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+        BoundedMatrix<double,4,3> DN_DX;
         const double x10 = this->Points()[1].X() - this->Points()[0].X();
         const double y10 = this->Points()[1].Y() - this->Points()[0].Y();
         const double z10 = this->Points()[1].Z() - this->Points()[0].Z();
@@ -1150,7 +1150,7 @@ public:
         if(integration_points_number == 0)
             KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+        BoundedMatrix<double,4,3> DN_DX;
         const double x10 = this->Points()[1].X() - this->Points()[0].X();
         const double y10 = this->Points()[1].Y() - this->Points()[0].Y();
         const double z10 = this->Points()[1].Z() - this->Points()[0].Z();

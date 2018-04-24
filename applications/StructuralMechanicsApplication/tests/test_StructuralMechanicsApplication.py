@@ -52,6 +52,7 @@ from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTes
 from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 # Eigenvalues Postprocessing Process test
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
+# Test adjoint elements
 
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -163,6 +164,10 @@ from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlate
 from RestartTests import TestSmallDisplacement2D4N  as TTestSmallDisplacement2D4N
 from RestartTests import TestTotalLagrangian2D3N    as TTestTotalLagrangian2D3N
 from RestartTests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D8N
+
+##### RESPONSE_FUNCTION #####
+from structural_response_function_test_factory import TestMassResponseFunction as TTestMassResponseFunction
+from structural_response_function_test_factory import TestStrainEnergyResponseFunction as TTestStrainEnergyResponseFunction
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -294,6 +299,9 @@ def AssembleTestSuites():
             nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests])) # TODO should be in smallSuite but is too slow
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
+
+    nightSuite.addTest(TTestMassResponseFunction('test_execution'))
+    nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
 
     nightSuite.addTests(smallSuite)
 

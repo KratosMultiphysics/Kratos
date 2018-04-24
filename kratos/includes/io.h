@@ -93,7 +93,7 @@ public:
 
     typedef std::size_t SizeType;
 
-    typedef matrix<int> GraphType;
+    typedef DenseMatrix<int> GraphType;
 
 
     ///@}

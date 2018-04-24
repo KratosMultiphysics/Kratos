@@ -213,8 +213,8 @@ public:
         normals[0] = GeomOrigin[0].FastGetSolutionStepValue(NORMAL);
         normals[1] = GeomOrigin[1].FastGetSolutionStepValue(NORMAL);
         
-        bounded_matrix<double,2,2> X;
-        bounded_matrix<double,2,1> DN;
+        BoundedMatrix<double,2,2> X;
+        BoundedMatrix<double,2,1> DN;
         for(unsigned int i=0; i<2;++i) {
             X(0,i) = GeomOrigin[i].X();
             X(1,i) = GeomOrigin[i].Y();
@@ -350,7 +350,7 @@ public:
         PointType aux_point_to_rotate;
         aux_point_to_rotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
         
-        bounded_matrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
+        BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
         
         if (Inversed == false) {
             for (unsigned int i = 0; i < 3; ++i) {
@@ -471,13 +471,13 @@ public:
      */
     
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline bounded_matrix<double, TNumNodes, TDim> GetCoordinates(
+    static inline BoundedMatrix<double, TNumNodes, TDim> GetCoordinates(
         const GeometryType& ThisNodes,
         const bool Current = true,
         const unsigned int Step = 0
         ) {
         /* DEFINITIONS */            
-        bounded_matrix<double, TNumNodes, TDim> coordinates;
+        BoundedMatrix<double, TNumNodes, TDim> coordinates;
         array_1d<double, 3> coord;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
@@ -505,12 +505,12 @@ public:
      */
 
     template< unsigned int TNumNodes, unsigned int TDim>
-    static inline bounded_matrix<double, TNumNodes, TDim> ComputeTangentMatrix(const GeometryType& ThisNodes) {
+    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrix(const GeometryType& ThisNodes) {
         /* DEFINITIONS */
         // Zero tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
         // Tangent matrix
-        bounded_matrix<double, TNumNodes, TDim> tangent_matrix;
+        BoundedMatrix<double, TNumNodes, TDim> tangent_matrix;
 
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3>& lm = ThisNodes[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
@@ -566,13 +566,13 @@ public:
      */
         
     template< unsigned int TNumNodes, class TVarType = Variable<double> >
-    static inline bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
+    static inline BoundedMatrix<double, TNumNodes, 1> GetVariableVectorMatrix(
         const GeometryType& ThisNodes,
         const TVarType& rVariable,
         const unsigned int Step
         ) {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, 1> var_vector;
+        BoundedMatrix<double, TNumNodes, 1> var_vector;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
             var_vector(i_node, 0) = ThisNodes[i_node].FastGetSolutionStepValue(rVariable, Step);
@@ -609,12 +609,12 @@ public:
      */
     
     template< unsigned int TNumNodes, class TVarType = Variable<double> >
-    static inline bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
+    static inline BoundedMatrix<double, TNumNodes, 1> GetVariableVectorMatrix(
         const GeometryType& ThisNodes,
         const TVarType& rVariable
         ) {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, 1> var_vector;
+        BoundedMatrix<double, TNumNodes, 1> var_vector;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
             var_vector(i_node, 0) = ThisNodes[i_node].GetValue(rVariable);
@@ -631,13 +631,13 @@ public:
      */
     
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline bounded_matrix<double, TNumNodes, TDim> GetVariableMatrix(
+    static inline BoundedMatrix<double, TNumNodes, TDim> GetVariableMatrix(
         const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVariable,
         const unsigned int Step
         ) {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, TDim> var_matrix;
+        BoundedMatrix<double, TNumNodes, TDim> var_matrix;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3> value = Nodes[i_node].FastGetSolutionStepValue(rVariable, Step);
@@ -656,12 +656,12 @@ public:
      */
         
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline bounded_matrix<double, TNumNodes, TDim> GetVariableMatrix(
+    static inline BoundedMatrix<double, TNumNodes, TDim> GetVariableMatrix(
         const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVariable
         ) {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, TDim> var_matrix;
+        BoundedMatrix<double, TNumNodes, TDim> var_matrix;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3>& value = Nodes[i_node].GetValue(rVariable);
@@ -679,9 +679,9 @@ public:
      */
         
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline bounded_matrix<double, TNumNodes, TDim> GetAbsMatrix(const bounded_matrix<double, TNumNodes, TDim>& InputMatrix) {
+    static inline BoundedMatrix<double, TNumNodes, TDim> GetAbsMatrix(const BoundedMatrix<double, TNumNodes, TDim>& InputMatrix) {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, TDim> AbsMatrix;
+        BoundedMatrix<double, TNumNodes, TDim> AbsMatrix;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof)
