@@ -17,11 +17,10 @@
 #include <memory>
 
 // External includes
-#include <boost/numeric/ublas/matrix.hpp>
-
 
 // Project includes
 #include "includes/define.h"
+#include "includes/ublas_interface.h"
 
 // Application includes
 
@@ -38,7 +37,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GeometricalSensitivityUtility);
 
-    typedef boost::numeric::ublas::matrix<double> MatrixType;
+    typedef DenseMatrix<double> MatrixType;
 
     typedef MatrixType JacobianType;
 
@@ -48,7 +47,7 @@ public:
     
     typedef unsigned IndexType;
 
-    typedef boost::numeric::ublas::indirect_array<boost::numeric::ublas::vector<std::size_t>> IndirectArrayType;
+    typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
 
     typedef boost::numeric::ublas::matrix_indirect<const MatrixType, IndirectArrayType> SubMatrixType;
 
