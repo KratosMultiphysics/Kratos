@@ -193,7 +193,7 @@ public:
 
 					array_1d<double,3>& rMomentum = itNode->FastGetSolutionStepValue(MOMENTUM);
 					for(unsigned int i = 0; i < 3; i++) momentum[i] = rMomentum[i];
-					noalias(Tmp) = boost::numeric::ublas::prod(rRot,momentum);
+					noalias(Tmp) = prod(rRot,momentum);
 					for(unsigned int i = 0; i < 3; i++) rMomentum[i] = Tmp[i];
 				}
 				else
@@ -203,7 +203,7 @@ public:
 
 					array_1d<double,3>& rMomentum = itNode->FastGetSolutionStepValue(MOMENTUM);
 					for(unsigned int i = 0; i < 2; i++) momentum[i] = rMomentum[i];
-					noalias(Tmp) = boost::numeric::ublas::prod(rRot,momentum);
+					noalias(Tmp) = prod(rRot,momentum);
 					for(unsigned int i = 0; i < 2; i++) rMomentum[i] = Tmp[i];
 				}
 			}
@@ -230,7 +230,7 @@ public:
 
 					array_1d<double,3>& rMomentum = itNode->FastGetSolutionStepValue(MOMENTUM);
 					for(unsigned int i = 0; i < 3; i++) momentum[i] = rMomentum[i];
-					noalias(Tmp) = boost::numeric::ublas::prod(boost::numeric::ublas::trans(rRot),momentum);
+					noalias(Tmp) = prod(trans(rRot),momentum);
 					for(unsigned int i = 0; i < 3; i++) rMomentum[i] = Tmp[i];
 				}
 				else
@@ -240,7 +240,7 @@ public:
 
 					array_1d<double,3>& rMomentum = itNode->FastGetSolutionStepValue(MOMENTUM);
 					for(unsigned int i = 0; i < 2; i++) momentum[i] = rMomentum[i];
-					noalias(Tmp) = boost::numeric::ublas::prod(boost::numeric::ublas::trans(rRot),momentum);
+					noalias(Tmp) = prod(trans(rRot),momentum);
 					for(unsigned int i = 0; i < 2; i++) rMomentum[i] = Tmp[i];
 				}
 			}

@@ -538,13 +538,13 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
 
     const auto& constitutive_matrix = rData.C;
 
-    BoundedMatrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+    BoundedMatrix<double,StrainSize,LocalSize> shear_stress_matrix = prod(constitutive_matrix,strain_matrix);
 
     BoundedMatrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
     FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal,normal_projection);
 
     // Contribution to boundary stress from 2*mu*symmetric_gradient(velocity)*n
-    BoundedMatrix<double,Dim,LocalSize> normal_stress_operator = boost::numeric::ublas::prod(normal_projection,shear_stress_matrix);
+    BoundedMatrix<double,Dim,LocalSize> normal_stress_operator = prod(normal_projection,shear_stress_matrix);
 
     // Contribution to boundary stress from p*n
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -556,7 +556,7 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
     }
 
     // RHS: stress computed using current solution
-    array_1d<double,Dim> shear_stress = boost::numeric::ublas::prod(normal_projection,rData.ShearStress);
+    array_1d<double,Dim> shear_stress = prod(normal_projection,rData.ShearStress);
     const double p_gauss = this->GetAtCoordinate(rData.Pressure,rData.N);
 
     // Add -Ni*normal_stress_operator to the LHS, Ni*current_stress to the RHS
@@ -582,13 +582,13 @@ void QSVMS<TElementData>::AddViscousTerm(
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
 
     const auto& constitutive_matrix = rData.C;
-    BoundedMatrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+    BoundedMatrix<double,StrainSize,LocalSize> shear_stress_matrix = prod(constitutive_matrix,strain_matrix);
 
     // Multiply times integration point weight (I do this here to avoid a temporal in LHS += weight * Bt * C * B)
     strain_matrix *= rData.Weight;
 
-    noalias(rLHS) += boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),shear_stress_matrix);
-    noalias(rRHS) -= boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),rData.ShearStress);
+    noalias(rLHS) += prod(trans(strain_matrix),shear_stress_matrix);
+    noalias(rRHS) -= prod(trans(strain_matrix),rData.ShearStress);
 }
 
 

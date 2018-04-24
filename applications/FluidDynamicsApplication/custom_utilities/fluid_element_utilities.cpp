@@ -189,7 +189,7 @@ void FluidElementUtilities<TNumNodes>::DenseSystemSolve(
     double det = rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0);
     inverse /= det;
 
-    noalias(rX) = boost::numeric::ublas::prod(inverse,rB);
+    noalias(rX) = prod(inverse,rB);
 }
 
 template < std::size_t TNumNodes>
@@ -218,7 +218,7 @@ void FluidElementUtilities<TNumNodes>::DenseSystemSolve(
     double det = rA(0,0)*inverse(0,0) + rA(0,1)*inverse(1,0) + rA(0,2)*inverse(2,0);
     inverse /= det;
 
-    noalias(rX) = boost::numeric::ublas::prod(inverse,rB);
+    noalias(rX) = prod(inverse,rB);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
