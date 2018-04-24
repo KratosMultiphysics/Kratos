@@ -35,6 +35,7 @@
 // Variables
 #include "includes/variables.h"
 
+
 // ==============================================================================
 
 namespace Kratos
@@ -65,11 +66,6 @@ namespace Kratos
 
     // For mapping
     KRATOS_DEFINE_VARIABLE(int,MAPPING_ID);
-
-    // For Structure Sensitivity Analysis
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MASS_SHAPE_GRADIENT);
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(EIGENFREQUENCY_SHAPE_GRADIENT);
 
 	///@}
 	///@name Type Definitions
@@ -223,12 +219,11 @@ namespace Kratos
 		///@name Member Variables
 		///@{
 
-        // elements
-
         //conditions
         const ShapeOptimizationCondition mShapeOptimizationCondition3D3N;
 		const ShapeOptimizationCondition mShapeOptimizationCondition3D4N;
         const ShapeOptimizationCondition mShapeOptimizationCondition2D2N;
+		const ShapeOptimizationCondition mShapeOptimizationCondition3D2N;
 
 
 		///@}

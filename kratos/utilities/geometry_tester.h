@@ -226,7 +226,7 @@ public:
         bool succesful = true;
 
         //this fast function only exists for simplices. Do not use it in other tests
-        boost::numeric::ublas::bounded_matrix<double, 4,3 > DN_DX;
+        BoundedMatrix<double, 4,3 > DN_DX;
         array_1d<double, 4 > N;
         double Area;
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
@@ -311,7 +311,7 @@ public:
         bool succesful = true;
 
         //this fast function only exists for simplices. Do not use it in other tests
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+        BoundedMatrix<double, 3, 2 > DN_DX;
         array_1d<double, 3 > N;
         double Area;
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
