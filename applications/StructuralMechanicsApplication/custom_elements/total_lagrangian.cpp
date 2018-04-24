@@ -18,6 +18,7 @@
 // Project includes
 #include "custom_elements/total_lagrangian.h"
 #include "utilities/math_utils.h"
+#include "utilities/geometry_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 
@@ -161,7 +162,8 @@ void TotalLagrangian::CalculateKinematicVariables(
     KRATOS_ERROR_IF(rThisKinematicVariables.detJ0 < 0.0) << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rThisKinematicVariables.detJ0 << std::endl;
     
     // Deformation gradient
-    noalias( rThisKinematicVariables.F ) = prod( J, rThisKinematicVariables.InvJ0 );
+    GeometryUtils::DeformationGradient(J, rThisKinematicVariables.InvJ0,
+                                       rThisKinematicVariables.F);
 
     // Axisymmetric case
     const unsigned int strain_size = (rThisKinematicVariables.B).size1();
@@ -175,8 +177,6 @@ void TotalLagrangian::CalculateKinematicVariables(
                 rThisKinematicVariables.F(i, j) = F2x2(i, j);
             rThisKinematicVariables.F(i, 2) = rThisKinematicVariables.F(2, i) = 0.0;
         }
-        rThisKinematicVariables.N =
-            row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
         const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(
             rThisKinematicVariables.N, this->GetGeometry(), Current);
         const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(
