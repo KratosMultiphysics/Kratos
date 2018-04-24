@@ -997,8 +997,8 @@ namespace Kratos
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( FOLLOWER_LINE_LOAD ) )
-	  FollowerLoad += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( FOLLOWER_LINE_LOAD );
+	if( GetGeometry()[i].SolutionStepsDataHas( FOLLOWER_FORCE_LOAD ) )
+	  FollowerLoad += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( FOLLOWER_FORCE_LOAD );
       }
 
     //Current Frame given by the frame rotation
@@ -1644,8 +1644,8 @@ namespace Kratos
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( FOLLOWER_LINE_LOAD ) )
-	  FollowerLoad += rVariables.N[i] *  GetGeometry()[i].FastGetSolutionStepValue( FOLLOWER_LINE_LOAD );
+	if( GetGeometry()[i].SolutionStepsDataHas( FOLLOWER_FORCE_LOAD ) )
+	  FollowerLoad += rVariables.N[i] *  GetGeometry()[i].FastGetSolutionStepValue( FOLLOWER_FORCE_LOAD );
       }
 
     //Current Frame given by the frame rotation

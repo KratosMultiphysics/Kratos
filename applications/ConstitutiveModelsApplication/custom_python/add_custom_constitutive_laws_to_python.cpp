@@ -35,6 +35,7 @@
 #include "custom_laws/large_strain_laws/large_strain_axisymmetric_2D_law.hpp"
 
 // Strain rate laws
+#include "custom_laws/strain_rate_laws/strain_rate_plane_strain_2D_law.hpp"
 #include "custom_laws/strain_rate_laws/newtonian_plane_strain_2D_law.hpp"
 
 // Constitutive models
@@ -142,6 +143,16 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
 
   //strain rate laws
+  class_< StrainRate3DLaw, typename StrainRate3DLaw::Pointer, ConstitutiveLawBaseType >
+      (m, "StrainRate3DLaw")
+      .def( init<ConstitutiveModelPointer>() )
+      ;
+    
+  class_< StrainRatePlaneStrain2DLaw, typename StrainRatePlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >
+      (m, "StrainRatePlaneStrain2DLaw")
+      .def( init<ConstitutiveModelPointer>() )
+      ;
+  
   class_< Newtonian3DLaw, typename Newtonian3DLaw::Pointer, ConstitutiveLawBaseType >(m, "Newtonian3DLaw")
       .def( init<>() )
       ;
