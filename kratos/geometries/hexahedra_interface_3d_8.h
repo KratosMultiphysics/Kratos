@@ -710,8 +710,8 @@ public:
         const CoordinatesArrayType& rPoint
         ) override
     {
-        boost::numeric::ublas::bounded_matrix<double,3,4> X;
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
+        BoundedMatrix<double,3,4> X;
+        BoundedMatrix<double,3,2> DN;
         for(unsigned int i=0; i<4;i++)
         {
             X(0,i ) = 0.5*(this->GetPoint( i ).X() + this->GetPoint( i+4 ).X());
