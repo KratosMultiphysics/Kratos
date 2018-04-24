@@ -142,7 +142,7 @@ public:
 //         data.h = ComputeH<4,3>(data.DN_DX, Volume);
 
         //gauss point position
-        bounded_matrix<double,NumNodes, NumNodes> Ncontainer;
+        BoundedMatrix<double,NumNodes, NumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
 
         //database access to all of the variables needed
@@ -174,7 +174,7 @@ public:
         }
 
         //allocate memory needed
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
+        BoundedMatrix<double,MatrixSize, MatrixSize> lhs_local;
         array_1d<double,MatrixSize> rhs_local;
 
         unsigned int npos=0, nneg=0;
@@ -335,8 +335,8 @@ public:
 
                 if (data.stress.size() != strain_size) data.stress.resize(strain_size,false);
 
-                const bounded_matrix<double,NumNodes,Dim>& v = data.v;
-                const bounded_matrix<double,NumNodes,Dim>& DN = data.DN_DX;
+                const BoundedMatrix<double,NumNodes,Dim>& v = data.v;
+                const BoundedMatrix<double,NumNodes,Dim>& DN = data.DN_DX;
 
                 //compute strain
                 Vector strain(strain_size);
@@ -375,13 +375,13 @@ public:
     }
 
     template<int MatrixSize, int NumNodes>
-    void ComputeElementAsAIR(bounded_matrix<double,MatrixSize, MatrixSize>& lhs_local,
+    void ComputeElementAsAIR(BoundedMatrix<double,MatrixSize, MatrixSize>& lhs_local,
                              array_1d<double,MatrixSize>& rhs_local,
                              Matrix& rLeftHandSideMatrix,
                              Vector& rRightHandSideVector,
                              const double& Volume,
                              element_data<4,3>& data,
-                             bounded_matrix<double,NumNodes, NumNodes>& Ncontainer,
+                             BoundedMatrix<double,NumNodes, NumNodes>& Ncontainer,
                              ProcessInfo& rCurrentProcessInfo)
     {
         const double air_density = GetProperties()[DENSITY_AIR];
@@ -434,13 +434,13 @@ public:
 
 
     template<int MatrixSize, int NumNodes>
-    void ComputeElementAsFLUID(bounded_matrix<double,MatrixSize, MatrixSize>& lhs_local,
+    void ComputeElementAsFLUID(BoundedMatrix<double,MatrixSize, MatrixSize>& lhs_local,
                                array_1d<double,MatrixSize>& rhs_local,
                                Matrix& rLeftHandSideMatrix,
                                Vector& rRightHandSideVector,
                                const double& Volume,
                                element_data<4,3>& data,
-                               bounded_matrix<double,NumNodes, NumNodes>& Ncontainer,
+                               BoundedMatrix<double,NumNodes, NumNodes>& Ncontainer,
                                ProcessInfo& rCurrentProcessInfo)
     {
         const double weight = Volume/static_cast<double>(NumNodes);
@@ -490,7 +490,7 @@ public:
 
     //ATTENTION: here multiple integration points are used. For this reason the methods used must be reimplemented in the current element
     template<int MatrixSize, int NumNodes>
-    void ComputeElementAsMIXED(bounded_matrix<double,MatrixSize, MatrixSize>& lhs_local,
+    void ComputeElementAsMIXED(BoundedMatrix<double,MatrixSize, MatrixSize>& lhs_local,
                                array_1d<double,MatrixSize>& rhs_local,
                                Matrix& rLeftHandSideMatrix,
                                Vector& rRightHandSideVector,
@@ -512,7 +512,7 @@ public:
             if(ndivisions == 1)
             {
                 //gauss point position
-                bounded_matrix<double,NumNodes, NumNodes> Ncontainer;
+                BoundedMatrix<double,NumNodes, NumNodes> Ncontainer;
                 GetShapeFunctionsOnGauss(Ncontainer);
 
                 //cases exist when the element is like not subdivided due to the characteristics of the provided distance
@@ -531,9 +531,9 @@ public:
             }
             else
             {
-                boost::numeric::ublas::bounded_matrix<double, MatrixSize, NumNodes > Vtot, V;
-                boost::numeric::ublas::bounded_matrix<double, NumNodes, MatrixSize > Htot, H;
-                boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> Kee_tot, Kee;
+                BoundedMatrix<double, MatrixSize, NumNodes > Vtot, V;
+                BoundedMatrix<double, NumNodes, MatrixSize > Htot, H;
+                BoundedMatrix<double, NumNodes, NumNodes> Kee_tot, Kee;
                 array_1d<double, NumNodes> rhs_ee_tot, rhs_ee;
                 Vtot.clear();
                 Htot.clear();
@@ -632,17 +632,17 @@ public:
     ///@{
 
     //this is the symbolic function implementing the element
-    void ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const element_data<4,3>& data);
+    void ComputeGaussPointLHSContribution(BoundedMatrix<double,16,16>& lhs, const element_data<4,3>& data);
     void ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const element_data<4,3>& data);
     void ComputeGaussPointEnrichmentContributions(
-        boost::numeric::ublas::bounded_matrix<double,4,16>& H,
-        boost::numeric::ublas::bounded_matrix<double,16,4>& V,
-        boost::numeric::ublas::bounded_matrix<double,4,4>&  Kee,
+        BoundedMatrix<double,4,16>& H,
+        BoundedMatrix<double,16,4>& V,
+        BoundedMatrix<double,4,4>&  Kee,
         array_1d<double,4>& rhs_ee,
         const element_data<4,3>& data,
         const array_1d<double,4>& distances,
         const array_1d<double,4>& Nenr,
-        const boost::numeric::ublas::bounded_matrix<double,4,4>& DNenr
+        const BoundedMatrix<double,4,4>& DNenr
     );
 
     ///@}
@@ -684,9 +684,9 @@ public:
     }
 
     void CondenseEnrichment(Matrix& rLeftHandSideMatrix,Vector& rRightHandSideVector,
-                            const boost::numeric::ublas::bounded_matrix<double,4,16>& Htot,
-                            const boost::numeric::ublas::bounded_matrix<double,16,4>& Vtot,
-                            boost::numeric::ublas::bounded_matrix<double,4,4>& Kee_tot,
+                            const BoundedMatrix<double,4,16>& Htot,
+                            const BoundedMatrix<double,16,4>& Vtot,
+                            BoundedMatrix<double,4,4>& Kee_tot,
                             array_1d<double,4>& Renr,
                             const Vector& volumes,
                             const Vector& signs,
@@ -761,7 +761,7 @@ public:
         }
 
         //add to LHS enrichment contributions
-        boost::numeric::ublas::bounded_matrix<double,4,4> inverse_diag;
+        BoundedMatrix<double,4,4> inverse_diag;
         bool inversion_successful = InvertMatrix<>(Kee_tot,inverse_diag);
 
         if(!inversion_successful )
@@ -773,7 +773,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error,"error in the inversion of the enrichment matrix for element ",this->Id());
         }
 
-        const boost::numeric::ublas::bounded_matrix<double,4,16> tmp = prod(inverse_diag,Htot);
+        const BoundedMatrix<double,4,16> tmp = prod(inverse_diag,Htot);
         noalias(rLeftHandSideMatrix) -= prod(Vtot,tmp);
 
         const array_1d<double,4> tmp2 = prod(inverse_diag,Renr);
@@ -861,8 +861,8 @@ private:
         if(data.stress.size() != strain_size)
             data.stress.resize(strain_size,false);
 
-        const bounded_matrix<double,nnodes,dim>& v = data.v;
-        const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+        const BoundedMatrix<double,nnodes,dim>& v = data.v;
+        const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
         //compute strain
         Vector strain(strain_size);

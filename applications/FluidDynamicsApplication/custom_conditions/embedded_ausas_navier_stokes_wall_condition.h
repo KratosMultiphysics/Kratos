@@ -111,7 +111,7 @@ public:
         double wGauss;                              // Gauss point weight
         array_1d<double, 3> Normal;                 // Condition normal
         array_1d<double, TNumNodes> N;              // Gauss point shape functions values
-        bounded_matrix<double, TNumNodes, TDim> v;  // Current step velocity
+        BoundedMatrix<double, TNumNodes, TDim> v;  // Current step velocity
 
         // Data containers for no-split faces
         MatrixType N_container;
@@ -343,7 +343,7 @@ public:
 
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_gauss;
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_gauss;
+        BoundedMatrix<double,MatrixSize, MatrixSize> lhs_gauss;
 
         // LHS and RHS contributions initialization
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
@@ -435,7 +435,7 @@ public:
         this->FillConditionData(data);
 
         // Allocate memory needed
-        bounded_matrix<double, MatrixSize, MatrixSize> lhs_gauss;
+        BoundedMatrix<double, MatrixSize, MatrixSize> lhs_gauss;
 
         // LHS contributions initialization
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize, MatrixSize);
@@ -713,7 +713,7 @@ protected:
         return mParentElementIds;
     }
 
-    void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
+    void ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
     void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);

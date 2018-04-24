@@ -70,10 +70,10 @@ public:
     template <unsigned int TNumNodes, unsigned int TDim>
     struct element_data
     {
-        bounded_matrix<double,TNumNodes, TDim> v, vn, vnn, f;
+        BoundedMatrix<double,TNumNodes, TDim> v, vn, vnn, f;
         array_1d<double,TNumNodes> p, rho;
 
-        bounded_matrix<double, TNumNodes, TDim > DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
 
         Matrix C;
@@ -154,7 +154,7 @@ public:
 //         data.h = ComputeH<4,3>(data.DN_DX, Volume);
 
         //gauss point position
-        bounded_matrix<double,NumNodes, NumNodes> Ncontainer;
+        BoundedMatrix<double,NumNodes, NumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
 
         //database access to all of the variables needed
@@ -185,7 +185,7 @@ public:
         }
 
         //allocate memory needed
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
+        BoundedMatrix<double,MatrixSize, MatrixSize> lhs_local;
         array_1d<double,MatrixSize> rhs_local;
 
         //loop on gauss points
@@ -240,7 +240,7 @@ public:
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, Volume);
 
         //gauss point position
-        bounded_matrix<double,NumNodes, NumNodes> Ncontainer;
+        BoundedMatrix<double,NumNodes, NumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
 
         //database access to all of the variables needed
@@ -437,8 +437,8 @@ public:
 
             if (data.stress.size() != strain_size) data.stress.resize(strain_size,false);
 
-            const bounded_matrix<double,NumNodes,Dim>& v = data.v;
-            const bounded_matrix<double,NumNodes,Dim>& DN = data.DN_DX;
+            const BoundedMatrix<double,NumNodes,Dim>& v = data.v;
+            const BoundedMatrix<double,NumNodes,Dim>& DN = data.DN_DX;
 
             //compute strain
             Vector strain(strain_size);
@@ -525,7 +525,7 @@ protected:
     ///@{
 
     //this is the symbolic function implementing the element
-    void ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const element_data<4,3>& data);
+    void ComputeGaussPointLHSContribution(BoundedMatrix<double,16,16>& lhs, const element_data<4,3>& data);
     void ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const element_data<4,3>& data);
 
     ///@}
@@ -540,7 +540,7 @@ protected:
     ///@name Protected Operations
     ///@{
     template< unsigned int TNumNodes, unsigned int TDim>
-    double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim>& DN_DX, const double Volume)
+    double ComputeH(BoundedMatrix<double,TNumNodes, TDim>& DN_DX, const double Volume)
     {
         double h=0.0;
                  for(unsigned int i=0; i<TNumNodes; i++)
@@ -557,7 +557,7 @@ protected:
     }
 
     //gauss points for the 3D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4, 4>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4, 4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
         Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
@@ -566,7 +566,7 @@ protected:
     }
 
     //gauss points for the 2D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
     {
         const double one_sixt = 1.0/6.0;
         const double two_third = 2.0/3.0;
@@ -586,8 +586,8 @@ protected:
         if(data.stress.size() != strain_size)
             data.stress.resize(strain_size,false);
 
-        const bounded_matrix<double,nnodes,dim>& v = data.v;
-        const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+        const BoundedMatrix<double,nnodes,dim>& v = data.v;
+        const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
 
 //         noalias(data.C) = ZeroMatrix(strain_size,strain_size);

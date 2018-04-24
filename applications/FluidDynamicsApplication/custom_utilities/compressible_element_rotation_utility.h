@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -188,7 +188,7 @@ public:
 				//this->RotationOperator<TLocalMatrixType>(Rotation,);
 				if(this->GetDomainSize() == 3)
 				{
-					boost::numeric::ublas::bounded_matrix<double,3,3> rRot;
+					BoundedMatrix<double,3,3> rRot;
 					this->LocalRotationOperatorPure(rRot,*itNode);
 
 					array_1d<double,3>& rMomentum = itNode->FastGetSolutionStepValue(MOMENTUM);
@@ -198,7 +198,7 @@ public:
 				}
 				else
 				{
-					boost::numeric::ublas::bounded_matrix<double,2,2> rRot;
+					BoundedMatrix<double,2,2> rRot;
 					this->LocalRotationOperatorPure(rRot,*itNode);
 
 					array_1d<double,3>& rMomentum = itNode->FastGetSolutionStepValue(MOMENTUM);
@@ -225,7 +225,7 @@ public:
 			{
 				if(this->GetDomainSize() == 3)
 				{
-					boost::numeric::ublas::bounded_matrix<double,3,3> rRot;
+					BoundedMatrix<double,3,3> rRot;
 					this->LocalRotationOperatorPure(rRot,*itNode);
 
 					array_1d<double,3>& rMomentum = itNode->FastGetSolutionStepValue(MOMENTUM);
@@ -235,7 +235,7 @@ public:
 				}
 				else
 				{
-					boost::numeric::ublas::bounded_matrix<double,2,2> rRot;
+					BoundedMatrix<double,2,2> rRot;
 					this->LocalRotationOperatorPure(rRot,*itNode);
 
 					array_1d<double,3>& rMomentum = itNode->FastGetSolutionStepValue(MOMENTUM);

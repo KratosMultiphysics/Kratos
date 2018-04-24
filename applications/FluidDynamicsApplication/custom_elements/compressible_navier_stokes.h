@@ -69,13 +69,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(CompressibleNavierStokes);
     struct ElementDataStruct
     {
-        bounded_matrix<double, TNumNodes, BlockSize> U, Un, Unn;
-        bounded_matrix<double, TNumNodes, TDim> f_ext;
+        BoundedMatrix<double, TNumNodes, BlockSize> U, Un, Unn;
+        BoundedMatrix<double, TNumNodes, TDim> f_ext;
         array_1d<double,TNumNodes> r; // At the moment considering all parameters as constant in the domain (mu, nu, etc...)
         array_1d<double, TDim> f_gauss;
         double r_gauss;
 
-        bounded_matrix<double, TNumNodes, TDim > DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
 
         double bdf0;
@@ -153,7 +153,7 @@ public:
         this->FillElementData(data, rCurrentProcessInfo);
 
         // Allocate memory needed
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
+        BoundedMatrix<double,MatrixSize, MatrixSize> lhs_local;
         array_1d<double,MatrixSize> rhs_local;
 
         // Loop on gauss points
@@ -161,7 +161,7 @@ public:
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Gauss point position
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
 
         for(unsigned int igauss = 0; igauss<Ncontainer.size2(); igauss++)
@@ -211,7 +211,7 @@ public:
         array_1d<double,MatrixSize> rhs_local;
 
         // Gauss point position
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
 
         // Loop on gauss point
@@ -368,7 +368,7 @@ protected:
 
     double ShockCapturingViscosity(const ElementDataStruct& data);
     double ShockCapturingConductivity(const ElementDataStruct& data);
-    void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(BlockSize),TNumNodes*(BlockSize)>& lhs, const ElementDataStruct& data, double v_sc, double k_sc);
+    void ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(BlockSize),TNumNodes*(BlockSize)>& lhs, const ElementDataStruct& data, double v_sc, double k_sc);
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(BlockSize)>& rhs, const ElementDataStruct& data,double v_sc, double k_sc);
 
     double SubscaleErrorEstimate(const ElementDataStruct& data);
@@ -437,7 +437,7 @@ protected:
     }
 
     //~ template< unsigned int TDim, unsigned int TNumNodes=TDim+1>
-    double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim>& DN_DX)
+    double ComputeH(BoundedMatrix<double,TNumNodes, TDim>& DN_DX)
     {
         double h=0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
@@ -454,7 +454,7 @@ protected:
     }
 
     // 3D tetrahedra shape functions values at Gauss points
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4,4>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4,4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
         Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
@@ -463,7 +463,7 @@ protected:
     }
 
     // 2D triangle shape functions values at Gauss points
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
     {
         const double one_sixt = 1.0/6.0;
         const double two_third = 2.0/3.0;
@@ -473,13 +473,13 @@ protected:
     }
 
     // 3D tetrahedra shape functions values at centered Gauss point
-    void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,4>& Ncontainer)
+    void GetShapeFunctionsOnUniqueGauss(BoundedMatrix<double,1,4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.25; Ncontainer(0,1) = 0.25; Ncontainer(0,2) = 0.25; Ncontainer(0,3) = 0.25;
     }
 
     // 2D triangle shape functions values at centered Gauss point
-    void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,3>& Ncontainer)
+    void GetShapeFunctionsOnUniqueGauss(BoundedMatrix<double,1,3>& Ncontainer)
     {
         Ncontainer(0,0) = 1.0/3.0; Ncontainer(0,1) = 1.0/3.0; Ncontainer(0,2) = 1.0/3.0;
     }

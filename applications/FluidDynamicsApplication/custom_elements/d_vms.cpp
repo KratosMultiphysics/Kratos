@@ -763,7 +763,7 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
     const double h = rData.ElementSize;
 
     // Elemental large-scale velocity gradient
-    boost::numeric::ublas::bounded_matrix<double,Dim,Dim> resolved_velocity_gradient = ZeroMatrix(Dim,Dim);
+    BoundedMatrix<double,Dim,Dim> resolved_velocity_gradient = ZeroMatrix(Dim,Dim);
 
     const auto& r_resolved_velocities = rData.Velocity;
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -794,7 +794,7 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
     bool converged = false;
     double subscale_velocity_error = 2.0 * mSubscalePredictionVelocityTolerance;
 
-    boost::numeric::ublas::bounded_matrix<double,Dim,Dim> J = ZeroMatrix(Dim,Dim);
+    BoundedMatrix<double,Dim,Dim> J = ZeroMatrix(Dim,Dim);
     array_1d<double,Dim> rhs(Dim,0.0);
     array_1d<double,Dim> u = mPredictedSubscaleVelocity[rData.IntegrationPointIndex]; // Use last result as initial guess
     array_1d<double,Dim> du(Dim,0.0);
