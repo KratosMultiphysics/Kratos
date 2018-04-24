@@ -18,10 +18,6 @@
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 
-// Toggle this comments if visualization is needed for debugging
-// #include "includes/gid_io.h"
-// #include "custom_processes/embedded_skin_visualization_process.h" // 
-
 namespace Kratos {
 namespace Testing {
 
@@ -176,10 +172,10 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (volume_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], -0.0714286, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], -0.0714286, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], -0.0714286, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[3], 0.0714286, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], 0.0714286, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], 0.0714286, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 0.0714286, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], -0.0714286, 1e-6);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximationSkewed, KratosCoreFastSuite)
@@ -215,59 +211,6 @@ namespace Testing {
         KRATOS_CHECK_NEAR(r_elem_dist[1], 0.1044875, 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[2], -0.266495, 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[3], 0.104487, 1e-6);
-
-        // // Create an auxiliar GidIO to print the original geometris
-        // Generate the tetrahedron element
-        // ModelPart origin_part("Volume");
-        // origin_part.CreateNewNode(100, 0.0, -0.5, 0.0);
-        // origin_part.CreateNewNode(200, 1.0, -0.5, 0.0);
-        // origin_part.CreateNewNode(300, 0.0,  0.5, 0.0);
-        // origin_part.CreateNewNode(400, 0.0, -0.5, 1.0);
-        // Properties::Pointer p_properties_4(new Properties(4));
-        // origin_part.CreateNewElement("Element3D4N", 100, {100, 200, 300, 400}, p_properties_4);
-
-        // // Generate the skin such that one edge is cut twice
-        // ModelPart skin_part("Skin");
-        // origin_part.CreateNewNode(1, -1.0, -1.0,  0.75);
-        // origin_part.CreateNewNode(2,  1.0, -1.0,  0.75);
-        // origin_part.CreateNewNode(3, -1.0,  1.0,  0.75);
-        // origin_part.CreateNewNode(4, 0.75, -1.0,  1.0);
-        // origin_part.CreateNewNode(5, 0.75, -1.0, -1.0);
-        // origin_part.CreateNewNode(6, 0.75,  1.0, -1.0);
-        // Properties::Pointer p_properties_3(new Properties(3));
-        // origin_part.CreateNewElement("Element3D3N", 1, {1,2,3}, p_properties_3);
-        // origin_part.CreateNewElement("Element3D3N", 2, {4,5,6}, p_properties_3);
-
-        // GidIO<> gid_io_fluid_visualization("/home/rzorrilla/Desktop/DiscontinuousDistanceProcessPlaneApproximationSkewedOrigin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-        // gid_io_fluid_visualization.InitializeMesh(0.00);
-        // gid_io_fluid_visualization.WriteMesh(origin_part.GetMesh());
-        // gid_io_fluid_visualization.FinalizeMesh();
-        // gid_io_fluid_visualization.InitializeResults(0, origin_part.GetMesh());
-        // gid_io_fluid_visualization.FinalizeResults();
-
-        // // Call the visualization utility to see the resultant splitting pattern
-        // ModelPart visualization_model_part("VolumeVisualization");
-        // Parameters visualization_parameters(R"(
-        // {
-        //     "shape_functions"                     : "ausas",
-        //     "reform_model_part_at_each_time_step" : false,
-        //     "visualization_variables"             : []
-        // })");
-        // EmbeddedSkinVisualizationProcess visualization_tool(volume_part, visualization_model_part, visualization_parameters);
-        // visualization_tool.ExecuteInitialize();
-        // visualization_tool.ExecuteInitialize();
-        // visualization_tool.ExecuteBeforeSolutionLoop();
-        // visualization_tool.ExecuteInitializeSolutionStep();
-        // visualization_tool.ExecuteBeforeOutputStep();
-        // visualization_tool.ExecuteFinalizeSolutionStep();
-
-        // GidIO<> gid_io_fluid_visualization("/home/rzorrilla/Desktop/DiscontinuousDistanceProcessPlaneApproximationSkewed", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-        // gid_io_fluid_visualization.InitializeMesh(0.00);
-        // gid_io_fluid_visualization.WriteMesh(visualization_model_part.GetMesh());
-        // gid_io_fluid_visualization.FinalizeMesh();
-        // gid_io_fluid_visualization.InitializeResults(0, visualization_model_part.GetMesh());
-        // gid_io_fluid_visualization.FinalizeResults();
-
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximationVertical, KratosCoreFastSuite)
