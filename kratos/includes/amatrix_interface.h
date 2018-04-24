@@ -256,6 +256,8 @@ template <typename T> T& noalias(T& TheMatrix){return TheMatrix.noalias();}
 
 template <typename T> AMatrix::TransposeMatrix<T> trans(T& TheMatrix){return TheMatrix.transpose();}
 
+template <typename TExpressionType> using vector_expression = AMatrix::MatrixExpression<TExpressionType>;
+
 using ZeroMatrix = AMatrix::ZeroMatrix<double>;
 
 using IdentityMatrix = AMatrix::IdentityMatrix<double>;
