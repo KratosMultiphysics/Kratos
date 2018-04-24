@@ -228,15 +228,13 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 ///@name Type Definitions
 ///@{
 
-using dynamic = AMatrix::dynamic;
+using Matrix = Internals::Matrix<double,AMatrix::dynamic, AMatrix::dynamic>;
 
-using Matrix = Internals::Matrix<double,dynamic, dynamic>;
+using Vector = Internals::Matrix<double,AMatrix::dynamic, 1>;
 
-using Vector = Internals::Matrix<double,dynamic, 1>;
+template <typename TDataType> using DenseMatrix=Internals::Matrix<TDataType,AMatrix::dynamic, AMatrix::dynamic>;
 
-template <typename TDataType> using DenseMatrix=Internals::Matrix<TDataType,dynamic, dynamic>;
-
-template <typename TDataType> using DenseVector=Internals::Matrix<TDataType,dynamic, 1>;
+template <typename TDataType> using DenseVector=Internals::Matrix<TDataType,AMatrix::dynamic, 1>;
 
 template <typename TDataType, std::size_t TSize> using BoundedVector=Internals::Matrix<TDataType,TSize, 1>;
 
