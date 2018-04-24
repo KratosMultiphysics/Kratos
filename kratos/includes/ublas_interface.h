@@ -65,6 +65,13 @@ namespace Kratos
 
 using namespace boost::numeric::ublas;
 
+template <typename TDataType> using DenseMatrix = boost::numeric::ublas::matrix<TDataType>;
+template <typename TDataType> using DenseVector = boost::numeric::ublas::vector<TDataType>;
+
+template <typename TDataType, std::size_t TSize1, std::size_t TSize2> using BoundedMatrix = boost::numeric::ublas::bounded_matrix<TDataType, TSize1, TSize2>;
+template <typename TDataType, std::size_t TSize> using BoundedVector = boost::numeric::ublas::bounded_vector<TDataType, TSize>;
+
+
 typedef boost::numeric::ublas::vector<double> Vector;
 typedef unit_vector<double> UnitVector;
 typedef zero_vector<double> ZeroVector;

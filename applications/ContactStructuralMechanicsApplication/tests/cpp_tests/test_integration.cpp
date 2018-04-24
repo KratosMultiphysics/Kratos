@@ -50,7 +50,7 @@ namespace Kratos
          * Checks mass matrix computed
          */
     
-        KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationTriangle, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationTriangle, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart ModelPart("Main");
             
@@ -165,7 +165,7 @@ namespace Kratos
          * Checks mass matrix computed
          */
     
-        KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateral, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateral, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart ModelPart("Main");
             
@@ -272,7 +272,7 @@ namespace Kratos
          * Checks mass matrix computed
          */
     
-        KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateralDeformed, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateralDeformed, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart ModelPart("Main");
             
@@ -493,7 +493,7 @@ namespace Kratos
          * Checks mass matrix computed
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(TestCheckRotation, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestCheckRotation, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart ModelPart("Main");
             

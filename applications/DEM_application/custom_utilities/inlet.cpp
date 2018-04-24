@@ -291,6 +291,42 @@ namespace Kratos {
         node.Set(DEMFlags::FIXED_ANG_VEL_Z, true);
     }
 
+    void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
+    {
+            vector<unsigned int> ElementPartition;
+            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
+            typedef ElementsArrayType::iterator ElementIterator;
+            #pragma omp parallel
+            {
+            #pragma omp for
+            for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
+                ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;                                        
+
+                SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*elem_it);
+                Node<3>& node = spheric_particle.GetGeometry()[0];
+
+                const array_1d<double,3> inlet_velocity = (*(spheric_particle.mpInlet))[VELOCITY];
+                const double inlet_velocity_magnitude = DEM_MODULUS_3(inlet_velocity);    
+                const array_1d<double, 3> unitary_inlet_velocity =  inlet_velocity/inlet_velocity_magnitude;  
+
+                const array_1d<double,3>& initial_coordinates = node.GetInitialPosition();
+                const array_1d<double,3>& coordinates = node.Coordinates();
+                const array_1d<double,3> distance = coordinates - initial_coordinates;
+                const double reference_distance = 12.0 * (*(spheric_particle.mpInlet))[RADIUS];
+
+                /// Projection over injection axis
+                const double projected_distance = DEM_INNER_PRODUCT_3(distance, unitary_inlet_velocity);
+                if (projected_distance < reference_distance) {
+                    node.Set(DEMFlags::CUMULATIVE_ZONE, true);
+                    spheric_particle.Set(DEMFlags::CUMULATIVE_ZONE, true);
+                }else{
+                    node.Set(DEMFlags::CUMULATIVE_ZONE, false);
+                    spheric_particle.Set(DEMFlags::CUMULATIVE_ZONE, false);
+                }
+            }       
+            }                         
+    }
+
     void DEM_Inlet::RemoveInjectionConditions(Element& element)
     {
         Node<3>& node = element.GetGeometry()[0];
@@ -393,7 +429,18 @@ namespace Kratos {
         return false;
     }
 
-    void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {
+
+
+    void DEM_Inlet::InitializeStep(ModelPart& r_modelpart) {   
+
+        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {            
+            ModelPart& mp = *smp_it;
+            const bool dense_inlet = mp[DENSE_INLET];
+            if (dense_inlet){CheckDistanceAndSetFlag(r_modelpart);}
+        }
+    }
+
+    void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {                    
         InitializeStep(r_modelpart);
         unsigned int& max_Id=creator.mMaxNodeId;
         const double current_time = r_modelpart.GetProcessInfo()[TIME];

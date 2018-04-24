@@ -61,7 +61,7 @@ public:
     ///@{
 
     /// Default constructor.
-    RotationOperation(ModelPart& model_part, boost::numeric::ublas::vector<int> group_ids,boost::numeric::ublas::vector<int> table_ids,unsigned int echo_level=0):
+    RotationOperation(ModelPart& model_part, DenseVector<int> group_ids,DenseVector<int> table_ids,unsigned int echo_level=0):
 	Process(),mr_model_part(model_part),mgroup_ids(group_ids),mtable_ids(table_ids)
      {
 	mecho_level=echo_level;
@@ -145,7 +145,7 @@ public:
 		reference_point(1)=ReferenceTableY(time);
 		reference_point(2)=ReferenceTableZ(time);
 
-		boost::numeric::ublas::bounded_matrix<double, 3, 3 > rotation_matrix;
+		BoundedMatrix<double, 3, 3 > rotation_matrix;
 		const double c1=cos(rotation(0));
 		const double c2=cos(rotation(1));
 		const double c3=cos(rotation(2));
@@ -258,8 +258,8 @@ private:
 
     ModelPart& mr_model_part;
    // ModelPart::MeshType& mgroup_container;
-    boost::numeric::ublas::vector<int> mgroup_ids;
-    boost::numeric::ublas::vector<int> mtable_ids;
+    DenseVector<int> mgroup_ids;
+    DenseVector<int> mtable_ids;
     unsigned int mecho_level;
 
     ///@}
