@@ -10,7 +10,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os
 
 # Read parameters
-with open("parameters.json",'r') as parameter_file:
+with open("optimization_parameters.json",'r') as parameter_file:
     parameters = Parameters(parameter_file.read())
 
 # Defining the model_part
