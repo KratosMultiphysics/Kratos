@@ -74,12 +74,7 @@ void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessI
 
 void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-    // Create and initialize element variables:
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
 
     // Create constitutive law parameters:
@@ -98,9 +93,6 @@ void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
     // Reading integration points
     for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-        // Compute element kinematics B, F, DN_DX ...
-        CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
-
         // Call the constitutive law to update material variables
         mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
 
