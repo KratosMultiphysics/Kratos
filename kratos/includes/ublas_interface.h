@@ -31,12 +31,14 @@
 
 
 // External includes
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#include "includes/amatrix_interface.h"
+#else
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/vector_sparse.hpp>
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/hermitian.hpp>
@@ -45,9 +47,10 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/lu.hpp>
+#endif // ifdef KRATOS_USE_AMATRIX
 
+#include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/operation_sparse.hpp>
-
 
 // Project includes
 #include "includes/define.h"
@@ -62,7 +65,7 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
+#ifndef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
 using namespace boost::numeric::ublas;
 
 template <typename TDataType> using DenseMatrix = boost::numeric::ublas::matrix<TDataType>;
@@ -94,7 +97,6 @@ typedef hermitian_matrix<double> HermitianMatrix;
 typedef banded_matrix<double> BandedMatrix;
 //typedef sparse_matrix<double> SparseMatrix;
 typedef mapped_matrix<double> SparseMatrix;
-typedef compressed_matrix<double> CompressedMatrix;
 typedef coordinate_matrix<double> CoordinateMatrix;
 typedef matrix_row<Matrix> MatrixRow;
 typedef matrix_column<Matrix> MatrixColumn;
@@ -102,6 +104,11 @@ typedef matrix_vector_range<Matrix> MatrixVectorRange;
 typedef matrix_vector_slice<Matrix> MatrixVectorSlice;
 typedef matrix_range<Matrix> MatrixRange;
 typedef matrix_slice<Matrix> MatrixSlice;
+
+#endif // ifndef KRATOS_USE_AMATRIX
+
+// As the first step we will use the compressed matrix of ublas
+typedef compressed_matrix<double> CompressedMatrix;
 
 ///@}
 ///@name  Enum's
