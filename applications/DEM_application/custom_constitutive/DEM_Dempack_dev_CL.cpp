@@ -54,8 +54,8 @@ namespace Kratos {
                                                 double calculation_area,
                                                 SphericContinuumParticle* element1,
                                                 SphericContinuumParticle* element2) {
-        
-        KRATOS_TRY 
+
+        KRATOS_TRY
 
 //        double rmin = element1->GetRadius();    // test rebalance solo resistencia
 //        const double other_radius = element2->GetRadius();
@@ -70,7 +70,7 @@ namespace Kratos {
 //        outputfile << kn_el << " " << kt_el << "\n";
 //        outputfile.close();
 
-        KRATOS_CATCH("")  
+        KRATOS_CATCH("")
     }
 
 
@@ -259,7 +259,7 @@ namespace Kratos {
             int i_neighbour_count,
             bool& sliding,
             int search_control,
-            vector<int>& search_control_vector,
+            DenseVector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
@@ -393,7 +393,7 @@ namespace Kratos {
             int i_neighbour_count,
             bool& sliding,
             int search_control,
-            vector<int>& search_control_vector,
+            DenseVector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
@@ -451,7 +451,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    
+
     void DEM_Dempack_dev::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,
                                                     double equiv_young,
