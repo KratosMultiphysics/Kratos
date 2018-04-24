@@ -676,7 +676,7 @@ double DSS_FIC<TDim>::ProjectedSizeHexa(const array_1d<double,3> &rDirection)
         Q(i,2) = v40[i];
     }
 
-    Matrix QInv = ZeroMatrix(3,3);
+    Matrix QInv;
     double det;
     MathUtils<double>::InvertMatrix(Q,QInv,det);
 
