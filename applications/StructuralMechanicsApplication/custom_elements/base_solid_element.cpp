@@ -1105,7 +1105,7 @@ void BaseSolidElement::CalculateConstitutiveVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix BaseSolidElement::CalculateDeltaDisplacement(Matrix& DeltaDisplacement)
+Matrix& BaseSolidElement::CalculateDeltaDisplacement(Matrix& DeltaDisplacement)
 {
     KRATOS_TRY
 
