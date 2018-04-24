@@ -1232,11 +1232,12 @@ public:
         Matrix& DeltaPosition
         ) const
     {
+        constexpr std::size_t dimension = 3;
         if (rResult.size() != 3)
             rResult.resize(3, false);
         noalias( rResult ) = ZeroVector( 3 );
         if (DeltaPosition.size2() != 3)
-            DeltaPosition.resize(DeltaPosition.size1(), 3);
+            DeltaPosition.resize(DeltaPosition.size1(), dimension);
 
         Vector N( this->size() );
         ShapeFunctionsValues( N, LocalCoordinates );
