@@ -237,7 +237,11 @@ public:
     {
         push_back(rValue.size1());
         push_back(rValue.size2());
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+        push_back(rValue.begin(), rValue.end());
+#else
         push_back(rValue.data().begin(), rValue.data().end());
+#endif // ifndef KRATOS_USE_AMATRIX
     }
 
     /** This buffer is not prepared for storing pointers. So a logical error
@@ -356,7 +360,11 @@ public:
 
         rValue.resize(size1,size2);
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+        pop_front(rValue.begin(), rValue.end());
+#else
         pop_front(rValue.data().begin(), rValue.data().end());
+#endif // ifdef KRATOS_USE_AMATRIX
     }
 
     /** A generic pop front to cover all other type of data wich are not specified before.
