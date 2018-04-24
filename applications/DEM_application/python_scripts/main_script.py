@@ -57,6 +57,7 @@ class Solution(object):
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
         self.SetAnalyticParticleWatcher()
+        self.SetAnalyticFaceWatcher()
         self.PreUtilities = PreUtilities()
 
         # Set the print function TO_DO: do this better...
@@ -119,7 +120,13 @@ class Solution(object):
         from analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
         self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher=self.particle_watcher, path=self.main_path)
-
+        
+    def SetAnalyticFaceWatcher(self):
+        self.main_path = os.getcwd()  #revisar
+        from analytic_tools import analytic_data_procedures
+        self.face_watcher = AnalyticFaceWatcher()
+        self.face_watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(analytic_face_watcher=self.face_watcher, path=self.main_path)
+        
     def SetFinalTime(self):
         self.final_time = self.DEM_parameters["FinalTime"].GetDouble()
 

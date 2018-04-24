@@ -465,6 +465,8 @@ class Algorithm(object):
         self.debug_info_counter           = self.GetDebugInfo()
         self.particles_results_counter    = self.GetParticlesResultsCounter()
         self.quadrature_counter           = self.GetHistoryForceQuadratureCounter()
+        #Phantom
+        self.analytic_data_counter        = self.ProcessAnalyticDataCounter()
         self.mat_deriv_averager           = SDP.Averager(1, 3)
         self.laplacian_averager           = SDP.Averager(1, 3)
 
@@ -579,6 +581,15 @@ class Algorithm(object):
 
     def TheSimulationMustGoOn(self):
         return self.time <= self.final_time
+    
+    def GetAnalyticFacesModelParts(self):
+        analytic_face_submodelpart_number = 1
+        analytic_face_submodelpart_name = self.rigid_face_model_part.GetSubModelPart(str(analytic_face_submodelpart_number))
+        return analytic_face_submodelpart_name
+    
+    def MakeAnalyticsMeasurements(self):
+        self.analytic_face_watcher.MakeMeasurements()
+        self.analytic_particle_watcher.MakeMeasurements()
 
     def RunMainTemporalLoop(self):
         coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
@@ -587,7 +598,7 @@ class Algorithm(object):
         integration_scheme = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
         dem_inlet_option = self.pp.CFD_DEM["dem_inlet_option"].GetBool()
         interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
-
+        
         while self.TheSimulationMustGoOn():
 
             self.time = self.time + self.Dt
@@ -719,6 +730,20 @@ class Algorithm(object):
 
                 if self.DEM_to_fluid_counter.Tick() and self.time >= interaction_start_time:
                     self.projection_module.ProjectFromParticles()
+                    
+                #Phantom                
+                self.MakeAnalyticsMeasurements()
+                
+                if self.analytic_data_counter.Tick():
+                    self.ProcessAnalyticData()
+                
+                times = []
+                neighbour_ids = []
+                masses = []
+                normal_relative_vel = []
+                tangential_relative_vel = []
+                
+                self.watcher.GetAllFacesData(self.GetAnalyticFacesModelParts(), times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
 
             #### PRINTING GRAPHS ####
             os.chdir(self.graphs_path)
@@ -816,6 +841,9 @@ class Algorithm(object):
         self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(
             analytic_particle_watcher=self.particle_watcher,
             path=self.main_path)
+    
+    def ProcessAnalyticData(self):
+        self.disperse_phase_solution.WriteAnalyticDataToFileAndClear()
 
     def SetInletWatcher(self):
         self.watcher_analyser.SetInlet(self.DEM_inlet)
@@ -898,7 +926,13 @@ class Algorithm(object):
             self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt(),
             1,
             self.pp.CFD_DEM["basset_force_type"].GetInt())
-
+    
+    def ProcessAnalyticDataCounter(self):
+        return SDP.Counter(
+            steps_in_cycle=self.pp.CFD_DEM["time_steps_per_analytic_processing_step"].GetInt(),
+            beginning_step=1,
+            is_active=self.pp.CFD_DEM["do_process_analytic_data"].GetBool())
+    
     def GetVolumeDebugTool(self):
         return SDP.ProjectionDebugUtils(
             self.pp.CFD_DEM["fluid_domain_volume"].GetDouble(),
