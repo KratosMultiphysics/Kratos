@@ -150,7 +150,7 @@ void TotalLagrangian::CalculateKinematicVariables(
     const IntegrationMethod this_integration_method = this->GetGeometry().GetDefaultIntegrationMethod();
     
     // Shape functions
-    rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);;
+    rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
 
     // Calculating jacobian
     Matrix J;
@@ -172,7 +172,7 @@ void TotalLagrangian::CalculateKinematicVariables(
             rThisKinematicVariables.F(2, index) = 0.0;
         }
 
-        rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);;
+        rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
         const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, this->GetGeometry(), Current);
         const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, this->GetGeometry(), Initial);
         rThisKinematicVariables.F(2, 2) = current_radius/initial_radius;
@@ -206,7 +206,7 @@ void TotalLagrangian::CalculateB(
     double Radius = 0.0f;
     
     if ( StrainSize == 4 ) {
-        N = row(this->GetGeometry().ShapeFunctionsValues(), PointNumber);;
+        N = row(this->GetGeometry().ShapeFunctionsValues(), PointNumber);
         Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, this->GetGeometry());
     }
     
