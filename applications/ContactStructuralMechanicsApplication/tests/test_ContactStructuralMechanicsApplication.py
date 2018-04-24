@@ -1,11 +1,22 @@
 # import Kratos
-from KratosMultiphysics import *
-from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
-from KratosMultiphysics.ContactStructuralMechanicsApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
+import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+try:
+    import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+    missing_external_dependencies = False
+    missing_application = ''
+except ImportError as e:
+    missing_external_dependencies = True
+    # extract name of the missing application from the error message
+    import re
+    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
+                                    '{0}'.format(e)).group(1)
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
@@ -74,6 +85,7 @@ from NightlyTests import ComponentsALMHertzCompleteTestContact         as TCompo
 
 # ALM frictionless tests
 from NightlyTests import ALMTaylorPatchFrictionalTestContact           as TALMTaylorPatchFrictionalTestContact
+from NightlyTests import ALMPureFrictionalTestContact                  as TALMPureFrictionalTestContact
 
 ## VALIDATION TESTS
 from ValidationTests import LargeDisplacementPatchTestHexa as TLargeDisplacementPatchTestHexa
@@ -184,6 +196,7 @@ def AssambleTestSuites():
 
     # ALM frictional tests
     nightSuite.addTest(TALMTaylorPatchFrictionalTestContact('test_execution'))
+    nightSuite.addTest(TALMPureFrictionalTestContact('test_execution'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
@@ -276,6 +289,7 @@ def AssambleTestSuites():
             #####TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             TComponentsALMHertzCompleteTestContact,
             TALMTaylorPatchFrictionalTestContact,
+            TALMPureFrictionalTestContact,
             #### VALIDATION
             TALMTaylorPatchDynamicTestContact,
             TALMMeshMovingMatchingTestContact,
@@ -297,3 +311,4 @@ def AssambleTestSuites():
 
 if __name__ == '__main__':
     KratosUnittest.runTests(AssambleTestSuites())
+    run_cpp_unit_tests.run()
