@@ -159,18 +159,6 @@ void NearestNeighborCondition::EquationIdVector(EquationIdVectorType& rResult, P
 }
 
 /**
- * determines the condition equation list of DOFs
- * @param ConditionDofList: the list of DOFs
- * @param rCurrentProcessInfo: the current process info instance
- */
-void NearestNeighborCondition::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& CurrentProcessInfo) {
-  unsigned int number_of_nodes = GetGeometry().PointsNumber();
-  if (rConditionDofList.size() != number_of_nodes)
-    rConditionDofList.resize(number_of_nodes);
-
-}
-
-/**
  * CONDITIONS inherited from this class have to implement next
  * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
  * they can be managed internally with a private method to do the same calculations

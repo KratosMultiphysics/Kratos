@@ -111,7 +111,7 @@ public:
    * @param pProperties: the properties assigned to the new condition
    * @return a Pointer to the new condition
    */
-  Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+  Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
   /**
    * creates a new condition pointer
@@ -120,7 +120,7 @@ public:
    * @param pProperties: the properties assigned to the new condition
    * @return a Pointer to the new condition
    */
-  Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
+  Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
   /**
    * creates a new condition pointer and clones the previous condition data
@@ -129,7 +129,7 @@ public:
    * @param pProperties: the properties assigned to the new condition
    * @return a Pointer to the new condition
    */
-  Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+  Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
   /**
    * this determines the condition equation ID vector for all condition
@@ -137,14 +137,7 @@ public:
    * @param rResult: the condition equation ID vector
    * @param rCurrentProcessInfo: the current process info instance
    */
-  virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo);
-
-  /**
-   * determines the condition list of DOFs
-   * @param rConditionDofList: the list of DOFs
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  virtual void GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& CurrentProcessInfo);
+  void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
 
   /**
    * CONDITIONS inherited from this class have to implement next
@@ -161,10 +154,10 @@ public:
    * @param rRightHandSideVector: the condition right hand side
    * @param rCurrentProcessInfo: the current process info instance
    */
-  virtual void CalculateLocalSystem(
+  void CalculateLocalSystem(
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
-      ProcessInfo& rCurrentProcessInfo);
+      ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * this is called during the assembling process in order
@@ -172,7 +165,7 @@ public:
    * @param rLeftHandSideMatrix: the condition left hand side matrix
    * @param rCurrentProcessInfo: the current process info instance
    */
-  virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+  void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * this is called during the assembling process in order
@@ -180,7 +173,7 @@ public:
    * @param rRightHandSideVector: the condition right hand side vector
    * @param rCurrentProcessInfo: the current process info instance
    */
-  virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+  void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * This method provides the place to perform checks on the completeness of the input
@@ -191,7 +184,7 @@ public:
    * @param rCurrentProcessInfo
    * this method is: MANDATORY
    */
-  virtual int Check(const ProcessInfo& rCurrentProcessInfo);
+  int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
   ///@}
   ///@name Access
@@ -208,13 +201,13 @@ public:
   ///@{
 
   /// Turn back information as a string.
-  virtual std::string Info() const;
+  std::string Info() const override;
 
   /// Print information about this object.
-  virtual void PrintInfo(std::ostream& rOStream) const;
+  void PrintInfo(std::ostream& rOStream) const override;
 
   /// Print object's data.
-  virtual void PrintData(std::ostream& rOStream) const;
+  void PrintData(std::ostream& rOStream) const override;
 
   ///@}
   ///@name Friends
@@ -276,8 +269,8 @@ private:
 
   friend class Serializer;
 
-  virtual void save(Serializer& rSerializer) const;
-  virtual void load(Serializer& rSerializer);
+  void save(Serializer& rSerializer) const override;
+  void load(Serializer& rSerializer) override;
 
   ///@}
   ///@name Private  Access
