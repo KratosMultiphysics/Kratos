@@ -317,8 +317,6 @@ protected:
         const TElementData& rData, 
         array_1d<double,3> &TauGrad) const;
 
-    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
-
     virtual void ASGSMomentumResidual(
         TElementData& rData,
         array_1d<double,3>& rMomentumRes);
