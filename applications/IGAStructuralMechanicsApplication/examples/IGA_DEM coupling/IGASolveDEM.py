@@ -30,7 +30,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.IGAStructuralMechanicsApplication import *
 from KratosMultiphysics.NurbsBrepApplication import *
-import KratosMultiphysics.ExternalSolversApplication 
 
 from KratosMultiphysics import DEMApplication
 import main_script 
