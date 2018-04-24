@@ -183,31 +183,25 @@ void FIC<TElementData>::PrintInfo(std::ostream& rOStream) const
 // Protected functions
 
 template< class TElementData >
-void FIC<TElementData>::ASGSMomentumResidual(
-    TElementData& rData,
-    array_1d<double,3> &rMomentumRes)
+void FIC<TElementData>::AlgebraicMomentumResidual(
+    const TElementData& rData,
+    const array_1d<double,3> &rConvectionVelocity,
+    array_1d<double,3>& rResidual) const
 {
     const GeometryType rGeom = this->GetGeometry();
 
-    array_1d<double, 3> convective_velocity =
-        this->Interpolate(rData.Velocity, rData.N) -
-        this->Interpolate(rData.MeshVelocity, rData.N);
-    
-    Vector AGradN;
-    this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
+    Vector convection; // u * grad(N)
+    this->ConvectionOperator(convection,rConvectionVelocity,rData.DN_DX);
 
-    double density = rData.Density;
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const auto& r_body_forces = rData.BodyForce;
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
 
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        const array_1d<double,3>& rAcc = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-
-        for (unsigned int d = 0; d < Dim; d++)
-        {
-            rMomentumRes[d] += density * ( rData.N[i]*(r_body_forces(i,d) - rAcc[d]) - AGradN[i]*r_velocities(i,d)) - rData.DN_DX(i,d)*r_pressures[i];
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
+        for (unsigned int d = 0; d < Dim; d++) {
+            rResidual[d] += density * ( rData.N[i]*(r_body_forces(i,d) - r_acceleration[d]) - convection[i]*r_velocities(i,d)) - rData.DN_DX(i,d)*r_pressures[i];
         }
     }
 }
@@ -247,16 +241,14 @@ void FIC<TElementData>::AddVelocitySystem(
     LHS.clear();
 
     // Interpolate nodal data on the integration point
-    double density = rData.Density;
-    array_1d<double,3> body_force = this->Interpolate(rData.BodyForce,rData.N);
-    array_1d<double,3> momentum_projection = this->Interpolate(rData.MomentumProjection,rData.N);
-
-    array_1d<double,3> convective_velocity = 
-        this->Interpolate(rData.Velocity,rData.N) - 
-        this->Interpolate(rData.MeshVelocity,rData.N);
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    array_1d<double,3> body_force = this->GetAtCoordinate(rData.BodyForce,rData.N);
+    array_1d<double,3> momentum_projection = this->GetAtCoordinate(rData.MomentumProjection,rData.N);
 
     double TauIncompr;
     double TauMomentum;
+    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
+
     array_1d<double,3> TauGrad(3,0.0);
     this->CalculateTau(rData,convective_velocity,TauIncompr,TauMomentum,TauGrad);
 
@@ -265,7 +257,7 @@ void FIC<TElementData>::AddVelocitySystem(
 
     // Residual (used by FIC shock-capturing term)
     array_1d<double,3> MomRes(3,0.0);
-    this->ASGSMomentumResidual(rData,MomRes);
+    this->AlgebraicMomentumResidual(rData,convective_velocity,MomRes);
 
     // Multiplying some quantities by density to have correct units
     body_force *= density; // Force per unit of volume
@@ -354,7 +346,7 @@ void FIC<TElementData>::AddMassLHS(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
-    double density = rData.Density;
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -382,14 +374,12 @@ void FIC<TElementData>::AddMassStabilization(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
-    double density = rData.Density;
-
-    array_1d<double,3> convective_velocity = 
-        this->Interpolate(rData.Velocity,rData.N) - 
-        this->Interpolate(rData.MeshVelocity,rData.N);
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
 
     double TauIncompr;
     double TauMomentum;
+    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
+
     array_1d<double,3> TauGrad(3,0.0);
     this->CalculateTau(rData,convective_velocity,TauIncompr,TauMomentum,TauGrad);
 
@@ -428,18 +418,18 @@ template <class TElementData>
 void FIC<TElementData>::AddBoundaryIntegral(TElementData& rData,
     const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
 
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
+    BoundedMatrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
 
     const auto& constitutive_matrix = rData.C;
     
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+    BoundedMatrix<double,StrainSize,LocalSize> shear_stress_matrix = prod(constitutive_matrix,strain_matrix);
 
-    boost::numeric::ublas::bounded_matrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
+    BoundedMatrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
     FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal,normal_projection);
     
     // Contribution to boundary stress from 2*mu*symmetric_gradient(velocity)*n
-    boost::numeric::ublas::bounded_matrix<double,Dim,LocalSize> normal_stress_operator = boost::numeric::ublas::prod(normal_projection,shear_stress_matrix);
+    BoundedMatrix<double,Dim,LocalSize> normal_stress_operator = prod(normal_projection,shear_stress_matrix);
 
     // Contribution to boundary stress from p*n
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -451,8 +441,8 @@ void FIC<TElementData>::AddBoundaryIntegral(TElementData& rData,
     }
 
     // RHS: stress computed using current solution
-    array_1d<double,Dim> shear_stress = boost::numeric::ublas::prod(normal_projection,rData.ShearStress);
-    const double p_gauss = this->Interpolate(rData.Pressure,rData.N);
+    array_1d<double,Dim> shear_stress = prod(normal_projection,rData.ShearStress);
+    const double p_gauss = this->GetAtCoordinate(rData.Pressure,rData.N);
 
     // Add -Ni*normal_stress_operator to the LHS, Ni*current_stress to the RHS
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -470,20 +460,20 @@ void FIC<TElementData>::AddBoundaryIntegral(TElementData& rData,
 template <class TElementData>
 void FIC<TElementData>::AddViscousTerm(
     const TElementData& rData,
-    boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+    BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
     VectorType& rRHS) {
 
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
+    BoundedMatrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
 
     const auto& constitutive_matrix = rData.C;
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+    BoundedMatrix<double,StrainSize,LocalSize> shear_stress_matrix = prod(constitutive_matrix,strain_matrix);
 
     // Multiply times integration point weight (I do this here to avoid a temporal in LHS += weight * Bt * C * B)
     strain_matrix *= rData.Weight;
 
-    noalias(rLHS) += boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),shear_stress_matrix);
-    noalias(rRHS) -= boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),rData.ShearStress);
+    noalias(rLHS) += prod(trans(strain_matrix),shear_stress_matrix);
+    noalias(rRHS) -= prod(trans(strain_matrix),rData.ShearStress);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -550,7 +540,7 @@ void FIC<TElementData>::CalculateTauGrad(
 
     // Evaluate velocity gradient
     const auto& r_velocities = rData.Velocity;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Gradient = ZeroMatrix(3,3);
+    BoundedMatrix<double,3,3> Gradient = ZeroMatrix(3,3);
     for (unsigned int n = 0; n < NumNodes; n++)
     {
         for (unsigned int i = 0; i < Dim; i++)

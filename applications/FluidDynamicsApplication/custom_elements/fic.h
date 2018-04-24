@@ -303,7 +303,7 @@ protected:
 
     void AddViscousTerm(
         const TElementData& rData,
-        boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+        BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
         VectorType& rRHS);
 
     virtual void CalculateTau(
@@ -317,9 +317,10 @@ protected:
         const TElementData& rData, 
         array_1d<double,3> &TauGrad) const;
 
-    virtual void ASGSMomentumResidual(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRes);
+    virtual void AlgebraicMomentumResidual(
+        const TElementData& rData,
+        const array_1d<double,3> &rConvectionVelocity,
+        array_1d<double,3>& rResidual) const;
     
     ///@}
     ///@name Protected  Access

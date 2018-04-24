@@ -53,7 +53,7 @@ double FICBeta;        // FIC Beta parameter
 int UseOSS;
 
 /// Auxiliary container for the local matrix at the integration point (stored to save reallocation at each point)
-boost::numeric::ublas::bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> LHS;
+BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> LHS;
 
 ///@}
 ///@name Public Operations
