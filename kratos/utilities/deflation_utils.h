@@ -84,7 +84,7 @@ public:
     /*@{ */
     typedef boost::numeric::ublas::compressed_matrix<double> SparseMatrixType;
 
-    typedef boost::numeric::ublas::vector<double> SparseVectorType;
+    typedef DenseVector<double> SparseVectorType;
 
     /*@} */
     /**@name Life Cycle

@@ -149,7 +149,7 @@ private:
 
     bool mdepends_on_space = true;
     bool muse_local_system = false;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> mR;
+    BoundedMatrix<double, 3, 3> mR;
     array_1d<double, 3> mxc;
 };
 
