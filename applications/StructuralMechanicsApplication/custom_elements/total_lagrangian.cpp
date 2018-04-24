@@ -93,7 +93,9 @@ void TotalLagrangian::CalculateAll(
     }
 
     // Reading integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
+    const GeometryType::IntegrationMethod integration_method =
+        GetGeometry().GetDefaultIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(integration_method);
     
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     
@@ -111,7 +113,7 @@ void TotalLagrangian::CalculateAll(
         const Vector body_force = this->GetBodyForce(integration_points, point_number);
         
         // Compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+        this->CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
         
         // Compute material reponse
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
@@ -145,19 +147,17 @@ void TotalLagrangian::CalculateAll(
 void TotalLagrangian::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables,
     const unsigned int PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+    const GeometryType::IntegrationMethod& rIntegrationMethod
     )
 {
-    const IntegrationMethod this_integration_method = this->GetGeometry().GetDefaultIntegrationMethod();
-    
     // Shape functions
-    rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
+    rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(rIntegrationMethod), PointNumber);
 
     // Calculating jacobian
     Matrix J;
-    J = this->GetGeometry().Jacobian( J, PointNumber, this_integration_method );
+    J = this->GetGeometry().Jacobian( J, PointNumber, rIntegrationMethod );
     
-    rThisKinematicVariables.detJ0 = this->CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
+    rThisKinematicVariables.detJ0 = this->CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, rIntegrationMethod);
     
     KRATOS_ERROR_IF(rThisKinematicVariables.detJ0 < 0.0) << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rThisKinematicVariables.detJ0 << std::endl;
     
@@ -194,7 +194,6 @@ void TotalLagrangian::CalculateKinematicVariables(
     }
 
     rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
-    
 }
 
 /***********************************************************************************/
