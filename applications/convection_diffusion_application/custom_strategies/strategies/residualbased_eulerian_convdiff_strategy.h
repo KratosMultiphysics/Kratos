@@ -190,7 +190,7 @@ public:
 
     //*********************************************************************************
     //**********************************************************************
-    double Solve()
+    double Solve() override
     {
       KRATOS_TRY
 
@@ -209,17 +209,17 @@ public:
 
 
 
-    virtual void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         mstep1->SetEchoLevel(Level);
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         mstep1->Clear();
     }
 
-    virtual int Check()
+    int Check() override
     {
         KRATOS_TRY
         ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
