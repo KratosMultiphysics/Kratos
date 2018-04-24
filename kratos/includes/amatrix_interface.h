@@ -270,6 +270,14 @@ AMatrix::MatrixProductExpression<TExpression1Type, TExpression2Type> prod(
 }
 
 
+template <typename TExpression1Type, typename TExpression2Type,
+    std::size_t TCategory1, std::size_t TCategory2>
+typename TExpression1Type::data_type inner_prod(
+    AMatrix::MatrixExpression<TExpression1Type, TCategory1> const& First,
+    AMatrix::MatrixExpression<TExpression2Type, TCategory2> const& Second) {
+    return First.dot(Second);
+}
+
 ///@}
 ///@name  Enum's
 ///@{
