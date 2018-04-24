@@ -9,6 +9,7 @@ from threading import Thread
 import threading
 from glob import glob
 import shutil
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 
 kratos_benchmarking_path = '../../../benchmarking'
@@ -17,8 +18,9 @@ path = '../test_examples'
 sys.path.append(path)
 path = os.getcwd()
 path += '/basic_benchmarks'
-os.chdir(path)      
-os.environ['OMP_NUM_THREADS']='1'  
+os.chdir(path)
+initial_number_of_threads = os.environ['OMP_NUM_THREADS']
+os.environ['OMP_NUM_THREADS']='1'
 os.system("echo Benchmarks will be running on $OMP_NUM_THREADS cpu")
 
 Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two identical spheres\n",
@@ -51,16 +53,25 @@ Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two iden
                   "Running DEM Benchmark 32... Fiber cluster bouncing without any damping (Velocity Verlet + Zhao scheme)\n",
                   "Running DEM Benchmark 33... Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n"]
 
-def run(benchmark): 
-    f = open('{0}.info'.format(benchmark), 'wb')
+def run(benchmark):
+    out_file_name = '{0}.info'.format(benchmark)
+    f = open(out_file_name, 'wb')
     path_py = os.getcwd()
-    path_py += '/../../python_scripts'                  
-    if sys.version_info >= (3, 0):       
-        subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)        
-    else:                                                                                                 
+    path_py += '/../../python_scripts'
+    if sys.version_info >= (3, 0):
+        subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+    else:
         subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
-    
+
     f.close()
+
+    file_to_remove = os.path.join("basic_benchmarks", out_file_name)
+    if int(benchmark) == 1:
+        aaaa = GetFilePath(file_to_remove)
+        print("[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]")
+        print(aaaa)
+
+    kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
 
 def worker(queue):
     """Process files from the queue."""
@@ -68,7 +79,7 @@ def worker(queue):
         try:
             print(Benchmark_text[benchmark - 1])
             run(benchmark)
-        except Exception as e:# catch exceptions to avoid exiting the thread prematurely   
+        except Exception as e:# catch exceptions to avoid exiting the thread prematurely
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.err", "a")
             if benchmark == 10:
@@ -101,27 +112,27 @@ def main():
 
     #Discontinuum Tests. From 1 to 17
     D_DEM_Benchmarks_list = list(range(1,18))
-        
+
     #Continuum Tests
     C_DEM_Benchmarks_list = list(range(20,26))
 
     #Discontinuum Clusters Tests. From 30 to 33
     Dcl_DEM_Benchmarks_list = list(range(30,34))
-        
+
     Total_DEM_Benchmarks_list = D_DEM_Benchmarks_list + C_DEM_Benchmarks_list + Dcl_DEM_Benchmarks_list
-    
+
     for item in Total_DEM_Benchmarks_list:
         #print(Benchmark_text[item - 1])
         q.put_nowait(item)
 
-    threads = [Thread(target=worker, args=(q,)) for _ in range(mp.cpu_count()-1)] # uses total cpu - n
+    threads = [Thread(target=worker, args=(q,)) for _ in range(int(initial_number_of_threads))]
     for t in threads:
         t.daemon = True # threads die if the program dies
         t.start()
     for _ in threads: q.put_nowait(None) # signal no more files
     for t in threads: t.join() # wait for completion
 
-    print('\n')       
+    print('\n')
     g = open("errors.err", 'a')
     g.write("\n---------------------------------------------------------------------\n")
     g.write("\nList of Benchmarks:\n")
@@ -156,15 +167,15 @@ def main():
     g.write("Benchmark 32. Fiber cluster bouncing without any damping (Velocity Verlet + Zhao scheme)\n")
     g.write("Benchmark 33. Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n")
     g.close()
-    
+
     if 'FAILED' in open('errors.err').read():
         failure = True
-        
+
     g = open("errors.err")
     file_contents = g.read()
     g.close()
     os.remove("errors.err")
-    
+
     Text += file_contents.rstrip("\n")
     Text += "\n\n\n"
     delete_archives()
@@ -179,7 +190,8 @@ def delete_archives():
     files_to_delete_list.extend(glob('*.gp'))
     files_to_delete_list.extend(glob('*.txt'))
     files_to_delete_list.extend(glob('*.lst'))
-    
+    files_to_delete_list.extend(glob('*.info'))
+
     for to_erase_file in files_to_delete_list:
         os.remove(to_erase_file)
 
