@@ -323,8 +323,8 @@ private:
     ///@{
 
     // Velocity subscale history, stored at integration points
-    std::vector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
-    std::vector< array_1d<double,Dim> > mOldSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
 
     #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
     std::vector< double > mSubscaleIterationError;
