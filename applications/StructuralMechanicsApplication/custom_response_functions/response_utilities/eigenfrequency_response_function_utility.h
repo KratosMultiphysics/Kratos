@@ -131,11 +131,7 @@ public:
     {
         CheckIfAllNecessaryEigenvaluesAreComputed();
 
-        // First gradients are initialized
         VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
-
-        // Gradient calculation is done by a semi-analytic approaches
-        // The gradient is computed in one step
 
         switch (mGradientMode)
         {
@@ -243,9 +239,9 @@ protected:
     // --------------------------------------------------------------------------
     void CalculateLinearWeights(Parameters& rResponseSettings)
     {
-        // Ask for weighting factors and check their number
         KRATOS_ERROR_IF_NOT(rResponseSettings.Has("weighting_factors")) << "No weighting factors defined for given eigenfrequency response!" << std::endl;
         KRATOS_ERROR_IF_NOT(rResponseSettings["weighting_factors"].size() == mTracedEigenfrequencyIds.size()) << "The number of chosen eigenvalues does not fit to the number of weighting factors!" << std::endl;
+
         mWeightingFactors.resize(rResponseSettings["weighting_factors"].size(),false);
 
         // Read weighting factors and sum them up
