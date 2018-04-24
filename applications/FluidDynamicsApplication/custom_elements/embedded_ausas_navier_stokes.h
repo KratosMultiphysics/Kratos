@@ -484,11 +484,11 @@ protected:
                 rData.f(i,k)   = body_force[k];
             }
 
-            rData.p[i] = r_geom[i].FastGetSolutionStepValue(PRESSURE);
-            rData.pn[i] = r_geom[i].FastGetSolutionStepValue(PRESSURE,1);
-            rData.pnn[i] = r_geom[i].FastGetSolutionStepValue(PRESSURE,2);
-            rData.rho[i] = r_geom[i].FastGetSolutionStepValue(DENSITY);
-            rData.mu[i] = r_geom[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+            rData.p(i) = r_geom[i].FastGetSolutionStepValue(PRESSURE);
+            rData.pn(i) = r_geom[i].FastGetSolutionStepValue(PRESSURE,1);
+            rData.pnn(i) = r_geom[i].FastGetSolutionStepValue(PRESSURE,2);
+            rData.rho(i) = r_geom[i].FastGetSolutionStepValue(DENSITY);
+            rData.mu(i) = r_geom[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
         }
 
         // Getting the nodal distances vector
@@ -649,6 +649,9 @@ protected:
             // Add the normal component penalty contribution
             this->AddSystemNormalVelocityPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
 
+            // Add the "wall law" shear contribution
+            this->AddSystemWallLawShearContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
+
             // Use the pressure as a Lagrange multiplier to enforce the no penetration condition
             // this->AddSystemNormalVelocityLagrangeMultiplierContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
 
@@ -721,6 +724,9 @@ protected:
 
             // Add the normal component penalty contribution
             this->AddRHSNormalVelocityPenaltyContribution(rRightHandSideVector, rData);
+
+            // Add the "wall law" shear contribution
+            this->AddRHSWallLawShearContribution(rRightHandSideVector, rData);
 
         } else {
 
@@ -1089,6 +1095,156 @@ protected:
     }
 
     /**
+    * This function adds the local system contribution of wall law shear.
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddSystemWallLawShearContribution(
+        MatrixType &rLeftHandSideMatrix,
+        VectorType &rRightHandSideVector,
+        const EmbeddedAusasElementDataStruct &rData) {
+
+        constexpr unsigned int BlockSize = TDim + 1;
+        constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
+
+        const auto &r_elem_dist = this->GetValue(ELEMENTAL_DISTANCES);
+        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
+
+        // Obtain the previous iteration velocity solution
+        GetPreviousSolutionVector(rData, prev_sol);
+
+        // Contribution coming from the positive side wall law shear
+        const unsigned int n_int_pos_gauss = (rData.w_gauss_pos_int).size();
+        for (unsigned int i_gauss = 0; i_gauss < n_int_pos_gauss; ++i_gauss) {
+            const double w_gauss = rData.w_gauss_pos_int(i_gauss);
+
+            // Get the positive side shape functions Gauss pt. values
+            const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss);
+
+            // Compute and assemble the LHS and RSH contribution
+            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+                for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node) {
+                    const double mu = rData.mu(j_node);
+                    const double rho = rData.rho(j_node);
+                    // const double d = r_elem_dist(j_node);
+                    const double d = 1e-9;
+                    const double aux_const = mu/(rho*std::abs(d));
+                    for (unsigned int m = 0; m < TDim; ++m) {
+                        const unsigned int row = i_node*BlockSize + m;
+                        for (unsigned int n = 0; n < TDim; ++n) {
+                            const unsigned int col = j_node*BlockSize + n;
+                            rLeftHandSideMatrix(row,col) += w_gauss*aux_N[i_node]*aux_const*aux_N[j_node];
+                            rRightHandSideVector(row) -= w_gauss*aux_N[i_node]*aux_const*aux_N[j_node]*prev_sol(col);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Contribution coming from the negative side wall law shear
+        const unsigned int n_int_neg_gauss = (rData.w_gauss_neg_int).size();
+        for (unsigned int i_gauss = 0; i_gauss < n_int_neg_gauss; ++i_gauss) {
+            const double w_gauss = rData.w_gauss_neg_int(i_gauss);
+
+            // Get the negative side shape functions Gauss pt. values
+            const array_1d<double, TNumNodes> aux_N = row(rData.N_neg_int, i_gauss);
+
+            // Compute and assemble the LHS and RSH contribution
+            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+                for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node) {
+                    const double mu = rData.mu[j_node];
+                    const double rho = rData.rho[j_node];
+                    // const double d = r_elem_dist(j_node);
+                    const double d = 1e-9;
+                    const double aux_const = mu/(rho*std::abs(d));
+                    for (unsigned int m = 0; m < TDim; ++m) {
+                        const unsigned int row = i_node*BlockSize + m;
+                        for (unsigned int n = 0; n < TDim; ++n) {
+                            const unsigned int col = j_node*BlockSize + n;
+                            rLeftHandSideMatrix(row,col) += w_gauss*aux_N[i_node]*aux_const*aux_N[j_node];
+                            rRightHandSideVector(row) -= w_gauss*aux_N[i_node]*aux_const*aux_N[j_node]*prev_sol(col);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+    * This function adds the RHS contribution of wall law shear.
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddRHSWallLawShearContribution(
+        VectorType &rRightHandSideVector,
+        const EmbeddedAusasElementDataStruct &rData) {
+
+        constexpr unsigned int BlockSize = TDim + 1;
+        constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
+
+        const auto &r_elem_dist = this->GetValue(ELEMENTAL_DISTANCES);
+        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
+
+        // Obtain the previous iteration velocity solution
+        GetPreviousSolutionVector(rData, prev_sol);
+
+        // Contribution coming from the positive side wall law shear
+        const unsigned int n_int_pos_gauss = (rData.w_gauss_pos_int).size();
+        for (unsigned int i_gauss = 0; i_gauss < n_int_pos_gauss; ++i_gauss) {
+            const double w_gauss = rData.w_gauss_pos_int(i_gauss);
+
+            // Get the positive side shape functions Gauss pt. values
+            const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss);
+
+            // Compute and assemble the LHS and RSH contribution
+            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+                for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node) {
+                    const double mu = rData.mu[j_node];
+                    const double rho = rData.rho[j_node];
+                    // const double d = r_elem_dist(j_node);
+                    const double d = 1e-9;
+                    const double aux_const = mu/(rho*std::abs(d));
+                    for (unsigned int m = 0; m < TDim; ++m) {
+                        const unsigned int row = i_node*BlockSize + m;
+                        for (unsigned int n = 0; n < TDim; ++n) {
+                            const unsigned int col = j_node*BlockSize + n;
+                            rRightHandSideVector(row) -= w_gauss*aux_N[i_node]*aux_const*aux_N[j_node]*prev_sol(col);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Contribution coming from the negative side wall law shear
+        const unsigned int n_int_neg_gauss = (rData.w_gauss_neg_int).size();
+        for (unsigned int i_gauss = 0; i_gauss < n_int_neg_gauss; ++i_gauss) {
+            const double w_gauss = rData.w_gauss_neg_int(i_gauss);
+
+            // Get the negative side shape functions Gauss pt. values
+            const array_1d<double, TNumNodes> aux_N = row(rData.N_neg_int, i_gauss);
+
+            // Compute and assemble the LHS and RSH contribution
+            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+                for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node) {
+                    const double mu = rData.mu[j_node];
+                    const double rho = rData.rho[j_node];
+                    // const double d = r_elem_dist(j_node);
+                    const double d = 1e-9;
+                    const double aux_const = mu/(rho*std::abs(d));
+                    for (unsigned int m = 0; m < TDim; ++m) {
+                        const unsigned int row = i_node*BlockSize + m;
+                        for (unsigned int n = 0; n < TDim; ++n) {
+                            const unsigned int col = j_node*BlockSize + n;
+                            rRightHandSideVector(row) -= w_gauss*aux_N[i_node]*aux_const*aux_N[j_node]*prev_sol(col);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
     * This function adds the local system contribution of the no penetration imposition,
     * by means of the pressure acting as a Lagrange multiplier.
     * @param rLeftHandSideMatrix reference to the LHS matrix
@@ -1257,7 +1413,7 @@ protected:
                                 avg_rho*v_norm*std::pow(rData.h, TDim-1);
 
         // Return the penalty coefficient
-        const double K = 10.0;
+        const double K = 10000.0;
         const double pen_coef = K * pen_cons / intersection_area;
 
         return pen_coef;
