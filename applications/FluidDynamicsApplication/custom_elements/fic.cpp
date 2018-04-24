@@ -76,12 +76,7 @@ void FIC<TElementData>::Calculate(const Variable<double>& rVariable,
 template <class TElementData>
 void FIC<TElementData>::Calculate(
     const Variable<array_1d<double, 3>>& rVariable,
-    array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {
-    // Lumped projection terms
-    if (rVariable == ADVPROJ) {
-        this->CalculateProjections(rCurrentProcessInfo);
-    }
-}
+    array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
 
 template <class TElementData>
 void FIC<TElementData>::Calculate(const Variable<Vector>& rVariable,
