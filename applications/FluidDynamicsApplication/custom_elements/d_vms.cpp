@@ -107,19 +107,17 @@ void DVMS<TElementData>::Initialize()
 
     // The prediction is updated before each non-linear iteration:
     // It is not stored in a restart and can be safely initialized.
-    mPredictedSubscaleVelocity.resize(0);
-    mPredictedSubscaleVelocity.reserve(number_of_gauss_points);
+    mPredictedSubscaleVelocity.resize(number_of_gauss_points);
     for (unsigned int g = 0; g < number_of_gauss_points; g++)
-        mPredictedSubscaleVelocity.push_back( array_1d<double,Dim>(Dim,0.0) );
+        mPredictedSubscaleVelocity[g] = array_1d<double,Dim>(Dim,0.0);
 
     // The old velocity may be already defined (if restarting)
     // and we want to keep the loaded values in that case.
     if (mOldSubscaleVelocity.size() != number_of_gauss_points)
     {
-        mOldSubscaleVelocity.resize(0);
-        mOldSubscaleVelocity.reserve(number_of_gauss_points);
+        mOldSubscaleVelocity.resize(number_of_gauss_points);
         for (unsigned int g = 0; g < number_of_gauss_points; g++)
-            mOldSubscaleVelocity.push_back( array_1d<double,Dim>(Dim,0.0) );
+            mOldSubscaleVelocity[g] = array_1d<double,Dim>(Dim,0.0);
     }
 
     #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
@@ -763,7 +761,7 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
     const double h = rData.ElementSize;
 
     // Elemental large-scale velocity gradient
-    boost::numeric::ublas::bounded_matrix<double,Dim,Dim> resolved_velocity_gradient = ZeroMatrix(Dim,Dim);
+    BoundedMatrix<double,Dim,Dim> resolved_velocity_gradient = ZeroMatrix(Dim,Dim);
 
     const auto& r_resolved_velocities = rData.Velocity;
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -794,7 +792,7 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
     bool converged = false;
     double subscale_velocity_error = 2.0 * mSubscalePredictionVelocityTolerance;
 
-    boost::numeric::ublas::bounded_matrix<double,Dim,Dim> J = ZeroMatrix(Dim,Dim);
+    BoundedMatrix<double,Dim,Dim> J = ZeroMatrix(Dim,Dim);
     array_1d<double,Dim> rhs(Dim,0.0);
     array_1d<double,Dim> u = mPredictedSubscaleVelocity[rData.IntegrationPointIndex]; // Use last result as initial guess
     array_1d<double,Dim> du(Dim,0.0);

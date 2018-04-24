@@ -58,6 +58,7 @@
 #include "custom_laws/large_strain_laws/large_strain_axisymmetric_2D_law.hpp"
 
 //strain rate laws
+#include "custom_laws/strain_rate_laws/strain_rate_plane_strain_2D_law.hpp"
 #include "custom_laws/strain_rate_laws/newtonian_3D_law.hpp"
 
 //specialized large strain laws
@@ -157,7 +158,7 @@ namespace Kratos {
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    virtual void Register() override;
 
 
 
@@ -176,18 +177,18 @@ namespace Kratos {
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const {
+    std::string Info() const override{
       return "KratosConstitutiveModelsApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {
+    void PrintInfo(std::ostream& rOStream) const  override{
       rOStream << Info();
       PrintData(rOStream);
     }
 
-    ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const  override{
       KRATOS_WATCH("in KratosConstitutiveModelsApplication");
       KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 
@@ -268,6 +269,8 @@ namespace Kratos {
     const LargeStrainAxisymmetric2DLaw             mLargeStrainAxisymmetric2DLaw;
 
     //strain rate laws
+    const StrainRate3DLaw                          mStrainRate3DLaw;
+    const StrainRatePlaneStrain2DLaw               mStrainRatePlaneStrain2DLaw;
     const Newtonian3DLaw                           mNewtonian3DLaw;
 
     //general constitutive models
