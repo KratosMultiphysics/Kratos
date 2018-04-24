@@ -30,7 +30,6 @@
 #include "custom_conditions/ALM_frictionless_mortar_contact_condition.h"
 #include "custom_conditions/ALM_frictionless_components_mortar_contact_condition.h"
 #include "custom_conditions/ALM_frictionless_mortar_contact_axisym_condition.h"
-// #include "custom_conditions/DALM_frictionless_mortar_contact_condition.h"
 #include "custom_conditions/ALM_frictional_mortar_contact_condition.h"
 #include "custom_conditions/ALM_frictional_mortar_contact_axisym_condition.h"
 
@@ -125,7 +124,6 @@ public:
     ///// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        KRATOS_WATCH("in my application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
@@ -218,13 +216,6 @@ private:
     const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, true> mALMNVFrictionlessComponentsMortarContactCondition3D3N;
     const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, false> mALMFrictionlessComponentsMortarContactCondition3D4N;
     const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, true> mALMNVFrictionlessComponentsMortarContactCondition3D4N;
-//     // Double Frictionless cases
-//     const DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false> mDALMFrictionlessMortarContactCondition2D2N;
-//     const DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true> mDALMNVFrictionlessMortarContactCondition2D2N;
-//     const DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false> mDALMFrictionlessMortarContactCondition3D3N;
-//     const DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true> mDALMNVFrictionlessMortarContactCondition3D3N;
-//     const DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false> mDALMFrictionlessMortarContactCondition3D4N;
-//     const DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true> mDALMNVFrictionlessMortarContactCondition3D4N;
     // Frictional cases
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2, false> mALMFrictionalMortarContactCondition2D2N;
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2, true> mALMNVFrictionalMortarContactCondition2D2N;

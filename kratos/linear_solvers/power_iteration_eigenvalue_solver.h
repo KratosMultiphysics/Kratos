@@ -184,8 +184,6 @@ public:
         ) override
     {
 
-        using boost::numeric::ublas::trans;
-
         const SizeType size = K.size1();
         const SizeType max_iteration = BaseType::GetMaxIterationsNumber();
         const double tolerance = BaseType::GetTolerance();

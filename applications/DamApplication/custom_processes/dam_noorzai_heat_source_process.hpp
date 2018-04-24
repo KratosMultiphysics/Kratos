@@ -49,7 +49,7 @@ class DamNoorzaiHeatFluxProcess : public Process
                 "density"                             : 0.0,
                 "specific_heat"                        : 0.0,
                 "t_max"                               : 0.0,
-                "alpha"                               : 0.0            
+                "alpha"                               : 0.0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -77,7 +77,7 @@ class DamNoorzaiHeatFluxProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
         KRATOS_TRY;
 
@@ -103,7 +103,7 @@ class DamNoorzaiHeatFluxProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
 
@@ -115,19 +115,19 @@ class DamNoorzaiHeatFluxProcess : public Process
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamNoorzaiHeatFluxProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamNoorzaiHeatFluxProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 

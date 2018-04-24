@@ -82,7 +82,7 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
     const unsigned int number_of_positive_gauss_points =
         data.PositiveSideWeights.size();
     for (unsigned int g = 0; g < number_of_positive_gauss_points; g++) {
-        data.UpdateGeometryValues(data.PositiveSideWeights[g],
+        data.UpdateGeometryValues(g, data.PositiveSideWeights[g],
             row(data.PositiveSideN, g), data.PositiveSideDNDX[g]);
 
         this->CalculateMaterialResponse(data);
@@ -96,7 +96,7 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
         const unsigned int number_of_interface_gauss_points =
             data.PositiveInterfaceWeights.size();
         for (unsigned int g = 0; g < number_of_interface_gauss_points; g++) {
-            data.UpdateGeometryValues(data.PositiveInterfaceWeights[g],
+            data.UpdateGeometryValues(g + number_of_positive_gauss_points, data.PositiveInterfaceWeights[g],
                 row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
                 
             this->CalculateMaterialResponse(data);
@@ -141,13 +141,14 @@ void EmbeddedFluidElement<TBaseElement>::Calculate(
 
     rOutput = ZeroVector(3);
 
-    // If the element is split, integrate sigma·n over the interface
+    // If the element is split, integrate sigma.n over the interface
     // Note that in the ausas formulation, both interface sides need to be integrated
     if (rVariable == DRAG_FORCE) {
 
         EmbeddedElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
         this->InitializeGeometryData(data);
+        const unsigned int number_of_positive_gauss_points = data.PositiveSideWeights.size();
 
         if ( data.IsCut() ){
             // Integrate positive interface side drag
@@ -155,7 +156,8 @@ void EmbeddedFluidElement<TBaseElement>::Calculate(
             for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
 
                 // Update the Gauss pt. data
-                data.UpdateGeometryValues(data.PositiveInterfaceWeights[g],row(data.PositiveInterfaceN, g),data.PositiveInterfaceDNDX[g]);
+                data.UpdateGeometryValues(g + number_of_positive_gauss_points,
+                   data.PositiveInterfaceWeights[g],row(data.PositiveInterfaceN, g),data.PositiveInterfaceDNDX[g]);
 
                 // Get the interface Gauss pt. unit noromal
                 const auto &aux_unit_normal = data.PositiveInterfaceUnitNormals[g];
