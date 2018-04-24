@@ -1335,7 +1335,7 @@ protected:
 
         // Fill the tangential projection matrix (I - nxn)
         if (TDim == 3) {
-            identity_matrix<double> id_matrix(TDim);
+            BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(TDim,TDim);
             noalias(rTangProjMatrix) = id_matrix - outer_prod(rUnitNormal, rUnitNormal);
         } else {
             rTangProjMatrix(0,0) = 1.0 - rUnitNormal(0)*rUnitNormal(0);

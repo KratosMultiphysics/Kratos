@@ -168,7 +168,7 @@ void FluidElementUtilities<TNumNodes>::SetTangentialProjectionMatrix(
     const array_1d<double, 3>& rUnitNormal,
     BoundedMatrix<double, 3, 3>& rTangProjMatrix) {
 
-    identity_matrix<double> id_matrix(3);
+    BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(3,3);
     noalias(rTangProjMatrix) = id_matrix - outer_prod(rUnitNormal, rUnitNormal);
 }
 

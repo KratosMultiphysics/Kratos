@@ -663,18 +663,9 @@ KRATOS_WATCH(Ngauss);  */
 
                 //add to LHS enrichment contributions
                 Matrix inverse_diag(nenrichments, nenrichments);
-                bool inversion_successful = InvertMatrix(enrichment_diagonal,inverse_diag);
+                double det;
+                MathUtils<double>::InvertMatrix(enrichment_diagonal,inverse_diag,det);
 
-//                 KRATOS_WATCH("line 574");
-
-                if(!inversion_successful )
-                {
-                    KRATOS_WATCH(distances)
-                    KRATOS_WATCH(positive_volume/Area)
-                    KRATOS_WATCH(negative_volume/Area)
-                    KRATOS_WATCH(enrichment_diagonal)
-                    KRATOS_THROW_ERROR(std::logic_error,"error in the inversion of the enrichment matrix for element ",this->Id());
-               }
                   //  double inverse_diag_term = 1.0 / ( enrichment_diagonal);
 //        KRATOS_WATCH(this->Id());
 //        KRATOS_WATCH(enrichment_terms_horizontal);
@@ -824,31 +815,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    template<class T>
-    bool InvertMatrix(const T& input, T& inverse)
-    {
-        typedef permutation_matrix<std::size_t> pmatrix;
-
-        // create a working copy of the input
-        T A(input);
-
-        // create a permutation matrix for the LU-factorization
-        pmatrix pm(A.size1());
-
-        // perform LU-factorization
-        int res = lu_factorize(A, pm);
-        if (res != 0)
-            return false;
-
-        // create identity matrix of "inverse"
-        inverse.assign(identity_matrix<double> (A.size1()));
-
-        // backsubstitute to get the inverse
-        lu_substitute(A, pm, inverse);
-
-        return true;
-    }
-
 
     /// Add lumped mass matrix
     void LumpMassMatrix(MatrixType& rMassMatrix)
