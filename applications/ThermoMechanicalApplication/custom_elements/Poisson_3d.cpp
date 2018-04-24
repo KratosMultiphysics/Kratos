@@ -122,7 +122,7 @@ void Poisson3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType
 //         noalias(rRightHandSideVector) = ZeroVector(matsize);
 
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    BoundedMatrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
     //getting data for the given geometry
@@ -137,29 +137,29 @@ void Poisson3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType
      //const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 //     const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
-    
+
     double mass_source = 0.0;
-    
+
     double ele_length = pow(12.0*Volume,0.333333333333333333333);
     double conductivity = rCurrentProcessInfo[KAPPA];
-    double epsilon = rCurrentProcessInfo[EPSILON];    
+    double epsilon = rCurrentProcessInfo[EPSILON];
 //     conductivity = 10.0 * ele_length;
 //     epsilon = 3.0 * ele_length;
 
     for (unsigned int i = 0; i < nodes_number; i++){
         mass_source += GetGeometry()[i].FastGetSolutionStepValue(VOLUME_FRACTION);
-	
+
 	double raw_dist =  GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
 	raw_dist += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_CORRECTION);
-	 
+
 	mass_source -= SmoothedHeavyside(epsilon,raw_dist);
 	GetGeometry()[i].FastGetSolutionStepValue(AUX_INDEX) = GetGeometry()[i].FastGetSolutionStepValue(VOLUME_FRACTION) - SmoothedHeavyside(epsilon,raw_dist);
     }
     mass_source *= lumping_factor;
-  
+
 
     //viscous term
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > Laplacian_Matrix = prod(DN_DX , trans(DN_DX));
+    BoundedMatrix<double, 4, 4 > Laplacian_Matrix = prod(DN_DX , trans(DN_DX));
     noalias(rLeftHandSideMatrix) =  conductivity * Laplacian_Matrix;
 
 
@@ -168,12 +168,12 @@ void Poisson3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType
 
 
 
-    
-    //add shock capturing 
+
+    //add shock capturing
 /*    double art_visc = 0.0;
     CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Volume,conductivity_scaled);
 
-    noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat  * Laplacian_Matrix;	*/    
+    noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat  * Laplacian_Matrix;	*/
 
 
     //subtracting the dirichlet term
@@ -256,9 +256,9 @@ void Poisson3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& Curren
 double Poisson3D::SmoothedHeavyside( const double epsilon, const double distance)
 {
     KRATOS_TRY
-    
-    
-    
+
+
+
     if(distance <= -epsilon)
       return 1.0;
     else if(distance >= epsilon)
@@ -268,7 +268,7 @@ double Poisson3D::SmoothedHeavyside( const double epsilon, const double distance
      double h_eps = 0.5*(1.0 - distance/epsilon - sin(distance * PI/epsilon) / PI);
      return h_eps;
     }
-      
+
     KRATOS_CATCH("")
 
 }
@@ -296,30 +296,30 @@ void Poisson3D::CalculateTau(array_1d<double, 3 >& ms_adv_vel, double& tau,const
 }
 //*************************************************************************************
 //*************************************************************************************
-void Poisson3D::CalculateArtifitialViscosity(double& art_visc,  
-						      boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, 
+void Poisson3D::CalculateArtifitialViscosity(double& art_visc,
+						      BoundedMatrix<double, 4, 3 > DN_DX,
 						      array_1d<double, 3 > ms_vel_gauss,
 						      const Variable<double>& temperature,
 						      const double volume,
 						      const double scaled_K)
 {
 	KRATOS_TRY
-	
+
 	 array_1d<double, 3 > grad_t;
-         unsigned int number_of_nodes = GetGeometry().PointsNumber();	 
+         unsigned int number_of_nodes = GetGeometry().PointsNumber();
 	 double temp_cup = GetGeometry()[0].FastGetSolutionStepValue(temperature);
 	 grad_t[0] = DN_DX(0,0) * temp_cup;
-	 grad_t[1] = DN_DX(0,1) * temp_cup;	
-	 grad_t[2] = DN_DX(0,2) * temp_cup;	 
-	 
+	 grad_t[1] = DN_DX(0,1) * temp_cup;
+	 grad_t[2] = DN_DX(0,2) * temp_cup;
+
 	for(unsigned int ii=1; ii < number_of_nodes; ++ii)
-	{	
+	{
 	   temp_cup = GetGeometry()[ii].FastGetSolutionStepValue(temperature);
 	   grad_t[0] += DN_DX(ii,0) * temp_cup;
-	   grad_t[1] += DN_DX(ii,1) * temp_cup;	
-	   grad_t[2] += DN_DX(ii,2) * temp_cup;		   
+	   grad_t[1] += DN_DX(ii,1) * temp_cup;
+	   grad_t[2] += DN_DX(ii,2) * temp_cup;
 	}
-	
+
 	double norm_grad_t = MathUtils<double>::Norm3(grad_t);
 	if(norm_grad_t < 0.000001)
 	  art_visc = 0.0;
@@ -328,30 +328,30 @@ void Poisson3D::CalculateArtifitialViscosity(double& art_visc,
 	  double a_parallel = (ms_vel_gauss[0]*grad_t[0] + ms_vel_gauss[1]*grad_t[1] + ms_vel_gauss[2]*grad_t[2]) / norm_grad_t;
 	  a_parallel = abs(a_parallel);
 	  double ele_length = pow(12.0*volume,0.333333333333333333333);
-	  ele_length = 0.666666667 * ele_length * 1.732;	  
-	  
+	  ele_length = 0.666666667 * ele_length * 1.732;
+
 	  double Effective_K = scaled_K;
 	  if(scaled_K < 0.00000000001)
 	    Effective_K = 0.00000000001;
-	    
+
 	  double Peclet_parallel = a_parallel*ele_length / (2.0*Effective_K);
 	  double alpha;
 	  if(Peclet_parallel == 0.0)
 		 alpha = 0.0;
 	  else
 		 alpha = 3.0 - 1.0/Peclet_parallel;
-	  
+
 	  if (alpha < 0.0)
 	       alpha = 0.0;
-	  
+
 	  art_visc = 100.0*0.5 * alpha * ele_length * a_parallel;
-	  
+
 	}
-	
+
         this->GetValue(PR_ART_VISC) = art_visc;
 
-	KRATOS_CATCH("")  
-  
+	KRATOS_CATCH("")
+
 }
 //************************************************************************************
 //************************************************************************************
@@ -359,7 +359,7 @@ void Poisson3D::CalculateArtifitialViscosity(double& art_visc,
 //{
 //
 //    /*        double delta_t = rCurrentProcessInfo[DELTA_TIME];*/
-//    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+//    BoundedMatrix<double, 4, 3 > DN_DX;
 //    array_1d<double, 4 > N;
 //    //getting data for the given geometry
 //    double volume;
@@ -376,7 +376,7 @@ void Poisson3D::CalculateArtifitialViscosity(double& art_visc,
 //	}
 //    }
 //
-//}   
+//}
 
 } // Namespace Kratos
 

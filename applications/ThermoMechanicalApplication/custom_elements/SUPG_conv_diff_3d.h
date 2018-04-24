@@ -62,7 +62,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
 
@@ -231,7 +230,7 @@ protected:
     */
     virtual void CalculateTau(array_1d<double, 3 >& ms_adv_vel, double& tau,const double& K, const double time, const double area, const ProcessInfo& rCurrentProcessInfo);
     virtual void CalculateArtifitialViscosity(double& art_visc,
-						      boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX,
+						      BoundedMatrix<double, 4, 3 > DN_DX,
 						      array_1d<double, 3 > ms_vel_gauss,
 						      const Variable<double>& temperature,
 						      const double volume,

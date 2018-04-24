@@ -62,7 +62,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
 
@@ -93,7 +92,7 @@ namespace Kratos
 /**
 ASGS is an abriviation for Algebraic Sub-Grid Scale element. It is implemented to solve
 Implicitly the NS equations in a variotionally consistant sub-grid scale methid. It also has the OSS swith
-to use Orthogonal Sub Scales to use impose explicity the orthogonality condition on subscales´ estimation.
+to use Orthogonal Sub Scales to use impose explicity the orthogonality condition on subscalesï¿½ estimation.
 The "Dynamic_Tau" swith allows the use of "Dt", time step, in calculation of Tau.
 This element just work with Monolithic schemes like "monolithic_solver_eulerian" or "monolithic_solver_lagranigan".
 The detailed description of the formulation could be fined in
@@ -141,7 +140,7 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-    /// The DOF´s are VELOCITY_X, VELOCITY_Y and PRESSURE
+    /// The DOFï¿½s are VELOCITY_X, VELOCITY_Y and PRESSURE
     /**
      * @param ElementalDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
@@ -231,12 +230,12 @@ protected:
      * @return tau: multiplied by Residual of the momentum equation
     */
     virtual void CalculateTau(array_1d<double, 3 >& ms_adv_vel, double& tau,const double& K, const double time, const double area, const ProcessInfo& rCurrentProcessInfo);
-    virtual void CalculateArtifitialViscosity(double& art_visc,  
-						      boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, 
+    virtual void CalculateArtifitialViscosity(double& art_visc,
+						      BoundedMatrix<double, 4, 3 > DN_DX,
 						      array_1d<double, 3 > ms_vel_gauss,
 						      const Variable<double>& temperature,
 						      const double volume,
-						      const double scaled_K);    
+						      const double scaled_K);
     double SmoothedHeavyside( const double epsilon, const double distance);
 private:
     ///@name Static Member Variables
@@ -325,6 +324,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ASGS_2D_H_INCLUDED  defined 
+#endif // KRATOS_ASGS_2D_H_INCLUDED  defined
 
 
