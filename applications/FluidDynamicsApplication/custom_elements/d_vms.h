@@ -10,8 +10,10 @@
 //  Main authors:    Jordi Cotela
 //
 
-#ifndef KRATOS_QS_VMS_H
-#define KRATOS_QS_VMS_H
+#ifndef KRATOS_D_VMS_H
+#define KRATOS_D_VMS_H
+
+//#define KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
 
 #include "includes/define.h"
 #include "includes/element.h"
@@ -19,7 +21,7 @@
 #include "geometries/geometry.h"
 
 #include "includes/cfd_variables.h"
-#include "custom_elements/fluid_element.h"
+#include "custom_elements/qs_vms.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -47,21 +49,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-// Forward decalration of auxiliary class
-namespace Internals {
-template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystem;
-}
-
 template< class TElementData >
-class QSVMS : public FluidElement<TElementData>
+class DVMS : public QSVMS<TElementData>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of QSVMS
-    KRATOS_CLASS_POINTER_DEFINITION(QSVMS);
+    /// Pointer definition of DVMS
+    KRATOS_CLASS_POINTER_DEFINITION(DVMS);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -97,11 +93,11 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    constexpr static unsigned int Dim = FluidElement<TElementData>::Dim;
-    constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
-    constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
-    constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
-    constexpr static unsigned int StrainSize = FluidElement<TElementData>::StrainSize;
+    constexpr static unsigned int Dim = QSVMS<TElementData>::Dim;
+    constexpr static unsigned int NumNodes = QSVMS<TElementData>::NumNodes;
+    constexpr static unsigned int BlockSize = QSVMS<TElementData>::BlockSize;
+    constexpr static unsigned int LocalSize = QSVMS<TElementData>::LocalSize;
+    constexpr static unsigned int StrainSize = QSVMS<TElementData>::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -113,21 +109,21 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    QSVMS(IndexType NewId = 0);
+    DVMS(IndexType NewId = 0);
 
     /// Constructor using an array of nodes.
     /**
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    QSVMS(IndexType NewId, const NodesArrayType& ThisNodes);
+    DVMS(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using a geometry object.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    QSVMS(IndexType NewId, GeometryType::Pointer pGeometry);
+    DVMS(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /// Constuctor using geometry and properties.
     /**
@@ -135,10 +131,10 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    QSVMS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+    DVMS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
-    ~QSVMS() override;
+    ~DVMS() override;
 
     ///@}
     ///@name Operators
@@ -152,7 +148,7 @@ public:
 
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new QSVMS element, created using given input
+     * Returns a pointer to a new DVMS element, created using given input
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -164,7 +160,7 @@ public:
 
     /// Create a new element of this type using given geometry
     /**
-     * Returns a pointer to a new FluidElement element, created using given input
+     * Returns a pointer to a new DVMS element, created using given input
      * @param NewId the ID of the new element
      * @param pGeom a pointer to the geomerty to be used to create the element
      * @param pProperties the properties assigned to the new element
@@ -196,6 +192,16 @@ public:
         const Variable<Matrix >& rVariable,
         Matrix& Output,
         const ProcessInfo& rCurrentProcessInfo) override;
+
+    /// Set up the element.
+    /** Allocate the subscale velocity containers and let base class initialize the constitutive law */
+    void Initialize() override;
+
+    /// Update the values of tracked small scale quantities.
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /// Predict the value of the small scale velocity for the current iteration.
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -268,19 +274,6 @@ protected:
 
     // Protected interface of FluidElement ////////////////////////////////////
 
-    void AddTimeIntegratedSystem(
-        TElementData& rData,
-        MatrixType& rLHS,
-        VectorType& rRHS) override;
-
-    void AddTimeIntegratedLHS(
-        TElementData& rData,
-        MatrixType& rLHS) override;
-
-    void AddTimeIntegratedRHS(
-        TElementData& rData,
-        VectorType& rRHS) override;
-
     void AddVelocitySystem(
         TElementData& rData,
         MatrixType& rLocalLHS,
@@ -290,77 +283,13 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
-    // This function integrates the traction over a cut. It is only required to implement embedded formulations
-    void AddBoundaryIntegral(
-        TElementData& rData,
-        const Vector& rUnitNormal,
-        MatrixType& rLHS,
-        VectorType& rRHS) override;
-
-    // Implementation details of QSVMS ////////////////////////////////////////
+    // Implementation details of DVMS /////////////////////////////////////////
 
     void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix);
 
-    void AddViscousTerm(
-        const TElementData& rData,
-        boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
-        VectorType& rRHS);
-
-    /**
-     * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
-     * This function is used to implement Smagorinsky type LES or non-Newtonian dynamics in derived classes.
-     * @param rData TElementData instance with information about nodal values
-     * @param ElemSize Characteristic length representing the element (for Smagorinsky, this is the filter width)
-     * @return Kinematic viscosity at the integration point.
-     */
-    KRATOS_DEPRECATED virtual double EffectiveViscosity(
-        TElementData& rData,
-        double ElementSize);
-
-    virtual void CalculateTau(
-        const TElementData& rData,
-        const array_1d<double,3> &Velocity,
-        double &TauOne,
-        double &TauTwo) const;
-
-    virtual void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
-
-    virtual void MomentumProjTerm(
-        const TElementData& rData,
-        const array_1d<double,3>& rConvectionVelocity,
-        array_1d<double,3>& rMomentumRHS) const;
-
-    virtual void MassProjTerm(
-        const TElementData& rData,
-        double& rMassRHS) const;
-
-    virtual void SubscaleVelocity(
-        const TElementData& rData,
-        array_1d<double,3>& rVelocitySubscale) const;
-
-    virtual void SubscalePressure(
-        const TElementData& rData,
-        double &rPressureSubscale) const;
-
-    virtual void AlgebraicMomentumResidual(
-        const TElementData& rData,
-        const array_1d<double,3> &rConvectionVelocity,
-        array_1d<double,3>& rResidual) const;
-
-    virtual void AlgebraicMassResidual(
-        const TElementData& rData,
-        double& rMomentumRes) const;
-
-    virtual void OrthogonalMomentumResidual(
-        const TElementData& rData,
-        const array_1d<double,3> &rConvectionVelocity,
-        array_1d<double,3>& rResidual) const;
-
-    virtual void OrthogonalMassResidual(
-        const TElementData& rData,
-        double& rMassRes) const;
+    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected  Access
@@ -383,15 +312,25 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    constexpr static double mTauC1 = 8.0;
+    constexpr static double mTauC2 = 2.0;
+    constexpr static double mSubscalePredictionVelocityTolerance = 1e-14;
+    constexpr static double mSubscalePredictionResidualTolerance = 1e-14;
+    constexpr static unsigned int mSubscalePredictionMaxIterations = 10;
+
     ///@}
     ///@name Member Variables
     ///@{
 
-    ///@}
-    ///@name Friends
-    ///@{
+    // Velocity subscale history, stored at integration points
+    std::vector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
+    std::vector< array_1d<double,Dim> > mOldSubscaleVelocity;
 
-    friend class Internals::SpecializedAddTimeIntegratedSystem<TElementData, TElementData::ElementManagesTimeIntegration>;
+    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+    std::vector< double > mSubscaleIterationError;
+    std::vector< unsigned int > mSubscaleIterationCount;
+    #endif
+
     ///@}
     ///@name Serialization
     ///@{
@@ -411,6 +350,26 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CalculateTau(
+        const TElementData& rData,
+        const array_1d<double,3> &Velocity,
+        double &TauOne,
+        double &TauTwo,
+        double &TauP) const;
+
+    void SubscaleVelocity(
+        const TElementData& rData,
+        array_1d<double,Dim>& rVelocitySubscale);
+
+    void SubscalePressure(
+        const TElementData& rData,
+        double &rPressureSubscale);
+
+    void UpdateSubscaleVelocityPrediction(
+        const TElementData& rData);
+
+    array_1d<double,3> FullConvectiveVelocity(
+        const TElementData& rData) const;
 
     ///@}
     ///@name Private  Access
@@ -427,15 +386,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    QSVMS& operator=(QSVMS const& rOther);
+    DVMS& operator=(DVMS const& rOther);
 
     /// Copy constructor.
-    QSVMS(QSVMS const& rOther);
+    DVMS(DVMS const& rOther);
 
     ///@}
 
 
-}; // Class QSVMS
+}; // Class DVMS
 
 ///@}
 
@@ -451,7 +410,7 @@ private:
 /// input stream function
 template< class TElementData >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 QSVMS<TElementData>& rThis)
+                                 DVMS<TElementData>& rThis)
 {
     return rIStream;
 }
@@ -459,7 +418,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template< class TElementData >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const QSVMS<TElementData>& rThis)
+                                 const DVMS<TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -469,34 +428,8 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 }
 ///@}
 
-
-namespace Internals {
-
-template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystem {
-   public:
-    static void AddSystem(QSVMS<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
-template <class TElementData>
-class SpecializedAddTimeIntegratedSystem<TElementData, true> {
-   public:
-    static void AddSystem(QSVMS<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
-template <class TElementData>
-class SpecializedAddTimeIntegratedSystem<TElementData, false> {
-   public:
-    static void AddSystem(QSVMS<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
 ///@} // Fluid Dynamics Application group
-
-} // namespace Internals
 
 } // namespace Kratos.
 
-#endif // KRATOS_QS_VMS_H
+#endif // KRATOS_D_VMS_H

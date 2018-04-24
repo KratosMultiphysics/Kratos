@@ -172,6 +172,55 @@ void FluidElementUtilities<TNumNodes>::SetTangentialProjectionMatrix(
     noalias(rTangProjMatrix) = id_matrix - outer_prod(rUnitNormal, rUnitNormal);
 }
 
+
+template < std::size_t TNumNodes>
+void FluidElementUtilities<TNumNodes>::DenseSystemSolve(
+    const boost::numeric::ublas::bounded_matrix<double,2,2> &rA,
+    const array_1d<double,2> &rB,
+    array_1d<double,2> &rX)
+{
+    boost::numeric::ublas::bounded_matrix<double,2,2> inverse;
+
+    inverse(0,0) =  rA(1,1);
+    inverse(0,1) = -rA(0,1);
+    inverse(1,0) = -rA(1,0);
+    inverse(1,1) =  rA(0,0);
+
+    double det = rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0);
+    inverse /= det;
+
+    noalias(rX) = boost::numeric::ublas::prod(inverse,rB);
+}
+
+template < std::size_t TNumNodes>
+void FluidElementUtilities<TNumNodes>::DenseSystemSolve(
+    const boost::numeric::ublas::bounded_matrix<double,3,3> &rA,
+    const array_1d<double,3> &rB,
+    array_1d<double,3> &rX)
+{
+    boost::numeric::ublas::bounded_matrix<double,3,3> inverse;
+
+    // First column
+    inverse(0,0) =  rA(1,1)*rA(2,2) - rA(1,2)*rA(2,1);
+    inverse(1,0) = -rA(1,0)*rA(2,2) + rA(1,2)*rA(2,0);
+    inverse(2,0) =  rA(1,0)*rA(2,1) - rA(1,1)*rA(2,0);
+
+    // Second column
+    inverse(0,1) = -rA(0,1)*rA(2,2) + rA(0,2)*rA(2,1);
+    inverse(1,1) =  rA(0,0)*rA(2,2) - rA(0,2)*rA(2,0);
+    inverse(2,1) = -rA(0,0)*rA(2,1) + rA(0,1)*rA(2,0);
+
+    // Third column
+    inverse(0,2) =  rA(0,1)*rA(1,2) - rA(0,2)*rA(1,1);
+    inverse(1,2) = -rA(0,0)*rA(1,2) + rA(0,2)*rA(1,0);
+    inverse(2,2) =  rA(0,0)*rA(1,1) - rA(0,1)*rA(1,0);
+
+    double det = rA(0,0)*inverse(0,0) + rA(0,1)*inverse(1,0) + rA(0,2)*inverse(2,0);
+    inverse /= det;
+
+    noalias(rX) = boost::numeric::ublas::prod(inverse,rB);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation
 
