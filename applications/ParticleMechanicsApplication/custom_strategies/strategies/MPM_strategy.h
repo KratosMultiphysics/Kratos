@@ -183,7 +183,7 @@ public:
 
     /*@{ */
 
-    MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", int NumPar = 3)
+    MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", int NumPar = 3, bool BlockBuilder = false)
         : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
     {
 
@@ -349,7 +349,16 @@ public:
 
 
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
+            if(BlockBuilder == true){
+                std::cout << "Block Builder is used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
+            else{
+                std::cout << "Block Builder is not used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
 
             double ratio_tolerance = 1e-04;
             double always_converged_norm = 1e-09;
@@ -370,7 +379,15 @@ public:
             double Dynamic;
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, Alpham = 0.0, Dynamic=1) );
 
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
+            if(BlockBuilder == true){
+                std::cout << "Block Builder is used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
+            else{
+                std::cout << "Block Builder is not used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
 
             double ratio_tolerance = 0.00005;
             double always_converged_norm = 1e-09;
@@ -391,7 +408,15 @@ public:
             double Dynamic;
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, Alpham = 0.00, Dynamic=0) );
 
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
+            if(BlockBuilder == true){
+                std::cout << "Block Builder is used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
+            else{
+                std::cout << "Block Builder is not used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
 
             double ratio_tolerance = 0.0001;
             double always_converged_norm = 1e-09;
@@ -435,21 +460,21 @@ public:
     operation to predict the solution ... if it is not called a trivial predictor is used in which the
     values of the solution step of interest are assumed equal to the old values
      */
-    virtual void Predict()
+    void Predict() override
     {
     }
 
     /**
     Initialization of member variables and prior operations
      */
-    virtual void Initialize()
+    void Initialize() override
     {
     }
 
     /**
     the problem of interest is solved
      */
-    virtual double Solve()
+    double Solve() override
     {
         //check which nodes and elements are ACTIVE and populate the MPM model part
 		//std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -756,12 +781,7 @@ public:
     virtual void SearchElement(
         ModelPart& grid_model_part,
         ModelPart& mpm_model_part)
-    {
-        
-        
-        
-
-        
+    { 
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
 			
@@ -772,11 +792,8 @@ public:
             elemItr ->GetGeometry()[2].Reset(ACTIVE);
             if (TDim ==3)
             {
-
                 elemItr ->GetGeometry()[3].Reset(ACTIVE);
             }
-			
-			
 		}
         
         
@@ -787,65 +804,49 @@ public:
         if (m_GeometryElement == "Triangle")
         {
             const int max_results = 1000;
-            array_1d<double, TDim + 1 > N;
 
             BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
             SearchStructure.UpdateSearchDatabase();
 
 			#pragma omp parallel
 			{
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+                array_1d<double, TDim + 1 > N;
+                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
+                #pragma omp for
+                for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
-
-			#pragma omp for
-            for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
-
-				auto elemItr = mpm_model_part.Elements().begin() + i;
-				
-				array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
-				//KRATOS_WATCH(xg);
-                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                Element::Pointer pelem;
-
-                //FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, max_results);
-
-                if (is_found == true)
-                {
-                    pelem->Set(ACTIVE);
+                    auto elemItr = mpm_model_part.Elements().begin() + i;
                     
+                    array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
+                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-                    elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
-                    elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
-                    elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
+                    Element::Pointer pelem;
 
-                    pelem->GetGeometry()[0].Set(ACTIVE);
-                    pelem->GetGeometry()[1].Set(ACTIVE);
-                    pelem->GetGeometry()[2].Set(ACTIVE);
-					
-                    if (TDim ==3)
+                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, max_results);
+
+                    if (is_found == true)
                     {
-
-                        elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
-                        pelem->GetGeometry()[3].Set(ACTIVE);
-                    }
+                        pelem->Set(ACTIVE);
                     
+                        elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
+                        elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
+                        elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
 
-
+                        pelem->GetGeometry()[0].Set(ACTIVE);
+                        pelem->GetGeometry()[1].Set(ACTIVE);
+                        pelem->GetGeometry()[2].Set(ACTIVE);
+                        
+                        if (TDim ==3)
+                        {
+                            elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
+                            pelem->GetGeometry()[3].Set(ACTIVE);
+                        }
+                    }
                 }
-
-
-			}
-		}
-
-            
-
+		    }
         }
-
-      
-
 
         //******************SEARCH FOR QUADRILATERALS************************
         else if(m_GeometryElement == "Quadrilateral")
@@ -856,47 +857,36 @@ public:
             QuadBinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
             SearchStructure.UpdateSearchDatabase();
 
-	    #pragma omp parallel
+	        #pragma omp parallel
 			{
-            typename QuadBinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+                typename QuadBinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
+                //loop over the material points
+                #pragma omp for
+                for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
+                    auto elemItr = mpm_model_part.Elements().begin() + i;
+                            
+                    array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
+                    typename QuadBinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-            //loop over the material points
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
+                    Element::Pointer pelem;
 
-		auto elemItr = mpm_model_part.Elements().begin() + i;
+                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                    bool is_found = SearchStructure.FindPointOnMesh(xg, pelem, result_begin, max_results);
                 
-                array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
-                typename QuadBinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                Element::Pointer pelem;
-
-                //FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg, pelem, result_begin, max_results);
-                
-                if (is_found == true)
-                {
-                    pelem->Set(ACTIVE);
-                    
-
-                    elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
-                    elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
-                    elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
-                    elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
-                    
-                    
-
+                    if (is_found == true)
+                    {
+                        pelem->Set(ACTIVE);
+                        
+                        elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
+                        elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
+                        elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
+                        elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
+                    }
                 }
-
-
             }
-
         }
-		
-       }
-        
     }
 
 
@@ -906,7 +896,7 @@ public:
      * function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
-    virtual int Check()
+    int Check() override
     {
         KRATOS_TRY
 
