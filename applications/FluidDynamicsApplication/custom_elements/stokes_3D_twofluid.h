@@ -26,7 +26,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
@@ -107,7 +106,7 @@ public:
         return Kratos::make_shared< Stokes3DTwoFluid >(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
-    
+
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
@@ -141,7 +140,7 @@ public:
 
         //compute element size
 //         data.h = ComputeH<4,3>(data.DN_DX, Volume);
-        
+
         //gauss point position
         bounded_matrix<double,NumNodes, NumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
@@ -189,19 +188,19 @@ public:
 
 
         //here we decide if the element is all FLUID/AIR/MIXED
-        if(npos == NumNodes) //all AIR 
+        if(npos == NumNodes) //all AIR
         {
             ComputeElementAsAIR<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, Ncontainer, rCurrentProcessInfo);
         }
-        else if (nneg == NumNodes) //all FLUID 
+        else if (nneg == NumNodes) //all FLUID
         {
             ComputeElementAsFLUID<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, Ncontainer, rCurrentProcessInfo);
         }
-        else //element includes both FLUID and AIR 
+        else //element includes both FLUID and AIR
         {
             ComputeElementAsMIXED<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo, distances);
         }
-            
+
 
         KRATOS_CATCH("Error in StokesTwoFluid Element Symbolic")
     }
@@ -259,13 +258,13 @@ public:
             KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check if the application was correctly registered.","");
 
         // Checks on nodes
-        
+
         //check Properties
         if(GetProperties().Has(DENSITY_AIR) == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY_AIR is not set","");
         if(GetProperties().Has(CONSTITUTIVE_LAW) == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"CONSTITUTIVE_LAW is not set","");
-        
+
         //check constitutive CONSTITUTIVE_LAW
         GetProperties().GetValue(CONSTITUTIVE_LAW)->Check(GetProperties(),GetGeometry(),rCurrentProcessInfo);
 
@@ -309,8 +308,8 @@ public:
             for(unsigned int i=0; i<GetGeometry().size(); i++)
                 distance_center += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
             distance_center/=static_cast<double>(GetGeometry().size());
-            
-            if(distance_center > 0) //AIR 
+
+            if(distance_center > 0) //AIR
             {
                 Output=0.0;
             }
@@ -393,18 +392,18 @@ public:
         const double weight = Volume/static_cast<double>(NumNodes);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-        for(unsigned int igauss = 0; igauss<Ncontainer.size1(); igauss++) 
+        for(unsigned int igauss = 0; igauss<Ncontainer.size1(); igauss++)
         {
-             noalias(data.N) = row(Ncontainer, igauss); 
- 
+             noalias(data.N) = row(Ncontainer, igauss);
+
              ComputeConstitutiveResponse_AIR(data, air_density, air_nu, rCurrentProcessInfo);
 
             Stokes3DTwoFluid::ComputeGaussPointRHSContribution(rhs_local, data);
             Stokes3DTwoFluid::ComputeGaussPointLHSContribution(lhs_local, data);
 
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-            noalias(rLeftHandSideMatrix) += weight*lhs_local; 
-            noalias(rRightHandSideVector) += weight*rhs_local; 
+            noalias(rLeftHandSideMatrix) += weight*lhs_local;
+            noalias(rRightHandSideVector) += weight*rhs_local;
         }
 
 //         //assign AIR_DENSITY to density
@@ -412,22 +411,22 @@ public:
 //         for (unsigned int i = 0; i < NumNodes; i++)
 //             data.rho[i] = air_density;
 //         const double air_nu = GetProperties()[DYNAMIC_VISCOSITY]; //ATTENTION: not using here the real visosity of air
-// 
+//
 //         for (unsigned int i = 0; i < NumNodes; i++) //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //             data.N[i] = 0.25;
-// 
+//
 //         for(unsigned int igauss = 0; igauss<1; igauss++)
 //         {
 //             ComputeConstitutiveResponse_AIR(data,air_density, air_nu, rCurrentProcessInfo);
-// 
+//
 //             Stokes3D::ComputeGaussPointRHSContribution(rhs_local, data);
 //             Stokes3D::ComputeGaussPointLHSContribution(lhs_local, data);
-// 
+//
 //             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
 //             noalias(rLeftHandSideMatrix) = lhs_local; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //             noalias(rRightHandSideVector) = rhs_local; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //         }
-// 
+//
 //         rLeftHandSideMatrix  *= Volume; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //         rRightHandSideVector *= Volume; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 
@@ -447,48 +446,48 @@ public:
         const double weight = Volume/static_cast<double>(NumNodes);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-        for(unsigned int igauss = 0; igauss<Ncontainer.size1(); igauss++) 
+        for(unsigned int igauss = 0; igauss<Ncontainer.size1(); igauss++)
         {
-             noalias(data.N) = row(Ncontainer, igauss); 
- 
+             noalias(data.N) = row(Ncontainer, igauss);
+
              ComputeConstitutiveResponse(data, rCurrentProcessInfo);
 
             Stokes3DTwoFluid::ComputeGaussPointRHSContribution(rhs_local, data);
             Stokes3DTwoFluid::ComputeGaussPointLHSContribution(lhs_local, data);
 
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-            noalias(rLeftHandSideMatrix) += weight*lhs_local; 
-            noalias(rRightHandSideVector) += weight*rhs_local; 
+            noalias(rLeftHandSideMatrix) += weight*lhs_local;
+            noalias(rRightHandSideVector) += weight*rhs_local;
         }
 
 
     }
-    
-        
-        
+
+
+
 //         for (unsigned int i = 0; i < NumNodes; i++) //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //             data.N[i] = 0.25;
-// 
+//
 //         for(unsigned int igauss = 0; igauss<1; igauss++) //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //         {
-// 
+//
 //             ComputeConstitutiveResponse(data, rCurrentProcessInfo);
-// 
+//
 //             Stokes3D::ComputeGaussPointRHSContribution(rhs_local, data);
 //             Stokes3D::ComputeGaussPointLHSContribution(lhs_local, data);
-// 
+//
 //             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
 //             noalias(rLeftHandSideMatrix) = lhs_local; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //             noalias(rRightHandSideVector) = rhs_local; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //         }
-// 
+//
 //         rLeftHandSideMatrix  *= Volume; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //         rRightHandSideVector *= Volume; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
-// 
+//
 //     }
-//     
-    
-    
+//
+
+
     //ATTENTION: here multiple integration points are used. For this reason the methods used must be reimplemented in the current element
     template<int MatrixSize, int NumNodes>
     void ComputeElementAsMIXED(bounded_matrix<double,MatrixSize, MatrixSize>& lhs_local,
@@ -515,7 +514,7 @@ public:
                 //gauss point position
                 bounded_matrix<double,NumNodes, NumNodes> Ncontainer;
                 GetShapeFunctionsOnGauss(Ncontainer);
-        
+
                 //cases exist when the element is like not subdivided due to the characteristics of the provided distance
                 //in this cases the element is treated as AIR or FLUID depending on the side
                 array_1d<double,NumNodes> Ncenter;
@@ -945,6 +944,6 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_STOKES_ELEMENT_TWOFLUID_3D_INCLUDED  defined 
+#endif // KRATOS_STOKES_ELEMENT_TWOFLUID_3D_INCLUDED  defined
 
 

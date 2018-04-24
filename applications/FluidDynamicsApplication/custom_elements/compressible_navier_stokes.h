@@ -11,7 +11,7 @@
 //  Main authors:    Elisa Magliozzi
 //
 
-#if !defined(KRATOS_COMPRESSIBLE_NAVIER_STOKES) 
+#if !defined(KRATOS_COMPRESSIBLE_NAVIER_STOKES)
 #define  KRATOS_COMPRESSIBLE_NAVIER_STOKES
 
 // System includes
@@ -21,14 +21,13 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/cfd_variables.h"
 
 // Application includes
-#include "fluid_dynamics_application_variables.h" 
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -78,18 +77,18 @@ public:
 
         bounded_matrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
-        
+
         double bdf0;
         double bdf1;
         double bdf2;
-        double h;             // Element size 
+        double h;             // Element size
         double volume;        // In 2D: element area. In 3D: element volume
         double mu;
         double nu;
-        double lambda;          
+        double lambda;
         double c_v;
         double gamma;               //gamma
-    
+
         //double c;               // TO DO : temporarily use for testing
         //double time;               // TO DO: used for manufactured solution
     };
@@ -152,7 +151,7 @@ public:
         // Struct to pass around the data
         ElementDataStruct data;
         this->FillElementData(data, rCurrentProcessInfo);
-        
+
         // Allocate memory needed
         bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
         array_1d<double,MatrixSize> rhs_local;
@@ -164,14 +163,14 @@ public:
         // Gauss point position
         bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
-        
+
         for(unsigned int igauss = 0; igauss<Ncontainer.size2(); igauss++)
         {
             noalias(data.N) = row(Ncontainer, igauss);
 
             double v_sc = ShockCapturingViscosity(data);
             double k_sc = ShockCapturingConductivity(data);
-            
+
             ComputeGaussPointRHSContribution(rhs_local, data, v_sc, k_sc);
             ComputeGaussPointLHSContribution(lhs_local, data, v_sc, k_sc);
 
@@ -207,7 +206,7 @@ public:
         // Struct to pass around the data
         ElementDataStruct data;
         this->FillElementData(data, rCurrentProcessInfo);
- 
+
         // Allocate memory needed
         array_1d<double,MatrixSize> rhs_local;
 
@@ -220,12 +219,12 @@ public:
         for(unsigned int igauss = 0; igauss<Ncontainer.size2(); igauss++)
         {
             noalias(data.N) = row(Ncontainer, igauss);
-            
+
             double v_sc = ShockCapturingViscosity(data);
             double k_sc = ShockCapturingConductivity(data);
-            
+
             ComputeGaussPointRHSContribution(rhs_local, data,v_sc,k_sc);
-            
+
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
             noalias(rRightHandSideVector) += rhs_local;
         }
@@ -245,7 +244,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    
+
     int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -271,8 +270,8 @@ public:
             KRATOS_THROW_ERROR(std::invalid_argument,"SPECIFIC_HEAT Key is 0. Check if the application was correctly registered.","");
         if(HEAT_CAPACITY_RATIO.Key() == 0)
             KRATOS_THROW_ERROR(std::invalid_argument,"HEAT_CAPACITY_RATIO Key is 0. Check if the application was correctly registered.","");
-        
-    
+
+
 
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
@@ -295,10 +294,10 @@ public:
         }
 
        return 0;
-	
+
         KRATOS_CATCH("");
     }
-    
+
 
     void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
@@ -357,7 +356,7 @@ public:
 protected:
     ///@name Protected static member variables
     ///@{
-    
+
 
     ///@}
     ///@name Protected member Variables
@@ -388,7 +387,7 @@ protected:
 
     // Auxiliar function to fill the element data structure
     void FillElementData(ElementDataStruct& rData, const ProcessInfo& rCurrentProcessInfo)
-    {   
+    {
         // Getting data for the given geometry
         // double Volume; // In 2D cases Volume variable contains the element area
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), rData.DN_DX, rData.N, rData.volume);
@@ -402,7 +401,7 @@ protected:
         rData.bdf1 = BDFVector[1];
         rData.bdf2 = BDFVector[2];
         //rData.time = rCurrentProcessInfo[TIME];
-        
+
         Properties& r_properties = this->GetProperties();
         rData.nu = r_properties.GetValue(KINEMATIC_VISCOSITY);
         rData.mu =  r_properties.GetValue(DYNAMIC_VISCOSITY);
@@ -416,7 +415,7 @@ protected:
             const array_1d<double,3>& moment = this->GetGeometry()[i].FastGetSolutionStepValue(MOMENTUM);
             const array_1d<double,3>& moment_n = this->GetGeometry()[i].FastGetSolutionStepValue(MOMENTUM,1);
             const array_1d<double,3>& moment_nn = this->GetGeometry()[i].FastGetSolutionStepValue(MOMENTUM,2);
-     
+
             for(unsigned int k=0; k<TDim; k++)
             {
                 rData.U(i,k+1)   = moment[k];
@@ -427,11 +426,11 @@ protected:
             rData.U(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
             rData.Un(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY,1);
             rData.Unn(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY,2);
-            
+
             rData.U(i,TDim+1) = this->GetGeometry()[i].FastGetSolutionStepValue(TOTAL_ENERGY);
             rData.Un(i,TDim+1) = this->GetGeometry()[i].FastGetSolutionStepValue(TOTAL_ENERGY,1);
             rData.Unn(i,TDim+1) = this->GetGeometry()[i].FastGetSolutionStepValue(TOTAL_ENERGY,2);
-            
+
             rData.r(i) = this->GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
          }
 
