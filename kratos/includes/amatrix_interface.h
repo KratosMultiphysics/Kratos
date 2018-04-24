@@ -258,6 +258,8 @@ template <typename T> AMatrix::TransposeMatrix<T> trans(T& TheMatrix){return The
 
 using ZeroMatrix = AMatrix::ZeroMatrix<double>;
 
+using IdentityMatrix = AMatrix::IdentityMatrix<double>;
+
 template <typename TExpression1Type, typename TExpression2Type,
     std::size_t TCategory1, std::size_t TCategory2>
 AMatrix::MatrixProductExpression<TExpression1Type, TExpression2Type> prod(
