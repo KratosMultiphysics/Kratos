@@ -17,7 +17,7 @@ namespace Kratos {
 namespace Testing {
 
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceNode, KratosMappingApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(InterfaceNode, KratosMappingApplicationSerialTestSuite)
 {
 
 

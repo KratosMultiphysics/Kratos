@@ -17,7 +17,7 @@ namespace Kratos {
 namespace Testing {
 
 
-KRATOS_TEST_CASE_IN_SUITE(NearestNeighborMapperConditionEquationId, KratosMappingApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(NearestNeighborMapperConditionEquationId, KratosMappingApplicationSerialTestSuite)
 {
 
 

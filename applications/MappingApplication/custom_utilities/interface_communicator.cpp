@@ -41,7 +41,7 @@ namespace Kratos
 
     void InterfaceCommunicator::PrepareInterface()
     {
-
+        AssignInterfaceEquationIds();
     }
 
     void InterfaceCommunicator::AssignInterfaceEquationIds()
@@ -60,11 +60,13 @@ namespace Kratos
 
         const int start_equation_id = num_nodes_accumulated - num_nodes_local;
 
+        const auto nodes_begin = rModelPartCommunicator.LocalMesh().NodesBegin();
+
         #pragma omp parallel for
         for (int i=0; i<num_nodes_local; ++i)
         {
-            ( rModelPartCommunicator.LocalMesh().NodesBegin() + i )->SetValue(
-                INTERFACE_EQUATION_ID, start_equation_id + i);
+            // std::cout << "INTERFACE_EQUATION_ID = " << start_equation_id + i << std::endl;
+            ( nodes_begin + i )->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
         }
 
         rModelPartCommunicator.SynchronizeVariable(INTERFACE_EQUATION_ID);
