@@ -83,7 +83,7 @@ public:
         if(AreSeveralEigenfrequenciesTraced())
         {
             KRATOS_ERROR_IF_NOT(response_settings.Has("weighting_method")) << "Several eigenfrequencies are traced but no weighting method specified in the parameters!" << std::endl;
-            if(response_settings["weighting_method"].GetString().compare("linear_scaling") == 0)
+            if(response_settings["weighting_method"].GetString() == "linear_scaling")
                 CalculateLinearWeights(response_settings);
             else
                 KRATOS_ERROR  << "Specified weighting method for eigenfrequencies is not implemented! Available weighting methods are: 'linear_scaling'." << std::endl;
@@ -189,7 +189,7 @@ protected:
     {
         const std::string gradient_mode = rResponseSettings["gradient_mode"].GetString();
 
-        if (gradient_mode.compare("semi_analytic") == 0)
+        if (gradient_mode == "semi_analytic")
             mDelta = rResponseSettings["step_size"].GetDouble();
         else
             KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
@@ -198,26 +198,15 @@ protected:
     // --------------------------------------------------------------------------
     void DetermineTracedEigenfrequencies(Parameters rResponseSettings)
     {
-        if(rResponseSettings["traced_eigenfrequency"].IsArray())
-        {
-            mTracedEigenfrequencyIds.resize(rResponseSettings["traced_eigenfrequency"].size(),false);
-            for(std::size_t i = 0; i < mTracedEigenfrequencyIds.size(); i++)
-                mTracedEigenfrequencyIds[i] = rResponseSettings["traced_eigenfrequency"][i].GetInt();
-        }
-        else
-        {
-            mTracedEigenfrequencyIds.resize(1,false);
-            mTracedEigenfrequencyIds[0] = rResponseSettings["traced_eigenfrequency"].GetInt();
-        }
+        mTracedEigenfrequencyIds.resize(rResponseSettings["traced_eigenfrequencies"].size(),false);
+        for(std::size_t i = 0; i < mTracedEigenfrequencyIds.size(); i++)
+            mTracedEigenfrequencyIds[i] = rResponseSettings["traced_eigenfrequencies"][i].GetInt();
     }
 
     // --------------------------------------------------------------------------
     bool AreSeveralEigenfrequenciesTraced()
     {
-        if(mTracedEigenfrequencyIds.size()>1)
-            return true;
-        else
-            return false;
+        return (mTracedEigenfrequencyIds.size()>1);
     }
 
     // --------------------------------------------------------------------------
@@ -242,7 +231,7 @@ protected:
             for(std::size_t i = 0; i < mWeightingFactors.size(); i++)
                 mWeightingFactors[i] /= test_sum_weight_facs;
 
-            KRATOS_INFO("\nEigenfrequencyResponseFunctionUtility") << "The sum of the chosen weighting factors is unequal one. A corresponding scaling process was exected!" << std::endl;
+            KRATOS_INFO("\n> EigenfrequencyResponseFunctionUtility") << "The sum of the chosen weighting factors is unequal one. A corresponding scaling process was exected!\n" << std::endl;
         }
     }
 
@@ -257,8 +246,8 @@ protected:
     void CheckIfAllNecessaryEigenvaluesAreComputed()
     {
         const int num_of_computed_eigenvalues = (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR]).size();
-        const int max_required_eigenfrequency = *(std::max_element(mTracedEigenfrequencyIds.begin(), mTracedEigenfrequencyIds.end()));
-        KRATOS_ERROR_IF(max_required_eigenfrequency > num_of_computed_eigenvalues) << "The following Eigenfrequency shall be traced but was not computed by the eigenvalue analysies: " << max_required_eigenfrequency << std::endl;
+        const int max_required_eigenvalue = *(std::max_element(mTracedEigenfrequencyIds.begin(), mTracedEigenfrequencyIds.end()));
+        KRATOS_ERROR_IF(max_required_eigenvalue > num_of_computed_eigenvalues) << "The following Eigenfrequency shall be traced but their corresponding eigenvalue was not computed by the eigenvalue analysies: " << max_required_eigenvalue << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -273,7 +262,7 @@ protected:
         for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
         {
             traced_eigenvalues[i] = GetEigenvalue(mTracedEigenfrequencyIds[i]);
-            gradient_prefactors[i] = 1 / (2*Globals::Pi * std::sqrt(traced_eigenvalues[i]));
+            gradient_prefactors[i] = 1 / (2 * 2 * Globals::Pi * std::sqrt(traced_eigenvalues[i]));
         }
 
         // Element-wise computation of gradients
@@ -332,7 +321,6 @@ protected:
     // --------------------------------------------------------------------------
     double GetEigenvalue(int eigenfrequency_id)
     {
-        const int num_of_computed_eigenvalues = (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR]).size();
         return (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR])[eigenfrequency_id-1];
     }
 
