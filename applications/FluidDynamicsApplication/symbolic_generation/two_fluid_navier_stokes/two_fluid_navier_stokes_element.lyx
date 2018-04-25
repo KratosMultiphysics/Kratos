@@ -1172,16 +1172,7 @@ The residual functional implementation is splitted in two pieces
 
 : functional corresponding to the standard incompressible Navier-Stokes
  equations.
- If 
-\begin_inset Quotes eld
-\end_inset
-
-artificial_compressibility
-\begin_inset Quotes erd
-\end_inset
-
- is set as True, the artificial compressibility terms are also added to
- the functional.
+ 
 \end_layout
 
 \begin_layout Itemize
@@ -1190,16 +1181,7 @@ artificial_compressibility
 
 : functional corresponding to the standard incompressible Navier-Stokes
  ASGS stabilization.
- If 
-\begin_inset Quotes eld
-\end_inset
-
-artificial_compressibility
-\begin_inset Quotes erd
-\end_inset
-
- is set as True, the artificial compressibility stabilization terms are
- also added to the stabilization functional.
+ 
 \end_layout
 
 \begin_layout Itemize
@@ -1237,6 +1219,35 @@ artificial_compressibility
 
  is set as True, the artificial compressibility terms are also added to
  the residual.
+\end_layout
+
+\begin_layout Standard
+Similarly, we have the terms that correspond to the enrichment.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathbf{rv\_galerkin\_enriched}$
+\end_inset
+
+: functional corresponding to the enriched pressure term in Galerkin formulation.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathbf{rv\_stab\_enriched}$
+\end_inset
+
+: functional corresponding to the standard incompressible Navier-Stokes
+ ASGS stabilization of the enriched terms.
+ 
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathbf{rv\_enriched}=\mathbf{rv\_galerkin\_enriched}+\mathbf{rv\_stab\_enriched}$
+\end_inset
+
+: summation of functionals.
+ This is the functional used to compute the additional matrices corresponding
+ to the enriched terms for cut elements.
 \end_layout
 
 \end_body

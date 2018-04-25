@@ -189,9 +189,6 @@ for dim in dim_vector:
         testfunc[i*(dim+1)+dim] = q[i,0]
 
 
-    #BOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRARRR
-    #rhs,lhs = Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
-
     ## Compute LHS and RHS
     # For the RHS computation one wants the residual of the previous iteration (residual based formulation). By this reason the stress is
     # included as a symbolic variable, which is assumed to be passed as an argument from the previous iteration database.
@@ -214,20 +211,23 @@ for dim in dim_vector:
     vel_subscale_enr = vel_residual_enr * tau1
 
     if (divide_by_rho):
-        rv_enriched = -qenr_gauss*div_v
-        rv_enriched_stab = grad_qenr.transpose()*vel_subscale_enr
+        #rv_enriched = -qenr_gauss*div_v
+        rv_stab_enriched = grad_qenr.transpose()*vel_subscale_enr
+        rv_stab_enriched -= rho*grad_q.transpose()*tau1*grad_penr
     else:
-        rv_enriched = -qenr_gauss*rho*div_v
-        rv_enriched_stab = rho*grad_qenr.transpose()*vel_subscale_enr
+        #rv_enriched = -qenr_gauss*rho*div_v
+        rv_stab_enriched = rho*grad_qenr.transpose()*vel_subscale_enr
+        rv_stab_enriched -= grad_q.transpose()*tau1*grad_penr
 
-    rv_enriched += div_w*penr_gauss    
+    rv_galerkin_enriched = div_w*penr_gauss    
+
+    rv_stab_enriched -= rho*vconv_gauss.transpose()*grad_w*tau1*grad_penr
+    rv_stab_enriched -= rho*div_vconv*w_gauss.transpose()*tau1*grad_penr
     
-    rv_enriched_stab -= tau1*rho*grad_penr.transpose()*grad_w*vconv_gauss
-    rv_enriched_stab -= tau1*rho*grad_q.transpose()*grad_penr
-
+    rv_enriched = rv_galerkin_enriched
     ## Add the stabilization terms to the original residual terms
     if (ASGS_stabilization):
-        rv_enriched += rv_enriched_stab
+        rv_enriched += rv_stab_enriched
 
     dofs_enr=Matrix( zeros(nnodes,1) )
     testfunc_enr = Matrix( zeros(nnodes,1) )
