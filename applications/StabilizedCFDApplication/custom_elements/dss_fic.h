@@ -179,7 +179,7 @@ protected:
     ///@{
 
 
-    virtual void CalculateStaticTau(double Density,
+    virtual void CalculateStabilizationParameters(double Density,
                                     double KinematicVisc,
                                     const array_1d<double,3> &Velocity,
                                     const ProcessInfo& rProcessInfo,
