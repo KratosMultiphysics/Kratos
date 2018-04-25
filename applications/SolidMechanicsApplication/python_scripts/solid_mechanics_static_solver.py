@@ -58,15 +58,25 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         if(integration_method == "Linear"):
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticMethod(),
                                              'ROTATION': KratosSolid.StaticMethod()}) #shells
-            mechanical_scheme = KratosSolid.DisplacementStaticScheme()
+            scheme_integration_methods = []
+            scheme_integration_methods.append(KratosSolid.StaticIntegration(KratosMultiphysics.DISPLACEMENT))
+            mechanical_scheme = KratosSolid.StaticScheme(scheme_integration_methods)
+            #mechanical_scheme = KratosSolid.DisplacementStaticScheme()
         elif(integration_method == "Non-Linear" ):
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticMethod(),
                                              'ROTATION': KratosSolid.StaticMethod()}) #shells
-            mechanical_scheme = KratosSolid.DisplacementStaticScheme()
+            scheme_integration_methods = []
+            scheme_integration_methods.append(KratosSolid.StaticIntegration(KratosMultiphysics.DISPLACEMENT))
+            mechanical_scheme = KratosSolid.StaticScheme(scheme_integration_methods)
+            #mechanical_scheme = KratosSolid.DisplacementStaticScheme()
         elif(integration_method == "RotationStatic"):
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticStepMethod(),
                                              'ROTATION': KratosSolid.StaticStepRotationMethod()}) #beams
-            mechanical_scheme = KratosSolid.DisplacementRotationStaticScheme()
+            scheme_integration_methods = []
+            scheme_integration_methods.append(KratosSolid.StaticIntegration(KratosMultiphysics.DISPLACEMENT))
+            scheme_integration_methods.append(KratosSolid.StaticIntegration(KratosMultiphysics.ROTATION))
+            mechanical_scheme = KratosSolid.StaticScheme(scheme_integration_methods)
+            #mechanical_scheme = KratosSolid.DisplacementRotationStaticScheme()
         else:
             raise Exception("Unsupported integration_method: " + integration_method)
 

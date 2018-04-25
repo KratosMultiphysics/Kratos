@@ -79,10 +79,19 @@ namespace Kratos
     
     /// Default Constructor.
     SimoStepRotationMethod() : DerivedType() {}
+    
+    /// Constructor.
+    SimoStepRotationMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+
+    /// Constructor.
+    SimoStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    SimoStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable) {}
 
     /// Copy Constructor.
     SimoStepRotationMethod(SimoStepRotationMethod& rOther) : DerivedType(rOther) {}
-
+    
     /// Clone.
     BasePointerType Clone() override
     {

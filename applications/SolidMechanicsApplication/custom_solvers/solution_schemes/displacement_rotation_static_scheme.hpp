@@ -40,9 +40,9 @@ namespace Kratos
    */
   template<class TSparseSpace,  class TDenseSpace >
   class DisplacementRotationStaticScheme: public DisplacementStaticScheme<TSparseSpace,TDenseSpace>
-  {   
+  {
   public:
-    
+
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementRotationStaticScheme );
@@ -56,7 +56,7 @@ namespace Kratos
     typedef DisplacementStaticScheme<TSparseSpace,TDenseSpace>                DerivedType;
 
     typedef typename DerivedType::IntegrationPointerType           IntegrationPointerType;
-    
+
     typedef typename DerivedType::NodeType                                       NodeType;
     ///@}
     ///@name Life Cycle
@@ -73,11 +73,10 @@ namespace Kratos
       :DerivedType(rOptions)
     {
     }
-    
+
     /// Copy Constructor.
     DisplacementRotationStaticScheme(DisplacementRotationStaticScheme& rOther)
       :DerivedType(rOther)
-      ,mpRotationIntegrationMethod(rOther.mpRotationIntegrationMethod)
     {
     }
 
@@ -115,9 +114,9 @@ namespace Kratos
 				      ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY;
-     
+
       (rCurrentElement) -> CalculateLocalSystem(rLHS_Contribution,rRHS_Contribution, rCurrentProcessInfo);
-      
+
       (rCurrentElement) -> EquationIdVector(rEquationId, rCurrentProcessInfo);
 
       KRATOS_CATCH( "" );
@@ -215,7 +214,7 @@ namespace Kratos
       (rCurrentCondition) -> CalculateRightHandSide(rRHS_Contribution,rCurrentProcessInfo);
 
       (rCurrentCondition) -> EquationIdVector(rEquationId,rCurrentProcessInfo);
-      
+
       KRATOS_CATCH( "" );
     }
 
@@ -258,7 +257,7 @@ namespace Kratos
         }
 
       return ErrorCode;
-      
+
       KRATOS_CATCH( "" );
     }
 
@@ -273,7 +272,7 @@ namespace Kratos
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
@@ -291,15 +290,15 @@ namespace Kratos
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Displacement-Rotation StaticScheme Data";     
+      rOStream << "Displacement-Rotation StaticScheme Data";
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
-    
+
   protected:
 
     ///@name Protected static Member Variables
@@ -309,8 +308,6 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-    IntegrationPointerType    mpRotationIntegrationMethod;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -319,41 +316,33 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
-    {      
-      this->mpIntegrationMethod = IntegrationPointerType( new StaticStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
-
-      // Set scheme variables
-      this->mpIntegrationMethod->SetVariable(DISPLACEMENT);
-
-      this->mpIntegrationMethod->SetStepVariable(STEP_DISPLACEMENT);
-
-      // Set scheme parameters
-      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
-      
-      this->mpRotationIntegrationMethod = IntegrationPointerType( new StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
-     
-      // Set rotation scheme variables
-      this->mpRotationIntegrationMethod->SetVariable(ROTATION);
-      
-      this->mpRotationIntegrationMethod->SetStepVariable(STEP_ROTATION);
-
-      // Set scheme parameters
-      this->mpRotationIntegrationMethod->SetParameters(rCurrentProcessInfo);
-    }
-
-    virtual void IntegrationMethodUpdate(NodeType& rNode) override
+    void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
     {
-      this->mpIntegrationMethod->Update(rNode);
-      this->mpRotationIntegrationMethod->Update(rNode);
+      if ( this->mTimeIntegrationMethods.size() == 0 ) {
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< StaticStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(DISPLACEMENT,VELOCITY,ACCELERATION));
+        
+        // Set scheme variables
+        this->mTimeIntegrationMethods.front()->SetStepVariable(STEP_DISPLACEMENT);
+
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.front()->SetParameters(rCurrentProcessInfo);
+
+
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION));
+        
+        this->mTimeIntegrationMethods.back()->SetStepVariable(STEP_ROTATION);
+
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.back()->SetParameters(rCurrentProcessInfo);
+
+        // Set parameters to process info
+        this->mTimeIntegrationMethods.back()->SetProcessInfoParameters(rCurrentProcessInfo);
+
+        // Modify ProcessInfo scheme parameters
+        rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
+      }
     }
 
-    virtual void IntegrationMethodPredict(NodeType& rNode) override
-    {
-      this->mpIntegrationMethod->Predict(rNode);
-      this->mpRotationIntegrationMethod->Predict(rNode);
-    }
-  
 
     ///@}
     ///@name Protected  Access
@@ -366,34 +355,34 @@ namespace Kratos
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     ///@}
 
   private:
 
    ///@name Static Member Variables
     ///@{
-  
+
     ///@}
     ///@name Member Variables
     ///@{
-  
+
     ///@}
     ///@name Private Operators
     ///@{
-  
+
     ///@}
     ///@name Private Operations
     ///@{
-  
+
     ///@}
     ///@name Private  Access
     ///@{
-  
+
     ///@}
     ///@name Serialization
     ///@{
-  
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -401,7 +390,7 @@ namespace Kratos
     ///@}
     ///@name Un accessible methods
     ///@{
-  
+
     ///@}
   }; // Class DisplacementRotationStaticScheme
   ///@}
@@ -414,11 +403,11 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
+
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_DISPLACEMENT_ROTATION_STATIC_SCHEME_H_INCLUDED defined

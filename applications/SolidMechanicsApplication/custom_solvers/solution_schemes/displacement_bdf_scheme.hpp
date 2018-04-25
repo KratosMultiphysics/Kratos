@@ -39,16 +39,16 @@ namespace Kratos
    */
   template<class TSparseSpace,  class TDenseSpace >
   class DisplacementBdfScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
-  {   
+  {
   public:
-    
+
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementBdfScheme );
 
     typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
     typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
-    
+
     typedef typename BaseType::LocalSystemVectorType                LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType;
 
@@ -57,7 +57,7 @@ namespace Kratos
     typedef typename DerivedType::IntegrationPointerType           IntegrationPointerType;
 
     typedef typename DerivedType::NodeType                                       NodeType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -73,7 +73,7 @@ namespace Kratos
       :DerivedType(rOptions)
     {
     }
-    
+
     /// Copy Constructor.
     DisplacementBdfScheme(DisplacementBdfScheme& rOther)
       :DerivedType(rOther)
@@ -106,14 +106,14 @@ namespace Kratos
         KRATOS_TRY
 
 	DerivedType::Initialize(rModelPart);
-        
+
         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-	
+
 	this->mVector.ap.resize(NumThreads);
-        
+
 	KRATOS_CATCH("")
     }
-   
+
     ///@}
     ///@name Access
     ///@{
@@ -125,7 +125,7 @@ namespace Kratos
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
@@ -143,15 +143,15 @@ namespace Kratos
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Displacement BdfScheme Data";     
+      rOStream << "Displacement BdfScheme Data";
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
-    
+
   protected:
 
     ///@name Protected static Member Variables
@@ -168,22 +168,21 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
     {
-      this->mpIntegrationMethod = IntegrationPointerType( new BdfMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+      if ( this->mTimeIntegrationMethods.size() == 0 ) {
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< BdfMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(DISPLACEMENT,VELOCITY,ACCELERATION));
 
-      // Set scheme variables
-      this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.front()->SetParameters(rCurrentProcessInfo);
 
-      // Set scheme parameters
-      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
-
-      // Modify ProcessInfo scheme parameters
-      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
+        // Set parameters to process info
+        this->mTimeIntegrationMethods.back()->SetProcessInfoParameters(rCurrentProcessInfo);
+      }
     }
 
-   
+
     /**
      * It adds the dynamic RHS contribution of the elements: b - M*a - D*v
      * @param rCurrentElement: The element to compute
@@ -200,21 +199,19 @@ namespace Kratos
 			  ProcessInfo& rCurrentProcessInfo) override
     {
       int thread = OpenMPUtils::ThisThread();
-      
+
       double parameter = 1;
       // Adding inertia contribution
       if (rM.size1() != 0)
-        {  
-          //parameter = this->mpIntegrationMethod->GetSecondDerivativeParameter(parameter);
+        {
           rCurrentElement->GetSecondDerivativesVector(this->mVector.a[thread],  0);
-         
+
 	  noalias(rRHS_Contribution) -= parameter * prod(rM, this->mVector.a[thread]);
         }
-      
+
       // Adding damping contribution
       if (rD.size1() != 0)
         {
-          //parameter = this->mpIntegrationMethod->GetFirstDerivativeParameter(parameter);
 	  rCurrentElement->GetFirstDerivativesVector(this->mVector.v[thread], 0);
 	  noalias(rRHS_Contribution) -= parameter * prod(rD, this->mVector.v[thread]);
         }
@@ -236,21 +233,19 @@ namespace Kratos
 			  ProcessInfo& rCurrentProcessInfo) override
     {
       int thread = OpenMPUtils::ThisThread();
-     
+
       double parameter = 1;
       // Adding inertia contribution
       if (rM.size1() != 0)
-        {  
-          //parameter = this->mpIntegrationMethod->GetSecondDerivativeParameter(parameter);
-          rCurrentCondition->GetSecondDerivativesVector(this->mVector.a[thread],  0); 
-          
+        {
+          rCurrentCondition->GetSecondDerivativesVector(this->mVector.a[thread],  0);
+
 	  noalias(rRHS_Contribution) -= parameter * prod(rM, this->mVector.a[thread]);
         }
-      
+
       // Adding damping contribution
       if (rD.size1() != 0)
         {
-          //parameter = this->mpIntegrationMethod->GetFirstDerivativeParameter(parameter);
 	  rCurrentCondition->GetFirstDerivativesVector(this->mVector.v[thread], 0);
 	  noalias(rRHS_Contribution) -= parameter * prod(rD, this->mVector.v[thread]);
         }
@@ -268,34 +263,34 @@ namespace Kratos
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     ///@}
 
   private:
 
    ///@name Static Member Variables
     ///@{
-  
+
     ///@}
     ///@name Member Variables
     ///@{
-  
+
     ///@}
     ///@name Private Operators
     ///@{
-  
+
     ///@}
     ///@name Private Operations
     ///@{
-  
+
     ///@}
     ///@name Private  Access
     ///@{
-  
+
     ///@}
     ///@name Serialization
     ///@{
-  
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -303,7 +298,7 @@ namespace Kratos
     ///@}
     ///@name Un accessible methods
     ///@{
-  
+
     ///@}
   }; // Class DisplacementBdfScheme
   ///@}
@@ -316,11 +311,11 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
+
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_DISPLACEMENT_BDF_SCHEME_H_INCLUDED defined

@@ -39,9 +39,9 @@ namespace Kratos
    */
   template<class TSparseSpace,  class TDenseSpace >
   class DisplacementSimoScheme: public DisplacementBossakScheme<TSparseSpace,TDenseSpace>
-  {   
+  {
   public:
-    
+
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementSimoScheme );
@@ -57,7 +57,7 @@ namespace Kratos
     typedef typename DerivedType::IntegrationPointerType           IntegrationPointerType;
 
     typedef typename DerivedType::NodeType                                       NodeType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -96,7 +96,7 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -108,7 +108,7 @@ namespace Kratos
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
@@ -126,15 +126,15 @@ namespace Kratos
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Displacement SimoScheme Data";     
+      rOStream << "Displacement SimoScheme Data";
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
-    
+
   protected:
 
     ///@name Protected static Member Variables
@@ -151,19 +151,18 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
     {
-      this->mpIntegrationMethod = IntegrationPointerType( new SimoMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+      if ( this->mTimeIntegrationMethods.size() == 0 ) {
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< SimoMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(DISPLACEMENT,VELOCITY,ACCELERATION));
 
-      // Set scheme variables
-      this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.front()->SetParameters(rCurrentProcessInfo);
 
-      // Set scheme parameters
-      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
-
-      // Modify ProcessInfo scheme parameters
-      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
+        // Set parameters to process info
+        this->mTimeIntegrationMethods.back()->SetProcessInfoParameters(rCurrentProcessInfo);
+      }
     }
 
     ///@}
@@ -177,34 +176,34 @@ namespace Kratos
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     ///@}
 
   private:
 
    ///@name Static Member Variables
     ///@{
-  
+
     ///@}
     ///@name Member Variables
     ///@{
-  
+
     ///@}
     ///@name Private Operators
     ///@{
-  
+
     ///@}
     ///@name Private Operations
     ///@{
-  
+
     ///@}
     ///@name Private  Access
     ///@{
-  
+
     ///@}
     ///@name Serialization
     ///@{
-  
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -212,7 +211,7 @@ namespace Kratos
     ///@}
     ///@name Un accessible methods
     ///@{
-  
+
     ///@}
   }; // Class DisplacementSimoScheme
   ///@}
@@ -225,11 +224,11 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
+
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_DISPLACEMENT_BOSSAK_SCHEME_H_INCLUDED defined

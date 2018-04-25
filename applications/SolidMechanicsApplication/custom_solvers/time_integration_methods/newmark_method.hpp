@@ -142,6 +142,15 @@ namespace Kratos
     
     /// Default Constructor.
     NewmarkMethod() : BaseType() {}
+    
+    /// Constructor.
+    NewmarkMethod(const TVariableType& rVariable) : BaseType(rVariable) {}
+
+    /// Constructor.
+    NewmarkMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : BaseType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    NewmarkMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable) {}
 
     /// Copy Constructor.
     NewmarkMethod(NewmarkMethod& rOther)
@@ -166,6 +175,31 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
+
+    //calculate parameters (to call it once with the original input parameters)
+    void CalculateParameters(ProcessInfo& rCurrentProcessInfo) override
+    {
+     KRATOS_TRY
+            
+     double beta = 0.25;
+     if (rCurrentProcessInfo.Has(NEWMARK_BETA))
+       {
+	 beta = rCurrentProcessInfo[NEWMARK_BETA];
+       }
+
+     double gamma = 0.5;
+     if (rCurrentProcessInfo.Has(NEWMARK_GAMMA))
+       {
+	 gamma = rCurrentProcessInfo[NEWMARK_GAMMA];
+       }
+
+     rCurrentProcessInfo[NEWMARK_BETA]  = beta;      
+     rCurrentProcessInfo[NEWMARK_GAMMA] = gamma;
+
+     this->SetParameters(rCurrentProcessInfo);
+     
+     KRATOS_CATCH( "" )
+    }
     
     // set parameters (do not calculate parameters here, only read them)
     void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
@@ -219,39 +253,7 @@ namespace Kratos
       rParameter = mNewmark.c0;
       return rParameter;
     }
-    
-    // assign
-    void Assign(NodeType& rNode) override
-    {
-     KRATOS_TRY
-
-     (this->*this->mpAssign)(rNode);
-      
-     KRATOS_CATCH( "" )
-    }
-
-    // predict
-    void Predict(NodeType& rNode) override
-    {
-     KRATOS_TRY
-     
-     (this->*this->mpPredict)(rNode);
-  
-     KRATOS_CATCH( "" )
-    }
-    
-    // update
-    void Update(NodeType& rNode) override
-    {
-     KRATOS_TRY
        
-     (this->*this->mpUpdate)(rNode);  
-
-     KRATOS_CATCH( "" )
-    }
-   
-
-    
     ///@}
     ///@name Access
     ///@{

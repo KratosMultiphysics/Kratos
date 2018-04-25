@@ -86,6 +86,39 @@ namespace Kratos
       mpInputVariable = nullptr;
     }
 
+    /// Constructor.
+    TimeIntegrationMethod(const TVariableType& rVariable)
+    {
+      mpVariable = &rVariable;
+      mpFirstDerivative = nullptr;
+      mpSecondDerivative = nullptr;
+
+      //default dof variable
+      this->SetInputVariable(rVariable);
+    }
+
+    /// Constructor.
+    TimeIntegrationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative)
+    {
+      mpVariable = &rVariable;
+      mpFirstDerivative = &rFirstDerivative;
+      mpSecondDerivative = &rSecondDerivative;
+
+      //default dof variable
+      this->SetInputVariable(rVariable);
+    }
+    
+    /// Constructor.
+    TimeIntegrationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable)
+    {
+      mpVariable = &rVariable;
+      mpFirstDerivative = &rFirstDerivative;
+      mpSecondDerivative = &rSecondDerivative;
+
+      //default dof variable
+      this->SetInputVariable(rInputVariable);
+    }
+    
     /// Copy Constructor.
     TimeIntegrationMethod(TimeIntegrationMethod& rOther)
       :mpVariable(rOther.mpVariable)
@@ -170,13 +203,14 @@ namespace Kratos
     void SetVariables(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative)
     {
       mpVariable = &rVariable;
-
       mpFirstDerivative = &rFirstDerivative;
-
       mpSecondDerivative = &rSecondDerivative;
+
+      //default dof variable
+      this->SetInputVariable(rVariable);      
     }
 
-    // set input variable (constrained variable)
+    // set input variable (constrained or dof variable)
     void SetInputVariable(const TVariableType& rVariable)
     {
       mpInputVariable = &rVariable;
@@ -188,26 +222,29 @@ namespace Kratos
     void SetPointerMethods()
     {
       if( this->mpInputVariable != nullptr ){ 
-
-       if( *this->mpInputVariable == *this->mpVariable ){
-	 mpAssign  = &TimeIntegrationMethod::AssignFromVariable;
-         mpPredict = &TimeIntegrationMethod::PredictFromVariable;
-         mpUpdate  = &TimeIntegrationMethod::UpdateFromVariable;
-       }
-
-       if( *this->mpInputVariable == *this->mpFirstDerivative ){
-	 mpAssign  = &TimeIntegrationMethod::AssignFromFirstDerivative;
-         mpPredict = &TimeIntegrationMethod::PredictFromFirstDerivative;
-         mpUpdate  = &TimeIntegrationMethod::UpdateFromFirstDerivative;
-       }
-       
-       if( *this->mpInputVariable == *this->mpSecondDerivative ){
-	 mpAssign  = &TimeIntegrationMethod::AssignFromSecondDerivative;
-         mpPredict = &TimeIntegrationMethod::PredictFromSecondDerivative;
-         mpUpdate  = &TimeIntegrationMethod::UpdateFromSecondDerivative;
-       }
-
-     }
+        
+        if( this->mpVariable != nullptr ){ 
+          if( *this->mpInputVariable == *this->mpVariable ){
+            mpAssign  = &TimeIntegrationMethod::AssignFromVariable;
+            mpPredict = &TimeIntegrationMethod::PredictFromVariable;
+            mpUpdate  = &TimeIntegrationMethod::UpdateFromVariable;
+          }
+          else if( this->mpFirstDerivative != nullptr ){ 
+            if( *this->mpInputVariable == *this->mpFirstDerivative ){
+              mpAssign  = &TimeIntegrationMethod::AssignFromFirstDerivative;
+              mpPredict = &TimeIntegrationMethod::PredictFromFirstDerivative;
+              mpUpdate  = &TimeIntegrationMethod::UpdateFromFirstDerivative;
+            }
+            else if( this->mpSecondDerivative != nullptr ){
+              if( *this->mpInputVariable == *this->mpSecondDerivative ){
+                mpAssign  = &TimeIntegrationMethod::AssignFromSecondDerivative;
+                mpPredict = &TimeIntegrationMethod::PredictFromSecondDerivative;
+                mpUpdate  = &TimeIntegrationMethod::UpdateFromSecondDerivative;
+              }
+            }
+          }
+        }
+      }
       
     }
 
@@ -225,19 +262,31 @@ namespace Kratos
     // assign
     virtual void Assign(NodeType& rNode)
     {
-      KRATOS_ERROR << " Calling assign from time integration base class " <<std::endl;
+     KRATOS_TRY
+
+     (this->*this->mpAssign)(rNode);
+      
+     KRATOS_CATCH( "" )
     }
 
     // predict
     virtual void Predict(NodeType& rNode)
     {
-      KRATOS_ERROR << " Calling predict from time integration base class " <<std::endl;
+     KRATOS_TRY
+     
+     (this->*this->mpPredict)(rNode);
+  
+     KRATOS_CATCH( "" )
     }
 
     // update
     virtual void Update(NodeType& rNode)
     {
-      KRATOS_ERROR << " Calling update from time integration base class " <<std::endl;
+     KRATOS_TRY
+       
+     (this->*this->mpUpdate)(rNode);  
+
+     KRATOS_CATCH( "" )
     }
 
     /**
@@ -248,19 +297,38 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      if( this->mpVariable != nullptr )
+      // Check that all required variables have been registered
+      if( mpVariable == nullptr ){
         KRATOS_ERROR << " time integration method Variable not set " <<std::endl;
-      
-      if( this->mpFirstDerivative != nullptr )
-        KRATOS_ERROR << " time integration method FirstDerivative not set " <<std::endl;
-      
-      if( this->mpSecondDerivative != nullptr )
-        KRATOS_ERROR << " time integration method SecondDerivative not set " <<std::endl;
-      
+      }
+      else{
+        KRATOS_CHECK_VARIABLE_KEY((*mpVariable));
+      }
 
-      KRATOS_CATCH("")
+      if( mpInputVariable == nullptr ){
+        KRATOS_ERROR << " time integration method InputVariable not set " <<std::endl;
+      }
+      else{
+        KRATOS_CHECK_VARIABLE_KEY((*mpInputVariable));
+      }
 
+      // if( mpFirstDerivative == nullptr ){
+      //   KRATOS_ERROR << " time integration method FirstDerivative not set " <<std::endl;
+      // }
+      // else{
+      //   KRATOS_CHECK_VARIABLE_KEY((*mpFirstDerivative));
+      // }
+
+      // if( mpSecondDerivative == nullptr ){
+      //   KRATOS_ERROR << " time integration method SecondDerivative not set " <<std::endl;
+      // }
+      // else{
+      //   KRATOS_CHECK_VARIABLE_KEY((*mpSecondDerivative));
+      // }
+      
       return 0;
+      
+      KRATOS_CATCH("")
     }
     
     ///@}
@@ -328,6 +396,7 @@ namespace Kratos
 
 
     // method pointer
+    
     MethodPointer mpAssign;
     
     MethodPointer mpPredict;
@@ -492,6 +561,8 @@ namespace Kratos
       mpSecondDerivative = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
       rSerializer.load("InputVariable", Name);
       mpInputVariable = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
+
+      this->SetPointerMethods();
     };
     ///@}
     ///@name Private Inquiry

@@ -76,6 +76,15 @@ namespace Kratos
     /// Default Constructor.
     StaticMethod() : BaseType() {}
 
+    /// Constructor.
+    StaticMethod(const TVariableType& rVariable) : BaseType(rVariable) {}
+
+    /// Constructor.
+    StaticMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : BaseType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    StaticMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable) {}
+    
     /// Copy Constructor.
     StaticMethod(StaticMethod& rOther) : BaseType(rOther) {}
 
@@ -95,7 +104,8 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-     
+
+    
     // assign
     void Assign(NodeType& rNode) override
     {

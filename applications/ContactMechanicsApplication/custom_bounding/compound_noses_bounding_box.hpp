@@ -61,7 +61,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) CompoundNosesBoundingBox
 {
 public:
 
-  //typedef bounded_vector<double, 3>                     PointType;
+  //typedef BoundedVector<double, 3>                     PointType;
   typedef array_1d<double, 3>                             PointType;
   typedef ModelPart::NodeType                              NodeType;
   typedef ModelPart::NodesContainerType          NodesContainerType;

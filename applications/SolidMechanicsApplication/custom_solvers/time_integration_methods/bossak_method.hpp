@@ -83,6 +83,15 @@ namespace Kratos
     /// Default Constructor.
     BossakMethod() : DerivedType() {}
 
+    /// Constructor.
+    BossakMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+
+    /// Constructor.
+    BossakMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    BossakMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable) {}
+
     /// Copy Constructor.
     BossakMethod(BossakMethod& rOther)
       :DerivedType(rOther)
@@ -152,7 +161,7 @@ namespace Kratos
     {
      KRATOS_TRY
        
-     double delta_time = rCurrentProcessInfo[DELTA_TIME];
+     const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
 
      if (delta_time < 1.0e-24)
         {

@@ -80,6 +80,16 @@ namespace Kratos
     /// Default Constructor.
     StaticStepRotationMethod() : DerivedType() {}
 
+    /// Constructor.
+    StaticStepRotationMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+
+    /// Constructor.
+    StaticStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+
+    
+    /// Constructor.
+    StaticStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable) {}
+    
     /// Copy Constructor.
     StaticStepRotationMethod(StaticStepRotationMethod& rOther) : DerivedType(rOther) {}
 

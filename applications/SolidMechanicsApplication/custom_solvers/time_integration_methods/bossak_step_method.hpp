@@ -80,6 +80,15 @@ namespace Kratos
     /// Default Constructor.
     BossakStepMethod() : DerivedType() {}
 
+    /// Constructor.
+    BossakStepMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+
+    /// Constructor.
+    BossakStepMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    BossakStepMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable) {}
+
     /// Copy Constructor.
     BossakStepMethod(BossakStepMethod& rOther)
       :DerivedType(rOther)

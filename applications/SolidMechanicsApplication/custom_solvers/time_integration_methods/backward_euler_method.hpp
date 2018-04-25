@@ -76,6 +76,15 @@ namespace Kratos
     /// Default Constructor.
     BackwardEulerMethod() : BaseType() {}
 
+    /// Constructor.
+    BackwardEulerMethod(const TVariableType& rVariable) : BaseType(rVariable) {}
+
+    /// Constructor.
+    BackwardEulerMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : BaseType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    BackwardEulerMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable) {}
+
     /// Copy Constructor.
     BackwardEulerMethod(BackwardEulerMethod& rOther)
       :BaseType(rOther)
@@ -122,69 +131,6 @@ namespace Kratos
     {
      KRATOS_TRY
 
-
-     KRATOS_CATCH( "" )
-    }
-
-
-    // assign
-    void Assign(NodeType& rNode) override
-    {
-     KRATOS_TRY
-
-     if( this->mpInputVariable != nullptr ){
-
-       if( *this->mpInputVariable == *this->mpVariable ){
-	 this->AssignFromVariable(rNode);
-       }
-       else if( *this->mpInputVariable == *this->mpFirstDerivative ){
-	 this->AssignFromFirstDerivative(rNode);
-       }
-       else if( *this->mpInputVariable == *this->mpSecondDerivative ){
-	 this->AssignFromSecondDerivative(rNode);
-       }
-
-     }
-
-     KRATOS_CATCH( "" )
-    }
-
-    // predict
-    void Predict(NodeType& rNode) override
-    {
-     KRATOS_TRY
-
-     this->PredictVariable(rNode);
-     this->PredictFirstDerivative(rNode);
-     this->PredictSecondDerivative(rNode);
-
-     KRATOS_CATCH( "" )
-    }
-
-    // update
-    void Update(NodeType& rNode) override
-    {
-     KRATOS_TRY
-
-     if( this->mpInputVariable != nullptr ){
-
-       if( *this->mpInputVariable != *this->mpVariable ){
-	 this->UpdateFromVariable(rNode);
-       }
-       else if( *this->mpInputVariable != *this->mpFirstDerivative ){
-	 this->UpdateFromFirstDerivative(rNode);
-       }
-       else if( *this->mpInputVariable != *this->mpSecondDerivative ){
-	 this->UpdateFromSecondDerivative(rNode);
-       }
-     }
-     else{
-
-       this->UpdateVariable(rNode);
-       this->UpdateFirstDerivative(rNode);
-       this->UpdateSecondDerivative(rNode);
-
-     }
 
      KRATOS_CATCH( "" )
     }
@@ -323,7 +269,17 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
+    void PredictFromVariable(NodeType& rNode) override
+    {
+      KRATOS_TRY
 
+      this->PredictVariable(rNode);
+      this->PredictFirstDerivative(rNode);
+      this->PredictSecondDerivative(rNode);
+
+      KRATOS_CATCH( "" )
+    }
+    
     void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY

@@ -82,7 +82,25 @@ namespace Kratos
     {
       mpStepVariable = nullptr;
     }
+    
+    /// Constructor.
+    StaticStepMethod(const TVariableType& rVariable) : DerivedType(rVariable)
+    {
+      mpStepVariable = nullptr;
+    }
 
+    /// Constructor.
+    StaticStepMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative)
+    {
+      mpStepVariable = nullptr;
+    }
+    
+    /// Constructor.
+    StaticStepMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable)
+    {
+      mpStepVariable = nullptr;
+    }
+    
     /// Copy Constructor.
     StaticStepMethod(StaticStepMethod& rOther)
       :DerivedType(rOther)

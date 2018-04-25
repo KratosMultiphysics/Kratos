@@ -76,6 +76,15 @@ namespace Kratos
     /// Default Constructor.
     BdfMethod() : BaseType() {}
 
+    /// Constructor.
+    BdfMethod(const TVariableType& rVariable) : BaseType(rVariable) {}
+
+    /// Constructor.
+    BdfMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : BaseType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    BdfMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable) {}
+
     /// Copy Constructor.
     BdfMethod(BdfMethod& rOther)
       :BaseType(rOther)
@@ -102,11 +111,11 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    // set parameters (do not calculate parameters here, only read them)
-    void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
+    //calculate parameters (to call it once with the original input parameters)
+    void CalculateParameters(ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
-
+            
      const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
      
      if (delta_time < 1.0e-24)
@@ -114,57 +123,101 @@ namespace Kratos
 	  KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Method DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part " << std::endl;
         }
 
-     const unsigned int& order = rCurrentProcessInfo[TIME_INTEGRATION_ORDER];
-
-     if (mBDF.size() != (order + 1))
-       mBDF.resize(order + 1,false);
-     
-     // Compute the BDF coefficients from order
-     switch(order) {
-       case 1 :
-         mBDF[0] =  1.0/delta_time; //coefficient for step n+1 (1/Dt if Dt is constant)
-         mBDF[1] = -1.0/delta_time; //coefficient for step n (-1/Dt if Dt is constant)
-         break;
-       case 2 :
-         mBDF[0] =  3.0/( 2.0 * delta_time ); //coefficient for step n+1 (3/2Dt if Dt is constant)
-         mBDF[1] = -2.0/( delta_time ); //coefficient for step n (-4/2Dt if Dt is constant)
-         mBDF[2] =  1.0/( 2.0 * delta_time ); //coefficient for step n-1 (1/2Dt if Dt is constant)
-         break;
-       case 3 :
-         mBDF[0] =  11.0/(6.0 * delta_time); //coefficient for step n+1 (11/6Dt if Dt is constant)
-         mBDF[1] = -18.0/(6.0 * delta_time); //coefficient for step n (-18/6Dt if Dt is constant)
-         mBDF[2] =  9.0/(6.0 * delta_time); //coefficient for step n-1 (9/6Dt if Dt is constant)
-         mBDF[3] = -2.0/(6.0 * delta_time); //coefficient for step n-2 (2/6Dt if Dt is constant)
-         break;
-       case 4 :
-         mBDF[0] =  25.0/(12.0 * delta_time); //coefficient for step n+1 (25/12Dt if Dt is constant)
-         mBDF[1] = -48.0/(12.0 * delta_time); //coefficient for step n (-48/12Dt if Dt is constant)
-         mBDF[2] =  36.0/(12.0 * delta_time); //coefficient for step n-1 (36/12Dt if Dt is constant)
-         mBDF[3] = -16.0/(12.0 * delta_time); //coefficient for step n-2 (16/12Dt if Dt is constant)
-         mBDF[4] =  3.0/(12.0 * delta_time); //coefficient for step n-3 (3/12Dt if Dt is constant)
-         break;
-       case 5 :
-         mBDF[0] =  137.0/(60.0 * delta_time); //coefficient for step n+1 (137/60Dt if Dt is constant)
-         mBDF[1] = -300.0/(60.0 * delta_time); //coefficient for step n (-300/60Dt if Dt is constant)
-         mBDF[2] =  300.0/(60.0 * delta_time); //coefficient for step n-1 (300/60Dt if Dt is constant)
-         mBDF[3] = -200.0/(60.0 * delta_time); //coefficient for step n-2 (-200/60Dt if Dt is constant)
-         mBDF[4] =  75.0/(60.0 * delta_time); //coefficient for step n-3 (75/60Dt if Dt is constant)
-         mBDF[5] =  -12.0/(60.0 * delta_time); //coefficient for step n-4 (-12/60Dt if Dt is constant)
-         break;
-       case 6 :
-         mBDF[0] =  147.0/(60.0 * delta_time); //coefficient for step n+1 (147/60Dt if Dt is constant)
-         mBDF[1] = -360.0/(60.0 * delta_time); //coefficient for step n (-360/60Dt if Dt is constant)
-         mBDF[2] =  450.0/(60.0 * delta_time); //coefficient for step n-1 (450/60Dt if Dt is constant)
-         mBDF[3] = -400.0/(60.0 * delta_time); //coefficient for step n-2 (-400/60Dt if Dt is constant)
-         mBDF[4] =  225.0/(60.0 * delta_time); //coefficient for step n-3 (225/60Dt if Dt is constant)
-         mBDF[5] = -72.0/(60.0 * delta_time); //coefficient for step n-4 (-72/60Dt if Dt is constant)
-         mBDF[6] =  10.0/(60.0 * delta_time); //coefficient for step n-5 (10/60Dt if Dt is constant)
-         break;
-       default :
-         KRATOS_ERROR << "Methods with order > 6 are not zero-stable so they cannot be used" << std::endl;
+     unsigned int order = 1;
+     if (rCurrentProcessInfo.Has(TIME_INTEGRATION_ORDER))
+     {
+       order = rCurrentProcessInfo[TIME_INTEGRATION_ORDER];
      }
 
-     mOrder = order;
+     if (rCurrentProcessInfo.Has(BDF_COEFFICIENTS))
+     {
+       mBDF = rCurrentProcessInfo[BDF_COEFFICIENTS];
+       if( mBDF.size() > 1 && (order + 1) != mBDF.size() )
+         order = mBDF.size()-1;
+     }
+
+     std::cout<<" Calculate Parameters "<<std::endl;
+     
+     if (mBDF.size() == 0 ){
+       
+       //if (mBDF.size() != (order + 1))
+       mBDF.resize(order + 1,false);
+     
+       // Compute the BDF coefficients from order
+       switch(order) {
+         case 1 :
+           mBDF[0] =  1.0/delta_time; //coefficient for step n+1 (1/Dt if Dt is constant)
+           mBDF[1] = -1.0/delta_time; //coefficient for step n (-1/Dt if Dt is constant)
+           break;
+         case 2 :
+           mBDF[0] =  3.0/( 2.0 * delta_time ); //coefficient for step n+1 (3/2Dt if Dt is constant)
+           mBDF[1] = -2.0/( delta_time ); //coefficient for step n (-4/2Dt if Dt is constant)
+           mBDF[2] =  1.0/( 2.0 * delta_time ); //coefficient for step n-1 (1/2Dt if Dt is constant)
+           break;
+         case 3 :
+           mBDF[0] =  11.0/(6.0 * delta_time); //coefficient for step n+1 (11/6Dt if Dt is constant)
+           mBDF[1] = -18.0/(6.0 * delta_time); //coefficient for step n (-18/6Dt if Dt is constant)
+           mBDF[2] =  9.0/(6.0 * delta_time); //coefficient for step n-1 (9/6Dt if Dt is constant)
+           mBDF[3] = -2.0/(6.0 * delta_time); //coefficient for step n-2 (2/6Dt if Dt is constant)
+           break;
+         case 4 :
+           mBDF[0] =  25.0/(12.0 * delta_time); //coefficient for step n+1 (25/12Dt if Dt is constant)
+           mBDF[1] = -48.0/(12.0 * delta_time); //coefficient for step n (-48/12Dt if Dt is constant)
+           mBDF[2] =  36.0/(12.0 * delta_time); //coefficient for step n-1 (36/12Dt if Dt is constant)
+           mBDF[3] = -16.0/(12.0 * delta_time); //coefficient for step n-2 (16/12Dt if Dt is constant)
+           mBDF[4] =  3.0/(12.0 * delta_time); //coefficient for step n-3 (3/12Dt if Dt is constant)
+           break;
+         case 5 :
+           mBDF[0] =  137.0/(60.0 * delta_time); //coefficient for step n+1 (137/60Dt if Dt is constant)
+           mBDF[1] = -300.0/(60.0 * delta_time); //coefficient for step n (-300/60Dt if Dt is constant)
+           mBDF[2] =  300.0/(60.0 * delta_time); //coefficient for step n-1 (300/60Dt if Dt is constant)
+           mBDF[3] = -200.0/(60.0 * delta_time); //coefficient for step n-2 (-200/60Dt if Dt is constant)
+           mBDF[4] =  75.0/(60.0 * delta_time); //coefficient for step n-3 (75/60Dt if Dt is constant)
+           mBDF[5] =  -12.0/(60.0 * delta_time); //coefficient for step n-4 (-12/60Dt if Dt is constant)
+           break;
+         case 6 :
+           mBDF[0] =  147.0/(60.0 * delta_time); //coefficient for step n+1 (147/60Dt if Dt is constant)
+           mBDF[1] = -360.0/(60.0 * delta_time); //coefficient for step n (-360/60Dt if Dt is constant)
+           mBDF[2] =  450.0/(60.0 * delta_time); //coefficient for step n-1 (450/60Dt if Dt is constant)
+           mBDF[3] = -400.0/(60.0 * delta_time); //coefficient for step n-2 (-400/60Dt if Dt is constant)
+           mBDF[4] =  225.0/(60.0 * delta_time); //coefficient for step n-3 (225/60Dt if Dt is constant)
+           mBDF[5] = -72.0/(60.0 * delta_time); //coefficient for step n-4 (-72/60Dt if Dt is constant)
+           mBDF[6] =  10.0/(60.0 * delta_time); //coefficient for step n-5 (10/60Dt if Dt is constant)
+           break;
+         default :
+           KRATOS_ERROR << "Methods with order > 6 are not zero-stable so they cannot be used" << std::endl;
+       }
+
+     }
+
+     rCurrentProcessInfo[TIME_INTEGRATION_ORDER] = order;
+     rCurrentProcessInfo[BDF_COEFFICIENTS] = mBDF;
+     
+     this->SetParameters(rCurrentProcessInfo);
+     
+     KRATOS_CATCH( "" )
+    }
+    
+    // set parameters (do not calculate parameters here, only read them)
+    void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
+    {
+     KRATOS_TRY
+
+     const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
+     
+     mOrder = 1;
+     if (rCurrentProcessInfo.Has(TIME_INTEGRATION_ORDER))
+     {
+       mOrder = rCurrentProcessInfo[TIME_INTEGRATION_ORDER];
+     }
+
+     if (rCurrentProcessInfo.Has(BDF_COEFFICIENTS))
+     {
+       mBDF = rCurrentProcessInfo[BDF_COEFFICIENTS];
+       if( mBDF.size() > 1 && (mOrder + 1) != mBDF.size() )
+         mOrder = mBDF.size()-1;
+     }
+     
      mDeltaTime = delta_time;
 
      KRATOS_CATCH( "" )
@@ -179,70 +232,6 @@ namespace Kratos
      
      KRATOS_CATCH( "" )
     }
-
-
-    // assign
-    void Assign(NodeType& rNode) override
-    {
-     KRATOS_TRY
-
-     if( this->mpInputVariable != nullptr ){
-
-       if( *this->mpInputVariable == *this->mpVariable ){
-	 this->AssignFromVariable(rNode);
-       }
-       else if( *this->mpInputVariable == *this->mpFirstDerivative ){
-	 this->AssignFromFirstDerivative(rNode);
-       }
-       else if( *this->mpInputVariable == *this->mpSecondDerivative ){
-	 this->AssignFromSecondDerivative(rNode);
-       }
-
-     }
-
-     KRATOS_CATCH( "" )
-    }
-
-    // predict
-    void Predict(NodeType& rNode) override
-    {
-     KRATOS_TRY
-
-     this->PredictVariable(rNode);
-     this->PredictFirstDerivative(rNode);
-     this->PredictSecondDerivative(rNode);
-
-     KRATOS_CATCH( "" )
-    }
-
-    // update
-    void Update(NodeType& rNode) override
-    {
-     KRATOS_TRY
-
-     if( this->mpInputVariable != nullptr ){
-
-       if( *this->mpInputVariable != *this->mpVariable ){
-	 this->UpdateFromVariable(rNode);
-       }
-       else if( *this->mpInputVariable != *this->mpFirstDerivative ){
-	 this->UpdateFromFirstDerivative(rNode);
-       }
-       else if( *this->mpInputVariable != *this->mpSecondDerivative ){
-	 this->UpdateFromSecondDerivative(rNode);
-       }
-     }
-     else{
-
-       this->UpdateVariable(rNode);
-       this->UpdateFirstDerivative(rNode);
-       this->UpdateSecondDerivative(rNode);
-
-     }
-
-     KRATOS_CATCH( "" )
-    }
-
 
 
     ///@}
@@ -385,7 +374,17 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
+    void PredictFromVariable(NodeType& rNode) override
+    {
+      KRATOS_TRY
 
+      this->PredictVariable(rNode);
+      this->PredictFirstDerivative(rNode);
+      this->PredictSecondDerivative(rNode);
+
+      KRATOS_CATCH( "" )
+    }
+    
     void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY

@@ -103,8 +103,8 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             mechanical_scheme = KratosSolid.DisplacementBackwardEulerScheme()
         elif(integration_method == "BDF"):
             self.process_info[KratosSolid.TIME_INTEGRATION_ORDER] = self.time_integration_settings["time_integration_order"].GetInt()
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BackwardEulerMethod(),
-                                             'ROTATION': KratosSolid.BackwardEulerMethod()}) #shells
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BdfMethod(),
+                                             'ROTATION': KratosSolid.BdfMethod()}) #shells
             mechanical_scheme = KratosSolid.DisplacementBdfScheme()
         elif(integration_method == "RotationNewmark"):
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.NewmarkStepMethod(),
@@ -147,6 +147,8 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         main_dof = next(iter(self.integration_methods))
         self.integration_methods[main_dof].CalculateParameters(self.process_info)
 
+        print(" main dof ",main_dof, " ", self.integration_methods[main_dof])
+        
         # add to integration methods container and set to process_info for processes acces
         integration_methods_container = KratosSolid.TimeIntegrationMethodsContainer()
         for dof, method in self.integration_methods.items():

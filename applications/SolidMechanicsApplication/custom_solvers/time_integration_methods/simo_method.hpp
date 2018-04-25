@@ -80,6 +80,15 @@ namespace Kratos
     /// Default Constructor.
     SimoMethod() : DerivedType() {}
 
+    /// Constructor.
+    SimoMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+
+    /// Constructor.
+    SimoMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    SimoMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable) {}
+
     /// Copy Constructor.
     SimoMethod(SimoMethod& rOther) : DerivedType(rOther) {}
 

@@ -136,41 +136,8 @@ namespace Kratos
     {
       KRATOS_TRY;
 
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-
-      // Update of displacement (by DOF)
-      OpenMPUtils::PartitionVector DofPartition;
-      OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofPartition);
-
-      const int ndof = static_cast<int>(rDofSet.size());
-      typename DofsArrayType::iterator DofBegin = rDofSet.begin();
-
-#pragma omp parallel for firstprivate(DofBegin)
-      for(int i = 0;  i < ndof; i++)
-        {
-	  typename DofsArrayType::iterator itDof = DofBegin + i;
-
-	  if (itDof->IsFree() )
-            {
-	      itDof->GetSolutionStepValue() += TSparseSpace::GetValue(rDx,itDof->EquationId());
-            }
-        }
-
-      // Updating time derivatives (nodally for efficiency)
-      OpenMPUtils::PartitionVector NodePartition;
-      OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
-
-      const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-      NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
-
-#pragma omp parallel for firstprivate(NodeBegin)
-      for(int i = 0;  i < nnodes; i++)
-        {
-	  NodesContainerType::iterator itNode = NodeBegin + i;
-
-	  this->IntegrationMethodUpdate(*itNode);
-        }
-
+      this->UpdateDofs(rModelPart,rDofSet,rDx);
+      this->UpdateVariables(rModelPart);
       this->MoveMesh(rModelPart);
       
       KRATOS_CATCH( "" );
@@ -190,22 +157,7 @@ namespace Kratos
     {
       KRATOS_TRY;
 
-      // Updating time derivatives (nodally for efficiency)
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-      OpenMPUtils::PartitionVector NodePartition;
-      OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
-
-      const int nnodes = static_cast<int>( rModelPart.Nodes().size() );
-      NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
-
-#pragma omp parallel for firstprivate(NodeBegin)
-      for(int i = 0;  i< nnodes; i++)
-        {
-	  NodesContainerType::iterator itNode = NodeBegin + i;
-
-	  this->IntegrationMethodPredict(*itNode);
-        }
-
+      this->PredictVariables(rModelPart);
       this->MoveMesh(rModelPart);
       
       KRATOS_CATCH( "" );
@@ -509,14 +461,10 @@ namespace Kratos
 	  KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
         }
       
-      if ( mpIntegrationMethod == NULL ) {
-         ProcessInfo & rCurrentProcessInfo = rModelPart.GetProcessInfo();
-         this->SetIntegrationMethod( rCurrentProcessInfo);
-      }
-      if ( mpIntegrationMethod == NULL ) {
-	      KRATOS_ERROR << "scheme do not have a Time Integration Method " << mpIntegrationMethod << std::endl;
-      }
-
+      // if ( this->mTimeIntegrationMethods.size() == 0 ) {
+      //    ProcessInfo & rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      //    this->SetIntegrationMethod(rCurrentProcessInfo);
+      // }
 
       return ErrorCode;
       
@@ -570,8 +518,6 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-    IntegrationPointerType    mpIntegrationMethod;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -582,26 +528,17 @@ namespace Kratos
 
     virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo)
     {
-      this->mpIntegrationMethod = IntegrationPointerType( new StaticMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
-
-      // Set scheme variables
-      this->mpIntegrationMethod->SetVariable(DISPLACEMENT);
+      if ( this->mTimeIntegrationMethods.size() == 0 ) {
       
-     // Set scheme parameters
-      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< StaticMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(DISPLACEMENT));
+
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.front()->SetParameters(rCurrentProcessInfo);
+        
+        // Set parameters to process info
+        this->mTimeIntegrationMethods.back()->SetProcessInfoParameters(rCurrentProcessInfo);
+      }
       
-      // Modify ProcessInfo scheme parameters
-      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
-    }
-
-    virtual void IntegrationMethodUpdate(NodeType& rNode)
-    {
-      this->mpIntegrationMethod->Update(rNode);
-    }
-
-    virtual void IntegrationMethodPredict(NodeType& rNode)
-    {
-      this->mpIntegrationMethod->Predict(rNode);
     }
 
 

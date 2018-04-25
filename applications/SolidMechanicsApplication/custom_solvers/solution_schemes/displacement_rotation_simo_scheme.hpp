@@ -180,31 +180,32 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
     
-    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
+    void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
     {
-      this->mpIntegrationMethod = IntegrationPointerType( new SimoStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+      if ( this->mTimeIntegrationMethods.size() == 0 ) {
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< SimoStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(DISPLACEMENT,VELOCITY,ACCELERATION));
 
-      // Set scheme variables
-      this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
+        // Set scheme variables
+        this->mTimeIntegrationMethods.front()->SetStepVariable(STEP_DISPLACEMENT);
 
-      this->mpIntegrationMethod->SetStepVariable(STEP_DISPLACEMENT);
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.front()->SetParameters(rCurrentProcessInfo);
 
-      // Set scheme parameters
-      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
+
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< SimoStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION));
+
       
-      this->mpRotationIntegrationMethod = IntegrationPointerType( new SimoStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+        this->mTimeIntegrationMethods.back()->SetStepVariable(STEP_ROTATION);
 
-      // Set rotation scheme variables
-      this->mpRotationIntegrationMethod->SetVariables(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION);
-      
-      this->mpRotationIntegrationMethod->SetStepVariable(STEP_ROTATION);
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.back()->SetParameters(rCurrentProcessInfo);
 
-      // Set scheme parameters
-      this->mpRotationIntegrationMethod->SetParameters(rCurrentProcessInfo);
+        // Set parameters to process info
+        this->mTimeIntegrationMethods.back()->SetProcessInfoParameters(rCurrentProcessInfo);
 
-      // Modify ProcessInfo scheme parameters
-      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
-      rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;            
+        // Modify ProcessInfo scheme parameters
+        rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
+      }
     }
 
 

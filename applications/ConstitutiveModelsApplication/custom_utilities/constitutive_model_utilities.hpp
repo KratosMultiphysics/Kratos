@@ -56,7 +56,7 @@ namespace Kratos
 
     ///@name Type Definitions
     ///@{
-    typedef bounded_matrix<double,3,3>    MatrixType;
+    typedef BoundedMatrix<double,3,3>    MatrixType;
     typedef array_1d<double,6>            VectorType;
     ///@}
     ///@name Life Cycle
@@ -421,7 +421,7 @@ namespace Kratos
      * @param rMatrix the corresponding second order tensor in voigt size matrix form
      */
     
-    static inline Matrix& ConstitutiveTensorToMatrix(const bounded_matrix<double,6,6>& rTensor, Matrix& rMatrix)
+    static inline Matrix& ConstitutiveTensorToMatrix(const BoundedMatrix<double,6,6>& rTensor, Matrix& rMatrix)
     {
         KRATOS_TRY;
 	

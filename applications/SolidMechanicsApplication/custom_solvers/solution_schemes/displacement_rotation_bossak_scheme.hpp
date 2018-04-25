@@ -41,16 +41,16 @@ namespace Kratos
    */
   template<class TSparseSpace,  class TDenseSpace >
   class DisplacementRotationBossakScheme: public DisplacementRotationNewmarkScheme<TSparseSpace,TDenseSpace>
-  {   
+  {
   public:
-    
+
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementRotationBossakScheme );
 
     typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
     typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
-    
+
     typedef typename BaseType::LocalSystemVectorType                LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType;
 
@@ -73,7 +73,7 @@ namespace Kratos
     DisplacementRotationBossakScheme(Flags& rOptions)
       :DerivedType(rOptions)
     {
-    }    
+    }
 
     /// Copy Constructor.
     DisplacementRotationBossakScheme(DisplacementRotationBossakScheme& rOther)
@@ -106,16 +106,16 @@ namespace Kratos
     {
         KRATOS_TRY
 
-	DerivedType::Initialize(rModelPart);  
+	DerivedType::Initialize(rModelPart);
 
 	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-	
+
 	this->mVector.ap.resize(NumThreads);
 
 	KRATOS_CATCH("")
     }
 
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -127,7 +127,7 @@ namespace Kratos
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
@@ -145,15 +145,15 @@ namespace Kratos
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Displacement-Rotation BossakScheme Data";     
+      rOStream << "Displacement-Rotation BossakScheme Data";
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
-    
+
   protected:
 
     ///@name Protected static Member Variables
@@ -170,32 +170,33 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-    
-    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
-    {      
-      this->mpIntegrationMethod = IntegrationPointerType( new BossakStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
-      // Set scheme variables
-      this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
+    void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
+    {
+      if ( this->mTimeIntegrationMethods.size() == 0 ) {
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< BossakStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(DISPLACEMENT,VELOCITY,ACCELERATION));
 
-      this->mpIntegrationMethod->SetStepVariable(STEP_DISPLACEMENT);
-      
-      // Set scheme parameters
-      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
+        // Set scheme variables
+        this->mTimeIntegrationMethods.front()->SetStepVariable(STEP_DISPLACEMENT);
 
-      this->mpRotationIntegrationMethod = IntegrationPointerType( new BossakStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.front()->SetParameters(rCurrentProcessInfo);
 
-      // Set rotation scheme variables
-      this->mpRotationIntegrationMethod->SetVariables(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION);
-      
-      this->mpRotationIntegrationMethod->SetStepVariable(STEP_ROTATION);
 
-      // Set scheme parameters
-      this->mpRotationIntegrationMethod->SetParameters(rCurrentProcessInfo);
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< BossakStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION));
 
-      // Modify ProcessInfo scheme parameters
-      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
-      rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
+
+        this->mTimeIntegrationMethods.back()->SetStepVariable(STEP_ROTATION);
+
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.back()->SetParameters(rCurrentProcessInfo);
+
+        // Set parameters to process info
+        this->mTimeIntegrationMethods.back()->SetProcessInfoParameters(rCurrentProcessInfo);
+        
+        // Modify ProcessInfo scheme parameters
+        rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
+      }
     }
 
 
@@ -210,34 +211,34 @@ namespace Kratos
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     ///@}
 
   private:
 
    ///@name Static Member Variables
     ///@{
-  
+
     ///@}
     ///@name Member Variables
     ///@{
-  
+
     ///@}
     ///@name Private Operators
     ///@{
-  
+
     ///@}
     ///@name Private Operations
     ///@{
-  
+
     ///@}
     ///@name Private  Access
     ///@{
-  
+
     ///@}
     ///@name Serialization
     ///@{
-  
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -245,7 +246,7 @@ namespace Kratos
     ///@}
     ///@name Un accessible methods
     ///@{
-  
+
     ///@}
   }; // Class DisplacementRotationBossakScheme
   ///@}
@@ -258,11 +259,11 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
+
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_DISPLACEMENT_ROTATION_BOSSAK_SCHEME_H_INCLUDED defined

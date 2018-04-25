@@ -80,6 +80,15 @@ namespace Kratos
     /// Default Constructor.
     NewmarkStepRotationMethod() : DerivedType() {}
 
+    /// Constructor.
+    NewmarkStepRotationMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+    /// Constructor.
+    NewmarkStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    NewmarkStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable) {}
+
+    
     /// Copy Constructor.
     NewmarkStepRotationMethod(NewmarkStepRotationMethod& rOther)
       :DerivedType(rOther)

@@ -40,9 +40,9 @@ namespace Kratos
    */
   template<class TSparseSpace,  class TDenseSpace >
   class DisplacementRotationEmcScheme: public DisplacementRotationSimoScheme<TSparseSpace,TDenseSpace>
-  {   
+  {
   public:
-    
+
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementRotationEmcScheme );
@@ -56,9 +56,9 @@ namespace Kratos
     typedef DisplacementRotationSimoScheme<TSparseSpace,TDenseSpace>               DerivedType;
 
     typedef typename DerivedType::IntegrationPointerType                IntegrationPointerType;
-      
+
     typedef typename DerivedType::NodeType                                            NodeType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -74,7 +74,7 @@ namespace Kratos
       :DerivedType(rOptions)
     {
     }
-    
+
     /// Copy Constructor.
     DisplacementRotationEmcScheme(DisplacementRotationEmcScheme& rOther)
       :DerivedType(rOther)
@@ -97,7 +97,7 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
- 
+
     ///@}
     ///@name Access
     ///@{
@@ -109,7 +109,7 @@ namespace Kratos
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
@@ -127,15 +127,15 @@ namespace Kratos
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Displacement-Rotation EMCScheme Data";     
+      rOStream << "Displacement-Rotation EMCScheme Data";
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
-    
+
   protected:
 
     ///@name Protected static Member Variables
@@ -152,33 +152,34 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-    
-    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
-    {      
-      this->mpIntegrationMethod = IntegrationPointerType( new EmcStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
-      // Set scheme variables
-      this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
+    void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
+    {
+      if ( this->mTimeIntegrationMethods.size() == 0 ) {
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< EmcStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(DISPLACEMENT,VELOCITY,ACCELERATION));
 
-      this->mpIntegrationMethod->SetStepVariable(STEP_DISPLACEMENT);
-      
-      // Set scheme parameters
-      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
-      
-      this->mpRotationIntegrationMethod = IntegrationPointerType( new EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+        
+        // Set scheme variables
+        this->mTimeIntegrationMethods.front()->SetStepVariable(STEP_DISPLACEMENT);
 
-      // Set rotation scheme variables
-      this->mpRotationIntegrationMethod->SetVariables(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION);
-      
-      this->mpRotationIntegrationMethod->SetStepVariable(STEP_ROTATION);
-      
-      // Set scheme parameters
-      this->mpRotationIntegrationMethod->SetParameters(rCurrentProcessInfo);
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.front()->SetParameters(rCurrentProcessInfo);
 
-      // Modify ProcessInfo scheme parameters
-      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
-      
-      rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
+
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION));
+
+        // Set scheme variables
+        this->mTimeIntegrationMethods.back()->SetStepVariable(STEP_ROTATION);
+
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.back()->SetParameters(rCurrentProcessInfo);
+
+        // Set parameters to process info
+        this->mTimeIntegrationMethods.back()->SetProcessInfoParameters(rCurrentProcessInfo);
+        
+        // Modify ProcessInfo scheme parameters
+        rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
+      }
     }
 
 
@@ -193,34 +194,34 @@ namespace Kratos
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     ///@}
 
   private:
 
    ///@name Static Member Variables
     ///@{
-  
+
     ///@}
     ///@name Member Variables
     ///@{
-  
+
     ///@}
     ///@name Private Operators
     ///@{
-  
+
     ///@}
     ///@name Private Operations
     ///@{
-  
+
     ///@}
     ///@name Private  Access
     ///@{
-  
+
     ///@}
     ///@name Serialization
     ///@{
-  
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -228,7 +229,7 @@ namespace Kratos
     ///@}
     ///@name Un accessible methods
     ///@{
-  
+
     ///@}
   }; // Class DisplacementRotationEmcScheme
   ///@}
@@ -241,11 +242,11 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
+
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_DISPLACEMENT_ROTATION_EMC_SCHEME_H_INCLUDED defined

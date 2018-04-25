@@ -40,9 +40,9 @@ namespace Kratos
    */
   template<class TSparseSpace,  class TDenseSpace >
   class DisplacementRotationNewmarkScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
-  {   
+  {
   public:
-    
+
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementRotationNewmarkScheme );
@@ -50,13 +50,13 @@ namespace Kratos
     typedef SolutionScheme<TSparseSpace,TDenseSpace>                                    BaseType;
     typedef typename BaseType::SolutionSchemePointerType                         BasePointerType;
 
-    typedef typename BaseType::LocalSystemVectorType                       LocalSystemVectorType; 
+    typedef typename BaseType::LocalSystemVectorType                       LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType                       LocalSystemMatrixType;
 
     typedef DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>                      DerivedType;
 
     typedef typename DerivedType::IntegrationPointerType                  IntegrationPointerType;
-    
+
     typedef typename DerivedType::NodeType                                              NodeType;
     ///@}
     ///@name Life Cycle
@@ -73,11 +73,10 @@ namespace Kratos
       :DerivedType(rOptions)
     {
     }
-    
+
     /// Copy Constructor.
     DisplacementRotationNewmarkScheme(DisplacementRotationNewmarkScheme& rOther)
       :DerivedType(rOther)
-      ,mpRotationIntegrationMethod(rOther.mpRotationIntegrationMethod)
     {
     }
 
@@ -117,9 +116,9 @@ namespace Kratos
       KRATOS_TRY;
 
       int thread = OpenMPUtils::ThisThread();
-      
+
       (rCurrentElement) -> CalculateLocalSystem(rLHS_Contribution,rRHS_Contribution, rCurrentProcessInfo);
-      
+
       (rCurrentElement) -> CalculateSecondDerivativesContributions(this->mMatrix.M[thread],this->mVector.a[thread],rCurrentProcessInfo);
 
       (rCurrentElement) -> CalculateFirstDerivativesContributions(this->mMatrix.D[thread],this->mVector.v[thread],rCurrentProcessInfo);
@@ -159,9 +158,9 @@ namespace Kratos
       (rCurrentElement) -> CalculateFirstDerivativesRHS(this->mVector.v[thread],rCurrentProcessInfo);
 
       (rCurrentElement) -> EquationIdVector(rEquationId,rCurrentProcessInfo);
-      
+
       AddDynamicForcesToRHS(rRHS_Contribution,this->mVector.v[thread],this->mVector.a[thread],rCurrentProcessInfo);
-      
+
       KRATOS_CATCH( "" );
     }
 
@@ -188,7 +187,7 @@ namespace Kratos
       (rCurrentCondition) -> CalculateLocalSystem(rLHS_Contribution,rRHS_Contribution,rCurrentProcessInfo);
 
       (rCurrentCondition) -> CalculateSecondDerivativesContributions(this->mMatrix.M[thread],this->mVector.a[thread],rCurrentProcessInfo);
-	  
+
       (rCurrentCondition) -> CalculateFirstDerivativesContributions(this->mMatrix.D[thread],this->mVector.v[thread],rCurrentProcessInfo);
 
       (rCurrentCondition) -> EquationIdVector(rEquationId,rCurrentProcessInfo);
@@ -227,7 +226,7 @@ namespace Kratos
       (rCurrentCondition) -> EquationIdVector(rEquationId,rCurrentProcessInfo);
 
       AddDynamicForcesToRHS(rRHS_Contribution,this->mVector.v[thread],this->mVector.a[thread],rCurrentProcessInfo);
-      
+
       KRATOS_CATCH( "" );
     }
 
@@ -274,7 +273,7 @@ namespace Kratos
         }
 
       return ErrorCode;
-      
+
       KRATOS_CATCH( "" );
     }
 
@@ -289,7 +288,7 @@ namespace Kratos
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
@@ -307,15 +306,15 @@ namespace Kratos
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Displacement-Rotation NewmarkScheme Data";     
+      rOStream << "Displacement-Rotation NewmarkScheme Data";
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
-    
+
   protected:
 
     ///@name Protected static Member Variables
@@ -325,8 +324,6 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-    IntegrationPointerType    mpRotationIntegrationMethod;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -335,47 +332,36 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
+    void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
     {
-      
-      this->mpIntegrationMethod = IntegrationPointerType( new NewmarkStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+      if ( this->mTimeIntegrationMethods.size() == 0 ) {
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< NewmarkStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(DISPLACEMENT,VELOCITY,ACCELERATION));
 
-      // Set scheme variables
-      this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
+        // Set scheme variables
+        this->mTimeIntegrationMethods.front()->SetStepVariable(STEP_DISPLACEMENT);
 
-      this->mpIntegrationMethod->SetStepVariable(STEP_DISPLACEMENT);
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.front()->SetParameters(rCurrentProcessInfo);
 
-      // Set scheme parameters
-      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
-       
-      this->mpRotationIntegrationMethod = IntegrationPointerType( new NewmarkStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
-            
-      // Set rotation scheme variables
-      this->mpRotationIntegrationMethod->SetVariables(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION);
-      
-      this->mpRotationIntegrationMethod->SetStepVariable(STEP_ROTATION);
-      
-      // Set scheme parameters
-      this->mpRotationIntegrationMethod->SetParameters(rCurrentProcessInfo);
 
-      // Modify ProcessInfo scheme parameters
-      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
-      rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;      
+        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< NewmarkStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION));
+
+
+        this->mTimeIntegrationMethods.back()->SetStepVariable(STEP_ROTATION);
+
+        // Set scheme parameters
+        this->mTimeIntegrationMethods.back()->SetParameters(rCurrentProcessInfo);
+
+        // Set parameters to process info
+        this->mTimeIntegrationMethods.back()->SetProcessInfoParameters(rCurrentProcessInfo);
+
+        // Modify ProcessInfo scheme parameters
+        rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
+      }
     }
 
-    virtual void IntegrationMethodUpdate(NodeType& rNode) override
-    {
-      this->mpIntegrationMethod->Update(rNode);
-      this->mpRotationIntegrationMethod->Update(rNode);
-    }
 
-    virtual void IntegrationMethodPredict(NodeType& rNode) override
-    {
-      this->mpIntegrationMethod->Predict(rNode);
-      this->mpRotationIntegrationMethod->Predict(rNode);
-    }
 
-    
     /**
      * It adds the dynamic LHS contribution of the elements: M*c0 + D*c1 + K
      * @param rLHS_Contribution: The dynamic contribution for the LHS
@@ -443,34 +429,34 @@ namespace Kratos
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     ///@}
 
   private:
 
    ///@name Static Member Variables
     ///@{
-  
+
     ///@}
     ///@name Member Variables
     ///@{
-  
+
     ///@}
     ///@name Private Operators
     ///@{
-  
+
     ///@}
     ///@name Private Operations
     ///@{
-  
+
     ///@}
     ///@name Private  Access
     ///@{
-  
+
     ///@}
     ///@name Serialization
     ///@{
-  
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -478,7 +464,7 @@ namespace Kratos
     ///@}
     ///@name Un accessible methods
     ///@{
-  
+
     ///@}
   }; // Class DisplacementRotationNewmarkScheme
   ///@}
@@ -491,11 +477,11 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
+
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_DISPLACEMENT_ROTATION_NEWMARK_SCHEME_H_INCLUDED defined
