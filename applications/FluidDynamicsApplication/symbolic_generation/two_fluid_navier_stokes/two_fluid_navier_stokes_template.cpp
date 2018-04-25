@@ -134,6 +134,11 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 				Kee_tot.resize(NumNodes, NumNodes, false);
 				rhs_ee_tot.resize(NumNodes, false);
 
+                noalias(Vtot) = ZeroMatrix(NumNodes*(Dim + 1), NumNodes);
+                noalias(Htot) = ZeroMatrix(NumNodes, NumNodes*(Dim + 1));
+                noalias(Kee_tot) = ZeroMatrix(NumNodes, NumNodes);
+                noalias(rhs_ee_tot) = ZeroVector(NumNodes);
+
 				for (unsigned int g = 0; g < data.PartitionsSigns.size(); g++) {
 					data.UpdateGeometryValues(data.PartitionsVolumes[g],
 						row(shape_functions, g),
@@ -155,7 +160,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 					ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
 				}
 
-					CondenseEnrichment(data, rLeftHandSideMatrix,rRightHandSideVector,Htot,Vtot,Kee_tot, rhs_ee_tot);
+				CondenseEnrichment(data, rLeftHandSideMatrix,rRightHandSideVector,Htot,Vtot,Kee_tot, rhs_ee_tot);
 
 			}
 		}
