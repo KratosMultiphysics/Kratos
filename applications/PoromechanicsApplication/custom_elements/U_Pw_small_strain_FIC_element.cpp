@@ -268,10 +268,10 @@ void UPwSmallStrainFICElement<2,4>::ExtrapolateGPConstitutiveTensor(const array_
 {
     // Quadrilateral_2d_4 with GI_GAUSS_2
     
-    boost::numeric::ublas::bounded_matrix<double,4,4> ExtrapolationMatrix;
+    BoundedMatrix<double,4,4> ExtrapolationMatrix;
     ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
-    boost::numeric::ublas::bounded_matrix<double,4,3> AuxNodalConstitutiveTensor;
+    BoundedMatrix<double,4,3> AuxNodalConstitutiveTensor;
     
     for(unsigned int i = 0; i < 2; i++) //TDim
     {
@@ -306,10 +306,10 @@ void UPwSmallStrainFICElement<3,8>::ExtrapolateGPConstitutiveTensor(const array_
 {
     // Hexahedra_3d_8 with GI_GAUSS_2
     
-    boost::numeric::ublas::bounded_matrix<double,8,8> ExtrapolationMatrix;
+    BoundedMatrix<double,8,8> ExtrapolationMatrix;
     ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
-    boost::numeric::ublas::bounded_matrix<double,8,6> AuxNodalConstitutiveTensor;
+    BoundedMatrix<double,8,6> AuxNodalConstitutiveTensor;
     
     for(unsigned int i = 0; i < 3; i++) //TDim
     {
@@ -350,10 +350,10 @@ void UPwSmallStrainFICElement<2,4>::ExtrapolateGPDtStress(const Matrix& DtStress
 {
     // Quadrilateral_2d_4 with GI_GAUSS_2
 
-    boost::numeric::ublas::bounded_matrix<double,4,4> ExtrapolationMatrix;
+    BoundedMatrix<double,4,4> ExtrapolationMatrix;
     ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
-    boost::numeric::ublas::bounded_matrix<double,4,2> AuxNodalDtStress;
+    BoundedMatrix<double,4,2> AuxNodalDtStress;
     noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix,DtStressContainer);
     
     for(unsigned int i = 0; i < 2; i++) // TDim
@@ -381,10 +381,10 @@ void UPwSmallStrainFICElement<3,8>::ExtrapolateGPDtStress(const Matrix& DtStress
 {
     // Hexahedra_3d_8 with GI_GAUSS_2
     
-    boost::numeric::ublas::bounded_matrix<double,8,8> ExtrapolationMatrix;
+    BoundedMatrix<double,8,8> ExtrapolationMatrix;
     ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
-    boost::numeric::ublas::bounded_matrix<double,8,3> AuxNodalDtStress;
+    BoundedMatrix<double,8,3> AuxNodalDtStress;
     noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix,DtStressContainer);
     
     for(unsigned int i = 0; i < 3; i++) // TDim
@@ -560,7 +560,7 @@ void UPwSmallStrainFICElement<2,4>::ExtrapolateShapeFunctionsGradients(array_1d<
 {
     // Quadrilateral_2d_4 with GI_GAUSS_2
 
-    boost::numeric::ublas::bounded_matrix<double,4,8> ShapeFunctionsGradientsContainer; //NumGPoints X TDim*TNumNodes
+    BoundedMatrix<double,4,8> ShapeFunctionsGradientsContainer; //NumGPoints X TDim*TNumNodes
     unsigned int index;
     
     for(unsigned int i = 0; i < 4; i++) //NumGPoints
@@ -574,10 +574,10 @@ void UPwSmallStrainFICElement<2,4>::ExtrapolateShapeFunctionsGradients(array_1d<
         }
     }
     
-    boost::numeric::ublas::bounded_matrix<double,4,4> ExtrapolationMatrix;
+    BoundedMatrix<double,4,4> ExtrapolationMatrix;
     ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
-    boost::numeric::ublas::bounded_matrix<double,4,8> AuxNodalShapeFunctionsGradients;
+    BoundedMatrix<double,4,8> AuxNodalShapeFunctionsGradients;
     noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix,ShapeFunctionsGradientsContainer);
     
     for(unsigned int i = 0; i < 4; i++) //TNumNodes
@@ -627,7 +627,7 @@ void UPwSmallStrainFICElement<3,8>::ExtrapolateShapeFunctionsGradients(array_1d<
 {
     // Hexahedra_3d_8 with GI_GAUSS_2
 
-    boost::numeric::ublas::bounded_matrix<double,8,24> ShapeFunctionsGradientsContainer; //NumGPoints X TDim*TNumNodes
+    BoundedMatrix<double,8,24> ShapeFunctionsGradientsContainer; //NumGPoints X TDim*TNumNodes
     unsigned int index;
     
     for(unsigned int i = 0; i < 8; i++) //NumGPoints
@@ -642,10 +642,10 @@ void UPwSmallStrainFICElement<3,8>::ExtrapolateShapeFunctionsGradients(array_1d<
         }
     }
     
-    boost::numeric::ublas::bounded_matrix<double,8,8> ExtrapolationMatrix;
+    BoundedMatrix<double,8,8> ExtrapolationMatrix;
     ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
-    boost::numeric::ublas::bounded_matrix<double,8,24> AuxNodalShapeFunctionsGradients;
+    BoundedMatrix<double,8,24> AuxNodalShapeFunctionsGradients;
     noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix,ShapeFunctionsGradientsContainer);
     
     for(unsigned int i = 0; i < 8; i++) //TNumNodes
@@ -1123,7 +1123,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateAndAddPressureGradientMa
                                       prod(rVariables.GradNpT,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
     
     //Distribute pressure gradient block matrix into the elemental matrix
-    ElementUtilities::AssemblePBlockMatrix< boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
+    ElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------

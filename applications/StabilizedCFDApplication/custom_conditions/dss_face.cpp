@@ -569,7 +569,7 @@ void DSSFace<TDim,TNumNodes>::AddBoundaryTerms(MatrixType& rLocalMatrix,
     /*
     Vector Values;
     this->GetValuesVector(Values);
-    noalias(rLocalVector) -= boost::numeric::ublas::prod(rLocalMatrix,rLocalVector);*/
+    noalias(rLocalVector) -= prod(rLocalMatrix,rLocalVector);*/
 }
 
 template< unsigned int TDim, unsigned int TNumNodes >

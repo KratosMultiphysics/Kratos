@@ -1,6 +1,11 @@
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+try:
+    import KratosMultiphysics.ExternalSolversApplication
+    have_external_solvers = True
+except ImportError as e:
+    have_external_solvers = False
+
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -17,6 +22,7 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class ArtificialCompressibilityTest(UnitTest.TestCase):
     def testArtificialCompressibility(self):
         self.setUp()
@@ -29,7 +35,7 @@ class ArtificialCompressibilityTest(UnitTest.TestCase):
         self.check_tolerance = 1e-6
         self.print_output = False
         self.print_reference_values = False
-        self.work_folder = "ArtificialCompressibilityTest"   
+        self.work_folder = "ArtificialCompressibilityTest"
         self.reference_file = "reference_cavity_compressibility"
         self.settings = "ArtificialCompressibilityTestParameters.json"
 
@@ -174,4 +180,4 @@ if __name__ == '__main__':
     test.runTest()
     test.tearDown()
     test.checkResults()
-    
+
