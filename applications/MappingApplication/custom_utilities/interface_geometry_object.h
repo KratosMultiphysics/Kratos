@@ -49,9 +49,9 @@ namespace Kratos
 ///@{
 
 /// GeometricalObject-based objects (Element or Condition) on the Interface for Searching
-/** This class Is the "wrapper" for Elements/Conditions on the interface. It uses the fact that both 
-* Elements and Conditions are deriving from "GeometricalObject". The search is caarried out using the 
-* center of the geometry. 
+/** This class Is the "wrapper" for Elements/Conditions on the interface. It uses the fact that both
+* Elements and Conditions are deriving from "GeometricalObject". The search is caarried out using the
+* center of the geometry.
 * It saves a pointer to the original geometry, not to the Condition/Element itself. This is e.g. why the Id is not accessible.
 * It selects the best result by the closest projection distance of the successful projections.
 * In case no projection is successful, it uses an approximation (closest node of the geometry with the
@@ -71,11 +71,11 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // A default constructor necessary for serialization 
+    // A default constructor necessary for serialization
     InterfaceGeometryObject() : InterfaceObject()
     {
     }
-    
+
     InterfaceGeometryObject(Geometry<Node<3>>& rGeometry, const double ApproximationTolerance, const int EchoLevel, const int ConstructionIndex,
                             GeometryData::IntegrationMethod IntegrationMethod = GeometryData::NumberOfIntegrationMethods) :
         mpGeometry(&rGeometry),
@@ -84,17 +84,17 @@ public:
         mIntegrationMethod(IntegrationMethod)
     {
         SetCoordinates();
-    
+
         mGeometryFamily = mpGeometry->GetGeometryFamily();
-        KRATOS_ERROR_IF(mGeometryFamily == GeometryData::Kratos_Point) 
+        KRATOS_ERROR_IF(mGeometryFamily == GeometryData::Kratos_Point)
             << "Elements/Conditions with point-based geometries cannot be used with interpolative "
             << "Mapping, use the Nearest Neighbor Mapper instead!" << std::endl;
-    
+
         mNumPoints = mpGeometry->PointsNumber();
         KRATOS_ERROR_IF(mNumPoints == 0) << "Number of Points cannot be zero" << std::endl;
-    
+
         mpPoint = &(mpGeometry->GetPoint(0)); // used for debugging
-    
+
         mEchoLevel = EchoLevel;
     }
 
@@ -156,7 +156,7 @@ public:
                         projection_distance);
         }
         else
-        {   
+        {
             if (mEchoLevel >= 2) {
                 std::cout << "MAPPER WARNING, Unsupported geometry, "
                           << "using an approximation (Nearest Node)"
@@ -164,8 +164,8 @@ public:
                           << this->X() << " | "
                           << this->Y() << " | "
                           << this->Z() << " ], "
-                          << "(KratosGeometryFamily \"" << mGeometryFamily 
-                          << "\", num points: " << mNumPoints << std::endl;              
+                          << "(KratosGeometryFamily \"" << mGeometryFamily
+                          << "\", num points: " << mNumPoints << std::endl;
             }
             return false;
         }
@@ -340,17 +340,17 @@ private:
     Geometry<Node<3>>* mpGeometry;
     Node<3>* mpPoint;
     GeometryData::KratosGeometryFamily mGeometryFamily;
-    int mNumPoints; 
+    int mNumPoints;
     double mApproximationTolerance = 0.0f;
     int mConstructionIndex;
     GeometryData::IntegrationMethod mIntegrationMethod;
-        
+
     ///@}
     ///@name Serialization
     ///@{
 
     friend class Serializer;
-    
+
     virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
@@ -358,7 +358,7 @@ private:
     }
     virtual void load(Serializer& rSerializer) override
     {
-        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;        
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
     }
 
@@ -375,7 +375,7 @@ private:
     {
         if (mConstructionIndex == 0)
         {
-			this->Coordinates() = N * pos;
+            this->Coordinates() = mpGeometry->Center();
         }
         else
         {
