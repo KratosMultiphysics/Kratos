@@ -474,7 +474,6 @@ namespace Kratos {
 
 
 	    }
-<<<<<<< HEAD
 		
 		        /** Checks the CompressibleNavierStokes2D3N element.
 		 * Checks the RHS in case of constant variables (no acceleration).
@@ -773,9 +772,7 @@ namespace Kratos {
 			 
 			 
 		 }
-=======
 
->>>>>>> master
 
     }
 
