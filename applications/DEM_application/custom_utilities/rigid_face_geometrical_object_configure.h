@@ -265,7 +265,7 @@ public:
       }
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2,  const double& Radius)
-    { 
+    {
       const GeometryType& DE_Geom = rObj_1->GetGeometry();
       const GeometryType& FE_Geom = rObj_2->GetGeometry();
 
@@ -341,7 +341,7 @@ public:
            double New_projected_on_old = DEM_INNER_PRODUCT_3(LocalCoordSystem[2], Old_Normal_Vector);
            double New_projected_distance = New_projected_on_old * New_Dist;
            double Old_projected_distance = New_projected_on_old * Old_dist;
-           
+
            if (New_projected_distance - Old_dist > -1.0e-15 * std::abs(Old_dist)) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH
              return false;
            }
@@ -458,7 +458,7 @@ public:
 
        ///Particle-edge contact and Particle-point
        if ( (ContactExists == false) && (distance_point_to_plane < Radius ) ) {
-         
+
           bool local_contact_exists = false;
           for (unsigned int e = current_edge_index; e < FE_size; e++ ) {
             double eta = 0.5; // dummy initialize
@@ -482,7 +482,7 @@ public:
               else {continue;}
               double distance_point_to_vertex = 0.0;
               local_contact_exists = GeometryFunctions::VertexCheck(FE_Geom[vertex_to_check], DE_Geom[0].Coordinates(), Radius, local_coord_system, distance_point_to_vertex);
-              
+
               if(local_contact_exists) {
                 ContactType             = 3;
                 Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;

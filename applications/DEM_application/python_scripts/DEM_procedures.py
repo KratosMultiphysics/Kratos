@@ -533,7 +533,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
         model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
         model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_MOMENT)
-        
+
         # PHYSICAL PROPERTIES
         model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
         model_part.AddNodalSolutionStepVariable(CLUSTER_VOLUME)
@@ -737,11 +737,40 @@ class Procedures(object):
         shutil.rmtree(os.path.join(main_path, problem_name + '_MPI_results'), ignore_errors=True)
 
         try:
-            #THIS IS NOT WORKING, AND I DON'T KNOW WHY (WHEN THE FILE EXISTS IT CAN'T REMOVE IT!!)
+            file_to_remove = os.path.join(main_path, problem_name)+"DEM.time"
+            os.remove(file_to_remove)
+        except OSError:
+            pass
+        try:
+            file_to_remove = os.path.join(main_path, problem_name)+"DEM_Inlet.time"
+            os.remove(file_to_remove)
+        except OSError:
+            pass
+
+        try:
+            file_to_remove = os.path.join(main_path, problem_name)+"DEM_FEM_boundary.time"
+            os.remove(file_to_remove)
+        except OSError:
+            pass
+
+        try:
+            file_to_remove = os.path.join(main_path, problem_name)+"DEM_Clusters.time"
+            os.remove(file_to_remove)
+        except OSError:
+            pass
+
+        try:
             file_to_remove = os.path.join(main_path, "TimesPartialRelease")
             os.remove(file_to_remove)
         except OSError:
             pass
+
+        try:
+            file_to_remove = os.path.join(main_path, problem_name)+".post.lst"
+            os.remove(file_to_remove)
+        except OSError:
+            pass
+
 
     @classmethod
     def CreateDirectories(self, main_path, problem_name, run_code=''):
@@ -947,12 +976,12 @@ class DEMFEMProcedures(object):
         DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
         cluster_model_part = all_model_parts.Get("ClusterPart")
-        
+
         self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
-    
+
     def MoveAllMeshesUsingATable(self, model_part, time, dt):
 
         for mesh_number in range(0, model_part.NumberOfSubModelParts()):
@@ -1374,7 +1403,7 @@ class DEMIo(object):
             self.PostBoundingBox = 0
         else:
             self.PostBoundingBox = self.DEM_parameters["PostBoundingBox"].GetBool()
-        
+
         #self.automatic_bounding_box_option = Var_Translator(self.DEM_parameters["AutomaticBoundingBoxOption"].GetBool())
         #self.b_box_minX = self.DEM_parameters["BoundingBoxMinX"].GetDouble()
         #self.b_box_minY = self.DEM_parameters["BoundingBoxMinY"].GetDouble()
@@ -1411,9 +1440,9 @@ class DEMIo(object):
             self.PostFaceNormalImpactVelocity = 1
 
         # Ice
-        
+
         self.sea_settings = self.DEM_parameters["virtual_sea_surface_settings"]
-        
+
         if self.sea_settings["print_sea_surface"].GetBool():
             self.SeaSurfaceX1 = self.sea_settings["PostVirtualSeaSurfaceX1"].GetDouble()
             self.SeaSurfaceY1 = self.sea_settings["PostVirtualSeaSurfaceY1"].GetDouble()
@@ -1536,10 +1565,10 @@ class DEMIo(object):
             self.PushPrintVar(1, IMPACT_WEAR, self.fem_boundary_variables)
 
     def AddClusterVariables(self):
-        
+
         if self.PostCharacteristicLength:
             self.PushPrintVar(self.PostRadius, CHARACTERISTIC_LENGTH, self.clusters_variables)
-        
+
         if self.DEM_parameters["PostEulerAngles"].GetBool():
             # JIG: SHOULD BE REMOVED IN THE FUTURE
             self.PushPrintVar(self.PostEulerAngles, ORIENTATION_REAL, self.clusters_variables)
@@ -1740,7 +1769,7 @@ class DEMIo(object):
     def PrintingClusterVariables(self, export_model_part, time):
         for variable in self.clusters_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
-            
+
     def PrintingRigidBodyVariables(self, export_model_part, time):
         for variable in self.rigid_body_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
