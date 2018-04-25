@@ -505,7 +505,7 @@ public:
      */
 
     template< unsigned int TNumNodes, unsigned int TDim>
-    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrix(const GeometryType& ThisNodes) {
+    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrix(GeometryType& ThisNodes) {
         /* DEFINITIONS */
         // Zero tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
@@ -522,12 +522,22 @@ public:
                     for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
                         tangent_matrix(i_node, i_dof) = tangent[i_dof];
                 } else {
-                    for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
-                        tangent_matrix(i_node, i_dof) = 0.0;
+                    array_1d<double, 3> normal, tangent_xi, tangent_eta;
+                    Point local_point_parent;
+                    ThisNodes.PointLocalCoordinates(local_point_parent, ThisNodes[i_node].Coordinates());
+                    ThisNodes.UnitNormalWithTangents(local_point_parent, normal, tangent_xi, tangent_eta);
+                    for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof) {
+                        tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                    }
                 }
             } else { // In case of zero LM
-                for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
-                    tangent_matrix(i_node, i_dof) = 0.0;
+                array_1d<double, 3> normal, tangent_xi, tangent_eta;
+                Point local_point_parent;
+                ThisNodes.PointLocalCoordinates(local_point_parent, ThisNodes[i_node].Coordinates());
+                ThisNodes.UnitNormalWithTangents(local_point_parent, normal, tangent_xi, tangent_eta);
+                for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof) {
+                    tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                }
             }
         }
 
