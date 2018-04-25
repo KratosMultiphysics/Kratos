@@ -127,15 +127,15 @@ namespace Kratos
      if( this->mpInputVariable != nullptr ){ 
 
        if( *this->mpInputVariable == *this->mpVariable ){
-	 this->PredictFromVariable(rNode);
+	 this->AssignFromVariable(rNode);
        }
 
        if( *this->mpInputVariable == *this->mpFirstDerivative ){
-	 this->PredictFromFirstDerivative(rNode);
+	 this->AssignFromFirstDerivative(rNode);
        }
        
        if( *this->mpInputVariable == *this->mpSecondDerivative ){
-	 this->PredictFromSecondDerivative(rNode);
+	 this->AssignFromSecondDerivative(rNode);
        }
 
      }

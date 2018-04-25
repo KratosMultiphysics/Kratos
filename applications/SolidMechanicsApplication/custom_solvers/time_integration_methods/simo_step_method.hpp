@@ -108,15 +108,15 @@ namespace Kratos
      if( this->mpInputVariable != nullptr ){ 
 
        if( *this->mpInputVariable == *this->mpVariable ){
-	 this->PredictFromVariable(rNode);
+	 this->AssignFromVariable(rNode);
        }
 
        if( *this->mpInputVariable == *this->mpFirstDerivative ){
-	 this->PredictFromFirstDerivative(rNode);
+	 this->AssignFromFirstDerivative(rNode);
        }
        
        if( *this->mpInputVariable == *this->mpSecondDerivative ){
-	 this->PredictFromSecondDerivative(rNode);	 
+	 this->AssignFromSecondDerivative(rNode);	 
        }
        
      }
@@ -224,7 +224,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    void PredictFromVariable(NodeType& rNode) override
+    void AssignFromVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -234,7 +234,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     } 
     
-    void PredictFromFirstDerivative(NodeType& rNode) override
+    void AssignFromFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -249,7 +249,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    void PredictFromSecondDerivative(NodeType& rNode) override
+    void AssignFromSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	

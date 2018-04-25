@@ -224,23 +224,9 @@ namespace Kratos
     void Assign(NodeType& rNode) override
     {
      KRATOS_TRY
-     
-     if( this->mpInputVariable != nullptr ){ 
 
-       if( *this->mpInputVariable == *this->mpVariable ){
-	 this->PredictFromVariable(rNode);
-       }
-
-       if( *this->mpInputVariable == *this->mpFirstDerivative ){
-	 this->PredictFromFirstDerivative(rNode);
-       }
-       
-       if( *this->mpInputVariable == *this->mpSecondDerivative ){
-	 this->PredictFromSecondDerivative(rNode);
-       }
-
-     }
-     
+     (this->*this->mpAssign)(rNode);
+      
      KRATOS_CATCH( "" )
     }
 
@@ -249,10 +235,8 @@ namespace Kratos
     {
      KRATOS_TRY
      
-     this->PredictVariable(rNode);
-     this->PredictFirstDerivative(rNode);
-     this->PredictSecondDerivative(rNode);
-       
+     (this->*this->mpPredict)(rNode);
+  
      KRATOS_CATCH( "" )
     }
     
@@ -261,9 +245,7 @@ namespace Kratos
     {
      KRATOS_TRY
        
-     this->UpdateVariable(rNode);
-     this->UpdateFirstDerivative(rNode);
-     this->UpdateSecondDerivative(rNode);
+     (this->*this->mpUpdate)(rNode);  
 
      KRATOS_CATCH( "" )
     }
@@ -326,7 +308,7 @@ namespace Kratos
     ///@name Protected Operators
     ///@{
 
-    void PredictFromVariable(NodeType& rNode) override
+    void AssignFromVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -341,7 +323,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    void PredictFromFirstDerivative(NodeType& rNode) override
+    void AssignFromFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -369,7 +351,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    void PredictFromSecondDerivative(NodeType& rNode) override
+    void AssignFromSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -392,7 +374,17 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
+    void PredictFromVariable(NodeType& rNode) override
+    {
+      KRATOS_TRY
 
+      this->PredictVariable(rNode);
+      this->PredictFirstDerivative(rNode);
+      this->PredictSecondDerivative(rNode);
+
+      KRATOS_CATCH( "" )
+    }
+    
     void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY
@@ -439,6 +431,19 @@ namespace Kratos
       
       KRATOS_CATCH( "" )              
     }
+
+
+    void UpdateFromVariable(NodeType& rNode) override
+    {
+      KRATOS_TRY
+
+      this->UpdateVariable(rNode);
+      this->UpdateFirstDerivative(rNode);
+      this->UpdateSecondDerivative(rNode);
+
+      KRATOS_CATCH( "" )
+    }
+
     
     void UpdateVariable(NodeType& rNode) override
     {

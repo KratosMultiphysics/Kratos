@@ -176,6 +176,9 @@ namespace Kratos
       // Set scheme variables
       this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
 
+      // Set input dof variable
+      this->mpIntegrationMethod->SetInputVariable(DISPLACEMENT);
+
       // Set scheme parameters
       this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
 

@@ -159,7 +159,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    void PredictFromVariable(NodeType& rNode) override
+    void AssignFromVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -167,7 +167,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     } 
     
-    void PredictFromFirstDerivative(NodeType& rNode) override
+    void AssignFromFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -182,7 +182,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    void PredictFromSecondDerivative(NodeType& rNode) override
+    void AssignFromSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	

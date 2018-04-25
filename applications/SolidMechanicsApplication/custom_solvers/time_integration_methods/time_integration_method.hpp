@@ -64,6 +64,8 @@ namespace Kratos
     typedef const TVariableType*     VariablePointer;
 
     typedef const TValueType*           ValuePointer;
+
+    typedef void (TimeIntegrationMethod::*MethodPointer) (NodeType& rNode);
     
     KRATOS_CLASS_POINTER_DEFINITION( TimeIntegrationMethod );
 
@@ -82,7 +84,6 @@ namespace Kratos
       mpSecondDerivative = nullptr;
 
       mpInputVariable = nullptr;
-      mpOutputVariable = nullptr;
     }
 
     /// Copy Constructor.
@@ -91,7 +92,6 @@ namespace Kratos
       ,mpFirstDerivative(rOther.mpFirstDerivative)
       ,mpSecondDerivative(rOther.mpSecondDerivative)
       ,mpInputVariable(rOther.mpInputVariable)
-      ,mpOutputVariable(rOther.mpOutputVariable)
     {
     }
 
@@ -180,12 +180,35 @@ namespace Kratos
     void SetInputVariable(const TVariableType& rVariable)
     {
       mpInputVariable = &rVariable;
+
+      this->SetPointerMethods();
     }
 
     // set output variable (calculated variable, dof)
-    void SetOutputVariable(const TVariableType& rVariable)
+    void SetPointerMethods()
     {
-      mpOutputVariable = &rVariable;
+      if( this->mpInputVariable != nullptr ){ 
+
+       if( *this->mpInputVariable == *this->mpVariable ){
+	 mpAssign  = &TimeIntegrationMethod::AssignFromVariable;
+         mpPredict = &TimeIntegrationMethod::PredictFromVariable;
+         mpUpdate  = &TimeIntegrationMethod::UpdateFromVariable;
+       }
+
+       if( *this->mpInputVariable == *this->mpFirstDerivative ){
+	 mpAssign  = &TimeIntegrationMethod::AssignFromFirstDerivative;
+         mpPredict = &TimeIntegrationMethod::PredictFromFirstDerivative;
+         mpUpdate  = &TimeIntegrationMethod::UpdateFromFirstDerivative;
+       }
+       
+       if( *this->mpInputVariable == *this->mpSecondDerivative ){
+	 mpAssign  = &TimeIntegrationMethod::AssignFromSecondDerivative;
+         mpPredict = &TimeIntegrationMethod::PredictFromSecondDerivative;
+         mpUpdate  = &TimeIntegrationMethod::UpdateFromSecondDerivative;
+       }
+
+     }
+      
     }
 
     virtual bool HasStepVariable()
@@ -299,14 +322,17 @@ namespace Kratos
     VariablePointer mpSecondDerivative;
 
     
-    // input variable (imposed variable)
+    // input variable (imposed variable or calculated variable)
     
     VariablePointer mpInputVariable;
 
-    // output variable (calculated and updated variable)
 
-    VariablePointer mpOutputVariable;
-
+    // method pointer
+    MethodPointer mpAssign;
+    
+    MethodPointer mpPredict;
+    
+    MethodPointer mpUpdate;
     
     ///@}
     ///@name Protected Operators
@@ -316,6 +342,36 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
  
+    virtual void AssignFromVariable(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict from variable from time integration base class " <<std::endl;
+    }
+    
+    virtual void AssignFromFirstDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict from first derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void AssignFromSecondDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict from second derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void AssignVariable(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict variable from time integration base class " <<std::endl;
+    }
+
+    virtual void AssignFirstDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict first derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void AssignSecondDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling predict second derivative from time integration base class " <<std::endl;
+    }
+    
     virtual void PredictFromVariable(NodeType& rNode)
     {
       KRATOS_ERROR << " Calling predict from variable from time integration base class " <<std::endl;
@@ -423,7 +479,6 @@ namespace Kratos
       rSerializer.save("FirstDerivative", mpFirstDerivative->Name());
       rSerializer.save("SecondDerivative", mpSecondDerivative->Name());
       rSerializer.save("InputVariable", mpInputVariable->Name());
-      rSerializer.save("OutputVariable", mpOutputVariable->Name());
     };
 
     virtual void load(Serializer& rSerializer)
@@ -437,8 +492,6 @@ namespace Kratos
       mpSecondDerivative = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
       rSerializer.load("InputVariable", Name);
       mpInputVariable = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
-      rSerializer.load("OutputVariable", Name);
-      mpOutputVariable = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
     };
     ///@}
     ///@name Private Inquiry
