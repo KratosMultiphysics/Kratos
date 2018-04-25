@@ -10,6 +10,8 @@
 //  Main authors:    Jordi Cotela
 //
 
+#include "utilities/math_utils.h"
+
 #include "dss_fic.h"
 #include "custom_utilities/turbulence_statistics_container.h"
 #include "includes/cfd_variables.h"
@@ -174,7 +176,7 @@ void DSS_FIC<TDim>::CalculateTauGrad(array_1d<double,3> &TauGrad)
     rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX,GeometryData::GI_GAUSS_1);
     ShapeFunctionDerivativesType& rDN_DX = DN_DX[0];
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> Gradient = ZeroMatrix(3,3);
+    BoundedMatrix<double,3,3> Gradient = ZeroMatrix(3,3);
     for (unsigned int n = 0; n < NumNodes; n++)
     {
         const array_1d<double,3>& rU = rGeom[n].FastGetSolutionStepValue(VELOCITY);
@@ -674,9 +676,10 @@ double DSS_FIC<TDim>::ProjectedSizeHexa(const array_1d<double,3> &rDirection)
         Q(i,2) = v40[i];
     }
 
-    Matrix QInv = ZeroMatrix(3,3);
+    Matrix QInv;
+    double det;
+    MathUtils<double>::InvertMatrix(Q,QInv,det);
 
-    this->InvertMatrix(Q,QInv);
     array_1d<double,3> Uq(3,0.0);
     for (unsigned int i = 0; i < 3; i++)
     {
