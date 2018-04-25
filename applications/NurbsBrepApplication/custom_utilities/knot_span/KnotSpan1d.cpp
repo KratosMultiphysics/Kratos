@@ -53,11 +53,11 @@ namespace Kratos
 		double u2 = m_parameter_u[1];
 		double du = u2 - u1;
 
-		double mapping = abs(u2 - u1)*0.5;
+		double mapping = std::abs(u2 - u1)*0.5;
 
 		for (unsigned int i = 0; i < IntegrationPointsInGaussianDomain.size(); i++)
 		{
-			array_1d<double, 3> point;
+			array_1d<double, 2> point;
 
 			point[0] = u1 + du*(IntegrationPointsInGaussianDomain[i][0] + 1)*0.5; //Parameter
 			point[1] = mapping*IntegrationPointsInGaussianDomain[i][1];

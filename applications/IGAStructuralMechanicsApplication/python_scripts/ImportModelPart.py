@@ -29,7 +29,7 @@ class ModelPartIOIGA():
 			#iga_model_part = model_part.CreateSubModelPart(element_type["iga_model_part"].GetString())
 			#cad_model_part_names = element_type["cad_model_part"]
 			#properties = model_part.GetProperties(element_type["parameters"]["properties_id"].GetInt())
-			
+
 			for property in model_part.Properties:
 				if (property.Id == element_type["parameters"]["properties_id"].GetInt()):
 					properties = property
@@ -47,7 +47,7 @@ class ModelPartIOIGA():
 			for variable in range(0,element_type["parameters"]["variables"].size()):
 				list_var_nurbs.append(KratosMultiphysics.KratosGlobals.GetVariable(element_type["parameters"]["variables"][variable]["cad_variable"].GetString()))
 				list_var_iga.append(KratosMultiphysics.KratosGlobals.GetVariable(element_type["parameters"]["variables"][variable]["iga_variable"].GetString()))
-			
+
 			for node in cad_model_part.Nodes:
 					control_points = node.GetValue(var)
 					int_control_points = []
@@ -79,18 +79,19 @@ class ModelPartIOIGA():
 				model = KratosMultiphysics.Model()
 				model.AddModelPart(self.model_part_elements)
 				cad_model_part  = model[cad_model_part_name.GetString()]
-				
+
 				list_var_nurbs = []
 				list_var_iga = []
-				for variable in range(0,element_type["parameters"]["variables"].size()):
-					list_var_nurbs.append(KratosMultiphysics.KratosGlobals.GetVariable(element_type["parameters"]["variables"][variable]["cad_variable"].GetString()))
-					list_var_iga.append(KratosMultiphysics.KratosGlobals.GetVariable(element_type["parameters"]["variables"][variable]["iga_variable"].GetString()))
-				
+				for variable in range(0,condition_type["parameters"]["variables"].size()):
+					list_var_nurbs.append(KratosMultiphysics.KratosGlobals.GetVariable(condition_type["parameters"]["variables"][variable]["cad_variable"].GetString()))
+					list_var_iga.append(KratosMultiphysics.KratosGlobals.GetVariable(condition_type["parameters"]["variables"][variable]["iga_variable"].GetString()))
+					print(condition_type["parameters"]["variables"][variable]["iga_variable"].GetString())
+
 				for node in cad_model_part.Nodes:
 					int_control_points = []
 					for i in range(0,condition_type["parameters"]["control_points"].size()):
 						control_points = node.GetValue(KratosMultiphysics.KratosGlobals.GetVariable(condition_type["parameters"]["control_points"][i].GetString()))
-					
+
 						for cp in control_points:
 							int_control_points.append(int(cp))
 							iga_model_part.AddNode(model_part.GetNode(int(cp)),0)

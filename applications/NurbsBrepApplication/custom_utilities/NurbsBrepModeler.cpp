@@ -14,7 +14,7 @@
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -96,7 +96,7 @@ namespace Kratos
 
 	void NurbsBrepModeler::ApplyGeometryRefinement(Parameters& rRefinementParameters)
 	{
-		for (auto refinement = rRefinementParameters.begin(); refinement != rRefinementParameters.end(); ++refinement)
+		// for (auto refinement = rRefinementParameters.begin(); refinement != rRefinementParameters.end(); ++refinement)
 		for (int refinement_i = 0; refinement_i < rRefinementParameters.size(); refinement_i++)
 		{
 			Parameters refinement_parameters = rRefinementParameters[refinement_i]["parameters"];
@@ -264,7 +264,7 @@ namespace Kratos
 					}
 				}
 			}
-		
+
 			for (unsigned int vertex_itr = 0; vertex_itr < m_brep_model_vector[brep_itr].GetVertexVector().size(); vertex_itr++)
 			{
 				ModelPart::Pointer model_part_points;
@@ -531,8 +531,8 @@ namespace Kratos
 
 		//		face.GetClosestIntegrationNode(node_on_geometry, node, 2, 1e-7, 30);
 
-		//		double distance_radius = std::sqrt(std::pow(node->X() - node_on_geometry->X(), 2) + 
-		//										   std::pow(node->Y() - node_on_geometry->Y(), 2) + 
+		//		double distance_radius = std::sqrt(std::pow(node->X() - node_on_geometry->X(), 2) +
+		//										   std::pow(node->Y() - node_on_geometry->Y(), 2) +
 		//										   std::pow(node->Z() - node_on_geometry->Z(), 2));
 
 		//		double radius = 2.0;
