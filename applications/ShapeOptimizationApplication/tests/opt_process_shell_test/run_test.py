@@ -32,12 +32,9 @@ optimizer.Optimize()
 original_directory = os.getcwd()
 output_directory = parameters["optimization_settings"]["output"]["output_directory"].GetString()
 optimization_model_part_name = parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString()
-try:
-    kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
-    kratos_utilities.DeleteDirectoryIfExisting(output_directory)
-    kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
-    kratos_utilities.DeleteFileIfExisting(optimization_model_part_name+".time")
-except:
-    pass
+kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
+kratos_utilities.DeleteDirectoryIfExisting(output_directory)
+kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
+kratos_utilities.DeleteFileIfExisting(optimization_model_part_name+".time")
 
 # =======================================================================================================
