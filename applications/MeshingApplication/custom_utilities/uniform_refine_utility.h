@@ -233,12 +233,9 @@ private:
     /**
      * Create a node at the middle point of an edge
      * If the middle node is created before, do nothing
-     * If the middle node does not exist, create a new one
+     * If the middle node does not exist, create a new one and set the nodal values
      */
-    void CreateNodeInEdge(
-        const EdgeType& rEdge,
-        const int& rRefinementLevel
-        );
+    void CreateNodeInEdge(const EdgeType& rEdge, const int& rRefinementLevel);
 
     /**
      * Get the middle node on an edge and return a pointer to it
@@ -247,26 +244,11 @@ private:
     Node<3>::Pointer GetNodeInEdge(const EdgeType& rEdge);
 
     /**
-     * Get the node between node_a and node_b
-     * The two input nodes define an element edge
-     * If the middle node exist, returns a pointer to the existing node
-     * If the middle node does not exist, create a new one and returns a pointer to it
-     */
-    Node<3>::Pointer GetNodeBetween(
-        const NodeType::Pointer pNode0,
-        const NodeType::Pointer pNode1,
-        const int& rRefinementLevel
-        );
-
-    /**
      * Create a node at the middle point of a face
      * If the middle node is created before, do nothing
      * If the middle node does not exist, create a new one
      */
-    void CreateNodeInFace(
-        const FaceType& rFace,
-        const int& rRefinementLevel
-        );
+    void CreateNodeInFace(const FaceType& rFace, const int& rRefinementLevel);
 
     /**
      * Get the node inside a face
