@@ -29,6 +29,10 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
+
+#include "custom_mapper_conditions/nearest_neighbor_condition.h"
+#include "custom_mapper_conditions/nearest_element_condition.h"
+
 #include "custom_searching/interface_object.h"
 #include "custom_searching/interface_node.h"
 #include "custom_searching/interface_geometry_object.h"
@@ -193,6 +197,9 @@ private:
     const InterfaceObject           mInterfaceObject;
     const InterfaceNode             mInterfaceNode;
     const InterfaceGeometryObject   mInterfaceGeometryObject;
+
+    const NearestNeighborCondition mNearestNeighborCondition;
+    const NearestElementCondition  mNearestElementCondition;
 
     ///@}
     ///@name Private Operators

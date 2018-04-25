@@ -1,10 +1,12 @@
 from KratosMultiphysics import *
+try: # Importing MPI before mapping maked the logo only print once
+    import KratosMultiphysics.mpi as KratosMPI
+except:
+    pass
 from KratosMultiphysics.MappingApplication import *
 
 def IsMPIExecution():
     try:
-        import KratosMultiphysics.mpi as KratosMPI
-        print("here", KratosMPI.mpi.size)
         if KratosMPI.mpi.size > 1:
             return True
         else:
@@ -17,9 +19,12 @@ def run():
     if not IsMPIExecution():
         # This suite contains tests that either don't run with MPI
         # or where it doesn't make sense to run in MPI
+        Logger.PrintInfo("\ncpp tests MappingApplication", "Running Serial tests\n")
         Tester.RunTestSuite("KratosMappingApplicationSerialTestSuite")
     else:
         # This suite contains tests that require MPI
+        if KratosMPI.mpi.rank == 0:
+            Logger.PrintInfo("\ncpp tests MappingApplication", "Running MPI tests\n")
         Tester.RunTestSuite("KratosMappingApplicationMPITestSuite")
 
     # This suite runs both with and without MPI

@@ -26,6 +26,7 @@
 
 #include "custom_utilities/mapper_typedefs.h"
 
+#include "geometries/point_3d.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -46,7 +47,9 @@ KratosMappingApplication::KratosMappingApplication() :
     KratosApplication("MappingApplication"),
     mInterfaceObject(0.0, 0.0, 0.0),
     mInterfaceNode(),
-    mInterfaceGeometryObject()
+    mInterfaceGeometryObject(),
+    mNearestNeighborCondition(0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))),
+    mNearestElementCondition(0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(Condition::GeometryType::PointsArrayType(1))))
 {}
 
 void KratosMappingApplication::Register()
@@ -99,6 +102,9 @@ void KratosMappingApplication::Register()
     // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
     KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NEIGHBOR_COORDINATES )
+
+    KRATOS_REGISTER_CONDITION("NearestNeighborCondition", mNearestNeighborCondition)
+    KRATOS_REGISTER_CONDITION("NearestElementCondition", mNearestElementCondition)
 
 }
 }  // namespace Kratos.
