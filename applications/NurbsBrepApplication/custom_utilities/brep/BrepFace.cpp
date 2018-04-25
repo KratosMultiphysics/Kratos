@@ -36,7 +36,7 @@ namespace Kratos
 		return (int) m_q;
 	}
 
-	BrepTrimmingCurve& BrepFace::GetTrimmingCurve(const int& trim_index)
+	BrepTrimmingCurve BrepFace::GetTrimmingCurve(const int& trim_index)
 	{
 		for (unsigned int i = 0; i < m_trimming_loops.size(); i++)
 		{

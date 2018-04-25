@@ -34,6 +34,8 @@ from KratosMultiphysics.NurbsBrepApplication import *
 from KratosMultiphysics import DEMApplication
 import main_script 
 
+from KratosExternalSolversApplication import *
+
 import iga_structural_mechanics_solver
 
 #region Set Up Model Part / Parsing the Parameters
@@ -83,7 +85,7 @@ solver.AddDofs()
 
 dem_analysis = main_script.Solution()
 dem_analysis.Initialize()
-dem_analysis.InitializeTime()
+dem_analysis.InitializeTimeStep()
 
 
 
@@ -155,7 +157,7 @@ step = 0
 time = ProjectParameters["problem_data"]["start_time"].GetDouble()
 end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
-
+print(dem_analysis.spheres_model_part)
 
 # solving the problem (time integration)
 while dem_analysis.time < dem_analysis.final_time:

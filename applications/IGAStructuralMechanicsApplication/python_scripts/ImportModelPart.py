@@ -11,9 +11,8 @@ def Factory(model_part_elements, project_parameters):
 	return ModelPartIOIGA(model_part_elements, project_parameters)
 
 
-class ModelPartIOIGA(KratosMultiphysics.IO):
+class ModelPartIOIGA():
 	def __init__(self, model_part_elements, project_parameters):
-		KratosMultiphysics.IO.__init__(self)
 		self.model_part_elements = model_part_elements
 		self.project_parameters = project_parameters
 
@@ -90,7 +89,7 @@ class ModelPartIOIGA(KratosMultiphysics.IO):
 				for node in cad_model_part.Nodes:
 					int_control_points = []
 					for i in range(0,condition_type["parameters"]["control_points"].size()):
-						control_points = node.GetValue(eval(condition_type["parameters"]["control_points"][i].GetString()))
+						control_points = node.GetValue(KratosMultiphysics.KratosGlobals.GetVariable(condition_type["parameters"]["control_points"][i].GetString()))
 					
 						for cp in control_points:
 							int_control_points.append(int(cp))
