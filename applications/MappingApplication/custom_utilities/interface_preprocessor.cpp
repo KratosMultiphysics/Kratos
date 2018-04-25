@@ -43,6 +43,7 @@ namespace Kratos
 
         mpInterfaceModelPart->GetMesh().Clear();
 
+        // create dummy properties for the mapper conditions
         Properties::Pointer dummy_properties = Kratos::make_shared<Properties>();
         mpInterfaceModelPart->AddProperties(dummy_properties);
 
@@ -60,7 +61,7 @@ namespace Kratos
             std::cout << "Doing the ParallelFillCommunicator stuff" << std::endl;
 
             ParallelFillCommunicator parallel_fill_communicator(*mpInterfaceModelPart);
-            // parallel_fill_communicator.Execute(); // does not work atm
+            // parallel_fill_communicator.Execute(); // TODO does not work atm
         }
 #endif
 
