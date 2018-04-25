@@ -41,7 +41,6 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
 
     def __init__(self, identifier, response_settings, model_part = None):
         self.identifier = identifier
-        self.response_settings = response_settings
 
         self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(model_part, response_settings)
 
@@ -96,18 +95,17 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
 
     def __init__(self, identifier, response_settings, model_part = None):
         self.identifier = identifier
-        self.response_settings = response_settings
 
-        if not response_settings.Has("weighting_method") or response_settings["weighting_method"].GetString() == "none":
-            self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(model_part, response_settings)
-        elif response_settings["weighting_method"].GetString() == "linear_scaling":
-            self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionLinScalUtility(model_part, response_settings)
-        else:
-            raise NameError("The following weighting_method is not valid for eigenfrequency response: " + response_settings["weighting_method"].GetString() +
-                            ".\nAvailable weighting methods are: 'none', 'linear_scaling'. Default: 'none'")
+        self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(model_part, response_settings)
 
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters(parameters_file.read())
+
+        max_required_eigenfrequency = int(max(response_settings["traced_eigenfrequencies"].GetVector()))
+        if max_required_eigenfrequency is not ProjectParametersPrimal["solver_settings"]["eigensolver_settings"]["number_of_eigenvalues"].GetInt():
+            print("\n> WARNING: Specified number of eigenvalues in the primal analysis and the max required eigenvalue according the response settings do not match!!!")
+            print("  Primal parameters were adjusted accordingly!\n")
+            ProjectParametersPrimal["solver_settings"]["eigensolver_settings"]["number_of_eigenvalues"].SetInt(max_required_eigenfrequency)
 
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal, model_part)
         self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)

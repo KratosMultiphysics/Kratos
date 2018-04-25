@@ -3,10 +3,10 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Fusseder Martin
+//  Main authors:    Fusseder Martin, Armin Geiser, Daniel Baumgaertner
 //
 
 #ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_UTILITY_H
@@ -64,327 +64,342 @@ namespace Kratos
 class EigenfrequencyResponseFunctionUtility
 {
 public:
-	///@name Type Definitions
-	///@{
+    ///@name Type Definitions
+    ///@{
 
-	/// Pointer definition of EigenfrequencyResponseFunctionUtility
-	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunctionUtility);
+    /// Pointer definition of EigenfrequencyResponseFunctionUtility
+    KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunctionUtility);
 
-	///@}
-	///@name Life Cycle
-	///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-	/// Default constructor.
-	EigenfrequencyResponseFunctionUtility(ModelPart& model_part, Parameters responseSettings)
-	: mrModelPart(model_part)
-	{
-		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
-		if (gradient_mode.compare("semi_analytic") == 0)
-		{
-			mDelta = responseSettings["step_size"].GetDouble();
-		}
-		else
-			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
+    /// Default constructor.
+    EigenfrequencyResponseFunctionUtility(ModelPart& model_part, Parameters response_settings)
+    : mrModelPart(model_part)
+    {
+        CheckSettingsForGradientAnalysis(response_settings);
+        DetermineTracedEigenfrequencies(response_settings);
+        if(AreSeveralEigenfrequenciesTraced())
+        {
+            KRATOS_ERROR_IF_NOT(response_settings.Has("weighting_method")) << "Several eigenfrequencies are traced but no weighting method specified in the parameters!" << std::endl;
+            if(response_settings["weighting_method"].GetString() == "linear_scaling")
+                CalculateLinearWeights(response_settings);
+            else
+                KRATOS_ERROR  << "Specified weighting method for eigenfrequencies is not implemented! Available weighting methods are: 'linear_scaling'." << std::endl;
+        }
+        else
+            UseDefaultWeight();
+    }
 
-		// Get number of eigenfrequency for which the structure has to be optimized
-		mTracedEigenValue = responseSettings["traced_eigenfrequency"].GetInt();
-	}
+    /// Destructor.
+    virtual ~EigenfrequencyResponseFunctionUtility()
+    {
+    }
 
-	/// Destructor.
-	virtual ~EigenfrequencyResponseFunctionUtility()
-	{
-	}
+    ///@}
+    ///@name Operators
+    ///@{
 
-	///@}
-	///@name Operators
-	///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-	///@}
-	///@name Operations
-	///@{
+    // ==============================================================================
+    void Initialize()
+    {
+        //not needed because only semi-analytical sensitivity analysis is implemented yet
+    }
 
-	// ==============================================================================
-	void Initialize()
-	{
-		//not needed because only semi-analytical sensitivity analysis is implemented yet
-	}
+    // --------------------------------------------------------------------------
+    double CalculateValue()
+    {
+        CheckIfAllNecessaryEigenvaluesAreComputed();
 
-	// --------------------------------------------------------------------------
-	double CalculateValue()
-	{
-		KRATOS_TRY;
+        double resp_function_value = 0.0;
+        for(std::size_t i = 0; i < mTracedEigenfrequencyIds.size(); i++)
+            resp_function_value += mWeightingFactors[i] * std::sqrt(GetEigenvalue(mTracedEigenfrequencyIds[i])) / (2*Globals::Pi);
 
-		double eigenvalue = 0.0;
+        return resp_function_value;
+    }
 
-		int num_of_computed_eigenvalues = (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR]).size();
+    // --------------------------------------------------------------------------
+    void CalculateGradient()
+    {
+        CheckIfAllNecessaryEigenvaluesAreComputed();
+        VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+        PerformSemiAnalyticSensitivityAnalysis();
+    }
 
-		KRATOS_ERROR_IF(num_of_computed_eigenvalues < mTracedEigenValue) << "The chosen eigenvalue was not solved by the eigenvalue analysis!" << std::endl;
+    // ==============================================================================
 
-		eigenvalue = (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR])[mTracedEigenValue - 1];
+    ///@}
+    ///@name Access
+    ///@{
 
-		return eigenvalue;
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-		KRATOS_CATCH("");
-	}
+    ///@}
+    ///@name Input and output
+    ///@{
 
-	// --------------------------------------------------------------------------
-	void CalculateGradient()
-	{
-		KRATOS_TRY;
+    /// Turn back information as a string.
+    std::string Info() const
+    {
+        return "EigenfrequencyResponseFunctionUtility";
+    }
 
-		// Formula computed in general notation:
-		// \frac{dF}{dx} = eigenvector^T\cdot (frac{\partial RHS}{\partial x} -
-		//				   eigenvalue frac{\partial mass_matrix}{\partial x})\cdot eigenvector
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream &rOStream) const
+    {
+        rOStream << "EigenfrequencyResponseFunctionUtility";
+    }
 
-		// First gradients are initialized
-		VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+    /// Print object's data.
+    virtual void PrintData(std::ostream &rOStream) const
+    {
+    }
 
-		// Gradient calculation is done by a semi-analytic approach
-		// The gradient is computed in one step
+    ///@}
+    ///@name Friends
+    ///@{
 
-		switch (mGradientMode)
-		{
-		// Semi-analytic sensitivities
-		case 1:
-		{
-			calculate_complete_response_derivative_by_finite_differencing();
-			break;
-		}
-
-		}// End switch mGradientMode
-
-		KRATOS_CATCH("");
-	}
-
-	// ==============================================================================
-
-	///@}
-	///@name Access
-	///@{
-
-	///@}
-	///@name Inquiry
-	///@{
-
-	///@}
-	///@name Input and output
-	///@{
-
-	/// Turn back information as a string.
-	std::string Info() const
-	{
-		return "EigenfrequencyResponseFunctionUtility";
-	}
-
-	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
-	{
-		rOStream << "EigenfrequencyResponseFunctionUtility";
-	}
-
-	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
-	{
-	}
-
-	///@}
-	///@name Friends
-	///@{
-
-	///@}
+    ///@}
 
 protected:
-	///@name Protected static Member Variables
-	///@{
+    ///@name Protected static Member Variables
+    ///@{
 
-	///@}
-	///@name Protected member Variables
-	///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-	///@}
-	///@name Protected Operators
-	///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-	///@}
-	///@name Protected Operations
-	///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-	// ==============================================================================
-	void calculate_complete_response_derivative_by_finite_differencing()
-	{
-		KRATOS_TRY;
+    // ==============================================================================
+    void CheckSettingsForGradientAnalysis(Parameters& rResponseSettings)
+    {
+        const std::string gradient_mode = rResponseSettings["gradient_mode"].GetString();
 
-		// Working variables
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        if (gradient_mode == "semi_analytic")
+            mDelta = rResponseSettings["step_size"].GetDouble();
+        else
+            KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
+    }
 
-		const double eigenvalue = (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR])[mTracedEigenValue - 1];
+    // --------------------------------------------------------------------------
+    void DetermineTracedEigenfrequencies(Parameters rResponseSettings)
+    {
+        mTracedEigenfrequencyIds.resize(rResponseSettings["traced_eigenfrequencies"].size(),false);
+        for(std::size_t i = 0; i < mTracedEigenfrequencyIds.size(); i++)
+            mTracedEigenfrequencyIds[i] = rResponseSettings["traced_eigenfrequencies"][i].GetInt();
+    }
 
-		// Computation of: \frac{dF}{dx} = eigenvector^T\cdot (frac{\partial RHS}{\partial x} -
-		//				                   eigenvalue frac{\partial mass_matrix}{\partial x})\cdot eigenvector
-		for (auto& elem_i : mrModelPart.Elements())
-		{
-			Matrix mass_matrix_org;
-			Matrix LHS_org;
-			Vector eigenvector_of_element = Vector(0);
-			Vector dummy;
-			elem_i.CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
-			elem_i.CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
+    // --------------------------------------------------------------------------
+    bool AreSeveralEigenfrequenciesTraced()
+    {
+        return (mTracedEigenfrequencyIds.size()>1);
+    }
 
-			// Get size of element eigenvector and initialize eigenvector
-			int num_dofs_element = mass_matrix_org.size1();
-			eigenvector_of_element.resize(num_dofs_element,false);
+    // --------------------------------------------------------------------------
+    void CalculateLinearWeights(Parameters& rResponseSettings)
+    {
+        KRATOS_ERROR_IF_NOT(rResponseSettings.Has("weighting_factors")) << "No weighting factors defined for given eigenfrequency response!" << std::endl;
+        KRATOS_ERROR_IF_NOT(rResponseSettings["weighting_factors"].size() == mTracedEigenfrequencyIds.size()) << "The number of chosen eigenvalues does not fit to the number of weighting factors!" << std::endl;
 
-			// Get eigenvector of element
-			int k = 0;
-			const int NumNodeDofs = num_dofs_element/elem_i.GetGeometry().size();
-			for (auto& node_i : elem_i.GetGeometry())
-			{
-				Matrix& rNodeEigenvectors = node_i.GetValue(EIGENVECTOR_MATRIX);
+        mWeightingFactors.resize(rResponseSettings["weighting_factors"].size(),false);
 
-				for (int i = 0; i < NumNodeDofs; i++)
-                    eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((mTracedEigenValue-1),i);
+        // Read weighting factors and sum them up
+        double test_sum_weight_facs = 0.0;
+        for(std::size_t i = 0; i < mWeightingFactors.size(); i++)
+        {
+            mWeightingFactors[i] = rResponseSettings["weighting_factors"][i].GetDouble();
+            test_sum_weight_facs += mWeightingFactors[i];
+        }
 
-				k++;
-			}
+        // Check the weighting factors and modify them for the case that their sum is unequal to one
+        if(std::abs(test_sum_weight_facs - 1.0) > 1e-12)
+        {
+            for(std::size_t i = 0; i < mWeightingFactors.size(); i++)
+                mWeightingFactors[i] /= test_sum_weight_facs;
 
-			// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
-			for (auto& node_i : elem_i.GetGeometry())
-			{
+            KRATOS_INFO("\n> EigenfrequencyResponseFunctionUtility") << "The sum of the chosen weighting factors is unequal one. A corresponding scaling process was exected!" << std::endl;
+        }
+    }
 
-				Vector gradient_contribution(3, 0.0);
-				Matrix perturbed_LHS = Matrix(0,0);
-				Matrix perturbed_mass_matrix = Matrix(0,0);
-				Vector aux = Vector(0);
+    // --------------------------------------------------------------------------
+    void UseDefaultWeight()
+    {
+        mWeightingFactors.resize(1,false);
+        mWeightingFactors[0] = 1.0;
+    }
 
-				// Derivative of response w.r.t. x-coord ------------------------
-				node_i.X0() += mDelta;
+    // --------------------------------------------------------------------------
+    void CheckIfAllNecessaryEigenvaluesAreComputed()
+    {
+        const int num_of_computed_eigenvalues = (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR]).size();
+        const int max_required_eigenvalue = *(std::max_element(mTracedEigenfrequencyIds.begin(), mTracedEigenfrequencyIds.end()));
+        KRATOS_ERROR_IF(max_required_eigenvalue > num_of_computed_eigenvalues) << "The following Eigenfrequency shall be traced but their corresponding eigenvalue was not computed by the eigenvalue analysies: " << max_required_eigenvalue << std::endl;
+    }
 
-				elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
-				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-				perturbed_mass_matrix *= eigenvalue;
+    // --------------------------------------------------------------------------
+    void PerformSemiAnalyticSensitivityAnalysis()
+    {
+        ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
-				elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
-				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
+        // Predetermine all necessary eigenvalues and prefactors for gradient calculation
+        const unsigned int num_of_traced_eigenfrequencies = mTracedEigenfrequencyIds.size();
+        Vector traced_eigenvalues(num_of_traced_eigenfrequencies,0.0);
+        Vector gradient_prefactors(num_of_traced_eigenfrequencies,0.0);
+        for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
+        {
+            traced_eigenvalues[i] = GetEigenvalue(mTracedEigenfrequencyIds[i]);
+            gradient_prefactors[i] = 1 / (2 * 2 * Globals::Pi * std::sqrt(traced_eigenvalues[i]));
+        }
 
-				perturbed_LHS -= perturbed_mass_matrix;
+        // Element-wise computation of gradients
+        for (auto& elem_i : mrModelPart.Elements())
+        {
+            Matrix mass_matrix_org;
+            Matrix LHS_org;
+            Vector dummy;
 
-				aux = prod(perturbed_LHS , eigenvector_of_element);
-				gradient_contribution[0] = inner_prod(eigenvector_of_element , aux);
+            elem_i.CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
+            elem_i.CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
 
-				node_i.X0() -= mDelta;
-				// End derivative of response w.r.t. x-coord --------------------
+            int num_dofs_element = mass_matrix_org.size1();
 
-				// Reset pertubed RHS and mass matrix
-				perturbed_LHS = Matrix(0,0);
-				perturbed_mass_matrix = Matrix(0,0);
-				aux = Vector(0);
+            Matrix aux_matrix = Matrix(num_dofs_element,num_dofs_element);
+            Vector aux_vector = Vector(num_dofs_element);
 
-				// Derivative of response w.r.t. y-coord ------------------------
-				node_i.Y0() += mDelta;
+            // Predetermine the necessary eigenvectors
+            std::vector<Vector> eigenvectors_of_element(num_of_traced_eigenfrequencies,Vector(0));
+            for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
+                DetermineEigenvectorOfElement(elem_i, mTracedEigenfrequencyIds[i], num_dofs_element, eigenvectors_of_element[i]);
 
-				elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
+            // Computation of derivative of state equation w.r.t. node coordinates
+            for(auto& node_i : elem_i.GetGeometry())
+            {
+                Vector gradient_contribution(3, 0.0);
+                Matrix perturbed_LHS = Matrix(num_dofs_element,num_dofs_element);
+                Matrix perturbed_mass_matrix = Matrix(num_dofs_element,num_dofs_element);
 
-				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-				perturbed_mass_matrix *= eigenvalue;
+                for(std::size_t coord_dir_i = 0; coord_dir_i < CurrentProcessInfo.GetValue(DOMAIN_SIZE); coord_dir_i++)
+                {
+                    node_i.GetInitialPosition()[coord_dir_i] += mDelta;
 
-				elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
+                    elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
+                    noalias(perturbed_mass_matrix) = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
 
-				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
+                    elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
+                    noalias(perturbed_LHS) = (perturbed_LHS - LHS_org) / mDelta;
 
-				perturbed_LHS -= perturbed_mass_matrix;
+                    for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
+                    {
+                        aux_matrix.clear();
+                        aux_vector.clear();
 
-				aux = prod(perturbed_LHS , eigenvector_of_element);
-				gradient_contribution[1] = inner_prod(eigenvector_of_element , aux);
-				node_i.Y0() -= mDelta;
-				// End derivative of response w.r.t. y-coord --------------------
+                        noalias(aux_matrix) = perturbed_LHS;
+                        noalias(aux_matrix) -= (perturbed_mass_matrix * traced_eigenvalues[i]);
+                        noalias(aux_vector) = prod(aux_matrix , eigenvectors_of_element[i]);
 
-				// Reset pertubed RHS and mass matrix
-				perturbed_LHS = Matrix(0,0);
-				perturbed_mass_matrix= Matrix(0,0);
-				aux = Vector(0);
+                        gradient_contribution[coord_dir_i] += gradient_prefactors[i] * inner_prod(eigenvectors_of_element[i] , aux_vector) * mWeightingFactors[i];
+                    }
 
-				// Derivative of response w.r.t. z-coord ------------------------
-				node_i.Z0() += mDelta;
+                   node_i.GetInitialPosition()[coord_dir_i] -= mDelta;
+                }
+                noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
+            }
+        }
+    }
 
-				elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
-				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-				perturbed_mass_matrix *= eigenvalue;
+    // --------------------------------------------------------------------------
+    double GetEigenvalue(int eigenfrequency_id)
+    {
+        return (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR])[eigenfrequency_id-1];
+    }
 
-				elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
-				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
+    // --------------------------------------------------------------------------
+    void DetermineEigenvectorOfElement(ModelPart::ElementType& traced_element, int eigenfrequency_id, int size_of_eigenvector, Vector& rEigenvectorOfElement)
+    {
+        rEigenvectorOfElement.resize(size_of_eigenvector,false);
 
-				perturbed_LHS -= perturbed_mass_matrix;
+        const int num_nodes = traced_element.GetGeometry().size();
+        const int num_node_dofs = size_of_eigenvector/num_nodes;
 
-				aux = prod(perturbed_LHS , eigenvector_of_element);
-				gradient_contribution[2] =  inner_prod(eigenvector_of_element , aux);
-				node_i.Z0() -= mDelta;
-				// End derivative of response w.r.t. z-coord --------------------
+        for (std::size_t node_index=0; node_index<num_nodes; node_index++)
+        {
+            Matrix& rNodeEigenvectors = traced_element.GetGeometry()[node_index].GetValue(EIGENVECTOR_MATRIX);
 
-				// Assemble sensitivity to node
-				noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
-			}
-		}
-		KRATOS_CATCH("");
-	}
+            for (int dof_index = 0; dof_index < num_node_dofs; dof_index++)
+                rEigenvectorOfElement(dof_index+num_node_dofs*node_index) = rNodeEigenvectors((eigenfrequency_id-1),dof_index);
+        }
+    }
 
-	// ==============================================================================
+    // ==============================================================================
 
-	///@}
-	///@name Protected  Access
-	///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-	///@}
-	///@name Protected Inquiry
-	///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-	///@}
-	///@name Protected LifeCycle
-	///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-	///@}
+    ///@}
 
 private:
-	///@name Static Member Variables
-	///@{
+    ///@name Static Member Variables
+    ///@{
 
-	///@}
-	///@name Member Variables
-	///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-	ModelPart &mrModelPart;
-	unsigned int mGradientMode;
-	unsigned int mWeightingMethod;
-	double mDelta;
-	int mTracedEigenValue;
+    ModelPart &mrModelPart;
+    double mDelta;
+    std::vector<int> mTracedEigenfrequencyIds;
+    std::vector<double> mWeightingFactors;
 
-
-	///@}
+    ///@}
 ///@name Private Operators
-	///@{
+    ///@{
 
-	///@}
-	///@name Private Operations
-	///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-	///@}
-	///@name Private  Access
-	///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-	///@}
-	///@name Private Inquiry
-	///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-	///@}
-	///@name Un accessible methods
-	///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-	/// Assignment operator.
-	//      EigenfrequencyResponseFunctionUtility& operator=(SEigenfrequencyResponseFunctionUtility const& rOther);
+    /// Assignment operator.
+    //      EigenfrequencyResponseFunctionUtility& operator=(EigenfrequencyResponseFunctionUtility const& rOther);
 
-	/// Copy constructor.
-	//      EigenfrequencyResponseFunctionUtility(EigenfrequencyResponseFunctionUtility const& rOther);
+    /// Copy constructor.
+    //      EigenfrequencyResponseFunctionUtility(EigenfrequencyResponseFunctionUtility const& rOther);
 
-	///@}
+    ///@}
 
 }; // Class EigenfrequencyResponseFunctionUtility
 
@@ -401,4 +416,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // EIGENFRQUENCY_RESPONSE_FUNCTION_UTILITY_H
+#endif // EIGENFREQUENCY_RESPONSE_FUNCTION_UTILITY_H

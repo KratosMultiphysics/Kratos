@@ -245,7 +245,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
     } else {
         // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
 
-        const unsigned int num_chunks = 2 * OpenMPUtils::GetNumThreads();
+        const int num_chunks = 2 * OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector partition_vec;
         OpenMPUtils::DivideInPartitions(n_elems,num_chunks,partition_vec);
 
