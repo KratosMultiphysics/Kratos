@@ -1186,11 +1186,11 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
             NodalInertia[j] = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
 
         }
-        GetGeometry()[i].GetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
-        GetGeometry()[i].GetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
         //if(GetGeometry()[i].pGetDof(DISPLACEMENT_X)->IsFixed() == false)
         //{
-        GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
         //}
     }
     //for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -1506,8 +1506,8 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
             NodalInertia[j] = Variables.N[i] * MP_Inertia[j];
 
         }
-        GetGeometry()[i].GetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
-        GetGeometry()[i].GetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
         //GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
 
 
@@ -1715,7 +1715,7 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
         {
             array_1d<double, 3 > & NodalAcceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
             array_1d<double, 3 > & NodalVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            double NodalMass = GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0);
+            double NodalMass = GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS, 0);
             array_1d<double,3> NodalMomentum = NodalMass * NodalVelocity;
             array_1d<double,3> NodalInertia = NodalMass * NodalAcceleration;
 
@@ -2959,11 +2959,11 @@ void UpdatedLagrangianQuadrilateral::GetValuesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dim;
-        values[index] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+        values[index] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
+        values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
 
         if ( dim == 3 )
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+            values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
     }
 }
 
@@ -2982,8 +2982,8 @@ void UpdatedLagrangianQuadrilateral::GetFirstDerivativesVector( Vector& values, 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dim;
-        values[index] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+        values[index] = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+        values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
 
         if ( dim == 3 )
             values[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
@@ -3004,11 +3004,11 @@ void UpdatedLagrangianQuadrilateral::GetSecondDerivativesVector( Vector& values,
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dim;
-        values[index] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
+        values[index] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+        values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
 
         if ( dim == 3 )
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
+            values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
     }
 }
 //************************************************************************************

@@ -165,9 +165,7 @@ public:
 
     //           double aaa = 1.0/double(TDim+1.0);
 
-    boost::numeric::ublas::bounded_matrix<double, (TDim + 1) * TDim,
-                                          (TDim + 1) * TDim>
-        K_matrix;
+    BoundedMatrix<double, (TDim + 1) * TDim, (TDim + 1) * TDim> K_matrix;
     array_1d<double, (TDim + 1) * TDim> rhs_vector;
     array_1d<double, (TDim + 1) * TDim> disps;
     array_1d<unsigned int, (TDim + 1) * TDim> local_indices;
@@ -277,23 +275,25 @@ private:
   DofsArrayType mDofSet;
 
   //**************************************************************************
-  void AssembleLHS(
-      TSystemMatrixType &A,
-      const boost::numeric::ublas::bounded_matrix<
-          double, (TDim + 1) * TDim, (TDim + 1) * TDim> &LHS_Contribution,
-      const array_1d<unsigned int, (TDim + 1) * TDim> &EquationId) {
-    unsigned int local_size = LHS_Contribution.size1();
+  void AssembleLHS(TSystemMatrixType& A,
+                   const BoundedMatrix<double, (TDim + 1) * TDim, (TDim + 1) * TDim>& LHS_Contribution,
+                   const array_1d<unsigned int, (TDim + 1) * TDim>& EquationId)
+  {
+      unsigned int local_size = LHS_Contribution.size1();
 
-    for (unsigned int i_local = 0; i_local < local_size; i_local++) {
-      unsigned int i_global = EquationId[i_local];
-      if (i_global < mEquationSystemSize) {
-        for (unsigned int j_local = 0; j_local < local_size; j_local++) {
-          unsigned int j_global = EquationId[j_local];
-          if (j_global < mEquationSystemSize)
-            A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-        }
+      for (unsigned int i_local = 0; i_local < local_size; i_local++)
+      {
+          unsigned int i_global = EquationId[i_local];
+          if (i_global < mEquationSystemSize)
+          {
+              for (unsigned int j_local = 0; j_local < local_size; j_local++)
+              {
+                  unsigned int j_global = EquationId[j_local];
+                  if (j_global < mEquationSystemSize)
+                      A(i_global, j_global) += LHS_Contribution(i_local, j_local);
+              }
+          }
       }
-    }
   }
 
   //**************************************************************************
@@ -314,440 +314,434 @@ private:
   }
 
   //*****************************************************************************
-  void BallVertex3D(
-      const Geometry<Node<3>> &geom,
-      boost::numeric::ublas::bounded_matrix<double, (TDim + 1) * TDim,
-                                            (TDim + 1) * TDim> &K_matrix) {
+  void BallVertex3D(const Geometry<Node<3>>& geom,
+                    BoundedMatrix<double, (TDim + 1) * TDim, (TDim + 1) * TDim>& K_matrix)
+  {
+      array_1d<double, 4> x, y, z;
 
-    array_1d<double, 4> x, y, z;
+      x[0] = geom[0].X();
+      y[0] = geom[0].Y();
+      z[0] = geom[0].Z();
+      x[1] = geom[1].X();
+      y[1] = geom[1].Y();
+      z[1] = geom[1].Z();
+      x[2] = geom[2].X();
+      y[2] = geom[2].Y();
+      z[2] = geom[2].Z();
+      x[3] = geom[3].X();
+      y[3] = geom[3].Y();
+      z[3] = geom[3].Z();
 
-    x[0] = geom[0].X();
-    y[0] = geom[0].Y();
-    z[0] = geom[0].Z();
-    x[1] = geom[1].X();
-    y[1] = geom[1].Y();
-    z[1] = geom[1].Z();
-    x[2] = geom[2].X();
-    y[2] = geom[2].Y();
-    z[2] = geom[2].Z();
-    x[3] = geom[3].X();
-    y[3] = geom[3].Y();
-    z[3] = geom[3].Z();
+      noalias(K_matrix) = ZeroMatrix(12, 12);
 
-    noalias(K_matrix) = ZeroMatrix(12, 12);
+      BoundedMatrix<int, 6, 2> index;
+      index(0, 0) = 0;
+      index(0, 1) = 1;
+      index(1, 0) = 0;
+      index(1, 1) = 2;
+      index(2, 0) = 0;
+      index(2, 1) = 3;
+      index(3, 0) = 1;
+      index(3, 1) = 2;
+      index(4, 0) = 1;
+      index(4, 1) = 3;
+      index(5, 0) = 2;
+      index(5, 1) = 3;
 
-    boost::numeric::ublas::bounded_matrix<int, 6, 2> index;
-    index(0, 0) = 0;
-    index(0, 1) = 1;
-    index(1, 0) = 0;
-    index(1, 1) = 2;
-    index(2, 0) = 0;
-    index(2, 1) = 3;
-    index(3, 0) = 1;
-    index(3, 1) = 2;
-    index(4, 0) = 1;
-    index(4, 1) = 3;
-    index(5, 0) = 2;
-    index(5, 1) = 3;
+      BoundedMatrix<double, 3, 3> vij_mat;
+      double invlijq;
+      double invlij;
+      int i;
+      int j;
+      for (unsigned int k = 0; k < 6; k++)
+      {
+          i = index(k, 0);
+          j = index(k, 1);
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> vij_mat;
-    double invlijq;
-    double invlij;
-    int i;
-    int j;
-    for (unsigned int k = 0; k < 6; k++) {
-      i = index(k, 0);
-      j = index(k, 1);
+          // edge ij e ji
+          invlijq = 1.0 / (pow((x[j] - x[i]), 2) + pow((y[j] - y[i]), 2) +
+                           pow((z[j] - z[i]), 2));
+          invlij = 1.0 / sqrt(pow((x[j] - x[i]), 2) + pow((y[j] - y[i]), 2) +
+                              pow((z[j] - z[i]), 2));
 
-      // edge ij e ji
-      invlijq = 1.0 / (pow((x[j] - x[i]), 2) + pow((y[j] - y[i]), 2) +
-                       pow((z[j] - z[i]), 2));
-      invlij = 1.0 / sqrt(pow((x[j] - x[i]), 2) + pow((y[j] - y[i]), 2) +
-                          pow((z[j] - z[i]), 2));
+          vij_mat(0, 0) = pow((x[j] - x[i]), 2);
+          vij_mat(0, 1) = ((x[j] - x[i]) * (y[j] - y[i]));
+          vij_mat(0, 2) = ((x[j] - x[i]) * (z[j] - z[i]));
+          vij_mat(1, 0) = ((x[j] - x[i]) * (y[j] - y[i]));
+          vij_mat(1, 1) = pow((y[j] - y[i]), 2);
+          vij_mat(1, 2) = ((x[j] - x[i]) * (z[j] - z[i]));
+          vij_mat(2, 0) = ((x[j] - x[i]) * (z[j] - z[i]));
+          vij_mat(2, 1) = ((y[j] - y[i]) * (z[j] - z[i]));
+          vij_mat(2, 2) = pow((z[j] - z[i]), 2);
 
-      vij_mat(0, 0) = pow((x[j] - x[i]), 2);
-      vij_mat(0, 1) = ((x[j] - x[i]) * (y[j] - y[i]));
-      vij_mat(0, 2) = ((x[j] - x[i]) * (z[j] - z[i]));
-      vij_mat(1, 0) = ((x[j] - x[i]) * (y[j] - y[i]));
-      vij_mat(1, 1) = pow((y[j] - y[i]), 2);
-      vij_mat(1, 2) = ((x[j] - x[i]) * (z[j] - z[i]));
-      vij_mat(2, 0) = ((x[j] - x[i]) * (z[j] - z[i]));
-      vij_mat(2, 1) = ((y[j] - y[i]) * (z[j] - z[i]));
-      vij_mat(2, 2) = pow((z[j] - z[i]), 2);
+          vij_mat = vij_mat * invlijq;
 
-      vij_mat = vij_mat * invlijq;
+          K_matrix(3 * i, 3 * i) += invlij * vij_mat(0, 0);
+          K_matrix(3 * i, 3 * i + 1) += invlij * vij_mat(0, 1);
+          K_matrix(3 * i, 3 * i + 2) += invlij * vij_mat(0, 2);
+          K_matrix(3 * i + 1, 3 * i) += invlij * vij_mat(1, 0);
+          K_matrix(3 * i + 1, 3 * i + 1) += invlij * vij_mat(1, 1);
+          K_matrix(3 * i + 1, 3 * i + 2) += invlij * vij_mat(1, 2);
+          K_matrix(3 * i + 2, 3 * i) += invlij * vij_mat(2, 0);
+          K_matrix(3 * i + 2, 3 * i + 1) += invlij * vij_mat(2, 1);
+          K_matrix(3 * i + 2, 3 * i + 2) += invlij * vij_mat(2, 2);
 
-      K_matrix(3 * i, 3 * i) += invlij * vij_mat(0, 0);
-      K_matrix(3 * i, 3 * i + 1) += invlij * vij_mat(0, 1);
-      K_matrix(3 * i, 3 * i + 2) += invlij * vij_mat(0, 2);
-      K_matrix(3 * i + 1, 3 * i) += invlij * vij_mat(1, 0);
-      K_matrix(3 * i + 1, 3 * i + 1) += invlij * vij_mat(1, 1);
-      K_matrix(3 * i + 1, 3 * i + 2) += invlij * vij_mat(1, 2);
-      K_matrix(3 * i + 2, 3 * i) += invlij * vij_mat(2, 0);
-      K_matrix(3 * i + 2, 3 * i + 1) += invlij * vij_mat(2, 1);
-      K_matrix(3 * i + 2, 3 * i + 2) += invlij * vij_mat(2, 2);
+          K_matrix(3 * i, 3 * j) += -invlij * vij_mat(0, 0);
+          K_matrix(3 * i, 3 * j + 1) += -invlij * vij_mat(0, 1);
+          K_matrix(3 * i, 3 * j + 2) += -invlij * vij_mat(0, 2);
+          K_matrix(3 * i + 1, 3 * j) += -invlij * vij_mat(1, 0);
+          K_matrix(3 * i + 1, 3 * j + 1) += -invlij * vij_mat(1, 1);
+          K_matrix(3 * i + 1, 3 * j + 2) += -invlij * vij_mat(1, 2);
+          K_matrix(3 * i + 2, 3 * j) += -invlij * vij_mat(2, 0);
+          K_matrix(3 * i + 2, 3 * j + 1) += -invlij * vij_mat(2, 1);
+          K_matrix(3 * i + 2, 3 * j + 2) += -invlij * vij_mat(2, 2);
 
-      K_matrix(3 * i, 3 * j) += -invlij * vij_mat(0, 0);
-      K_matrix(3 * i, 3 * j + 1) += -invlij * vij_mat(0, 1);
-      K_matrix(3 * i, 3 * j + 2) += -invlij * vij_mat(0, 2);
-      K_matrix(3 * i + 1, 3 * j) += -invlij * vij_mat(1, 0);
-      K_matrix(3 * i + 1, 3 * j + 1) += -invlij * vij_mat(1, 1);
-      K_matrix(3 * i + 1, 3 * j + 2) += -invlij * vij_mat(1, 2);
-      K_matrix(3 * i + 2, 3 * j) += -invlij * vij_mat(2, 0);
-      K_matrix(3 * i + 2, 3 * j + 1) += -invlij * vij_mat(2, 1);
-      K_matrix(3 * i + 2, 3 * j + 2) += -invlij * vij_mat(2, 2);
+          K_matrix(3 * j, 3 * i) += -invlij * vij_mat(0, 0);
+          K_matrix(3 * j, 3 * i + 1) += -invlij * vij_mat(0, 1);
+          K_matrix(3 * j, 3 * i + 2) += -invlij * vij_mat(0, 2);
+          K_matrix(3 * j + 1, 3 * i) += -invlij * vij_mat(1, 0);
+          K_matrix(3 * j + 1, 3 * i + 1) += -invlij * vij_mat(1, 1);
+          K_matrix(3 * j + 1, 3 * i + 2) += -invlij * vij_mat(1, 2);
+          K_matrix(3 * j + 2, 3 * i) += -invlij * vij_mat(2, 0);
+          K_matrix(3 * j + 2, 3 * i + 1) += -invlij * vij_mat(2, 1);
+          K_matrix(3 * j + 2, 3 * i + 2) += -invlij * vij_mat(2, 2);
 
-      K_matrix(3 * j, 3 * i) += -invlij * vij_mat(0, 0);
-      K_matrix(3 * j, 3 * i + 1) += -invlij * vij_mat(0, 1);
-      K_matrix(3 * j, 3 * i + 2) += -invlij * vij_mat(0, 2);
-      K_matrix(3 * j + 1, 3 * i) += -invlij * vij_mat(1, 0);
-      K_matrix(3 * j + 1, 3 * i + 1) += -invlij * vij_mat(1, 1);
-      K_matrix(3 * j + 1, 3 * i + 2) += -invlij * vij_mat(1, 2);
-      K_matrix(3 * j + 2, 3 * i) += -invlij * vij_mat(2, 0);
-      K_matrix(3 * j + 2, 3 * i + 1) += -invlij * vij_mat(2, 1);
-      K_matrix(3 * j + 2, 3 * i + 2) += -invlij * vij_mat(2, 2);
-
-      K_matrix(3 * j, 3 * j) += invlij * vij_mat(0, 0);
-      K_matrix(3 * j, 3 * j + 1) += invlij * vij_mat(0, 1);
-      K_matrix(3 * j, 3 * j + 2) += invlij * vij_mat(0, 2);
-      K_matrix(3 * j + 1, 3 * j) += invlij * vij_mat(1, 0);
-      K_matrix(3 * j + 1, 3 * j + 1) += invlij * vij_mat(1, 1);
-      K_matrix(3 * j + 1, 3 * j + 2) += invlij * vij_mat(1, 2);
-      K_matrix(3 * j + 2, 3 * j) += invlij * vij_mat(2, 0);
-      K_matrix(3 * j + 2, 3 * j + 1) += invlij * vij_mat(2, 1);
-      K_matrix(3 * j + 2, 3 * j + 2) += invlij * vij_mat(2, 2);
-    }
-
-    /////////////////////////////////////////////////////////////////////////////
-    // edge 1p p1
-    array_1d<double, 3> v24;
-    array_1d<double, 3> v23;
-    array_1d<double, 3> n1p;
-    double xp, yp, zp;
-    double area = 0.0;
-    triangle_area(x[1], x[2], x[3], y[1], y[2], y[3], z[1], z[2], z[3], area);
-
-    v24[0] = x[3] - x[1];
-    v24[1] = y[3] - y[1];
-    v24[2] = z[3] - z[1];
-    v24 = v24 / sqrt(pow(v24[0], 2) + pow(v24[1], 2) + pow(v24[2], 2));
-    v23[0] = x[2] - x[1];
-    v23[1] = y[2] - y[1];
-    v23[2] = z[2] - z[1];
-    v23 = v23 / sqrt(pow(v23[0], 2) + pow(v23[1], 2) + pow(v23[2], 2));
-
-    n1p[0] = v24[1] * v23[2] - v24[2] * v23[1];
-    n1p[1] = v24[2] * v23[0] - v24[0] * v23[2];
-    n1p[2] = v24[0] * v23[1] - v24[1] * v23[0];
-    n1p = n1p / sqrt(pow(n1p[0], 2) + pow(n1p[1], 2) + pow(n1p[2], 2));
-
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> n1p_mat;
-
-    n1p_mat(0, 0) = pow(n1p[0], 2);
-    n1p_mat(0, 1) = (n1p[0] * n1p[1]);
-    n1p_mat(0, 2) = (n1p[0] * n1p[2]);
-    n1p_mat(1, 0) = (n1p[1] * n1p[0]);
-    n1p_mat(1, 1) = pow(n1p[1], 2);
-    n1p_mat(1, 2) = (n1p[1] * n1p[2]);
-    n1p_mat(2, 0) = (n1p[2] * n1p[0]);
-    n1p_mat(2, 1) = (n1p[2] * n1p[1]);
-    n1p_mat(2, 2) = pow(n1p[2], 2);
-
-    xp = x[0] - (n1p_mat(0, 0) * (x[0] - x[1]) + n1p_mat(0, 1) * (y[0] - y[1]) +
-                 n1p_mat(0, 2) * (z[0] - z[1]));
-    yp = y[0] - (n1p_mat(1, 0) * (x[0] - x[1]) + n1p_mat(1, 1) * (y[0] - y[1]) +
-                 n1p_mat(1, 2) * (z[0] - z[1]));
-    zp = z[0] - (n1p_mat(2, 0) * (x[0] - x[1]) + n1p_mat(2, 1) * (y[0] - y[1]) +
-                 n1p_mat(2, 2) * (z[0] - z[1]));
-
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> v1p_mat;
-    v1p_mat(0, 0) = pow((xp - x[0]), 2);
-    v1p_mat(0, 1) = ((xp - x[0]) * (yp - y[0]));
-    v1p_mat(0, 2) = ((xp - x[0]) * (zp - z[0]));
-    v1p_mat(1, 0) = ((xp - x[0]) * (yp - y[0]));
-    v1p_mat(1, 1) = pow((yp - y[0]), 2);
-    v1p_mat(1, 2) = ((yp - y[0]) * (zp - z[0]));
-    v1p_mat(2, 0) = ((xp - x[0]) * (zp - z[0]));
-    v1p_mat(2, 1) = ((yp - y[0]) * (zp - z[0]));
-    v1p_mat(2, 2) = pow((zp - z[0]), 2);
-
-    v1p_mat =
-        v1p_mat / (pow(xp - x[0], 2) + pow(yp - y[0], 2) + pow(zp - z[0], 2));
-    double invl1p =
-        1.0 / sqrt(pow(xp - x[0], 2) + pow(yp - y[0], 2) + pow(zp - z[0], 2));
-
-    double areap34 = 0.0;
-    triangle_area(xp, x[2], x[3], yp, y[2], y[3], zp, z[2], z[3], areap34);
-    double areap23 = 0.0;
-    triangle_area(xp, x[1], x[2], yp, y[1], y[2], zp, z[1], z[2], areap23);
-    double L2 = areap34 / area;
-    double L4 = areap23 / area;
-    double L3 = 1.0 - L2 - L4;
-
-    /////////////////////////////////////////////////////////////////////////////
-    // edge 2r r2
-    array_1d<double, 3> v14;
-    array_1d<double, 3> v13;
-    array_1d<double, 3> n2r;
-    double xr, yr, zr;
-    double area134 = 0.0;
-    triangle_area(x[0], x[2], x[3], y[0], y[2], y[3], z[0], z[2], z[3],
-                  area134);
-
-    v14[0] = x[3] - x[0];
-    v14[1] = y[3] - y[0];
-    v14[2] = z[3] - z[0];
-    v14 = v14 / sqrt(pow(v14[0], 2) + pow(v14[1], 2) + pow(v14[2], 2));
-    v13[0] = x[2] - x[0];
-    v13[1] = y[2] - y[0];
-    v13[2] = z[2] - z[0];
-    v13 = v13 / sqrt(pow(v13[0], 2) + pow(v13[1], 2) + pow(v13[2], 2));
-
-    n2r[0] = v14[1] * v13[2] - v14[2] * v13[1];
-    n2r[1] = v14[2] * v13[0] - v14[0] * v13[2];
-    n2r[2] = v14[0] * v13[1] - v14[1] * v13[0];
-    n2r = n2r / sqrt(pow(n2r[0], 2) + pow(n2r[1], 2) + pow(n2r[2], 2));
-
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> n2r_mat;
-
-    n2r_mat(0, 0) = pow(n2r[0], 2);
-    n2r_mat(0, 1) = (n2r[0] * n2r[1]);
-    n2r_mat(0, 2) = (n2r[0] * n2r[2]);
-    n2r_mat(1, 0) = (n2r[1] * n2r[0]);
-    n2r_mat(1, 1) = pow(n2r[1], 2);
-    n2r_mat(1, 2) = (n2r[1] * n2r[2]);
-    n2r_mat(2, 0) = (n2r[2] * n2r[0]);
-    n2r_mat(2, 1) = (n2r[2] * n2r[1]);
-    n2r_mat(2, 2) = pow(n2r[2], 2);
-
-    xr = x[1] - (n2r_mat(0, 0) * (x[1] - x[0]) + n2r_mat(0, 1) * (y[1] - y[0]) +
-                 n2r_mat(0, 2) * (z[1] - z[0]));
-    yr = y[1] - (n2r_mat(1, 0) * (x[1] - x[0]) + n2r_mat(1, 1) * (y[1] - y[0]) +
-                 n2r_mat(1, 2) * (z[1] - z[0]));
-    zr = z[1] - (n2r_mat(2, 0) * (x[1] - x[0]) + n2r_mat(2, 1) * (y[1] - y[0]) +
-                 n2r_mat(2, 2) * (z[1] - z[0]));
-
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> v2r_mat;
-    v2r_mat(0, 0) = pow((xr - x[1]), 2);
-    v2r_mat(0, 1) = ((xr - x[1]) * (yr - y[1]));
-    v2r_mat(0, 2) = ((xr - x[1]) * (zr - z[1]));
-    v2r_mat(1, 0) = ((xr - x[1]) * (yr - y[1]));
-    v2r_mat(1, 1) = pow((yr - y[1]), 2);
-    v2r_mat(1, 2) = ((yr - y[1]) * (zr - z[1]));
-    v2r_mat(2, 0) = ((xr - x[1]) * (zr - z[1]));
-    v2r_mat(2, 1) = ((yr - y[1]) * (zr - z[1]));
-    v2r_mat(2, 2) = pow((zr - z[1]), 2);
-
-    v2r_mat =
-        v2r_mat / (pow(xr - x[1], 2) + pow(yr - y[1], 2) + pow(zr - z[1], 2));
-    double invl2r =
-        1.0 / sqrt(pow(xr - x[1], 2) + pow(yr - y[1], 2) + pow(zr - z[1], 2));
-    ;
-
-    double arear34 = 0.0;
-    triangle_area(xr, x[2], x[3], yr, y[2], y[3], zr, z[2], z[3], arear34);
-    double arear14 = 0.0;
-    triangle_area(xr, x[0], x[3], yr, y[0], y[3], zr, z[0], z[3], arear14);
-    double M1 = arear34 / area134;
-    double M3 = arear14 / area134;
-    double M4 = 1.0 - M1 - M3;
-
-    /////////////////////////////////////////////////////////////////////////////
-    // edge 3s 3s
-    array_1d<double, 3> v12;
-    array_1d<double, 3> n3s;
-    double xs, ys, zs;
-    double area124 = 0.0;
-    triangle_area(x[0], x[1], x[3], y[0], y[1], y[3], z[0], z[1], z[3],
-                  area124);
-
-    v12[0] = x[1] - x[0];
-    v12[1] = y[1] - y[0];
-    v12[2] = z[1] - z[0];
-    v12 = v12 / sqrt(pow(v12[0], 2) + pow(v12[1], 2) + pow(v12[2], 2));
-
-    n3s[0] = v12[1] * v14[2] - v12[2] * v14[1];
-    n3s[1] = v12[2] * v14[0] - v12[0] * v14[2];
-    n3s[2] = v12[0] * v14[1] - v12[1] * v14[0];
-    n3s = n3s / sqrt(pow(n3s[0], 2) + pow(n3s[1], 2) + pow(n3s[2], 2));
-
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> n3s_mat;
-
-    n3s_mat(0, 0) = pow(n3s[0], 2);
-    n3s_mat(0, 1) = (n3s[0] * n3s[1]);
-    n3s_mat(0, 2) = (n3s[0] * n3s[2]);
-    n3s_mat(1, 0) = (n3s[1] * n3s[0]);
-    n3s_mat(1, 1) = pow(n3s[1], 2);
-    n3s_mat(1, 2) = (n3s[1] * n3s[2]);
-    n3s_mat(2, 0) = (n3s[2] * n3s[0]);
-    n3s_mat(2, 1) = (n3s[2] * n3s[1]);
-    n3s_mat(2, 2) = pow(n3s[2], 2);
-
-    xs = x[2] - (n3s_mat(0, 0) * (x[2] - x[0]) + n3s_mat(0, 1) * (y[2] - y[0]) +
-                 n3s_mat(0, 2) * (z[2] - z[0]));
-    ys = y[2] - (n3s_mat(1, 0) * (x[2] - x[0]) + n3s_mat(1, 1) * (y[2] - y[0]) +
-                 n3s_mat(1, 2) * (z[2] - z[0]));
-    zs = z[2] - (n3s_mat(2, 0) * (x[2] - x[0]) + n3s_mat(2, 1) * (y[2] - y[0]) +
-                 n3s_mat(2, 2) * (z[2] - z[0]));
-
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> v3s_mat;
-    v3s_mat(0, 0) = pow((xs - x[2]), 2);
-    v3s_mat(0, 1) = ((xs - x[2]) * (ys - y[2]));
-    v3s_mat(0, 2) = ((xs - x[2]) * (zs - z[2]));
-    v3s_mat(1, 0) = ((xs - x[2]) * (ys - y[2]));
-    v3s_mat(1, 1) = pow((ys - y[2]), 2);
-    v3s_mat(1, 2) = ((ys - y[2]) * (zs - z[2]));
-    v3s_mat(2, 0) = ((xs - x[2]) * (zs - z[2]));
-    v3s_mat(2, 1) = ((ys - y[2]) * (zs - z[2]));
-    v3s_mat(2, 2) = pow((zs - z[2]), 2);
-
-    v3s_mat =
-        v3s_mat / (pow(xs - x[2], 2) + pow(ys - y[2], 2) + pow(zs - z[2], 2));
-    double invl3s =
-        1.0 / sqrt(pow(xs - x[2], 2) + pow(ys - y[2], 2) + pow(zs - z[2], 2));
-
-    double areas24 = 0.0;
-    triangle_area(xs, x[1], x[3], ys, y[1], y[3], zs, z[1], z[3], areas24);
-    double areas14 = 0.0;
-    triangle_area(xs, x[0], x[3], ys, y[0], y[3], zs, z[0], z[3], areas14);
-    double N1 = areas24 / area124;
-    double N2 = areas14 / area124;
-    double N4 = 1.0 - N1 - N2;
-
-    /////////////////////////////////////////////////////////////////////////////
-    // edge 4t t4
-    array_1d<double, 3> v32;
-    array_1d<double, 3> v31;
-    array_1d<double, 3> n4t;
-    double xt, yt, zt;
-    double area123 = 0.0;
-    triangle_area(x[0], x[1], x[2], y[0], y[1], y[2], z[0], z[1], z[2],
-                  area123);
-
-    v32[0] = x[2] - x[1];
-    v32[1] = y[2] - y[1];
-    v32[2] = z[2] - z[1];
-    v32 = v32 / sqrt(pow(v32[0], 2) + pow(v32[1], 2) + pow(v32[2], 2));
-    v31[0] = x[2] - x[0];
-    v31[1] = y[2] - y[0];
-    v31[2] = z[2] - z[0];
-    v31 = v31 / sqrt(pow(v31[0], 2) + pow(v31[1], 2) + pow(v31[2], 2));
-
-    n4t[0] = v32[1] * v31[2] - v32[2] * v31[1];
-    n4t[1] = v32[2] * v31[0] - v32[0] * v31[2];
-    n4t[2] = v32[0] * v31[1] - v32[1] * v31[0];
-    n4t = n4t / sqrt(pow(n4t[0], 2) + pow(n4t[1], 2) + pow(n4t[2], 2));
-
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> n4t_mat;
-
-    n4t_mat(0, 0) = pow(n4t[0], 2);
-    n4t_mat(0, 1) = (n4t[0] * n4t[1]);
-    n4t_mat(0, 2) = (n4t[0] * n4t[2]);
-    n4t_mat(1, 0) = (n4t[1] * n4t[0]);
-    n4t_mat(1, 1) = pow(n4t[1], 2);
-    n4t_mat(1, 2) = (n4t[1] * n4t[2]);
-    n4t_mat(2, 0) = (n4t[2] * n4t[0]);
-    n4t_mat(2, 1) = (n4t[2] * n4t[1]);
-    n4t_mat(2, 2) = pow(n4t[2], 2);
-
-    xt = x[3] - (n4t_mat(0, 0) * (x[3] - x[2]) + n4t_mat(0, 1) * (y[3] - y[2]) +
-                 n4t_mat(0, 2) * (z[3] - z[2]));
-    yt = y[3] - (n4t_mat(1, 0) * (x[3] - x[2]) + n4t_mat(1, 1) * (y[3] - y[2]) +
-                 n4t_mat(1, 2) * (z[3] - z[2]));
-    zt = z[3] - (n4t_mat(2, 0) * (x[3] - x[2]) + n4t_mat(2, 1) * (y[3] - y[2]) +
-                 n4t_mat(2, 2) * (z[3] - z[2]));
-
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> v4t_mat;
-    v4t_mat(0, 0) = pow((xt - x[3]), 2);
-    v4t_mat(0, 1) = ((xt - x[3]) * (yt - y[3]));
-    v4t_mat(0, 2) = ((xt - x[3]) * (zt - z[3]));
-    v4t_mat(1, 0) = ((xt - x[3]) * (yt - y[3]));
-    v4t_mat(1, 1) = pow((yt - y[3]), 2);
-    v4t_mat(1, 2) = ((yt - y[3]) * (zt - z[3]));
-    v4t_mat(2, 0) = ((xt - x[3]) * (zt - z[3]));
-    v4t_mat(2, 1) = ((yt - y[3]) * (zt - z[3]));
-    v4t_mat(2, 2) = pow((zt - z[3]), 2);
-
-    v4t_mat =
-        v4t_mat / (pow(xt - x[3], 2) + pow(yt - y[3], 2) + pow(zt - z[3], 2));
-    double invl4t =
-        1.0 / sqrt(pow(xt - x[3], 2) + pow(yt - y[3], 2) + pow(zt - z[3], 2));
-
-    double areat23 = 0.0;
-    triangle_area(xt, x[1], x[2], yt, y[1], y[2], zt, z[1], z[2], areat23);
-    double areat21 = 0.0;
-    triangle_area(xt, x[1], x[0], yt, y[1], y[0], zt, z[1], z[0], areat21);
-    double Q1 = areat23 / area123;
-    double Q3 = areat21 / area123;
-    double Q2 = 1.0 - Q1 - Q3;
-
-    for (unsigned int ii = 0; ii < 3; ii++) {
-      for (unsigned int jj = 0; jj < 3; jj++) {
-        K_matrix(ii, jj) += invl1p * v1p_mat(ii, jj) +
-                            pow(M1, 2) * invl2r * v2r_mat(ii, jj) +
-                            pow(N1, 2) * invl3s * v3s_mat(ii, jj) +
-                            pow(Q1, 2) * invl4t * v4t_mat(ii, jj);
-        K_matrix(ii, 3 + jj) += -L2 * invl1p * v1p_mat(ii, jj) -
-                                M1 * invl2r * v2r_mat(ii, jj) +
-                                N1 * N2 * invl3s * v3s_mat(ii, jj) +
-                                Q1 * Q2 * invl4t * v4t_mat(ii, jj);
-        K_matrix(ii, 6 + jj) += -L3 * invl1p * v1p_mat(ii, jj) +
-                                M1 * M3 * invl2r * v2r_mat(ii, jj) -
-                                N1 * invl3s * v3s_mat(ii, jj) +
-                                Q1 * Q3 * invl4t * v4t_mat(ii, jj);
-        K_matrix(ii, 9 + jj) += -L4 * invl1p * v1p_mat(ii, jj) +
-                                M1 * M4 * invl2r * v2r_mat(ii, jj) +
-                                N1 * N4 * invl3s * v3s_mat(ii, jj) -
-                                Q1 * invl4t * v4t_mat(ii, jj);
-
-        K_matrix(3 + ii, jj) += -L2 * invl1p * v1p_mat(ii, jj) -
-                                M1 * invl2r * v2r_mat(ii, jj) +
-                                N1 * N2 * invl3s * v3s_mat(ii, jj) +
-                                Q1 * Q2 * invl4t * v4t_mat(ii, jj);
-        K_matrix(3 + ii, 3 + jj) += pow(L2, 2) * invl1p * v1p_mat(ii, jj) +
-                                    invl2r * v2r_mat(ii, jj) +
-                                    pow(N2, 2) * invl3s * v3s_mat(ii, jj) +
-                                    pow(Q2, 2) * invl4t * v4t_mat(ii, jj);
-        K_matrix(3 + ii, 6 + jj) +=
-            L2 * L3 * invl1p * v1p_mat(ii, jj) - M3 * invl2r * v2r_mat(ii, jj) -
-            N2 * invl3s * v3s_mat(ii, jj) + Q3 * Q2 * invl4t * v4t_mat(ii, jj);
-        K_matrix(3 + ii, 9 + jj) +=
-            L2 * L4 * invl1p * v1p_mat(ii, jj) - M4 * invl2r * v2r_mat(ii, jj) +
-            N2 * N4 * invl3s * v3s_mat(ii, jj) - Q2 * invl4t * v4t_mat(ii, jj);
-
-        K_matrix(6 + ii, jj) += -L3 * invl1p * v1p_mat(ii, jj) +
-                                M1 * M3 * invl2r * v2r_mat(ii, jj) -
-                                N1 * invl3s * v3s_mat(ii, jj) +
-                                Q1 * Q3 * invl4t * v4t_mat(ii, jj);
-        K_matrix(6 + ii, 3 + jj) +=
-            L3 * L2 * invl1p * v1p_mat(ii, jj) - M3 * invl2r * v2r_mat(ii, jj) -
-            N2 * invl3s * v3s_mat(ii, jj) + Q3 * Q2 * invl4t * v4t_mat(ii, jj);
-        K_matrix(6 + ii, 6 + jj) += pow(L3, 2) * invl1p * v1p_mat(ii, jj) +
-                                    pow(M3, 2) * invl2r * v2r_mat(ii, jj) +
-                                    invl3s * v3s_mat(ii, jj) +
-                                    pow(Q3, 2) * invl4t * v4t_mat(ii, jj);
-        K_matrix(6 + ii, 9 + jj) += L3 * L4 * invl1p * v1p_mat(ii, jj) +
-                                    M4 * M3 * invl2r * v2r_mat(ii, jj) -
-                                    N4 * invl3s * v3s_mat(ii, jj) -
-                                    Q3 * invl4t * v4t_mat(ii, jj);
-
-        K_matrix(9 + ii, jj) += -L4 * invl1p * v1p_mat(ii, jj) +
-                                M1 * M4 * invl2r * v2r_mat(ii, jj) +
-                                N1 * N4 * invl3s * v3s_mat(ii, jj) -
-                                Q1 * invl4t * v4t_mat(ii, jj);
-        K_matrix(9 + ii, 3 + jj) +=
-            L4 * L2 * invl1p * v1p_mat(ii, jj) - M4 * invl2r * v2r_mat(ii, jj) +
-            N2 * N4 * invl3s * v3s_mat(ii, jj) - Q2 * invl4t * v4t_mat(ii, jj);
-        K_matrix(9 + ii, 6 + jj) += L4 * L3 * invl1p * v1p_mat(ii, jj) +
-                                    M4 * M3 * invl2r * v2r_mat(ii, jj) -
-                                    N4 * invl3s * v3s_mat(ii, jj) -
-                                    Q3 * invl4t * v4t_mat(ii, jj);
-        K_matrix(9 + ii, 9 + jj) += pow(L4, 2) * invl1p * v1p_mat(ii, jj) +
-                                    pow(M4, 2) * invl2r * v2r_mat(ii, jj) +
-                                    pow(N4, 2) * invl3s * v3s_mat(ii, jj) +
-                                    invl4t * v4t_mat(ii, jj);
+          K_matrix(3 * j, 3 * j) += invlij * vij_mat(0, 0);
+          K_matrix(3 * j, 3 * j + 1) += invlij * vij_mat(0, 1);
+          K_matrix(3 * j, 3 * j + 2) += invlij * vij_mat(0, 2);
+          K_matrix(3 * j + 1, 3 * j) += invlij * vij_mat(1, 0);
+          K_matrix(3 * j + 1, 3 * j + 1) += invlij * vij_mat(1, 1);
+          K_matrix(3 * j + 1, 3 * j + 2) += invlij * vij_mat(1, 2);
+          K_matrix(3 * j + 2, 3 * j) += invlij * vij_mat(2, 0);
+          K_matrix(3 * j + 2, 3 * j + 1) += invlij * vij_mat(2, 1);
+          K_matrix(3 * j + 2, 3 * j + 2) += invlij * vij_mat(2, 2);
       }
-    }
+
+      /////////////////////////////////////////////////////////////////////////////
+      // edge 1p p1
+      array_1d<double, 3> v24;
+      array_1d<double, 3> v23;
+      array_1d<double, 3> n1p;
+      double xp, yp, zp;
+      double area = 0.0;
+      triangle_area(x[1], x[2], x[3], y[1], y[2], y[3], z[1], z[2], z[3], area);
+
+      v24[0] = x[3] - x[1];
+      v24[1] = y[3] - y[1];
+      v24[2] = z[3] - z[1];
+      v24 = v24 / sqrt(pow(v24[0], 2) + pow(v24[1], 2) + pow(v24[2], 2));
+      v23[0] = x[2] - x[1];
+      v23[1] = y[2] - y[1];
+      v23[2] = z[2] - z[1];
+      v23 = v23 / sqrt(pow(v23[0], 2) + pow(v23[1], 2) + pow(v23[2], 2));
+
+      n1p[0] = v24[1] * v23[2] - v24[2] * v23[1];
+      n1p[1] = v24[2] * v23[0] - v24[0] * v23[2];
+      n1p[2] = v24[0] * v23[1] - v24[1] * v23[0];
+      n1p = n1p / sqrt(pow(n1p[0], 2) + pow(n1p[1], 2) + pow(n1p[2], 2));
+
+      BoundedMatrix<double, 3, 3> n1p_mat;
+
+      n1p_mat(0, 0) = pow(n1p[0], 2);
+      n1p_mat(0, 1) = (n1p[0] * n1p[1]);
+      n1p_mat(0, 2) = (n1p[0] * n1p[2]);
+      n1p_mat(1, 0) = (n1p[1] * n1p[0]);
+      n1p_mat(1, 1) = pow(n1p[1], 2);
+      n1p_mat(1, 2) = (n1p[1] * n1p[2]);
+      n1p_mat(2, 0) = (n1p[2] * n1p[0]);
+      n1p_mat(2, 1) = (n1p[2] * n1p[1]);
+      n1p_mat(2, 2) = pow(n1p[2], 2);
+
+      xp = x[0] - (n1p_mat(0, 0) * (x[0] - x[1]) + n1p_mat(0, 1) * (y[0] - y[1]) +
+                   n1p_mat(0, 2) * (z[0] - z[1]));
+      yp = y[0] - (n1p_mat(1, 0) * (x[0] - x[1]) + n1p_mat(1, 1) * (y[0] - y[1]) +
+                   n1p_mat(1, 2) * (z[0] - z[1]));
+      zp = z[0] - (n1p_mat(2, 0) * (x[0] - x[1]) + n1p_mat(2, 1) * (y[0] - y[1]) +
+                   n1p_mat(2, 2) * (z[0] - z[1]));
+
+      BoundedMatrix<double, 3, 3> v1p_mat;
+      v1p_mat(0, 0) = pow((xp - x[0]), 2);
+      v1p_mat(0, 1) = ((xp - x[0]) * (yp - y[0]));
+      v1p_mat(0, 2) = ((xp - x[0]) * (zp - z[0]));
+      v1p_mat(1, 0) = ((xp - x[0]) * (yp - y[0]));
+      v1p_mat(1, 1) = pow((yp - y[0]), 2);
+      v1p_mat(1, 2) = ((yp - y[0]) * (zp - z[0]));
+      v1p_mat(2, 0) = ((xp - x[0]) * (zp - z[0]));
+      v1p_mat(2, 1) = ((yp - y[0]) * (zp - z[0]));
+      v1p_mat(2, 2) = pow((zp - z[0]), 2);
+
+      v1p_mat = v1p_mat / (pow(xp - x[0], 2) + pow(yp - y[0], 2) + pow(zp - z[0], 2));
+      double invl1p =
+          1.0 / sqrt(pow(xp - x[0], 2) + pow(yp - y[0], 2) + pow(zp - z[0], 2));
+
+      double areap34 = 0.0;
+      triangle_area(xp, x[2], x[3], yp, y[2], y[3], zp, z[2], z[3], areap34);
+      double areap23 = 0.0;
+      triangle_area(xp, x[1], x[2], yp, y[1], y[2], zp, z[1], z[2], areap23);
+      double L2 = areap34 / area;
+      double L4 = areap23 / area;
+      double L3 = 1.0 - L2 - L4;
+
+      /////////////////////////////////////////////////////////////////////////////
+      // edge 2r r2
+      array_1d<double, 3> v14;
+      array_1d<double, 3> v13;
+      array_1d<double, 3> n2r;
+      double xr, yr, zr;
+      double area134 = 0.0;
+      triangle_area(x[0], x[2], x[3], y[0], y[2], y[3], z[0], z[2], z[3], area134);
+
+      v14[0] = x[3] - x[0];
+      v14[1] = y[3] - y[0];
+      v14[2] = z[3] - z[0];
+      v14 = v14 / sqrt(pow(v14[0], 2) + pow(v14[1], 2) + pow(v14[2], 2));
+      v13[0] = x[2] - x[0];
+      v13[1] = y[2] - y[0];
+      v13[2] = z[2] - z[0];
+      v13 = v13 / sqrt(pow(v13[0], 2) + pow(v13[1], 2) + pow(v13[2], 2));
+
+      n2r[0] = v14[1] * v13[2] - v14[2] * v13[1];
+      n2r[1] = v14[2] * v13[0] - v14[0] * v13[2];
+      n2r[2] = v14[0] * v13[1] - v14[1] * v13[0];
+      n2r = n2r / sqrt(pow(n2r[0], 2) + pow(n2r[1], 2) + pow(n2r[2], 2));
+
+      BoundedMatrix<double, 3, 3> n2r_mat;
+
+      n2r_mat(0, 0) = pow(n2r[0], 2);
+      n2r_mat(0, 1) = (n2r[0] * n2r[1]);
+      n2r_mat(0, 2) = (n2r[0] * n2r[2]);
+      n2r_mat(1, 0) = (n2r[1] * n2r[0]);
+      n2r_mat(1, 1) = pow(n2r[1], 2);
+      n2r_mat(1, 2) = (n2r[1] * n2r[2]);
+      n2r_mat(2, 0) = (n2r[2] * n2r[0]);
+      n2r_mat(2, 1) = (n2r[2] * n2r[1]);
+      n2r_mat(2, 2) = pow(n2r[2], 2);
+
+      xr = x[1] - (n2r_mat(0, 0) * (x[1] - x[0]) + n2r_mat(0, 1) * (y[1] - y[0]) +
+                   n2r_mat(0, 2) * (z[1] - z[0]));
+      yr = y[1] - (n2r_mat(1, 0) * (x[1] - x[0]) + n2r_mat(1, 1) * (y[1] - y[0]) +
+                   n2r_mat(1, 2) * (z[1] - z[0]));
+      zr = z[1] - (n2r_mat(2, 0) * (x[1] - x[0]) + n2r_mat(2, 1) * (y[1] - y[0]) +
+                   n2r_mat(2, 2) * (z[1] - z[0]));
+
+      BoundedMatrix<double, 3, 3> v2r_mat;
+      v2r_mat(0, 0) = pow((xr - x[1]), 2);
+      v2r_mat(0, 1) = ((xr - x[1]) * (yr - y[1]));
+      v2r_mat(0, 2) = ((xr - x[1]) * (zr - z[1]));
+      v2r_mat(1, 0) = ((xr - x[1]) * (yr - y[1]));
+      v2r_mat(1, 1) = pow((yr - y[1]), 2);
+      v2r_mat(1, 2) = ((yr - y[1]) * (zr - z[1]));
+      v2r_mat(2, 0) = ((xr - x[1]) * (zr - z[1]));
+      v2r_mat(2, 1) = ((yr - y[1]) * (zr - z[1]));
+      v2r_mat(2, 2) = pow((zr - z[1]), 2);
+
+      v2r_mat = v2r_mat / (pow(xr - x[1], 2) + pow(yr - y[1], 2) + pow(zr - z[1], 2));
+      double invl2r =
+          1.0 / sqrt(pow(xr - x[1], 2) + pow(yr - y[1], 2) + pow(zr - z[1], 2));
+      ;
+
+      double arear34 = 0.0;
+      triangle_area(xr, x[2], x[3], yr, y[2], y[3], zr, z[2], z[3], arear34);
+      double arear14 = 0.0;
+      triangle_area(xr, x[0], x[3], yr, y[0], y[3], zr, z[0], z[3], arear14);
+      double M1 = arear34 / area134;
+      double M3 = arear14 / area134;
+      double M4 = 1.0 - M1 - M3;
+
+      /////////////////////////////////////////////////////////////////////////////
+      // edge 3s 3s
+      array_1d<double, 3> v12;
+      array_1d<double, 3> n3s;
+      double xs, ys, zs;
+      double area124 = 0.0;
+      triangle_area(x[0], x[1], x[3], y[0], y[1], y[3], z[0], z[1], z[3], area124);
+
+      v12[0] = x[1] - x[0];
+      v12[1] = y[1] - y[0];
+      v12[2] = z[1] - z[0];
+      v12 = v12 / sqrt(pow(v12[0], 2) + pow(v12[1], 2) + pow(v12[2], 2));
+
+      n3s[0] = v12[1] * v14[2] - v12[2] * v14[1];
+      n3s[1] = v12[2] * v14[0] - v12[0] * v14[2];
+      n3s[2] = v12[0] * v14[1] - v12[1] * v14[0];
+      n3s = n3s / sqrt(pow(n3s[0], 2) + pow(n3s[1], 2) + pow(n3s[2], 2));
+
+      BoundedMatrix<double, 3, 3> n3s_mat;
+
+      n3s_mat(0, 0) = pow(n3s[0], 2);
+      n3s_mat(0, 1) = (n3s[0] * n3s[1]);
+      n3s_mat(0, 2) = (n3s[0] * n3s[2]);
+      n3s_mat(1, 0) = (n3s[1] * n3s[0]);
+      n3s_mat(1, 1) = pow(n3s[1], 2);
+      n3s_mat(1, 2) = (n3s[1] * n3s[2]);
+      n3s_mat(2, 0) = (n3s[2] * n3s[0]);
+      n3s_mat(2, 1) = (n3s[2] * n3s[1]);
+      n3s_mat(2, 2) = pow(n3s[2], 2);
+
+      xs = x[2] - (n3s_mat(0, 0) * (x[2] - x[0]) + n3s_mat(0, 1) * (y[2] - y[0]) +
+                   n3s_mat(0, 2) * (z[2] - z[0]));
+      ys = y[2] - (n3s_mat(1, 0) * (x[2] - x[0]) + n3s_mat(1, 1) * (y[2] - y[0]) +
+                   n3s_mat(1, 2) * (z[2] - z[0]));
+      zs = z[2] - (n3s_mat(2, 0) * (x[2] - x[0]) + n3s_mat(2, 1) * (y[2] - y[0]) +
+                   n3s_mat(2, 2) * (z[2] - z[0]));
+
+      BoundedMatrix<double, 3, 3> v3s_mat;
+      v3s_mat(0, 0) = pow((xs - x[2]), 2);
+      v3s_mat(0, 1) = ((xs - x[2]) * (ys - y[2]));
+      v3s_mat(0, 2) = ((xs - x[2]) * (zs - z[2]));
+      v3s_mat(1, 0) = ((xs - x[2]) * (ys - y[2]));
+      v3s_mat(1, 1) = pow((ys - y[2]), 2);
+      v3s_mat(1, 2) = ((ys - y[2]) * (zs - z[2]));
+      v3s_mat(2, 0) = ((xs - x[2]) * (zs - z[2]));
+      v3s_mat(2, 1) = ((ys - y[2]) * (zs - z[2]));
+      v3s_mat(2, 2) = pow((zs - z[2]), 2);
+
+      v3s_mat = v3s_mat / (pow(xs - x[2], 2) + pow(ys - y[2], 2) + pow(zs - z[2], 2));
+      double invl3s =
+          1.0 / sqrt(pow(xs - x[2], 2) + pow(ys - y[2], 2) + pow(zs - z[2], 2));
+
+      double areas24 = 0.0;
+      triangle_area(xs, x[1], x[3], ys, y[1], y[3], zs, z[1], z[3], areas24);
+      double areas14 = 0.0;
+      triangle_area(xs, x[0], x[3], ys, y[0], y[3], zs, z[0], z[3], areas14);
+      double N1 = areas24 / area124;
+      double N2 = areas14 / area124;
+      double N4 = 1.0 - N1 - N2;
+
+      /////////////////////////////////////////////////////////////////////////////
+      // edge 4t t4
+      array_1d<double, 3> v32;
+      array_1d<double, 3> v31;
+      array_1d<double, 3> n4t;
+      double xt, yt, zt;
+      double area123 = 0.0;
+      triangle_area(x[0], x[1], x[2], y[0], y[1], y[2], z[0], z[1], z[2], area123);
+
+      v32[0] = x[2] - x[1];
+      v32[1] = y[2] - y[1];
+      v32[2] = z[2] - z[1];
+      v32 = v32 / sqrt(pow(v32[0], 2) + pow(v32[1], 2) + pow(v32[2], 2));
+      v31[0] = x[2] - x[0];
+      v31[1] = y[2] - y[0];
+      v31[2] = z[2] - z[0];
+      v31 = v31 / sqrt(pow(v31[0], 2) + pow(v31[1], 2) + pow(v31[2], 2));
+
+      n4t[0] = v32[1] * v31[2] - v32[2] * v31[1];
+      n4t[1] = v32[2] * v31[0] - v32[0] * v31[2];
+      n4t[2] = v32[0] * v31[1] - v32[1] * v31[0];
+      n4t = n4t / sqrt(pow(n4t[0], 2) + pow(n4t[1], 2) + pow(n4t[2], 2));
+
+      BoundedMatrix<double, 3, 3> n4t_mat;
+
+      n4t_mat(0, 0) = pow(n4t[0], 2);
+      n4t_mat(0, 1) = (n4t[0] * n4t[1]);
+      n4t_mat(0, 2) = (n4t[0] * n4t[2]);
+      n4t_mat(1, 0) = (n4t[1] * n4t[0]);
+      n4t_mat(1, 1) = pow(n4t[1], 2);
+      n4t_mat(1, 2) = (n4t[1] * n4t[2]);
+      n4t_mat(2, 0) = (n4t[2] * n4t[0]);
+      n4t_mat(2, 1) = (n4t[2] * n4t[1]);
+      n4t_mat(2, 2) = pow(n4t[2], 2);
+
+      xt = x[3] - (n4t_mat(0, 0) * (x[3] - x[2]) + n4t_mat(0, 1) * (y[3] - y[2]) +
+                   n4t_mat(0, 2) * (z[3] - z[2]));
+      yt = y[3] - (n4t_mat(1, 0) * (x[3] - x[2]) + n4t_mat(1, 1) * (y[3] - y[2]) +
+                   n4t_mat(1, 2) * (z[3] - z[2]));
+      zt = z[3] - (n4t_mat(2, 0) * (x[3] - x[2]) + n4t_mat(2, 1) * (y[3] - y[2]) +
+                   n4t_mat(2, 2) * (z[3] - z[2]));
+
+      BoundedMatrix<double, 3, 3> v4t_mat;
+      v4t_mat(0, 0) = pow((xt - x[3]), 2);
+      v4t_mat(0, 1) = ((xt - x[3]) * (yt - y[3]));
+      v4t_mat(0, 2) = ((xt - x[3]) * (zt - z[3]));
+      v4t_mat(1, 0) = ((xt - x[3]) * (yt - y[3]));
+      v4t_mat(1, 1) = pow((yt - y[3]), 2);
+      v4t_mat(1, 2) = ((yt - y[3]) * (zt - z[3]));
+      v4t_mat(2, 0) = ((xt - x[3]) * (zt - z[3]));
+      v4t_mat(2, 1) = ((yt - y[3]) * (zt - z[3]));
+      v4t_mat(2, 2) = pow((zt - z[3]), 2);
+
+      v4t_mat = v4t_mat / (pow(xt - x[3], 2) + pow(yt - y[3], 2) + pow(zt - z[3], 2));
+      double invl4t =
+          1.0 / sqrt(pow(xt - x[3], 2) + pow(yt - y[3], 2) + pow(zt - z[3], 2));
+
+      double areat23 = 0.0;
+      triangle_area(xt, x[1], x[2], yt, y[1], y[2], zt, z[1], z[2], areat23);
+      double areat21 = 0.0;
+      triangle_area(xt, x[1], x[0], yt, y[1], y[0], zt, z[1], z[0], areat21);
+      double Q1 = areat23 / area123;
+      double Q3 = areat21 / area123;
+      double Q2 = 1.0 - Q1 - Q3;
+
+      for (unsigned int ii = 0; ii < 3; ii++)
+      {
+          for (unsigned int jj = 0; jj < 3; jj++)
+          {
+              K_matrix(ii, jj) += invl1p * v1p_mat(ii, jj) +
+                                  pow(M1, 2) * invl2r * v2r_mat(ii, jj) +
+                                  pow(N1, 2) * invl3s * v3s_mat(ii, jj) +
+                                  pow(Q1, 2) * invl4t * v4t_mat(ii, jj);
+              K_matrix(ii, 3 + jj) += -L2 * invl1p * v1p_mat(ii, jj) -
+                                      M1 * invl2r * v2r_mat(ii, jj) +
+                                      N1 * N2 * invl3s * v3s_mat(ii, jj) +
+                                      Q1 * Q2 * invl4t * v4t_mat(ii, jj);
+              K_matrix(ii, 6 + jj) += -L3 * invl1p * v1p_mat(ii, jj) +
+                                      M1 * M3 * invl2r * v2r_mat(ii, jj) -
+                                      N1 * invl3s * v3s_mat(ii, jj) +
+                                      Q1 * Q3 * invl4t * v4t_mat(ii, jj);
+              K_matrix(ii, 9 + jj) += -L4 * invl1p * v1p_mat(ii, jj) +
+                                      M1 * M4 * invl2r * v2r_mat(ii, jj) +
+                                      N1 * N4 * invl3s * v3s_mat(ii, jj) -
+                                      Q1 * invl4t * v4t_mat(ii, jj);
+
+              K_matrix(3 + ii, jj) += -L2 * invl1p * v1p_mat(ii, jj) -
+                                      M1 * invl2r * v2r_mat(ii, jj) +
+                                      N1 * N2 * invl3s * v3s_mat(ii, jj) +
+                                      Q1 * Q2 * invl4t * v4t_mat(ii, jj);
+              K_matrix(3 + ii, 3 + jj) += pow(L2, 2) * invl1p * v1p_mat(ii, jj) +
+                                          invl2r * v2r_mat(ii, jj) +
+                                          pow(N2, 2) * invl3s * v3s_mat(ii, jj) +
+                                          pow(Q2, 2) * invl4t * v4t_mat(ii, jj);
+              K_matrix(3 + ii, 6 + jj) +=
+                  L2 * L3 * invl1p * v1p_mat(ii, jj) - M3 * invl2r * v2r_mat(ii, jj) -
+                  N2 * invl3s * v3s_mat(ii, jj) + Q3 * Q2 * invl4t * v4t_mat(ii, jj);
+              K_matrix(3 + ii, 9 + jj) +=
+                  L2 * L4 * invl1p * v1p_mat(ii, jj) - M4 * invl2r * v2r_mat(ii, jj) +
+                  N2 * N4 * invl3s * v3s_mat(ii, jj) - Q2 * invl4t * v4t_mat(ii, jj);
+
+              K_matrix(6 + ii, jj) += -L3 * invl1p * v1p_mat(ii, jj) +
+                                      M1 * M3 * invl2r * v2r_mat(ii, jj) -
+                                      N1 * invl3s * v3s_mat(ii, jj) +
+                                      Q1 * Q3 * invl4t * v4t_mat(ii, jj);
+              K_matrix(6 + ii, 3 + jj) +=
+                  L3 * L2 * invl1p * v1p_mat(ii, jj) - M3 * invl2r * v2r_mat(ii, jj) -
+                  N2 * invl3s * v3s_mat(ii, jj) + Q3 * Q2 * invl4t * v4t_mat(ii, jj);
+              K_matrix(6 + ii, 6 + jj) += pow(L3, 2) * invl1p * v1p_mat(ii, jj) +
+                                          pow(M3, 2) * invl2r * v2r_mat(ii, jj) +
+                                          invl3s * v3s_mat(ii, jj) +
+                                          pow(Q3, 2) * invl4t * v4t_mat(ii, jj);
+              K_matrix(6 + ii, 9 + jj) += L3 * L4 * invl1p * v1p_mat(ii, jj) +
+                                          M4 * M3 * invl2r * v2r_mat(ii, jj) -
+                                          N4 * invl3s * v3s_mat(ii, jj) -
+                                          Q3 * invl4t * v4t_mat(ii, jj);
+
+              K_matrix(9 + ii, jj) += -L4 * invl1p * v1p_mat(ii, jj) +
+                                      M1 * M4 * invl2r * v2r_mat(ii, jj) +
+                                      N1 * N4 * invl3s * v3s_mat(ii, jj) -
+                                      Q1 * invl4t * v4t_mat(ii, jj);
+              K_matrix(9 + ii, 3 + jj) +=
+                  L4 * L2 * invl1p * v1p_mat(ii, jj) - M4 * invl2r * v2r_mat(ii, jj) +
+                  N2 * N4 * invl3s * v3s_mat(ii, jj) - Q2 * invl4t * v4t_mat(ii, jj);
+              K_matrix(9 + ii, 6 + jj) += L4 * L3 * invl1p * v1p_mat(ii, jj) +
+                                          M4 * M3 * invl2r * v2r_mat(ii, jj) -
+                                          N4 * invl3s * v3s_mat(ii, jj) -
+                                          Q3 * invl4t * v4t_mat(ii, jj);
+              K_matrix(9 + ii, 9 + jj) += pow(L4, 2) * invl1p * v1p_mat(ii, jj) +
+                                          pow(M4, 2) * invl2r * v2r_mat(ii, jj) +
+                                          pow(N4, 2) * invl3s * v3s_mat(ii, jj) +
+                                          invl4t * v4t_mat(ii, jj);
+          }
+      }
   }
 
   void triangle_area(double xa, double xb, double xc, double ya, double yb,

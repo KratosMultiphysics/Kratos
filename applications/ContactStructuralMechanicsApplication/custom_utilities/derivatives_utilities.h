@@ -287,7 +287,7 @@ public:
         const array_1d<double, 3> diff_vector = calculated_normal_geometry - previous_normal;
 
         // Computing auxiliar matrix
-        const bounded_matrix<double, 3, 3> renormalizer_matrix = ComputeRenormalizerMatrix(diff_vector, aux_delta_normal0);
+        const BoundedMatrix<double, 3, 3> renormalizer_matrix = ComputeRenormalizerMatrix(diff_vector, aux_delta_normal0);
         array_1d<array_1d<double, 3>, TDim * TNumNodes> normalized_delta_normal_0;
         for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
@@ -306,12 +306,12 @@ public:
      */
 
     static inline void CalculateDeltaNormal(
-        array_1d<bounded_matrix<double, TNumNodes, TDim>, TNumNodes * TDim>& rDeltaNormal,
+        array_1d<BoundedMatrix<double, TNumNodes, TDim>, TNumNodes * TDim>& rDeltaNormal,
         GeometryType& rThisGeometry
         )
     {
-        bounded_matrix<double, TNumNodes, TDim> aux_normal_geometry = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(rThisGeometry,  NORMAL, 1);
-        bounded_matrix<double, TNumNodes, TDim> aux_delta_normal_geometry = ZeroMatrix(TNumNodes, TDim);
+        BoundedMatrix<double, TNumNodes, TDim> aux_normal_geometry = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(rThisGeometry,  NORMAL, 1);
+        BoundedMatrix<double, TNumNodes, TDim> aux_delta_normal_geometry = ZeroMatrix(TNumNodes, TDim);
 
         for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry ) {
             // We compute the gradient and jacobian
@@ -333,17 +333,17 @@ public:
             }
         }
 
-        bounded_matrix<double, TNumNodes, TDim> calculated_normal_geometry = aux_delta_normal_geometry + aux_normal_geometry;
+        BoundedMatrix<double, TNumNodes, TDim> calculated_normal_geometry = aux_delta_normal_geometry + aux_normal_geometry;
         for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry )
             row(calculated_normal_geometry, i_geometry) /= norm_2(row(calculated_normal_geometry, i_geometry));
 
         // We compute the diff matrix to compute the auxiliar matrix later
-        const bounded_matrix<double, TNumNodes, TDim> diff_matrix = calculated_normal_geometry - aux_normal_geometry;
+        const BoundedMatrix<double, TNumNodes, TDim> diff_matrix = calculated_normal_geometry - aux_normal_geometry;
 
         // We iterate over the nodes of the geometry
         for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry ) {
             // Computing auxiliar matrix
-            const bounded_matrix<double, TDim, TDim> renormalizer_matrix = (TDim == 3) ? ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry) : IdentityMatrix(2, 2);
+            const BoundedMatrix<double, TDim, TDim> renormalizer_matrix = (TDim == 3) ? ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry) : IdentityMatrix(2, 2);
 
             // We compute the gradient and jacobian
             GeometryType::CoordinatesArrayType point_local;
@@ -1070,14 +1070,14 @@ private:
      * @param DeltaNormal The vector containing the delta normal
      * @return The auxiliar matrix computed
      */
-    static inline bounded_matrix<double, 3, 3> ComputeRenormalizerMatrix(
+    static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
         const array_1d<double, 3>& DiffVector,
         const array_1d<double, 3>& DeltaNormal
         )
     {
         for (IndexType itry = 0; itry < 3; ++itry) {
             if (DeltaNormal[itry] > std::numeric_limits<double>::epsilon()) {
-                bounded_matrix<double, 3, 3> aux_matrix;
+                BoundedMatrix<double, 3, 3> aux_matrix;
 
                 const IndexType aux_index_1 = itry == 2 ? 0 : itry + 1;
                 const IndexType aux_index_2 = itry == 2 ? 1 : (itry == 1 ? 0 : 2);
@@ -1110,15 +1110,15 @@ private:
      * @param iGeometry The index of the node of the geometry computed
      * @return The auxiliar matrix computed
      */
-    static inline bounded_matrix<double, 3, 3> ComputeRenormalizerMatrix(
-        const bounded_matrix<double, TNumNodes, TDim>& DiffMatrix,
-        const bounded_matrix<double, TNumNodes, TDim>& DeltaNormal,
+    static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
+        const BoundedMatrix<double, TNumNodes, TDim>& DiffMatrix,
+        const BoundedMatrix<double, TNumNodes, TDim>& DeltaNormal,
         const IndexType iGeometry
         )
     {
         for (IndexType itry = 0; itry < 3; ++itry) {
             if (DeltaNormal(iGeometry, itry) > std::numeric_limits<double>::epsilon()) {
-                bounded_matrix<double, 3, 3> aux_matrix;
+                BoundedMatrix<double, 3, 3> aux_matrix;
 
                 const IndexType aux_index_1 = itry == 2 ? 0 : itry + 1;
                 const IndexType aux_index_2 = itry == 2 ? 1 : (itry == 1 ? 0 : 2);
@@ -1229,18 +1229,18 @@ private:
         // Tolerance
         const double tolerance = std::numeric_limits<double>::epsilon();
 
-        bounded_matrix<double, 3, TNumNodes> X;
+        BoundedMatrix<double, 3, TNumNodes> X;
         for(IndexType i = 0; i < TNumNodes; ++i) {
             X(0, i) = ThisGeometry[i].X();
             X(1, i) = ThisGeometry[i].Y();
             X(2, i) = ThisGeometry[i].Z();
         }
 
-        const bounded_matrix<double, 3, 2> DN = prod(X, rDNDe);
+        const BoundedMatrix<double, 3, 2> DN = prod(X, rDNDe);
 
-        const bounded_matrix<double, 2, 2> J = prod(trans(DN),DN);
-        double det_j = MathUtils<double>::DetMat<bounded_matrix<double, 2, 2>>(J);
-        const bounded_matrix<double, 2, 2> invJ = (std::abs(det_j) < tolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
+        const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
+        double det_j = MathUtils<double>::DetMat<BoundedMatrix<double, 2, 2>>(J);
+        const BoundedMatrix<double, 2, 2> invJ = (std::abs(det_j) < tolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
 
     #ifdef KRATOS_DEBUG
         if (std::abs(det_j) < tolerance) 
@@ -1250,15 +1250,15 @@ private:
         const array_1d<double, 2> res = prod(trans(DN), DeltaPoint);
         noalias(rResult) = prod(invJ, res);
 
-//         bounded_matrix<double, 3, 3> L;
+//         BoundedMatrix<double, 3, 3> L;
 //         for(IndexType i = 0; i < 3; ++i)
 //         {
 //             for(IndexType j = 0; j < 2; ++j) L(i, j) = DN(i, j);
 //             L(i, 2) = ThisNormal[i];
 //         }
 //
-//         double det_L = MathUtils<double>::DetMat<bounded_matrix<double, 3, 3>>(L);
-//         const bounded_matrix<double, 3, 3> invL = (std::abs(det_L) < tolerance) ? ZeroMatrix(3,3) : MathUtils<double>::InvertMatrix<3>(L, det_L);
+//         double det_L = MathUtils<double>::DetMat<BoundedMatrix<double, 3, 3>>(L);
+//         const BoundedMatrix<double, 3, 3> invL = (std::abs(det_L) < tolerance) ? ZeroMatrix(3,3) : MathUtils<double>::InvertMatrix<3>(L, det_L);
 //         array_1d<double, 3> aux = prod(invL, DeltaPoint);
 //         rResult[0] = aux[0];
 //         rResult[1] = aux[1];
@@ -1296,8 +1296,8 @@ private:
         )
     {
         array_1d<double, TDim> Xa, DXa;
-        bounded_matrix<double, TDim, TNumNodes> X1, DX1;
-        bounded_matrix<double, 3, TNumNodes> n1, Dn1;
+        BoundedMatrix<double, TDim, TNumNodes> X1, DX1;
+        BoundedMatrix<double, 3, TNumNodes> n1, Dn1;
 
         // Projected node coordinates
         Xa[0] = MasterGeometry[MortarNode].X();
@@ -1359,7 +1359,7 @@ private:
      {
          array_1d<double, TDim> Xa, DXa;
          array_1d<double, 3>    na, Dna;
-         bounded_matrix<double, TDim, TNumNodes> X2, DX2;
+         BoundedMatrix<double, TDim, TNumNodes> X2, DX2;
 
          // Projected node coordinates
          Xa[0] = SlaveGeometry[MortarNode].X();
