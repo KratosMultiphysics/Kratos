@@ -103,6 +103,12 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters(parameters_file.read())
 
+        max_required_eigenfrequency = int(max(response_settings["traced_eigenfrequencies"].GetVector()))
+        if max_required_eigenfrequency is not ProjectParametersPrimal["solver_settings"]["eigensolver_settings"]["number_of_eigenvalues"].GetInt():
+            print("\n> WARNING: Specified number of eigenvalues in the primal analysis and the max required eigenvalue according the response settings do not match!!!")
+            print("  Primal parameters were adjusted accordingly!\n")
+            ProjectParametersPrimal["solver_settings"]["eigensolver_settings"]["number_of_eigenvalues"].SetInt(max_required_eigenfrequency)
+
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal, model_part)
         self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 

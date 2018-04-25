@@ -231,7 +231,7 @@ protected:
             for(std::size_t i = 0; i < mWeightingFactors.size(); i++)
                 mWeightingFactors[i] /= test_sum_weight_facs;
 
-            KRATOS_INFO("\n> EigenfrequencyResponseFunctionUtility") << "The sum of the chosen weighting factors is unequal one. A corresponding scaling process was exected!\n" << std::endl;
+            KRATOS_INFO("\n> EigenfrequencyResponseFunctionUtility") << "The sum of the chosen weighting factors is unequal one. A corresponding scaling process was exected!" << std::endl;
         }
     }
 
