@@ -3527,6 +3527,16 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		GiD_File fprintf $demfemchannel "  $nodeid"
 	    }
 	    GiD_File fprintf $demfemchannel "  End SubModelPartNodes"
+	    #
+	    set nlist [GiD_EntitiesGroups get $cgroupid elements]
+        if {[llength $nlist]} {
+            GiD_File fprintf $demfemchannel "  Begin SubModelPartConditions"
+            foreach elemid $nlist {
+                GiD_File fprintf $demfemchannel "  $elemid"
+            }
+            GiD_File fprintf $demfemchannel "  End SubModelPartConditions"
+        }
+	    #
 	    GiD_File fprintf $demfemchannel "End SubModelPart"
 	    GiD_File fprintf $demfemchannel ""
 

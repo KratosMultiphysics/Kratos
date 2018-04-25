@@ -853,6 +853,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         if(wall == NULL) continue;
         if(wall->IsPhantom()){
             wall->CheckSide(this);
+            KRATOS_WATCH("PHANTOM, SphericParticle::ComputeBallToRigidFaceContactForce")
             continue;
         }
 
