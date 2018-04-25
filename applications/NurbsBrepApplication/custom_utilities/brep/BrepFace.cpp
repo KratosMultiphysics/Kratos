@@ -468,7 +468,7 @@ namespace Kratos
 		std::vector<array_1d<double, 2>> slave_knot_intersection_points = GetClosestPointsTrimmingCurve(rPoints, rTrimIndex, rAccuracy, rMaxIterations);
 
 		int number_of_knots = (m_knot_vector_u.size() + m_knot_vector_v.size());
-		BrepTrimmingCurve& trimming_curve = GetTrimmingCurve(rTrimIndex);
+		BrepTrimmingCurve trimming_curve = GetTrimmingCurve(rTrimIndex);
 		std::vector<double> slave_knot_intersection_parameters = trimming_curve.GetClosestPoints(slave_knot_intersection_points, number_of_knots*10);
 
 		std::vector<double> master_knot_intersection_parameters = trimming_curve.GetKnotIntersections(m_p, m_q, m_knot_vector_u, m_knot_vector_v, number_of_knots*10);
@@ -524,7 +524,7 @@ namespace Kratos
 		const int& rTrimIndex,
 		const double& rAccuracy, const double& rModelTolerance, const int& rMaxIterations)
 	{
-		BrepTrimmingCurve& trimming_curve = GetTrimmingCurve(rTrimIndex);
+		BrepTrimmingCurve trimming_curve = GetTrimmingCurve(rTrimIndex);
 		std::vector<array_1d<double,2>> closest_points = GetClosestNodesTrimmingCurve(rNodes, rTrimIndex, rAccuracy, rModelTolerance, rMaxIterations);
 		//int number_of_knots = (m_knot_vector_u.size() + m_knot_vector_v.size());
 		//std::vector<double> closest_parameters = trimming_curve.GetClosestPoints(closest_points, number_of_knots * 25);
@@ -952,7 +952,7 @@ namespace Kratos
 	std::vector<array_1d<double, 2>> BrepFace::GetClosestPointsTrimmingCurve(const std::vector<Point>& rPoints, const int& rTrimIndex,
 		const double& rAccuracy, const int& rMaxIterations)
 	{
-		BrepTrimmingCurve& trimming_curve = GetTrimmingCurve(rTrimIndex);
+		BrepTrimmingCurve trimming_curve = GetTrimmingCurve(rTrimIndex);
 		std::vector<array_1d<double, 2>> trimming_curve_polygon;
 
 		int number_of_knots = (m_knot_vector_u.size() + m_knot_vector_v.size());
@@ -1034,7 +1034,7 @@ namespace Kratos
 		const int& rTrimIndex,
 		const double& rAccuracy, const double& rModelTolerance, const int& rMaxIterations)
 	{
-		BrepTrimmingCurve& trimming_curve = GetTrimmingCurve(rTrimIndex);
+		BrepTrimmingCurve trimming_curve = GetTrimmingCurve(rTrimIndex);
 		std::vector<array_1d<double, 2>> trimming_curve_polygon;
 
 		int number_of_knots = (m_knot_vector_u.size() + m_knot_vector_v.size());
