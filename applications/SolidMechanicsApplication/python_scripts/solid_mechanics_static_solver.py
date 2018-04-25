@@ -56,25 +56,29 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         # set solution scheme and integration method dictionary
         self.integration_methods = {}
         if(integration_method == "Linear"):
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticMethod(),
-                                             'ROTATION': KratosSolid.StaticMethod()}) #shells
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticScalarIntegration(),
+                                             'ROTATION': KratosSolid.StaticScalarIntegration()}) #shells
             scheme_integration_methods = []
-            scheme_integration_methods.append(KratosSolid.StaticIntegration(KratosMultiphysics.DISPLACEMENT))
+            scheme_integration_methods.append(KratosSolid.StaticVectorIntegration(KratosMultiphysics.DISPLACEMENT))
             mechanical_scheme = KratosSolid.StaticScheme(scheme_integration_methods)
             #mechanical_scheme = KratosSolid.DisplacementStaticScheme()
         elif(integration_method == "Non-Linear" ):
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticMethod(),
-                                             'ROTATION': KratosSolid.StaticMethod()}) #shells
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticScalarIntegration(),
+                                             'ROTATION': KratosSolid.StaticScalarIntegration()}) #shells
             scheme_integration_methods = []
-            scheme_integration_methods.append(KratosSolid.StaticIntegration(KratosMultiphysics.DISPLACEMENT))
+            scheme_integration_methods.append(KratosSolid.StaticVectorIntegration(KratosMultiphysics.DISPLACEMENT))
             mechanical_scheme = KratosSolid.StaticScheme(scheme_integration_methods)
             #mechanical_scheme = KratosSolid.DisplacementStaticScheme()
         elif(integration_method == "RotationStatic"):
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticStepMethod(),
-                                             'ROTATION': KratosSolid.StaticStepRotationMethod()}) #beams
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticStepScalarIntegration(),
+                                             'ROTATION': KratosSolid.StaticStepRotationScalarIntegration()}) #beams
             scheme_integration_methods = []
-            scheme_integration_methods.append(KratosSolid.StaticIntegration(KratosMultiphysics.DISPLACEMENT))
-            scheme_integration_methods.append(KratosSolid.StaticIntegration(KratosMultiphysics.ROTATION))
+            integration_method = KratosSolid.StaticStepVectorIntegration(KratosMultiphysics.DISPLACEMENT)
+            integration_method.SetStepVariable(KratosSolid.STEP_DISPLACEMENT)
+            scheme_integration_methods.append(integration_method)
+            rotation_integration_method = KratosSolid.StaticStepRotationVectorIntegration(KratosMultiphysics.ROTATION)
+            rotation_integration_method.SetStepVariable(KratosSolid.STEP_ROTATION)
+            scheme_integration_methods.append(rotation_integration_method)
             mechanical_scheme = KratosSolid.StaticScheme(scheme_integration_methods)
             #mechanical_scheme = KratosSolid.DisplacementRotationStaticScheme()
         else:

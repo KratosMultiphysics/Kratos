@@ -244,10 +244,13 @@ namespace Kratos
       int ErrorCode = 0;
       ErrorCode = BaseType::Check(rCurrentProcessInfo);
 
-
-      if( this->mpStepVariable != nullptr )
-        KRATOS_ERROR << " time integration method Variable not set " <<std::endl;
-
+      if( this->mpStepVariable == nullptr ){
+        KRATOS_ERROR << " time integration method Step Variable not set " <<std::endl;
+      }
+      else{
+        KRATOS_CHECK_VARIABLE_KEY((*mpStepVariable));
+      }
+      
       return ErrorCode;
       
       KRATOS_CATCH("")
