@@ -145,9 +145,12 @@ void DVMS<TElementData>::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
         this->CalculateMaterialResponse(data);
 
         // Not doing the update "in place" because SubscaleVelocity uses mOldSubscaleVelocity
-        array_1d<double,Dim> UpdatedValue(Dim,0.0);
+        array_1d<double,3> UpdatedValue(3,0.0);
         this->SubscaleVelocity(data,UpdatedValue);
-        noalias(mOldSubscaleVelocity[g]) = UpdatedValue;
+        array_1d<double,Dim>& r_value = mOldSubscaleVelocity[g];
+        for (unsigned int d = 0; d < Dim; d++) {
+            r_value[d] = UpdatedValue[d];
+        }
     }
 }
 
@@ -220,15 +223,7 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
                 data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
                 this->CalculateMaterialResponse(data);
 
-                array_1d<double,Dim> subscale(Dim,0.0);
-                this->SubscaleVelocity(data, subscale);
-
-                // Note: the output is always of size 3, but the subscale is of size Dim.
-                auto& output = rValues[g];
-                output.clear();
-                for (unsigned int  d = 0; d < Dim; d++) {
-                    output[d] = subscale[d];
-                }
+                this->SubscaleVelocity(data, rValues[g]);
             }
         }
         else {
@@ -378,7 +373,7 @@ void DVMS<TElementData>::AddVelocitySystem(
     double tau_one;
     double tau_two;
     double tau_p;
-    this->CalculateTau(rData,convective_velocity,tau_one,tau_two,tau_p);
+    this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two,tau_p);
 
     const double dt = rData.DeltaTime;
 
@@ -543,7 +538,7 @@ void DVMS<TElementData>::AddMassStabilization(
     double tau_one;
     double tau_two;
     double tau_p;
-    this->CalculateTau(rData,convective_velocity,tau_one,tau_two,tau_p);
+    this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two,tau_p);
 
     const double dt = rData.DeltaTime;
 
@@ -638,29 +633,11 @@ void DVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcess
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-// serializer
-
-template< class TElementData >
-void DVMS<TElementData>::save(Serializer& rSerializer) const
-{
-    typedef QSVMS<TElementData> BaseElement;
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElement );
-    rSerializer.save("mOldSubscaleVelocity",mOldSubscaleVelocity);
-}
-
-
-template< class TElementData >
-void DVMS<TElementData>::load(Serializer& rSerializer)
-{
-    typedef QSVMS<TElementData> BaseElement;
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);
-    rSerializer.load("mOldSubscaleVelocity",mOldSubscaleVelocity);
-}
 
 // Implementation details
 
 template< class TElementData >
-void DVMS<TElementData>::CalculateTau(
+void DVMS<TElementData>::CalculateStabilizationParameters(
     const TElementData& rData,
     const array_1d<double,3> &Velocity,
     double &TauOne,
@@ -687,7 +664,7 @@ void DVMS<TElementData>::CalculateTau(
 template< class TElementData >
 void DVMS<TElementData>::SubscaleVelocity(
     const TElementData& rData,
-    array_1d<double,Dim>& rVelocitySubscale)
+    array_1d<double,3>& rVelocitySubscale) const
 {
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
@@ -695,7 +672,7 @@ void DVMS<TElementData>::SubscaleVelocity(
     double tau_one;
     double tau_two;
     double tau_p;
-    this->CalculateTau(rData,convective_velocity,tau_one,tau_two,tau_p);
+    this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two,tau_p);
 
     const double dt = rData.DeltaTime;
 
@@ -718,14 +695,14 @@ void DVMS<TElementData>::SubscaleVelocity(
 template< class TElementData >
 void DVMS<TElementData>::SubscalePressure(
     const TElementData& rData,
-    double &rPressureSubscale)
+    double &rPressureSubscale) const
 {
     array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
 
     double tau_one;
     double tau_two;
     double tau_p;
-    this->CalculateTau(rData,convective_velocity,tau_one,tau_two,tau_p);
+    this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two,tau_p);
 
     // Old mass residual for dynamic pressure subscale
     // Note: Residual is defined as -Div(u) [- Projection (if OSS)]
@@ -747,6 +724,20 @@ void DVMS<TElementData>::SubscalePressure(
         this->OrthogonalMassResidual(rData,residual);
 
     rPressureSubscale = (tau_two+tau_p)*residual - tau_p*old_residual;
+}
+
+template< class TElementData >
+array_1d<double,3> DVMS<TElementData>::FullConvectiveVelocity(
+    const TElementData& rData) const
+{
+    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
+    // Adding subscale term componentwise because return type is of size 3, but subscale is of size Dim
+    const array_1d<double,Dim>& r_predicted_subscale = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
+    for (unsigned int d = 0; d < Dim; d++) {
+        convective_velocity[d] += r_predicted_subscale[d];
+    }
+
+    return convective_velocity;
 }
 
 template< class TElementData >
@@ -855,18 +846,23 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
     noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = converged ? u : array_1d<double,Dim>(Dim,0.0);
 }
 
-template< class TElementData >
-array_1d<double,3> DVMS<TElementData>::FullConvectiveVelocity(
-    const TElementData& rData) const
-{
-    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
-    // Adding subscale term componentwise because return type is of size 3, but subscale is of size Dim
-    const array_1d<double,Dim>& r_predicted_subscale = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
-    for (unsigned int d = 0; d < Dim; d++) {
-        convective_velocity[d] += r_predicted_subscale[d];
-    }
+// serializer
 
-    return convective_velocity;
+template< class TElementData >
+void DVMS<TElementData>::save(Serializer& rSerializer) const
+{
+    typedef QSVMS<TElementData> BaseElement;
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElement );
+    rSerializer.save("mOldSubscaleVelocity",mOldSubscaleVelocity);
+}
+
+
+template< class TElementData >
+void DVMS<TElementData>::load(Serializer& rSerializer)
+{
+    typedef QSVMS<TElementData> BaseElement;
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);
+    rSerializer.load("mOldSubscaleVelocity",mOldSubscaleVelocity);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
