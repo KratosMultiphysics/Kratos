@@ -190,7 +190,11 @@ private:
 
     void CheckAndValidateParameters(Parameters InterfaceParameters);
 
-    void CreateMapperConditions();
+    void CreateMapperConditions(Parameters InterfaceParameters);
+
+    void CreateMapperConditionsFromNodes(Parameters InterfaceParameters);
+
+    void CreateMapperConditionsFromGeometries(Parameters InterfaceParameters);
 
 
     ///@}

@@ -34,30 +34,35 @@ namespace Kratos
         : mrModelPartDestination(rModelPartDestination),
           mpInterfaceModelPart(pInterfaceModelPart)
     {
-
+        mpInterfaceModelPart->AddNodalSolutionStepVariable(PARTITION_INDEX); // I think this is needed in the ParallelFillCommunicator
     }
 
     void InterfacePreprocessor::GenerateInterfaceModelPart(Parameters InterfaceParameters)
     {
         CheckAndValidateParameters(InterfaceParameters);
 
-        // here the InterfaceModelPart is resetted to start from a clear state
-        mpInterfaceModelPart = Kratos::make_shared<ModelPart>("Mapper-Interface");
+        mpInterfaceModelPart->GetMesh().Clear();
+
+        Properties::Pointer dummy_properties = Kratos::make_shared<Properties>();
+        mpInterfaceModelPart->AddProperties(dummy_properties);
 
         // Adding the Nodes
         mpInterfaceModelPart->Nodes() = mrModelPartDestination.Nodes();
 
+        CreateMapperConditions(InterfaceParameters);
 
-// #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-//         // if (MapperUtilities::TotalProcesses() > 1)
-//         // {
-//             // TODO check if this is actually necessary
-//             // Set the MPICommunicator
-//             std::cout << "Doing the ParallelFillCommunicator stuff" << std::endl;
-//             ParallelFillCommunicator parallel_fill_communicator(*mpInterfaceModelPart);
-//             parallel_fill_communicator.Execute();
-//         // }
-// #endif
+
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+        if (mrModelPartDestination.GetCommunicator().TotalProcesses() > 1)
+        {
+            // TODO check if this is actually necessary
+            // Set the MPICommunicator
+            std::cout << "Doing the ParallelFillCommunicator stuff" << std::endl;
+
+            ParallelFillCommunicator parallel_fill_communicator(*mpInterfaceModelPart);
+            // parallel_fill_communicator.Execute(); // does not work atm
+        }
+#endif
 
     }
     /***********************************************************************************/
@@ -76,9 +81,41 @@ namespace Kratos
             << "Condition name for Interface-ModelPart not specified" << std::endl;
     }
 
-    void InterfacePreprocessor::CreateMapperConditions()
+    void InterfacePreprocessor::CreateMapperConditions(Parameters InterfaceParameters)
     {
+        if (InterfaceParameters["use_nodes"].GetBool())
+            CreateMapperConditionsFromNodes(InterfaceParameters);
+        else
+            CreateMapperConditionsFromGeometries(InterfaceParameters);
+    }
 
+    void InterfacePreprocessor::CreateMapperConditionsFromNodes(Parameters InterfaceParameters)
+    {
+        const std::string condition_name = InterfaceParameters["mapper_condition_name"].GetString();
+
+        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name);
+
+        Condition::NodesArrayType condition_node;
+
+        const auto p_props = mpInterfaceModelPart->pGetProperties(0); // dummy properties needed for the Create-fct
+
+        for (ModelPart::NodesContainerType::const_iterator it_node = mpInterfaceModelPart->NodesBegin();
+             it_node != mpInterfaceModelPart->NodesEnd(); ++it_node)
+        {
+            // Creating the mapper conditions
+            // Using the ID of the Node which also works in MPI
+            condition_node.clear();
+            condition_node.push_back(*(it_node).base()); // TODO ask if this way is the most efficient one
+            Condition::Pointer p_new_cond = Condition::Pointer(rReferenceCondition.Create(it_node->Id(),
+                                                                                          condition_node,
+                                                                                          p_props));
+            mpInterfaceModelPart->AddCondition(p_new_cond);
+        }
+    }
+
+    void InterfacePreprocessor::CreateMapperConditionsFromGeometries(Parameters InterfaceParameters)
+    {
+        KRATOS_ERROR << "This function is not implemented yet" << std::endl;
     }
 
 

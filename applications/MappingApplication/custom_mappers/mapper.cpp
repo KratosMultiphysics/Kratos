@@ -136,6 +136,9 @@ Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
     // ValidateParameters(MapperSettings);
     // mEchoLevel = MapperSettings["echo_level"].GetInt();
 
+    mpInterfaceModelPart = Kratos::make_shared<ModelPart>("Mapper-Interface");
+    // maybe add the PARTITION_INDEX here to the mpInterfaceModelPart -> currently done in the InterfacePreprocessor
+
     mpInterfacePreprocessor = Kratos::make_shared<InterfacePreprocessor>(mrModelPartDestination,
                                                                          mpInterfaceModelPart);
 
