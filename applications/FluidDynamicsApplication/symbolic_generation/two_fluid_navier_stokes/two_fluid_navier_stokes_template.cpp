@@ -795,7 +795,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::CalculateMaterialProp
 	double viscosity = 0.0;
 	for (unsigned int i = 0; i < NumNodes; i++)
 	{
-		if (dist * rData.Distance[i])
+		if (dist * rData.Distance[i] > 0.0)
 		{
 			navg += 1.0;
 			density += this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
@@ -835,7 +835,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::CalculateMaterialProp
 	double viscosity = 0.0;
 	for (unsigned int i = 0; i < NumNodes; i++)
 	{
-		if (dist * rData.Distance[i])
+		if (dist * rData.Distance[i] > 0.0)
 		{
 			navg += 1.0;
 			density += this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
