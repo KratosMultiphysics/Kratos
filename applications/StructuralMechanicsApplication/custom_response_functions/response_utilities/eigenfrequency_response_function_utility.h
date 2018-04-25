@@ -271,13 +271,16 @@ protected:
             Matrix mass_matrix_org;
             Matrix LHS_org;
             Vector dummy;
-            Matrix aux_matrix = Matrix(0,0);
-            Vector aux_vector = Vector(0);
+
             elem_i.CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
             elem_i.CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
 
-            // Predetermine the necessary eigenvectors
             int num_dofs_element = mass_matrix_org.size1();
+
+            Matrix aux_matrix = Matrix(num_dofs_element,num_dofs_element);
+            Vector aux_vector = Vector(num_dofs_element);
+
+            // Predetermine the necessary eigenvectors
             std::vector<Vector> eigenvectors_of_element(num_of_traced_eigenfrequencies,Vector(0));
             for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                 DetermineEigenvectorOfElement(elem_i, mTracedEigenfrequencyIds[i], num_dofs_element, eigenvectors_of_element[i]);
@@ -286,27 +289,27 @@ protected:
             for(auto& node_i : elem_i.GetGeometry())
             {
                 Vector gradient_contribution(3, 0.0);
-                Matrix perturbed_LHS = Matrix(0,0);
-                Matrix perturbed_mass_matrix = Matrix(0,0);
+                Matrix perturbed_LHS = Matrix(num_dofs_element,num_dofs_element);
+                Matrix perturbed_mass_matrix = Matrix(num_dofs_element,num_dofs_element);
 
                 for(std::size_t coord_dir_i = 0; coord_dir_i < CurrentProcessInfo.GetValue(DOMAIN_SIZE); coord_dir_i++)
                 {
                     node_i.GetInitialPosition()[coord_dir_i] += mDelta;
 
                     elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
-                    perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
+                    noalias(perturbed_mass_matrix) = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
 
                     elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
-                    perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
+                    noalias(perturbed_LHS) = (perturbed_LHS - LHS_org) / mDelta;
 
                     for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                     {
                         aux_matrix.clear();
                         aux_vector.clear();
 
-                        aux_matrix = perturbed_LHS;
-                        aux_matrix -= (perturbed_mass_matrix * traced_eigenvalues[i]);
-                        aux_vector = prod(aux_matrix , eigenvectors_of_element[i]);
+                        noalias(aux_matrix) = perturbed_LHS;
+                        noalias(aux_matrix) -= (perturbed_mass_matrix * traced_eigenvalues[i]);
+                        noalias(aux_vector) = prod(aux_matrix , eigenvectors_of_element[i]);
 
                         gradient_contribution[coord_dir_i] += gradient_prefactors[i] * inner_prod(eigenvectors_of_element[i] , aux_vector) * mWeightingFactors[i];
                     }
