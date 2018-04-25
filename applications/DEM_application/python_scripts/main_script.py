@@ -83,10 +83,13 @@ class Solution(object):
         self.CreateModelParts()
 
         self.solver = self.SetSolver()
+        self.time = 0.0
         #self.final_time = DEM_parameters.FinalTime
         #self.dt = DEM_parameters.MaxTimeStep
         self.Setdt()
         self.SetFinalTime()
+        self.step = 0
+        self.time_old_print = 0.0
 
     def CreateModelParts(self):
         self.spheres_model_part = ModelPart("SpheresPart")
@@ -431,6 +434,51 @@ class Solution(object):
                 self.time_old_print = self.time
 
             self.FinalizeTimeStep(self.time)
+    def RunSingleTemporalLoop(self):
+
+        self.InitializeTimeStep()
+        self.time = self.time + self.dt
+        self.step += 1
+
+        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step)
+
+        self.BeforeSolveOperations(self.time)
+
+        self.SolverSolve()
+
+        self.AfterSolveOperations()
+
+        self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.dt)
+        #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
+
+        ##### adding DEM elements by the inlet ######
+        if self.DEM_parameters["dem_inlet_option"].GetBool():
+            self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
+
+        stepinfo = self.report.StepiReport(timer, self.time, self.step)
+        if stepinfo:
+            self.KRATOSprint(stepinfo)
+
+        #### PRINTING GRAPHS ####
+        os.chdir(self.graphs_path)
+        self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time)
+
+        self.materialTest.MeasureForcesAndPressure()
+        self.materialTest.PrintGraph(self.time)
+
+        self.DEMFEMProcedures.PrintGraph(self.time)
+        self.DEMFEMProcedures.PrintBallsGraph(self.time)
+
+        self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
+
+        self.BeforePrintingOperations(self.time)
+
+        #### GiD IO ##########################################
+        if self.IsTimeToPrintPostProcess():
+            self.PrintResultsForGid(self.time)
+            self.time_old_print = self.time
+
+        self.FinalizeTimeStep(self.time)
 
     def IsTimeToPrintPostProcess(self):
         return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self.dt

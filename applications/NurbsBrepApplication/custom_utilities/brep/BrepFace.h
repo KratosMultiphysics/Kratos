@@ -226,7 +226,7 @@ namespace Kratos
 	IntVector GetIntegerVector(const Vector& vector, const int& tolerance);
 
     //TODO: you need to give reading access to your internals through the Calculate function
-	BrepTrimmingCurve& GetTrimmingCurve(const int& trim_index);
+	BrepTrimmingCurve GetTrimmingCurve(const int& trim_index);
 	//Get functions
 	Vector& GetUKnotVector();
 	Vector& GetVKnotVector();
