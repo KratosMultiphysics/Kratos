@@ -41,7 +41,6 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
 
     def __init__(self, identifier, response_settings, model_part = None):
         self.identifier = identifier
-        self.response_settings = response_settings
 
         self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(model_part, response_settings)
 
@@ -96,7 +95,6 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
 
     def __init__(self, identifier, response_settings, model_part = None):
         self.identifier = identifier
-        self.response_settings = response_settings
 
         self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(model_part, response_settings)
 
