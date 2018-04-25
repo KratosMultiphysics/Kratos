@@ -135,7 +135,6 @@ void DistanceModificationProcess::ExecuteFinalizeSolutionStep() {
 void DistanceModificationProcess::ModifyDistance() {
 
     ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
-    //ModelPart::ElementsContainerType& rElements = mrModelPart.Elements();
 
     // Distance modification
     // Case in where the original distance does not need to be preserved (e.g. CFD)
