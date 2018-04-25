@@ -291,6 +291,25 @@ protected:
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
 
+    void CalculateStabilizationParameters(
+        const TElementData& rData,
+        const array_1d<double,3> &Velocity,
+        double &TauOne,
+        double &TauTwo,
+        double &TauP) const;
+
+    void SubscaleVelocity(
+        const TElementData& rData,
+        array_1d<double,3>& rVelocitySubscale) const override;
+
+    void SubscalePressure(
+        const TElementData& rData,
+        double &rPressureSubscale) const override;
+
+    array_1d<double,3> FullConvectiveVelocity(
+        const TElementData& rData) const;
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -350,26 +369,8 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateTau(
-        const TElementData& rData,
-        const array_1d<double,3> &Velocity,
-        double &TauOne,
-        double &TauTwo,
-        double &TauP) const;
-
-    void SubscaleVelocity(
-        const TElementData& rData,
-        array_1d<double,Dim>& rVelocitySubscale);
-
-    void SubscalePressure(
-        const TElementData& rData,
-        double &rPressureSubscale);
-
     void UpdateSubscaleVelocityPrediction(
         const TElementData& rData);
-
-    array_1d<double,3> FullConvectiveVelocity(
-        const TElementData& rData) const;
 
     ///@}
     ///@name Private  Access
