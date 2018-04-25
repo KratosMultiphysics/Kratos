@@ -205,6 +205,38 @@ ModelPart& SubModelPartsListUtility::GetRecursiveSubModelPart(
     return ThisModelPart;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+int SubModelPartsListUtility::IntersectKeys(
+        int Key0,
+        int Key1,
+        IntStringMapType& rColors 
+    )
+{
+    // Initialize output
+    int key = 0;
+
+    std::vector<int> intersection_key = {Key0, Key1};
+    auto search = mIntersections.find(intersection_key);
+    if (search != mIntersections.end() )
+    {
+        // Get the intersection
+        key = search->second;
+    }
+    else
+    {
+        // Compute the intersection
+        std::vector<std::string> intersection;
+
+        std::set_intersection(rColors[Key0].begin(), rColors[Key0].end(),
+                              rColors[Key1].begin(), rColors[Key1].end(),
+                              std::back_inserter(intersection));
+    }
+
+    return key;
+}
+
 }  // namespace Kratos.
 
 
