@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                     license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Fusseder Martin, Armin Geiser, Daniel Baumgärtner
+//  Main authors:    Fusseder Martin, Armin Geiser, Daniel Baumgaertner
 //
 
 #ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_UTILITY_H
@@ -78,13 +78,11 @@ public:
     EigenfrequencyResponseFunctionUtility(ModelPart& model_part, Parameters response_settings)
     : mrModelPart(model_part)
     {
-        DetermineGradientMode(response_settings);
+        CheckSettingsForGradientAnalysis(response_settings);
         DetermineTracedEigenfrequencies(response_settings);
-
         if(AreSeveralEigenfrequenciesTraced())
         {
-            if(!response_settings.Has("weighting_method"))
-                KRATOS_ERROR  << "Several eigenfrequencies are traced but no weighting method specified in the parameters!" << std::endl;
+            KRATOS_ERROR_IF_NOT(response_settings.Has("weighting_method")) << "Several eigenfrequencies are traced but no weighting method specified in the parameters!" << std::endl;
             if(response_settings["weighting_method"].GetString().compare("linear_scaling") == 0)
                 CalculateLinearWeights(response_settings);
             else
@@ -118,30 +116,19 @@ public:
     {
         CheckIfAllNecessaryEigenvaluesAreComputed();
 
-        double m_resp_function_value = 0.0;
-
+        double resp_function_value = 0.0;
         for(std::size_t i = 0; i < mTracedEigenfrequencyIds.size(); i++)
-            m_resp_function_value += mWeightingFactors[i] * std::sqrt(GetEigenvalue(mTracedEigenfrequencyIds[i])) / (2*Globals::Pi);
+            resp_function_value += mWeightingFactors[i] * std::sqrt(GetEigenvalue(mTracedEigenfrequencyIds[i])) / (2*Globals::Pi);
 
-        return m_resp_function_value;
+        return resp_function_value;
     }
 
     // --------------------------------------------------------------------------
     void CalculateGradient()
     {
         CheckIfAllNecessaryEigenvaluesAreComputed();
-
         VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
-
-        switch (mGradientMode)
-        {
-            // Semi-analytic sensitivities
-            case 1:
-            {
-                CalculateCompleteResponseDerivativeByFiniteDifferencing();
-                break;
-            }
-        }
+        PerformSemiAnalyticSensitivityAnalysis();
     }
 
     // ==============================================================================
@@ -198,21 +185,18 @@ protected:
     ///@{
 
     // ==============================================================================
-    void DetermineGradientMode(Parameters& rResponseSettings)
+    void CheckSettingsForGradientAnalysis(Parameters& rResponseSettings)
     {
         const std::string gradient_mode = rResponseSettings["gradient_mode"].GetString();
 
         if (gradient_mode.compare("semi_analytic") == 0)
-        {
-            mGradientMode = 1;
             mDelta = rResponseSettings["step_size"].GetDouble();
-        }
         else
             KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    void DetermineTracedEigenfrequencies(Parameters& rResponseSettings)
+    void DetermineTracedEigenfrequencies(Parameters rResponseSettings)
     {
         if(rResponseSettings["traced_eigenfrequency"].IsArray())
         {
@@ -255,10 +239,10 @@ protected:
         // Check the weighting factors and modify them for the case that their sum is unequal to one
         if(std::abs(test_sum_weight_facs - 1.0) > 1e-12)
         {
-            for(std::size_t i = 0; i < mTracedEigenfrequencyIds.size(); i++)
+            for(std::size_t i = 0; i < mWeightingFactors.size(); i++)
                 mWeightingFactors[i] /= test_sum_weight_facs;
 
-            std::cout << "> The sum of the chosen weighting factors is unequal to one. A scaling process was executed for them!" << std::endl;
+            KRATOS_INFO("\nEigenfrequencyResponseFunctionUtility") << "The sum of the chosen weighting factors is unequal one. A corresponding scaling process was exected!" << std::endl;
         }
     }
 
@@ -273,12 +257,12 @@ protected:
     void CheckIfAllNecessaryEigenvaluesAreComputed()
     {
         const int num_of_computed_eigenvalues = (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR]).size();
-        const int max_required_eigenfrequency = *std::max_element(mTracedEigenfrequencyIds.begin(), mTracedEigenfrequencyIds.end());
+        const int max_required_eigenfrequency = *(std::max_element(mTracedEigenfrequencyIds.begin(), mTracedEigenfrequencyIds.end()));
         KRATOS_ERROR_IF(max_required_eigenfrequency > num_of_computed_eigenvalues) << "The following Eigenfrequency shall be traced but was not computed by the eigenvalue analysies: " << max_required_eigenfrequency << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    void CalculateCompleteResponseDerivativeByFiniteDifferencing()
+    void PerformSemiAnalyticSensitivityAnalysis()
     {
         ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
@@ -307,104 +291,42 @@ protected:
             int num_dofs_element = mass_matrix_org.size1();
             std::vector<Vector> eigenvectors_of_element(num_of_traced_eigenfrequencies,Vector(0));
             for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
-            {
-                eigenvectors_of_element[i].resize(num_dofs_element,false);
-                eigenvectors_of_element[i] = GetEigenvectorOfElement(elem_i, mTracedEigenfrequencyIds[i], num_dofs_element);
-            }
+                DetermineEigenvectorOfElement(elem_i, mTracedEigenfrequencyIds[i], num_dofs_element, eigenvectors_of_element[i]);
 
-            // Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
-            for (auto& node_i : elem_i.GetGeometry())
+            // Computation of derivative of state equation w.r.t. node coordinates
+            for(auto& node_i : elem_i.GetGeometry())
             {
                 Vector gradient_contribution(3, 0.0);
                 Matrix perturbed_LHS = Matrix(0,0);
                 Matrix perturbed_mass_matrix = Matrix(0,0);
 
-                // Derivative of response w.r.t. x-coord ------------------------
-                node_i.X0() += mDelta;
-
-                elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
-                perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-
-                elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
-                perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
-
-                for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
+                for(std::size_t coord_dir_i = 0; coord_dir_i < CurrentProcessInfo.GetValue(DOMAIN_SIZE); coord_dir_i++)
                 {
-                    aux_matrix = perturbed_LHS;
-                    aux_matrix -= (perturbed_mass_matrix * traced_eigenvalues[i]);
-                    aux_vector = prod(aux_matrix , eigenvectors_of_element[i]);
-                    gradient_contribution[0] += gradient_prefactors[i] * inner_prod(eigenvectors_of_element[i] , aux_vector) * mWeightingFactors[i];
+                    node_i.GetInitialPosition()[coord_dir_i] += mDelta;
 
-                    aux_matrix = Matrix(0,0);
-                    aux_vector = Vector(0);
+                    elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
+                    perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
+
+                    elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
+                    perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
+
+                    for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
+                    {
+                        aux_matrix.clear();
+                        aux_vector.clear();
+
+                        aux_matrix = perturbed_LHS;
+                        aux_matrix -= (perturbed_mass_matrix * traced_eigenvalues[i]);
+                        aux_vector = prod(aux_matrix , eigenvectors_of_element[i]);
+
+                        gradient_contribution[coord_dir_i] += gradient_prefactors[i] * inner_prod(eigenvectors_of_element[i] , aux_vector) * mWeightingFactors[i];
+                    }
+
+                   node_i.GetInitialPosition()[coord_dir_i] -= mDelta;
                 }
-
-                node_i.X0() -= mDelta;
-
-                // End derivative of response w.r.t. x-coord --------------------
-
-                // Reset pertubed RHS and mass matrix
-                perturbed_LHS = Matrix(0,0);
-                perturbed_mass_matrix = Matrix(0,0);
-
-                // Derivative of response w.r.t. y-coord ------------------------
-                node_i.Y0() += mDelta;
-
-                elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
-                perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-
-                elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
-                perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
-
-                // Loop over eigenvalues
-                for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
-                {
-                    aux_matrix = perturbed_LHS;
-                    aux_matrix -= (perturbed_mass_matrix * traced_eigenvalues[i]);
-                    aux_vector = prod(aux_matrix , eigenvectors_of_element[i]);
-                    gradient_contribution[1] += gradient_prefactors[i] * inner_prod(eigenvectors_of_element[i] , aux_vector) * mWeightingFactors[i];
-
-                    aux_matrix = Matrix(0,0);
-                    aux_vector = Vector(0);;
-                }
-
-                node_i.Y0() -= mDelta;
-                // End derivative of response w.r.t. y-coord --------------------
-
-                // Reset pertubed RHS and mass matrix
-                perturbed_LHS = Matrix(0,0);
-                perturbed_mass_matrix= Matrix(0,0);
-
-                // Derivative of response w.r.t. z-coord ------------------------
-                node_i.Z0() += mDelta;
-
-                elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
-                perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-
-                elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
-                perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
-
-                // Loop over eigenvalues
-                for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
-                {
-                    aux_matrix = perturbed_LHS;
-                    aux_matrix -= (perturbed_mass_matrix * traced_eigenvalues[i]);
-                    aux_vector = prod(aux_matrix , eigenvectors_of_element[i]);
-                    gradient_contribution[2] += gradient_prefactors[i] * inner_prod(eigenvectors_of_element[i] , aux_vector) * mWeightingFactors[i];
-
-                    aux_matrix = Matrix(0,0);
-                    aux_vector = Vector(0);
-                }
-
-                node_i.Z0() -= mDelta;
-                // End derivative of response w.r.t. z-coord --------------------
-
-                // Assemble sensitivity to node
                 noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
-
-            }// End loop over nodes of element
-
-        }// End loop over elements
+            }
+        }
     }
 
     // --------------------------------------------------------------------------
@@ -415,24 +337,20 @@ protected:
     }
 
     // --------------------------------------------------------------------------
-    Vector GetEigenvectorOfElement(ModelPart::ElementType& traced_element, int eigenfrequency_id, int size_of_eigenvector)
+    void DetermineEigenvectorOfElement(ModelPart::ElementType& traced_element, int eigenfrequency_id, int size_of_eigenvector, Vector& rEigenvectorOfElement)
     {
-        Vector eigenvector_of_element(size_of_eigenvector,0.0);
+        rEigenvectorOfElement.resize(size_of_eigenvector,false);
 
-        // Get eigenvector of element
-        int k = 0;
-        const int NumNodeDofs = size_of_eigenvector/traced_element.GetGeometry().size();
-        for (auto& node_i : traced_element.GetGeometry())
+        const int num_nodes = traced_element.GetGeometry().size();
+        const int num_node_dofs = size_of_eigenvector/num_nodes;
+
+        for (std::size_t node_index=0; node_index<num_nodes; node_index++)
         {
-            Matrix& rNodeEigenvectors = node_i.GetValue(EIGENVECTOR_MATRIX);
+            Matrix& rNodeEigenvectors = traced_element.GetGeometry()[node_index].GetValue(EIGENVECTOR_MATRIX);
 
-            for (int i = 0; i < NumNodeDofs; i++)
-                eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((eigenfrequency_id-1),i);
-
-            k++;
+            for (int dof_index = 0; dof_index < num_node_dofs; dof_index++)
+                rEigenvectorOfElement(dof_index+num_node_dofs*node_index) = rNodeEigenvectors((eigenfrequency_id-1),dof_index);
         }
-
-        return eigenvector_of_element;
     }
 
     // ==============================================================================
@@ -460,7 +378,6 @@ private:
     ///@{
 
     ModelPart &mrModelPart;
-    unsigned int mGradientMode;
     double mDelta;
     std::vector<int> mTracedEigenfrequencyIds;
     std::vector<double> mWeightingFactors;
