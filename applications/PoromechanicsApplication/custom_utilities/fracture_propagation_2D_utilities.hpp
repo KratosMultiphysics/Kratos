@@ -85,7 +85,7 @@ protected:
 
     struct PropagationLocalVariables
     {
-        boost::numeric::ublas::bounded_matrix<double,2,2> RotationMatrix;
+        BoundedMatrix<double,2,2> RotationMatrix;
         array_1d<double,2> TipCoordinates;
         array_1d<double,2> TipLocalCoordinates;
         std::vector<FracturePoint*> TopFrontFracturePoints;
@@ -1495,7 +1495,7 @@ private:
 
     void CalculateTipRotationMatrix(
         const unsigned int& itFracture,
-        boost::numeric::ublas::bounded_matrix<double,2,2>& rRotationMatrix,
+        BoundedMatrix<double,2,2>& rRotationMatrix,
         Parameters& rParameters)
     {
         array_1d<double,3> TipPointCoordinates;

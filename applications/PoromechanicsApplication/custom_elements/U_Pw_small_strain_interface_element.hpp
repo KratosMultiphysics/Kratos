@@ -96,10 +96,10 @@ protected:
         array_1d<double,TDim> GlobalCoordinatesGradients;
         array_1d<double,TDim> LocalCoordinatesGradients;
         
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim-1> ShapeFunctionsNaturalGradientsMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TDim-1,TDim-1> LocalCoordinatesGradientsMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TDim-1,TDim-1> LocalCoordinatesGradientsInvMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim-1> ShapeFunctionsGradientsMatrix;
+        BoundedMatrix<double,TNumNodes,TDim-1> ShapeFunctionsNaturalGradientsMatrix;
+        BoundedMatrix<double,TDim-1,TDim-1> LocalCoordinatesGradientsMatrix;
+        BoundedMatrix<double,TDim-1,TDim-1> LocalCoordinatesGradientsInvMatrix;
+        BoundedMatrix<double,TNumNodes,TDim-1> ShapeFunctionsGradientsMatrix;
     };
         
     struct InterfaceElementVariables
@@ -123,7 +123,7 @@ protected:
         array_1d<double,TNumNodes*TDim> VolumeAcceleration;
 
         ///General elemental variables
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         array_1d<double,TDim> VoigtVector;
         
         ///Variables computed at each GP
@@ -137,18 +137,18 @@ protected:
         Matrix F;
         double detF;
         ///Auxiliary Variables
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu;
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> LocalPermeabilityMatrix;
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu;
+        BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix;
         array_1d<double,TDim> BodyAcceleration;
         double IntegrationCoefficient;
         double JointWidth;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes*TDim> PUMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> PMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> DimMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TDim> UDimMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> PDimMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes*TDim> PUMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PMatrix;
+        BoundedMatrix<double,TDim,TDim> DimMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TDim> UDimMatrix;
+        BoundedMatrix<double,TNumNodes,TDim> PDimMatrix;
         array_1d<double,TNumNodes*TDim> UVector;
         array_1d<double,TNumNodes> PVector;
     };
@@ -173,7 +173,7 @@ protected:
     void InitializeElementVariables(InterfaceElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                     const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
                                     
-    void CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
+    void CalculateRotationMatrix(BoundedMatrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
     
     void CalculateJointWidth(double& rJointWidth,const double& NormalRelDisp,const double& MinimumJointWidth,const unsigned int& GPoint);
     
@@ -182,7 +182,7 @@ protected:
 
     template< class TMatrixType >
     void CalculateShapeFunctionsGradients(TMatrixType& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian, 
-                                            const boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& RotationMatrix,
+                                            const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
                                             const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint);
                                             
                                     
