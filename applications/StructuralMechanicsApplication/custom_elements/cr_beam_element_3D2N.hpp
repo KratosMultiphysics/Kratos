@@ -7,8 +7,8 @@
 //           license: structural_mechanics_application/license.txt
 //
 //  Main authors: Klaus B. Sautter
-//                   
-//                   
+//
+//
 //
 
 #if !defined(KRATOS_CR_BEAM_ELEMENT_3D2N_H_INCLUDED )
@@ -26,11 +26,11 @@
 
 namespace Kratos
 {
-	/** 
+	/**
      * @class CrBeamElement3D2N
-     * 
+     *
      * @brief This is a 3D-2node beam element with 3 translational dofs and 3 rotational dof per node
-     * 
+     *
      * @author Klaus B Sautter
      */
 
@@ -105,12 +105,12 @@ namespace Kratos
 		/**
          * @brief This function calculates the current nodal position
          */
-		bounded_vector<double,msLocalSize> GetCurrentNodalPosition();
+		BoundedVector<double,msLocalSize> GetCurrentNodalPosition();
 
 		/**
          * @brief This function calculates the internal element forces
          */
-		bounded_vector<double,msLocalSize> CalculateElementForces(const Vector& Bisectrix,const Vector& VectorDifference);
+		BoundedVector<double,msLocalSize> CalculateElementForces(const Vector& Bisectrix,const Vector& VectorDifference);
 
 
 		/**
@@ -247,7 +247,7 @@ namespace Kratos
 		/**
          * @brief This function calculates self-weight forces
          */
-		bounded_vector<double,msElementSize> CalculateBodyForces();  
+		BoundedVector<double,msElementSize> CalculateBodyForces();
 
 		void CalculateOnIntegrationPoints(
 			const Variable<array_1d<double, 3 > >& rVariable,
@@ -278,30 +278,30 @@ namespace Kratos
 		 * @param ForceInput The self-weight line load vector
 		 * @param rRightHandSideVector The right hand side of the problem
 		 * @param GeometryLength The element length
-         */		
+         */
 		void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
-			const bounded_vector<double,msDimension> ForceInput,
-			bounded_vector<double,msElementSize>& rRightHandSideVector,
+			const BoundedVector<double,msDimension> ForceInput,
+			BoundedVector<double,msElementSize>& rRightHandSideVector,
 			const double GeometryLength);
 
 
 		/**
          * @brief This function calculates the symmetric deformation modes
 		 * @param VectorDifference The vector differences of the quaternions
-         */		
-		Vector CalculateSymmetricDeformationMode(const Vector& VectorDifference); 
+         */
+		Vector CalculateSymmetricDeformationMode(const Vector& VectorDifference);
 
 		/**
          * @brief This function calculates the antisymmetric deformation modes
 		 * @param Bisectrix The bisectrix between the local axis1 from the last iter. step and the updated axis 1
-         */		
-		Vector CalculateAntiSymmetricDeformationMode(const Vector& Bisectrix); 
+         */
+		Vector CalculateAntiSymmetricDeformationMode(const Vector& Bisectrix);
 
 		/**
          * @brief This function calculates the local nodal forces
 		 * @param Bisectrix The bisectrix between the local axis1 from the last iter. step and the updated axis 1
 		 * @param VectorDifference The vector differences of the quaternions
-         */		
+         */
 		void CalculateLocalNodalForces(const Vector& Bisectrix,const Vector& VectorDifference);
 
 	private:
@@ -317,7 +317,7 @@ namespace Kratos
 
 
 
-	
+
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;
 		void load(Serializer& rSerializer) override;

@@ -89,7 +89,7 @@ void TrussElementLinear3D2N::AddPrestressLinear(
   const double N = prestress * A;
 
   // internal force vectors
-  bounded_vector<double, msLocalSize> f_local = ZeroVector(msLocalSize);
+  BoundedVector<double, msLocalSize> f_local = ZeroVector(msLocalSize);
   f_local[0] = -1.00 * N;
   f_local[3] = 1.00 * N;
   rRightHandSideVector -= prod(transformation_matrix, f_local);
@@ -138,7 +138,7 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
   }
 
   if (rVariable == FORCE) {
-    bounded_vector<double, msDimension> truss_forces = ZeroVector(msDimension);
+    BoundedVector<double, msDimension> truss_forces = ZeroVector(msDimension);
     truss_forces[2] = 0.00;
     truss_forces[1] = 0.00;
     const double A = this->GetProperties()[CROSS_AREA];
@@ -166,7 +166,7 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
 }
 
 void TrussElementLinear3D2N::WriteTransformationCoordinates(
-    bounded_vector<double, TrussElement3D2N::msLocalSize>
+    BoundedVector<double, TrussElement3D2N::msLocalSize>
         &rReferenceCoordinates) {
   KRATOS_TRY;
   rReferenceCoordinates = ZeroVector(msLocalSize);
