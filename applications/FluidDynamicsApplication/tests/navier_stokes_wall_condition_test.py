@@ -1,6 +1,11 @@
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+try:
+    import KratosMultiphysics.ExternalSolversApplication
+    have_external_solvers = True
+except ImportError as e:
+    have_external_solvers = False
+
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -17,6 +22,7 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class NavierStokesWallConditionTest(UnitTest.TestCase):
     def testNavierStokesWallCondition(self):
         self.setUp()
@@ -29,7 +35,7 @@ class NavierStokesWallConditionTest(UnitTest.TestCase):
         self.ext_pres_res = 1000.0
         self.check_tolerance = 2e-2
         self.print_output = False
-        self.work_folder = "NavierStokesWallConditionTest"   
+        self.work_folder = "NavierStokesWallConditionTest"
         self.settings = "NavierStokesWallConditionTestParameters.json"
 
     def tearDown(self):
@@ -154,4 +160,4 @@ if __name__ == '__main__':
     test.runTest()
     test.tearDown()
     test.checkResults()
-    
+
