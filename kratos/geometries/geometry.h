@@ -692,7 +692,7 @@ public:
      * @param rTangentEta The tangent in the eta direction
      * @return The normal of the geometry
      */
-    virtual array_1d<double, 3> AreaNormalWithTangents(
+    virtual array_1d<double, 3> NormalWithTangents(
         const CoordinatesArrayType& rPointLocalCoordinates,
         array_1d<double, 3>& rNormal,
         array_1d<double, 3>& rTangentXi,
@@ -750,7 +750,7 @@ public:
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
         // Compute the normal and tangents
-        AreaNormalWithTangents(rPointLocalCoordinates, rNormal, rTangentXi, rTangentEta);
+        NormalWithTangents(rPointLocalCoordinates, rNormal, rTangentXi, rTangentEta);
 
         // Make unitary
         const double norm_normal = norm_2(rNormal);
@@ -775,7 +775,7 @@ public:
     virtual array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const
     {
         array_1d<double, 3> normal, tangent_xi, tangent_eta;
-        AreaNormalWithTangents(rPointLocalCoordinates, normal, tangent_xi, tangent_eta);
+        NormalWithTangents(rPointLocalCoordinates, normal, tangent_xi, tangent_eta);
         return normal;
     }
 

@@ -798,7 +798,7 @@ public:
      * @param rTangentEta The tangent in the eta direction
      * @return The normal of the geometry
      */
-    array_1d<double, 3> AreaNormalWithTangents(
+    array_1d<double, 3> NormalWithTangents(
         const CoordinatesArrayType& rPointLocalCoordinates,
         array_1d<double, 3>& rNormal,
         array_1d<double, 3>& rTangentXi,
