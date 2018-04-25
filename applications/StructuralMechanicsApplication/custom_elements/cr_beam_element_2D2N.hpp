@@ -170,7 +170,7 @@ namespace Kratos
 		/**
          * @brief This function calculates a transformation matrix from deformation modes to real deformations
          */
-		bounded_matrix<double,msElementSize,msLocalSize> CalculateTransformationS();
+		BoundedMatrix<double,msElementSize,msLocalSize> CalculateTransformationS();
 
 		/**
          * @brief This function calculates the current length
@@ -186,22 +186,22 @@ namespace Kratos
 		/**
          * @brief This function calculates the elastic part of the total stiffness matrix
          */
-		bounded_matrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_mat();
+		BoundedMatrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_mat();
 
 		/**
          * @brief This function calculates the geometric part of the total stiffness matrix
          */
-		bounded_matrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_geo();
+		BoundedMatrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_geo();
 
 		/**
          * @brief This function calculates the co-rotating part of the total stiffness matrix
          */
-		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Kr();
+		BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Kr();
 
 		/**
          * @brief This function assembles the total stiffness matrix
          */
-		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Total();
+		BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Total();
 
 
 		/**
@@ -225,7 +225,7 @@ namespace Kratos
 		/**
          * @brief This function calculates the transformation matrix to globalize/localize vectors and/or matrices
          */
-		virtual bounded_matrix<double,msElementSize,msElementSize> CreateRotationMatrix();
+		virtual BoundedMatrix<double,msElementSize,msElementSize> CreateRotationMatrix();
 
 
 		/**

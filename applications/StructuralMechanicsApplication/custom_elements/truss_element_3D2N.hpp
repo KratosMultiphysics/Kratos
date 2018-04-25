@@ -85,7 +85,7 @@ namespace Kratos
 		/**
          * @brief This function calculates the total stiffness matrix for the element
          */
-		virtual bounded_matrix<double,msLocalSize,msLocalSize>
+		virtual BoundedMatrix<double,msLocalSize,msLocalSize>
 		 CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateOnIntegrationPoints(
@@ -113,7 +113,7 @@ namespace Kratos
          * @brief This function calculates the transformation matrix to globalize vectors and/or matrices
          * @param rRotationMatrix The transformation matrix
          */
-		void CreateTransformationMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
+		void CreateTransformationMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
 
 		void CalculateOnIntegrationPoints(
 			const Variable<Vector>& rVariable,
@@ -199,7 +199,7 @@ namespace Kratos
          * @param rGeometricStiffnessMatrix The geometric stiffness matrix
          * @param rCurrentProcessInfo The current process information
          */
-		void CalculateGeometricStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rGeometricStiffnessMatrix,
+		void CalculateGeometricStiffnessMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rGeometricStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
 		/**
@@ -207,7 +207,7 @@ namespace Kratos
          * @param rElasticStiffnessMatrix The elastic stiffness matrix
          * @param rCurrentProcessInfo The current process information
          */
-		void CalculateElasticStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rElasticStiffnessMatrix,
+		void CalculateElasticStiffnessMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rElasticStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
 		/**

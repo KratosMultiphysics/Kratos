@@ -78,18 +78,18 @@ void TrussElement3D2N::Initialize() {
   KRATOS_CATCH("")
 }
 
-bounded_matrix<double, TrussElement3D2N::msLocalSize,
+BoundedMatrix<double, TrussElement3D2N::msLocalSize,
                TrussElement3D2N::msLocalSize>
 TrussElement3D2N::CreateElementStiffnessMatrix(
     ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
-  bounded_matrix<double, msLocalSize, msLocalSize> local_stiffness_matrix =
+  BoundedMatrix<double, msLocalSize, msLocalSize> local_stiffness_matrix =
       ZeroMatrix(msLocalSize, msLocalSize);
 
   this->CalculateElasticStiffnessMatrix(local_stiffness_matrix,
                                         rCurrentProcessInfo);
-  bounded_matrix<double, msLocalSize, msLocalSize> K_geo =
+  BoundedMatrix<double, msLocalSize, msLocalSize> K_geo =
       ZeroMatrix(msLocalSize, msLocalSize);
   this->CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
 
@@ -514,7 +514,7 @@ void TrussElement3D2N::UpdateInternalForces(
     BoundedVector<double, TrussElement3D2N::msLocalSize> &rinternalForces) {
 
   KRATOS_TRY
-  bounded_matrix<double, msLocalSize, msLocalSize> transformation_matrix =
+  BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
       ZeroMatrix(msLocalSize, msLocalSize);
 
   this->CreateTransformationMatrix(transformation_matrix);
@@ -543,7 +543,7 @@ void TrussElement3D2N::UpdateInternalForces(
 }
 
 void TrussElement3D2N::CreateTransformationMatrix(
-    bounded_matrix<double, TrussElement3D2N::msLocalSize,
+    BoundedMatrix<double, TrussElement3D2N::msLocalSize,
                    TrussElement3D2N::msLocalSize> &rRotationMatrix) {
 
   KRATOS_TRY
@@ -587,7 +587,7 @@ void TrussElement3D2N::CreateTransformationMatrix(
   }
 
   // 2nd fill big rotation matrix
-  bounded_matrix<double, msDimension, msDimension> current_coordinate_system =
+  BoundedMatrix<double, msDimension, msDimension> current_coordinate_system =
       ZeroMatrix(msDimension, msDimension);
   for (unsigned int i = 0; i < msDimension; ++i) {
     current_coordinate_system(i, 0) = direction_vector_x[i];
@@ -692,7 +692,7 @@ void TrussElement3D2N::AddExplicitContribution(
 }
 
 void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
-    bounded_matrix<double, TrussElement3D2N::msLocalSize,
+    BoundedMatrix<double, TrussElement3D2N::msLocalSize,
                    TrussElement3D2N::msLocalSize> &rGeometricStiffnessMatrix,
     ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
@@ -787,7 +787,7 @@ void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
 }
 
 void TrussElement3D2N::CalculateElasticStiffnessMatrix(
-    bounded_matrix<double, TrussElement3D2N::msLocalSize,
+    BoundedMatrix<double, TrussElement3D2N::msLocalSize,
                    TrussElement3D2N::msLocalSize> &rElasticStiffnessMatrix,
     ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;

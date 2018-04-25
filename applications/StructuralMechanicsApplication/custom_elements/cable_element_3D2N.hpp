@@ -61,7 +61,7 @@ namespace Kratos
 			VectorType& rRightHandSideVector,
 			ProcessInfo& rCurrentProcessInfo) override;
 
-		bounded_matrix<double,msLocalSize,msLocalSize>
+		BoundedMatrix<double,msLocalSize,msLocalSize>
 		 CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateRightHandSide(

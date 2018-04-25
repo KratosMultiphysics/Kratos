@@ -82,7 +82,7 @@ namespace Kratos
 		/**
          * @brief This function calculates the total stiffness matrix for the element
          */
-		bounded_matrix<double,msLocalSize,msLocalSize>
+		BoundedMatrix<double,msLocalSize,msLocalSize>
 		 CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
 
 		/**

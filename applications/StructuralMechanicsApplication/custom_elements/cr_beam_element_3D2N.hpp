@@ -85,22 +85,22 @@ namespace Kratos
 		/**
          * @brief This function calculates the elastic part of the total stiffness matrix
          */
-		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Material();
+		BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Material();
 
 		/**
          * @brief This function calculates the geometric part of the total stiffness matrix
          */
-		bounded_matrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry();
+		BoundedMatrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry();
 
 		/**
          * @brief This function calculates the element stiffness w.r.t. deformation modes
          */
-		virtual bounded_matrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness();
+		virtual BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness();
 
 		/**
          * @brief This function calculates a transformation matrix from deformation modes to real deformations
          */
-		bounded_matrix<double,msElementSize,msLocalSize> CalculateTransformationS();
+		BoundedMatrix<double,msElementSize,msLocalSize> CalculateTransformationS();
 
 		/**
          * @brief This function calculates the current nodal position
@@ -118,20 +118,20 @@ namespace Kratos
 		 * @param rRotationMatrix The current transformation matrix
          */
 		void CalculateTransformationMatrix(
-			bounded_matrix<double,msElementSize,msElementSize>& rRotationMatrix,
+			BoundedMatrix<double,msElementSize,msElementSize>& rRotationMatrix,
 			Vector& Bisectrix, Vector& VectorDifference);
 
 
 		/**
          * @brief This function calculates the initial transformation matrix to globalize/localize vectors and/or matrices
          */
-		bounded_matrix<double,msElementSize,msElementSize> CalculateInitialLocalCS();
+		BoundedMatrix<double,msElementSize,msElementSize> CalculateInitialLocalCS();
 
 
 		/**
          * @brief This function updates constantly the transformation matrix
          */
-		bounded_matrix<double,msDimension,msDimension> UpdateRotationMatrixLocal(Vector& Bisectrix, Vector& VectorDifference);
+		BoundedMatrix<double,msDimension,msDimension> UpdateRotationMatrixLocal(Vector& Bisectrix, Vector& VectorDifference);
 
 		void CalculateLocalSystem(
 			MatrixType& rLeftHandSideMatrix,
@@ -210,7 +210,7 @@ namespace Kratos
 		 * @param SmallMatrix The local transformation matrix
 		 * @param BigMatrix The total global rotation matrix
          */
-		void AssembleSmallInBigMatrix(Matrix SmallMatrix, bounded_matrix<double,
+		void AssembleSmallInBigMatrix(Matrix SmallMatrix, BoundedMatrix<double,
 			msElementSize,msElementSize>& BigMatrix);
 
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
