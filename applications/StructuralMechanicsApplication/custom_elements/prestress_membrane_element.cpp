@@ -513,7 +513,7 @@ void PrestressMembraneElement::ClearNodalForces()
 //***********************************************************************************
 
 void PrestressMembraneElement::CalculateQ(
-    boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+    BoundedMatrix<double, 3, 3>& Q,
     Matrix& mG)
 
 {
@@ -538,7 +538,7 @@ void PrestressMembraneElement::CalculateQ(
 
 void PrestressMembraneElement::CalculateB(
     Matrix& B,
-    boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+    BoundedMatrix<double, 3, 3>& Q,
     const Matrix& DN_De,
     const array_1d<double, 3>& g1,
     const array_1d<double, 3>& g2)
@@ -711,7 +711,7 @@ void PrestressMembraneElement::CalculateAll(
     }
 
     // Initializing the Nodal coordinates
-    // change to: boost::numeric::ublas::bounded_matrix
+    // change to: BoundedMatrix
     Matrix xyz_reference;   // Nodal coordinates in the reference configuration
     Matrix xyz_actual;      // Nodal coordinates in the actual configuration
 
@@ -873,7 +873,7 @@ void PrestressMembraneElement::CalculateSecondVariationStrain(Matrix DN_De,
     Matrix & Strain_locCartesian11,
     Matrix & Strain_locCartesian22,
     Matrix & Strain_locCartesian12,
-    boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+    BoundedMatrix<double, 3, 3>& Q,
     array_1d<double, 3>& g1,
     array_1d<double, 3>& g2)
 {
@@ -1478,8 +1478,8 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
         double lg_contravariant_2 = norm_2(Gab_contravariant_2);
         array_1d<double, 3> E2 = Gab_contravariant_2 / lg_contravariant_2;
 
-        boost::numeric::ublas::bounded_matrix<double, 2, 2> mG;
-        //boost::numeric::ublas::bounded_matrix<double, 2, 3> mG;
+        BoundedMatrix<double, 2, 2> mG;
+        //BoundedMatrix<double, 2, 3> mG;
         mG(0, 0) = inner_prod(E1, Gab_contravariant_1);
         mG(0, 1) = inner_prod(E1, Gab_contravariant_2);
         mG(1, 0) = inner_prod(E2, Gab_contravariant_1);
@@ -1508,7 +1508,7 @@ void PrestressMembraneElement::ComputeContravariantBaseVectors(
 {
     // determinant metric
     const double inv_det_metric = 1.0/(mGab0[rPointNumber][0]*mGab0[rPointNumber][1]- mGab0[rPointNumber][2]*mGab0[rPointNumber][2]);
-    
+
     // contravariant metric
     array_1d<double, 3> metric_contra;
     metric_contra[0]=  inv_det_metric * mGab0[rPointNumber][1];
@@ -1541,7 +1541,7 @@ const Matrix PrestressMembraneElement::CalculateDeformationGradient(const unsign
 
     MathUtils<double>::CrossProduct(g3,g1,g2);
     g3 /= norm_2(g3);
-    
+
     Matrix deformation_gradient(3, 3);
     for(std::size_t i=0; i<3; i++){
         for(std::size_t j=0; j<3; j++){

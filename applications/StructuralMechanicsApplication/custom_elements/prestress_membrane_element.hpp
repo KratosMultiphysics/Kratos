@@ -161,7 +161,7 @@ namespace Kratos
 
     //void CalculateAndAddKg(
     //  Matrix& K,
-    //  boost::numeric::ublas::bounded_matrix<double, 3, 3>& msQ,
+    //  BoundedMatrix<double, 3, 3>& msQ,
     //  const Matrix& DN_De,
     //  Vector& msStressVector,
     //  double weight);
@@ -185,23 +185,23 @@ namespace Kratos
 
 
     //void MakeCrossMatrix(
-    //  boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
+    //  BoundedMatrix<double, 3, 3>& M,
     //  array_1d<double, 3>& U);
 
 
     void CalculateQ(
-      boost::numeric::ublas::bounded_matrix<double, 3, 3>& msQ,
+      BoundedMatrix<double, 3, 3>& msQ,
       Matrix& msG);
 
     void CalculateB(
         Matrix& B,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+        BoundedMatrix<double, 3, 3>& Q,
         const Matrix& DN_De,
         const array_1d<double, 3>& g1,
         const array_1d<double, 3>& g2);
 
     //void CalculateJ(
-    //  boost::numeric::ublas::bounded_matrix<double, 2, 2>& j,
+    //  BoundedMatrix<double, 2, 2>& j,
     //  array_1d<double, 3>& ge,
     //  array_1d<double, 3>& gn,
     //  array_1d<double, 3>& v3);
@@ -237,7 +237,7 @@ namespace Kratos
         Matrix& Strain_locCartesian11,
         Matrix& Strain_locCartesian22,
         Matrix& Strain_locCartesian12,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+        BoundedMatrix<double, 3, 3>& Q,
         array_1d<double, 3>& g1,
         array_1d<double, 3>& g2);
 
@@ -252,7 +252,7 @@ namespace Kratos
     void InitializeMaterial(const unsigned int NumberIntegrationPoints);
 
     void ComputeContravariantBaseVectors(
-                        array_1d<double, 3>& rG1Contra, 
+                        array_1d<double, 3>& rG1Contra,
                         array_1d<double, 3>& rG2Contra,
                         const unsigned int& rPointNumber);
 
