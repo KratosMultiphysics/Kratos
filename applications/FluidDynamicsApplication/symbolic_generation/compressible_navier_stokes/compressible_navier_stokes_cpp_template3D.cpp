@@ -65,7 +65,7 @@ void CompressibleNavierStokes<3>::GetDofList(DofsVectorType& ElementalDofList, P
 }
 
 template<>
-void CompressibleNavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,20,20>& lhs, const ElementDataStruct& data,double data_v_sc, double data_k_sc)
+void CompressibleNavierStokes<3>::ComputeGaussPointLHSContribution(BoundedMatrix<double,20,20>& lhs, const ElementDataStruct& data,double data_v_sc, double data_k_sc)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -76,10 +76,10 @@ void CompressibleNavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matri
     const double& bdf1 = data.bdf1;
     const double& bdf2 = data.bdf2;
  
-    const bounded_matrix<double,nnodes,BlockSize>& U = data.U;
-    const bounded_matrix<double,nnodes,BlockSize>& Un = data.Un;
-    const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
-    const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
+    const BoundedMatrix<double,nnodes,BlockSize>& U = data.U;
+    const BoundedMatrix<double,nnodes,BlockSize>& Un = data.Un;
+    const BoundedMatrix<double,nnodes,BlockSize>& Unn = data.Unn;
+    const BoundedMatrix<double,nnodes,dim>& f_ext = data.f_ext;
     const array_1d<double,nnodes>& r = data.r;
     const double mu = data.mu;
     const double nu = data.nu;
@@ -92,7 +92,7 @@ void CompressibleNavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matri
  
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
     
     // Stabilization parameters
     const double stab_c1 = 4.0;
@@ -132,10 +132,10 @@ void CompressibleNavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<doub
     const double& bdf1 = data.bdf1;
     const double& bdf2 = data.bdf2;
     
-    const bounded_matrix<double,nnodes,BlockSize>& U = data.U;
-    const bounded_matrix<double,nnodes,BlockSize>& Un = data.Un;
-    const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
-    const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
+    const BoundedMatrix<double,nnodes,BlockSize>& U = data.U;
+    const BoundedMatrix<double,nnodes,BlockSize>& Un = data.Un;
+    const BoundedMatrix<double,nnodes,BlockSize>& Unn = data.Unn;
+    const BoundedMatrix<double,nnodes,dim>& f_ext = data.f_ext;
     const array_1d<double,nnodes>& r = data.r;
     const double mu = data.mu;
     const double nu = data.nu;
@@ -148,12 +148,12 @@ void CompressibleNavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<doub
     
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,BlockSize> U_gauss = prod(trans(U), N);
     const array_1d<double,dim> f_gauss = prod(trans(f_ext), N);
-    const bounded_matrix<double,dim,BlockSize> grad_U = prod(trans(U), DN); 
+    const BoundedMatrix<double,dim,BlockSize> grad_U = prod(trans(U), DN); 
     const array_1d<double,BlockSize> accel_gauss = bdf0*U_gauss+bdf1*prod(trans(Un), N)+bdf2*prod(trans(Unn), N);
     
     // Stabilization parameters
@@ -193,23 +193,23 @@ double CompressibleNavierStokes<3>::ShockCapturingViscosity(const ElementDataStr
     const double& bdf1 = data.bdf1;
     const double& bdf2 = data.bdf2;
 
-    const bounded_matrix<double,nnodes,BlockSize>& U = data.U;
-    const bounded_matrix<double,nnodes,BlockSize>& Un = data.Un;
-    const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
-    const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
+    const BoundedMatrix<double,nnodes,BlockSize>& U = data.U;
+    const BoundedMatrix<double,nnodes,BlockSize>& Un = data.Un;
+    const BoundedMatrix<double,nnodes,BlockSize>& Unn = data.Unn;
+    const BoundedMatrix<double,nnodes,dim>& f_ext = data.f_ext;
     const double gamma = data.gamma;
     double v_sc = 0.0;                                      //Shock capturing viscosity
-    bounded_matrix<double,dim,1> res_m; 
+    BoundedMatrix<double,dim,1> res_m; 
     res_m(0,0)= 0; res_m(1,0)= 0; res_m(2,0)= 0;
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,BlockSize> U_gauss = prod(trans(U), N);
     const array_1d<double,dim> f_gauss = prod(trans(f_ext), N);
-    const bounded_matrix<double,BlockSize,dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
+    const BoundedMatrix<double,BlockSize,dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
     const array_1d<double,BlockSize> accel_gauss = bdf0*U_gauss+bdf1*prod(trans(Un), N)+bdf2*prod(trans(Unn), N);
     
     //substitute_res_m_3D
@@ -245,23 +245,23 @@ double CompressibleNavierStokes<3>::ShockCapturingConductivity(const ElementData
     const double& bdf1 = data.bdf1;
     const double& bdf2 = data.bdf2;
 
-    const bounded_matrix<double,nnodes,BlockSize>& U = data.U;
-    const bounded_matrix<double,nnodes,BlockSize>& Un = data.Un;
-    const bounded_matrix<double,nnodes,BlockSize>& Unn = data.Unn;
-    const bounded_matrix<double,nnodes,dim>& f_ext = data.f_ext;
+    const BoundedMatrix<double,nnodes,BlockSize>& U = data.U;
+    const BoundedMatrix<double,nnodes,BlockSize>& Un = data.Un;
+    const BoundedMatrix<double,nnodes,BlockSize>& Unn = data.Unn;
+    const BoundedMatrix<double,nnodes,dim>& f_ext = data.f_ext;
     const array_1d<double,nnodes>& r = data.r;
     const double gamma = data.gamma;
     double k_sc = 0.0;          // Shock Capturing Conductivity
-    bounded_matrix<double,dim,1> res_e;
+    BoundedMatrix<double,dim,1> res_e;
     res_e(0,0) = 0;
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,BlockSize> U_gauss = prod(trans(U), N);
     const array_1d<double,dim> f_gauss = prod(trans(f_ext), N);
-    const bounded_matrix<double,BlockSize,dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
+    const BoundedMatrix<double,BlockSize,dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
     const array_1d<double,BlockSize> accel_gauss = bdf0*U_gauss+bdf1*prod(trans(Un), N)+bdf2*prod(trans(Unn), N);
     
     //substitute_res_e_3D
