@@ -21,6 +21,8 @@
 #include "testing/testing.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "tests/geometries/test_geometry.h"
+#include "tests/geometries/test_shape_function_derivatives.h"
+#include "tests/geometries/cross_check_shape_functions_values.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -523,5 +525,22 @@ namespace Kratos {
         KRATOS_CHECK_NEAR(local_coords_outside_point(2), 0.5, TOLERANCE);
     }
 
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+      auto geom = GenerateTriRectangularTetrahedra3D4();
+      array_1d<double, 3> coord(3);
+      coord[0] = 1.0 / 2.0;
+      coord[1] = 1.0 / 4.0;
+      coord[2] = 1.0 / 16.0;
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.1875, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.25, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.0625, TOLERANCE);
+      CrossCheckShapeFunctionsValues(*geom);
+  }
+
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
+      auto geom = GenerateTriRectangularTetrahedra3D4();
+      TestAllShapeFunctionsLocalGradients(*geom);
+  }
 	}
 }  // namespace Kratos.

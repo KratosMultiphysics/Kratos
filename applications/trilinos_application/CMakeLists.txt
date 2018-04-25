@@ -14,7 +14,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
 #find trilinos solver package -- this is our own find package!!
 find_package(TRILINOS REQUIRED)
-include_directories(${TRILINOS_INCLUDE_DIR})
+include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
 link_directories(${TRILINOS_LIBRARIES})
 
 if(TRILINOS_USE_AMGCL MATCHES ON)
@@ -70,7 +70,7 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 # target_link_libraries(testmap ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${BLAS_LIBRARIES})
 
 # ###############################################################
-pybind11_add_module(KratosTrilinosApplication MODULE ${KRATOS_TRILINOS_APPLICATION_SOURCES})
+pybind11_add_module(KratosTrilinosApplication MODULE THIN_LTO ${KRATOS_TRILINOS_APPLICATION_SOURCES})
 
 
 

@@ -84,7 +84,7 @@ typedef double*                                     DistanceIterator;
 typedef PointConfigure<3>                           PointConfigureType;
 //Bin Types
 typedef BinsObjectDynamic<PointConfigureType>       PointBinsType;
-typedef PointerVectorSet<Point, IndexedObject>   PointSetType;
+typedef PointerVectorSet<Point, IndexedObject>      PointSetType;
 
 
 ///@}
@@ -143,7 +143,7 @@ void SearchPointsImplementation(
             r_results[i].reserve(n_of_results);
 
             for (PointSetType::ContainerType::iterator it = local_results.begin(); it != local_results.begin() + n_of_results; ++it){
-                Node<3>::Pointer p_node = boost::dynamic_pointer_cast<Node<3> >(*it);
+                Node<3>::Pointer p_node = Kratos::dynamic_pointer_cast<Node<3> >(*it);
                 r_results[i].push_back(p_node);
             }
 
@@ -155,7 +155,7 @@ void SearchPointsImplementation(
 }
 
 /// Turn back information as a string.
-virtual std::string Info() const
+virtual std::string Info() const override
 {
 std::stringstream buffer;
 buffer << "PointPointSearch" ;
@@ -164,10 +164,10 @@ return buffer.str();
 }
 
 /// Print information about this object.
-virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "PointPointSearch";}
+virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "PointPointSearch";}
 
 /// Print object's data.
-virtual void PrintData(std::ostream& rOStream) const {}
+virtual void PrintData(std::ostream& rOStream) const override {}
 
 
 ///@}

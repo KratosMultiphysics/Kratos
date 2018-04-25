@@ -528,8 +528,8 @@ void MeshTyingMortarCondition<2,3,ScalarValue>::CalculateLocalLHS(
     )
 {
     // We get the mortar operators
-    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -585,8 +585,8 @@ void MeshTyingMortarCondition<2,3,Vector2DValue>::CalculateLocalLHS(
     )
 {
     // We get the mortar operators
-    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -750,8 +750,8 @@ void MeshTyingMortarCondition<2,4,ScalarValue>::CalculateLocalLHS(
     )
 {
     // We get the mortar operators
-    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -807,8 +807,8 @@ void MeshTyingMortarCondition<2,4,Vector2DValue>::CalculateLocalLHS(
     )
 {
     // We get the mortar operators
-    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -972,8 +972,8 @@ void MeshTyingMortarCondition<3,4,ScalarValue>::CalculateLocalLHS(
     )
 {
     // We get the mortar operators
-    const bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -1079,8 +1079,8 @@ void MeshTyingMortarCondition<3,4,Vector3DValue>::CalculateLocalLHS(
     )
 {
     // We get the mortar operators
-    const bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -1834,8 +1834,8 @@ void MeshTyingMortarCondition<3,8,ScalarValue>::CalculateLocalLHS(
     )
 {
     // We get the mortar operators
-    const bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -2011,8 +2011,8 @@ void MeshTyingMortarCondition<3,8,Vector3DValue>::CalculateLocalLHS(
     )
 {
     // We get the mortar operators
-    const bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
     const double clhs1 =     -MOperator(1,0);
@@ -3344,14 +3344,14 @@ void MeshTyingMortarCondition<2,3,ScalarValue>::CalculateLocalRHS(
     )
 {
     // Initialize values
-    const bounded_matrix<double, 2, ScalarValue>& u1 = rDofData.u1;
-    const bounded_matrix<double, 2, ScalarValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 2, ScalarValue>& u1 = rDofData.u1;
+    const BoundedMatrix<double, 2, ScalarValue>& u2 = rDofData.u2;
 
-    const bounded_matrix<double, 2, ScalarValue>& lm = rDofData.LagrangeMultipliers; 
+    const BoundedMatrix<double, 2, ScalarValue>& lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
@@ -3373,14 +3373,14 @@ void MeshTyingMortarCondition<2,3,Vector2DValue>::CalculateLocalRHS(
     )
 {
     // Initialize values
-    const bounded_matrix<double, 2, Vector2DValue>& u1 = rDofData.u1;
-    const bounded_matrix<double, 2, Vector2DValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 2, Vector2DValue>& u1 = rDofData.u1;
+    const BoundedMatrix<double, 2, Vector2DValue>& u2 = rDofData.u2;
 
-    const bounded_matrix<double, 2, Vector2DValue>& lm = rDofData.LagrangeMultipliers; 
+    const BoundedMatrix<double, 2, Vector2DValue>& lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
@@ -3408,14 +3408,14 @@ void MeshTyingMortarCondition<2,4,ScalarValue>::CalculateLocalRHS(
     )
 {
     // Initialize values
-    const bounded_matrix<double, 2, ScalarValue>& u1 = rDofData.u1;
-    const bounded_matrix<double, 2, ScalarValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 2, ScalarValue>& u1 = rDofData.u1;
+    const BoundedMatrix<double, 2, ScalarValue>& u2 = rDofData.u2;
 
-    const bounded_matrix<double, 2, ScalarValue>& lm = rDofData.LagrangeMultipliers; 
+    const BoundedMatrix<double, 2, ScalarValue>& lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
@@ -3437,14 +3437,14 @@ void MeshTyingMortarCondition<2,4,Vector2DValue>::CalculateLocalRHS(
     )
 {
     // Initialize values
-    const bounded_matrix<double, 2, Vector2DValue>& u1 = rDofData.u1;
-    const bounded_matrix<double, 2, Vector2DValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 2, Vector2DValue>& u1 = rDofData.u1;
+    const BoundedMatrix<double, 2, Vector2DValue>& u2 = rDofData.u2;
 
-    const bounded_matrix<double, 2, Vector2DValue>& lm = rDofData.LagrangeMultipliers; 
+    const BoundedMatrix<double, 2, Vector2DValue>& lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
@@ -3472,14 +3472,14 @@ void MeshTyingMortarCondition<3,4,ScalarValue>::CalculateLocalRHS(
     )
 {
     // Initialize values
-    const bounded_matrix<double, 3, ScalarValue>& u1 = rDofData.u1;
-    const bounded_matrix<double, 3, ScalarValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 3, ScalarValue>& u1 = rDofData.u1;
+    const BoundedMatrix<double, 3, ScalarValue>& u2 = rDofData.u2;
 
-    const bounded_matrix<double, 3, ScalarValue>& lm = rDofData.LagrangeMultipliers; 
+    const BoundedMatrix<double, 3, ScalarValue>& lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0);
@@ -3504,14 +3504,14 @@ void MeshTyingMortarCondition<3,4,Vector3DValue>::CalculateLocalRHS(
     )
 {
     // Initialize values
-    const bounded_matrix<double, 3, Vector3DValue>& u1 = rDofData.u1;
-    const bounded_matrix<double, 3, Vector3DValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 3, Vector3DValue>& u1 = rDofData.u1;
+    const BoundedMatrix<double, 3, Vector3DValue>& u2 = rDofData.u2;
 
-    const bounded_matrix<double, 3, Vector3DValue>& lm = rDofData.LagrangeMultipliers; 
+    const BoundedMatrix<double, 3, Vector3DValue>& lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0);
@@ -3554,14 +3554,14 @@ void MeshTyingMortarCondition<3,8,ScalarValue>::CalculateLocalRHS(
     )
 {
     // Initialize values
-    const bounded_matrix<double, 4, ScalarValue>& u1 = rDofData.u1;
-    const bounded_matrix<double, 4, ScalarValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 4, ScalarValue>& u1 = rDofData.u1;
+    const BoundedMatrix<double, 4, ScalarValue>& u2 = rDofData.u2;
 
-    const bounded_matrix<double, 4, ScalarValue>& lm = rDofData.LagrangeMultipliers; 
+    const BoundedMatrix<double, 4, ScalarValue>& lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0) + MOperator(3,0)*lm(3,0);
@@ -3589,14 +3589,14 @@ void MeshTyingMortarCondition<3,8,Vector3DValue>::CalculateLocalRHS(
     )
 {
     // Initialize values
-    const bounded_matrix<double, 4, Vector3DValue>& u1 = rDofData.u1;
-    const bounded_matrix<double, 4, Vector3DValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 4, Vector3DValue>& u1 = rDofData.u1;
+    const BoundedMatrix<double, 4, Vector3DValue>& u2 = rDofData.u2;
 
-    const bounded_matrix<double, 4, Vector3DValue>& lm = rDofData.LagrangeMultipliers; 
+    const BoundedMatrix<double, 4, Vector3DValue>& lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
-    const bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0) + MOperator(3,0)*lm(3,0);

@@ -78,7 +78,7 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Destructor.
@@ -96,7 +96,7 @@ public:
     /**
      * Dimension of the law:
      */
-    SizeType WorkingSpaceDimension()
+    SizeType WorkingSpaceDimension() override
     {
         return 2;
     };
@@ -104,12 +104,12 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize()
+    SizeType GetStrainSize() override
     {
         return 4;
     };
 
-    virtual void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
 /*    bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );
@@ -233,15 +233,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    //String Info() const override;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    //void PrintInfo(std::ostream& rOStream) const override;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    //void PrintData(std::ostream& rOStream) const override;
 
 protected:
 
@@ -266,7 +266,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual Matrix SetConstitutiveMatrixToAppropiateDimension(const Matrix& rElastoPlasticTangentMatrix);
+    Matrix SetConstitutiveMatrixToAppropiateDimension(const Matrix& rElastoPlasticTangentMatrix) override;
 
 
     /**
@@ -279,8 +279,8 @@ protected:
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-            Vector& rStrainVector );
+    void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+            Vector& rStrainVector ) override;
 
 
     /**
@@ -288,8 +288,8 @@ protected:
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-                                         Vector& rStrainVector );
+    void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+                                         Vector& rStrainVector ) override;
     /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS 
         in a pullback fashion
     */
@@ -524,12 +524,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlastic3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlastic3DLaw )
     }

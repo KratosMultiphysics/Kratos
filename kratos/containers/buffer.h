@@ -214,7 +214,7 @@ public:
     /** Adds a ublas::vector to the end of the buffer. This method stores the size and all elements of the vector.
     */
     template<class TDataType>
-    void push_back(boost::numeric::ublas::vector<TDataType> const& rValue)
+    void push_back(DenseVector<TDataType> const& rValue)
     {
         push_back(rValue.size());
         push_back(rValue.begin(), rValue.end());
@@ -317,7 +317,7 @@ public:
         It reads the size and resizes the vector. Then it fills the vector element by element.
     */
     template<class TDataType>
-    void pop_front(boost::numeric::ublas::vector<TDataType>& rValue)
+    void pop_front(DenseVector<TDataType>& rValue)
     {
         SizeType local_size;
 

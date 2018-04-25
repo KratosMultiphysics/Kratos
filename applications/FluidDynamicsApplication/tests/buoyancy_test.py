@@ -135,6 +135,7 @@ class BuoyancyTest(UnitTest.TestCase):
         rel_pres_tol = 1e-5
         abs_pres_tol = 1e-7
         self.fluid_solver.conv_criteria = VelPrCriteria(rel_vel_tol,abs_vel_tol,rel_pres_tol,abs_pres_tol)
+        self.fluid_solver.conv_criteria.SetEchoLevel(0)
 
         alpha = -0.3
         move_mesh = 0

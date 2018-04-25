@@ -162,7 +162,7 @@ private:
     static void SetMatrixA(
         const std::vector< array_1d< double,3 > > &rPointsCoords,
         const array_1d<double,3> &rPlaneBasePointCoords,
-        bounded_matrix<double,TDim,TDim> &rA) 
+        BoundedMatrix<double,TDim,TDim> &rA) 
     {
         noalias(rA) = ZeroMatrix(TDim);
         const unsigned int n_points = rPointsCoords.size();
@@ -192,7 +192,7 @@ private:
         array_1d<double,3> &rPlaneNormal) 
     {
         // Solve the A matrix eigenvalue problem 
-        bounded_matrix<double, TDim, TDim> a_mat, eigenval_mat, eigenvector_mat;
+        BoundedMatrix<double, TDim, TDim> a_mat, eigenval_mat, eigenvector_mat;
         SetMatrixA(rPointsCoords, rPlaneBasePointCoords, a_mat);
         bool converged = MathUtils<double>::EigenSystem<TDim>(a_mat, eigenvector_mat, eigenval_mat);
         KRATOS_ERROR_IF(!converged) << "Plane normal can't be computed. Eigenvalue problem did not converge." << std::endl;

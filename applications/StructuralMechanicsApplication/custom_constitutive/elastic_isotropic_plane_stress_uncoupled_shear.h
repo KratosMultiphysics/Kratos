@@ -52,7 +52,7 @@ namespace Kratos
 * - SHEAR_MODULUS_GAMMA12_2
 * - SHEAR_MODULUS_GAMMA12_3
 * - SHEAR_MODULUS_GAMMA12_4
-* @note Reference: Chen, S., Harper, L. T., Endruweit, A., & Warrior, N. A. (2015). Formability optimisation of fabric preforms by controlling material draw-in through in-plane constraints. Composites Part A: Applied Science and Manufacturing, 76, 10–19. https://doi.org/10.1016/j.compositesa.2015.05.006
+* @note Reference: Chen, S., Harper, L. T., Endruweit, A., & Warrior, N. A. (2015). Formability optimisation of fabric preforms by controlling material draw-in through in-plane constraints. Composites Part A: Applied Science and Manufacturing, 76, 10-19. https://doi.org/10.1016/j.compositesa.2015.05.006
 * @author Philippe Bussetta
 */class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElasticIsotropicPlaneStressUncoupledShear : public LinearPlaneStress
 {
@@ -162,11 +162,11 @@ protected:
     * @param rStressVector The stress vector in Voigt notation
     * @param rValues Parameters of the constitutive law
     */
-    virtual void CalculatePK2Stress(
+    void CalculatePK2Stress(
         const Vector& rStrainVector,
         Vector& rStressVector,
         ConstitutiveLaw::Parameters& rValues
-        );
+        ) override;
 
     ///@}
 
@@ -211,4 +211,4 @@ private:
 
 }; // Class ElasticIsotropicPlaneStressUncoupledShear
 }  // namespace Kratos.
-#endif // KRATOS_ELASTIC_ISOTROPIC_PLANE_STRESS_UNCOUPLED_SHEAR_LAW_H_INCLUDED  defined 
+#endif // KRATOS_ELASTIC_ISOTROPIC_PLANE_STRESS_UNCOUPLED_SHEAR_LAW_H_INCLUDED  defined
