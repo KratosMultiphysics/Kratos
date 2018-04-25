@@ -116,6 +116,9 @@ KRATOS_TEST_CASE_IN_SUITE(InterfacePreprocessorUpdateInterface, KratosMappingApp
     CompareElementsAndConditionsUtility::GetRegisteredName(*(interface_model_part->ConditionsBegin()), condition_name);
     KRATOS_CHECK_EQUAL(mapper_condition_name, condition_name);
 
+    // From here a new mesh is created (Remeshed)
+    // Afterwards it is checked if the InterfaceModelPart matches with the updated mesh
+
     model_part.GetMesh().Clear();
 
     Parameters mesher_parameters_2(R"(
