@@ -114,7 +114,7 @@ namespace Kratos
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "SimoMethod";
@@ -122,13 +122,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SimoMethod";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SimoMethod Data";     
     }
@@ -159,7 +159,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual void PredictFromVariable(NodeType& rNode) override
+    void PredictFromVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -167,7 +167,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     } 
     
-    virtual void PredictFromFirstDerivative(NodeType& rNode) override
+    void PredictFromFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -182,7 +182,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void PredictFromSecondDerivative(NodeType& rNode) override
+    void PredictFromSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -201,14 +201,14 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void PredictVariable(NodeType& rNode) override
+    void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
       KRATOS_CATCH( "" )
     }
     
-    virtual void PredictFirstDerivative(NodeType& rNode) override
+    void PredictFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -222,7 +222,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void PredictSecondDerivative(NodeType& rNode) override
+    void PredictSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -239,7 +239,7 @@ namespace Kratos
     }
     
 
-    virtual void UpdateVariable(NodeType& rNode) override
+    void UpdateVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -247,7 +247,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    virtual void UpdateFirstDerivative(NodeType& rNode) override
+    void UpdateFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -261,7 +261,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void UpdateSecondDerivative(NodeType& rNode) override
+    void UpdateSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -320,12 +320,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
     };
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
     };

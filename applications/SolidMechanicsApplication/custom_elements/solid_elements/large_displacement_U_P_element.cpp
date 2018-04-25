@@ -271,49 +271,19 @@ void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, in
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+unsigned int LargeDisplacementUPElement::GetDofsSize()
 {
-    KRATOS_TRY
-
-    LargeDisplacementElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
-
-    KRATOS_CATCH( "" )
+  KRATOS_TRY
+     
+  const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+  const unsigned int number_of_nodes = GetGeometry().PointsNumber();    
+  
+  unsigned int size = number_of_nodes * dimension + number_of_nodes; //usual size for U-P elements
+  
+  return size;   
+  
+  KRATOS_CATCH( "" )
 }
-
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementUPElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        Flags& rCalculationFlags)
-
-{
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    //resizing as needed the LHS
-    unsigned int MatSize = number_of_nodes * dimension + number_of_nodes;
-
-    if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-    {
-        if ( rLeftHandSideMatrix.size1() != MatSize )
-            rLeftHandSideMatrix.resize( MatSize, MatSize, false );
-
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
-    }
-
-
-    //resizing as needed the RHS
-    if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
-    {
-        if ( rRightHandSideVector.size() != MatSize )
-            rRightHandSideVector.resize( MatSize, false );
-
-        noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
-    }
-}
-
 
 
 //************************************************************************************
@@ -1056,7 +1026,7 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
     //lumped
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * dimension + number_of_nodes;
+    const unsigned int MatSize = this->GetDofsSize();
 
     if ( rMassMatrix.size1() != MatSize )
         rMassMatrix.resize( MatSize, MatSize, false );
@@ -1153,7 +1123,7 @@ void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMat
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
-    unsigned int MatSize = number_of_nodes * dimension + number_of_nodes;
+    const unsigned int MatSize = this->GetDofsSize();    
 
     if ( rDampingMatrix.size1() != MatSize )
         rDampingMatrix.resize( MatSize, MatSize, false );

@@ -79,8 +79,9 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
                 self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = True
 
         # set bossak factor
-        bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
-        self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
+        if(integration_method.find("Bossak") != -1 or integration_method.find("Simo") != -1):
+            bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
+            self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
 
         # set solution scheme and integration method dictionary
         self.integration_methods = {}
@@ -96,6 +97,15 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.SimoMethod(),
                                              'ROTATION': KratosSolid.SimoMethod()}) #shells
             mechanical_scheme = KratosSolid.DisplacementSimoScheme()
+        elif(integration_method == "BackwardEuler"):
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BackwardEulerMethod(),
+                                             'ROTATION': KratosSolid.BackwardEulerMethod()}) #shells
+            mechanical_scheme = KratosSolid.DisplacementBackwardEulerScheme()
+        elif(integration_method == "BDF"):
+            self.process_info[KratosSolid.TIME_INTEGRATION_ORDER] = self.time_integration_settings["time_integration_order"].GetInt()
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BackwardEulerMethod(),
+                                             'ROTATION': KratosSolid.BackwardEulerMethod()}) #shells
+            mechanical_scheme = KratosSolid.DisplacementBdfScheme()
         elif(integration_method == "RotationNewmark"):
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.NewmarkStepMethod(),
                                              'ROTATION': KratosSolid.NewmarkStepRotationMethod()}) #beams

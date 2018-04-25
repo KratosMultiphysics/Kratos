@@ -167,7 +167,7 @@ protected:
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
         const unsigned int PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
     
     ///@}
@@ -201,18 +201,11 @@ private:
      * @param rB The deformation matrix
      * @param rF The deformation gradient
      * @param rDN_DX The gradient derivative of the shape function
-     * @param StrainSize The size of the Voigt notation stress vector
-     * @param IntegrationPoints The array containing the integration points
      * @param PointNumber The integration point considered
      */
-    void CalculateB(
-        Matrix& rB,
-        const Matrix& rF,
-        const Matrix& rDN_DX,
-        const unsigned int StrainSize,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
-        );
+    void CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+
+    void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
 
     ///@}
     ///@name Private Operations

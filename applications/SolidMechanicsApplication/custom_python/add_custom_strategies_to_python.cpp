@@ -48,6 +48,8 @@
 #include "custom_solvers/solution_schemes/displacement_rotation_static_scheme.hpp"
 #include "custom_solvers/solution_schemes/displacement_rotation_emc_scheme.hpp"
 #include "custom_solvers/solution_schemes/displacement_simo_scheme.hpp"
+#include "custom_solvers/solution_schemes/displacement_backward_euler_scheme.hpp"
+#include "custom_solvers/solution_schemes/displacement_bdf_scheme.hpp"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -115,6 +117,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef DisplacementRotationBossakScheme<SparseSpaceType, LocalSpaceType>    DisplacementRotationBossakSchemeType;
 
   typedef DisplacementSimoScheme<SparseSpaceType, LocalSpaceType>                        DisplacementSimoSchemeType;
+  typedef DisplacementBackwardEulerScheme<SparseSpaceType, LocalSpaceType>      DisplacementBackwardEulerSchemeType;
+  typedef DisplacementBdfScheme<SparseSpaceType, LocalSpaceType>                          DisplacementBdfSchemeType;
 
   typedef DisplacementRotationSimoScheme<SparseSpaceType, LocalSpaceType>        DisplacementRotationSimoSchemeType;
   typedef DisplacementRotationEmcScheme<SparseSpaceType, LocalSpaceType>          DisplacementRotationEmcSchemeType;
@@ -138,7 +142,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef NewmarkMethod<VariableComponentType, double>                            NewmarkMethodType;
   typedef BossakMethod<VariableComponentType, double>                              BossakMethodType;
   typedef SimoMethod<VariableComponentType, double>                                  SimoMethodType;
-
+  typedef BackwardEulerMethod<VariableComponentType, double>                BackwardEulerMethodType;
+  typedef BdfMethod<VariableComponentType, double>                                    BdfMethodType;
+  
   typedef StaticStepMethod<VariableComponentType, double>                      StaticStepMethodType;	    
   typedef NewmarkStepMethod<VariableComponentType, double>                    NewmarkStepMethodType;
   typedef BossakStepMethod<VariableComponentType, double>                      BossakStepMethodType;
@@ -292,7 +298,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("Initialize", &SolutionSchemeType::Initialize)
       .def("InitializeSolutionStep", &SolutionSchemeType::InitializeSolutionStep)
       .def("FinalizeSolutionStep", &SolutionSchemeType::FinalizeSolutionStep)
-      .def("Predict", &SolutionSchemeType::Predict)
       .def("Update", &SolutionSchemeType::Update)
       .def("MoveMesh", &SolutionSchemeType::MoveMesh)
       .def("Check", &SolutionSchemeType::Check)
@@ -345,6 +350,18 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<Flags&>())
       ;
 
+  // Displacement Backward Euler Scheme Type
+  class_<DisplacementBackwardEulerSchemeType,  typename DisplacementBackwardEulerSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementBackwardEulerScheme")
+      .def(init<>())
+      .def(init<Flags&>())
+      ;
+
+  // Displacement Bdf Scheme Type
+  class_<DisplacementBdfSchemeType,  typename DisplacementBdfSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementBdfScheme")
+      .def(init<>())
+      .def(init<Flags&>())
+      ;
+  
   // Displacement Rotation Simo Scheme Type
   class_<DisplacementRotationSimoSchemeType, typename DisplacementRotationSimoSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementRotationSimoScheme")
       .def(init<>())
@@ -397,6 +414,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("SetStepVariable", &TimeIntegrationMethodType::SetStepVariable)
       .def("CalculateParameters", &TimeIntegrationMethodType::CalculateParameters)
       .def("SetParameters", &TimeIntegrationMethodType::SetParameters)
+      .def("Assign", &TimeIntegrationMethodType::Assign)
       .def("Predict", &TimeIntegrationMethodType::Predict)
       .def("__repr__", &TimeIntegrationMethodType::Info)
       ;
@@ -430,6 +448,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("SetStepVariable", &TimeIntegrationComponentMethodType::SetStepVariable)
       .def("CalculateParameters", &TimeIntegrationComponentMethodType::CalculateParameters)
       .def("SetParameters", &TimeIntegrationComponentMethodType::SetParameters)
+      .def("Assign", &TimeIntegrationComponentMethodType::Assign)      
       .def("Predict", &TimeIntegrationComponentMethodType::Predict)
       .def("__repr__", &TimeIntegrationComponentMethodType::Info)
       ;
@@ -455,6 +474,16 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<>())
       ;
       
+  class_<BackwardEulerMethodType, typename BackwardEulerMethodType::Pointer,
+         TimeIntegrationComponentMethodType>(m,"BackwardEulerMethod")
+      .def(init<>())
+      ;
+
+  class_<BdfMethodType, typename BdfMethodType::Pointer,
+         TimeIntegrationComponentMethodType>(m,"BdfMethod")
+      .def(init<>())
+      ;
+  
   class_<StaticStepMethodType, typename StaticStepMethodType::Pointer,
          TimeIntegrationComponentMethodType>(m,"StaticStepMethod")
       .def(init<>())

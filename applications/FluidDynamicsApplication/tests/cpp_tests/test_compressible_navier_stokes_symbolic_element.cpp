@@ -18,7 +18,6 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "spaces/ublas_space.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "custom_elements/compressible_navier_stokes.h"
@@ -28,7 +27,7 @@ namespace Kratos {
 
 		typedef ModelPart::IndexType									 IndexType;
 		typedef ModelPart::NodeIterator					          NodeIteratorType;
-        
+
         /** Checks the CompressibleNavierStokes2D3N element.
 		 * Checks the RHS in case of constant variables (no acceleration).
          * Test for Air at 20 Degrees and Mach 3
@@ -74,22 +73,22 @@ namespace Kratos {
 			modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
 			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
 			modelPart.CreateNewElement("CompressibleNavierStokes2D3N", 1, elemNodes, pElemProp);
-            
+
 
 			Element::Pointer pElement = modelPart.pGetElement(1);
             //std::cout<<*pElement<<std::endl; //Info on element
-            
+
 			// Define the nodal values
 			array_1d<double, 3> momentum;
 			double R = 287.05;						// J/(kg*K)
 			double density = 1.772;                 // density
 			double T = 0.00247;                         // Temperature in K
-			double velocity = 2.9;   
+			double velocity = 2.9;
             momentum[0] = velocity*density;        //momentum
             momentum[1] = velocity*density;        //momentum
 			momentum[2] = 0.0;        //momentum
-			double Ma = velocity/sqrt(1.4*R*T); 
-            double total_energy = density*R*T/(1.4-1)+(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2])/(2*density);   	
+			double Ma = velocity/sqrt(1.4*R*T);
+            double total_energy = density*R*T/(1.4-1)+(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2])/(2*density);
 
             std::cout<<"\nDensity = "<<density<<std::endl;
 			std::cout<<"\nTemperature = "<<T<<std::endl;
@@ -98,13 +97,13 @@ namespace Kratos {
 			std::cout<<"\nMomentum_2 = "<<momentum[2]<<std::endl;
             std::cout<<"\nMach = "<<Ma<<std::endl;
             std::cout<<"\nTotal energy:"<<total_energy<<"\n"<<std::endl;
-			            
+
             array_1d<double, 3> f_ext;
             f_ext[0] = 0.0;
             f_ext[1] = 0.0;
             f_ext[2] = 0.0;
             double r = 0.0;         // EXTERNAL_PRESSURE
-			
+
 			// Set the nodal values
 			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
 				it_node->FastGetSolutionStepValue(DENSITY) = density;
@@ -113,14 +112,14 @@ namespace Kratos {
 				it_node->FastGetSolutionStepValue(BODY_FORCE) = f_ext;
 				it_node->FastGetSolutionStepValue(EXTERNAL_PRESSURE) = r;
 			}
-			
+
 			modelPart.CloneTimeStep(delta_time); //generate other time step equal to this one
-            modelPart.CloneTimeStep(2*delta_time); //to simulate the zero acceleration 
+            modelPart.CloneTimeStep(2*delta_time); //to simulate the zero acceleration
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(12);
 
-			pElement->Initialize(); // Initialize the element 
+			pElement->Initialize(); // Initialize the element
 			pElement->CalculateRightHandSide(RHS, modelPart.GetProcessInfo());
 
 			// Check obtained RHS
@@ -132,7 +131,7 @@ namespace Kratos {
             sum_RHS = sqrt(sum_RHS);
 			KRATOS_CHECK_NEAR(sum_RHS, 0.0, 1e-9);
         }
-                        
+
 		/** Checks the CompressibleNavierStokes2D3N element.
 		 * Checks the LHS and RHS stationary solid rigid movements.
          * Test for air at 20 degrees and Mach 3
@@ -177,24 +176,24 @@ namespace Kratos {
 			modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
 			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
 			modelPart.CreateNewElement("CompressibleNavierStokes2D3N", 1, elemNodes, pElemProp);
-            
+
 
 			Element::Pointer pElement = modelPart.pGetElement(1);
 //             std::cout<<*pElement<<std::endl; //Info on element
-            
+
 			// Define the nodal values
 			array_1d<double, 3> momentum;
 			array_1d<double, 3> momentum_n;
 			double density = 1.772;              //density
 			double T = 0.00247;                      // Temperature in K
 			double R = 287.05;						// J/(kg*K)
-			double velocity = 2.9;     
+			double velocity = 2.9;
             momentum[0] = velocity*density;        //momentum (velocity = 300 m/s)
             momentum[1] = velocity*density;        //momentum
 			momentum[2] = 0.0;        //momentum
 			double Ma = velocity/sqrt(1.4*R*T);
-            double total_energy = density*R*T/(1.4-1)+(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2])/(2*density);   	
-            momentum_n[0] = 1.0; momentum_n[1] = 1.0; momentum_n[2] = 1.0; //Casual value for the previous steps 
+            double total_energy = density*R*T/(1.4-1)+(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2])/(2*density);
+            momentum_n[0] = 1.0; momentum_n[1] = 1.0; momentum_n[2] = 1.0; //Casual value for the previous steps
 
             std::cout<<"\n\nDensity = "<<density<<std::endl;
 			std::cout<<"\nTemperature = "<<T<<std::endl;
@@ -203,13 +202,13 @@ namespace Kratos {
 			std::cout<<"\nMomentum_2 = "<<momentum[2]<<std::endl;
             std::cout<<"\nMach = "<<Ma<<std::endl;
             std::cout<<"\nTotal energy:"<<total_energy<<std::endl;
-			            
+
             array_1d<double, 3> f_ext;
             f_ext[0] = 0.0;
             f_ext[1] = 0.0;
             f_ext[2] = 0.0;
             double r = 0.0;         // EXTERNAL_PRESSURE
-			
+
 			// Set the nodal values
 			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
 				it_node->FastGetSolutionStepValue(DENSITY) = density;
@@ -238,47 +237,47 @@ namespace Kratos {
 				sum_RHS += RHS[i]*RHS[i];
             sum_RHS = sqrt(sum_RHS);
 			KRATOS_CHECK_NEAR(sum_RHS, 0.0, 1e-12);
-            
+
 			// Check rigid movement modes
 			Vector a(12);
 			Vector rhs(12);
 			double sum_rhs;
-			
+
             // Mode 1 check
             std::cout<<"\nRigid Body Movement: Mode 1\n"<<std::endl;
-            
-			a[0] = 1.0; a[1] = 0.0; a[2] = 0.0;	a[3] = 0.0;	
-            a[4] = 1.0;	a[5] = 0.0;	a[6] = 0.0;	a[7] = 0.0;	
+
+			a[0] = 1.0; a[1] = 0.0; a[2] = 0.0;	a[3] = 0.0;
+            a[4] = 1.0;	a[5] = 0.0;	a[6] = 0.0;	a[7] = 0.0;
             a[8] = 1.0; a[9] = 0.0; a[10] = 0.0; a[11] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
-            
+
 			for (unsigned int i=0; i<rhs.size(); ++i){
 				sum_rhs += rhs[i];
                 std::cout<<"\nRHS["<<i<<"]="<<rhs[i]<<std::endl;
             }
 			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-9);
-            
+
             // Mode 2 check
             std::cout<<"\nRigid Body Movement: Mode 2\n"<<std::endl;
-            
-			a[0] = 0.0; a[1] = 1.0; a[2] = 0.0;	a[3] = 0.0;	
-            a[4] = 0.0;	a[5] = 1.0;	a[6] = 0.0;	a[7] = 0.0;	
+
+			a[0] = 0.0; a[1] = 1.0; a[2] = 0.0;	a[3] = 0.0;
+            a[4] = 0.0;	a[5] = 1.0;	a[6] = 0.0;	a[7] = 0.0;
             a[8] = 0.0; a[9] = 1.0; a[10] = 0.0; a[11] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
-            
+
 			for (unsigned int i=0; i<rhs.size(); ++i){
 				sum_rhs += rhs[i];
                 std::cout<<"\nRHS["<<i<<"]="<<rhs[i]<<std::endl;
             }
 			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-9);
-			
+
             // Mode 3 check
             std::cout<<"\nRigid Body Movement: Mode 3\n"<<std::endl;
-            
-			a[0] = 0.0; a[1] = 0.0; a[2] = 1.0;	a[3] = 0.0;	
-            a[4] = 0.0;	a[5] = 0.0;	a[6] = 1.0;	a[7] = 0.0;	
+
+			a[0] = 0.0; a[1] = 0.0; a[2] = 1.0;	a[3] = 0.0;
+            a[4] = 0.0;	a[5] = 0.0;	a[6] = 1.0;	a[7] = 0.0;
             a[8] = 0.0; a[9] = 0.0; a[10] = 1.0; a[11] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
@@ -287,12 +286,12 @@ namespace Kratos {
                 std::cout<<"\nRHS["<<i<<"]="<<rhs[i]<<std::endl;
             }
 			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-9);
-            
+
             // Mode 4 check
             std::cout<<"\nRigid Body Movement: Mode 4\n"<<std::endl;
-            
-			a[0] = 0.0; a[1] = 0.0; a[2] = 0.0;	a[3] = 1.0;	
-            a[4] = 0.0;	a[5] = 0.0;	a[6] = 0.0;	a[7] = 1.0;	
+
+			a[0] = 0.0; a[1] = 0.0; a[2] = 0.0;	a[3] = 1.0;
+            a[4] = 0.0;	a[5] = 0.0;	a[6] = 0.0;	a[7] = 1.0;
             a[8] = 0.0; a[9] = 0.0; a[10] = 0.0; a[11] = 1.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
@@ -301,10 +300,10 @@ namespace Kratos {
                 std::cout<<"\nRHS["<<i<<"]="<<rhs[i]<<std::endl;
             }
 			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-9);
-			
-            
+
+
 	    }
-	    
+
 	    /** Checks the CompressibleNavierStokes2D3N element.
 		 * Checks the LHS and RHS stationary solid rigid movements.
          * Test for Air at 20 degrees and Mach 0.5
@@ -348,24 +347,24 @@ namespace Kratos {
 			modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
 			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
 			modelPart.CreateNewElement("CompressibleNavierStokes2D3N", 1, elemNodes, pElemProp);
-            
+
 
 			Element::Pointer pElement = modelPart.pGetElement(1);
 //             std::cout<<*pElement<<std::endl; //Info on element
-            
+
 			// Define the nodal values
 			array_1d<double, 3> momentum;
 			array_1d<double, 3> momentum_n;
 			double density = 1.772;              //density
 			double R = 287.05;						// J/(kg*K)
 			double T = 293;                      // Temperature in K
-			double velocity = 1.0;     
+			double velocity = 1.0;
             momentum[0] = velocity*density;        //momentum (velocity = 300 m/s)
             momentum[1] = velocity*density;        //momentum
 			momentum[2] = 0.0;        //momentum
 			double Ma = velocity/sqrt(1.4*R*T);
-            double total_energy = density*R*T/(1.4-1)+(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2])/(2*density);   	
-            momentum_n[0] = 1.0; momentum_n[1] = 1.0; momentum_n[2] = 1.0; //Casual value for the previous steps 
+            double total_energy = density*R*T/(1.4-1)+(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2])/(2*density);
+            momentum_n[0] = 1.0; momentum_n[1] = 1.0; momentum_n[2] = 1.0; //Casual value for the previous steps
 
             std::cout<<"\n\nDensity = "<<density<<std::endl;
 			std::cout<<"\nTemperature = "<<T<<std::endl;
@@ -374,13 +373,13 @@ namespace Kratos {
 			std::cout<<"\nMomentum_2 = "<<momentum[2]<<std::endl;
             std::cout<<"\nMach = "<<Ma<<std::endl;
             std::cout<<"\nTotal energy:"<<total_energy<<std::endl;
-			            
+
             array_1d<double, 3> f_ext;
             f_ext[0] = 0.0;
             f_ext[1] = 0.0;
             f_ext[2] = 0.0;
             double r = 0.0;         // EXTERNAL_PRESSURE
-			
+
 			// Set the nodal values
 			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
 				it_node->FastGetSolutionStepValue(DENSITY) = density;
@@ -409,47 +408,47 @@ namespace Kratos {
 				sum_RHS += RHS[i]*RHS[i];
             sum_RHS = sqrt(sum_RHS);
 			KRATOS_CHECK_NEAR(sum_RHS, 0.0, 1e-10);
-            
+
 			// Check rigid movement modes
 			Vector a(12);
 			Vector rhs(12);
 			double sum_rhs;
-			
+
             // Mode 1 check
             std::cout<<"\nRigid Body Movement: Mode 1\n"<<std::endl;
-            
-			a[0] = 1.0; a[1] = 0.0; a[2] = 0.0;	a[3] = 0.0;	
-            a[4] = 1.0;	a[5] = 0.0;	a[6] = 0.0;	a[7] = 0.0;	
+
+			a[0] = 1.0; a[1] = 0.0; a[2] = 0.0;	a[3] = 0.0;
+            a[4] = 1.0;	a[5] = 0.0;	a[6] = 0.0;	a[7] = 0.0;
             a[8] = 1.0; a[9] = 0.0; a[10] = 0.0; a[11] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
-            
+
 			for (unsigned int i=0; i<rhs.size(); ++i){
 				sum_rhs += rhs[i];
                 std::cout<<"\nRHS["<<i<<"]="<<rhs[i]<<std::endl;
             }
 			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-10);
-            
+
             // Mode 2 check
             std::cout<<"\nRigid Body Movement: Mode 2\n"<<std::endl;
-            
-			a[0] = 0.0; a[1] = 1.0; a[2] = 0.0;	a[3] = 0.0;	
-            a[4] = 0.0;	a[5] = 1.0;	a[6] = 0.0;	a[7] = 0.0;	
+
+			a[0] = 0.0; a[1] = 1.0; a[2] = 0.0;	a[3] = 0.0;
+            a[4] = 0.0;	a[5] = 1.0;	a[6] = 0.0;	a[7] = 0.0;
             a[8] = 0.0; a[9] = 1.0; a[10] = 0.0; a[11] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
-            
+
 			for (unsigned int i=0; i<rhs.size(); ++i){
 				sum_rhs += rhs[i];
                 std::cout<<"\nRHS["<<i<<"]="<<rhs[i]<<std::endl;
             }
 			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-10);
-			
+
             // Mode 3 check
             std::cout<<"\nRigid Body Movement: Mode 3\n"<<std::endl;
-            
-			a[0] = 0.0; a[1] = 0.0; a[2] = 1.0;	a[3] = 0.0;	
-            a[4] = 0.0;	a[5] = 0.0;	a[6] = 1.0;	a[7] = 0.0;	
+
+			a[0] = 0.0; a[1] = 0.0; a[2] = 1.0;	a[3] = 0.0;
+            a[4] = 0.0;	a[5] = 0.0;	a[6] = 1.0;	a[7] = 0.0;
             a[8] = 0.0; a[9] = 0.0; a[10] = 1.0; a[11] = 0.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
@@ -458,12 +457,12 @@ namespace Kratos {
                 std::cout<<"\nRHS["<<i<<"]="<<rhs[i]<<std::endl;
             }
 			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-10);
-            
+
             // Mode 4 check
             std::cout<<"\nRigid Body Movement: Mode 4\n"<<std::endl;
-            
-			a[0] = 0.0; a[1] = 0.0; a[2] = 0.0;	a[3] = 1.0;	
-            a[4] = 0.0;	a[5] = 0.0;	a[6] = 0.0;	a[7] = 1.0;	
+
+			a[0] = 0.0; a[1] = 0.0; a[2] = 0.0;	a[3] = 1.0;
+            a[4] = 0.0;	a[5] = 0.0;	a[6] = 0.0;	a[7] = 1.0;
             a[8] = 0.0; a[9] = 0.0; a[10] = 0.0; a[11] = 1.0;
 			sum_rhs = 0.0;
 			rhs = prod(LHS,a);
@@ -472,11 +471,11 @@ namespace Kratos {
                 std::cout<<"\nRHS["<<i<<"]="<<rhs[i]<<std::endl;
             }
 			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-10);
-			
-            
+
+
 	    }
-	    
-	    
+
+
     }
-	    
+
 }
