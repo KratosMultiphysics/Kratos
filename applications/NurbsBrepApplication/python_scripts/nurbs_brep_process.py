@@ -11,7 +11,7 @@ def Factory(settings, model_part):
     return NurbsBrepProcess(model_part, settings)
 
 class NurbsBrepProcess(KratosMultiphysics.Process):
-  
+
     def __init__(self,model_part,params):
 
         ## Settings string in json format
@@ -59,32 +59,32 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
             "integration_domain_file_name": "problem_name_integrationdomain.json"
         }
         """)
-        
+
         ## Overwrite the default settings with user-provided parameters
         self.params = params
         self.params.ValidateAndAssignDefaults(default_parameters)
-        
+
         self.model_part = model_part
-        
+
     def ExecuteInitialize(self):
         self.model_part_integration_domain = KratosMultiphysics.ModelPart(self.params["integration_domain_model_part_name"].GetString())
-        
-        cad_geometry_file = open(self.params["cad_geometry_file_name"].GetString(),'r')
-        cad_geometry = KratosMultiphysics.Parameters( cad_geometry_file.read())
+
+        with open(self.params["cad_geometry_file_name"].GetString(),'r') as cad_geometry_file:
+            cad_geometry = KratosMultiphysics.Parameters( cad_geometry_file.read())
         self.modeler = KratosMultiphysics.NurbsBrepApplication.NurbsBrepModeler(self.model_part)
         self.geometry_reader = KratosMultiphysics.NurbsBrepApplication.BrepModelGeometryReader(cad_geometry)
         self.modeler.LoadGeometry(self.geometry_reader)
-        
+
         self.modeler.ApplyGeometryRefinement(self.params["parameters"]["geometry_refinement"])
-        
+
         self.modeler.CreateIntegrationDomain(self.params["parameters"]["integration_domain_parameter"], self.model_part_integration_domain)
-        
+
         if(self.params["compute_surface_area"].GetBool()):
             self.modeler.ComputeArea(self.model_part_integration_domain)
-        
+
     def ExecuteBeforeSolutionLoop(self):
         pass
-        
+
     def ExecuteInitializeSolutionStep(self):
         pass
 
