@@ -26,7 +26,7 @@
 #include "utilities/geometry_utilities.h"
 
 // Application includes
-#include "adjoint_fluid_application_variables.h"
+#include "../adjoint_fluid_application_variables.h"
 
 namespace Kratos {
 
@@ -395,6 +395,51 @@ public:
 
         KRATOS_CATCH("")
     }
+
+    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
+                                     std::vector<double>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override
+    {
+        if (rVariable == NUMERICAL_DIFFUSION) {
+            const GeometryData::IntegrationMethod integration_method = this->GetIntegrationMethod();
+            const GeometryType& r_geometry = this->GetGeometry();
+            const unsigned int number_of_gauss_points = r_geometry.IntegrationPointsNumber(integration_method);
+
+            rValues.resize(number_of_gauss_points);
+
+            for (unsigned int g = 0; g < number_of_gauss_points; g++)
+            {
+                rValues[g] = this->GetValue(NUMERICAL_DIFFUSION);
+            }
+        }
+    }
+
+    void GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
+                                     std::vector<array_1d<double, 6>>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+        KRATOS_ERROR << "VMS Adjoint Element -> GetValueOnIntegrationPoints not defined. " << std::endl;
+        KRATOS_CATCH("")
+    }
+
+    void GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
+                                     std::vector<Vector>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+        KRATOS_ERROR << "VMS Adjoint Element -> GetValueOnIntegrationPoints not defined. " << std::endl;
+        KRATOS_CATCH("")
+    }                                     
+
+    void GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
+                                     std::vector<Matrix>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+        KRATOS_ERROR << "VMS Adjoint Element -> GetValueOnIntegrationPoints not defined. " << std::endl;
+        KRATOS_CATCH("")   
+    }    
 
     void GetDofList(DofsVectorType& rElementalDofList,
             ProcessInfo& /*rCurrentProcessInfo*/) override;
