@@ -279,7 +279,9 @@ public:
                     
                     double& d = geom[i].FastGetSolutionStepValue(DISTANCE);
                     if(std::abs(d) > std::abs(distances[i])) d = distances[i];
+                    geom[i].SetLock();
                     geom[i].Fix(DISTANCE);
+                    geom[i].UnSetLock();
                 }
             }
         }

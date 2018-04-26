@@ -17,7 +17,7 @@ set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosShapeOptimizationApplication MODULE ${KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES})
+pybind11_add_module(KratosShapeOptimizationApplication MODULE THIN_LTO ${KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES})
 target_link_libraries(KratosShapeOptimizationApplication PRIVATE KratosCore)
 set_target_properties(KratosShapeOptimizationApplication PROPERTIES PREFIX "")
 install(TARGETS KratosShapeOptimizationApplication DESTINATION libs )

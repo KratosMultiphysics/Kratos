@@ -10,7 +10,7 @@
         "echo_level"      : 0
     },
         "solver_settings"          : {
-            "solver_type"                        : "Static",
+            "solver_type"                        : "static",
             "analysis_type"                      : "non_linear",
             "echo_level"                         : 0,
             "model_import_settings"              : {
@@ -64,17 +64,5 @@
             "time_frequency"   : 0.01
         }
     }
-    ],
-    "check_analytic_results_process" : [],    
-    "apply_custom_function_process" : [],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : true,
-        "incremental_displacement" : true
-    }
+    ]
 }

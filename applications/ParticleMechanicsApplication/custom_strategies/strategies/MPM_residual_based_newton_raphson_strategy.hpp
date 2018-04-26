@@ -24,6 +24,7 @@
 #include "includes/kratos_flags.h"
 
 //default builder and solver
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 
 namespace Kratos
@@ -169,7 +170,8 @@ public:
         //setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
                              (
-                                 new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
+                                //new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
+                                new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
                              );
 
         //set flags to start correcty the calculations
@@ -348,7 +350,7 @@ public:
     // 3 -> Print of debug informations:
     //		Echo of stiffness matrix, Dx, b...
 
-    void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::mEchoLevel = Level;
         GetBuilderAndSolver()->SetEchoLevel(Level);
@@ -362,7 +364,7 @@ public:
     operation to predict the solution ... if it is not called a trivial predictor is used in which the
     values of the solution step of interest are assumed equal to the old values
      */
-    void Predict()
+    void Predict() override
     {
         KRATOS_TRY
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
@@ -397,7 +399,7 @@ public:
     //**********************************************************************
 
 
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY
 
@@ -470,7 +472,7 @@ public:
     the problem of interest is solved
      */
     //**********************************************************************
-    virtual bool SolveSolutionStep()
+    bool SolveSolutionStep() override
     {
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
@@ -657,7 +659,7 @@ public:
     the problem of interest is solved
      */
     //**********************************************************************
-    double Solve()
+    double Solve() override
     {
         KRATOS_TRY
 
@@ -931,7 +933,7 @@ public:
      */
     //**********************************************************************
 
-    bool IsConverged()
+    bool IsConverged() override
     {
         KRATOS_TRY
 
@@ -960,7 +962,7 @@ public:
 
     This operations should be called only when needed, before printing as it can involve a non negligible cost
      */
-    void CalculateOutputData()
+    void CalculateOutputData() override
     {
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
@@ -973,7 +975,7 @@ public:
     //**********************************************************************
     //**********************************************************************
 
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY
 
@@ -984,7 +986,7 @@ public:
 
 
 
-            SparseSpaceType::Clear(mpA);
+        SparseSpaceType::Clear(mpA);
         TSystemMatrixType& mA = *mpA;
         SparseSpaceType::Resize(mA, 0, 0);
 
@@ -1150,7 +1152,7 @@ protected:
     //**********************************************************************
     //**********************************************************************
 
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
@@ -1187,7 +1189,7 @@ protected:
 
     //**********************************************************************
     //**********************************************************************
-    void FinalizeSolutionStep()
+    void FinalizeSolutionStep() override
     {
         KRATOS_TRY
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
@@ -1245,7 +1247,7 @@ protected:
      * function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
-    int Check()
+    int Check() override
     {
         KRATOS_TRY
 

@@ -115,8 +115,8 @@ namespace Kratos
     //STIFFNESS CONDITION:
     
     //defined on condition
-    if( this->Has( POINT_STIFFNESS ) ){
-      array_1d<double, 3 > & PointStiffness = this->GetValue( POINT_STIFFNESS );
+    if( this->Has( ELASTIC_LOAD ) ){
+      array_1d<double, 3 > & PointStiffness = this->GetValue( ELASTIC_LOAD );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
@@ -125,8 +125,8 @@ namespace Kratos
     }
     
     //defined on condition nodes
-    if( this->Has( POINT_STIFFNESS_VECTOR ) ){
-      Vector& PointStiffnesss = this->GetValue( POINT_STIFFNESS_VECTOR );
+    if( this->Has( ELASTIC_LOAD_VECTOR ) ){
+      Vector& PointStiffnesss = this->GetValue( ELASTIC_LOAD_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
@@ -142,8 +142,8 @@ namespace Kratos
     //defined on condition nodes      
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( POINT_STIFFNESS ) ){
-	  array_1d<double, 3 > & PointStiffness = GetGeometry()[i].FastGetSolutionStepValue( POINT_STIFFNESS );
+	if( GetGeometry()[i].SolutionStepsDataHas( ELASTIC_LOAD ) ){
+	  array_1d<double, 3 > & PointStiffness = GetGeometry()[i].FastGetSolutionStepValue( ELASTIC_LOAD );
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(PointStiffness[k]);
  
@@ -221,8 +221,8 @@ namespace Kratos
     ErrorCode = ElasticCondition::Check(rCurrentProcessInfo);
     
     // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(POINT_STIFFNESS);
-    KRATOS_CHECK_VARIABLE_KEY(POINT_STIFFNESS_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD_VECTOR);
 
     return ErrorCode;
     

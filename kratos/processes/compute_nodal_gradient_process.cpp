@@ -34,7 +34,7 @@ void ComputeNodalGradientProcess<TDim, TVarType, THist>::Execute()
     // Set to zero
     ClearGradient();
     
-    bounded_matrix<double,TDim+1,  TDim> DN_DX;
+    BoundedMatrix<double,TDim+1,  TDim> DN_DX;
     array_1d<double,TDim+1> N;
     double Volume;
     

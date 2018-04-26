@@ -310,7 +310,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 
 template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
-inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::CalculateAe(
+inline BoundedMatrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::CalculateAe(
     GeometryType& SlaveGeometry,
     MortarKinematicVariables<TNumNodes>& ThisKinematicVariables,
     std::vector<array_1d<PointType,TDim>>& ConditionsPointsSlave,
@@ -368,7 +368,7 @@ inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TD
 /***********************************************************************************/
 
 template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
-inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::InvertDiagonalMatrix(const BoundedMatrixType& InputMatrix)
+inline BoundedMatrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::InvertDiagonalMatrix(const BoundedMatrixType& InputMatrix)
 {
     BoundedMatrixType inv_matrix = ZeroMatrix(TNumNodes);
 
