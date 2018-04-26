@@ -573,22 +573,8 @@ public:
             p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
         }
 
-        if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
-        {
-            KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
-            KRATOS_INFO("Dx") << "Solution obtained = " << rDx << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
-        }
-        if (this->GetEchoLevel() == 4) //print to matrix market file
-        {
-            std::stringstream matrix_market_name;
-            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] <<  ".mm";
-            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), rA, false);
-
-            std::stringstream matrix_market_vectname;
-            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
-            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), rb);
-        }
+        // Debugging info
+        EchoInfo();
 
         //update results
         DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
@@ -756,6 +742,33 @@ private:
     ///@}
     ///@name Private Operators*/
     ///@{
+
+    /**
+     * @brief This method returns the components of the system of equations depending of the echo level
+     */
+    virtual void EchoInfo()
+    {
+        TSystemMatrixType& rA  = *mpA;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType& rb  = *mpb;
+
+        if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
+        {
+            KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
+            KRATOS_INFO("Dx") << "Solution obtained = " << rDx << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
+        }
+        if (this->GetEchoLevel() == 4) //print to matrix market file
+        {
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] <<  ".mm";
+            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), rA, false);
+
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
+            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), rb);
+        }
+    }
 
     /**
      * @brief This method prints information after reach the max number of interations
