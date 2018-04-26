@@ -12,7 +12,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 #include "includes/constitutive_law.h"
 #include "includes/properties.h"
 

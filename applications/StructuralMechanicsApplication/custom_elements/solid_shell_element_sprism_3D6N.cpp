@@ -149,7 +149,7 @@ Element::Pointer SolidShellElementSprism3D6N::Clone(
         new_element.mConstitutiveLawVector.resize(integration_point_number);
 
     KRATOS_ERROR_IF( new_element.mConstitutiveLawVector.size() != new_element.GetGeometry().IntegrationPointsNumber() ) << "Constitutive law not has the correct size " << new_element.mConstitutiveLawVector.size() << std::endl;
-    
+
     for(IndexType i = 0; i < integration_point_number; i++)
         new_element.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
 
@@ -562,9 +562,9 @@ void SolidShellElementSprism3D6N::CalculateMassMatrix(
 
     if (rMassMatrix.size1() != mat_size)
         rMassMatrix.resize(mat_size, mat_size, false);
-    
+
     noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
-    
+
     double total_mass = GetGeometry().Volume() * density;
 
     const bool compute_lumped_mass_matrix =  rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ? rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] : false;
@@ -638,7 +638,7 @@ void SolidShellElementSprism3D6N::CalculateMassMatrix(
             }
         }
     }
-    
+
     KRATOS_CATCH("");
 }
 
@@ -662,7 +662,7 @@ void SolidShellElementSprism3D6N::CalculateDampingMatrix(
 
     if ( rDampingMatrix.size1() != mat_size )
         rDampingMatrix.resize( mat_size, mat_size, false );
-    
+
     noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
 
     // 1.-Calculate StiffnessMatrix:
@@ -723,7 +723,7 @@ void SolidShellElementSprism3D6N::CalculateDampingMatrix(
 
     if ( rDampingMatrix.size1() != mat_size )
         rDampingMatrix.resize( mat_size, mat_size, false );
-    
+
     noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
 
     // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
@@ -810,7 +810,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy (Values);
-            
+
             const Matrix& stress_tensor = MathUtils<double>::StressVectorToTensor(general_variables.StressVector); //reduced dimension stress tensor
 
 
@@ -872,7 +872,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy (Values);
-            
+
             const Matrix& stress_tensor  = MathUtils<double>::StressVectorToTensor(general_variables.StressVector); //reduced dimension stress tensor
 
             double stress_norm =  ((stress_tensor(0,0)*stress_tensor(0,0))+(stress_tensor(1,1)*stress_tensor(1,1))+(stress_tensor(2,2)*stress_tensor(2,2))+
@@ -1591,7 +1591,7 @@ void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurr
     }
 
     /* Getting the increase of displacements */
-    bounded_matrix<double, 36, 1 > delta_disp;
+    BoundedMatrix<double, 36, 1 > delta_disp;
 
     delta_disp = GetVectorCurrentPosition() - GetVectorPreviousPosition(); // Calculates the increase of displacements
 
@@ -1865,7 +1865,7 @@ std::size_t SolidShellElementSprism3D6N::NumberOfActiveNeighbours(WeakPointerVec
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::GetNodalCoordinates(
-    bounded_matrix<double, 12, 3 > & NodesCoord,
+    BoundedMatrix<double, 12, 3 > & NodesCoord,
     WeakPointerVector< NodeType >& NeighbourNodes,
     const Configuration ThisConfiguration
     )
@@ -1938,7 +1938,7 @@ void SolidShellElementSprism3D6N::GetNodalCoordinates(
 
 void SolidShellElementSprism3D6N::CalculateCartesianDerivatives(CartesianDerivatives& rCartesianDerivatives)
 {
-    bounded_matrix<double, 12, 3 > nodes_coord; // Coordinates of the nodes
+    BoundedMatrix<double, 12, 3 > nodes_coord; // Coordinates of the nodes
     WeakPointerVector< NodeType >& neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN) == true ) {
         this->GetNodalCoordinates(nodes_coord, neighbour_nodes, Configuration::INITIAL);
@@ -1953,7 +1953,7 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerivatives(CartesianDerivat
 
     //******************************** CENTRAL POINT ******************************
     // Calculate cartesian derivatives
-    bounded_matrix<double, 2, 4 > cartesian_derivatives_center_lower,  cartesian_derivatives_center_upper;
+    BoundedMatrix<double, 2, 4 > cartesian_derivatives_center_lower,  cartesian_derivatives_center_upper;
 
     // Lower face
     CalculateCartesianDerOnCenterPlane(cartesian_derivatives_center_lower, this_orthogonal_base, GeometricLevel::LOWER);
@@ -2010,13 +2010,13 @@ void SolidShellElementSprism3D6N::CalculateCommonComponents(
 {
     KRATOS_TRY;
 
-    bounded_matrix<double, 12, 3 > NodesCoord; // Coordinates of the nodes
+    BoundedMatrix<double, 12, 3 > NodesCoord; // Coordinates of the nodes
     WeakPointerVector< NodeType >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
     this->GetNodalCoordinates(NodesCoord, NeighbourNodes, Configuration::CURRENT);
 
     /* Declare deformation Gradient F components */
     // In plane components
-    bounded_matrix<double, 3, 2 > in_plane_gradient_F_gauss;
+    BoundedMatrix<double, 3, 2 > in_plane_gradient_F_gauss;
     // Transversal components
     TransverseGradient transverse_gradient;
 
@@ -2247,7 +2247,7 @@ void SolidShellElementSprism3D6N::CalculateIdVector(array_1d<IndexType, 18 >& rI
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::ComputeLocalDerivatives(
-    bounded_matrix<double, 6, 3 > & LocalDerivativePatch,
+    BoundedMatrix<double, 6, 3 > & LocalDerivativePatch,
     const array_1d<double, 3>& rLocalCoordinates
     )
 {
@@ -2286,7 +2286,7 @@ void SolidShellElementSprism3D6N::ComputeLocalDerivatives(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::ComputeLocalDerivativesQuadratic(
-    bounded_matrix<double, 4, 2 >& rLocalDerivativePatch,
+    BoundedMatrix<double, 4, 2 >& rLocalDerivativePatch,
     const IndexType NodeGauss
     )
 {
@@ -2338,7 +2338,7 @@ void SolidShellElementSprism3D6N::CalculateJacobianCenterGauss(
     )
 {
     /* Fill the aux matrix of coordinates */
-    bounded_matrix<double, 3, 6 > nodes_coord;
+    BoundedMatrix<double, 3, 6 > nodes_coord;
     for (IndexType i = 0; i < 6; i++) {
         const array_1d<double, 3> &current_position  = GetGeometry()[i].Coordinates();
         for (IndexType j = 0; j < 3; j++)
@@ -2351,7 +2351,7 @@ void SolidShellElementSprism3D6N::CalculateJacobianCenterGauss(
     local_coordinates[2] = ZetaGauss;
 
     /* Local derivatives patch */
-    bounded_matrix<double, 6, 3 > LocalDerivativePatch;
+    BoundedMatrix<double, 6, 3 > LocalDerivativePatch;
     ComputeLocalDerivatives(LocalDerivativePatch, local_coordinates);
 
     /* Compute Jacobian */
@@ -2366,14 +2366,14 @@ void SolidShellElementSprism3D6N::CalculateJacobianCenterGauss(
 
 void SolidShellElementSprism3D6N::CalculateJacobian(
     double & detJ,
-    bounded_matrix<double, 3, 3 > & J,
-    bounded_matrix<double, 6, 3 > & LocalDerivativePatch,
-    const bounded_matrix<double, 12, 3 > & NodesCoord,
+    BoundedMatrix<double, 3, 3 > & J,
+    BoundedMatrix<double, 6, 3 > & LocalDerivativePatch,
+    const BoundedMatrix<double, 12, 3 > & NodesCoord,
     const array_1d<double, 3>& rLocalCoordinates
     )
 {
     /* Auxiliar coordinates of the nodes */
-    bounded_matrix<double, 3, 6 > nodes_coord_aux;
+    BoundedMatrix<double, 3, 6 > nodes_coord_aux;
 
     for (IndexType i = 0; i < 6; i++)
         for (IndexType j = 0; j < 3; j++)
@@ -2393,10 +2393,10 @@ void SolidShellElementSprism3D6N::CalculateJacobian(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateJacobianAndInv(
-    bounded_matrix<double, 3, 3 >& J,
-    bounded_matrix<double, 3, 3 >& Jinv,
-    bounded_matrix<double, 6, 3 >& LocalDerivativePatch,
-    const bounded_matrix<double, 3, 6 >& NodesCoord,
+    BoundedMatrix<double, 3, 3 >& J,
+    BoundedMatrix<double, 3, 3 >& Jinv,
+    BoundedMatrix<double, 6, 3 >& LocalDerivativePatch,
+    const BoundedMatrix<double, 3, 6 >& NodesCoord,
     const array_1d<double, 3>& rLocalCoordinates
     )
 {
@@ -2415,14 +2415,14 @@ void SolidShellElementSprism3D6N::CalculateJacobianAndInv(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateJacobianAndInv(
-    bounded_matrix<double, 3, 3 > & J,
-    bounded_matrix<double, 3, 3 > & Jinv,
-    const bounded_matrix<double, 3, 6 > & NodesCoord,
+    BoundedMatrix<double, 3, 3 > & J,
+    BoundedMatrix<double, 3, 3 > & Jinv,
+    const BoundedMatrix<double, 3, 6 > & NodesCoord,
     const array_1d<double, 3>& rLocalCoordinates
     )
 {
     /* Local derivatives patch */
-    bounded_matrix<double, 6, 3 > local_derivative_patch;
+    BoundedMatrix<double, 6, 3 > local_derivative_patch;
     ComputeLocalDerivatives(local_derivative_patch, rLocalCoordinates);
 
     /* Compute Jacobian */
@@ -2437,7 +2437,7 @@ void SolidShellElementSprism3D6N::CalculateJacobianAndInv(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterPlane(
-    bounded_matrix<double, 2, 4 >& CartesianDerivativesCenter,
+    BoundedMatrix<double, 2, 4 >& CartesianDerivativesCenter,
     const OrthogonalBase& ThisOrthogonalBase,
     const GeometricLevel Part
     )
@@ -2497,8 +2497,8 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterPlane(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussPlane(
-    bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
-    const bounded_matrix<double, 12, 3 > & NodesCoord,
+    BoundedMatrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
+    const BoundedMatrix<double, 12, 3 > & NodesCoord,
     const OrthogonalBase& ThisOrthogonalBase,
     const IndexType NodeGauss,
     const GeometricLevel Part
@@ -2507,11 +2507,11 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussPlane(
     const IndexType index = Part == GeometricLevel::UPPER ? 3 : 0;
 
     /* Local derivatives patch */
-    bounded_matrix<double, 4, 2 > local_derivative_patch;
+    BoundedMatrix<double, 4, 2 > local_derivative_patch;
     ComputeLocalDerivativesQuadratic(local_derivative_patch,NodeGauss);
 
     /* Auxiliar coordinates of the nodes */
-    bounded_matrix<double, 3, 4 > nodes_coord_aux;
+    BoundedMatrix<double, 3, 4 > nodes_coord_aux;
 
     for (IndexType i = 0; i < 3; i++)
         for (IndexType j = 0; j < 3; j++)
@@ -2521,7 +2521,7 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussPlane(
         nodes_coord_aux(j, 3) = NodesCoord(NodeGauss + 6 + index, j);
 
     /* Compute local derivatives */
-    const bounded_matrix<double, 3, 2 > Xd = prod(nodes_coord_aux, local_derivative_patch);
+    const BoundedMatrix<double, 3, 2 > Xd = prod(nodes_coord_aux, local_derivative_patch);
 
     /* Split local derivatives */
     array_1d<double, 3 > Xdxi, Xdeta;
@@ -2537,7 +2537,7 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussPlane(
     StructuralMechanicsMathUtilities::Comp_Orthonor_Base(t1g, t2g, t3g, ThisOrthogonalBase.Vxi, Xdxi, Xdeta);
 
     /* Compute Jacobian */
-    bounded_matrix<double, 2, 2 > jac;
+    BoundedMatrix<double, 2, 2 > jac;
     jac(0, 0) = inner_prod(Xdxi,  t1g);
     jac(0, 1) = inner_prod(Xdxi,  t2g);
     jac(1, 0) = inner_prod(Xdeta, t1g);
@@ -2545,7 +2545,7 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussPlane(
 
     /* Compute the inverse of the Jacobian */
     double aux_det;
-    const bounded_matrix<double, 2, 2 > JinvPlane = MathUtils<double>::InvertMatrix<2>(jac, aux_det);
+    const BoundedMatrix<double, 2, 2 > JinvPlane = MathUtils<double>::InvertMatrix<2>(jac, aux_det);
 
     /* Compute the Cartesian derivatives */
     noalias(InPlaneCartesianDerivativesGauss) = prod(JinvPlane, trans(local_derivative_patch));
@@ -2555,16 +2555,16 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussPlane(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussTrans(
-    bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
-    const bounded_matrix<double, 12, 3 > & NodesCoord,
+    BoundedMatrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
+    const BoundedMatrix<double, 12, 3 > & NodesCoord,
     const OrthogonalBase& ThisOrthogonalBase,
     const array_1d<double, 3>& rLocalCoordinates
     )
 {
     /* Compute local derivatives */
     double det;
-    bounded_matrix<double, 3, 3 > Xd;
-    bounded_matrix<double, 6, 3 > local_derivatives_patch;
+    BoundedMatrix<double, 3, 3 > Xd;
+    BoundedMatrix<double, 6, 3 > local_derivatives_patch;
     CalculateJacobian(det, Xd, local_derivatives_patch, NodesCoord, rLocalCoordinates);
 
     /* Split local derivatives */
@@ -2577,15 +2577,15 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussTrans(
     Xdeta[2] = Xd(2, 1);
 
     /* Compute orthonormal vectors */
-    bounded_matrix<double, 3, 3 > t;
+    BoundedMatrix<double, 3, 3 > t;
     StructuralMechanicsMathUtilities::Comp_Orthonor_Base(t, ThisOrthogonalBase.Vxi, Xdxi, Xdeta);
 
     /* Compute Jacobian */
-    bounded_matrix<double, 3, 3 > jac;
+    BoundedMatrix<double, 3, 3 > jac;
     noalias(jac) = prod(t, Xd);
 
     /* Compute inverse of the Jaccobian (just third column) */
-    bounded_matrix<double, 3 ,1> JinvTrans;
+    BoundedMatrix<double, 3 ,1> JinvTrans;
     JinvTrans(0, 0) =   (jac(0, 1) * jac(1, 2) - jac(0, 2) * jac(1, 1)) / det;
     JinvTrans(1, 0) = - (jac(0, 0) * jac(1, 2) - jac(0, 2) * jac(1, 0)) / det;
     JinvTrans(2, 0) =   (jac(0, 0) * jac(1, 1) - jac(1, 0) * jac(0, 1)) / det;
@@ -2599,7 +2599,7 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussTrans(
 
 void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterTrans(
     CartesianDerivatives& rCartesianDerivatives,
-    const bounded_matrix<double, 12, 3 >& NodesCoord,
+    const BoundedMatrix<double, 12, 3 >& NodesCoord,
     const OrthogonalBase& ThisOrthogonalBase,
     const GeometricLevel Part
     )
@@ -2616,22 +2616,22 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterTrans(
         local_coordinates[2] =   1.0;
 
     /* Auxiliar coordinates of the nodes */
-    bounded_matrix<double, 3, 6 > nodes_coord_aux;
+    BoundedMatrix<double, 3, 6 > nodes_coord_aux;
     for (IndexType i = 0; i < 6; i++)
         for (IndexType j = 0; j < 3; j++)
             nodes_coord_aux(j, i) = NodesCoord(i, j);
 
     /* Auxiliar components to calculate the Jacobian and his inverse */
-    bounded_matrix<double, 3, 3 > J, Jinv;
+    BoundedMatrix<double, 3, 3 > J, Jinv;
 
     if (Part == GeometricLevel::CENTER) {
         /* Calculate the Jacobian and his inverse */
-        bounded_matrix<double, 6, 3 > local_derivatives_patch;
+        BoundedMatrix<double, 6, 3 > local_derivatives_patch;
         CalculateJacobianAndInv(J, Jinv, local_derivatives_patch, nodes_coord_aux, local_coordinates);
 
         // Compute cartesian (y3) derivatives of the shape functions necessary to compute f_3
         /* Compute Cartesian derivatives */
-        bounded_matrix<double, 6, 3 > transverse_cartesian_derivatives_gauss_aux;
+        BoundedMatrix<double, 6, 3 > transverse_cartesian_derivatives_gauss_aux;
         noalias(transverse_cartesian_derivatives_gauss_aux) = prod(local_derivatives_patch, Jinv);
 
         for (IndexType i = 0; i < 6 ; i++)
@@ -2669,17 +2669,17 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterTrans(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateInPlaneGradientFGauss(
-    bounded_matrix<double, 3, 2 >& InPlaneGradientFGauss,
-    const bounded_matrix<double, 2, 4 >& InPlaneCartesianDerivativesGauss,
-    const bounded_matrix<double, 12, 3 >& NodesCoord,
+    BoundedMatrix<double, 3, 2 >& InPlaneGradientFGauss,
+    const BoundedMatrix<double, 2, 4 >& InPlaneCartesianDerivativesGauss,
+    const BoundedMatrix<double, 12, 3 >& NodesCoord,
     const IndexType NodeGauss,
     const GeometricLevel Part
     )
 {
     /* Auxiliar operators */
     const IndexType index = Part == GeometricLevel::UPPER ? 3 : 0;
-    bounded_matrix<double, 3, 3 > nodes_coord_aux;
-    bounded_matrix<double, 3, 2 > in_plane_cartesian_derivatives_gauss_aux;
+    BoundedMatrix<double, 3, 3 > nodes_coord_aux;
+    BoundedMatrix<double, 3, 2 > in_plane_cartesian_derivatives_gauss_aux;
 
     for (IndexType i = 0; i < 3; i++) {
         for (IndexType j = 0; j < 3; j++)
@@ -2705,8 +2705,8 @@ void SolidShellElementSprism3D6N::CalculateInPlaneGradientFGauss(
 
 void SolidShellElementSprism3D6N::CalculateTransverseGradientF(
     array_1d<double, 3 > & TransverseGradientF,
-    const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
-    const bounded_matrix<double, 12, 3 > & NodesCoord
+    const BoundedMatrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
+    const BoundedMatrix<double, 12, 3 > & NodesCoord
     )
 {
     noalias(TransverseGradientF) = ZeroVector(3);
@@ -2723,7 +2723,7 @@ void SolidShellElementSprism3D6N::CalculateTransverseGradientF(
 
 void SolidShellElementSprism3D6N::CalculateTransverseGradientFinP(
     TransverseGradientIsoParametric& TransverseGradientIsoParametric,
-    const bounded_matrix<double, 12, 3 > & NodesCoord,
+    const BoundedMatrix<double, 12, 3 > & NodesCoord,
     const GeometricLevel Part
     )
 {
@@ -2740,10 +2740,10 @@ void SolidShellElementSprism3D6N::CalculateTransverseGradientFinP(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateAndAddBMembrane(
-    bounded_matrix<double, 3, 18 >& BMembrane,
-    bounded_matrix<double, 3, 1  >& CMembrane,
-    const bounded_matrix<double, 2, 4 >& InPlaneCartesianDerivativesGauss,
-    const bounded_matrix<double, 3, 2 >& InPlaneGradientFGauss,
+    BoundedMatrix<double, 3, 18 >& BMembrane,
+    BoundedMatrix<double, 3, 1  >& CMembrane,
+    const BoundedMatrix<double, 2, 4 >& InPlaneCartesianDerivativesGauss,
+    const BoundedMatrix<double, 3, 2 >& InPlaneGradientFGauss,
     const IndexType NodeGauss
     )
 {
@@ -2778,7 +2778,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddBMembrane(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateAndAddMembraneKgeometric(
-    bounded_matrix<double, 36, 36 > & Kgeometricmembrane,
+    BoundedMatrix<double, 36, 36 > & Kgeometricmembrane,
     const CartesianDerivatives& rCartesianDerivatives,
     const array_1d<double, 3 > & SMembrane,
     const GeometricLevel Part
@@ -2787,7 +2787,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddMembraneKgeometric(
     const IndexType index = static_cast<IndexType>(Part);
     const IndexType auxiliar_index = Part == GeometricLevel::UPPER ? 3 : 0;
 
-    bounded_matrix<double, 6, 6 > H = ZeroMatrix(6, 6);
+    BoundedMatrix<double, 6, 6 > H = ZeroMatrix(6, 6);
 
     IndexType ii;
     IndexType jj;
@@ -2863,8 +2863,8 @@ void SolidShellElementSprism3D6N::CalculateAndAddMembraneKgeometric(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateAndAddBShear(
-    bounded_matrix<double, 2, 18 >& BShear,
-    bounded_matrix<double, 2, 1 >& CShear,
+    BoundedMatrix<double, 2, 18 >& BShear,
+    BoundedMatrix<double, 2, 1 >& CShear,
     const CartesianDerivatives& rCartesianDerivatives,
     const TransverseGradient& rTransverseGradient,
     const TransverseGradientIsoParametric& rTransverseGradientIsoParametric,
@@ -2874,12 +2874,12 @@ void SolidShellElementSprism3D6N::CalculateAndAddBShear(
     const IndexType index = static_cast<IndexType>(Part);
     const IndexType auxiliar_index = Part == GeometricLevel::UPPER ? 3 : 0;
 
-    const bounded_matrix<double, 2, 2 >& JInvPlane = Part == GeometricLevel::UPPER ? rCartesianDerivatives.JInvPlaneUpper : rCartesianDerivatives.JInvPlaneLower;
+    const BoundedMatrix<double, 2, 2 >& JInvPlane = Part == GeometricLevel::UPPER ? rCartesianDerivatives.JInvPlaneUpper : rCartesianDerivatives.JInvPlaneLower;
 
     // Considering the Gauss point in the middle of the element
     const double eta_p = 1.0/3.0;
     const double xi_p  = 1.0/3.0;
-    bounded_matrix<double, 2, 3 > Pa;
+    BoundedMatrix<double, 2, 3 > Pa;
     Pa(0, 0) = - xi_p;
     Pa(0, 1) = - xi_p;
     Pa(0, 2) = 1.0 - xi_p;
@@ -2887,7 +2887,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddBShear(
     Pa(1, 1) = eta_p - 1.0;
     Pa(1, 2) = eta_p;
 
-    bounded_matrix<double, 3, 18 > aux_b_shear = ZeroMatrix(3, 18);
+    BoundedMatrix<double, 3, 18 > aux_b_shear = ZeroMatrix(3, 18);
 
     /* First contribution*/
     for (IndexType i = 0; i < 6; i++) {
@@ -2914,11 +2914,11 @@ void SolidShellElementSprism3D6N::CalculateAndAddBShear(
         aux_b_shear(2, i + index + 3) += rTransverseGradient.F2[i];
     }
 
-    const bounded_matrix<double, 2, 3 > aux_prod = prod(JInvPlane, Pa);
+    const BoundedMatrix<double, 2, 3 > aux_prod = prod(JInvPlane, Pa);
     noalias(BShear) = prod(aux_prod, aux_b_shear);
 
     // Calculating the components of C
-    bounded_matrix<double, 3, 1 > aux_c_shear;
+    BoundedMatrix<double, 3, 1 > aux_c_shear;
     aux_c_shear(0, 0) = inner_prod(rTransverseGradientIsoParametric.Ft  , rTransverseGradient.F0);
     aux_c_shear(1, 0) = inner_prod(rTransverseGradientIsoParametric.Fxi , rTransverseGradient.F1);
     aux_c_shear(2, 0) = inner_prod(rTransverseGradientIsoParametric.Feta, rTransverseGradient.F2);
@@ -2930,7 +2930,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddBShear(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
-    bounded_matrix<double, 36, 36 > & Kgeometricshear,
+    BoundedMatrix<double, 36, 36 > & Kgeometricshear,
     const CartesianDerivatives& rCartesianDerivatives,
     const array_1d<double, 2 > & SShear,
     const GeometricLevel Part
@@ -2939,7 +2939,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
 //     const IndexType index = static_cast<IndexType>(Part);
     const IndexType auxiliar_index = Part == GeometricLevel::UPPER ? 3 : 0;
 
-    const bounded_matrix<double, 2, 2 >& JInvPlane = Part == GeometricLevel::UPPER ? rCartesianDerivatives.JInvPlaneUpper : rCartesianDerivatives.JInvPlaneLower;
+    const BoundedMatrix<double, 2, 2 >& JInvPlane = Part == GeometricLevel::UPPER ? rCartesianDerivatives.JInvPlaneUpper : rCartesianDerivatives.JInvPlaneLower;
 
     const double Q1 = 1.0/3.0 * (SShear[0] * JInvPlane(0, 0) + SShear[1] * JInvPlane(0, 1));
     const double Q2 = 1.0/3.0 * (SShear[0] * JInvPlane(1, 0) + SShear[1] * JInvPlane(1, 1));
@@ -3038,9 +3038,9 @@ void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateAndAddBNormal(
-    bounded_matrix<double, 1, 18 > & BNormal,
+    BoundedMatrix<double, 1, 18 > & BNormal,
     double & CNormal,
-    const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesCenter,
+    const BoundedMatrix<double, 6, 1 > & TransversalCartesianDerivativesCenter,
     const array_1d<double, 3 > & TransversalDeformationGradientF
     )
 {
@@ -3057,12 +3057,12 @@ void SolidShellElementSprism3D6N::CalculateAndAddBNormal(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateAndAddNormalKgeometric(
-    bounded_matrix<double, 36, 36 >& Kgeometricnormal,
-    const bounded_matrix<double, 6, 1 >& TransversalCartesianDerivativesCenter,
+    BoundedMatrix<double, 36, 36 >& Kgeometricnormal,
+    const BoundedMatrix<double, 6, 1 >& TransversalCartesianDerivativesCenter,
     const double SNormal
     )
 {
-    bounded_matrix<double, 6, 6 > H = ZeroMatrix(6, 6);
+    BoundedMatrix<double, 6, 6 > H = ZeroMatrix(6, 6);
     for (IndexType i = 0; i < 6; i++) {
         const double aux = SNormal * TransversalCartesianDerivativesCenter(i, 0);
         for (IndexType j = 0; j < 6; j++)
@@ -3086,11 +3086,11 @@ void SolidShellElementSprism3D6N::CalculateAndAddNormalKgeometric(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bounded_matrix<double, 36, 1 > SolidShellElementSprism3D6N::GetVectorCurrentPosition()
+BoundedMatrix<double, 36, 1 > SolidShellElementSprism3D6N::GetVectorCurrentPosition()
 {
     KRATOS_TRY;
 
-    bounded_matrix<double, 36, 1 > vector_current_position;
+    BoundedMatrix<double, 36, 1 > vector_current_position;
 
     WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
@@ -3131,11 +3131,11 @@ bounded_matrix<double, 36, 1 > SolidShellElementSprism3D6N::GetVectorCurrentPosi
 /***********************************************************************************/
 /***********************************************************************************/
 
-bounded_matrix<double, 36, 1 > SolidShellElementSprism3D6N::GetVectorPreviousPosition()
+BoundedMatrix<double, 36, 1 > SolidShellElementSprism3D6N::GetVectorPreviousPosition()
 {
     KRATOS_TRY;
 
-    bounded_matrix<double, 36, 1 > vector_current_position;
+    BoundedMatrix<double, 36, 1 > vector_current_position;
 
     WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
@@ -3241,8 +3241,8 @@ void SolidShellElementSprism3D6N::IntegrateEASInZeta(
     rEAS.mStiffAlpha += IntegrationWeight * ZetaGauss * ZetaGauss * rVariables.C[2]
             * (rVariables.ConstitutiveMatrix(2, 2) * rVariables.C[2] + 2.0 * rVariables.StressVector[2]);
 
-    bounded_matrix<double, 1, 36 > B3;
-    bounded_matrix<double, 1,  6 > D3;
+    BoundedMatrix<double, 1, 36 > B3;
+    BoundedMatrix<double, 1,  6 > D3;
 
     for (IndexType i = 0; i < 6; i++)
         D3(0, i) = rVariables.ConstitutiveMatrix(2, i);
@@ -3416,10 +3416,10 @@ void SolidShellElementSprism3D6N::CalculateAndAddKuum(
     )
 {
     KRATOS_TRY;
-    
+
     /* Calculate K */
-    typedef bounded_matrix<double,  6, 36 > temp_type;
-    const bounded_matrix<double, 36, 36 > K = IntegrationWeight * prod(trans(rVariables.B), prod<temp_type>(rVariables.ConstitutiveMatrix, rVariables.B));
+    typedef BoundedMatrix<double,  6, 36 > temp_type;
+    const BoundedMatrix<double, 36, 36 > K = IntegrationWeight * prod(trans(rVariables.B), prod<temp_type>(rVariables.ConstitutiveMatrix, rVariables.B));
 
     // Compute vector of IDs
     array_1d<IndexType, 18> id_vector;
@@ -3454,7 +3454,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddKuug(
     /* The stress is already integrated, we just calculate it once */
 
     /* Auxiliar stiffness matrix */
-    bounded_matrix<double, 36, 36 > K = ZeroMatrix(36, 36); // Stiffness matrix
+    BoundedMatrix<double, 36, 36 > K = ZeroMatrix(36, 36); // Stiffness matrix
 
     /* COMPUTATION OF GEOMETRIC STIFFNESS MATRIX */
 
@@ -3505,7 +3505,7 @@ void SolidShellElementSprism3D6N::ApplyEASLHS(
 {
     KRATOS_TRY;
 
-    const bounded_matrix<double, 36, 36 > lhs_aux = - prod(trans(rEAS.mHEAS), rEAS.mHEAS) / rEAS.mStiffAlpha;
+    const BoundedMatrix<double, 36, 36 > lhs_aux = - prod(trans(rEAS.mHEAS), rEAS.mHEAS) / rEAS.mStiffAlpha;
 
     // Compute vector of IDs
     array_1d<IndexType, 18> id_vector;
@@ -3531,7 +3531,7 @@ void SolidShellElementSprism3D6N::ApplyEASLHS(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::ApplyEASRHS(
-    bounded_matrix<double, 36, 1 >& rRHSFull,
+    BoundedMatrix<double, 36, 1 >& rRHSFull,
     const EASComponents& rEAS,
     double& AlphaEAS
     )
@@ -3583,7 +3583,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddInternalForces(
 {
     KRATOS_TRY;
 
-    bounded_matrix<double, 36, 1 > rhs_full = ZeroMatrix(36, 1);
+    BoundedMatrix<double, 36, 1 > rhs_full = ZeroMatrix(36, 1);
 
     IndexType aux_index = 0;
     for (IndexType i = 0; i < 18; i++) {
@@ -3780,7 +3780,7 @@ void SolidShellElementSprism3D6N::CbartoFbar(
     /* We perform a polar decomposition of the CBar and F(regular) to obtain F_bar */
 
     /* Decompose C_bar */
-    bounded_matrix<double, 3, 3> eigen_vector_matrix,  eigen_values_matrix;
+    BoundedMatrix<double, 3, 3> eigen_vector_matrix,  eigen_values_matrix;
 
     // Assemble matrix C_bar
     const Matrix C_bar = MathUtils<double>::VectorToSymmetricTensor(rVariables.C);
@@ -3975,7 +3975,7 @@ void SolidShellElementSprism3D6N::CalculateHenckyStrain(
     KRATOS_TRY;
 
     // Declare the different matrix
-    bounded_matrix<double, 3, 3> eigen_values_matrix, eigen_vectors_matrix;
+    BoundedMatrix<double, 3, 3> eigen_values_matrix, eigen_vectors_matrix;
 
     // Assemble matrix C
     const Matrix C_matrix = MathUtils<double>::VectorToSymmetricTensor(rC);
@@ -3989,7 +3989,7 @@ void SolidShellElementSprism3D6N::CalculateHenckyStrain(
     eigen_values_matrix(2, 2) = 0.5 * std::log(eigen_values_matrix(2, 2));
 
     // Calculate E matrix
-    bounded_matrix<double, 3, 3 > E_matrix;
+    BoundedMatrix<double, 3, 3 > E_matrix;
     noalias(E_matrix) = prod(trans(eigen_vectors_matrix), eigen_values_matrix);
     noalias(E_matrix) = prod(E_matrix, eigen_vectors_matrix);
 

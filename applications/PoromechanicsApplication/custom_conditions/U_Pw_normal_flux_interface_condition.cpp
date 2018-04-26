@@ -43,12 +43,12 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
     {
         NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
     }
-    boost::numeric::ublas::bounded_matrix<double,TDim,TDim> RotationMatrix;
+    BoundedMatrix<double,TDim,TDim> RotationMatrix;
     const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
     bool ComputeJointWidth;
     double JointWidth;
     this->CheckJointWidth(JointWidth,ComputeJointWidth,RotationMatrix,MinimumJointWidth,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> LocalRelDispVector;
     array_1d<double,TDim> RelDispVector;
     array_1d<double,TNumNodes> Np;

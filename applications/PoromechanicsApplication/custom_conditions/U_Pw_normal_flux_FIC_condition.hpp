@@ -68,7 +68,7 @@ protected:
         double BiotModulusInverse;
         
         array_1d<double,TNumNodes> DtPressureVector;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> PMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PMatrix;
     };
     
     // Member Variables
