@@ -583,6 +583,8 @@ public:
         //move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
+        p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
+
         // Calculate reactions if required
         if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme,
