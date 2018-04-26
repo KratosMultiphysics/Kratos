@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_RESIDUALBASED_LINEAR_STRATEGY )
@@ -46,10 +46,10 @@ namespace Kratos
 ///@{
 
 ///@}
-///@name Kratos Classes 
+///@name Kratos Classes
 ///@{
 
-/**   
+/**
  * @class ResidualBasedLinearStrategy
  * @ingroup KratosCore
  * @brief This is a very simple strategy to solve linearly the problem
@@ -77,7 +77,7 @@ public:
     typedef TSparseSpace SparseSpaceType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
-    
+
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -91,7 +91,7 @@ public:
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-    
+
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
 
@@ -100,7 +100,7 @@ public:
     ///@{
 
     /**
-     * Default constructor 
+     * Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
@@ -216,7 +216,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    /** 
+    /**
      * @brief Destructor.
      * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
      */
@@ -279,7 +279,7 @@ public:
     {
         return mCalculateReactionsFlag;
     }
-    
+
     /**
      * @brief This method sets the flag mReformDofSetAtEachStep
      * @param Flag The flag that tells if each time step the system is rebuilt
@@ -426,7 +426,7 @@ public:
             std::stringstream matrix_market_name;
             matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] <<  ".mm";
             TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), mA, false);
-            
+
             std::stringstream matrix_market_vectname;
             matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
             TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), mb);
@@ -451,14 +451,14 @@ public:
         {
             pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
         }
-        
+
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
         pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
         pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-        
+
         //deallocate the systemvectors if needed
         if (mReformDofSetAtEachStep == true)
         {
@@ -488,7 +488,7 @@ public:
 
         return mA;
     }
-    
+
     /**
      * @brief This method directly sets the input as the LHS
      * @param A The LHS matrix
@@ -631,7 +631,7 @@ private:
         KRATOS_TRY
 
         const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-        
+
         if (BaseType::GetEchoLevel() > 2 && rank == 0)
             KRATOS_INFO("Entering Initialize") << "Entering in the Initialize of the ResidualBasedLinearStrategy" << std::endl;
 
@@ -646,7 +646,7 @@ private:
         if (pScheme->ElementsAreInitialized() == false)
             pScheme->InitializeElements(BaseType::GetModelPart());
 
-        //Initialize The Conditions - OPERATIONS TO BE DONE ONCE                                                          
+        //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
         if (pScheme->ConditionsAreInitialized() == false)
             pScheme->InitializeConditions(BaseType::GetModelPart());
 

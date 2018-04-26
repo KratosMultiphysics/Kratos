@@ -51,7 +51,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**   
+/**
  * @class ResidualBasedNewtonRaphsonStrategy
  * @ingroup KratosCore
  * @brief This is the base Newton Raphson strategy
@@ -74,7 +74,7 @@ class ResidualBasedNewtonRaphsonStrategy
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedNewtonRaphsonStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-    
+
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -105,7 +105,7 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@{
 
     /**
-     * Default constructor 
+     * Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
@@ -172,7 +172,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
         KRATOS_CATCH("");
     }
-    
+
     /**
      * Constructor specifying the builder and solver
      * @param rModelPart The model part of the problem
@@ -243,7 +243,7 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_CATCH("")
     }
 
-    /** 
+    /**
      * @brief Destructor.
      * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
      */
@@ -370,7 +370,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * - 2: Printing linear solver data
      * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
      */
-    
+
     void SetEchoLevel(int Level) override
     {
         BaseType::mEchoLevel = Level;
@@ -417,7 +417,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
     /**
      * @brief Initialization of member variables and prior operations
-     */    
+     */
     void Initialize() override
     {
         KRATOS_TRY;
@@ -490,7 +490,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @details This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(),
      * SolveSolutionStep() and FinalizeSolutionStep().
      * All those functions can otherwise be called separately.
-     */    
+     */
     double Solve() override
     {
         Initialize();
@@ -529,7 +529,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
     /**
      * @brief This should be considered as a "post solution" convergence check which is useful for coupled analysis - the convergence criteria used is the one used inside the "solve" step
-     */    
+     */
     bool IsConverged() override
     {
         KRATOS_TRY;
@@ -549,7 +549,7 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-     * @brief This operations should be called before printing the results when non trivial results 
+     * @brief This operations should be called before printing the results when non trivial results
      * (e.g. stresses)
      * Need to be calculated given the solution of the step
      * @details This operations should be called only when needed, before printing as it can involve a non
@@ -679,7 +679,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
-     */   
+     */
     bool SolveSolutionStep() override
     {
         // Pointers needed in the solution
@@ -874,7 +874,7 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         A = *mpA;
     }
-    
+
     /**
      * @brief Set method for the flag mKeepSystemConstantDuringIterations
      * @param Value If we consider constant the system of equations during the iterations
@@ -883,7 +883,7 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         mKeepSystemConstantDuringIterations = Value;
     }
-    
+
     /**
      * @brief Get method for the flag mKeepSystemConstantDuringIterations
      * @return True if we consider constant the system of equations during the iterations, false otherwise
@@ -1089,7 +1089,7 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@name Un accessible methods
     ///@{
 
-    /** 
+    /**
      * Copy constructor.
      */
 
