@@ -319,6 +319,100 @@ public:
     /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
 
     /**
+     * @brief Initialization of member variables and prior operations
+     */
+    void Initialize() override
+    {
+        KRATOS_TRY
+
+        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+
+        if (BaseType::GetEchoLevel() > 2 && rank == 0)
+            KRATOS_INFO("Entering Initialize") << "Entering in the Initialize of the ResidualBasedLinearStrategy" << std::endl;
+
+        //pointers needed in the solution
+        typename TSchemeType::Pointer pScheme = GetScheme();
+
+        //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+        if (pScheme->SchemeIsInitialized() == false)
+            pScheme->Initialize(BaseType::GetModelPart());
+
+        //Initialize The Elements - OPERATIONS TO BE DONE ONCE
+        if (pScheme->ElementsAreInitialized() == false)
+            pScheme->InitializeElements(BaseType::GetModelPart());
+
+        //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
+        if (pScheme->ConditionsAreInitialized() == false)
+            pScheme->InitializeConditions(BaseType::GetModelPart());
+
+        if (BaseType::GetEchoLevel() > 2 && rank == 0)
+            KRATOS_INFO("Exiting Initialize") << "Exiting the  Initialize of the ResidualBasedLinearStrategy" << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     * @todo Boost dependencies should be replaced by std equivalent
+     */
+    void InitializeSolutionStep() override
+    {
+        KRATOS_TRY
+
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+        typename TSchemeType::Pointer pScheme = GetScheme();
+
+        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+
+        if (BaseType::GetEchoLevel() > 2 && rank == 0)
+            KRATOS_INFO("Entering InitializeSolutionStep") << "Entering in the InitializeSolutionStep of the ResidualBasedLinearStrategy" << std::endl;
+
+
+        // Loop to reform the dofset
+        boost::timer system_construction_time;
+        if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
+                mReformDofSetAtEachStep == true)
+        {
+            boost::timer setup_dofs_time;
+            //setting up the list of the DOFs to be solved
+            pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
+            if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
+
+            //shaping correctly the system
+            boost::timer setup_system_time;
+            pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
+            if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                KRATOS_INFO("setup_system_time") << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
+
+            //setting up the Vectors involved to the correct size
+            boost::timer system_matrix_resize_time;
+            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+            if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                KRATOS_INFO("system_matrix_resize_time") << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
+        }
+        if (BaseType::GetEchoLevel() > 0 && rank == 0)
+            KRATOS_INFO("Construction time") << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
+
+
+        TSystemMatrixType& mA = *mpA;
+        TSystemVectorType& mDx = *mpDx;
+        TSystemVectorType& mb = *mpb;
+
+        //initial operations ... things that are constant over the Solution Step
+        pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
+        //initial operations ... things that are constant over the Solution Step
+        pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
+        if (BaseType::GetEchoLevel() > 2 && rank == 0)
+            KRATOS_INFO("Exiting InitializeSolutionStep") << "Exiting the InitializeSolutionStep of the ResidualBasedLinearStrategy" << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
     values of the solution step of interest are assumed equal to the old values
      */
@@ -667,100 +761,6 @@ private:
     ///@}
     ///@name Private Operators*/
     ///@{
-
-    /**
-     * @brief Initialization of member variables and prior operations
-     */
-    void Initialize() override
-    {
-        KRATOS_TRY
-
-        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            KRATOS_INFO("Entering Initialize") << "Entering in the Initialize of the ResidualBasedLinearStrategy" << std::endl;
-
-        //pointers needed in the solution
-        typename TSchemeType::Pointer pScheme = GetScheme();
-
-        //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-        if (pScheme->SchemeIsInitialized() == false)
-            pScheme->Initialize(BaseType::GetModelPart());
-
-        //Initialize The Elements - OPERATIONS TO BE DONE ONCE
-        if (pScheme->ElementsAreInitialized() == false)
-            pScheme->InitializeElements(BaseType::GetModelPart());
-
-        //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
-        if (pScheme->ConditionsAreInitialized() == false)
-            pScheme->InitializeConditions(BaseType::GetModelPart());
-
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            KRATOS_INFO("Exiting Initialize") << "Exiting the  Initialize of the ResidualBasedLinearStrategy" << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
-     * @details A member variable should be used as a flag to make sure this function is called only once per step.
-     * @todo Boost dependencies should be replaced by std equivalent
-     */
-    void InitializeSolutionStep() override
-    {
-        KRATOS_TRY
-
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-        typename TSchemeType::Pointer pScheme = GetScheme();
-
-        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            KRATOS_INFO("Entering InitializeSolutionStep") << "Entering in the InitializeSolutionStep of the ResidualBasedLinearStrategy" << std::endl;
-
-
-        // Loop to reform the dofset
-        boost::timer system_construction_time;
-        if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
-                mReformDofSetAtEachStep == true)
-        {
-            boost::timer setup_dofs_time;
-            //setting up the list of the DOFs to be solved
-            pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
-
-            //shaping correctly the system
-            boost::timer setup_system_time;
-            pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                KRATOS_INFO("setup_system_time") << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
-
-            //setting up the Vectors involved to the correct size
-            boost::timer system_matrix_resize_time;
-            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                KRATOS_INFO("system_matrix_resize_time") << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
-        }
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            KRATOS_INFO("Construction time") << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
-
-
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
-
-        //initial operations ... things that are constant over the Solution Step
-        pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-
-        //initial operations ... things that are constant over the Solution Step
-        pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            KRATOS_INFO("Exiting InitializeSolutionStep") << "Exiting the InitializeSolutionStep of the ResidualBasedLinearStrategy" << std::endl;
-
-        KRATOS_CATCH("")
-    }
 
     /**
      * @brief This method prints information after reach the max number of interations
