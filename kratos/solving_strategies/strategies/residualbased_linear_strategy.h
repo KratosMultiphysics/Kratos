@@ -334,13 +334,13 @@ public:
         if (mSolutionStepIsInitialized == false)
         	InitializeSolutionStep();
 
-        TSystemMatrixType& A = *mpA;
-        TSystemVectorType& Dx = *mpDx;
-        TSystemVectorType& b = *mpb;
+        TSystemMatrixType& rA = *mpA;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType& rb = *mpb;
 
-        DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
+        DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
-        this->GetScheme()->Predict(BaseType::GetModelPart(), rDofSet, A, Dx, b);
+        this->GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
         KRATOS_CATCH("")
     }
@@ -425,12 +425,12 @@ public:
      */
     void CalculateOutputData() override
     {
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        TSystemMatrixType& rA = *mpA;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType& rb = *mpb;
 
-        DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
-        GetScheme()->CalculateOutputData(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+        DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
+        GetScheme()->CalculateOutputData(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
     }
 
     /**
@@ -481,15 +481,15 @@ public:
             if (BaseType::GetEchoLevel() > 0 && rank == 0)
                 KRATOS_INFO("Construction time") << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
 
-            TSystemMatrixType& A = *mpA;
-            TSystemVectorType& Dx = *mpDx;
-            TSystemVectorType& b = *mpb;
+            TSystemMatrixType& rA = *mpA;
+            TSystemVectorType& rDx = *mpDx;
+            TSystemVectorType& rb = *mpb;
 
             //initial operations ... things that are constant over the Solution Step
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
+            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
 
             //initial operations ... things that are constant over the Solution Step
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
+            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
 
             mSolutionStepIsInitialized = true;
         }
@@ -507,17 +507,17 @@ public:
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
-        TSystemMatrixType &A = *mpA;
-        TSystemVectorType &Dx = *mpDx;
-        TSystemVectorType &b = *mpb;
+        TSystemMatrixType &rA = *mpA;
+        TSystemVectorType &rDx = *mpDx;
+        TSystemVectorType &rb = *mpb;
 
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
 
-        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
-        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
+        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
+        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
 
         //Cleaning memory after the solution
         p_scheme->Clean();
@@ -548,54 +548,51 @@ public:
         //pointers needed in the solution
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
-        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-        ProcessInfo& pCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+        TSystemMatrixType& rA = *mpA;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType& rb = *mpb;
 
-        TSystemMatrixType& A = *mpA;
-        TSystemVectorType& Dx = *mpDx;
-        TSystemVectorType& b = *mpb;
-
-	    p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
+	    p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
-            TSparseSpace::SetToZero(A);
-            TSparseSpace::SetToZero(Dx);
-            TSparseSpace::SetToZero(b);
+            TSparseSpace::SetToZero(rA);
+            TSparseSpace::SetToZero(rDx);
+            TSparseSpace::SetToZero(rb);
             // passing smart pointers instead of references here
             // to prevent dangling pointer to system matrix when
             // reusing ml preconditioners in the trilinos tpl
-            p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), A, Dx, b);
+            p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
             BaseType::mStiffnessMatrixIsBuilt = true;
         }
         else
         {
-            TSparseSpace::SetToZero(Dx);
-            TSparseSpace::SetToZero(b);
-            p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), A, Dx, b);
+            TSparseSpace::SetToZero(rDx);
+            TSparseSpace::SetToZero(rb);
+            p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
         }
 
         if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
         {
-            KRATOS_INFO("LHS") << "SystemMatrix = " << A << std::endl;
-            KRATOS_INFO("Dx") << "Solution obtained = " << Dx << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << b << std::endl;
+            KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
+            KRATOS_INFO("Dx") << "Solution obtained = " << rDx << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
         }
         if (this->GetEchoLevel() == 4) //print to matrix market file
         {
             std::stringstream matrix_market_name;
             matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] <<  ".mm";
-            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), A, false);
+            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), rA, false);
 
             std::stringstream matrix_market_vectname;
             matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
-            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), b);
+            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), rb);
         }
 
         //update results
-        DofsArrayType& rDofSet = p_builder_and_solver->GetDofSet();
-        p_scheme->Update(BaseType::GetModelPart(), rDofSet, A, Dx, b);
+        DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
+        p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
         //move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
@@ -606,7 +603,7 @@ public:
         if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme,
                                                      BaseType::GetModelPart(),
-                                                     A, Dx, b);
+                                                     rA, rDx, rb);
 
         return true;
     }
