@@ -525,6 +525,51 @@ public:
         GetScheme()->CalculateOutputData(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
     }
 
+    /**
+     * @brief Clears the internal storage
+     * @note NULL could be changed to nullptr in the future (c++11)
+     */
+    void Clear() override
+    {
+        KRATOS_TRY;
+        // If the preconditioner is saved between solves, it
+        // should be cleared here.
+        GetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
+
+        if (mpA != NULL)
+            SparseSpaceType::Clear(mpA);
+        if (mpDx != NULL)
+            SparseSpaceType::Clear(mpDx);
+        if (mpb != NULL)
+            SparseSpaceType::Clear(mpb);
+
+        // Setting to zero the internal flag to ensure that the dof sets are recalculated
+        GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
+        GetBuilderAndSolver()->Clear();
+        GetScheme()->Clear();
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Function to perform expensive checks.
+     * @details It is designed to be called ONCE to verify that the input is correct.
+     */
+    int Check() override
+    {
+        KRATOS_TRY
+
+        BaseType::Check();
+
+        GetBuilderAndSolver()->Check(BaseType::GetModelPart());
+
+        GetScheme()->Check(BaseType::GetModelPart());
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -726,51 +771,6 @@ private:
         std::cout << "***************************************************" << std::endl;
         std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
         std::cout << "***************************************************" << std::endl;
-    }
-
-    /**
-     * @brief Clears the internal storage
-     * @note NULL could be changed to nullptr in the future (c++11)
-     */
-    void Clear() override
-    {
-        KRATOS_TRY;
-        // If the preconditioner is saved between solves, it
-        // should be cleared here.
-        GetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
-
-        if (mpA != NULL)
-            SparseSpaceType::Clear(mpA);
-        if (mpDx != NULL)
-            SparseSpaceType::Clear(mpDx);
-        if (mpb != NULL)
-            SparseSpaceType::Clear(mpb);
-
-        // Setting to zero the internal flag to ensure that the dof sets are recalculated
-        GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
-        GetBuilderAndSolver()->Clear();
-        GetScheme()->Clear();
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Function to perform expensive checks.
-     * @details It is designed to be called ONCE to verify that the input is correct.
-     */
-    int Check() override
-    {
-        KRATOS_TRY
-
-        BaseType::Check();
-
-        GetBuilderAndSolver()->Check(BaseType::GetModelPart());
-
-        GetScheme()->Check(BaseType::GetModelPart());
-
-        return 0;
-
-        KRATOS_CATCH("")
     }
 
     ///@}
