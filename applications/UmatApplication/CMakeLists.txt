@@ -27,8 +27,8 @@ set( KRATOS_UMAT_APPLICATION_SOURCES
 	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/small_strain_umat_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/von_mises_umat_small_strain_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/hypoplastic_umat_small_strain_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/fabric_umat_small_strain_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/hypoplastic_umat_small_strain_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/large_strain_umat_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/von_mises_umat_large_strain_model.cpp
 
