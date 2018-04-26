@@ -37,9 +37,9 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "distance_reading_settings": {
-                "import_mode": "from_mdpa",
-                "distance_file_name": "no_distance_file"
+            "distance_reading_settings"    : {
+                "import_mode"         : "from_mdpa",
+                "distance_file_name"  : "no_distance_file"
             },
             "maximum_iterations": 7,
             "dynamic_tau": 1.0,
@@ -51,31 +51,21 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
-            "linear_solver_settings": {
-                "solver_type": "AMGCL_NS_Solver"
+            "linear_solver_settings"       : {
+                "solver_type"         : "AMGCL_NS_Solver"
             },
-            "volume_model_part_name": "volume_model_part",
+            "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
-            "time_stepping": {
-                "automatic_time_step": true,
-                "CFL_number": 1,
-                "minimum_delta_time": 1e-2,
-                "maximum_delta_time": 1.0
+            "time_stepping"                : {
+                "automatic_time_step" : true,
+                "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-2,
+                "maximum_delta_time"  : 1.0
             },
+            "periodic": "periodic",
             "move_mesh_flag": false,
-            "reorder": false,
-            "fm_ale_settings": {
-                "fm_ale_step_frequency": 0,
-                "mesh_solver_settings":{
-                    "problem_data":{
-                        "parallel_type": "OpenMP"
-                    },
-                    "solver_settings":{
-                        "solver_type": "mesh_solver_structural_similarity"
-                    }
-                }
-            }
+            "reorder": false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -95,16 +85,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
             self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
 
-        ## Set the FM-ALE framework
-        self.fm_ale_step_frequency = self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt()
-        if (self.fm_ale_step_frequency != 0):
-            self.fm_ale_step = 1
-            self.virtual_model_part = ModelPart("VirtualModelPart")
-            import python_solvers_wrapper_mesh_motion
-            self.mesh_solver = python_solvers_wrapper_mesh_motion.CreateSolver(self.virtual_model_part,self.settings["mesh_solver_settings"]["solver_settings"])
-
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Construction of NavierStokesEmbeddedMonolithicSolver finished.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Construction of NavierStokesEmbeddedMonolithicSolver finished.")
 
 
     def AddVariables(self):
@@ -127,18 +108,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_PRESSURE)          # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
-        if (self.fm_ale_step_frequency != 0):
-            self.mesh_solver.AddVariables()
-
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Fluid solver variables added correctly.")
-
-
-    def AddDofs(self):
-        super(NavierStokesEmbeddedMonolithicSolver, self).AddDofs()
-
-        if (self.fm_ale_step_frequency != 0):
-            self.mesh_solver.AddDofs()
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Fluid solver variables added correctly.")
 
 
     def ImportModelPart(self):
@@ -150,10 +120,6 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         self._set_constitutive_law()
         ## Setting the nodal distance
         self._set_distance_function()
-
-        ## Set the virtual model part geometry
-        # if (self.fm_ale_step_frequency != 0):
-
 
 
     def Initialize(self):
@@ -198,24 +164,9 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Solver initialization finished.")
 
-        # Create the mesh solver strategy
-        if (self.fm_ale_step_frequency != 0):
-            self.mesh_solver.Initialize()
-
 
     def InitializeSolutionStep(self):
-        # Compute the BDF coefficients
         (self.bdf_process).Execute()
-
-        # Perform the FM-ALE operations
-        # if (self.fm_ale_step == self.fm_ale_step_frequency):
-            # Fill the virtual model part variable values: MESH_DISPLACEMENT, VELOCITY (n,nn), PRESSURE (n,nn)
-            # Solve the mesh problem
-            # Project the obtained MESH_VELOCITY and historical VELOCITY and PRESSURE values to the origin mesh
-        # else:
-        #     self.fm_ale_step += 1
-
-        # Fluid solver step initialization
         (self.solver).InitializeSolutionStep()
 
 
