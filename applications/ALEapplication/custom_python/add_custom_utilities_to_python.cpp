@@ -20,6 +20,7 @@
 
 #include "custom_utilities/ball_vertex_meshmoving.h"
 #include "custom_utilities/ball_vertex_meshmoving3D.h"
+#include "custom_utilities/explicit_mesh_moving_utilities.h"
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
 
@@ -56,6 +57,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
       .def("ClearSystem",
            &BallVertexMeshMoving3D<3, SparseSpaceType,
                                    LinearSolverType>::ClearSystem);
+    
+    class_<ExplicitMeshMovingUtilities>(m,"ExplicitMeshMovingUtilities")
+    .def(init<>());
+
 }
 
 } // namespace Python.
