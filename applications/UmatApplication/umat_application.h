@@ -39,6 +39,7 @@
 //#include "custom_laws/large_strain_umat_3D_law.hpp"
 
 #include "custom_models/von_mises_umat_small_strain_model.hpp"
+#include "custom_models/fabric_umat_small_strain_model.hpp"
 #include "custom_models/hypoplastic_umat_small_strain_model.hpp"
 #include "custom_models/von_mises_umat_large_strain_model.hpp"
 
@@ -182,9 +183,10 @@ private:
 	///@name Static Member Variables
 	///@{
 
-   const VonMisesSmallStrainUmatModel mVonMisesSmallStrainUmatModel;
+   const FabricSmallStrainUmatModel      mFabricSmallStrainUmatModel;
+   const VonMisesSmallStrainUmatModel    mVonMisesSmallStrainUmatModel;
    const HypoplasticSmallStrainUmatModel mHypoplasticSmallStrainUmatModel;
-   const VonMisesLargeStrainUmatModel mVonMisesLargeStrainUmatModel;
+   const VonMisesLargeStrainUmatModel    mVonMisesLargeStrainUmatModel;
 	
 	///@}
 	///@name Member Variables

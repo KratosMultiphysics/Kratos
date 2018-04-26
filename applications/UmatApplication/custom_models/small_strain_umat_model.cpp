@@ -97,8 +97,11 @@ namespace Kratos
 
          int number_state_variables = this->GetNumberOfStateVariables();
          mStateVariablesFinalized = ZeroVector(number_state_variables);
+         this->InitializeStateVariables( mStateVariablesFinalized);
 
          mStressVectorFinalized.clear();
+         this->SetInitialStressTEMPORARY( mStressVectorFinalized);
+
          mStrainVectorFinalized.clear();
       }
       mInitializedModel = true;
