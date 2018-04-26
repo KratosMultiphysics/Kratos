@@ -47,6 +47,9 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
     typedef std::vector<double> DoubleVector;
     typedef DoubleVector::iterator DoubleVectorIterator;
     typedef std::size_t SizeType;
+    typedef Element::GeometryType GeometryType;
+    typedef Element::VectorType VectorType;
+    typedef ModelPart::ElementsContainerType ElementsArrayType;
 
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
@@ -71,7 +74,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
         ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
         ModelPart &slave_model_part     = mrModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
         double neighbor_search_radius   = mParameters["neighbor_search_radius"].GetDouble();
-        const int bucket_size           =  mParameters["bucket_size"].GetInt();
+        const int bucket_size           = mParameters["bucket_size"].GetInt();
         NodesArrayType &r_nodes_master  = master_model_part.Nodes();
         NodesArrayType &r_nodes_slave   = slave_model_part.Nodes();
 
@@ -81,6 +84,8 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
         KDTree::Pointer search_tree =
          Kratos::shared_ptr<KDTree>(new KDTree(master_node_list.begin(), master_node_list.end(), bucket_size));
 
+
+        //this->CreateSpringElements(master_model_part,slave_model_part);
 
         const int max_number_of_neighbors = 2;
         for(NodeType& node_i : r_nodes_slave)
@@ -270,6 +275,42 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
     }
     //<------- ////////////////
     /////////////////////////////////////
+
+    void CreateSpringElements(ModelPart &rMasterModelPart,ModelPart &rSlaveModelPart)
+    {
+        //idea: calculate internal force from each slave truss ->
+        // use this force to couple node to beam with K = f_int_slave_truss * nu_friction
+        auto slave_element_begin = rSlaveModelPart.ElementsBegin();
+        const ElementsArrayType& r_slave_elements = rSlaveModelPart.Elements();
+        const NodesArrayType& r_slave_nodes = rSlaveModelPart.Nodes();
+
+        auto master_element_begin = rMasterModelPart.ElementsBegin();
+        const ElementsArrayType& r_master_elements = rMasterModelPart.Elements();
+        const NodesArrayType& r_master_nodes = rMasterModelPart.Nodes();
+
+
+        for (SizeType slave_element_counter(0);slave_element_counter<r_slave_elements.size();slave_element_counter++)
+        {
+            auto slave_current_element = slave_element_begin+slave_element_counter; 
+            const GeometryType& r_element_geometry = slave_current_element->GetGeometry();
+            const NodeType& r_node_a = r_element_geometry[0];
+            const NodeType& r_node_b = r_element_geometry[1]; 
+
+            VectorType right_hand_side = ZeroVector(6);
+            ProcessInfo &r_current_process_info = rSlaveModelPart.GetProcessInfo(); 
+            slave_current_element->CalculateRightHandSide(right_hand_side,r_current_process_info);
+            const double internal_truss_force = std::sqrt(std::pow(right_hand_side[3],2)+
+                std::pow(right_hand_side[4],2)+std::pow(right_hand_side[5],2));
+            
+            const double friction_coeff = 10.0;
+            const double friction_stiff = friction_coeff*internal_truss_force;
+
+            for (SizeType master_element_counter(0);master_element_counter<r_master_elements.size();master_element_counter++)
+            {   
+            }    
+        }
+    }
+
 
 
 
