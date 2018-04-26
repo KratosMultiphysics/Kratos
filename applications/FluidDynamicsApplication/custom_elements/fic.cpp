@@ -272,7 +272,8 @@ void FIC<TElementData>::AddVelocitySystem(
             unsigned int col = j*BlockSize;
 
             // Some terms are the same for all velocity components, calculate them once for each i,j
-            K = 0.5*(rData.N[i]*AGradN[j] - AGradN[i]*rData.N[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
+            //K = 0.5*(rData.N[i]*AGradN[j] - AGradN[i]*rData.N[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
+            K = rData.N[i]*AGradN[j];
             K += AGradN[i]*TauMomentum*(AGradN[j]); // Stabilization: u*grad(v) * TauOne * u*grad(u)
             K *= rData.Weight;
 
@@ -328,7 +329,7 @@ void FIC<TElementData>::AddVelocitySystem(
     /* Viscous contribution (symmetric gradient E(u) - 1/3 Tr(E) )
      * For a generic (potentially non-linear) constitutive law, one cannot assume that RHS = F - LHS*current_values.
      * Because of this, the AddViscousTerm function manages both the LHS and the RHS.
-     */ 
+     */
     this->AddViscousTerm(rData,LHS,rLocalRHS);
 
     noalias(rLocalLHS) += LHS;
@@ -417,12 +418,12 @@ void FIC<TElementData>::AddBoundaryIntegral(TElementData& rData,
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
 
     const auto& constitutive_matrix = rData.C;
-    
+
     BoundedMatrix<double,StrainSize,LocalSize> shear_stress_matrix = prod(constitutive_matrix,strain_matrix);
 
     BoundedMatrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
     FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal,normal_projection);
-    
+
     // Contribution to boundary stress from 2*mu*symmetric_gradient(velocity)*n
     BoundedMatrix<double,Dim,LocalSize> normal_stress_operator = prod(normal_projection,shear_stress_matrix);
 
@@ -527,7 +528,7 @@ void FIC<TElementData>::CalculateTau(
 
 template< class TElementData >
 void FIC<TElementData>::CalculateTauGrad(
-    const TElementData& rData, 
+    const TElementData& rData,
     array_1d<double,3> &TauGrad) const
 {
     // Small constant to prevent division by zero
@@ -624,7 +625,7 @@ void FICSpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
         pElement->AddMassLHS(rData,mass_matrix);
 
         noalias(rLHS) += rData.bdf0*mass_matrix + velocity_lhs;
-        
+
         Vector acceleration = ZeroVector(rRHS.size());
 
         int LocalIndex = 0;
