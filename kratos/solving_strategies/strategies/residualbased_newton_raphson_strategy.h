@@ -24,6 +24,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/builtin_timer.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -525,45 +526,34 @@ class ResidualBasedNewtonRaphsonStrategy
 
             //set up the system, operation performed just once unless it is required
             //to reform the dof set at each iteration
+            BuiltinTimer system_construction_time;
             if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
                 mReformDofSetAtEachStep == true)
             {
                 //setting up the list of the DOFs to be solved
-                double setup_dofs_begintime = OpenMPUtils::GetCurrentTime();
+                BuiltinTimer setup_dofs_time;
                 p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
-                if (this->GetEchoLevel() > 0 && rank == 0)
-                {
-                    double setup_dofs_endtime = OpenMPUtils::GetCurrentTime();
-                    KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << setup_dofs_endtime - setup_dofs_begintime << std::endl;
-                }
+                if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                    KRATOS_INFO("Setup Dofs Time") << setup_dofs_time.ElapsedSeconds() << std::endl;
 
                 //shaping correctly the system
-                double setup_system_begin = OpenMPUtils::GetCurrentTime();
+                BuiltinTimer setup_system_time;
                 p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
-                if (this->GetEchoLevel() > 0 && rank == 0)
-                {
-                    double setup_system_end = OpenMPUtils::GetCurrentTime();
-                    KRATOS_INFO("setup_system_time") << rank << ": setup_system_time : " << setup_system_end - setup_system_begin << std::endl;
-                }
+                if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                    KRATOS_INFO("Setup System Time") << setup_system_time.ElapsedSeconds() << std::endl;
 
                 //setting up the Vectors involved to the correct size
-                double system_matrix_resize_begin = OpenMPUtils::GetCurrentTime();
+                BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                               BaseType::GetModelPart().Elements(),
                                                               BaseType::GetModelPart().Conditions(),
                                                               BaseType::GetModelPart().GetProcessInfo());
-                if (this->GetEchoLevel() > 0 && rank == 0)
-                {
-                    double system_matrix_resize_end = OpenMPUtils::GetCurrentTime();
-                    KRATOS_INFO("system_matrix_resize_time") << rank << ": system_matrix_resize_time : " << system_matrix_resize_end - system_matrix_resize_begin << std::endl;
-                }
+                if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                    KRATOS_INFO("System Matrix Resize Time") << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
 
-            //prints informations about the current time
-            if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-            {
-                KRATOS_INFO("CurrentTime") << "\nCurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
-            }
+            if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                KRATOS_INFO("System Construction Time") << system_construction_time.ElapsedSeconds() << std::endl;
 
             TSystemMatrixType& rA = *mpA;
             TSystemVectorType& rDx = *mpDx;

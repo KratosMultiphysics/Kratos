@@ -23,6 +23,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "utilities/builtin_timer.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -451,36 +452,36 @@ public:
 
             const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-            boost::timer system_construction_time;
             //set up the system, operation performed just once unless it is required
             //to reform the dof set at each iteration
+            BuiltinTimer system_construction_time;
             if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
                     mReformDofSetAtEachStep == true)
             {
-                boost::timer setup_dofs_time;
                 //setting up the list of the DOFs to be solved
+                BuiltinTimer setup_dofs_time;
                 p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
                 if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                    KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
+                    KRATOS_INFO("Setup Dofs Time") << setup_dofs_time.ElapsedSeconds() << std::endl;
 
                 //shaping correctly the system
-                boost::timer setup_system_time;
+                BuiltinTimer setup_system_time;
                 p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
                 if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                    KRATOS_INFO("setup_system_time") << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
+                    KRATOS_INFO("Setup System Time") << setup_system_time.ElapsedSeconds() << std::endl;
 
                 //setting up the Vectors involved to the correct size
-                boost::timer system_matrix_resize_time;
+                BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                               BaseType::GetModelPart().Elements(),
                                                               BaseType::GetModelPart().Conditions(),
                                                               BaseType::GetModelPart().GetProcessInfo());
                 if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                    KRATOS_INFO("system_matrix_resize_time") << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
+                    KRATOS_INFO("System Matrix Resize Time") << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
 
             if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                KRATOS_INFO("Construction time") << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
+                KRATOS_INFO("System Construction Time") << system_construction_time.ElapsedSeconds() << std::endl;
 
             TSystemMatrixType& rA = *mpA;
             TSystemVectorType& rDx = *mpDx;
@@ -529,8 +530,6 @@ public:
         //deallocate the systemvectors if needed
         if (mReformDofSetAtEachStep == true)
         {
-            // if (rank == 0 && BaseType::GetEchoLevel() > 0) std::cout << "Clearing System" << std::endl;
-
             SparseSpaceType::Clear(mpA);
             SparseSpaceType::Clear(mpDx);
             SparseSpaceType::Clear(mpb);
