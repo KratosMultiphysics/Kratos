@@ -82,7 +82,7 @@ public:
     typedef TSparseSpace SparseSpaceType;
 
     typedef typename TSparseSpace::VectorType SparseVectorType;
-    
+
     typedef typename TSparseSpace::VectorPointerType SparseVectorPointerType;
 
     typedef typename TSparseSpace::MatrixType SparseMatrixType;
@@ -91,7 +91,7 @@ public:
 
     typedef std::complex<double> ComplexType;
 
-    typedef boost::numeric::ublas::vector<ComplexType> ComplexVectorType;
+    typedef DenseVector<ComplexType> ComplexVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -265,13 +265,13 @@ public:
         // initialize the force vector; this does not change during the computation
         auto& r_force_vector = *mpForceVector;
         const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize();
-        
+
         boost::timer force_vector_build_time;
         if (r_force_vector.size() != system_size)
             r_force_vector.resize(system_size, false);
         r_force_vector = ZeroVector( system_size );
         p_builder_and_solver->BuildRHS(p_scheme,r_model_part,r_force_vector);
-        
+
         if (BaseType::GetEchoLevel() > 0 && rank == 0)
         {
             std::cout << "force_vector_build_time : " << force_vector_build_time.elapsed() << std::endl;
@@ -318,7 +318,7 @@ public:
             {
                 mSystemDamping = property->GetValue(SYSTEM_DAMPING_RATIO);
             }
-            
+
             if( property->Has(RAYLEIGH_ALPHA) && property->Has(RAYLEIGH_BETA) )
             {
                 mRayleighAlpha = property->GetValue(RAYLEIGH_ALPHA);
@@ -331,11 +331,11 @@ public:
         {
             // throw an error, if no submodelparts are present
             KRATOS_ERROR_IF(r_model_part.NumberOfSubModelParts() < 1) << "No submodelparts detected!" << std::endl;
-            
+
             //initialize all required variables
             r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
             mMaterialDampingRatios = ZeroVector( n_modes );
-            
+
             //initialize dummy vectors
             auto pDx = SparseSpaceType::CreateEmptyVectorPointer();
             auto pb = SparseSpaceType::CreateEmptyVectorPointer();
@@ -348,7 +348,7 @@ public:
 
             //loop over all modes and initialize the material damping ratio per mode
             boost::timer material_damping_build_time;
-        
+
             for( std::size_t i = 0; i < n_modes; ++i )
             {
                 double up = 0.0;
@@ -364,10 +364,10 @@ public:
                             damping_coefficient = property->GetValue(SYSTEM_DAMPING_RATIO);
                         }
                     }
-                    
+
                     //initialize the submodelpart stiffness matrix
                     auto temp_stiffness_matrix = SparseSpaceType::CreateEmptyMatrixPointer();
-                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, 
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme,
                         temp_stiffness_matrix,
                         pDx,
                         pb,
@@ -386,7 +386,7 @@ public:
                 KRATOS_ERROR_IF(down < std::numeric_limits<double>::epsilon()) << "No valid effective "
                     << "material damping ratio could be computed. Are all elements to be damped available "
                     << "in the submodelparts? Are the modal vectors available?" << std::endl;
-                
+
                 mMaterialDampingRatios(i) = up / down;
             }
 
@@ -396,7 +396,7 @@ public:
                 KRATOS_WATCH(mMaterialDampingRatios)
             }
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -424,7 +424,7 @@ public:
 
         // DenseMatrixType eigenvectors;
         const std::size_t n_dofs = this->pGetBuilderAndSolver()->GetEquationSystemSize();
-        
+
         auto& f = *mpForceVector;
 
         ComplexType mode_weight;
@@ -439,7 +439,7 @@ public:
             KRATOS_ERROR_IF(eigenvalues[i] < std::numeric_limits<double>::epsilon()) << "No valid eigenvalue "
                     << "for mode " << i << std::endl;
             modal_damping = mSystemDamping + mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
-            
+
             if( mUseMaterialDamping )
             {
                 modal_damping += mMaterialDampingRatios[i];
@@ -663,7 +663,7 @@ private:
         for( auto& node : r_model_part.Nodes() )
         {
             ModelPart::NodeType::DofsContainerType& rNodeDofs = node.GetDofs();
-            
+
             for( auto it_dof = std::begin(rNodeDofs); it_dof != std::end(rNodeDofs); it_dof++ )
             {
                 if( !it_dof->IsFixed() )

@@ -35,6 +35,7 @@ SphericParticle::SphericParticle()
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
+    mpInlet = NULL;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -45,6 +46,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
+    mpInlet = NULL;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
@@ -56,6 +58,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
+    mpInlet = NULL;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
@@ -67,6 +70,7 @@ SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNode
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
+    mpInlet = NULL;
 }
 
 Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
@@ -1340,9 +1344,24 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
                                               const array_1d<double,3>& gravity)
 {
     KRATOS_TRY
-    noalias(externally_applied_force)  += ComputeWeight(gravity, r_process_info);
-    noalias(externally_applied_force)  += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
-    noalias(externally_applied_moment) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
+    
+    if (this->Is(DEMFlags::CUMULATIVE_ZONE)) {
+        const array_1d<double,3> gravity_force = ComputeWeight(gravity, r_process_info);
+        const double gravity_force_magnitude = DEM_MODULUS_3(gravity_force);
+        const array_1d<double, 3>& vel = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);  
+        const double vel_magnitude = DEM_MODULUS_3(vel); 
+        if (vel_magnitude != 0.0){
+            const array_1d<double, 3> unitary_vel =  vel/vel_magnitude;                                     
+            const double inlet_damping_coefficient = 1e4;
+            const array_1d<double, 3> damping_force = - inlet_damping_coefficient * GetMass() * vel;
+            const array_1d<double, 3> counter_force  = - 50.0 * gravity_force_magnitude * unitary_vel;
+            noalias(externally_applied_force)  += damping_force;
+            noalias(externally_applied_force)  += counter_force;}
+    } else {
+        noalias(externally_applied_force)  += ComputeWeight(gravity, r_process_info);
+        noalias(externally_applied_force)  += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+        noalias(externally_applied_moment) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT); 
+    }
     KRATOS_CATCH("")
 }
 

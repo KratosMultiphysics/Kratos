@@ -31,6 +31,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/beam_constitutive_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_stress.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_strain.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastic_isotropic_plane_stress_uncoupled_shear.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastic_isotropic_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/axisym_elastic_isotropic.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.cpp
@@ -41,6 +42,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_orthotropic_2D_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_j2_plasticity_plane_strain_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_j2_plasticity_3d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_3D_law.cpp
 
   ## ELEMENTS
   #Adding truss element
@@ -53,7 +55,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_linear_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_2D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_linear_2D2N.cpp
-  
+
   # Adding shells and membranes elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
@@ -75,7 +77,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar.cpp
 
   # Adding the SPRISM element
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SprismElement3D6N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_shell_element_sprism_3D6N.cpp
 
   # Adding the nodal concentrated element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_concentrated_element.cpp
@@ -108,6 +110,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_response_functions_to_python.cpp
 )
 
 add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE} ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})
@@ -116,7 +119,7 @@ set_target_properties(KratosStructuralMechanicsCore PROPERTIES COMPILE_DEFINITIO
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosStructuralMechanicsApplication MODULE ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})
+pybind11_add_module(KratosStructuralMechanicsApplication MODULE THIN_LTO ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosStructuralMechanicsApplication PUBLIC KratosStructuralMechanicsCore)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
 

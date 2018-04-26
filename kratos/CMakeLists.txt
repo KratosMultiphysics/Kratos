@@ -102,7 +102,7 @@ set( KRATOS_PYTHON_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_market_interface_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_table_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_search_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_search_strategies_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_parameters_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_testing_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
@@ -128,7 +128,7 @@ target_link_libraries(KratosCore PUBLIC gidpost) #${Boost_LIBRARIES} ${PYTHON_LI
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 
 ## Define library Kratos which defines the basic python interface
-pybind11_add_module(Kratos MODULE ${KRATOS_PYTHON_SOURCES})
+pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
 # add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
 # set_target_properties(Kratos PROPERTIES PREFIX "")

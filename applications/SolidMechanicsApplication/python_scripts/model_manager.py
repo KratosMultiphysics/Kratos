@@ -223,7 +223,7 @@ class ModelManager(object):
         fluid_body_model_parts = []
         rigid_body_model_parts = []
 
-        void_flags = KratosSolid.FlagsContainer()
+        void_flags = []
 
         bodies_list = self.settings["bodies_list"]
         for i in range(bodies_list.size()):
@@ -247,19 +247,15 @@ class ModelManager(object):
             for part in body_parts_list:
                 entity_type = "Nodes"
                 if (body_model_part_type=="Fluid"):
-                    assign_flags = KratosSolid.FlagsContainer()
-                    assign_flags.PushBack(KratosMultiphysics.FLUID)
+                    assign_flags = [KratosMultiphysics.FLUID]
                     transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                     transfer_process.Execute()
                 elif (body_model_part_type=="Solid"):
-                    assign_flags = KratosSolid.FlagsContainer()
-                    assign_flags.PushBack(KratosMultiphysics.SOLID)
+                    assign_flags = [KratosMultiphysics.SOLID]
                     transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                     transfer_process.Execute()
                 elif (body_model_part_type=="Rigid"):
-                    assign_flags = KratosSolid.FlagsContainer()
-                    assign_flags.PushBack(KratosMultiphysics.RIGID)
-                    assign_flags.PushBack(KratosMultiphysics.BOUNDARY)
+                    assign_flags = [KratosMultiphysics.RIGID,KratosMultiphysics.BOUNDARY]
                     transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                     transfer_process.Execute()
 
@@ -281,9 +277,7 @@ class ModelManager(object):
                 rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
 
         #add walls in fluid domains:
-        transfer_flags = KratosSolid.FlagsContainer()
-        transfer_flags.PushBack(KratosMultiphysics.RIGID)
-        transfer_flags.PushBack(KratosMultiphysics.NOT_FLUID)
+        transfer_flags = [KratosMultiphysics.RIGID,KratosMultiphysics.NOT_FLUID]
 
         entity_type = "Nodes"
         for fluid_part in fluid_body_model_parts:

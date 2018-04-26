@@ -635,12 +635,12 @@ namespace Kratos {
                 }//end of loop over nodes
 
                 //loop on nodes to compute ADVPROJ   CONVPROJ NODALAREA
-                array_1d<double, 3 > output;
+                array_1d<double, 3 > output(3,0.0);
 
 
                 const int nel = static_cast<int>(rModelPart.Elements().size());
                 auto elbegin = rModelPart.ElementsBegin();
-                #pragma omp parallel for firstprivate(elbegin,nel)
+                #pragma omp parallel for firstprivate(elbegin,nel,output)
                 for(int i=0; i<nel; ++i)
                 {
                     auto elem = elbegin + i;

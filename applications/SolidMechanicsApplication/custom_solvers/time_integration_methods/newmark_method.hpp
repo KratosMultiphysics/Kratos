@@ -168,7 +168,7 @@ namespace Kratos
     ///@{
     
     // set parameters (do not calculate parameters here, only read them)
-    virtual void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
+    void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
        
@@ -196,7 +196,7 @@ namespace Kratos
     }     
 
     // set parameters to process info
-    virtual void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo) override
+    void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
        
@@ -208,20 +208,20 @@ namespace Kratos
 
     
     // get parameters
-    virtual double& GetFirstDerivativeParameter(double& rParameter) override
+    double& GetFirstDerivativeParameter(double& rParameter) override
     {
       rParameter = mNewmark.c1;
       return rParameter;
     }
 
-    virtual double& GetSecondDerivativeParameter(double& rParameter) override
+    double& GetSecondDerivativeParameter(double& rParameter) override
     {
       rParameter = mNewmark.c0;
       return rParameter;
     }
     
-    // predict
-    virtual void Predict(NodeType& rNode) override
+    // assign
+    void Assign(NodeType& rNode) override
     {
      KRATOS_TRY
      
@@ -240,20 +240,24 @@ namespace Kratos
        }
 
      }
-     else{
-
-       this->PredictVariable(rNode);
-       this->PredictFirstDerivative(rNode);
-       this->PredictSecondDerivative(rNode);
-       
-     }
-	
+     
      KRATOS_CATCH( "" )
     }
 
+    // predict
+    void Predict(NodeType& rNode) override
+    {
+     KRATOS_TRY
+     
+     this->PredictVariable(rNode);
+     this->PredictFirstDerivative(rNode);
+     this->PredictSecondDerivative(rNode);
+       
+     KRATOS_CATCH( "" )
+    }
     
     // update
-    virtual void Update(NodeType& rNode) override
+    void Update(NodeType& rNode) override
     {
      KRATOS_TRY
        
@@ -280,7 +284,7 @@ namespace Kratos
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "NewmarkMethod";
@@ -288,13 +292,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "NewmarkMethod";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "NewmarkMethod Data";     
     }
@@ -322,7 +326,7 @@ namespace Kratos
     ///@name Protected Operators
     ///@{
 
-    virtual void PredictFromVariable(NodeType& rNode) override
+    void PredictFromVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -337,7 +341,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    virtual void PredictFromFirstDerivative(NodeType& rNode) override
+    void PredictFromFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -365,7 +369,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void PredictFromSecondDerivative(NodeType& rNode) override
+    void PredictFromSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -389,7 +393,7 @@ namespace Kratos
     }
 
 
-    virtual void PredictVariable(NodeType& rNode) override
+    void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -403,7 +407,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    virtual void PredictFirstDerivative(NodeType& rNode) override
+    void PredictFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -423,7 +427,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void PredictSecondDerivative(NodeType& rNode) override
+    void PredictSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
       
@@ -436,7 +440,7 @@ namespace Kratos
       KRATOS_CATCH( "" )              
     }
     
-    virtual void UpdateVariable(NodeType& rNode) override
+    void UpdateVariable(NodeType& rNode) override
     {
       KRATOS_TRY
       
@@ -444,7 +448,7 @@ namespace Kratos
     }
     
 
-    virtual void UpdateFirstDerivative(NodeType& rNode) override
+    void UpdateFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -460,7 +464,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void UpdateSecondDerivative(NodeType& rNode) override
+    void UpdateSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -520,13 +524,13 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
       rSerializer.save("NewmarkParameters", mNewmark);
     };
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
       rSerializer.load("NewmarkParameters", mNewmark);

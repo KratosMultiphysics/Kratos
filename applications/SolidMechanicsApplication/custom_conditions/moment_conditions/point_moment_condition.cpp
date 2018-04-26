@@ -117,8 +117,8 @@ namespace Kratos
     if( dimension == 2 ){
     
       //defined on condition
-      if( this->Has( PLANE_POINT_MOMENT ) ){
-	double& PointMoment = this->GetValue( PLANE_POINT_MOMENT );
+      if( this->Has( PLANE_MOMENT_LOAD ) ){
+	double& PointMoment = this->GetValue( PLANE_MOMENT_LOAD );
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	  {
 	      rVariables.ExternalScalarValue += rVariables.N[i] * PointMoment;
@@ -126,8 +126,8 @@ namespace Kratos
       }
     
       //defined on condition nodes
-      if( this->Has( PLANE_POINT_MOMENT_VECTOR ) ){
-	Vector& PointMoments = this->GetValue( PLANE_POINT_MOMENT_VECTOR );
+      if( this->Has( PLANE_MOMENT_LOAD_VECTOR ) ){
+	Vector& PointMoments = this->GetValue( PLANE_MOMENT_LOAD_VECTOR );
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	  {
 	    rVariables.ExternalScalarValue += rVariables.N[i] * PointMoments[i];	  
@@ -137,8 +137,8 @@ namespace Kratos
       //defined on condition nodes      
       for (unsigned int i = 0; i < number_of_nodes; i++)
 	{
-	  if( GetGeometry()[i].SolutionStepsDataHas( PLANE_POINT_MOMENT ) ){
-	    double& PointMoment = GetGeometry()[i].FastGetSolutionStepValue( PLANE_POINT_MOMENT );
+	  if( GetGeometry()[i].SolutionStepsDataHas( PLANE_MOMENT_LOAD ) ){
+	    double& PointMoment = GetGeometry()[i].FastGetSolutionStepValue( PLANE_MOMENT_LOAD );
 	    rVariables.ExternalScalarValue += rVariables.N[i] * PointMoment;
  	  }
 	}
@@ -147,8 +147,8 @@ namespace Kratos
     else{
 
       //defined on condition
-      if( this->Has( POINT_MOMENT ) ){
-	array_1d<double, 3 > & PointMoment = this->GetValue( POINT_MOMENT );
+      if( this->Has( MOMENT_LOAD ) ){
+	array_1d<double, 3 > & PointMoment = this->GetValue( MOMENT_LOAD );
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	  {
 	    for( unsigned int k = 0; k < dimension; k++ )
@@ -157,8 +157,8 @@ namespace Kratos
       }
     
       //defined on condition nodes
-      if( this->Has( POINT_MOMENT_VECTOR ) ){
-	Vector& PointMoments = this->GetValue( POINT_MOMENT_VECTOR );
+      if( this->Has( MOMENT_LOAD_VECTOR ) ){
+	Vector& PointMoments = this->GetValue( MOMENT_LOAD_VECTOR );
 	unsigned int counter = 0;
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	  {
@@ -174,8 +174,8 @@ namespace Kratos
       //defined on condition nodes      
       for (unsigned int i = 0; i < number_of_nodes; i++)
 	{
-	  if( GetGeometry()[i].SolutionStepsDataHas( POINT_MOMENT ) ){
-	    array_1d<double, 3 > & PointMoment = GetGeometry()[i].FastGetSolutionStepValue( POINT_MOMENT );
+	  if( GetGeometry()[i].SolutionStepsDataHas( MOMENT_LOAD ) ){
+	    array_1d<double, 3 > & PointMoment = GetGeometry()[i].FastGetSolutionStepValue( MOMENT_LOAD );
 	    for( unsigned int k = 0; k < dimension; k++ )
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointMoment[k];
  
@@ -255,10 +255,10 @@ namespace Kratos
     ErrorCode = MomentCondition::Check(rCurrentProcessInfo);
     
     // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(POINT_MOMENT);
-    KRATOS_CHECK_VARIABLE_KEY(POINT_MOMENT_VECTOR);
-    KRATOS_CHECK_VARIABLE_KEY(PLANE_POINT_MOMENT);
-    KRATOS_CHECK_VARIABLE_KEY(PLANE_POINT_MOMENT_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(PLANE_MOMENT_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(PLANE_MOMENT_LOAD_VECTOR);
 
     return ErrorCode;
     

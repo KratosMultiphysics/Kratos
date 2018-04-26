@@ -77,7 +77,7 @@ public:
 
     typedef Element::EquationIdVectorType EquationIdVectorType;
 
-    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>
+    typedef BoundedMatrix<double, TNumNodes, TDim>
     ShapeFunctionDerivativesType;
 
     ///@}
@@ -599,8 +599,8 @@ protected:
         // Derivatives of TauOne, TauTwo w.r.t velocity. These definitions
         // depend on the definitions of TauOne and TauTwo and should be consistent
         // with the fluid element used to solve for VELOCITY and PRESSURE.
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> TauOneDeriv;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> TauTwoDeriv;
+        BoundedMatrix<double, TNumNodes, TDim> TauOneDeriv;
+        BoundedMatrix<double, TNumNodes, TDim> TauTwoDeriv;
 
         if (VelNorm > 0.0)
         {
@@ -754,7 +754,7 @@ protected:
             double DetJDeriv = DetJDerivatives[iCoord];
 
             // DN_DX'
-            boost::numeric::ublas::bounded_matrix< double, TNumNodes, TDim > DN_DX_Deriv;
+            BoundedMatrix< double, TNumNodes, TDim > DN_DX_Deriv;
             for (IndexType i = 0; i < TNumNodes; ++i)
             {
                 for (IndexType d = 0; d < TDim; ++d)
@@ -776,7 +776,7 @@ protected:
                     TauOneDeriv,TauTwoDeriv,TauOne,TauTwo,VelNorm,ElemSize,Density,
                     Viscosity,DetJDeriv);
 
-            boost::numeric::ublas::bounded_matrix< double, TFluidLocalSize, TFluidLocalSize > LHS;
+            BoundedMatrix< double, TFluidLocalSize, TFluidLocalSize > LHS;
             array_1d< double, TFluidLocalSize > RHS;
             for (IndexType i=0; i < TFluidLocalSize; i++)
             {
@@ -891,7 +891,7 @@ protected:
         noalias(DensityVelGradN) = Density * prod(DN_DX,Velocity);
 
         // Grad(u)
-        boost::numeric::ublas::bounded_matrix< double, TDim, TDim > DensityGradVel;
+        BoundedMatrix< double, TDim, TDim > DensityGradVel;
         this->CalculateVelocityGradient(DensityGradVel,DN_DX);
 
         // Div(u)
@@ -906,7 +906,7 @@ protected:
         this->CalculatePressureGradient(GradP,DN_DX);
 
         // ( Grad(u) * Grad(N) )^T
-        boost::numeric::ublas::bounded_matrix< double, TNumNodes, TDim > DN_DX_DensityGradVel;
+        BoundedMatrix< double, TNumNodes, TDim > DN_DX_DensityGradVel;
         noalias(DN_DX_DensityGradVel) = prod(DN_DX,DensityGradVel);
 
         // ( u * Grad(u) * Grad(N) )^T
@@ -939,8 +939,8 @@ protected:
         // depend on the definitions of TauOne and TauTwo and should be consistent
         // with the fluid element used to solve for VELOCITY and
         // PRESSURE.
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> TauOneDeriv;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> TauTwoDeriv;
+        BoundedMatrix<double, TNumNodes, TDim> TauOneDeriv;
+        BoundedMatrix<double, TNumNodes, TDim> TauTwoDeriv;
 
         if (VelNorm > 0.0)
         {
@@ -1164,7 +1164,7 @@ protected:
             double DetJDeriv = DetJDerivatives[iCoord];
 
             // DN_DX'
-            boost::numeric::ublas::bounded_matrix< double, TNumNodes, TDim > DN_DX_Deriv;
+            BoundedMatrix< double, TNumNodes, TDim > DN_DX_Deriv;
             for (IndexType i = 0; i < TNumNodes; ++i)
                 for (IndexType d = 0; d < TDim; ++d)
                     DN_DX_Deriv(i,d) = -DN_DX(iCoord / TDim,d) * DN_DX(i,iCoord % TDim);
@@ -1182,7 +1182,7 @@ protected:
                     TauOneDeriv,TauTwoDeriv,TauOne,TauTwo,VelNorm,ElemSize,Density,
                     Viscosity,DetJDeriv);
 
-            boost::numeric::ublas::bounded_matrix<double, TFluidLocalSize, TFluidLocalSize> LHS;
+            BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> LHS;
             array_1d< double, TFluidLocalSize > RHS;
             for (IndexType i = 0; i < TFluidLocalSize; i++)
             {
@@ -1334,7 +1334,7 @@ protected:
      * @param rDN_DX shape functions' gradients
      */
     void CalculateVelocityGradient(
-            boost::numeric::ublas::bounded_matrix< double, TDim, TDim >& rGradVel,
+            BoundedMatrix< double, TDim, TDim >& rGradVel,
             const ShapeFunctionDerivativesType& rDN_DX)
     {
         GeometryType& rGeom = this->GetGeometry();
@@ -1513,7 +1513,7 @@ protected:
      * @see AddViscousTerm
      */
     void AddViscousTermDerivative(
-            boost::numeric::ublas::bounded_matrix< double, TFluidLocalSize, TFluidLocalSize >& rResult,
+            BoundedMatrix< double, TFluidLocalSize, TFluidLocalSize >& rResult,
             const ShapeFunctionDerivativesType& rDN_DX,
             const ShapeFunctionDerivativesType& rDN_DX_Deriv,
             const double Weight,
