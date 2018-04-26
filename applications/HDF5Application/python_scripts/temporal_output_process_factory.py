@@ -57,7 +57,7 @@ class PrimalResultsFactory:
 
     def NodalResultsOutput(self, nodal_results_settings):
         return hdf5_io.PrimalBossakOutput(nodal_results_settings, self.alpha_bossak)
-    
+
     def ElementResultsOutput(self, element_results_settings):
         return hdf5_io.ElementResultsOutput(element_results_settings)
 
