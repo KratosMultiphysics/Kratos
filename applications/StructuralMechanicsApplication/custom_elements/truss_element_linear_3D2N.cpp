@@ -41,13 +41,13 @@ TrussElementLinear3D2N::Create(IndexType NewId,
 
 TrussElementLinear3D2N::~TrussElementLinear3D2N() {}
 
-bounded_matrix<double, TrussElement3D2N::msLocalSize,
+BoundedMatrix<double, TrussElement3D2N::msLocalSize,
                TrussElement3D2N::msLocalSize>
 TrussElementLinear3D2N::CreateElementStiffnessMatrix(
     ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
-  bounded_matrix<double, msLocalSize, msLocalSize> LocalStiffnessMatrix =
+  BoundedMatrix<double, msLocalSize, msLocalSize> LocalStiffnessMatrix =
       ZeroMatrix(msLocalSize, msLocalSize);
   this->CalculateElasticStiffnessMatrix(LocalStiffnessMatrix,
                                         rCurrentProcessInfo);
@@ -78,7 +78,7 @@ void TrussElementLinear3D2N::CalculateLocalSystem(
 void TrussElementLinear3D2N::AddPrestressLinear(
     VectorType &rRightHandSideVector) {
   KRATOS_TRY;
-  bounded_matrix<double, msLocalSize, msLocalSize> transformation_matrix =
+  BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
       ZeroMatrix(msLocalSize, msLocalSize);
   this->CreateTransformationMatrix(transformation_matrix);
   double prestress = 0.00;
@@ -89,7 +89,7 @@ void TrussElementLinear3D2N::AddPrestressLinear(
   const double N = prestress * A;
 
   // internal force vectors
-  bounded_vector<double, msLocalSize> f_local = ZeroVector(msLocalSize);
+  BoundedVector<double, msLocalSize> f_local = ZeroVector(msLocalSize);
   f_local[0] = -1.00 * N;
   f_local[3] = 1.00 * N;
   rRightHandSideVector -= prod(transformation_matrix, f_local);
@@ -138,7 +138,7 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
   }
 
   if (rVariable == FORCE) {
-    bounded_vector<double, msDimension> truss_forces = ZeroVector(msDimension);
+    BoundedVector<double, msDimension> truss_forces = ZeroVector(msDimension);
     truss_forces[2] = 0.00;
     truss_forces[1] = 0.00;
     const double A = this->GetProperties()[CROSS_AREA];
@@ -154,7 +154,7 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
     this->CalculateLeftHandSide(left_hand_side_matrix, dummy_info);
     Vector nodal_deformation = ZeroVector(msLocalSize);
     this->GetValuesVector(nodal_deformation);
-    bounded_matrix<double, msLocalSize, msLocalSize> transformation_matrix =
+    BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
         ZeroMatrix(msLocalSize, msLocalSize);
     this->CreateTransformationMatrix(transformation_matrix);
     Vector f_int = prod(left_hand_side_matrix, nodal_deformation);
@@ -166,7 +166,7 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
 }
 
 void TrussElementLinear3D2N::WriteTransformationCoordinates(
-    bounded_vector<double, TrussElement3D2N::msLocalSize>
+    BoundedVector<double, TrussElement3D2N::msLocalSize>
         &rReferenceCoordinates) {
   KRATOS_TRY;
   rReferenceCoordinates = ZeroVector(msLocalSize);
