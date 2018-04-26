@@ -18,7 +18,6 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "spaces/ublas_space.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "custom_elements/navier_stokes.h"

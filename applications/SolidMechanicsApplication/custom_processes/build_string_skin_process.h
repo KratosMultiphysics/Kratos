@@ -96,13 +96,13 @@ public:
 
 
     /// Execute method is used to execute the BuildStringSkinProcess algorithms.
-    virtual void Execute() 
+    void Execute() override
     {
     }
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {      
         KRATOS_TRY
 
@@ -131,13 +131,13 @@ public:
 
     /// this function is designed for being execute once before the solution loop but after all of the
     /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
+    void ExecuteBeforeSolutionLoop() override
     {      
     }
 
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY
@@ -149,7 +149,7 @@ public:
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
       
         KRATOS_TRY
@@ -162,7 +162,7 @@ public:
 
 
     /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
+    void ExecuteBeforeOutputStep() override
     {
 
         KRATOS_TRY
@@ -174,7 +174,7 @@ public:
 
 
     /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
+    void ExecuteAfterOutputStep() override
     {
         KRATOS_TRY
 
@@ -185,7 +185,7 @@ public:
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
+    void ExecuteFinalize() override
     {
     }
 
@@ -205,19 +205,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "BuildStringSkinProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "BuildStringSkinProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -975,7 +975,7 @@ private:
 	
       unsigned int condition_id = GetMaxConditionId(*(mrModelPart.GetParentModelPart()));
 
-      int counter = 1;
+      unsigned int counter = 1;
       
       std::vector<int> FaceNodesIds(4);
 	

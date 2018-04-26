@@ -12,6 +12,8 @@
 
 #include "dss_ps.h"
 
+#include "utilities/math_utils.h"
+
 namespace Kratos
 {
 
@@ -353,24 +355,12 @@ void DSS_PS<TDim>::AddPressureSubscale(MatrixType& rLHS, VectorType& rRHS, Proce
 
 
     // Condense the extra block back into the system
-    MatrixType InvA = ZeroMatrix(ExtraDofs+1,ExtraDofs+1);
-    //MatrixType InvA = ZeroMatrix(ExtraDofs,ExtraDofs);
-    bool Inverted = this->InvertMatrix(A,InvA);
-    //KRATOS_WATCH(Inverted);
+    MatrixType InvA;
+    double det;
+    MathUtils<double>::InvertMatrix(A,InvA,det);
 
-    if (Inverted)
-    {
-//        KRATOS_WATCH(InvA);
-//        KRATOS_WATCH(Down);
-//        KRATOS_WATCH(Right);
-        rLHS -= boost::numeric::ublas::prod( Right, MatrixType( boost::numeric::ublas::prod(InvA,Down)) );
-        rRHS -= boost::numeric::ublas::prod( Right, VectorType( boost::numeric::ublas::prod(InvA,b)) );
-    }
-    else
-    {
-        KRATOS_THROW_ERROR(std::logic_error,"Matrix not inverted","");
-    }
-
+    rLHS -= prod( Right, MatrixType( prod(InvA,Down)) );
+    rRHS -= prod( Right, VectorType( prod(InvA,b)) );
 }
 
 
@@ -385,7 +375,7 @@ void DSS_PS<TDim>::AddPressureSubscaleMass(MatrixType& rLHS, ProcessInfo& rProce
 
     /*
      * Full system matrix is a block matrix including extra Dofs which represent the pressure subscale.
-     * These extera dofs are local to each element and will be statically condesed in this funcion.
+     * These extra dofs are local to each element and will be statically condesed in this funcion.
      * Notation of the block matrix
      *
      *  | rLHS  Right |  | u,p |   | rRHS |
@@ -475,16 +465,11 @@ void DSS_PS<TDim>::AddPressureSubscaleMass(MatrixType& rLHS, ProcessInfo& rProce
     }
 
     // Condense the extra block back into the system
-    MatrixType InvA = ZeroMatrix(ExtraDofs+1,ExtraDofs+1);
-    //MatrixType InvA = ZeroMatrix(ExtraDofs,ExtraDofs);
-    bool Inverted = this->InvertMatrix(A,InvA);
-    //KRATOS_WATCH(Inverted);
+    MatrixType InvA;
+    double det;
+    MathUtils<double>::InvertMatrix(A,InvA,det);
 
-    if (Inverted)
-    {
-        rLHS -= boost::numeric::ublas::prod( Right, MatrixType( boost::numeric::ublas::prod(InvA,Down)) );
-    }
-
+    rLHS -= prod( Right, MatrixType( prod(InvA,Down)) );
 }
 
 

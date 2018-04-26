@@ -252,6 +252,43 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
           0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
                  Element::GeometryType::PointsArrayType(9)))),
 
+      mUpdatedLagrangianVElement2D3N(
+          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
+                 Element::GeometryType::PointsArrayType(3)))),
+      mUpdatedLagrangianVElement2D4N(
+          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
+                 Element::GeometryType::PointsArrayType(4)))),
+      mUpdatedLagrangianVElement2D6N(
+          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
+                 Element::GeometryType::PointsArrayType(6)))),
+      mUpdatedLagrangianVElement2D8N(
+          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
+                 Element::GeometryType::PointsArrayType(8)))),
+      mUpdatedLagrangianVElement2D9N(
+          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
+                 Element::GeometryType::PointsArrayType(9)))),
+      mUpdatedLagrangianVElement3D4N(
+          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
+                 Element::GeometryType::PointsArrayType(4)))),
+      mUpdatedLagrangianVElement3D6N(
+          0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(
+                 Element::GeometryType::PointsArrayType(6)))),
+      mUpdatedLagrangianVElement3D8N(
+          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
+                 Element::GeometryType::PointsArrayType(8)))),
+      mUpdatedLagrangianVElement3D10N(
+          0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(
+                 Element::GeometryType::PointsArrayType(10)))),
+      mUpdatedLagrangianVElement3D15N(
+          0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(
+                 Element::GeometryType::PointsArrayType(15)))),
+      mUpdatedLagrangianVElement3D20N(
+          0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(
+                 Element::GeometryType::PointsArrayType(20)))),
+      mUpdatedLagrangianVElement3D27N(
+          0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(
+                 Element::GeometryType::PointsArrayType(27)))),
+      
       mUpdatedLagrangianUPElement2D3N(
           0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
                  Element::GeometryType::PointsArrayType(3)))),
@@ -458,6 +495,7 @@ void KratosSolidMechanicsApplication::Register() {
 
     //solution
     KRATOS_REGISTER_VARIABLE(WRITE_ID)
+    KRATOS_REGISTER_VARIABLE(TIME_INTEGRATION_ORDER)        
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_ALPHA)
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_BETA)
 
@@ -485,49 +523,35 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(SHELL_MOMENT)
     KRATOS_REGISTER_VARIABLE(SHELL_MOMENT_GLOBAL)
 
-    //nodal load variables
+    //nodal load variable (legacy)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINE_LOAD)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
+  
+    //force loads
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FORCE_LOAD)
+    KRATOS_REGISTER_VARIABLE(FORCE_LOAD_VECTOR)
+  
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FOLLOWER_FORCE_LOAD)
+    KRATOS_REGISTER_VARIABLE(FOLLOWER_FORCE_LOAD_VECTOR)
+  
+    //moment loads
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOMENT_LOAD)
+    KRATOS_REGISTER_VARIABLE(MOMENT_LOAD_VECTOR)
+   
+    //elastic loads
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_LOAD)
+    KRATOS_REGISTER_VARIABLE(ELASTIC_LOAD_VECTOR)  
 
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FOLLOWER_POINT_LOAD)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FOLLOWER_LINE_LOAD)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FOLLOWER_SURFACE_LOAD)
-
-    //nodal moment variables
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_MOMENT)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINE_MOMENT)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_MOMENT)
-
-    KRATOS_REGISTER_VARIABLE( PLANE_POINT_MOMENT )
-    KRATOS_REGISTER_VARIABLE( PLANE_LINE_MOMENT )
-    KRATOS_REGISTER_VARIABLE( BALLAST_COEFFICIENT )
-      
-    //nodal elastic variables
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_STIFFNESS)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINE_STIFFNESS)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_STIFFNESS)
-
-    //condition load variables
-    KRATOS_REGISTER_VARIABLE(POINT_LOAD_VECTOR)
-    KRATOS_REGISTER_VARIABLE(LINE_LOAD_VECTOR)
-    KRATOS_REGISTER_VARIABLE(SURFACE_LOAD_VECTOR)
+    //force pressure
     KRATOS_REGISTER_VARIABLE(POSITIVE_FACE_PRESSURE_VECTOR)
     KRATOS_REGISTER_VARIABLE(NEGATIVE_FACE_PRESSURE_VECTOR)
-
-    //condition moment variables
-    KRATOS_REGISTER_VARIABLE(POINT_MOMENT_VECTOR)
-    KRATOS_REGISTER_VARIABLE(LINE_MOMENT_VECTOR)
-    KRATOS_REGISTER_VARIABLE(SURFACE_MOMENT_VECTOR)
-
-    KRATOS_REGISTER_VARIABLE(PLANE_POINT_MOMENT_VECTOR)
-    KRATOS_REGISTER_VARIABLE(PLANE_LINE_MOMENT_VECTOR)
-
-    //condition elastic variables
-    KRATOS_REGISTER_VARIABLE( POINT_STIFFNESS_VECTOR )
-    KRATOS_REGISTER_VARIABLE( LINE_STIFFNESS_VECTOR )
-    KRATOS_REGISTER_VARIABLE( SURFACE_STIFFNESS_VECTOR )   
-    KRATOS_REGISTER_VARIABLE( BALLAST_COEFFICIENT_VECTOR )
+  
+    //moment pressures
+    KRATOS_REGISTER_VARIABLE(PLANE_MOMENT_LOAD)
+    KRATOS_REGISTER_VARIABLE(PLANE_MOMENT_LOAD_VECTOR)
+  
+    //elastic pressures
+    KRATOS_REGISTER_VARIABLE(BALLAST_COEFFICIENT)
+    KRATOS_REGISTER_VARIABLE(BALLAST_COEFFICIENT_VECTOR)
       
     //element
     KRATOS_REGISTER_VARIABLE(VON_MISES_STRESS)
@@ -693,7 +717,7 @@ void KratosSolidMechanicsApplication::Register() {
         "UpdatedLagrangianElement3D20N", mUpdatedLagrangianElement3D20N)
     KRATOS_REGISTER_ELEMENT(
         "UpdatedLagrangianElement3D27N", mUpdatedLagrangianElement3D27N)
-
+        
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D3N",
         mAxisymUpdatedLagrangianElement2D3N)
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D4N",
@@ -705,6 +729,31 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D9N",
         mAxisymUpdatedLagrangianElement2D9N)
 
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement2D3N", mUpdatedLagrangianVElement2D3N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement2D4N", mUpdatedLagrangianVElement2D4N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement2D6N", mUpdatedLagrangianVElement2D6N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement2D8N", mUpdatedLagrangianVElement2D8N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement2D9N", mUpdatedLagrangianVElement2D9N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D4N", mUpdatedLagrangianVElement3D4N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D6N", mUpdatedLagrangianVElement3D6N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D8N", mUpdatedLagrangianVElement3D8N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D10N", mUpdatedLagrangianVElement3D10N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D15N", mUpdatedLagrangianVElement3D15N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D20N", mUpdatedLagrangianVElement3D20N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D27N", mUpdatedLagrangianVElement3D27N)
+        
     KRATOS_REGISTER_ELEMENT(
         "UpdatedLagrangianUPElement2D3N", mUpdatedLagrangianUPElement2D3N)
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianUPElement2D3N",

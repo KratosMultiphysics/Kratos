@@ -237,16 +237,16 @@ protected:
     /**
      * Calculation of the Deformation Gradient F
      */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF,
-                                      Matrix& rDeltaPosition);
+    void CalculateDeformationGradient(Matrix& rF,
+                                      const Matrix& rDN_DX,
+                                      const Matrix& rDeltaPosition);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
     void CalculateDeformationMatrix(Matrix& rB,
-				    Matrix& rF,
-				    Matrix& rDN_DX);
+				    const Matrix& rF,
+				    const Matrix& rDN_DX);
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step

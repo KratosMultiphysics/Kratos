@@ -291,6 +291,25 @@ protected:
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
 
+    void CalculateStabilizationParameters(
+        const TElementData& rData,
+        const array_1d<double,3> &Velocity,
+        double &TauOne,
+        double &TauTwo,
+        double &TauP) const;
+
+    void SubscaleVelocity(
+        const TElementData& rData,
+        array_1d<double,3>& rVelocitySubscale) const override;
+
+    void SubscalePressure(
+        const TElementData& rData,
+        double &rPressureSubscale) const override;
+
+    array_1d<double,3> FullConvectiveVelocity(
+        const TElementData& rData) const;
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -323,8 +342,8 @@ private:
     ///@{
 
     // Velocity subscale history, stored at integration points
-    std::vector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
-    std::vector< array_1d<double,Dim> > mOldSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
 
     #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
     std::vector< double > mSubscaleIterationError;
@@ -350,26 +369,8 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateTau(
-        const TElementData& rData,
-        const array_1d<double,3> &Velocity,
-        double &TauOne,
-        double &TauTwo,
-        double &TauP) const;
-
-    void SubscaleVelocity(
-        const TElementData& rData,
-        array_1d<double,Dim>& rVelocitySubscale);
-
-    void SubscalePressure(
-        const TElementData& rData,
-        double &rPressureSubscale);
-
     void UpdateSubscaleVelocityPrediction(
         const TElementData& rData);
-
-    array_1d<double,3> FullConvectiveVelocity(
-        const TElementData& rData) const;
 
     ///@}
     ///@name Private  Access

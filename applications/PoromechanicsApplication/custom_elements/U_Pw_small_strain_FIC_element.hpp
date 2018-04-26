@@ -90,14 +90,14 @@ protected:
         Matrix VoigtMatrix;
         
         /// Variables computed at each GP
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim*TNumNodes> StrainGradients;
+        BoundedMatrix<double,TDim,TDim*TNumNodes> StrainGradients;
         array_1d<Vector,TNumNodes> ShapeFunctionsSecondOrderGradients;
         array_1d< array_1d<double,TDim> , TDim > DtStressGradients;
         array_1d< std::vector< array_1d<double,TDim> > , TDim > ConstitutiveTensorGradients;
         ///Auxiliary variables
         array_1d<double,TDim> DimVector;
         Matrix DimVoigtMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim*TNumNodes> DimUMatrix;
+        BoundedMatrix<double,TDim,TDim*TNumNodes> DimUMatrix;
     };
     
     /// Member Variables

@@ -112,7 +112,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     //************* GETTING METHODS
 
@@ -146,13 +146,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    //      String Info() const override;
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    //      void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    //      void PrintData(std::ostream& rOStream) const override;
     ///@}
     ///@name Friends
     ///@{
@@ -178,19 +178,19 @@ protected:
     /**
      * Calculation of the Contact Master Nodes and Mechanical variables
      */
-    void SetMasterGeometry();
+    void SetMasterGeometry() override;
 
 
     /**
      * Calculate Tau stabilization or Penalty factor
      */
-    virtual void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo);
+    void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo) override;
 	
 
     /**
      * Calculation of the Contact Previous Gap
      */
-    void CalculatePreviousGap();
+    void CalculatePreviousGap() override;
 
     /**
      * Calculation of the Contact Previous Gap EdgeType
@@ -205,8 +205,8 @@ protected:
     /**
      * Calculation of the Contact Multipliers or Penalty Factors
      */
-    virtual void CalculateExplicitFactors(ConditionVariables& rVariables,
-					  ProcessInfo& rCurrentProcessInfo);
+    void CalculateExplicitFactors(ConditionVariables& rVariables,
+                                  ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculation of the Contact Multipliers or Penalty Factors EdgeType element
@@ -224,38 +224,38 @@ protected:
     /**
      * Tangent Matrix construction methods:
      */
-    void CalculateDomainShapeN(ConditionVariables& rVariables);
+    void CalculateDomainShapeN(ConditionVariables& rVariables) override;
 
 
     /**
      * Calculate Integration Weight:
      */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
+    double& CalculateIntegrationWeight(double& rIntegrationWeight) override;
 
     /**
      * Calculation of the Material Stiffness Matrix by components
      */
-    virtual void CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,
-					    unsigned int& ndi,unsigned int& ndj,
-					    unsigned int& idir,unsigned int& jdir);
+    void CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,
+                                    unsigned int& ndi,unsigned int& ndj,
+                                    unsigned int& idir,unsigned int& jdir) override;
 
 
     /**
      * Normal Force construction by components
      */
-    virtual void CalculateNormalForce       (double &F,ConditionVariables& rVariables,
-					     unsigned int& ndi,unsigned int& idir);
+    void CalculateNormalForce       (double &F,ConditionVariables& rVariables,
+					     unsigned int& ndi,unsigned int& idir) override;
 
     /**
      * Tangent Stick Force construction by components
      */
-    virtual void CalculateTangentStickForce (double &F,ConditionVariables& rVariables,
-					     unsigned int& ndi,unsigned int& idir);
+    void CalculateTangentStickForce (double &F,ConditionVariables& rVariables,
+					     unsigned int& ndi,unsigned int& idir) override;
     /**
      * Tangent Slip Force construction by components
      */
-    virtual void CalculateTangentSlipForce  (double &F,ConditionVariables& rVariables,
-					     unsigned int& ndi,unsigned int& idir);
+    void CalculateTangentSlipForce  (double &F,ConditionVariables& rVariables,
+					     unsigned int& ndi,unsigned int& idir) override;
 
     ///@}
     ///@name Protected Operations
@@ -263,7 +263,7 @@ protected:
 
     inline bool CheckFictiousContacts(ConditionVariables& rVariables);
 
-    PointType& CalculateCurrentTangent(PointType &rTangent);
+    PointType& CalculateCurrentTangent(PointType &rTangent) override;
 
     void FSigmaP(ConditionVariables& rVariables, std::vector<Vector >& rSigmaP, PointType& rDirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndl,unsigned int &ndm,unsigned int &ndn);
 
@@ -281,9 +281,9 @@ protected:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Protected Inquiry
