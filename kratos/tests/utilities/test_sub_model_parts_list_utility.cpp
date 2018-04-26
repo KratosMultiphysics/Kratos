@@ -152,13 +152,13 @@ namespace Kratos
 
                 for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfNodes(); i++) {
                     auto it_first_node = r_first_sub_model_part.Nodes().begin() + i;
-                    auto it_second_node = r_second_sub_model_part.Nodes().begin() + i;
-                    KRATOS_CHECK_EQUAL(it_first_node->Id(), it_second_node->Id());
+                    auto it_found_second_node = r_second_sub_model_part.Nodes().find(it_first_node->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_node, r_second_sub_model_part.NodesEnd());
                 }
                 for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfElements(); i++) {
                     auto it_first_elem = r_first_sub_model_part.Elements().begin() + i;
-                    auto it_second_elem = r_second_sub_model_part.Elements().begin() + i;
-                    KRATOS_CHECK_EQUAL(it_first_elem->Id(), it_second_elem->Id());
+                    auto it_found_second_elem = r_second_sub_model_part.Elements().find(it_first_elem->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_elem, r_second_sub_model_part.ElementsEnd());
                 }
             }
         }
@@ -294,13 +294,13 @@ namespace Kratos
 
                 for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfNodes(); i++) {
                     auto it_first_node = r_first_sub_model_part.Nodes().begin() + i;
-                    auto it_second_node = r_second_sub_model_part.Nodes().begin() + i;
-                    KRATOS_CHECK_EQUAL(it_first_node->Id(), it_second_node->Id());
+                    auto it_found_second_node = r_second_sub_model_part.Nodes().find(it_first_node->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_node, r_second_sub_model_part.NodesEnd());
                 }
                 for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfElements(); i++) {
                     auto it_first_elem = r_first_sub_model_part.Elements().begin() + i;
-                    auto it_second_elem = r_second_sub_model_part.Elements().begin() + i;
-                    KRATOS_CHECK_EQUAL(it_first_elem->Id(), it_second_elem->Id());
+                    auto it_found_second_elem = r_second_sub_model_part.Elements().find(it_first_elem->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_elem, r_second_sub_model_part.ElementsEnd());
                 }
             }
         }
