@@ -277,6 +277,14 @@ namespace Kratos
          ///@{
 
 
+         virtual void InitializeStateVariables( Vector & rStateVariables)
+         {
+         };
+
+         virtual void SetInitialStressTEMPORARY( VectorType & rStressVector)
+         {
+         };
+
          //************//
 
          void InitializeElasticData(ModelDataType& rValues, UmatDataType& rVariables);   

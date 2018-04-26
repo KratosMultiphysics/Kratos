@@ -770,7 +770,10 @@ c----------------------------------------------------------------------------
       integer lstr
       double precision tmin1, tmax, ps(3)
       lstr=1
-      call sprinc(stress,ps,lstr,ndi,nshr)
+      !call sprinc(stress,ps,lstr,ndi,nshr)
+      write(*,*) 'Fortran is so stupid'
+      write(*,*) 'just called a function that is commented'
+      write(*,*) 'big error'
       tmax=-max(abs(ps(1)),abs(ps(2)),abs(ps(3)))
       tmin1=-min(abs(ps(1)),abs(ps(2)),abs(ps(3)))
       if (abs(tmax+tmin1).le.MINvalue) then

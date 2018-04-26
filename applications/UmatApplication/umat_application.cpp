@@ -36,6 +36,7 @@ namespace Kratos {
 
     
 
+    Serializer::Register( "FabricUmatSmallStrainModel", mFabricSmallStrainUmatModel);
     Serializer::Register( "VonMisesUmatSmallStrainModel", mVonMisesSmallStrainUmatModel);
     Serializer::Register( "HypoplasticUmatSmallStrainModel", mHypoplasticSmallStrainUmatModel);
     Serializer::Register( "VonMisesUmatLargeStrainModel", mVonMisesLargeStrainUmatModel);

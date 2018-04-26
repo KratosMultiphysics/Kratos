@@ -7,7 +7,7 @@
 !
 
       USE tensors
-      !USE nlmodule	  
+!      USE nlmodule   !! non local?
 
       IMPLICIT NONE
 !
@@ -43,7 +43,7 @@
 	  
 
 	  
-      CALL Initial(STRESS,T, DSTRAN, DEPS, NTENS,NDI, NSHR)       
+      CALL Initial(STRESS,T, DSTRAN, DEPS, NTENS,NDI, NSHR)      
 ! ---------------------------------------------------------------  
 !     Defining material parameters 
       E     =  PROPS(1) !young modulus
@@ -115,6 +115,9 @@
          xx(7:12)= 0.0
 !     Plastic multiplier
          xx(13)  = 0.0
+
+         if (abs( STATEV(8))  <1.0d-8) write(*,*) 'ps not set '
+         if (abs( STATEV(9))  <1.0d-8) write(*,*) 'pm not set '
 !     ps
       param(1) = STATEV(8)
 !     pm
@@ -196,14 +199,17 @@
 !            Correcting pt
              param(2) = pm
 			 
-             write(6,*) NOEL,NPT,KSTEP,KINC
-             write(6,*) kcounter, epsF, epsG
+!             write(6,*) NOEL,NPT,KSTEP,KINC
+!             write(6,*) kcounter, epsF, epsG
        
 ! --------------------------------------------------------------- 
 ! --------------------------------------------------------------- 
              if (epsF<TolF.AND.epsG<TolG) then
                  exit         
-             endif  
+             endif 
+             if ( kcounter == maxiter-3) then
+                 write(*,*) 'MaxIteration: ', epsF, epsG
+            endif 
          enddo  
 !         write(6,*) kcounter
 !     End of iterations 
@@ -258,7 +264,8 @@
       Call Solution(NTENS, NDI, NSHR, T, STRESS, JAC
      1 , DDSDDE) 
 	 
-      call give_nl(STATEV,NSTATEV,NOEL,NPT)
+      !call give_nl(STATEV,NSTATEV,NOEL,NPT)
+      ! give nonlocal behavior. matteo told me to comment it
 ! --------------------------------------------------------------
       END SUBROUTINE CompLib_New
 
@@ -463,7 +470,7 @@ C ---------------------------------------------------------------
 !	  temp2(1,3) = temp2(1,3)+temp2(3,1)
 !	  temp2(2,3) = temp2(3,2)+temp2(2,3)	  
 !      call Iunit1(Iunit)
-      
+     
       tempder = delta*derinv(1)/3.0+3./2.*derinv(2)*temp2
 !      tempder = delta*derinv(1)/3.0+3./2.*derinv(2)*STRESSDEV  
 
