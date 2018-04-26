@@ -1,5 +1,5 @@
-"""Create a file containing xdmf metadata for results stored in HDF5.
-"""
+"""Create a file containing xdmf metadata for results stored in HDF5."""
+
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 import os, sys, h5py, xdmf
@@ -42,12 +42,11 @@ def GetNodalResults(h5py_file):
     return results
 
 def GetElementResults(h5py_file):
-    nodal_results_path = "/ResultsData/ElementResults"
+    element_results_path = "/ResultsData/ElementResults"
     results = []
-    if not nodal_results_path in h5py_file:
+    if not element_results_path in h5py_file:
         return results
-    
-    results_group = h5py_file.get(nodal_results_path)
+    results_group = h5py_file.get(element_results_path)
     for variable_name in results_group.keys():
         if isinstance(results_group[variable_name], h5py.Dataset):
             data = xdmf.HDF5UniformDataItem(results_group.get(variable_name))
@@ -97,7 +96,7 @@ def main():
             for nodal_result in GetNodalResults(h5py_file):
                 current_grid.add_attribute(nodal_result)
             for element_result in GetElementResults(h5py_file):
-                current_grid.add_attribute(element_result)                
+                current_grid.add_attribute(element_result)
         # Add the current grid to the temporal grid.
         temporal_grid.add_grid(xdmf.Time(current_time), current_grid)
     # Create the domain.

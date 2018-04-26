@@ -1,8 +1,4 @@
-import KratosMultiphysics
-import KratosMultiphysics.HDF5Application as KratosHDF5
-
-"""Defaults used in hdf file settings.
-"""
+"""Defaults used in hdf file settings."""
 
 hdf5_default_settings = """
             {
