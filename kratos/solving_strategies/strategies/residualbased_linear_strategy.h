@@ -554,51 +554,57 @@ public:
     {
         KRATOS_TRY
 
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-        typename TSchemeType::Pointer pScheme = GetScheme();
-
-        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            KRATOS_INFO("Entering InitializeSolutionStep") << "Entering in the InitializeSolutionStep of the ResidualBasedLinearStrategy" << std::endl;
-
-
-        // Loop to reform the dofset
-        boost::timer system_construction_time;
-        if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
-                mReformDofSetAtEachStep == true)
+        if (mSolutionStepIsInitialized == false)
         {
-            boost::timer setup_dofs_time;
-            //setting up the list of the DOFs to be solved
-            pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
+            //pointers needed in the solution
+            typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+            typename TSchemeType::Pointer p_scheme = GetScheme();
 
-            //shaping correctly the system
-            boost::timer setup_system_time;
-            pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                KRATOS_INFO("setup_system_time") << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
+            const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-            //setting up the Vectors involved to the correct size
-            boost::timer system_matrix_resize_time;
-            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+            boost::timer system_construction_time;
+            //set up the system, operation performed just once unless it is required
+            //to reform the dof set at each iteration
+            if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
+                    mReformDofSetAtEachStep == true)
+            {
+                boost::timer setup_dofs_time;
+                //setting up the list of the DOFs to be solved
+                p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
+                if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                    KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
+
+                //shaping correctly the system
+                boost::timer setup_system_time;
+                p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
+                if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                    KRATOS_INFO("setup_system_time") << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
+
+                //setting up the Vectors involved to the correct size
+                boost::timer system_matrix_resize_time;
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
+                                                              BaseType::GetModelPart().Elements(),
+                                                              BaseType::GetModelPart().Conditions(),
+                                                              BaseType::GetModelPart().GetProcessInfo());
+                if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                    KRATOS_INFO("system_matrix_resize_time") << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
+            }
+
             if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                KRATOS_INFO("system_matrix_resize_time") << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
+                KRATOS_INFO("Construction time") << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
+
+            TSystemMatrixType& A = *mpA;
+            TSystemVectorType& Dx = *mpDx;
+            TSystemVectorType& b = *mpb;
+
+            //initial operations ... things that are constant over the Solution Step
+            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
+
+            //initial operations ... things that are constant over the Solution Step
+            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
+
+            mSolutionStepIsInitialized = true;
         }
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            KRATOS_INFO("Construction time") << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
-
-
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
-
-        //initial operations ... things that are constant over the Solution Step
-        pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-
-        //initial operations ... things that are constant over the Solution Step
-        pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
         KRATOS_CATCH("")
     }
