@@ -354,6 +354,9 @@ class Procedures(object):
         self.domain_size = self.DEM_parameters["Dimension"].GetInt()
         self.aux = AuxiliaryUtilities()
 
+    def Barrier(self):
+        pass
+
     def SetTranslationalScheme(self):
         if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler':
             translational_scheme = ForwardEulerScheme()
@@ -860,7 +863,6 @@ class Procedures(object):
         self.Flush(sys.stdout)
 
 
-# #~CHARLIE~# Aixo no ho entenc
 class DEMFEMProcedures(object):
 
     def __init__(self, DEM_parameters, graphs_path, spheres_model_part, RigidFace_model_part):
