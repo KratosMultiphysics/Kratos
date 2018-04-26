@@ -144,70 +144,33 @@ public:
 
   void Initialize() override {
     KRATOS_TRY
-    // pointers needed in the solution
-    typename TSchemeType::Pointer pScheme = GetScheme();
-    ModelPart &r_model_part = BaseType::GetModelPart();
+    if (!this->mInitializeWasPerformed){
+      // pointers needed in the solution
+      typename TSchemeType::Pointer pScheme = GetScheme();
+      ModelPart &r_model_part = BaseType::GetModelPart();
 
-    TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
+      TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
 
-    // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-    if (!pScheme->SchemeIsInitialized())pScheme->Initialize(r_model_part);
+      // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+      if (!pScheme->SchemeIsInitialized())pScheme->Initialize(r_model_part);
 
-    // Initialize The Elements - OPERATIONS TO BE DONE ONCE
-    if (!pScheme->ElementsAreInitialized())pScheme->InitializeElements(r_model_part);
+      // Initialize The Elements - OPERATIONS TO BE DONE ONCE
+      if (!pScheme->ElementsAreInitialized())pScheme->InitializeElements(r_model_part);
 
-    // Initialize The Conditions- OPERATIONS TO BE DONE ONCE
-    if (!pScheme->ConditionsAreInitialized())pScheme->InitializeConditions(r_model_part);
+      // Initialize The Conditions- OPERATIONS TO BE DONE ONCE
+      if (!pScheme->ConditionsAreInitialized())pScheme->InitializeConditions(r_model_part);
 
-    // Set Nodal Mass to zero
-    NodesArrayType &r_nodes = r_model_part.Nodes();
-    ElementsArrayType &r_elements = r_model_part.Elements();
-    ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
+      // Set Nodal Mass to zero
+      NodesArrayType &r_nodes = r_model_part.Nodes();
+      ElementsArrayType &r_elements = r_model_part.Elements();
+      ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
 
-    VariableUtils().SetNonHistoricalScalarVar(NODAL_MASS, 0.0, r_nodes);
-    if (r_model_part.NodesBegin()->HasDofFor(ROTATION_Z))
-      VariableUtils().SetNonHistoricalVectorVar(NODAL_INERTIA, ZeroVector(3), r_nodes);
+      VariableUtils().SetNonHistoricalScalarVar(NODAL_MASS, 0.0, r_nodes);
+      if (r_model_part.NodesBegin()->HasDofFor(ROTATION_Z))
+        VariableUtils().SetNonHistoricalVectorVar(NODAL_INERTIA, ZeroVector(3), r_nodes);
 
-    auto it_elem = r_model_part.ElementsBegin();
-// #pragma omp parallel for firstprivate(it_elem)
-    for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
-      // Getting nodal mass and inertia from element
-      Vector dummy_vector;
-      // this function needs to be implemented in the respective
-      // element to provide inertias and nodal masses
-      (it_elem + i)
-          ->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR,
-                                    NODAL_INERTIA, r_current_process_info);
-    }
-
-    mInitializeWasPerformed = true;
-
-    // std::cout<<" Rebuild Level "<<BaseType::mRebuildLevel<<std::endl;
-
-    KRATOS_CATCH("")
-  }
-
-  //**********************************************************************
-  //**********************************************************************
-
-  void InitializeSolutionStep() override {
-    KRATOS_TRY
-    typename TSchemeType::Pointer pScheme = GetScheme();
-    ModelPart &r_model_part = BaseType::GetModelPart();
-
-    TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
-    TSystemVectorType mDx = TSystemVectorType();
-    TSystemVectorType mb = TSystemVectorType();
-
-    // initial operations ... things that are constant over the Solution Step
-    pScheme->InitializeSolutionStep(r_model_part, matrix_a_dummy, mDx, mb);
-
-    ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
-    ElementsArrayType &r_elements = r_model_part.Elements();
-
-    if (BaseType::mRebuildLevel > 0) {
       auto it_elem = r_model_part.ElementsBegin();
-// #pragma omp parallel for firstprivate(it_elem)
+      // #pragma omp parallel for firstprivate(it_elem)
       for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
         // Getting nodal mass and inertia from element
         Vector dummy_vector;
@@ -217,9 +180,56 @@ public:
             ->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR,
                                       NODAL_INERTIA, r_current_process_info);
       }
-    }
 
-    mSolutionStepIsInitialized = true;
+      this->mInitializeWasPerformed = true;
+    }
+    KRATOS_CATCH("")
+  }
+
+  //**********************************************************************
+  //**********************************************************************
+
+  void InitializeSolutionStep() override {
+    KRATOS_TRY
+
+    if(!this->mSolutionStepIsInitialized){
+      
+      typename TSchemeType::Pointer pScheme = GetScheme();
+      ModelPart &r_model_part = BaseType::GetModelPart();
+
+      // prints informations about the current time
+      if (this->GetEchoLevel() == 2 &&
+          r_model_part.GetCommunicator().MyPID() == 0) {
+        std::cout << " " << std::endl;
+        std::cout << "CurrentTime = " << r_model_part.GetProcessInfo()[TIME]
+                  << std::endl;
+      }
+
+      TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
+      TSystemVectorType mDx = TSystemVectorType();
+      TSystemVectorType mb = TSystemVectorType();
+
+      // initial operations ... things that are constant over the Solution Step
+      pScheme->InitializeSolutionStep(r_model_part, matrix_a_dummy, mDx, mb);
+
+      ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
+      ElementsArrayType &r_elements = r_model_part.Elements();
+
+      if (BaseType::mRebuildLevel > 0) {
+        auto it_elem = r_model_part.ElementsBegin();
+  // #pragma omp parallel for firstprivate(it_elem)
+        for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+          // Getting nodal mass and inertia from element
+          Vector dummy_vector;
+          // this function needs to be implemented in the respective
+          // element to provide inertias and nodal masses
+          (it_elem + i)
+              ->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR,
+                                        NODAL_INERTIA, r_current_process_info);
+        }
+      }
+      this->mSolutionStepIsInitialized = true;
+      }
 
     KRATOS_CATCH("")
   }
@@ -258,46 +268,33 @@ public:
     }
     KRATOS_CATCH("")
   }
-
   //**********************************************************************
   //**********************************************************************
-  /*
-                    SOLUTION OF THE PROBLEM OF INTEREST
-   */
-  //**********************************************************************
-
-  double Solve() override {
-    KRATOS_TRY
+  bool SolveSolutionStep() override
+  {
+    typename TSchemeType::Pointer pScheme = GetScheme();
+    ModelPart &r_model_part = BaseType::GetModelPart();
     DofsArrayType dof_set_dummy;
     TSystemMatrixType mA = TSystemMatrixType();
     TSystemVectorType mDx = TSystemVectorType();
     TSystemVectorType mb = TSystemVectorType();
 
-    // pointers needed in the solution
-    typename TSchemeType::Pointer pScheme = GetScheme();
-    ModelPart &r_model_part = BaseType::GetModelPart();
-
-    // OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-    // if the operations needed were already performed this does nothing
-    if (mInitializeWasPerformed == false)
-      Initialize();
-
-    // prints informations about the current time
-    if (this->GetEchoLevel() == 2 &&
-        r_model_part.GetCommunicator().MyPID() == 0) {
-      std::cout << " " << std::endl;
-      std::cout << "CurrentTime = " << r_model_part.GetProcessInfo()[TIME]
-                << std::endl;
-    }
-
-    // initialize solution step
-    if (mSolutionStepIsInitialized == false)
-      InitializeSolutionStep();
-
     this->CalculateAndAddRHS(pScheme, r_model_part);
 
     pScheme->Update(r_model_part, dof_set_dummy, mA, mDx,
                     mb); // Explicitly integrates the equation of motion.
+    return true;
+  }
+  //**********************************************************************
+  //**********************************************************************
+  void FinalizeSolutionStep() override
+  { 
+    typename TSchemeType::Pointer pScheme = GetScheme();
+    ModelPart &r_model_part = BaseType::GetModelPart();
+    DofsArrayType dof_set_dummy;
+    TSystemMatrixType mA = TSystemMatrixType();
+    TSystemVectorType mDx = TSystemVectorType();
+    TSystemVectorType mb = TSystemVectorType();
     // Finalisation of the solution step,
     // operations to be done after achieving convergence, for example the
     // Final Residual Vector (mb) has to be saved in there
@@ -312,15 +309,11 @@ public:
     pScheme->Clean();
 
     // reset flags for next step
-    mSolutionStepIsInitialized = false;
-    return 0.00;
-
-    KRATOS_CATCH("")
+    this->mSolutionStepIsInitialized = false;
   }
 
   //**********************************************************************
   //**********************************************************************
-
   void Clear() override {
     KRATOS_TRY
     std::cout << "Explicit strategy Clear function used" << std::endl;
@@ -420,8 +413,6 @@ protected:
   bool mSolutionStepIsInitialized;
 
   bool mInitializeWasPerformed;
-
-  bool mComputeTime;
 
   /*@} */
   /**@name Private Operators*/
