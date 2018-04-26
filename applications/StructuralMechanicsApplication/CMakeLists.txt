@@ -55,7 +55,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_linear_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_2D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_linear_2D2N.cpp
-  
+
   # Adding shells and membranes elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
@@ -77,7 +77,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar.cpp
 
   # Adding the SPRISM element
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SprismElement3D6N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_shell_element_sprism_3D6N.cpp
 
   # Adding the nodal concentrated element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_concentrated_element.cpp
@@ -110,6 +110,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_response_functions_to_python.cpp
 )
 
 add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE} ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})

@@ -245,7 +245,11 @@ namespace Kratos
     KRATOS_TRY
 
     ElasticDataType Variables;
-    this->InitializeElasticData(rValues,Variables);    
+    this->InitializeElasticData(rValues,Variables);
+
+    //Set constitutive matrix to zero before adding
+    rConstitutiveMatrix.clear();
+    
     this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);
     	
     KRATOS_CATCH(" ")
@@ -322,6 +326,9 @@ namespace Kratos
     VectorType StrainVector;
     StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
 
+    //Set constitutive matrix to zero before adding
+    rConstitutiveMatrix.clear();
+    
     this->CalculateAndAddConstitutiveTensor(Variables, rConstitutiveMatrix);
     
     VectorType StressVector;

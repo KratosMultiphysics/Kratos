@@ -37,3 +37,6 @@ class ComponentsALMHertzCompleteTestContact(TestFactory):
 
 class ALMTaylorPatchFrictionalTestContact(TestFactory):
     file_name = "ALM_frictional_contact_test_2D/taylor_patch_test"
+
+class ALMPureFrictionalTestContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/pure_friction_test"

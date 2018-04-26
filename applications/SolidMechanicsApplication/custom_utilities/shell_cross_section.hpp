@@ -1142,7 +1142,7 @@ public:
 
   friend class Serializer;
 
-  virtual void save(Serializer& rSerializer) const
+  virtual void save(Serializer& rSerializer) const override
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
     rSerializer.save("th", mThickness);
@@ -1160,7 +1160,7 @@ public:
     rSerializer.save("OOP_eps", mOOP_CondensedStrains_converged);
   }
 
-  virtual void load(Serializer& rSerializer)
+  virtual void load(Serializer& rSerializer) override
   {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
     rSerializer.load("th", mThickness);

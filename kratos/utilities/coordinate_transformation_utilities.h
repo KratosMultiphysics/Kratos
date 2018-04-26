@@ -155,7 +155,7 @@ public:
 						if(mDomainSize == 3)
 						{
 							array_1d<double,4> aux,aux1;
-							boost::numeric::ublas::bounded_matrix<double,4,4> rRot;
+							BoundedMatrix<double,4,4> rRot;
 							LocalRotationOperator3D<4>(rRot,rGeometry[j]);
 
 							for(unsigned int k=0; k<4; k++)
@@ -169,7 +169,7 @@ public:
 						else
 						{
 							array_1d<double,3> aux,aux1;
-							boost::numeric::ublas::bounded_matrix<double,3,3> rRot;
+							BoundedMatrix<double,3,3> rRot;
 							LocalRotationOperator2D<3>(rRot,rGeometry[j]);
 
 							for(unsigned int k=0; k<3; k++)
@@ -196,7 +196,7 @@ public:
 						if(mDomainSize == 3)
 						{
 							array_1d<double,3> aux,aux1;
-							boost::numeric::ublas::bounded_matrix<double,3,3> rRot;
+							BoundedMatrix<double,3,3> rRot;
 							LocalRotationOperatorPure(rRot,rGeometry[j]);
 
 							for(unsigned int k=0; k<3; k++)
@@ -210,7 +210,7 @@ public:
 						else
 						{
 							array_1d<double,2> aux,aux1;
-							boost::numeric::ublas::bounded_matrix<double,2,2> rRot;
+							BoundedMatrix<double,2,2> rRot;
 							LocalRotationOperatorPure(rRot,rGeometry[j]);
 
 							for(unsigned int k=0; k<2; k++)
@@ -318,22 +318,22 @@ public:
 				//this->RotationOperator<TLocalMatrixType>(Rotation,);
 				if(mDomainSize == 3)
 				{
-					boost::numeric::ublas::bounded_matrix<double,3,3> rRot;
+					BoundedMatrix<double,3,3> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
 					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
 					for(unsigned int i = 0; i < 3; i++) Vel[i] = rVelocity[i];
-					noalias(Tmp) = boost::numeric::ublas::prod(rRot,Vel);
+					noalias(Tmp) = prod(rRot,Vel);
 					for(unsigned int i = 0; i < 3; i++) rVelocity[i] = Tmp[i];
 				}
 				else
 				{
-					boost::numeric::ublas::bounded_matrix<double,2,2> rRot;
+					BoundedMatrix<double,2,2> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
 					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
 					for(unsigned int i = 0; i < 2; i++) Vel[i] = rVelocity[i];
-					noalias(Tmp) = boost::numeric::ublas::prod(rRot,Vel);
+					noalias(Tmp) = prod(rRot,Vel);
 					for(unsigned int i = 0; i < 2; i++) rVelocity[i] = Tmp[i];
 				}
 			}
@@ -355,22 +355,22 @@ public:
 			{
 				if(mDomainSize == 3)
 				{
-					boost::numeric::ublas::bounded_matrix<double,3,3> rRot;
+					BoundedMatrix<double,3,3> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
 					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
 					for(unsigned int i = 0; i < 3; i++) Vel[i] = rVelocity[i];
-					noalias(Tmp) = boost::numeric::ublas::prod(boost::numeric::ublas::trans(rRot),Vel);
+					noalias(Tmp) = prod(trans(rRot),Vel);
 					for(unsigned int i = 0; i < 3; i++) rVelocity[i] = Tmp[i];
 				}
 				else
 				{
-					boost::numeric::ublas::bounded_matrix<double,2,2> rRot;
+					BoundedMatrix<double,2,2> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
 					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
 					for(unsigned int i = 0; i < 2; i++) Vel[i] = rVelocity[i];
-					noalias(Tmp) = boost::numeric::ublas::prod(boost::numeric::ublas::trans(rRot),Vel);
+					noalias(Tmp) = prod(trans(rRot),Vel);
 					for(unsigned int i = 0; i < 2; i++) rVelocity[i] = Tmp[i];
 				}
 			}
@@ -438,9 +438,9 @@ protected:
 		unsigned int Index = 0;
 		int rotations_needed = 0;
 		const unsigned int NumBlocks = LocalSize / TBlockSize;
-		boost::numeric::ublas::vector<bool> NeedRotation( NumBlocks, false);
+		DenseVector<bool> NeedRotation( NumBlocks, false);
 
-		std::vector< boost::numeric::ublas::bounded_matrix<double,TBlockSize,TBlockSize> > rRot(NumBlocks);
+		std::vector< BoundedMatrix<double,TBlockSize,TBlockSize> > rRot(NumBlocks);
 		for(unsigned int j = 0; j < NumBlocks; ++j)
 		{
 			if( this->IsSlip(rGeometry[j]) )
@@ -457,7 +457,7 @@ protected:
 
 		if(rotations_needed > 0)
 		{
-			boost::numeric::ublas::bounded_matrix<double,TBlockSize,TBlockSize> mat_block, tmp;
+			BoundedMatrix<double,TBlockSize,TBlockSize> mat_block, tmp;
 			array_1d<double,TBlockSize> aux, aux1;
 
 			for(unsigned int i=0; i<NumBlocks; i++)
@@ -509,7 +509,7 @@ protected:
 
 	template<unsigned int TBlockSize, unsigned int TSkip = 0>
 	void LocalRotationOperator2D(
-		boost::numeric::ublas::bounded_matrix<double,TBlockSize,TBlockSize>& rRot,
+		BoundedMatrix<double,TBlockSize,TBlockSize>& rRot,
 		GeometryType::PointType& rThisPoint) const
 	{
 		noalias(rRot) = IdentityMatrix(TBlockSize,TBlockSize);
@@ -528,7 +528,7 @@ protected:
 
 	template<unsigned int TBlockSize, unsigned int TSkip = 0>
 	void LocalRotationOperator3D(
-		boost::numeric::ublas::bounded_matrix<double,TBlockSize,TBlockSize>& rRot,
+		BoundedMatrix<double,TBlockSize,TBlockSize>& rRot,
 		GeometryType::PointType& rThisPoint) const
 	{
 		noalias(rRot) = IdentityMatrix(TBlockSize,TBlockSize);
@@ -577,7 +577,7 @@ protected:
 	}
 
 
-	void LocalRotationOperatorPure(boost::numeric::ublas::bounded_matrix<double,3,3>& rRot,
+	void LocalRotationOperatorPure(BoundedMatrix<double,3,3>& rRot,
 			GeometryType::PointType& rThisPoint) const
 	{
 
@@ -624,7 +624,7 @@ protected:
 		rRot(2,2) = rRot(0,0)*rT1[1] - rRot(0,1)*rT1[0];
 	}
 
-	void LocalRotationOperatorPure(boost::numeric::ublas::bounded_matrix<double,2,2>& rRot,
+	void LocalRotationOperatorPure(BoundedMatrix<double,2,2>& rRot,
 			GeometryType::PointType& rThisPoint) const
 	{
 		// Get the normal evaluated at the node
@@ -835,7 +835,7 @@ private:
 
 	//auxiliary functions
 	template< unsigned int TBlockSize >
-	void ReadBlockMatrix( boost::numeric::ublas::bounded_matrix<double,TBlockSize, TBlockSize>& block, const Matrix& origin, const unsigned int Ibegin, const unsigned int Jbegin) const
+	void ReadBlockMatrix( BoundedMatrix<double,TBlockSize, TBlockSize>& block, const Matrix& origin, const unsigned int Ibegin, const unsigned int Jbegin) const
 	{
 		for(unsigned int i=0; i<TBlockSize; i++)
 		{
@@ -847,7 +847,7 @@ private:
 	}
 
 	template< unsigned int TBlockSize >
-	void WriteBlockMatrix( const boost::numeric::ublas::bounded_matrix<double,TBlockSize, TBlockSize>& block, Matrix& destination, const unsigned int Ibegin, const unsigned int Jbegin) const
+	void WriteBlockMatrix( const BoundedMatrix<double,TBlockSize, TBlockSize>& block, Matrix& destination, const unsigned int Ibegin, const unsigned int Jbegin) const
 	{
 		for(unsigned int i=0; i<TBlockSize; i++)
 		{
@@ -869,9 +869,9 @@ private:
 		unsigned int Index = 0;
 		int rotations_needed = 0;
 		const unsigned int NumBlocks = LocalSize / mBlockSize;
-		boost::numeric::ublas::vector<bool> NeedRotation( NumBlocks, false);
+		DenseVector<bool> NeedRotation( NumBlocks, false);
 
-		std::vector< boost::numeric::ublas::bounded_matrix<double,TDim,TDim> > rRot(NumBlocks);
+		std::vector< BoundedMatrix<double,TDim,TDim> > rRot(NumBlocks);
 		for(unsigned int j = 0; j < NumBlocks; ++j)
 		{
 			if( this->IsSlip(rGeometry[j]) )
@@ -887,7 +887,7 @@ private:
 
 		if(rotations_needed > 0)
 		{
-			boost::numeric::ublas::bounded_matrix<double,TDim,TDim> mat_block, tmp;
+			BoundedMatrix<double,TDim,TDim> mat_block, tmp;
 			array_1d<double,TDim> aux, aux1;
 
 			for(unsigned int i=0; i<NumBlocks; i++)

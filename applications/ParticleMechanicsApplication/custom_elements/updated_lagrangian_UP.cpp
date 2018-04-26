@@ -314,7 +314,7 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
             array_1d<double, 3 > & NodalAcceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
             array_1d<double, 3 > & NodalVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
             //array_1d<double, 3 > & PreviousNodalVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
-            double NodalMass = GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0);
+            double NodalMass = GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS, 0);
             array_1d<double,3> NodalMomentum = NodalMass * NodalVelocity;
             array_1d<double,3> NodalInertia = NodalMass * NodalAcceleration;
 
@@ -327,7 +327,7 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
 
             //std::cout<< "rVariables.N "<<rVariables.N<<std::endl;
             //}
-            double NodalPressure = GetGeometry()[i].GetSolutionStepValue(PRESSURE, 0);
+            double NodalPressure = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 0);
             MP_Pressure += rVariables.N[i] * NodalPressure;
 
 
@@ -822,10 +822,10 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
             NodalInertia[j] = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
 
         }
-        GetGeometry()[i].GetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
-        GetGeometry()[i].GetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
-        GetGeometry()[i].GetSolutionStepValue(NODAL_MPRESSURE, 0) += NodalMPressure;
-        GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += NodalMPressure;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
 
     }
 
@@ -3591,17 +3591,17 @@ void UpdatedLagrangianUP::GetValuesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension + i;
-        values[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+        values[index]     = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
+        values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
 
         if ( dimension == 3 )
         {
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
-            values[index + 3] = GetGeometry()[i].GetSolutionStepValue( PRESSURE, Step );
+            values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
+            values[index + 3] = GetGeometry()[i].FastGetSolutionStepValue( PRESSURE, Step );
         }
         else
         {
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue( PRESSURE, Step );
+            values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue( PRESSURE, Step );
         }
 
     }
@@ -3622,11 +3622,11 @@ void UpdatedLagrangianUP::GetFirstDerivativesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension + i;
-        values[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+        values[index]     = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+        values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
         if ( dimension == 3 )
         {
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
+            values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
             values[index + 3] = 0;
         }
         else
@@ -3651,12 +3651,12 @@ void UpdatedLagrangianUP::GetSecondDerivativesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension + i;
-        values[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
+        values[index]     = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+        values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
 
         if ( dimension == 3 )
         {
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
+            values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
             values[index + 3] = 0;
         }
         else
@@ -3693,7 +3693,7 @@ void UpdatedLagrangianUP::FinalizeStepVariables( GeneralVariables & rVariables, 
     //evaluation of the pressure on the material point
     double NodalMeanStress = 0.0;
     for (unsigned int i = 0; i < number_of_nodes; i++)
-        NodalMeanStress += GetGeometry()[i].GetSolutionStepValue( PRESSURE ) * rVariables.N[i];
+        NodalMeanStress += GetGeometry()[i].FastGetSolutionStepValue( PRESSURE ) * rVariables.N[i];
 
     //evaluation of the mean stress on the material point
     double MeanStress = 0.0;

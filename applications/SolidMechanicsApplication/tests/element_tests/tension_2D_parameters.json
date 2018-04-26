@@ -25,7 +25,7 @@
     }],
     "loads_process_list"       : [{
         "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [1.0,0.0,0.0]
     }],

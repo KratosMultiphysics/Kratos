@@ -810,7 +810,7 @@ private:
     static void ParallelProductNoAdd(const MatrixType& A, const VectorType& in, VectorType& out)
     {
         //create partition
-        boost::numeric::ublas::vector<unsigned int> partition;
+        DenseVector<unsigned int> partition;
         unsigned int number_of_threads = omp_get_max_threads();
         unsigned int number_of_initialized_rows = A.filled1() - 1;
         CreatePartition(number_of_threads, number_of_initialized_rows, partition);
@@ -836,7 +836,7 @@ private:
         }
     }
 
-    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, boost::numeric::ublas::vector<unsigned int>& partitions)
+    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads + 1);
         int partition_size = number_of_rows / number_of_threads;

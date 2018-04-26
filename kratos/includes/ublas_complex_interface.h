@@ -45,7 +45,7 @@ namespace Kratos
 
 using namespace boost::numeric::ublas;
 
-typedef boost::numeric::ublas::vector<std::complex<double>> ComplexVector;
+typedef DenseVector<std::complex<double>> ComplexVector;
 typedef unit_vector<std::complex<double>> ComplexUnitVector;
 typedef zero_vector<std::complex<double>> ComplexZeroVector;
 typedef scalar_vector<std::complex<double>> ComplexScalarVector;
@@ -54,7 +54,7 @@ typedef compressed_vector<std::complex<double>> ComplexCompressedVector;
 typedef coordinate_vector<std::complex<double>> ComplexCoordinateVector;
 typedef vector_range<ComplexVector> ComplexVectorRange;
 typedef vector_slice<ComplexVector> ComplexVectorSlice;
-typedef matrix<std::complex<double>> ComplexMatrix;
+typedef DenseMatrix<std::complex<double>> ComplexMatrix;
 typedef identity_matrix<std::complex<double>> ComplexIdentityMatrix;
 typedef zero_matrix<std::complex<double>> ComplexZeroMatrix;
 typedef scalar_matrix<std::complex<double>> ComplexScalarMatrix;
