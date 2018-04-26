@@ -59,7 +59,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
                                    LinearSolverType>::ClearSystem);
     
     class_<ExplicitMeshMovingUtilities>(m,"ExplicitMeshMovingUtilities")
-    .def(init<>());
+        .def(init<ModelPart&, ModelPart&, const double>());
 
 }
 
