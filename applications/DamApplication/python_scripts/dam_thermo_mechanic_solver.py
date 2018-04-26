@@ -133,6 +133,7 @@ class DamThermoMechanicSolver(object):
         # Add variables for the solid conditions
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.POINT_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.FORCE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.FORCE_LOAD_VECTOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         # Add volume acceleration
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
