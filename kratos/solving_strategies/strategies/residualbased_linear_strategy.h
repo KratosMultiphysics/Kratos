@@ -333,9 +333,9 @@ public:
         if (mSolutionStepIsInitialized == false)
         	InitializeSolutionStep();
 
-        TSystemMatrixType& rA = *mpA;
+        TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb = *mpb;
+        TSystemVectorType& rb  = *mpb;
 
         DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
@@ -399,6 +399,7 @@ public:
     void Clear() override
     {
         KRATOS_TRY;
+
         // If the preconditioner is saved between solves, it
         // should be cleared here.
         GetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
@@ -425,12 +426,13 @@ public:
      */
     void CalculateOutputData() override
     {
-        TSystemMatrixType& rA = *mpA;
+        TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb = *mpb;
+        TSystemVectorType& rb  = *mpb;
 
-        DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
-        GetScheme()->CalculateOutputData(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+        GetScheme()->CalculateOutputData(BaseType::GetModelPart(),
+                                         GetBuilderAndSolver()->GetDofSet(),
+                                         rA, rDx, rb);
     }
 
     /**
@@ -445,8 +447,8 @@ public:
         if (mSolutionStepIsInitialized == false)
         {
             //pointers needed in the solution
-            typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
             typename TSchemeType::Pointer p_scheme = GetScheme();
+            typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
             const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
@@ -471,9 +473,9 @@ public:
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
-                                                              BaseType::GetModelPart().Elements(),
-                                                              BaseType::GetModelPart().Conditions(),
-                                                              BaseType::GetModelPart().GetProcessInfo());
+                                                                 BaseType::GetModelPart().Elements(),
+                                                                 BaseType::GetModelPart().Conditions(),
+                                                                 BaseType::GetModelPart().GetProcessInfo());
                 if (BaseType::GetEchoLevel() > 0 && rank == 0)
                     KRATOS_INFO("System Matrix Resize Time") << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
@@ -481,9 +483,9 @@ public:
             if (BaseType::GetEchoLevel() > 0 && rank == 0)
                 KRATOS_INFO("System Construction Time") << system_construction_time.ElapsedSeconds() << std::endl;
 
-            TSystemMatrixType& rA = *mpA;
+            TSystemMatrixType& rA  = *mpA;
             TSystemVectorType& rDx = *mpDx;
-            TSystemVectorType& rb = *mpb;
+            TSystemVectorType& rb  = *mpb;
 
             //initial operations ... things that are constant over the Solution Step
             p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
@@ -507,9 +509,9 @@ public:
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
-        TSystemMatrixType &rA = *mpA;
+        TSystemMatrixType &rA  = *mpA;
         TSystemVectorType &rDx = *mpDx;
-        TSystemVectorType &rb = *mpb;
+        TSystemVectorType &rb  = *mpb;
 
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
@@ -547,9 +549,9 @@ public:
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
-        TSystemMatrixType& rA = *mpA;
+        TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb = *mpb;
+        TSystemVectorType& rb  = *mpb;
 
 	    p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 

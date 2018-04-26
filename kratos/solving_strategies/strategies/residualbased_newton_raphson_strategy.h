@@ -394,9 +394,9 @@ class ResidualBasedNewtonRaphsonStrategy
         if (mSolutionStepIsInitialized == false)
             InitializeSolutionStep();
 
-        TSystemMatrixType& rA = *mpA;
+        TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb = *mpb;
+        TSystemVectorType& rb  = *mpb;
 
         DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
@@ -498,11 +498,13 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     void CalculateOutputData() override
     {
-        TSystemMatrixType& rA = *mpA;
+        TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb = *mpb;
+        TSystemVectorType& rb  = *mpb;
 
-        GetScheme()->CalculateOutputData(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), rA, rDx, rb);
+        GetScheme()->CalculateOutputData(BaseType::GetModelPart(),
+                                         GetBuilderAndSolver()->GetDofSet(),
+                                         rA, rDx, rb);
     }
 
     /**
@@ -542,9 +544,9 @@ class ResidualBasedNewtonRaphsonStrategy
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
-                                                              BaseType::GetModelPart().Elements(),
-                                                              BaseType::GetModelPart().Conditions(),
-                                                              BaseType::GetModelPart().GetProcessInfo());
+                                                                 BaseType::GetModelPart().Elements(),
+                                                                 BaseType::GetModelPart().Conditions(),
+                                                                 BaseType::GetModelPart().GetProcessInfo());
                 if (BaseType::GetEchoLevel() > 0 && rank == 0)
                     KRATOS_INFO("System Matrix Resize Time") << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
@@ -552,9 +554,9 @@ class ResidualBasedNewtonRaphsonStrategy
             if (BaseType::GetEchoLevel() > 0 && rank == 0)
                 KRATOS_INFO("System Construction Time") << system_construction_time.ElapsedSeconds() << std::endl;
 
-            TSystemMatrixType& rA = *mpA;
+            TSystemMatrixType& rA  = *mpA;
             TSystemVectorType& rDx = *mpDx;
-            TSystemVectorType& rb = *mpb;
+            TSystemVectorType& rb  = *mpb;
 
             //initial operations ... things that are constant over the Solution Step
             p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
@@ -579,9 +581,9 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
-        TSystemMatrixType& rA = *mpA;
+        TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb = *mpb;
+        TSystemVectorType& rb  = *mpb;
 
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
@@ -618,11 +620,11 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
-        TSystemMatrixType& rA = *mpA;
+        TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType& rb = *mpb;
+        TSystemVectorType& rb  = *mpb;
 
-        //initializing the parameters of the Newton-Raphson cicle
+        //initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number = 1;
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         //			BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
@@ -671,7 +673,7 @@ class ResidualBasedNewtonRaphsonStrategy
             is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), p_builder_and_solver->GetDofSet(), rA, rDx, rb);
         }
 
-        //Iteration Cicle... performed only for NonLinearProblems
+        //Iteration Cycle... performed only for NonLinearProblems
         while (is_converged == false &&
                iteration_number++ < mMaxIterationNumber)
         {
