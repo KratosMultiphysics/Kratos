@@ -79,7 +79,7 @@ class ElementResultsOutput(IOObject):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def Execute(self, model_part, hdf5_file):
-        KratosHDF5.HDF5ElementSolutionStepDataIO(self.settings, hdf5_file).WriteElementResults(model_part.Elements, 0)        
+        KratosHDF5.HDF5ElementSolutionStepDataIO(self.settings, hdf5_file).WriteElementResults(model_part.Elements, 0)
 
 
 class NodalResultsOutput(IOObject):
