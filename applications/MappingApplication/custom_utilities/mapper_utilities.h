@@ -67,6 +67,11 @@ public:
 
     // }
 
+    ~MapperInterfaceInfo()
+    {
+        std::cout << "Destructor of MapperInterfaceInfo called" << std::endl;
+    }
+
 private:
     friend class Serializer;
 
@@ -84,6 +89,14 @@ inline std::istream & operator >> (std::istream& rIStream, MapperInterfaceInfo& 
 
 /// output stream function
 inline std::ostream & operator << (std::ostream& rOStream, const MapperInterfaceInfo& rThis) {
+//   rThis.PrintInfo(rOStream);
+  rOStream << " : " << std::endl;
+//   rThis.PrintData(rOStream);
+  return rOStream;
+}
+
+/// output stream function
+inline std::ostream & operator << (std::ostream& rOStream, const std::vector<MapperInterfaceInfo::Pointer>& rThis) {
 //   rThis.PrintInfo(rOStream);
   rOStream << " : " << std::endl;
 //   rThis.PrintData(rOStream);

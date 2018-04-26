@@ -17,9 +17,8 @@
 
 namespace Kratos
 {
-    typedef std::vector<MapperInterfaceInfo::Pointer> InterfaceInfoPointerVector;
     KRATOS_CREATE_VARIABLE(int, INTERFACE_EQUATION_ID)
-    KRATOS_CREATE_VARIABLE(double/*InterfaceInfoPointerVector*/, INTERFACE_INFO)
+    KRATOS_CREATE_VARIABLE(InterfaceInfoPointerVector, INTERFACE_INFO)
 
     KRATOS_CREATE_VARIABLE(double, NEIGHBOR_RANK)
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(NEIGHBOR_COORDINATES)
