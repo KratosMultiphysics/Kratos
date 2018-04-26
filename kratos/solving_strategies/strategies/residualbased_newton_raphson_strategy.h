@@ -634,7 +634,7 @@ class ResidualBasedNewtonRaphsonStrategy
         is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
         //function to perform the building and the solving phase.
-        if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
+        if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
             TSparseSpace::SetToZero(rA);
             TSparseSpace::SetToZero(rDx);
