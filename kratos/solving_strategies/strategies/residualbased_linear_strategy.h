@@ -385,6 +385,7 @@ public:
     {
         BaseType::Solve();
 
+        //calculate if needed the norm of Dx
         double norm_dx = 0.00;
         if (mCalculateNormDxFlag == true)
             norm_dx = TSparseSpace::TwoNorm(*mpDx);
@@ -583,8 +584,6 @@ public:
         //move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
-        //calculate if needed the norm of Dx
-
         // Calculate reactions if required
         if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme,
@@ -755,7 +754,7 @@ private:
         if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
         {
             KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
-            KRATOS_INFO("Dx") << "Solution obtained = " << rDx << std::endl;
+            KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
             KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
         }
         if (this->GetEchoLevel() == 4) //print to matrix market file
@@ -768,17 +767,6 @@ private:
             matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
             TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), rb);
         }
-    }
-
-    /**
-     * @brief This method prints information after reach the max number of interations
-     */
-
-    void MaxIterationsExceeded()
-    {
-        std::cout << "***************************************************" << std::endl;
-        std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
-        std::cout << "***************************************************" << std::endl;
     }
 
     ///@}

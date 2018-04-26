@@ -484,9 +484,7 @@ class ResidualBasedNewtonRaphsonStrategy
         TSystemVectorType& rb = *mpb;
 
         if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
-        {
             GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), rb);
-        }
 
         return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), rA, rDx, rb);
 
@@ -745,14 +743,12 @@ class ResidualBasedNewtonRaphsonStrategy
 
             if (is_converged == true)
             {
-
                 if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
                 {
                     TSparseSpace::SetToZero(rb);
 
                     p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rb);
                     residual_is_updated = true;
-                    //std::cout << "mb is calculated" << std::endl;
                 }
 
                 is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), p_builder_and_solver->GetDofSet(), rA, rDx, rb);
@@ -977,13 +973,13 @@ class ResidualBasedNewtonRaphsonStrategy
 
         if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
         {
-            KRATOS_INFO("Dx") << "Solution obtained = " << rDx << std::endl;
+            KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
             KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
         }
         else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
         {
             KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
-            KRATOS_INFO("Dx") << "Solution obtained = " << rDx << std::endl;
+            KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
             KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
         }
         else if (this->GetEchoLevel() == 4) //print to matrix market file
