@@ -69,11 +69,11 @@ void AnalyticFaceWatcher::GetFaceData(int id,
 }
 
 void AnalyticFaceWatcher::GetAllFacesData(ModelPart& analytic_model_part,
-                                          std::list<double> times,
-                                          std::list<int> neighbour_ids,
-                                          std::list<double> masses,
-                                          std::list<double> normal_relative_vel,
-                                          std::list<double> tangential_relative_vel)
+                                          std::list<double>& times,
+                                          std::list<int>& neighbour_ids,
+                                          std::list<double>& masses,
+                                          std::list<double>& normal_relative_vel,
+                                          std::list<double>& tangential_relative_vel)
 {
     times.clear();
     neighbour_ids.clear();
@@ -109,17 +109,21 @@ void AnalyticFaceWatcher::GetAllFacesData(ModelPart& analytic_model_part,
 
 }
 
-void AnalyticFaceWatcher::GetTimeStepsData(std::list<int> ids,
-                                           std::list<int> neighbour_ids,
-                                           std::list<double> masses,
-                                           std::list<double> normal_relative_vel,
-                                           std::list<double> tangential_relative_vel)
+void AnalyticFaceWatcher::GetTimeStepsData(std::list<int>& ids,
+                                           std::list<int>& neighbour_ids,
+                                           std::list<double>& masses,
+                                           std::list<double>& normal_relative_vel,
+                                           std::list<double>& tangential_relative_vel)
 {
+    KRATOS_WATCH(ids.size())
+    
     ids.clear();
     neighbour_ids.clear();
     masses.clear();
     normal_relative_vel.clear();
     tangential_relative_vel.clear();
+    
+    KRATOS_WATCH(ids.size())
 
     const int n_time_steps = mVectorOfTimeStepDatabases.size();
 
@@ -137,12 +141,48 @@ void AnalyticFaceWatcher::GetTimeStepsData(std::list<int> ids,
         masses.insert(masses.end(), masses_i.begin(), masses_i.end());
         normal_relative_vel.insert(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
         tangential_relative_vel.insert(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
-        KRATOS_WATCH("AnalyticFaceWatcher::GetTimeStepsData")
-        KRATOS_WATCH(ids.size())
-        KRATOS_WATCH(neighbour_ids.size())
-        KRATOS_WATCH(masses.size())
-        KRATOS_WATCH(normal_relative_vel.size())
-        KRATOS_WATCH(tangential_relative_vel.size())
+    }
+    
+    KRATOS_WATCH("AnalyticFaceWatcher::GetTimeStepsData")
+    
+    std::list<int>::iterator it_int;
+    std::list<int>::iterator it_int_2;
+    std::list<double>::iterator it_double;
+    std::list<double>::iterator it_double_2;
+    std::list<double>::iterator it_double_3;
+
+    int my_id;
+    int other_id;
+    double particle_mass;
+    double normal_relative_vel_d;
+    double tangential_relative_vel_d;
+
+    for (it_int = ids.begin(); it_int != ids.end(); it_int++) {
+        my_id = *it_int;
+    }
+
+    for (it_double = masses.begin(); it_double != masses.end(); it_double++) {
+        particle_mass = *it_double;
+    }
+
+    for (it_double_2 = normal_relative_vel.begin(); it_double_2 != normal_relative_vel.end(); it_double_2++) {
+        normal_relative_vel_d = *it_double_2;
+    }
+
+    for (it_double_3 = tangential_relative_vel.begin(); it_double_3 != tangential_relative_vel.end(); it_double_3++) {
+        tangential_relative_vel_d = *it_double_3;
+    }
+
+    for (it_int_2 = neighbour_ids.begin(); it_int_2 != neighbour_ids.end(); it_int_2++) {
+        if (*it_int_2) {
+
+            KRATOS_WATCH(my_id)
+            KRATOS_WATCH(*it_int_2)
+            KRATOS_WATCH(particle_mass)
+            KRATOS_WATCH(normal_relative_vel_d)
+            KRATOS_WATCH(tangential_relative_vel_d)
+
+        }
     }
 }
 
@@ -163,14 +203,26 @@ void AnalyticFaceWatcher::GetTotalFlux(std::list<double> &times, std::list<int> 
     std::list<int>::iterator it_int;
     std::list<double>::iterator it_double;
     std::list<double>::iterator it_double_2;
+    double crossing_time;
+    double particle_mass;
+    
     for (it_double = times.begin(); it_double != times.end(); it_double++) {
         KRATOS_WATCH(*it_double)
+        crossing_time = *it_double;
     }
-    for (it_int = n_particles.begin(); it_int != n_particles.end(); it_int++) {
-        KRATOS_WATCH(*it_int)
-    }
+    
     for (it_double_2 = mass.begin(); it_double_2 != mass.end(); it_double_2++) {
         KRATOS_WATCH(*it_double_2)
+        particle_mass = *it_double_2;
+    }
+    
+    for (it_int = n_particles.begin(); it_int != n_particles.end(); it_int++) {
+        KRATOS_WATCH(*it_int)
+        if (*it_int) {
+            KRATOS_WATCH(crossing_time)
+            KRATOS_WATCH(particle_mass)
+            KRATOS_THROW_ERROR(std::runtime_error, "n_particles different to zero!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", 0);
+        }
     }
 }
 

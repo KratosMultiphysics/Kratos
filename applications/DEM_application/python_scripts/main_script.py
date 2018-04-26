@@ -88,6 +88,7 @@ class Solution(object):
         #self.dt = DEM_parameters.MaxTimeStep
         self.Setdt()
         self.SetFinalTime()
+        self.my_id = [444]
 
     def CreateModelParts(self):
         self.spheres_model_part = ModelPart("SpheresPart")
@@ -126,6 +127,15 @@ class Solution(object):
         from analytic_tools import analytic_data_procedures
         self.face_watcher = AnalyticFaceWatcher()
         self.face_watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(analytic_face_watcher=self.face_watcher, path=self.main_path)
+        
+    def MakeAnalyticsMeasurements(self):
+        self.face_watcher.MakeMeasurements()
+        self.particle_watcher.MakeMeasurements()
+        
+    def GetAnalyticFacesModelParts(self):
+        analytic_face_submodelpart_number = 3
+        analytic_face_submodelpart_name = self.rigid_face_model_part.GetSubModelPart(str(analytic_face_submodelpart_number))
+        return analytic_face_submodelpart_name
         
     def SetFinalTime(self):
         self.final_time = self.DEM_parameters["FinalTime"].GetDouble()
@@ -388,6 +398,8 @@ class Solution(object):
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
 
+	
+
     def RunMainTemporalLoop(self):
 
         self.step = 0
@@ -429,6 +441,49 @@ class Solution(object):
             self.DEMFEMProcedures.PrintBallsGraph(self.time)
 
             self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
+            
+            #Phantom                
+            #self.MakeAnalyticsMeasurements()
+            
+            self.face_watcher.MakeMeasurements(self.GetAnalyticFacesModelParts())
+            
+            if False: #self.analytic_data_counter.Tick():
+                pass
+                #self.ProcessAnalyticData()
+                
+            times = [5.5]
+            neighbour_ids = [1]
+            masses = [3.3]
+            normal_relative_vel = [3.3]
+            tangential_relative_vel = [4.4]
+            #my_id = [2]
+            mass = [5.6]
+            n_particles = [4]
+            print(self.GetAnalyticFacesModelParts())
+            
+            self.face_watcher.GetAllFacesData(self.GetAnalyticFacesModelParts(), times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
+            
+            print(times)
+            lele
+            self.face_watcher.GetTimeStepsData(self.my_id, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
+            
+            print(self.my_id)
+            print(neighbour_ids)
+            print(masses)
+            print(normal_relative_vel)
+            print(tangential_relative_vel)
+            print(mass)
+            print(n_particles)
+            for m in mass:
+                print(m)
+            
+            self.face_watcher.GetTotalFlux(times, n_particles, mass)
+            
+            print(times)
+            print(n_particles)
+            for m in mass:
+                print(m)
+            que
 
             self.BeforePrintingOperations(self.time)
 

@@ -187,17 +187,17 @@ void GetFaceData(int id,
                  std::list<double> tangential_relative_vel);
 
 void GetAllFacesData(ModelPart& analytic_model_part,
-                     std::list<double> times,
-                     std::list<int> neighbour_ids,
-                     std::list<double> masses,
-                     std::list<double> normal_relative_vel,
-                     std::list<double> tangential_relative_vel);
+                     std::list<double>& times,
+                     std::list<int>& neighbour_ids,
+                     std::list<double>& masses,
+                     std::list<double>& normal_relative_vel,
+                     std::list<double>& tangential_relative_vel);
 
-void GetTimeStepsData(std::list<int> ids,
-                      std::list<int> neighbour_ids,
-                      std::list<double> masses,
-                      std::list<double> normal_relative_vel,
-                      std::list<double> tangential_relative_vel);
+void GetTimeStepsData(std::list<int>& ids,
+                      std::list<int>& neighbour_ids,
+                      std::list<double>& masses,
+                      std::list<double>& normal_relative_vel,
+                      std::list<double>& tangential_relative_vel);
 
 void GetTotalFlux(std::list<double> &times, std::list<int> &n_particles, std::list<double> &mass);
 

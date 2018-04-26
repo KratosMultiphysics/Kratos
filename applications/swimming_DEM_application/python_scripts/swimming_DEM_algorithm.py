@@ -91,6 +91,7 @@ class Algorithm(object):
         # creating a basset_force tool to perform the operations associated
         # with the calculation of this force along the path of each particle
         self.GetBassetForceTools()
+        self.SetAnalyticFaceWatcher()
 
         # defining member variables for the model_parts (for convenience)
         self.fluid_model_part = self.fluid_solution.fluid_model_part
