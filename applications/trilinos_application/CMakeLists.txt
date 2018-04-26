@@ -45,6 +45,13 @@ if(TRILINOS_USE_AMGCL MATCHES ON)
 
 endif(TRILINOS_USE_AMGCL MATCHES ON)
 
+if(ADJOINT_FLUID_APPLICATION MATCHES ON)
+    if( NOT DEFINED EIGEN_ROOT )
+        message( FATAL_ERROR "EIGEN_ROOT not defined" )
+    endif(NOT DEFINED EIGEN_ROOT)
+    # including header only eigen library
+    include_directories(${EIGEN_ROOT})
+endif(ADJOINT_FLUID_APPLICATION MATCHES ON)
 
 ##add definitions needed
 

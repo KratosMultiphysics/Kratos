@@ -2,7 +2,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosAdjointFluidApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+if( NOT DEFINED EIGEN_ROOT )
+	message( FATAL_ERROR "EIGEN_ROOT not defined" )
+endif()
+
+include_directories( 
+    ${CMAKE_SOURCE_DIR}/kratos 
+    ${EIGEN_ROOT}
+    )
 
 ## generate variables with the sources
 set( KRATOS_ADJOINT_FLUID_APPLICATION_SOURCES
