@@ -35,9 +35,17 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
+            self.modify_parameters(ProjectParameters)
+
             # Creating the test
             self.test = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParameters)
             self.test.Initialize()
+
+    def modify_parameters(self, project_parameters):
+        """This function can be used in derived classes to modify existing parameters
+        before the execution of the test (e.g. switch to MPI)
+        """
+        pass
 
     def test_execution(self):
         # Within this location context:
