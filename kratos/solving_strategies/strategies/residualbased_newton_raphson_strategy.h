@@ -406,9 +406,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
         //move the mesh if needed
         if (this->MoveMeshFlag() == true)
-        {
             BaseType::MoveMesh();
-        }
 
         KRATOS_CATCH("")
     }
@@ -423,59 +421,24 @@ class ResidualBasedNewtonRaphsonStrategy
         if (mInitializeWasPerformed == false)
         {
             //pointers needed in the solution
-            typename TSchemeType::Pointer pScheme = GetScheme();
-            typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
+            typename TSchemeType::Pointer p_scheme = GetScheme();
+            typename TConvergenceCriteriaType::Pointer p_convergence_criteria = mpConvergenceCriteria;
 
             //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-            if (pScheme->SchemeIsInitialized() == false)
-            {
-                pScheme->Initialize(BaseType::GetModelPart());
-            }
+            if (p_scheme->SchemeIsInitialized() == false)
+                p_scheme->Initialize(BaseType::GetModelPart());
 
             //Initialize The Elements - OPERATIONS TO BE DONE ONCE
-            if (pScheme->ElementsAreInitialized() == false)
-            {
-                pScheme->InitializeElements(BaseType::GetModelPart());
-            }
+            if (p_scheme->ElementsAreInitialized() == false)
+                p_scheme->InitializeElements(BaseType::GetModelPart());
 
             //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
-            if (pScheme->ConditionsAreInitialized() == false)
-            {
-                pScheme->InitializeConditions(BaseType::GetModelPart());
-            }
+            if (p_scheme->ConditionsAreInitialized() == false)
+                p_scheme->InitializeConditions(BaseType::GetModelPart());
 
             //initialisation of the convergence criteria
-            if (mpConvergenceCriteria->IsInitialized() == false)
-            {
-                mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
-            }
-
-            //pointers needed in the solution
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-            const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-
-            //set up the system, operation performed just once unless it is required
-            //to reform the dof set at each iteration
-            if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
-                mReformDofSetAtEachStep == true)
-            {
-                //setting up the list of the DOFs to be solved
-                double setup_dofs_begintime = OpenMPUtils::GetCurrentTime();
-                pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
-                if (this->GetEchoLevel() > 0 && rank == 0)
-                {
-                    double setup_dofs_endtime = OpenMPUtils::GetCurrentTime();
-                    KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << setup_dofs_endtime - setup_dofs_begintime << std::endl;
-                }
-                //shaping correctly the system
-                double setup_system_begin = OpenMPUtils::GetCurrentTime();
-                pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
-                if (this->GetEchoLevel() > 0 && rank == 0)
-                {
-                    double setup_system_end = OpenMPUtils::GetCurrentTime();
-                    KRATOS_INFO("setup_system_time") << rank << ": setup_system_time : " << setup_system_end - setup_system_begin << std::endl;
-                }
-            }
+            if (p_convergence_criteria->IsInitialized() == false)
+                p_convergence_criteria->Initialize(BaseType::GetModelPart());
 
             mInitializeWasPerformed = true;
         }
@@ -554,64 +517,66 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
-        //pointers needed in the solution
-        typename TSchemeType::Pointer pScheme = GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-
-        //set up the system, operation performed just once unless it is required
-        //to reform the dof set at each iteration
-        if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
-            mReformDofSetAtEachStep == true)
-        {
-            //setting up the list of the DOFs to be solved
-            double setup_dofs_begintime = OpenMPUtils::GetCurrentTime();
-            pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
-            if (this->GetEchoLevel() > 0 && rank == 0)
-            {
-                double setup_dofs_endtime = OpenMPUtils::GetCurrentTime();
-                KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << setup_dofs_endtime - setup_dofs_begintime << std::endl;
-            }
-
-            //shaping correctly the system
-            double setup_system_begin = OpenMPUtils::GetCurrentTime();
-            pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
-            if (this->GetEchoLevel() > 0 && rank == 0)
-            {
-                double setup_system_end = OpenMPUtils::GetCurrentTime();
-                KRATOS_INFO("setup_system_time") << rank << ": setup_system_time : " << setup_system_end - setup_system_begin << std::endl;
-            }
-        }
-
-        //prints informations about the current time
-        if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-        {
-            KRATOS_INFO("CurrentTime") << "\nCurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
-        }
-
         if (mSolutionStepIsInitialized == false)
         {
-            /*typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-            typename TSchemeType::Pointer pScheme = GetScheme();
-            int rank = BaseType::GetModelPart().GetCommunicator().MyPID(); */
+            //pointers needed in the solution
+            typename TSchemeType::Pointer p_scheme = GetScheme();
+            typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
-            //setting up the Vectors involved to the correct size
-            double system_matrix_resize_begin = OpenMPUtils::GetCurrentTime();
-            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
-            if (this->GetEchoLevel() > 0 && rank == 0)
+            const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+
+            //set up the system, operation performed just once unless it is required
+            //to reform the dof set at each iteration
+            if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
+                mReformDofSetAtEachStep == true)
             {
-                double system_matrix_resize_end = OpenMPUtils::GetCurrentTime();
-                KRATOS_INFO("system_matrix_resize_time") << rank << ": system_matrix_resize_time : " << system_matrix_resize_end - system_matrix_resize_begin << std::endl;
+                //setting up the list of the DOFs to be solved
+                double setup_dofs_begintime = OpenMPUtils::GetCurrentTime();
+                p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
+                if (this->GetEchoLevel() > 0 && rank == 0)
+                {
+                    double setup_dofs_endtime = OpenMPUtils::GetCurrentTime();
+                    KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << setup_dofs_endtime - setup_dofs_begintime << std::endl;
+                }
+
+                //shaping correctly the system
+                double setup_system_begin = OpenMPUtils::GetCurrentTime();
+                p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
+                if (this->GetEchoLevel() > 0 && rank == 0)
+                {
+                    double setup_system_end = OpenMPUtils::GetCurrentTime();
+                    KRATOS_INFO("setup_system_time") << rank << ": setup_system_time : " << setup_system_end - setup_system_begin << std::endl;
+                }
+
+                //setting up the Vectors involved to the correct size
+                double system_matrix_resize_begin = OpenMPUtils::GetCurrentTime();
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
+                                                              BaseType::GetModelPart().Elements(),
+                                                              BaseType::GetModelPart().Conditions(),
+                                                              BaseType::GetModelPart().GetProcessInfo());
+                if (this->GetEchoLevel() > 0 && rank == 0)
+                {
+                    double system_matrix_resize_end = OpenMPUtils::GetCurrentTime();
+                    KRATOS_INFO("system_matrix_resize_time") << rank << ": system_matrix_resize_time : " << system_matrix_resize_end - system_matrix_resize_begin << std::endl;
+                }
             }
+
+            //prints informations about the current time
+            if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+            {
+                KRATOS_INFO("CurrentTime") << "\nCurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
+            }
+
             TSystemMatrixType &A = *mpA;
             TSystemVectorType &Dx = *mpDx;
             TSystemVectorType &b = *mpb;
 
             //initial operations ... things that are constant over the Solution Step
-            pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
+            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
 
             //initial operations ... things that are constant over the Solution Step
-            pScheme->InitializeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
+            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
+
             mSolutionStepIsInitialized = true;
         }
 
