@@ -486,22 +486,6 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-     * @brief The problem of interest is solved.
-     * @details This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(),
-     * SolveSolutionStep() and FinalizeSolutionStep().
-     * All those functions can otherwise be called separately.
-     */
-    double Solve() override
-    {
-        Initialize();
-        InitializeSolutionStep();
-        Predict();
-        SolveSolutionStep();
-        FinalizeSolutionStep();
-        return 0.00;
-    }
-
-    /**
      * @brief Clears the internal storage
      */
     void Clear() override
