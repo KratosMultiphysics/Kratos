@@ -383,125 +383,13 @@ public:
 
     double Solve() override
     {
-        KRATOS_TRY
+        BaseType::Solve();
 
-        //pointers needed in the solution
-        typename TSchemeType::Pointer pScheme = GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-
-        ProcessInfo& pCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-
-        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-        //if the operations needed were already performed this does nothing
-        if (mInitializeWasPerformed == false)
-        {
-            Initialize();
-            mInitializeWasPerformed = true;
-        }
-
-        //prints informations about the current time
-        if (BaseType::GetEchoLevel() != 0 && rank == 0)
-        {
-            KRATOS_INFO("CurrentTime") << "\nCurrentTime = " << pCurrentProcessInfo[TIME] << std::endl;
-        }
-
-        //initialize solution step
-        if (mSolutionStepIsInitialized == false)
-        {
-            InitializeSolutionStep();
-            mSolutionStepIsInitialized = true;
-        }
-
-        //updates the database with a prediction of the solution
-        Predict();
-
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
-
-	pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-
-
-        if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
-        {
-            TSparseSpace::SetToZero(mA);
-            TSparseSpace::SetToZero(mDx);
-            TSparseSpace::SetToZero(mb);
-            // passing smart pointers instead of references here
-            // to prevent dangling pointer to system matrix when
-            // reusing ml preconditioners in the trilinos tpl
-            pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-            BaseType::mStiffnessMatrixIsBuilt = true;
-        }
-        else
-        {
-            TSparseSpace::SetToZero(mDx);
-            TSparseSpace::SetToZero(mb);
-            pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-        }
-
-        if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
-        {
-            KRATOS_INFO("LHS") << "SystemMatrix = " << mA << std::endl;
-            KRATOS_INFO("Dx") << "Solution obtained = " << mDx << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << mb << std::endl;
-        }
-        if (this->GetEchoLevel() == 4) //print to matrix market file
-        {
-            std::stringstream matrix_market_name;
-            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] <<  ".mm";
-            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), mA, false);
-
-            std::stringstream matrix_market_vectname;
-            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
-            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), mb);
-        }
-
-        //update results
-        DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
-        pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-
-        //move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-
-        //calculate if needed the norm of Dx
-        double normDx = 0.00;
+        double norm_dx = 0.00;
         if (mCalculateNormDxFlag == true)
-        {
-            normDx = TSparseSpace::TwoNorm(mDx);
-        }
+            norm_dx = TSparseSpace::TwoNorm(*mpDx);
 
-        // Calculate reactions if required
-        if (mCalculateReactionsFlag == true)
-        {
-            pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-        }
-
-        //Finalisation of the solution step,
-        //operations to be done after achieving convergence, for example the
-        //Final Residual Vector (mb) has to be saved in there
-        //to avoid error accumulation
-        pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-        pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-
-        //deallocate the systemvectors if needed
-        if (mReformDofSetAtEachStep == true)
-        {
-            if (rank == 0 && BaseType::GetEchoLevel() > 0) std::cout << "Clearing System" << std::endl;
-            this->Clear();
-        }
-
-        //Cleaning memory after the solution
-        pScheme->Clean();
-
-        //reset flags for next step
-        mSolutionStepIsInitialized = false;
-
-        return normDx;
-
-        KRATOS_CATCH("")
-
+        return norm_dx;
     }
 
     /**
@@ -607,6 +495,120 @@ public:
         }
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     */
+    void FinalizeSolutionStep() override
+    {
+        KRATOS_TRY;
+        typename TSchemeType::Pointer p_scheme = GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+
+        TSystemMatrixType &A = *mpA;
+        TSystemVectorType &Dx = *mpDx;
+        TSystemVectorType &b = *mpb;
+
+        //Finalisation of the solution step,
+        //operations to be done after achieving convergence, for example the
+        //Final Residual Vector (mb) has to be saved in there
+        //to avoid error accumulation
+
+        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
+        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
+
+        //Cleaning memory after the solution
+        p_scheme->Clean();
+
+        //reset flags for next step
+        mSolutionStepIsInitialized = false;
+
+        //deallocate the systemvectors if needed
+        if (mReformDofSetAtEachStep == true)
+        {
+            // if (rank == 0 && BaseType::GetEchoLevel() > 0) std::cout << "Clearing System" << std::endl;
+
+            SparseSpaceType::Clear(mpA);
+            SparseSpaceType::Clear(mpDx);
+            SparseSpaceType::Clear(mpb);
+
+            this->Clear();
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
+     */
+    bool SolveSolutionStep() override
+    {
+        //pointers needed in the solution
+        typename TSchemeType::Pointer p_scheme = GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+
+        ProcessInfo& pCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+
+        TSystemMatrixType& A = *mpA;
+        TSystemVectorType& Dx = *mpDx;
+        TSystemVectorType& b = *mpb;
+
+	    p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
+
+        if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
+        {
+            TSparseSpace::SetToZero(A);
+            TSparseSpace::SetToZero(Dx);
+            TSparseSpace::SetToZero(b);
+            // passing smart pointers instead of references here
+            // to prevent dangling pointer to system matrix when
+            // reusing ml preconditioners in the trilinos tpl
+            p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), A, Dx, b);
+            BaseType::mStiffnessMatrixIsBuilt = true;
+        }
+        else
+        {
+            TSparseSpace::SetToZero(Dx);
+            TSparseSpace::SetToZero(b);
+            p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), A, Dx, b);
+        }
+
+        if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
+        {
+            KRATOS_INFO("LHS") << "SystemMatrix = " << A << std::endl;
+            KRATOS_INFO("Dx") << "Solution obtained = " << Dx << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << b << std::endl;
+        }
+        if (this->GetEchoLevel() == 4) //print to matrix market file
+        {
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] <<  ".mm";
+            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), A, false);
+
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
+            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), b);
+        }
+
+        //update results
+        DofsArrayType& rDofSet = p_builder_and_solver->GetDofSet();
+        p_scheme->Update(BaseType::GetModelPart(), rDofSet, A, Dx, b);
+
+        //move the mesh if needed
+        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+
+        //calculate if needed the norm of Dx
+
+        // Calculate reactions if required
+        if (mCalculateReactionsFlag == true)
+            p_builder_and_solver->CalculateReactions(p_scheme,
+                                                     BaseType::GetModelPart(),
+                                                     A, Dx, b);
+
+        return true;
     }
 
     /**
