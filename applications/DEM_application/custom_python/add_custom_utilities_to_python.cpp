@@ -230,9 +230,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     class_<AnalyticParticleWatcher, AnalyticParticleWatcher::Pointer>(m, "AnalyticParticleWatcher")
         .def(init<>())
         .def("MakeMeasurements", &AnalyticParticleWatcher::MakeMeasurements)
-        .def("GetTimeStepsData", &AnalyticParticleWatcher::GetTimeStepsData)
-        .def("GetParticleData", &AnalyticParticleWatcher::GetParticleData)
-        .def("GetAllParticlesData", &AnalyticParticleWatcher::GetAllParticlesData)
+        //.def("GetTimeStepsData", &AnalyticParticleWatcher::GetTimeStepsData)
+        //.def("GetParticleData", &AnalyticParticleWatcher::GetParticleData)
+        //.def("GetAllParticlesData", &AnalyticParticleWatcher::GetAllParticlesData)
         .def("SetNodalMaxImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxImpactVelocities)
         .def("SetNodalMaxFaceImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxFaceImpactVelocities)
         ;
@@ -241,9 +241,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(init<>())
         .def("ClearData", &AnalyticFaceWatcher::ClearData)
         .def("MakeMeasurements", &AnalyticFaceWatcher::MakeMeasurements)
-        .def("GetTimeStepsData", &AnalyticFaceWatcher::GetTimeStepsData)
-        .def("GetFaceData", &AnalyticFaceWatcher::GetFaceData)
-        .def("GetAllFacesData", &AnalyticFaceWatcher::GetAllFacesData)
+        //.def("GetTimeStepsData", &AnalyticFaceWatcher::GetTimeStepsData)
+        //.def("GetFaceData", &AnalyticFaceWatcher::GetFaceData)
+        //.def("GetAllFacesData", &AnalyticFaceWatcher::GetAllFacesData)
         .def("GetTotalFlux", &AnalyticFaceWatcher::GetTotalFlux)
         ;
 

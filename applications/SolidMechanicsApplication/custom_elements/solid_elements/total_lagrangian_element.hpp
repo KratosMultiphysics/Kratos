@@ -188,8 +188,8 @@ protected:
      * Calculation of the Deformation Matrix  BL
      */
     void CalculateDeformationMatrix(Matrix& rB,
-                                    Matrix& rF,
-                                    Matrix& rDN_DX);
+                                    const Matrix& rF,
+                                    const Matrix& rDN_DX);
 
 
     /**

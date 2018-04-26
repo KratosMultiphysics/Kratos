@@ -70,7 +70,7 @@ public:
     Triangle2D3ModifiedShapeFunctions(const GeometryPointerType rpInputGeometry, const Vector& rNodalDistances);
 
     /// Destructor
-    ~Triangle2D3ModifiedShapeFunctions();
+    ~Triangle2D3ModifiedShapeFunctions() override;
 
     ///@}
     ///@name Access
@@ -100,7 +100,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
     * Returns the member pointer to the splitting utility.
     */
@@ -232,7 +232,7 @@ public:
 
     /**
     * Returns the positive side edge intersections shape function values.
-    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes, 
+    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes,
     * containing the positive side edge intersection shape function values. For non-split edges,
     * the corresponding row is plenty of zeros.
     */
@@ -241,7 +241,7 @@ public:
 
     /**
     * Returns the negative side edge intersections shape function values.
-    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes, 
+    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes,
     * containing the negative side edge intersection shape function values. For non-split edges,
     * the corresponding row is plenty of zeros.
     */

@@ -66,7 +66,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosMeshingApplication MODULE ${KRATOS_MESHING_APPLICATION_SOURCES} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
+pybind11_add_module(KratosMeshingApplication MODULE THIN_LTO ${KRATOS_MESHING_APPLICATION_SOURCES} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosMeshingApplication PRIVATE KratosCore triangle tetMeshOpt)
 set_target_properties(KratosMeshingApplication PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
 set_target_properties(KratosMeshingApplication PROPERTIES PREFIX "")

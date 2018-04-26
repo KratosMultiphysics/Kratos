@@ -57,35 +57,35 @@ public:
     }
 
     /// Destructor
-    virtual ~UPwSmallStrainInterfaceElement() {}
+    ~UPwSmallStrainInterfaceElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
     
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
         
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
     
-    void Initialize();
+    void Initialize() override;
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
     
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
     
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
     
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
     
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
     
-    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -96,10 +96,10 @@ protected:
         array_1d<double,TDim> GlobalCoordinatesGradients;
         array_1d<double,TDim> LocalCoordinatesGradients;
         
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim-1> ShapeFunctionsNaturalGradientsMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TDim-1,TDim-1> LocalCoordinatesGradientsMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TDim-1,TDim-1> LocalCoordinatesGradientsInvMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim-1> ShapeFunctionsGradientsMatrix;
+        BoundedMatrix<double,TNumNodes,TDim-1> ShapeFunctionsNaturalGradientsMatrix;
+        BoundedMatrix<double,TDim-1,TDim-1> LocalCoordinatesGradientsMatrix;
+        BoundedMatrix<double,TDim-1,TDim-1> LocalCoordinatesGradientsInvMatrix;
+        BoundedMatrix<double,TNumNodes,TDim-1> ShapeFunctionsGradientsMatrix;
     };
         
     struct InterfaceElementVariables
@@ -123,7 +123,7 @@ protected:
         array_1d<double,TNumNodes*TDim> VolumeAcceleration;
 
         ///General elemental variables
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         array_1d<double,TDim> VoigtVector;
         
         ///Variables computed at each GP
@@ -137,18 +137,18 @@ protected:
         Matrix F;
         double detF;
         ///Auxiliary Variables
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu;
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> LocalPermeabilityMatrix;
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu;
+        BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix;
         array_1d<double,TDim> BodyAcceleration;
         double IntegrationCoefficient;
         double JointWidth;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes*TDim> PUMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> PMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> DimMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TDim> UDimMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> PDimMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes*TDim> PUMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PMatrix;
+        BoundedMatrix<double,TDim,TDim> DimMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TDim> UDimMatrix;
+        BoundedMatrix<double,TNumNodes,TDim> PDimMatrix;
         array_1d<double,TNumNodes*TDim> UVector;
         array_1d<double,TNumNodes> PVector;
     };
@@ -163,17 +163,17 @@ protected:
     void CalculateInitialGap(const GeometryType& Geom);
     
     
-    void CaculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo );
+    void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo ) override;
     
     
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
 
     void InitializeElementVariables(InterfaceElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                     const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
                                     
-    void CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
+    void CalculateRotationMatrix(BoundedMatrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
     
     void CalculateJointWidth(double& rJointWidth,const double& NormalRelDisp,const double& MinimumJointWidth,const unsigned int& GPoint);
     
@@ -182,7 +182,7 @@ protected:
 
     template< class TMatrixType >
     void CalculateShapeFunctionsGradients(TMatrixType& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian, 
-                                            const boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& RotationMatrix,
+                                            const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
                                             const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint);
                                             
                                     
@@ -229,12 +229,12 @@ private:
     
     friend class Serializer;
     
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }

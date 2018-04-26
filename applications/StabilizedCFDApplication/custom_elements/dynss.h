@@ -149,20 +149,20 @@ public:
      */
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const;
+                            PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const;
+                           PropertiesType::Pointer pProperties) const override;
 
     /// Allocate memory for small scale values to be tracked.
-    virtual void Initialize();
+    void Initialize() override;
 
     /// Update the values of tracked small scale quantities.
-    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /// Predict the value of the small scale velocity for the current iteration.
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -170,59 +170,59 @@ public:
     ///@{
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                             std::vector<double>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                                     std::vector<double>& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                             std::vector<array_1d<double, 3 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * TO COPY SUBSCALE VALUES AFTER SERIALIZATION
-     */
-    virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                          std::vector<double>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo);
-
-    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                          std::vector< array_1d<double, 3 > >& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo);
-
-    virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-                          std::vector< Vector >& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo);
-
-    virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-                          std::vector< Matrix >& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                                     std::vector<array_1d<double, 3 > >& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * TO COPY SUBSCALE VALUES AFTER SERIALIZATION
      */
-    virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                         std::vector<double>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                  std::vector<double>& rOutput,
+                  const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                         std::vector<array_1d<double, 3 > > rValues,
-                         const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                  std::vector< array_1d<double, 3 > >& rOutput,
+                  const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                         std::vector<array_1d<double, 6 > > rValues,
-                         const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
+                  std::vector< Vector >& rOutput,
+                  const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                         std::vector<Vector>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+                  std::vector< Matrix >& rOutput,
+                  const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                         std::vector<Matrix>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo);
+    /**
+     * TO COPY SUBSCALE VALUES AFTER SERIALIZATION
+     */
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                 std::vector<double>& rValues,
+                 const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void SetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                         std::vector<ConstitutiveLaw::Pointer>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                 std::vector<array_1d<double, 3 > > rValues,
+                 const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+                 std::vector<array_1d<double, 6 > > rValues,
+                 const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+                 std::vector<Vector>& rValues,
+                 const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                 std::vector<Matrix>& rValues,
+                 const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                 std::vector<ConstitutiveLaw::Pointer>& rValues,
+                 const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -235,11 +235,11 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const override;
 
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override;
 
 
     ///@}
@@ -283,39 +283,39 @@ protected:
                               double &TauP);
 
 
-    virtual void ASGSMomentumResidual(const ShapeFunctionsType &rN,
+    virtual void DASGSMomentumResidual(const ShapeFunctionsType &rN,
                                       const ShapeFunctionDerivativesType &rDN_DX,
                                       const array_1d<double,3> &rConvVel,
                                       array_1d<double,3>& rMomentumRes);
 
 
-    virtual void ASGSMassResidual(double GaussIndex,
-                                  const ShapeFunctionsType &rN,
-                                  const ShapeFunctionDerivativesType &rDN_DX,
-                                  double& rMomentumRes);
+    void ASGSMassResidual(double GaussIndex,
+                          const ShapeFunctionsType &rN,
+                          const ShapeFunctionDerivativesType &rDN_DX,
+                          double& rMomentumRes) override;
 
 
-    virtual void OSSMomentumResidual(const ShapeFunctionsType &rN,
+    virtual void DOSSMomentumResidual(const ShapeFunctionsType &rN,
                                      const ShapeFunctionDerivativesType &rDN_DX,
                                      const array_1d<double,3> &rConvVel,
                                      array_1d<double,3>& rMomentumRes);
 
-    virtual void OSSMassResidual(double GaussIndex,
-                                 const ShapeFunctionsType& rN,
-                                 const ShapeFunctionDerivativesType& rDN_DX,
-                                 double& rMassRes);
+    void OSSMassResidual(double GaussIndex,
+                         const ShapeFunctionsType& rN,
+                         const ShapeFunctionDerivativesType& rDN_DX,
+                         double& rMassRes) override;
 
 
-    virtual void MomentumProjTerm(const ShapeFunctionsType &rN,
+    virtual void DynamicMomentumProjTerm(const ShapeFunctionsType &rN,
                                   const ShapeFunctionDerivativesType &rDN_DX,
                                   const array_1d<double,3> &rConvVel,
                                   array_1d<double,3>& rMomentumRHS);
 
 
-    virtual void MassProjTerm(double GaussIndex,
-                             const ShapeFunctionsType &rN,
-                             const ShapeFunctionDerivativesType &rDN_DX,
-                             double& rMassRHS);
+    void MassProjTerm(double GaussIndex,
+                     const ShapeFunctionsType &rN,
+                     const ShapeFunctionDerivativesType &rDN_DX,
+                     double& rMassRHS) override;
 
 
     virtual void FullConvectiveVelocity(array_1d<double,3>& rConvVel,
@@ -324,38 +324,38 @@ protected:
 
 
 
-    virtual void AddSystemTerms(unsigned int GaussIndex,
-                                double GaussWeight,
-                                const ShapeFunctionsType& rN,
-                                const ShapeFunctionDerivativesType& rDN_DX,
-                                const ProcessInfo& rProcessInfo,
-                                MatrixType& rLHS,
-                                VectorType& rRHS);
+    void AddSystemTerms(unsigned int GaussIndex,
+                        double GaussWeight,
+                        const ShapeFunctionsType& rN,
+                        const ShapeFunctionDerivativesType& rDN_DX,
+                        const ProcessInfo& rProcessInfo,
+                        MatrixType& rLHS,
+                        VectorType& rRHS) override;
 
 
-    virtual void AddMassStabilization(unsigned int GaussIndex,
-                                      double GaussWeight,
-                                      const ShapeFunctionsType& rN,
-                                      const ShapeFunctionDerivativesType& rDN_DX,
-                                      const ProcessInfo& rProcessInfo,
-                                      MatrixType& rMassMatrix);
+    void AddMassStabilization(unsigned int GaussIndex,
+                              double GaussWeight,
+                              const ShapeFunctionsType& rN,
+                              const ShapeFunctionDerivativesType& rDN_DX,
+                              const ProcessInfo& rProcessInfo,
+                              MatrixType& rMassMatrix) override;
 
 
     virtual void DenseSystemSolve(const Matrix &rA,
                                   const Vector &rB,
                                   Vector &rX) const;
 
-    virtual void SubscaleVelocity(unsigned int GaussIndex,
-                                  const ShapeFunctionsType& rN,
-                                  const ShapeFunctionDerivativesType& rDN_DX,
-                                  const ProcessInfo& rProcessInfo,
-                                  array_1d<double,3>& rVelocitySubscale);
+    void SubscaleVelocity(unsigned int GaussIndex,
+                          const ShapeFunctionsType& rN,
+                          const ShapeFunctionDerivativesType& rDN_DX,
+                          const ProcessInfo& rProcessInfo,
+                          array_1d<double,3>& rVelocitySubscale) override;
 
-    virtual void SubscalePressure(unsigned int GaussIndex,
-                                  const ShapeFunctionsType& rN,
-                                  const ShapeFunctionDerivativesType& rDN_DX,
-                                  const ProcessInfo& rProcessInfo,
-                                  double &rPressureSubscale);
+    void SubscalePressure(unsigned int GaussIndex,
+                          const ShapeFunctionsType& rN,
+                          const ShapeFunctionDerivativesType& rDN_DX,
+                          const ProcessInfo& rProcessInfo,
+                          double &rPressureSubscale) override;
 
 
 
@@ -392,9 +392,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Operators

@@ -51,6 +51,7 @@ class MechanicalSolver(object):
   	        "analysis_type": "Non-Linear",
                 "time_integration": "Implicit",
                 "integration_method": "Newmark",
+                "time_integration_order": 1,
                 "buffer_size": 2
             },
             "solving_strategy_settings":{
@@ -115,7 +116,11 @@ class MechanicalSolver(object):
         self.echo_level = 0
 
     def GetMinimumBufferSize(self):
-        return 2;
+        buffer_size = self.time_integration_settings["buffer_size"].GetInt()
+        time_integration_order = self.time_integration_settings["time_integration_order"].GetInt()
+        if( buffer_size <= time_integration_order ):
+            buffer_size = time_integration_order + 1
+        return buffer_size;
 
     def SetComputingModelPart(self, computing_model_part):
         self.model_part = computing_model_part

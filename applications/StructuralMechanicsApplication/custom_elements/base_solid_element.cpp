@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "custom_elements/base_solid_element.h"
 #include "utilities/math_utils.h"
+#include "utilities/geometry_utilities.h"
 #include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -74,12 +75,7 @@ void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessI
 
 void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-    // Create and initialize element variables:
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
 
     // Create constitutive law parameters:
@@ -94,13 +90,7 @@ void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
     // Reading integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
-    // Reading integration points
     for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-        // Compute element kinematics B, F, DN_DX ...
-        CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
-
         // Call the constitutive law to update material variables
         mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
 
@@ -475,10 +465,12 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints();
+    const GeometryType::IntegrationMethod integration_method =
+        GetGeometry().GetDefaultIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(integration_method);
 
-    if ( rOutput.size() != GetGeometry().IntegrationPoints(  ).size() )
-        rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
+    if ( rOutput.size() != integration_points.size() )
+        rOutput.resize( integration_points.size() );
 
     if (rVariable == INTEGRATION_WEIGHT) {
         const unsigned int number_of_nodes = GetGeometry().size();
@@ -492,7 +484,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                                                                                 this_kinematic_variables.InvJ0,
                                                                                 this_kinematic_variables.DN_DX,
                                                                                 point_number,
-                                                                                GetGeometry().GetDefaultIntegrationMethod());
+                                                                                integration_method);
 
             double integration_weight = GetIntegrationWeight(integration_points,
                                                                 point_number,
@@ -522,7 +514,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
         for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number) {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
 
             // Compute material reponse
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
@@ -552,12 +544,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
         Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
-        // Reading integration points
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
         for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number) {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
 
             // Compute material reponse
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
@@ -629,8 +618,11 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    if ( rOutput.size() != GetGeometry().IntegrationPoints(  ).size() )
-        rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
+    const GeometryType::IntegrationMethod integration_method =
+        GetGeometry().GetDefaultIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( integration_method );
+    if ( rOutput.size() != integration_points.size() )
+        rOutput.resize( integration_points.size() );
 
     if ( rVariable == INSITU_STRESS ) {
         const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
@@ -663,12 +655,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
         // Reading integration points
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
-        // Reading integration points
         for ( unsigned int point_number = 0; point_number < integration_points.size(); ++point_number ) {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
 
             //call the constitutive law to update material variables
             if( rVariable == CAUCHY_STRESS_VECTOR) {
@@ -704,13 +693,10 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
         Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
-        // Reading integration points
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
         //reading integration points
         for ( unsigned int point_number = 0; point_number < integration_points.size(); ++point_number ) {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
 
             // Compute material reponse
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
@@ -721,9 +707,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             rOutput[point_number] = this_constitutive_variables.StrainVector;
         }
     } else {
-        if ( rOutput.size() != GetGeometry().IntegrationPoints(  ).size() )
-            rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
-
         for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ++ii )
             rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
     }
@@ -738,10 +721,13 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    const GeometryType::IntegrationMethod integration_method =
+        GetGeometry().GetDefaultIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( integration_method );
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    if ( rOutput.size() != GetGeometry().IntegrationPoints(  ).size() )
-        rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
+    if ( rOutput.size() != integration_points.size() )
+        rOutput.resize( integration_points.size() );
 
     if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR ) {
         std::vector<Vector> stress_vector;
@@ -793,12 +779,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         Values.SetConstitutiveMatrix(this_constitutive_variables.D); //this is the output parameter
 
         // Reading integration points
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
-        // Reading integration points
         for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
 
             // Compute material reponse
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
@@ -819,16 +802,13 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
-        // Reading integration points
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
         // Create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
         // Reading integration points
         for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
 
             if( rOutput[point_number].size2() != this_kinematic_variables.F.size2() )
                 rOutput[point_number].resize( this_kinematic_variables.F.size1() , this_kinematic_variables.F.size2() , false );
@@ -1082,7 +1062,7 @@ double BaseSolidElement::GetIntegrationWeight(
 void BaseSolidElement::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables,
     const unsigned int PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+    const GeometryType::IntegrationMethod& rIntegrationMethod
     )
 {
     KRATOS_ERROR << "You have called to the CalculateKinematicVariables from the base class for solid elements" << std::endl;
@@ -1115,7 +1095,7 @@ void BaseSolidElement::CalculateConstitutiveVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix BaseSolidElement::CalculateDeltaDisplacement(Matrix& DeltaDisplacement)
+Matrix& BaseSolidElement::CalculateDeltaDisplacement(Matrix& DeltaDisplacement)
 {
     KRATOS_TRY
 
@@ -1148,24 +1128,15 @@ double BaseSolidElement::CalculateDerivativesOnReferenceConfiguration(
     IntegrationMethod ThisIntegrationMethod
     )
 {
-    rJ0.clear();
-
+    GeometryType& r_geom = GetGeometry();
+    GeometryUtils::JacobianOnInitialConfiguration(
+        r_geom,
+        r_geom.IntegrationPoints(ThisIntegrationMethod)[PointNumber], rJ0);
     double detJ0;
-
-    const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
-
-    for ( unsigned int i = 0; i < GetGeometry().size(); ++i ) {
-        const array_1d<double, 3>& coords = GetGeometry()[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
-        for(unsigned int k = 0; k < GetGeometry().WorkingSpaceDimension(); ++k) {
-            for(unsigned int m = 0; m < GetGeometry().LocalSpaceDimension(); ++m)
-                rJ0(k,m) += coords[k]*DN_De(i,m);
-        }
-    }
-
-    MathUtils<double>::InvertMatrix( rJ0, rInvJ0, detJ0 );
-
-    noalias( rDN_DX ) = prod( DN_De, rInvJ0);
-
+    MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
+    const Matrix& rDN_De =
+        GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
+    GeometryUtils::ShapeFunctionsGradients(rDN_De, rInvJ0, rDN_DX);
     return detJ0;
 }
 
@@ -1181,15 +1152,10 @@ double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
     )
 {
     double detJ;
-
     rJ = GetGeometry().Jacobian( rJ, PointNumber, ThisIntegrationMethod );
-
     const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
-
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
-
-    noalias( rDN_DX ) = prod( DN_De, rInvJ);
-
+    GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
     return detJ;
 }
 
