@@ -171,12 +171,12 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix( Mat
     //Defining necessary variables
     double IntegrationCoefficient;
     const double Density = Prop[DENSITY];
-    boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nut = ZeroMatrix(TDim, TNumNodes*TDim);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nut = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+    BoundedMatrix<double,TDim, TDim> RotationMatrix;
     this->CalculateRotationMatrix(RotationMatrix,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> LocalRelDispVector;
     array_1d<double,TDim> RelDispVector;
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
@@ -246,9 +246,9 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Pr
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+    BoundedMatrix<double,TDim, TDim> RotationMatrix;
     this->CalculateRotationMatrix(RotationMatrix,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> RelDispVector;
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
     double JointWidth;
@@ -676,9 +676,9 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
         array_1d<double,TDim> RelDispVector;
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         double JointWidth;
@@ -730,9 +730,9 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
         array_1d<double,TDim> LocalRelDispVector;
         array_1d<double,TDim> RelDispVector;
                 
@@ -1082,7 +1082,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::InitializeElementVariabl
 //----------------------------------------------------------------------------------------
 
 template<>
-void SmallDisplacementInterfaceElement<2,4>::CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,2,2>& rRotationMatrix, const GeometryType& Geom)
+void SmallDisplacementInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatrix<double,2,2>& rRotationMatrix, const GeometryType& Geom)
 {
     KRATOS_TRY
     
@@ -1139,7 +1139,7 @@ void SmallDisplacementInterfaceElement<2,4>::CalculateRotationMatrix(boost::nume
 //----------------------------------------------------------------------------------------
 
 template<>
-void SmallDisplacementInterfaceElement<3,6>::CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
+void SmallDisplacementInterfaceElement<3,6>::CalculateRotationMatrix(BoundedMatrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
 {
     KRATOS_TRY
     
@@ -1191,7 +1191,7 @@ void SmallDisplacementInterfaceElement<3,6>::CalculateRotationMatrix(boost::nume
 //----------------------------------------------------------------------------------------
 
 template<>
-void SmallDisplacementInterfaceElement<3,8>::CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
+void SmallDisplacementInterfaceElement<3,8>::CalculateRotationMatrix(BoundedMatrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
 {
     KRATOS_TRY
     
@@ -1328,7 +1328,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
     noalias(rVariables.DimMatrix) = prod(trans(rVariables.RotationMatrix),
-                                        boost::numeric::ublas::bounded_matrix<double,TDim,TDim>(prod(rVariables.ConstitutiveMatrix,
+                                        BoundedMatrix<double,TDim,TDim>(prod(rVariables.ConstitutiveMatrix,
                                         rVariables.RotationMatrix)));
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),rVariables.DimMatrix); 
     noalias(rVariables.UMatrix) = prod(rVariables.UDimMatrix,rVariables.Nu)*rVariables.IntegrationCoefficient;
