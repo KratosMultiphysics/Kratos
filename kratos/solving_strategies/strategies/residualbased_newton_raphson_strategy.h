@@ -390,21 +390,19 @@ class ResidualBasedNewtonRaphsonStrategy
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
         if (mInitializeWasPerformed == false)
-        {
             Initialize();
-        }
 
         //initialize solution step
         if (mSolutionStepIsInitialized == false)
-        {
             InitializeSolutionStep();
-        }
 
         TSystemMatrixType &A = *mpA;
         TSystemVectorType &Dx = *mpDx;
         TSystemVectorType &b = *mpb;
 
-        GetScheme()->Predict(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), A, Dx, b);
+        DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
+
+        GetScheme()->Predict(BaseType::GetModelPart(), rDofSet, A, Dx, b);
 
         //move the mesh if needed
         if (this->MoveMeshFlag() == true)
