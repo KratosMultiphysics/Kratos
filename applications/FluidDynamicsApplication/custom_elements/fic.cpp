@@ -19,6 +19,7 @@
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "custom_utilities/element_size_calculator.h"
+#include "custom_utilities/fluid_element_time_integration_detail.h"
 
 namespace Kratos
 {
@@ -209,8 +210,8 @@ void FIC<TElementData>::AddTimeIntegratedSystem(
     TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
 
     // Call specialized implementation (it is on a helper class to avoid partial template specialization problems)
-    Internals::FICSpecializedAddTimeIntegratedSystem<TElementData,
-        TElementData::ElementManagesTimeIntegration>::AddSystem(this, rData,
+    Internals::FluidElementTimeIntegrationDetail<TElementData,
+        TElementData::ElementManagesTimeIntegration>::AddTimeIntegratedSystem(this, rData,
         rLHS, rRHS);
 }
 
@@ -588,66 +589,6 @@ void FIC<TElementData>::load(Serializer& rSerializer)
     typedef FluidElement<TElementData> BaseElement;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);
 }
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Internals
-///////////////////////////////////////////////////////////////////////////////////////////////////
-namespace Internals {
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// For Standard data: Time integration is not available
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <class TElementData>
-void FICSpecializedAddTimeIntegratedSystem<TElementData, false>::AddSystem(
-    FIC<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
-    Vector& rRHS) {
-    KRATOS_TRY;
-    KRATOS_ERROR << "Trying to use time-integrated element functions with a "
-                    "data type that does not know previous time step data"
-                 << std::endl;
-    KRATOS_CATCH("");
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Specialized time integration
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <class TElementData>
-void FICSpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
-    FIC<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
-    Vector& rRHS) {
-        Matrix mass_matrix = ZeroMatrix(rLHS.size1(),rLHS.size2());
-        Matrix velocity_lhs = ZeroMatrix(rLHS.size1(),rLHS.size2());
-
-        pElement->AddVelocitySystem(rData,velocity_lhs,rRHS);
-        pElement->AddMassLHS(rData,mass_matrix);
-
-        noalias(rLHS) += rData.bdf0*mass_matrix + velocity_lhs;
-
-        Vector acceleration = ZeroVector(rRHS.size());
-
-        int LocalIndex = 0;
-        const auto& r_velocities = rData.Velocity;
-        const auto& r_velocities_step1 = rData.Velocity_OldStep1;
-        const auto& r_velocities_step2 = rData.Velocity_OldStep2;
-
-        for (unsigned int i = 0; i < TElementData::NumNodes; ++i) {
-            for (unsigned int d = 0; d < TElementData::Dim; ++d)  {
-                // Velocity Dofs
-                acceleration[LocalIndex] = rData.bdf0*r_velocities(i,d);
-                acceleration[LocalIndex] += rData.bdf1*r_velocities_step1(i,d);
-                acceleration[LocalIndex] += rData.bdf2*r_velocities_step2(i,d);
-                ++LocalIndex;
-            }
-            ++LocalIndex;
-        }
-
-        noalias(rRHS) -= prod(mass_matrix,acceleration);
-}
-
-} // namespace Internals
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation

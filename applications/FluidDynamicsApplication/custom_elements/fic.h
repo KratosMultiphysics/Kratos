@@ -48,12 +48,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-// Forward decalration of auxiliary class
-namespace Internals {
-template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class FICSpecializedAddTimeIntegratedSystem;
-}
-
 template< class TElementData >
 class FIC : public FluidElement<TElementData>
 {
@@ -294,7 +288,7 @@ protected:
         const Vector& rUnitNormal,
         MatrixType& rLHS,
         VectorType& rRHS) override;
-    
+
     // Implementation details of FIC ////////////////////////////////////////
 
     void AddMassStabilization(
@@ -314,14 +308,14 @@ protected:
         array_1d<double,3> &TauGrad) const;
 
     virtual void CalculateTauGrad(
-        const TElementData& rData, 
+        const TElementData& rData,
         array_1d<double,3> &TauGrad) const;
 
     virtual void AlgebraicMomentumResidual(
         const TElementData& rData,
         const array_1d<double,3> &rConvectionVelocity,
         array_1d<double,3>& rResidual) const;
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -347,11 +341,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    ///@}
-    ///@name Friends
-    ///@{
-
-    friend class Internals::FICSpecializedAddTimeIntegratedSystem<TElementData, TElementData::ElementManagesTimeIntegration>;
     ///@}
     ///@name Serialization
     ///@{
