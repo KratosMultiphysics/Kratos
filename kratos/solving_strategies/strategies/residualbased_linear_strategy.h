@@ -352,28 +352,25 @@ public:
     {
         KRATOS_TRY
 
-        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+        if (mInitializeWasPerformed == false)
+        {
+            //pointers needed in the solution
+            typename TSchemeType::Pointer p_scheme = GetScheme();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            KRATOS_INFO("Entering Initialize") << "Entering in the Initialize of the ResidualBasedLinearStrategy" << std::endl;
+            //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+            if (p_scheme->SchemeIsInitialized() == false)
+                p_scheme->Initialize(BaseType::GetModelPart());
 
-        //pointers needed in the solution
-        typename TSchemeType::Pointer pScheme = GetScheme();
+            //Initialize The Elements - OPERATIONS TO BE DONE ONCE
+            if (p_scheme->ElementsAreInitialized() == false)
+                p_scheme->InitializeElements(BaseType::GetModelPart());
 
-        //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-        if (pScheme->SchemeIsInitialized() == false)
-            pScheme->Initialize(BaseType::GetModelPart());
+            //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
+            if (p_scheme->ConditionsAreInitialized() == false)
+                p_scheme->InitializeConditions(BaseType::GetModelPart());
 
-        //Initialize The Elements - OPERATIONS TO BE DONE ONCE
-        if (pScheme->ElementsAreInitialized() == false)
-            pScheme->InitializeElements(BaseType::GetModelPart());
-
-        //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
-        if (pScheme->ConditionsAreInitialized() == false)
-            pScheme->InitializeConditions(BaseType::GetModelPart());
-
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            KRATOS_INFO("Exiting Initialize") << "Exiting the  Initialize of the ResidualBasedLinearStrategy" << std::endl;
+            mInitializeWasPerformed = true;
+        }
 
         KRATOS_CATCH("")
     }
@@ -602,9 +599,6 @@ public:
 
         //initial operations ... things that are constant over the Solution Step
         pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            KRATOS_INFO("Exiting InitializeSolutionStep") << "Exiting the InitializeSolutionStep of the ResidualBasedLinearStrategy" << std::endl;
 
         KRATOS_CATCH("")
     }
