@@ -14,13 +14,11 @@
 #if !defined(KRATOS_RESIDUALBASED_LINEAR_STRATEGY )
 #define  KRATOS_RESIDUALBASED_LINEAR_STRATEGY
 
-/* System includes */
+// System includes
 
-/* External includes */
-#include "boost/smart_ptr.hpp"
-#include "boost/timer.hpp"
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "utilities/builtin_timer.h"

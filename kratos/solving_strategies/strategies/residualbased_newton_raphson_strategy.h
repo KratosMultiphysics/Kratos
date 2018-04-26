@@ -16,14 +16,11 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "utilities/openmp_utils.h"
 #include "utilities/builtin_timer.h"
 
 //default builder and solver
