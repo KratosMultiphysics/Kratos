@@ -12,6 +12,8 @@ namespace Kratos {
     {
     public:
 
+        KRATOS_CLASS_POINTER_DEFINITION(Bentonite_Force_Based_Inlet);
+
         typedef NanoParticle* NanoParticlePointerType;
         typedef DEM_Force_Based_Inlet BaseClass;
         typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;

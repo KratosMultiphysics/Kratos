@@ -114,10 +114,10 @@ public:
       * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
       * @param b Right hand side vector
       */
-    virtual void InitializeSolutionStep(ModelPart &r_model_part,
+    void InitializeSolutionStep(ModelPart &r_model_part,
                                         TSystemMatrixType &A,
                                         TSystemVectorType &Dx,
-                                        TSystemVectorType &b)
+                                        TSystemVectorType &b) override
     {
         BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
         mIterationCounter = 0;
@@ -130,10 +130,10 @@ public:
       * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
       * @param b Right hand side vector
       */
-    virtual void InitializeNonLinIteration(ModelPart &r_model_part,
+    void InitializeNonLinIteration(ModelPart &r_model_part,
                                            TSystemMatrixType &A,
                                            TSystemVectorType &Dx,
-                                           TSystemVectorType &b)
+                                           TSystemVectorType &b) override
     {
         BaseType::InitializeNonLinIteration(r_model_part,A,Dx,b);
     }
@@ -146,11 +146,11 @@ public:
       * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
       * @param b Right hand side vector
       */
-    virtual void Update(ModelPart &r_model_part,
+    void Update(ModelPart &r_model_part,
                         DofsArrayType &rDofSet,
                         TSystemMatrixType &A,
                         TSystemVectorType &Dx,
-                        TSystemVectorType &b)
+                        TSystemVectorType &b) override
     {
         KRATOS_TRY;
 

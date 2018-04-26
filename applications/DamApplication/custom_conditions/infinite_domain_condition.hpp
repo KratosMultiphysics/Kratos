@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        			KratosDamApplication $
 //   Last Modified by:    $Author:    	  Lorenzo Gracia $
 //   Date:                $Date:           	January 2016 $
@@ -30,7 +30,7 @@ class InfiniteDomainCondition : public  FreeSurfaceCondition<TDim,TNumNodes>
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION( InfiniteDomainCondition );
-    
+
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
     typedef Node <3> NodeType;
@@ -39,17 +39,17 @@ public:
     typedef Vector VectorType;
     typedef Matrix MatrixType;
     using FreeSurfaceCondition<TDim,TNumNodes>::mThisIntegrationMethod;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
     InfiniteDomainCondition() : FreeSurfaceCondition<TDim,TNumNodes>() {}
-    
+
     // Constructor 1
     InfiniteDomainCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : FreeSurfaceCondition<TDim,TNumNodes>(NewId, pGeometry) {}
-    
+
     // Constructor 2
-    InfiniteDomainCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : FreeSurfaceCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) 
+    InfiniteDomainCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : FreeSurfaceCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
 
@@ -58,41 +58,41 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const;
- 
+    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:   
-        
+protected:
+
     // Member Variables
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    
-    void CalculateLHS( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo );
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo );
-    
+    void CalculateLHS( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
+
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     // Serialization
-    
+
     friend class Serializer;
-    
-    virtual void save(Serializer& rSerializer) const
+
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
-    
+
 }; // class InfiniteDomainCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_INFINITE_DOMAIN_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_INFINITE_DOMAIN_CONDITION_H_INCLUDED defined

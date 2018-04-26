@@ -375,9 +375,9 @@ void UpdatedLagrangianElement::CalculateKinetics(ElementVariables& rVariables, c
 //*************************COMPUTE DEFORMATION GRADIENT*******************************
 //************************************************************************************
 
-void UpdatedLagrangianElement::CalculateDeformationGradient(const Matrix& rDN_DX,
-        Matrix& rF,
-        Matrix& rDeltaPosition)
+void UpdatedLagrangianElement::CalculateDeformationGradient(Matrix& rF,
+                                                            const Matrix& rDN_DX,
+                                                            const Matrix& rDeltaPosition)
 {
     KRATOS_TRY
 
@@ -419,7 +419,7 @@ void UpdatedLagrangianElement::CalculateDeformationGradient(const Matrix& rDN_DX
     else
     {
 
-        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
+      KRATOS_ERROR << " something is wrong with the dimension when computing F " << std::endl;
 
     }
 
@@ -433,8 +433,8 @@ void UpdatedLagrangianElement::CalculateDeformationGradient(const Matrix& rDN_DX
 //************************************************************************************
 
 void UpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
-        Matrix& rF,
-        Matrix& rDN_DX)
+                                                          const Matrix& rF,
+                                                          const Matrix& rDN_DX)
 {
     KRATOS_TRY
 
@@ -482,9 +482,7 @@ void UpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
     }
     else
     {
-
-        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
-
+      KRATOS_ERROR << " something is wrong with the dimension when computing B " << std::endl;
     }
 
     KRATOS_CATCH( "" )

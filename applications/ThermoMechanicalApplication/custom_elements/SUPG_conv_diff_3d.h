@@ -132,21 +132,21 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
     //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /// The DOF's are VELOCITY_X, VELOCITY_Y and PRESSURE
     /**
      * @param ElementalDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
     */
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
 
 
 
@@ -165,13 +165,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "SUPGConvDiff3D #" ;
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -230,12 +230,12 @@ protected:
      * @return tau: multiplied by Residual of the momentum equation
     */
     virtual void CalculateTau(array_1d<double, 3 >& ms_adv_vel, double& tau,const double& K, const double time, const double area, const ProcessInfo& rCurrentProcessInfo);
-    virtual void CalculateArtifitialViscosity(double& art_visc,  
-						      boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, 
+    virtual void CalculateArtifitialViscosity(double& art_visc,
+						      boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX,
 						      array_1d<double, 3 > ms_vel_gauss,
 						      const Variable<double>& temperature,
 						      const double volume,
-						      const double scaled_K);    
+						      const double scaled_K);
 
 private:
     ///@name Static Member Variables
@@ -253,12 +253,12 @@ private:
 //         {
 //         }
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
@@ -324,6 +324,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ASGS_2D_H_INCLUDED  defined 
+#endif // KRATOS_ASGS_2D_H_INCLUDED  defined
 
 

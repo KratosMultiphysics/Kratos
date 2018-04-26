@@ -76,7 +76,7 @@ class KratosTrilinosApplication : public KratosApplication {
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
     ///@}
     ///@name Access
@@ -91,16 +91,16 @@ class KratosTrilinosApplication : public KratosApplication {
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const { return "KratosTrilinosApplication"; }
+    std::string Info() const override { return "KratosTrilinosApplication"; }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {
+    void PrintInfo(std::ostream& rOStream) const override {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const override {
         KRATOS_WATCH("in KratosALEApplication application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
         rOStream << "Variables:" << std::endl;

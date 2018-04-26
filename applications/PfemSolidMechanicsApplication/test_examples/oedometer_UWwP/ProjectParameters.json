@@ -226,7 +226,7 @@
         "process_name"    : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"      : {
             "model_part_name" : "group_LINE_LOAD-auto-1",
-            "variable_name"   : "LINE_LOAD",
+            "variable_name"   : "FORCE_LOAD",
             "interval"        : [0.0, "End"],
             "modulus"         : 20.0,
             "direction"       : [0,-1,0]

@@ -63,14 +63,14 @@ class PreUtilities
 
         array_1d<double,3> coords(3,0.0);
         
-        for (int i = 0; i < pybind11::len(list_of_coordinates); i++) {
+        for (int i = 0; i < (int)pybind11::len(list_of_coordinates); i++) {
             pybind11::list list(list_of_coordinates[i]);
             coords[0] =  pybind11::cast<double>(list[0]);
             coords[1] =  pybind11::cast<double>(list[1]);
             coords[2] =  pybind11::cast<double>(list[2]);
             cl_info.mListOfCoordinates.push_back(coords);
         }
-        for (int i = 0; i < pybind11::len(list_of_radii); i++) {
+        for (int i = 0; i < (int)pybind11::len(list_of_radii); i++) {
             cl_info.mListOfRadii.push_back(pybind11::cast<double>(list_of_radii[i]));
         }
         //TODO: check the sizes (should be the same)
