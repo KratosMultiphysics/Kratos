@@ -327,24 +327,20 @@ public:
         KRATOS_TRY
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
-        //if(mInitializeWasPerformed == false)
-        //{
-        //	Initialize();
-        //	mInitializeWasPerformed = true;
-        //}
+        if(mInitializeWasPerformed == false)
+        	Initialize();
 
-        ////initialize solution step
-        //if (mSolutionStepIsInitialized == false)
-        //	InitializeSolutionStep();
+        //initialize solution step
+        if (mSolutionStepIsInitialized == false)
+        	InitializeSolutionStep();
 
-
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        TSystemMatrixType& A = *mpA;
+        TSystemVectorType& Dx = *mpDx;
+        TSystemVectorType& b = *mpb;
 
         DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
 
-        this->GetScheme()->Predict(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+        this->GetScheme()->Predict(BaseType::GetModelPart(), rDofSet, A, Dx, b);
 
         KRATOS_CATCH("")
     }
