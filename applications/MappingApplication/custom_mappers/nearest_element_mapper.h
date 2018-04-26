@@ -189,11 +189,16 @@ protected:
     {
         Parameters mapper_interface_parameters = Parameters( R"(
         {
-            "mapper_condition_name" : "",
-            "use_nodes"      : true
+            "mapper_condition_name" : "NearestElementCondition",
+            "use_nodes"             : true
         }  )" );
 
         return mapper_interface_parameters;
+    }
+
+    MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() override
+    {
+
     }
 
     ///@}

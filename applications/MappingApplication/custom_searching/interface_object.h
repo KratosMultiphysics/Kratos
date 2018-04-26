@@ -24,7 +24,6 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "custom_utilities/mapper_utilities.h"
-#include "mapping_application_variables.h"
 
 
 namespace Kratos

@@ -27,12 +27,13 @@
 #include "custom_utilities/interface_preprocessor.h"
 #include "includes/kratos_parameters.h"
 #include "custom_utilities/mapper_utilities.h"
+#include "custom_utilities/mapper_interface_info.h"
 #include "custom_utilities/mapper_flags.h"
 
 // For MPI-parallel Mapper
 #ifdef KRATOS_USING_MPI
 #include "mpi.h" // TODO needed here?
-#include "custom_utilities/interface_communicator_mpi.h"
+// #include "custom_utilities/interface_communicator_mpi.h"
 #endif
 
 
@@ -343,11 +344,11 @@ protected:
         mGeneralMapperSettings = AllMapperSettings;
     }
 
-    virtual InterfaceCommunicatorPointerType CreateInterfaceCommunicator(
-        ModelPart& rModelPartOrigin, ModelPartPointerType pInterfaceModelPart) const
-    {
-        return Kratos::make_shared<InterfaceCommunicator>(rModelPartOrigin, pInterfaceModelPart);
-    }
+    // virtual InterfaceCommunicatorPointerType CreateInterfaceCommunicator(
+    //     ModelPart& rModelPartOrigin, ModelPartPointerType pInterfaceModelPart) const
+    // {
+    //     return Kratos::make_shared<InterfaceCommunicator>(rModelPartOrigin, pInterfaceModelPart);
+    // }
 
     virtual MappingOperationUtilityPointerType CreateMappingOperationUtility(
         ModelPartPointerType pInterfaceModelPart) const
@@ -355,13 +356,13 @@ protected:
         return Kratos::make_shared<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>(pInterfaceModelPart);
     }
 
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    virtual InterfaceCommunicatorPointerType CreateMPIInterfaceCommunicator(
-        ModelPart& rModelPartOrigin, ModelPartPointerType pInterfaceModelPart) const
-    {
-        return Kratos::make_shared<InterfaceCommunicatorMPI>(rModelPartOrigin, pInterfaceModelPart);
-    }
-#endif
+// #ifdef KRATOS_USING_MPI // mpi-parallel compilation
+//     virtual InterfaceCommunicatorPointerType CreateMPIInterfaceCommunicator(
+//         ModelPart& rModelPartOrigin, ModelPartPointerType pInterfaceModelPart) const
+//     {
+//         return Kratos::make_shared<InterfaceCommunicatorMPI>(rModelPartOrigin, pInterfaceModelPart);
+//     }
+// #endif
 
     void InitializeInverseMapper()
     {
@@ -377,6 +378,9 @@ protected:
     This information is specific to every mapper!
     */
     virtual Parameters GetInterfaceParameters() = 0;
+
+
+    virtual MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() = 0;
 
 
 

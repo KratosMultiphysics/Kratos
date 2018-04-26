@@ -13,8 +13,8 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_INTERFACE_COMMUNICATOR_H)
-#define  KRATOS_INTERFACE_COMMUNICATOR_H
+#if !defined(KRATOS_MAPPER_INTERFACE_INFO_H_INCLUDED)
+#define  KRATOS_MAPPER_INTERFACE_INFO_H_INCLUDED
 
 // System includes
 
@@ -22,8 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
-#include "custom_utilities/mapper_interface_info.h"
+#include "custom_searching/interface_object.h"
 
 
 namespace Kratos
@@ -53,29 +52,26 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class InterfaceCommunicator
+class MapperInterfaceInfo
 {
-    public:
+public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of InterfaceCommunicator
-    KRATOS_CLASS_POINTER_DEFINITION(InterfaceCommunicator);
-
-    using ModelPartPointerType = ModelPart::Pointer;
-    using MapperInterfaceInfoPointerType = MapperInterfaceInfo::Pointer;
+    /// Pointer definition of MapperInterfaceInfo
+    KRATOS_CLASS_POINTER_DEFINITION(MapperInterfaceInfo);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    InterfaceCommunicator(ModelPart& rModelPartOrigin,
-                          ModelPart::Pointer pInterfaceModelPart,
-                          MapperInterfaceInfoPointerType pMapperInterfaceInfo);
+    MapperInterfaceInfo();
 
     /// Destructor.
-    virtual ~InterfaceCommunicator() {}
+    virtual ~MapperInterfaceInfo() {
+        std::cout << "Destructor of MapperInterfaceInfo called" << std::endl;
+    }
 
 
     ///@}
@@ -86,6 +82,33 @@ class InterfaceCommunicator
     ///@}
     ///@name Operations
     ///@{
+
+    // void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject)
+    // {
+
+    // }
+
+
+    std::vector<int> GetNeighborIds() const
+    {
+        std::vector<int> neighbor_ids(1);
+        // neighbor_ids[0] = mNeighborId;
+        return neighbor_ids;
+    }
+
+    std::vector<double> GetNeighborDistances() const
+    {
+        std::vector<double> neighbor_distances(1);
+        // neighbor_distances[0] = mNeighborDistance;
+        return neighbor_distances;
+    }
+
+    MapperInterfaceInfo::Pointer Create() const
+    {
+        return Kratos::make_shared<MapperInterfaceInfo>();
+    }
+
+    void Clear() {}
 
 
     ///@}
@@ -105,7 +128,7 @@ class InterfaceCommunicator
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "InterfaceCommunicator";
+        return "MapperInterfaceInfo";
     }
 
     /// Print information about this object.
@@ -131,9 +154,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrModelPartOrigin;
-    ModelPartPointerType mpInterfaceModelPart;
-    MapperInterfaceInfoPointerType mpMapperInterfaceInfo;
 
 
     ///@}
@@ -144,12 +164,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void PrepareInterface();
-
-    void AssignInterfaceEquationIds();
-
-    void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
 
 
     ///@}
@@ -193,6 +207,16 @@ private:
     ///@name Private  Access
     ///@{
 
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const {
+        KRATOS_ERROR << "This Object cannot be serialized!" << std::endl;
+    }
+
+    virtual void load(Serializer& rSerializer) {
+        KRATOS_ERROR << "This Object cannot be serialized!" << std::endl;
+    }
+
 
     ///@}
     ///@name Private Inquiry
@@ -204,15 +228,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    // InterfaceCommunicator& operator=(InterfaceCommunicator const& rOther) {}
+    // MapperInterfaceInfo& operator=(MapperInterfaceInfo const& rOther) {}
 
     /// Copy constructor.
-    // InterfaceCommunicator(InterfaceCommunicator const& rOther) {}
-
+    // MapperInterfaceInfo(MapperInterfaceInfo const& rOther) {}
 
     ///@}
 
-}; // Class InterfaceCommunicator
+}; // Class MapperInterfaceInfo
 
 ///@}
 
@@ -224,6 +247,24 @@ private:
 ///@name Input and output
 ///@{
 
+inline std::istream & operator >> (std::istream& rIStream, MapperInterfaceInfo& rThis);
+
+/// output stream function
+inline std::ostream & operator << (std::ostream& rOStream, const MapperInterfaceInfo& rThis) {
+//   rThis.PrintInfo(rOStream);
+  rOStream << " : " << std::endl;
+//   rThis.PrintData(rOStream);
+  return rOStream;
+}
+
+/// output stream function
+inline std::ostream & operator << (std::ostream& rOStream, const std::vector<MapperInterfaceInfo::Pointer>& rThis) {
+//   rThis.PrintInfo(rOStream);
+  rOStream << " : " << std::endl;
+//   rThis.PrintData(rOStream);
+  return rOStream;
+}
+
 
 ///@}
 
@@ -231,4 +272,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTERFACE_COMMUNICATOR_H  defined
+#endif // KRATOS_MAPPER_INTERFACE_INFO_H_INCLUDED  defined

@@ -22,6 +22,7 @@
 
 // Project includes
 #include "interface_object.h"
+#include "mapping_application_variables.h"
 
 
 namespace Kratos
@@ -49,7 +50,7 @@ namespace Kratos
 ///@{
 
 /// Node on the Interface for Searching
-/** This class Is the "wrapper" for nodes on the interface. It selects the best result by the closest distance to the 
+/** This class Is the "wrapper" for nodes on the interface. It selects the best result by the closest distance to the
 * point of which neighbor have to be found
 * Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
@@ -66,11 +67,11 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // A default constructor necessary for serialization 
+    // A default constructor necessary for serialization
     InterfaceNode() : InterfaceObject()
     {
     }
-    
+
     InterfaceNode(Node<3>& rNode, const int EchoLevel) : mpNode(&rNode)
     {
         SetCoordinates();
@@ -220,16 +221,16 @@ private:
     ///@{
 
     Node<3>* mpNode;
-        
+
     ///@}
     ///@name Serialization
     ///@{
 
     friend class Serializer;
-    
+
     virtual void save(Serializer& rSerializer) const override
     {
-        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;        
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
     }
     virtual void load(Serializer& rSerializer) override

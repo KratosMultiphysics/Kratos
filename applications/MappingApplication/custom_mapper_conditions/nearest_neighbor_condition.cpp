@@ -19,6 +19,7 @@
 
 // Include Base h
 #include "nearest_neighbor_condition.h"
+#include "mapping_application_variables.h"
 
 
 namespace Kratos
@@ -176,7 +177,38 @@ void NearestNeighborCondition::EquationIdVector(EquationIdVectorType& rResult, P
 void NearestNeighborCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
+    ProcessInfo& rCurrentProcessInfo)
+{
+    if (this->Has(INTERFACE_INFO))
+    {
+        auto interface_info = this->GetValue(INTERFACE_INFO); // using auto bcs the type might change => shared to unique ptr
+        if (interface_info.size() > 0)
+        {
+            if (rLeftHandSideMatrix.size1() != 3 || rLeftHandSideMatrix.size2() != 1)
+                rLeftHandSideMatrix.resize(3,1);
+
+            int nearest_neighbor_id = interface_info[0]->GetNeighborIds()[0];
+            double nearest_neighbor_distance = interface_info[0]->GetNeighborDistances()[0];
+
+            for (SizeType i=1; i<interface_info.size(); ++i)
+            {
+                const int curr_dist = interface_info[i]->GetNeighborDistances()[0];
+                if (curr_dist < nearest_neighbor_distance)
+                    nearest_neighbor_id = interface_info[i]->GetNeighborIds()[0];
+            }
+
+            rLeftHandSideMatrix(0,0) = 1.0;
+            rLeftHandSideMatrix(1,0) = nearest_neighbor_id;
+            rLeftHandSideMatrix(2,0) = this->Id();
+
+            return;
+        }
+    }
+
+    if (rLeftHandSideMatrix.size1() != 0 || rLeftHandSideMatrix.size2() != 0)
+        rLeftHandSideMatrix.resize(0,0);
+    std::cout << "NearestneighborConditions #" << this->Id() << "has no neighbor info" << std::endl;
+
 }
 
 /**

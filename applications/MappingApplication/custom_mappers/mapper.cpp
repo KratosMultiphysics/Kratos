@@ -159,19 +159,28 @@ void Mapper<TSparseSpace, TDenseSpace>::Initialize()
 template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::InitializeInterfaceCommunicator()
 {
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    int mpi_initialized;
-    MPI_Initialized(&mpi_initialized);
-    if (mpi_initialized) // parallel execution, i.e. mpi imported in python
-    {
-        int comm_size;
-        MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-        if (comm_size > 1)
-            mpInterfaceCommunicator = CreateMPIInterfaceCommunicator(mrModelPartOrigin, mpInterfaceModelPart);
-    }
-#else // serial compilation
-    mpInterfaceCommunicator = CreateInterfaceCommunicator(mrModelPartOrigin, mpInterfaceModelPart);
-#endif
+    const auto mapper_interface_info = GetMapperInterfaceInfo();
+
+    mpInterfaceCommunicator = Kratos::make_shared<InterfaceCommunicator>(
+        mrModelPartOrigin, mpInterfaceModelPart, mapper_interface_info);
+
+// #ifdef KRATOS_USING_MPI // mpi-parallel compilation
+//     int mpi_initialized;
+//     MPI_Initialized(&mpi_initialized);
+//     if (mpi_initialized) // parallel execution, i.e. mpi imported in python
+//     {
+//         int comm_size;
+//         MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+//         if (comm_size > 1)
+//             mpInterfaceCommunicator = CreateInterfaceCommunicator(mrModelPartOrigin,
+//                                                                      mpInterfaceModelPart,
+//                                                                      mapper_interface_info);
+//     }
+// #else // serial compilation
+//     mpInterfaceCommunicator = CreateInterfaceCommunicator(mrModelPartOrigin,
+//                                                           mpInterfaceModelPart,
+//                                                           mapper_interface_info);
+// #endif
 }
 
 template<>

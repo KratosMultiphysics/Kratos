@@ -27,9 +27,11 @@ namespace Kratos
     /* PUBLIC Methods */
     /***********************************************************************************/
     InterfaceCommunicator::InterfaceCommunicator(ModelPart& rModelPartOrigin,
-                                                 ModelPart::Pointer mpInterfaceModelPart)
+                                                 ModelPart::Pointer pInterfaceModelPart,
+                                                 MapperInterfaceInfoPointerType pMapperInterfaceInfo)
         : mrModelPartOrigin(rModelPartOrigin),
-          mpInterfaceModelPart(mpInterfaceModelPart)
+          mpInterfaceModelPart(pInterfaceModelPart),
+          mpMapperInterfaceInfo(pMapperInterfaceInfo)
     {
         PrepareInterface();
 

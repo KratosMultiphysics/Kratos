@@ -14,7 +14,7 @@
 #include "testing/testing.h"
 #include "includes/model_part.h"
 #include "mapping_application_variables.h"
-#include "custom_utilities/interface_communicator_mpi.h"
+// #include "custom_utilities/interface_communicator_mpi.h"
 
 namespace Kratos {
 namespace Testing {
