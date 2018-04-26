@@ -145,81 +145,6 @@ public:
     ///@name Operations
     ///@{
 
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "GeometryTesterUtility" ;
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "GeometryTesterUtility";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-    void GenerateNodes(ModelPart& rModelPart)
-    {
-        const double dx = 0.333333333333333333333;
-        const double dy = 0.333333333333333333333;
-        const double dz = 0.333333333333333333333;
-        std::size_t counter = 1;
-        for(unsigned int k=0; k<3; k++)
-        {
-            for(unsigned int j=0; j<3; j++)
-            {
-                for(unsigned int i=0; i<3; i++)
-                {
-                    rModelPart.CreateNewNode(counter++, i*dx, j*dy,k*dz);
-                }
-            }
-        }
-    }
-
     bool TestTetrahedra3D4N(ModelPart& rModelPart)
     {
         GenerateNodes(rModelPart);
@@ -683,7 +608,79 @@ public:
 //          return succesful;
 //    }
 
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "GeometryTesterUtility" ;
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "GeometryTesterUtility";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {}
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+    ///@}
+
 protected:
+
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    void GenerateNodes(ModelPart& rModelPart)
+    {
+        const double dx = 0.333333333333333333333;
+        const double dy = 0.333333333333333333333;
+        const double dz = 0.333333333333333333333;
+        std::size_t counter = 1;
+        for(unsigned int k=0; k<3; k++)
+        {
+            for(unsigned int j=0; j<3; j++)
+            {
+                for(unsigned int i=0; i<3; i++)
+                {
+                    rModelPart.CreateNewNode(counter++, i*dx, j*dy,k*dz);
+                }
+            }
+        }
+    }
 
     ///@}
     ///@name Protected  Access
