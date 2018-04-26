@@ -63,9 +63,19 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
                 "minimum_delta_time"  : 1e-2,
                 "maximum_delta_time"  : 1.0
             },
-            "periodic": "periodic",
             "move_mesh_flag": false,
-            "reorder": false
+            "reorder": false,
+            "fm_ale_settings": {
+                "fm_ale_step_frequency": 0,
+                "mesh_solver_settings":{
+                    "problem_data":{
+                        "parallel_type": "OpenMP"
+                    },
+                    "solver_settings":{
+                        "solver_type": "mesh_solver_structural_similarity"
+                    }
+                }
+            }
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -81,7 +91,16 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
             self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedAusasMonolithicSolver", "Construction of NavierStokesEmbeddedAusasMonolithicSolver finished.")
+        ## Set the FM-ALE framework
+        self.fm_ale_step_frequency = self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt()
+        if (self.fm_ale_step_frequency != 0):
+            self.fm_ale_step = 1
+            self.virtual_model_part = ModelPart("VirtualModelPart")
+            import python_solvers_wrapper_mesh_motion
+            self.mesh_solver = python_solvers_wrapper_mesh_motion.CreateSolver(self.virtual_model_part,self.settings["mesh_solver_settings"]["solver_settings"])
+
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedAusasMonolithicSolver", "Construction of NavierStokesEmbeddedAusasMonolithicSolver finished.")
 
 
     def Initialize(self):
