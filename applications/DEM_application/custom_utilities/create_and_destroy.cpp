@@ -434,7 +434,7 @@ namespace Kratos {
         //pnew_node->FastGetSolutionStepValue(SPRAYED_MATERIAL) = 0.0;
         KRATOS_CATCH("")
     }
-    
+
     void ParticleCreatorDestructor::CentroidCreatorForRigidBodyElements(ModelPart& r_modelpart,
                                                                         Node<3>::Pointer& pnew_node,
                                                                         int aId,
@@ -447,8 +447,8 @@ namespace Kratos {
         #pragma omp critical
         {
             r_modelpart.Nodes().push_back(pnew_node);
-        }                        
-        
+        }
+
         array_1d<double, 3> null_vector(3, 0.0);
         pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
@@ -609,9 +609,9 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         if (!is_breakable) {
             mMaxNodeId++; //This must be done before CreateParticles because the creation of particles accesses mMaxNodeId to choose what Id is assigned to the new nodes/spheres
         }
-        
+
         if (!continuum_strategy && is_breakable) KRATOS_THROW_ERROR(std::runtime_error,"Breakable cluster elements are being used inside a non-deformable strategy. The program will now stop.","")
-        
+
         ParticleCreatorDestructor* creator_destructor_ptr = this;
         p_cluster->CreateParticles(creator_destructor_ptr, r_spheres_modelpart, p_fast_properties, continuum_strategy);
 
@@ -654,22 +654,22 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             spheric_p_particle->Set(NEW_ENTITY);
             spheric_p_particle->GetGeometry()[0].Set(NEW_ENTITY);
             spheric_p_particle->SetFastProperties(p_fast_properties);
-            
+
             if (is_breakable) {
-                
+
                 new_component_spheres.push_back(spheric_p_particle);
             }
         }
 
         p_cluster->Set(NEW_ENTITY);
         pnew_node->Set(NEW_ENTITY);
-        
+
         if (!is_breakable) {
             return p_cluster;
         } else {
             return NULL;
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -752,9 +752,9 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             r_modelpart.Nodes().push_back(pnew_node);
             r_modelpart.Elements().push_back(p_particle);
         }
-        
+
         if (r_Elem_Id > (int) (mMaxNodeId)) mMaxNodeId = (unsigned int) (r_Elem_Id);
-        
+
         return p_particle;
 
     }
@@ -790,7 +790,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             }
         }
         if (r_Elem_Id > (int) (mMaxNodeId)) mMaxNodeId = (unsigned int) (r_Elem_Id);
-        
+
         return spheric_p_particle;
 
     }
@@ -942,9 +942,9 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             }
 
             if (scale_factor < 1.0) {
-                std::cout << "\n WARNING" + std::string(2, '\n');
-                std::cout << "The enlargement factor for the automatic calculation of the bounding box is less than 1!. \n";
-                std::cout << "It is not guaranteed that the model fits inside of it." + std::string(2, '\n');
+                KRATOS_WARNING("DEM") << "\n WARNING" + std::string(2, '\n');
+                KRATOS_WARNING("DEM") << "The enlargement factor for the automatic calculation of the bounding box is less than 1!. \n";
+                KRATOS_WARNING("DEM") << "It is not guaranteed that the model fits inside of it." + std::string(2, '\n');
             }
 
             if (r_balls_model_part.NumberOfElements(0)) { // loop over spheric elements (balls)

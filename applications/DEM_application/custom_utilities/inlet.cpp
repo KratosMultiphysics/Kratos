@@ -716,11 +716,11 @@ namespace Kratos {
     void DEM_Inlet::ThrowWarningTooSmallInlet(const ModelPart& mp) {
         if(!mWarningTooSmallInlet) {
 
-            std::cout<<std::endl;
-            std::cout<<std::endl;
-            std::cout<<"WARNING: At Inlet, the number of injected DEM particles has been reduced to match the available number of nodes for injecting, which was too small. Increase the size of inlet called '"<<mp.Name()<<"'."<<std::endl;
-            std::cout<<std::endl;
-            std::cout<<std::endl<<std::flush;
+            KRATOS_WARNING("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<"WARNING: At Inlet, the number of injected DEM particles has been reduced to match the available number of nodes for injecting, which was too small. Increase the size of inlet called '"<<mp.Name()<<"'."<<std::endl;
+            KRATOS_WARNING("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<std::endl<<std::flush;
 
             mWarningTooSmallInlet = true;
         }
@@ -729,11 +729,11 @@ namespace Kratos {
     void DEM_Inlet::ThrowWarningTooSmallInletForMassFlow(const ModelPart& mp) {
         if(!mWarningTooSmallInletForMassFlow) {
 
-            std::cout<<std::endl;
-            std::cout<<std::endl;
-            std::cout<<"WARNING: At Inlet, the mass flow can not be fulfilled because the number of nodes for injecting was too small. Increase the size of inlet called '"<<mp.Name()<<"'."<<std::endl;
-            std::cout<<std::endl;
-            std::cout<<std::endl<<std::flush;
+            KRATOS_WARNING("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<"WARNING: At Inlet, the mass flow can not be fulfilled because the number of nodes for injecting was too small. Increase the size of inlet called '"<<mp.Name()<<"'."<<std::endl;
+            KRATOS_WARNING("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<std::endl<<std::flush;
 
             mWarningTooSmallInletForMassFlow = true;
         }
