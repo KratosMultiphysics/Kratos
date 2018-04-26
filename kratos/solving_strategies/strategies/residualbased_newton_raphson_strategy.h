@@ -841,6 +841,27 @@ class ResidualBasedNewtonRaphsonStrategy
         return is_converged;
     }
 
+    /**
+     * @brief Function to perform expensive checks.
+     * @details It is designed to be called ONCE to verify that the input is correct.
+     */
+    int Check() override
+    {
+        KRATOS_TRY
+
+        BaseType::Check();
+
+        GetBuilderAndSolver()->Check(BaseType::GetModelPart());
+
+        GetScheme()->Check(BaseType::GetModelPart());
+
+        mpConvergenceCriteria->Check(BaseType::GetModelPart());
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Operators
 
@@ -1050,27 +1071,6 @@ class ResidualBasedNewtonRaphsonStrategy
             std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
             std::cout << "***************************************************" << std::endl;
         }
-    }
-
-    /**
-     * @brief Function to perform expensive checks.
-     * @details It is designed to be called ONCE to verify that the input is correct.
-     */
-    int Check() override
-    {
-        KRATOS_TRY
-
-        BaseType::Check();
-
-        GetBuilderAndSolver()->Check(BaseType::GetModelPart());
-
-        GetScheme()->Check(BaseType::GetModelPart());
-
-        mpConvergenceCriteria->Check(BaseType::GetModelPart());
-
-        return 0;
-
-        KRATOS_CATCH("")
     }
 
     ///@}
