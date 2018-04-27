@@ -25,7 +25,7 @@ namespace Kratos
 {
     bool PointLocator::FindNode(const Point& rThePoint,
                                 int& rNodeId,
-                                double DistanceThreshold)
+                                double DistanceThreshold) const
     {
         rNodeId = -1;
         bool is_close_enough = false;
@@ -51,23 +51,23 @@ namespace Kratos
 
     bool PointLocator::FindElement(const Point& rThePoint,
                                    int& rObjectId,
-                                   Vector& rShapeFunctionValues)
+                                   Vector& rShapeFunctionValues) const
     {
         const auto& r_elements = mrModelPart.GetCommunicator().LocalMesh().Elements();
         const bool is_inside = FindObject(r_elements, "Element",
                                           rThePoint, rObjectId,
-                                          rLocalCoordinates);
+                                          rShapeFunctionValues);
         return is_inside;
     }
 
     bool PointLocator::FindCondition(const Point& rThePoint,
                                      int& rObjectId,
-                                     Vector& rShapeFunctionValues)
+                                     Vector& rShapeFunctionValues) const
     {
         const auto& r_conditions = mrModelPart.GetCommunicator().LocalMesh().Conditions();
         const bool is_inside = FindObject(r_conditions, "Condition",
                                           rThePoint, rObjectId,
-                                          rLocalCoordinates);
+                                          rShapeFunctionValues);
         return is_inside;
     }
 
@@ -76,7 +76,7 @@ namespace Kratos
                                   const std::string& rObjectType,
                                   const Point& rThePoint,
                                   int& rObjectId,
-                                  Vector& rShapeFunctionValues)
+                                  Vector& rShapeFunctionValues) const
     {
 
         const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -115,7 +115,7 @@ namespace Kratos
 
     void PointLocator::CheckResults(const std::string& rObjectType,
                                     const Point& rThePoint,
-                                    int GlobalObjectsFound)
+                                    int GlobalObjectsFound) const
     {
         mrModelPart.GetCommunicator().SumAll(GlobalObjectsFound);
 
@@ -138,7 +138,7 @@ namespace Kratos
 
     bool PointLocator::NodeIsCloseEnough(const Node<3>& rNode,
                                          const Point& rThePoint,
-                                         double DistanceThreshold)
+                                         double DistanceThreshold) const
     {
         const double distance = std::sqrt( std::pow(rNode.X() - rThePoint.X(),2)
                                          + std::pow(rNode.Y() - rThePoint.Y(),2)

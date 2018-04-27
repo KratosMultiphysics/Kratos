@@ -81,11 +81,11 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      bool FindNode(const Point& rThePoint, int& rNodeId, double DistanceThreshold);
+      bool FindNode(const Point& rThePoint, int& rNodeId, double DistanceThreshold) const;
 
-      bool FindElement(const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues);
+      bool FindElement(const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues) const;
 
-      bool FindCondition(const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues);
+      bool FindCondition(const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues) const;
 
       ///@}
       ///@name Access
@@ -182,15 +182,15 @@ namespace Kratos
 
       template<typename TObjectType>
       bool FindObject(const TObjectType& rObjects, const std::string& rObjectType,
-                      const Point& rThePoint, int& rObjectId, CoordinatesArrayType& rLocalCoordinates);
+                      const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues) const;
 
       void CheckResults(const std::string& rObjectType,
                         const Point& rThePoint,
-                        int GlobalObjectsFound);
+                        int GlobalObjectsFound) const;
 
       bool NodeIsCloseEnough(const Node<3>& rNode,
                              const Point& rThePoint,
-                             double DistanceThreshold);
+                             double DistanceThreshold) const;
 
       ///@}
       ///@name Private  Access

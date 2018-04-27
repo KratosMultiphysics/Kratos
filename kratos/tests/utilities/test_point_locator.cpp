@@ -30,7 +30,8 @@ namespace Kratos {
 			model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
 			model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
 			Properties::Pointer p_properties(new Properties(0));
-			model_part.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties);
+            const int elem_id = 43;
+			model_part.CreateNewElement("Element2D3N", elem_id, {1, 2, 3}, p_properties);
 
             PointLocator point_locator(model_part);
 
@@ -38,11 +39,17 @@ namespace Kratos {
 
             int found_id = -1;
 
-            array_1d<double, 3> local_coords;
+            Vector shape_function_values;
 
-            bool search_successful = point_locator.FindElement(the_point, found_id, local_coords);
+            const bool search_successful = point_locator.FindElement(the_point, found_id, shape_function_values);
 
-
+            KRATOS_CHECK(search_successful);
+            KRATOS_CHECK_EQUAL(found_id, elem_id);
+            KRATOS_CHECK_EQUAL(shape_function_values.size(), 3);
+            KRATOS_CHECK_NEAR(shape_function_values[0], 0.65, 1e-12);
+            KRATOS_CHECK_NEAR(shape_function_values[1], 0.1,  1e-12);
+            KRATOS_CHECK_NEAR(shape_function_values[2], 0.25, 1e-12);
+            // std::cout << shape_function_values[0] << " "<<shape_function_values[1] << " "<<shape_function_values[2] << std::endl;
         }
 
         KRATOS_TEST_CASE_IN_SUITE(PointLocatorQuadrilateral, KratosCoreFastSuite)
