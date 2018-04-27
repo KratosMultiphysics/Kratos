@@ -142,9 +142,9 @@ public:
 
             boost::numeric::ublas::bounded_matrix<double, 3, 2> DN_DX;
             array_1d< double, 3 > N;
-            double Volume;
+            double volume;
     
-            GeometryUtils::CalculateGeometryData(pCurrentElement->GetGeometry(),DN_DX,N,Volume);
+            GeometryUtils::CalculateGeometryData(pCurrentElement->GetGeometry(),DN_DX,N,volume);
 
             numerical_diffusion = mBeta * numerical_diffusion;
 
@@ -166,9 +166,9 @@ public:
 
             boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
             array_1d< double, 4 > N;
-            double Volume;
+            double volume;
     
-            GeometryUtils::CalculateGeometryData(pCurrentElement->GetGeometry(),DN_DX,N,Volume);
+            GeometryUtils::CalculateGeometryData(pCurrentElement->GetGeometry(),DN_DX,N,volume);
 
             numerical_diffusion = mBeta * numerical_diffusion;
 
@@ -257,31 +257,33 @@ private:
 
         GeometryUtils::CalculateGeometryData(rGeom,DN_DX,N,Volume);
 
-        MatrixType GradVel;
+        MatrixType velocity_gradient;
 
-        CalculateVelocityGradientTensor<TDim>(pCurrentElement, rCurrentProcessInfo, GradVel);
+        CalculateVelocityGradientTensor<TDim>(pCurrentElement, rCurrentProcessInfo, velocity_gradient);
 
         double velocity_divergence = 0.0;
         for (IndexType i=0;i<TDim; i++)
-            velocity_divergence += GradVel(i,i);
+            velocity_divergence += velocity_gradient(i,i);
         
-        Eigen::Matrix<double, TDim+1, TDim+1>  M;
+        Eigen::Matrix<double, TDim+1, TDim+1>  characteristic_matrix;
         for (IndexType i=0; i < TDim; i++)
-            M(i,i) = 0.5 * velocity_divergence - GradVel(i,i);
+            characteristic_matrix(i,i) = 0.5 * velocity_divergence - velocity_gradient(i,i);
         for (IndexType i=0; i < TDim; i++)
             for (IndexType j=i+1; j < TDim; j++)
             {
-                M(i,j) = -GradVel(i,j);
-                M(j,i) = -GradVel(j,i);
+                characteristic_matrix(i,j) =  velocity_gradient(i,j);
+                characteristic_matrix(j,i) =  velocity_gradient(j,i);
             }
         for (IndexType i=0; i < TDim + 1; i++)
         {
-            M(TDim, i) = 0.0;
-            M(i, TDim) = 0.0;
+            characteristic_matrix(TDim, i) = 0.0;
+            characteristic_matrix(i, TDim) = 0.0;
         }
-        M(TDim, TDim) = 0.5 * velocity_divergence;
+        characteristic_matrix(TDim, TDim) = 0.5 * velocity_divergence;
 
-        Eigen::JacobiSVD<Eigen::Matrix<double, TDim+1, TDim+1>> svd(M, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        Eigen::JacobiSVD<Eigen::Matrix<double, TDim+1, TDim+1>> svd(
+                characteristic_matrix, Eigen::ComputeThinU | Eigen::ComputeThinV
+                );
 
         const auto& S = svd.singularValues();
 
@@ -304,24 +306,26 @@ private:
 
         GeometryUtils::CalculateGeometryData(rGeom,DN_DX,N,Volume);
 
-        MatrixType GradVel;
-        CalculateVelocityGradientTensor<TDim>(pCurrentElement, rCurrentProcessInfo, GradVel);
+        MatrixType velocity_gradient;
+        CalculateVelocityGradientTensor<TDim>(pCurrentElement, rCurrentProcessInfo, velocity_gradient);
 
         double velocity_divergence = 0.0;
         for (IndexType i=0;i<TDim; i++)
-            velocity_divergence += GradVel(i,i);
+            velocity_divergence += velocity_gradient(i,i);
         
-        Eigen::Matrix<double, TDim+1, TDim+1>  M;
+        Eigen::Matrix<double, TDim+1, TDim+1>  characteristic_matrix;
         for (IndexType i=0; i < TDim; i++)
-            M(i,i) = 0.5 * velocity_divergence - GradVel(i,i);
+            characteristic_matrix(i,i) = 0.5 * velocity_divergence - velocity_gradient(i,i);
         for (IndexType i=0; i < TDim; i++)
             for (IndexType j=i+1; j < TDim; j++)
             {
-                M(i,j) = -GradVel(i,j);
-                M(j,i) = -GradVel(j,i);
+                characteristic_matrix(i,j) =  velocity_gradient(i,j);
+                characteristic_matrix(j,i) =  velocity_gradient(j,i);
             }
 
-        Eigen::JacobiSVD<Eigen::Matrix<double, TDim+1, TDim+1>> svd(M, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        Eigen::JacobiSVD<Eigen::Matrix<double, TDim+1, TDim+1>> svd(
+            characteristic_matrix, Eigen::ComputeThinU | Eigen::ComputeThinV
+            );
 
         const auto& S = svd.singularValues();
 
