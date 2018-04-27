@@ -44,7 +44,7 @@ void SubModelPartsListUtility::ComputeSubModelPartsList(
     IntStringMapType& rColors
     )
 {
-    // Initialize and create the auxiliar maps
+    // Initialize and create the auxiliary maps
     std::unordered_map<int,std::set<int>> aux_nodes_colors, aux_cond_colors, aux_elem_colors;
 
     // We compute the list of submodelparts and subsubmodelparts
@@ -128,7 +128,7 @@ void SubModelPartsListUtility::ComputeSubModelPartsList(
 
         if (value.size() == 0)
             rCondColors[key] = 0; // Main Model Part
-        else if (value.size() == 1) // Another Model Part
+        else if (value.size() == 1) // A Sub Model Part
             rCondColors[key] = *value.begin();
         else // There is a combination
             rCondColors[key] = combinations[value];
@@ -141,7 +141,7 @@ void SubModelPartsListUtility::ComputeSubModelPartsList(
 
         if (value.size() == 0)
             rElemColors[key] = 0; // Main Model Part
-        else if (value.size() == 1) // Another Model Part
+        else if (value.size() == 1) // A Sub Model Part
             rElemColors[key] = *value.begin();
         else // There is a combination
             rElemColors[key] = combinations[value];
@@ -232,6 +232,12 @@ int SubModelPartsListUtility::IntersectKeys(
                               rColors[Key1].begin(), rColors[Key1].end(),
                               std::back_inserter(intersection));
         
+        // Null intersection: MainModelPart
+        if (intersection.size()==0) {
+            mIntersections[intersection_key] = 0;
+            return 0;
+        }
+
         // Find the intersection key
         int color_id;
         for (auto color : rColors)
