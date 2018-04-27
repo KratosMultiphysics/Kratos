@@ -19,7 +19,6 @@
 #include "testing/testing.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "includes/communicator.h"
 
 // Application includes
 #include "tests/test_utils.h"
@@ -64,11 +63,10 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
 
     HDF5::ElementSolutionStepDataIO data_io(io_params, p_test_file);
     data_io.WriteElementResults(write_model_part.Elements());
-    data_io.ReadElementResults(read_model_part.Elements(), read_model_part.GetCommunicator());
+    data_io.ReadElementResults(read_model_part.Elements());
 
-    for (auto& r_element : write_model_part.Elements())
+    for (auto& r_write_element : write_model_part.Elements())
     {
-        HDF5::ElementType& r_write_element = r_element;
         HDF5::ElementType& r_read_element = read_model_part.Elements()[r_write_element.Id()];
 
         KRATOS_CHECK(r_read_element.GetValue(DISPLACEMENT_X) ==
