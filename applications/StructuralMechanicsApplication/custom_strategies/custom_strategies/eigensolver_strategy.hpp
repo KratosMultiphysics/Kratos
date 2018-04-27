@@ -290,63 +290,16 @@ public:
     {
         KRATOS_TRY
 
-        ModelPart& rModelPart = BaseType::GetModelPart();
-        const int rank = rModelPart.GetCommunicator().MyPID();
-
-        // Operations to be done once
         if (this->GetIsInitialized() == false)
         {
             Initialize();
             this->SetIsInitialized(true);
         }
-
         this->InitializeSolutionStep();
-
-        SchemePointerType& pScheme = this->pGetScheme();
-        SparseMatrixType& rMassMatrix = this->GetMassMatrix();
-        SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
-
-        // Initialize dummy rhs vector
-        SparseVectorType b;
-        SparseSpaceType::Resize(b,SparseSpaceType::Size1(rMassMatrix));
-        SparseSpaceType::Set(b,0.0);
-
-        // Generate lhs matrix. the factor 1 is chosen to preserve
-        // SPD property
-        rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
-        TSparseSpace::SetToZero(rMassMatrix);
-        this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
-        this->ApplyDirichletConditions(rMassMatrix, 1.0);
-
-        // Generate rhs matrix. the factor -1 is chosen to make
-        // Eigenvalues corresponding to fixed dofs negative
-        rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
-        TSparseSpace::SetToZero(rStiffnessMatrix);
-        this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
-        ApplyDirichletConditions(rStiffnessMatrix,-1.0);
-
-        // Eigenvector matrix and eigenvalue vector are initialized by the solver
-        DenseVectorType Eigenvalues;
-        DenseMatrixType Eigenvectors;
-
-        // Solve for eigenvalues and eigenvectors
-        boost::timer system_solve_time;
-        this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
-                rStiffnessMatrix,
-                rMassMatrix,
-                Eigenvalues,
-                Eigenvectors);
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        {
-            std::cout << "system_solve_time : " << system_solve_time.elapsed() << std::endl;
-        }
-
-        this->AssignVariables(Eigenvalues,Eigenvectors);
-
+        this->SolveSolutionStep();
         this->FinalizeSolutionStep();
 
         return 0.0;
-
         KRATOS_CATCH("")
     }
 
@@ -483,6 +436,58 @@ public:
             std::cout << "Exiting InitializeSolutionStep() of EigensolverStrategy" << std::endl;
         }
 
+        KRATOS_CATCH("")
+    }
+
+    bool SolveSolutionStep() override
+    {
+        KRATOS_TRY;
+
+        ModelPart& rModelPart = BaseType::GetModelPart();
+        const int rank = rModelPart.GetCommunicator().MyPID();
+
+        SchemePointerType& pScheme = this->pGetScheme();
+        SparseMatrixType& rMassMatrix = this->GetMassMatrix();
+        SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
+
+        // Initialize dummy rhs vector
+        SparseVectorType b;
+        SparseSpaceType::Resize(b,SparseSpaceType::Size1(rMassMatrix));
+        SparseSpaceType::Set(b,0.0);
+
+        // Generate lhs matrix. the factor 1 is chosen to preserve
+        // SPD property
+        rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
+        TSparseSpace::SetToZero(rMassMatrix);
+        this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
+        this->ApplyDirichletConditions(rMassMatrix, 1.0);
+
+        // Generate rhs matrix. the factor -1 is chosen to make
+        // Eigenvalues corresponding to fixed dofs negative
+        rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
+        TSparseSpace::SetToZero(rStiffnessMatrix);
+        this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
+        ApplyDirichletConditions(rStiffnessMatrix,-1.0);
+
+        // Eigenvector matrix and eigenvalue vector are initialized by the solver
+        DenseVectorType Eigenvalues;
+        DenseMatrixType Eigenvectors;
+
+        // Solve for eigenvalues and eigenvectors
+        boost::timer system_solve_time;
+        this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
+                rStiffnessMatrix,
+                rMassMatrix,
+                Eigenvalues,
+                Eigenvectors);
+        if (BaseType::GetEchoLevel() > 0 && rank == 0)
+        {
+            std::cout << "system_solve_time : " << system_solve_time.elapsed() << std::endl;
+        }
+
+        this->AssignVariables(Eigenvalues,Eigenvectors);
+
+        return true;
         KRATOS_CATCH("")
     }
 
