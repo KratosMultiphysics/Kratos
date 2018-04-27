@@ -96,7 +96,7 @@ void AddUtilitiesToPython(pybind11::module& m)
 
     InputGetConditionNumber ThisGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
     DirectGetConditionNumber ThisDirectGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
-    
+
     class_<ConditionNumberUtility>(m,"ConditionNumberUtility")
     .def(init<>())
     .def(init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
@@ -234,20 +234,11 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 3 > ::FindMaximumEdgeSize)
     ;
 
-    class_<PointLocator, boost::noncopyable > ("PointLocator", init<ModelPart& >())
+    class_<PointLocator> (m, "PointLocator")
+    .def(init<ModelPart& >())
     .def("FindNode", &PointLocator::FindNode)
     .def("FindElement", &PointLocator::FindElement)
     .def("FindCondition", &PointLocator::FindCondition)
-    class_<PointLocation >(m,"PointLocation")
-    .def(init<ModelPart& >())
-    .def("Find", &PointLocation::Find)
-    .def("Find2D", &PointLocation::Find2D)
-    .def("Find3D", &PointLocation::Find3D)
-    .def("found", &PointLocation::found)
-    .def("ReturnDefaultPointData_scalar", &PointLocation::ReturnDefaultPointData_scalar)
-    .def("ReturnDefaultPointData_vector", &PointLocation::ReturnDefaultPointData_vector)
-    .def("ReturnCustomPointData_scalar", &PointLocation::ReturnCustomPointData_scalar)
-    .def("ReturnCustomPointData_vector", &PointLocation::ReturnCustomPointData_vector)
     ;
 
     class_<ParticleConvectUtily<2> >(m,"ParticleConvectUtily2D")
@@ -407,7 +398,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
     ;
-    
+
     class_<ExactMortarIntegrationUtility<3,4>>(m,"ExactMortarIntegrationUtility3D4N")
     .def(init<>())
     .def(init<const unsigned int>())
