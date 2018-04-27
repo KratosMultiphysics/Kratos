@@ -218,193 +218,203 @@ public:
     {
         KRATOS_TRY
 
-        auto& r_model_part = BaseType::GetModelPart();
-        auto& r_process_info = r_model_part.GetProcessInfo();
-        const auto rank = r_model_part.GetCommunicator().MyPID();
-
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Entering Initialize() of HarmonicAnalysisStrategy." << std::endl;
-
-        this->Check();
-
-        auto& p_scheme = this->pGetScheme();
-
-        if (p_scheme->SchemeIsInitialized() == false)
-            p_scheme->Initialize(r_model_part);
-
-        if (p_scheme->ElementsAreInitialized() == false)
-            p_scheme->InitializeElements(r_model_part);
-
-        if (p_scheme->ConditionsAreInitialized() == false)
-            p_scheme->InitializeConditions(r_model_part);
-
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Exiting Initialize() of HarmonicAnalysisStrategy." << std::endl;
-
-        // set up the system
-        auto& p_builder_and_solver = this->pGetBuilderAndSolver();
-
-        // Reset solution dofs
-        boost::timer system_construction_time;
-        // Set up list of dofs
-        boost::timer setup_dofs_time;
-        p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
+        if( !mInitializeWasPerformed )
         {
-            std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
-        }
+            auto& r_model_part = BaseType::GetModelPart();
+            auto& r_process_info = r_model_part.GetProcessInfo();
+            const auto rank = r_model_part.GetCommunicator().MyPID();
 
-        // Set global equation ids
-        boost::timer setup_system_time;
-        p_builder_and_solver->SetUpSystem(r_model_part);
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        {
-            std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
-        }
+            if (BaseType::GetEchoLevel() > 2 && rank == 0)
+                std::cout << "Entering Initialize() of HarmonicAnalysisStrategy." << std::endl;
 
-        // initialize the force vector; this does not change during the computation
-        auto& r_force_vector = *mpForceVector;
-        const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize();
+            this->Check();
 
-        boost::timer force_vector_build_time;
-        if (r_force_vector.size() != system_size)
-            r_force_vector.resize(system_size, false);
-        r_force_vector = ZeroVector( system_size );
-        p_builder_and_solver->BuildRHS(p_scheme,r_model_part,r_force_vector);
+            auto& p_scheme = this->pGetScheme();
 
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        {
-            std::cout << "force_vector_build_time : " << force_vector_build_time.elapsed() << std::endl;
-        }
+            if (p_scheme->SchemeIsInitialized() == false)
+                p_scheme->Initialize(r_model_part);
 
-        // initialize the modal matrix
-        auto& r_modal_matrix = *mpModalMatrix;
-        const std::size_t n_modes = r_process_info[EIGENVALUE_VECTOR].size();
-        if( r_modal_matrix.size1() != system_size || r_modal_matrix.size2() != n_modes )
-            r_modal_matrix.resize( system_size, n_modes, false );
-        r_modal_matrix = ZeroMatrix( system_size, n_modes );
+            if (p_scheme->ElementsAreInitialized() == false)
+                p_scheme->InitializeElements(r_model_part);
 
-        boost::timer modal_matrix_build_time;
-        for( std::size_t i = 0; i < n_modes; ++i )
-        {
-            for( auto& node : r_model_part.Nodes() )
+            if (p_scheme->ConditionsAreInitialized() == false)
+                p_scheme->InitializeConditions(r_model_part);
+
+            // set up the system
+            auto& p_builder_and_solver = this->pGetBuilderAndSolver();
+
+            // Reset solution dofs
+            boost::timer system_construction_time;
+            // Set up list of dofs
+            boost::timer setup_dofs_time;
+            p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
+            if (BaseType::GetEchoLevel() > 0 && rank == 0)
             {
-                ModelPart::NodeType::DofsContainerType node_dofs = node.GetDofs();
-                const std::size_t n_node_dofs = node_dofs.size();
-                const Matrix& r_node_eigenvectors = node.GetValue(EIGENVECTOR_MATRIX);
-
-                if( node_dofs.IsSorted() == false )
-                {
-                    node_dofs.Sort();
-                }
-
-                for( std::size_t j = 0; j < n_node_dofs; ++j )
-                {
-                    const auto it_dof = std::begin(node_dofs) + j;
-                    r_modal_matrix(it_dof->EquationId(), i) = r_node_eigenvectors(i, j);
-                }
-            }
-        }
-
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        {
-            std::cout << "modal_matrix_build_time : " << modal_matrix_build_time.elapsed() << std::endl;
-        }
-
-        // get the damping coefficients if they exist
-        for( auto& property : r_model_part.PropertiesArray() )
-        {
-            if( property->Has(SYSTEM_DAMPING_RATIO) )
-            {
-                mSystemDamping = property->GetValue(SYSTEM_DAMPING_RATIO);
+                std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
             }
 
-            if( property->Has(RAYLEIGH_ALPHA) && property->Has(RAYLEIGH_BETA) )
+            // Set global equation ids
+            boost::timer setup_system_time;
+            p_builder_and_solver->SetUpSystem(r_model_part);
+            if (BaseType::GetEchoLevel() > 0 && rank == 0)
             {
-                mRayleighAlpha = property->GetValue(RAYLEIGH_ALPHA);
-                mRayleighBeta = property->GetValue(RAYLEIGH_BETA);
+                std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
             }
-        }
 
-        // compute the effective material damping if required
-        if( mUseMaterialDamping )
-        {
-            // throw an error, if no submodelparts are present
-            KRATOS_ERROR_IF(r_model_part.NumberOfSubModelParts() < 1) << "No submodelparts detected!" << std::endl;
+            // initialize the force vector; this does not change during the computation
+            auto& r_force_vector = *mpForceVector;
+            const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize();
 
-            //initialize all required variables
-            r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
-            mMaterialDampingRatios = ZeroVector( n_modes );
+            boost::timer force_vector_build_time;
+            if (r_force_vector.size() != system_size)
+                r_force_vector.resize(system_size, false);
+            r_force_vector = ZeroVector( system_size );
+            p_builder_and_solver->BuildRHS(p_scheme,r_model_part,r_force_vector);
 
-            //initialize dummy vectors
-            auto pDx = SparseSpaceType::CreateEmptyVectorPointer();
-            auto pb = SparseSpaceType::CreateEmptyVectorPointer();
-            auto& rDx = *pDx;
-            auto& rb = *pb;
-            SparseSpaceType::Resize(rDx,system_size);
-            SparseSpaceType::Set(rDx,0.0);
-            SparseSpaceType::Resize(rb,system_size);
-            SparseSpaceType::Set(rb,0.0);
+            if (BaseType::GetEchoLevel() > 0 && rank == 0)
+            {
+                std::cout << "force_vector_build_time : " << force_vector_build_time.elapsed() << std::endl;
+            }
 
-            //loop over all modes and initialize the material damping ratio per mode
-            boost::timer material_damping_build_time;
+            // initialize the modal matrix
+            auto& r_modal_matrix = *mpModalMatrix;
+            const std::size_t n_modes = r_process_info[EIGENVALUE_VECTOR].size();
+            if( r_modal_matrix.size1() != system_size || r_modal_matrix.size2() != n_modes )
+                r_modal_matrix.resize( system_size, n_modes, false );
+            r_modal_matrix = ZeroMatrix( system_size, n_modes );
 
+            boost::timer modal_matrix_build_time;
             for( std::size_t i = 0; i < n_modes; ++i )
             {
-                double up = 0.0;
-                double down = 0.0;
-                auto modal_vector = column( r_modal_matrix, i );
-                for( auto& sub_model_part : r_model_part.SubModelParts() )
+                for( auto& node : r_model_part.Nodes() )
                 {
-                    double damping_coefficient = 0.0;
-                    for( auto& property : sub_model_part.PropertiesArray() )
+                    ModelPart::NodeType::DofsContainerType node_dofs = node.GetDofs();
+                    const std::size_t n_node_dofs = node_dofs.size();
+                    const Matrix& r_node_eigenvectors = node.GetValue(EIGENVECTOR_MATRIX);
+
+                    if( node_dofs.IsSorted() == false )
                     {
-                        if( property->Has(SYSTEM_DAMPING_RATIO) )
-                        {
-                            damping_coefficient = property->GetValue(SYSTEM_DAMPING_RATIO);
-                        }
+                        node_dofs.Sort();
                     }
 
-                    //initialize the submodelpart stiffness matrix
-                    auto temp_stiffness_matrix = SparseSpaceType::CreateEmptyMatrixPointer();
-                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme,
-                        temp_stiffness_matrix,
-                        pDx,
-                        pb,
-                        r_model_part.Elements(),
-                        r_model_part.Conditions(),
-                        r_model_part.GetProcessInfo());
-
-                    //build stiffness matrix for submodelpart material
-                    p_builder_and_solver->BuildLHS(p_scheme, sub_model_part, *temp_stiffness_matrix);
-
-                    //compute strain energy of the submodelpart and the effective damping ratio
-                    double strain_energy = 0.5 * inner_prod( prod(modal_vector, *temp_stiffness_matrix), modal_vector );
-                    down += strain_energy;
-                    up += damping_coefficient * strain_energy;
+                    for( std::size_t j = 0; j < n_node_dofs; ++j )
+                    {
+                        const auto it_dof = std::begin(node_dofs) + j;
+                        r_modal_matrix(it_dof->EquationId(), i) = r_node_eigenvectors(i, j);
+                    }
                 }
-                KRATOS_ERROR_IF(down < std::numeric_limits<double>::epsilon()) << "No valid effective "
-                    << "material damping ratio could be computed. Are all elements to be damped available "
-                    << "in the submodelparts? Are the modal vectors available?" << std::endl;
-
-                mMaterialDampingRatios(i) = up / down;
             }
 
             if (BaseType::GetEchoLevel() > 0 && rank == 0)
             {
-                std::cout << "modal_matrix_build_time : " << material_damping_build_time.elapsed() << std::endl;
-                KRATOS_WATCH(mMaterialDampingRatios)
+                std::cout << "modal_matrix_build_time : " << modal_matrix_build_time.elapsed() << std::endl;
             }
-        }
+
+            // get the damping coefficients if they exist
+            for( auto& property : r_model_part.PropertiesArray() )
+            {
+                if( property->Has(SYSTEM_DAMPING_RATIO) )
+                {
+                    mSystemDamping = property->GetValue(SYSTEM_DAMPING_RATIO);
+                }
+
+                if( property->Has(RAYLEIGH_ALPHA) && property->Has(RAYLEIGH_BETA) )
+                {
+                    mRayleighAlpha = property->GetValue(RAYLEIGH_ALPHA);
+                    mRayleighBeta = property->GetValue(RAYLEIGH_BETA);
+                }
+            }
+
+            // compute the effective material damping if required
+            if( mUseMaterialDamping )
+            {
+                // throw an error, if no submodelparts are present
+                KRATOS_ERROR_IF(r_model_part.NumberOfSubModelParts() < 1) << "No submodelparts detected!" << std::endl;
+
+                //initialize all required variables
+                r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
+                mMaterialDampingRatios = ZeroVector( n_modes );
+
+                //initialize dummy vectors
+                auto pDx = SparseSpaceType::CreateEmptyVectorPointer();
+                auto pb = SparseSpaceType::CreateEmptyVectorPointer();
+                auto& rDx = *pDx;
+                auto& rb = *pb;
+                SparseSpaceType::Resize(rDx,system_size);
+                SparseSpaceType::Set(rDx,0.0);
+                SparseSpaceType::Resize(rb,system_size);
+                SparseSpaceType::Set(rb,0.0);
+
+                //loop over all modes and initialize the material damping ratio per mode
+                boost::timer material_damping_build_time;
+
+                for( std::size_t i = 0; i < n_modes; ++i )
+                {
+                    double up = 0.0;
+                    double down = 0.0;
+                    auto modal_vector = column( r_modal_matrix, i );
+                    for( auto& sub_model_part : r_model_part.SubModelParts() )
+                    {
+                        double damping_coefficient = 0.0;
+                        for( auto& property : sub_model_part.PropertiesArray() )
+                        {
+                            if( property->Has(SYSTEM_DAMPING_RATIO) )
+                            {
+                                damping_coefficient = property->GetValue(SYSTEM_DAMPING_RATIO);
+                            }
+                        }
+
+                        //initialize the submodelpart stiffness matrix
+                        auto temp_stiffness_matrix = SparseSpaceType::CreateEmptyMatrixPointer();
+                        p_builder_and_solver->ResizeAndInitializeVectors(p_scheme,
+                            temp_stiffness_matrix,
+                            pDx,
+                            pb,
+                            r_model_part.Elements(),
+                            r_model_part.Conditions(),
+                            r_model_part.GetProcessInfo());
+
+                        //build stiffness matrix for submodelpart material
+                        p_builder_and_solver->BuildLHS(p_scheme, sub_model_part, *temp_stiffness_matrix);
+
+                        //compute strain energy of the submodelpart and the effective damping ratio
+                        double strain_energy = 0.5 * inner_prod( prod(modal_vector, *temp_stiffness_matrix), modal_vector );
+                        down += strain_energy;
+                        up += damping_coefficient * strain_energy;
+                    }
+                    KRATOS_ERROR_IF(down < std::numeric_limits<double>::epsilon()) << "No valid effective "
+                        << "material damping ratio could be computed. Are all elements to be damped available "
+                        << "in the submodelparts? Are the modal vectors available?" << std::endl;
+
+                    mMaterialDampingRatios(i) = up / down;
+                }
+
+                if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                {
+                    std::cout << "modal_matrix_build_time : " << material_damping_build_time.elapsed() << std::endl;
+                    KRATOS_WATCH(mMaterialDampingRatios)
+                }
+            }
+
+            mInitializeWasPerformed = true;
+
+            if (BaseType::GetEchoLevel() > 2 && rank == 0)
+                std::cout << "Exiting Initialize() of HarmonicAnalysisStrategy" << std::endl;
+        
+        } //initializeWasPerformed
 
         KRATOS_CATCH("")
     }
 
-    double Solve() override
+    bool SolveSolutionStep() override
     {
         KRATOS_TRY
 
         auto& r_model_part = BaseType::GetModelPart();
+        const auto rank = r_model_part.GetCommunicator().MyPID();
+
+        if (BaseType::GetEchoLevel() > 2 && rank == 0)
+            std::cout << "Entering SolveSolutionStep() of HarmonicAnalysisStrategy" << std::endl;
 
         // operations to be done once
         if (this->GetIsInitialized() == false)
@@ -436,7 +446,7 @@ public:
 
         for( std::size_t i = 0; i < n_modes; ++i )
         {
-            KRATOS_ERROR_IF(eigenvalues[i] < std::numeric_limits<double>::epsilon()) << "No valid eigenvalue "
+            KRATOS_ERROR_IF( eigenvalues[i] < std::numeric_limits<double>::epsilon() ) << "No valid eigenvalue "
                     << "for mode " << i << std::endl;
             modal_damping = mSystemDamping + mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
 
@@ -477,7 +487,10 @@ public:
         this->AssignVariables(modal_displacement);
         this->FinalizeSolutionStep();
 
-        return 0.0;
+        if (BaseType::GetEchoLevel() > 2 && rank == 0)
+            std::cout << "Exiting SolveSolutionStep() of HarmonicAnalysisStrategy" << std::endl;
+
+        return true;
 
         KRATOS_CATCH("")
     }
@@ -514,7 +527,7 @@ public:
     void InitializeSolutionStep() override
     {
         KRATOS_TRY
-
+        
         auto& r_model_part = BaseType::GetModelPart();
         const auto rank = r_model_part.GetCommunicator().MyPID();
 
