@@ -182,7 +182,7 @@ class ConePenetrationUtility(KratosMultiphysics.Process):
         nodes = self.model_part.GetNodes();
         if ( nodes[1].HasDofFor( KratosMultiphysics.WATER_PRESSURE) ):
             variable = KratosMultiphysics.WATER_PRESSURE;
-        elif (nodes[1].HasDofFor( KraotsMultiphysics.PRESSURE ) ):
+        elif (nodes[1].HasDofFor( KratosMultiphysics.PRESSURE ) ):
             variable = KratosMultiphysics.PRESSURE;
         else:
             return 0.0;
