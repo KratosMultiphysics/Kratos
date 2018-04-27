@@ -73,7 +73,7 @@ namespace Kratos
 
     template<typename TObjectType>
     bool PointLocator::FindObject(const TObjectType& rObjects,
-                                  const std::string& rObjectType,
+                                  const std::string& rObjectName,
                                   const Point& rThePoint,
                                   int& rObjectId,
                                   Vector& rShapeFunctionValues) const
@@ -85,8 +85,8 @@ namespace Kratos
 
         KRATOS_ERROR_IF_NOT(static_cast<std::size_t>(domain_size) == r_geom.WorkingSpaceDimension())
             << "Domain size (" << domain_size << ") and WorkingSpaceDimension ("
-            << r_geom.WorkingSpaceDimension() << ") of the "
-            << "Elements are not equal!" << std::endl;
+            << r_geom.WorkingSpaceDimension() << ") of the " << rObjectName
+            << " are not equal!" << std::endl;
 
         rObjectId = -1;
         bool is_inside;
@@ -108,12 +108,12 @@ namespace Kratos
             }
         }
 
-        CheckResults(rObjectType, rThePoint, global_objects_found);
+        CheckResults(rObjectName, rThePoint, global_objects_found);
 
         return is_inside;
     }
 
-    void PointLocator::CheckResults(const std::string& rObjectType,
+    void PointLocator::CheckResults(const std::string& rObjectName,
                                     const Point& rThePoint,
                                     int GlobalObjectsFound) const
     {
@@ -122,7 +122,7 @@ namespace Kratos
         if (GlobalObjectsFound > 1)
         {
             KRATOS_WARNING_IF("Point Locator", mrModelPart.GetCommunicator().MyPID() == 0)
-                << "More than one " << rObjectType << " found for Point: " << rThePoint << std::endl;
+                << "More than one " << rObjectName << " found for Point: " << rThePoint << std::endl;
             mrModelPart.GetCommunicator().Barrier();
             KRATOS_WARNING("Point Locator")
                 << "    In Rank: " << mrModelPart.GetCommunicator().MyPID() << std::endl;
@@ -131,7 +131,7 @@ namespace Kratos
         else if (GlobalObjectsFound == 0)
         {
             KRATOS_WARNING_IF("Point Locator", mrModelPart.GetCommunicator().MyPID() == 0)
-                << "No " << rObjectType << " found for Point: " << rThePoint << std::endl;
+                << "No " << rObjectName << " found for Point: " << rThePoint << std::endl;
         }
     }
 

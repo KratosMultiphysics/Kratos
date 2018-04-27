@@ -81,7 +81,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      bool FindNode(const Point& rThePoint, int& rNodeId, double DistanceThreshold) const;
+      bool FindNode(const Point& rThePoint, int& rNodeId, double DistanceThreshold=1e-12) const;
 
       bool FindElement(const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues) const;
 
