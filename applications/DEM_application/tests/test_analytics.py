@@ -32,9 +32,13 @@ class AnalyticsTestSolution(main_script.Solution):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
     def GetProblemNameWithPath(self):
+        print("GetProblemNameWithPath in test_analytics")
+        print(os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString()))
+        lolol
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeTimeStep(self, time):
+        lelele
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(NORMAL_IMPACT_VELOCITY)

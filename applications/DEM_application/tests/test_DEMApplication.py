@@ -4,13 +4,13 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_particle_creator_destructor
 import test_analytics
+import ghost_analytics
 
 
 def AssembleTestSuites():
-    ''' Populates the test suites to run.
-
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    
+    ''' Populates the test suites to run. At least, it should populate the suites:
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -26,6 +26,8 @@ def AssembleTestSuites():
     smallSuite.addTest(test_particle_creator_destructor.TestParticleCreatorDestructor("test_CreateSphericParticle2"))
     smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_1"))
     smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_2"))
+    smallSuite.addTest(ghost_analytics.GhostAnalytics("ghost_Analytics_1"))
+    
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

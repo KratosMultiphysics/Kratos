@@ -1,0 +1,49 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+PARTICLE_DENSITY 1.2
+YOUNG_MODULUS 1.0e7
+POISSON_RATIO 0.20
+PARTICLE_FRICTION 0.9999999999999999
+PARTICLE_COHESION 0.0
+COEFFICIENT_OF_RESTITUTION 0.5
+PARTICLE_MATERIAL 2
+ROLLING_FRICTION 0.01
+ROLLING_FRICTION_WITH_WALLS 0.01
+DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
+DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Nodes // GUI group identifier: bubble celemid SphericPartDEMElement3D
+4 0.7703063834853185465 0.3107294326573752929 0.4599999999999999645
+End Nodes
+
+Begin Elements SphericParticle3D   //  GUI group identifier: bubble
+8 1 4
+End Elements
+
+Begin NodalData RADIUS  // GUI group identifier: bubble Elementid SphericPartDEMElement3D
+4 0 0.02
+End NodalData
+
+Begin SubModelPart 1 // GUI conditionid DEM-VelocityIC group identifier: bubble
+  Begin SubModelPartData
+  INITIAL_VELOCITY_X_VALUE 0.0
+  INITIAL_VELOCITY_Y_VALUE 0.0
+  INITIAL_VELOCITY_Z_VALUE 1.0
+  INITIAL_ANGULAR_VELOCITY_X_VALUE 0.0
+  INITIAL_ANGULAR_VELOCITY_Y_VALUE 0.0
+  INITIAL_ANGULAR_VELOCITY_Z_VALUE 0.0
+  End SubModelPartData
+  Begin SubModelPartNodes
+  4
+  End SubModelPartNodes
+End SubModelPart
+
+Begin Table 0 TIME VELOCITY
+0.0  0.0
+1.0  0.0
+End Table
+

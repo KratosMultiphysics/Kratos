@@ -188,9 +188,14 @@ void AnalyticFaceWatcher::GetTimeStepsData(std::list<int>& ids,
 
 void AnalyticFaceWatcher::GetTotalFlux(std::list<double> &times, std::list<int> &n_particles, std::list<double> &mass)
 {
+    KRATOS_WATCH("AnalyticFaceWatcher::GetTotalFlux")
+    KRATOS_WATCH("times1")
+    KRATOS_WATCH(times.size())
     times.clear();
     n_particles.clear();
     mass.clear();
+    KRATOS_WATCH("times2")
+    KRATOS_WATCH(times.size())
 
     const int n_time_steps = mVectorOfTimeStepDatabases.size();
 
@@ -199,7 +204,9 @@ void AnalyticFaceWatcher::GetTotalFlux(std::list<double> &times, std::list<int> 
         n_particles.push_back(mVectorOfTimeStepDatabases[i].GetTotalThroughput());
         mass.push_back(mVectorOfTimeStepDatabases[i].GetTotalMassThroughput());
     }
-    KRATOS_WATCH("AnalyticFaceWatcher::GetTotalFlux")
+    KRATOS_WATCH("times3")
+    KRATOS_WATCH(times.size())
+    
     std::list<int>::iterator it_int;
     std::list<double>::iterator it_double;
     std::list<double>::iterator it_double_2;

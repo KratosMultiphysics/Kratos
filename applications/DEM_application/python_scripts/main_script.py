@@ -28,6 +28,10 @@ class Solution(object):
     @classmethod
     def GetInputParameters(self):
         parameters_file_name = self.GetParametersFileName()
+        print("GetInputParameters in main")
+        print(parameters_file_name)
+        print(os.getcwd())
+        #lele
         parameters_file = open(parameters_file_name, 'r')
         return Parameters(parameters_file.read())
 
@@ -461,11 +465,10 @@ class Solution(object):
             n_particles = [4]
             print(self.GetAnalyticFacesModelParts())
             
-            self.face_watcher.GetAllFacesData(self.GetAnalyticFacesModelParts(), times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
+            #self.face_watcher.GetAllFacesData(self.GetAnalyticFacesModelParts(), times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
             
-            print(times)
-            lele
-            self.face_watcher.GetTimeStepsData(self.my_id, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
+            #lele
+            #self.face_watcher.GetTimeStepsData(self.my_id, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
             
             print(self.my_id)
             print(neighbour_ids)
@@ -476,7 +479,7 @@ class Solution(object):
             print(n_particles)
             for m in mass:
                 print(m)
-            
+            print(times)
             self.face_watcher.GetTotalFlux(times, n_particles, mass)
             
             print(times)
