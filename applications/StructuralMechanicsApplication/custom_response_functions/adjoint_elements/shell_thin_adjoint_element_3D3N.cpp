@@ -421,74 +421,38 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
             const int number_of_nodes = GetGeometry().PointsNumber();
             const int dimension = this->GetGeometry().WorkingSpaceDimension();
             const int local_size = number_of_nodes * dimension * 2;
+            unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
  
             rOutput.resize(dimension * number_of_nodes, local_size);
 
             // compute RHS before disturbing
             this->CalculateRightHandSide(RHS_undist, copy_process_info); 
 
+            int index = 0;
             //TODO: look that this works also for parallel computing
-            for(int j = 0; j < number_of_nodes; j++)
+            for(auto& node_i : this->GetGeometry())
             {
-                //begin: derive w.r.t. x-coordinate---------------------------------------------------
-                // disturb the design variable
-                this->GetGeometry()[j].X0() += delta;
+                for(std::size_t coord_dir_i = 0; coord_dir_i < num_coord_dir; coord_dir_i++)
+                {
+                    // disturb the design variable
+                    node_i.GetInitialPosition()[coord_dir_i] += delta;
 
-                // compute RHS after disturbance
-                this->CalculateRightHandSide(RHS_dist, copy_process_info);
+                    // compute RHS after disturbance
+                    this->CalculateRightHandSide(RHS_dist, copy_process_info);
 
-                //compute derivative of RHS w.r.t. design variable with finite differences
-                noalias(RHS_dist) -= RHS_undist;
-                RHS_dist /= delta;
-                for(unsigned int i = 0; i < RHS_dist.size(); i++)  
-                    rOutput( (0 + j*dimension), i) = RHS_dist[i]; 
-   
-                // Reset pertubed vector
-                RHS_dist = Vector(0);
+                    //compute derivative of RHS w.r.t. design variable with finite differences
+                    noalias(RHS_dist) -= RHS_undist;
+                    RHS_dist /= delta;
+                    for(unsigned int i = 0; i < RHS_dist.size(); i++)  
+                        rOutput( (coord_dir_i + index*dimension), i) = RHS_dist[i]; 
+    
+                    // Reset pertubed vector
+                    RHS_dist = Vector(0);
 
-                // undisturb the design variable
-                this->GetGeometry()[j].X0() -= delta;
-                //end: derive w.r.t. x-coordinate-----------------------------------------------------
-
-                //begin: derive w.r.t. y-coordinate---------------------------------------------------
-                // disturb the design variable
-                this->GetGeometry()[j].Y0() += delta;
-
-                // compute RHS after disturbance
-                this->CalculateRightHandSide(RHS_dist, copy_process_info); 
-
-                //compute derivative of RHS w.r.t. design variable with finite differences
-                noalias(RHS_dist) -= RHS_undist;
-                RHS_dist /= delta;
-                for(unsigned int i = 0; i < RHS_dist.size(); i++) 
-                     rOutput((1 + j*dimension),i) = RHS_dist[i]; 
-
-                // Reset pertubed vector
-                RHS_dist = Vector(0);
-
-                // undisturb the design variable
-                this->GetGeometry()[j].Y0() -= delta;
-                //end: derive w.r.t. y-coordinate-----------------------------------------------------
-
-                //begin: derive w.r.t. z-coordinate---------------------------------------------------
-                // disturb the design variable
-                this->GetGeometry()[j].Z0() += delta;
-
-                // compute RHS after disturbance
-                this->CalculateRightHandSide(RHS_dist, copy_process_info);
-
-                //compute derivative of RHS w.r.t. design variable with finite differences
-                noalias(RHS_dist) -= RHS_undist;
-                RHS_dist /= delta;
-                for(unsigned int i = 0; i < RHS_dist.size(); i++) 
-                    rOutput((2 + j*dimension),i) = RHS_dist[i]; 
-
-                // Reset pertubed vector
-                RHS_dist = Vector(0);
-
-                // undisturb the design variable
-                this->GetGeometry()[j].Z0() -= delta;
-                //end: derive w.r.t. z-coordinate-----------------------------------------------------
+                    // undisturb the design variable
+                    node_i.GetInitialPosition()[coord_dir_i] -= delta;
+                }
+                index++;
 
                 this->CalculateRightHandSide(RHS_dist, copy_process_info);
 
@@ -866,11 +830,10 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
             this->SetProperties(p_global_properties);
 
             this->ResetSections();
-            ShellThinElement3D3N::Initialize();
-          
+            ShellThinElement3D3N::Initialize(); 
         }
         else
-         rOutput.clear();
+            rOutput.clear();
 
     KRATOS_CATCH("")
 } 
@@ -894,6 +857,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
     {
         const int number_of_nodes = GetGeometry().PointsNumber();
         const int dimension = this->GetGeometry().WorkingSpaceDimension();
+        unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
         const SizeType num_gps = GetNumberOfGPs();
         rOutput.resize(dimension * number_of_nodes, num_gps);
@@ -901,72 +865,32 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
         // Compute stress on GP before disturbance
         this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
+        int index = 0;
         //TODO: look that this works also for parallel computing
-        for(int j = 0; j < number_of_nodes; j++)
+        for(auto& node_i : this->GetGeometry())
         {
-            //begin: derive w.r.t. x-coordinate---------------------------------------------------
-            // disturb the design variable
-            this->GetGeometry()[j].X0() += delta;
+            for(std::size_t coord_dir_i = 0; coord_dir_i < num_coord_dir; coord_dir_i++)
+            {
+                // disturb the design variable
+                node_i.GetInitialPosition()[coord_dir_i] += delta;
 
-            // Compute stress on GP after disturbance
-            this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+                // Compute stress on GP after disturbance
+                this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
-            // Compute derivative of stress w.r.t. design variable with finite differences
-            noalias(stress_vector_dist)  -= stress_vector_undist;
-            stress_vector_dist  /= delta;
+                // Compute derivative of stress w.r.t. design variable with finite differences
+                noalias(stress_vector_dist)  -= stress_vector_undist;
+                stress_vector_dist  /= delta;
 
-            for(size_t i = 0; i < num_gps; i++)
-                rOutput( (0 + j*dimension), i) = stress_vector_dist[i]; 
+                for(size_t i = 0; i < num_gps; i++)
+                    rOutput( (coord_dir_i + index*dimension), i) = stress_vector_dist[i]; 
 
-            // Reset pertubed vector
-            stress_vector_dist = Vector(0);
+                // Reset pertubed vector
+                stress_vector_dist = Vector(0);
 
-            // undisturb the design variable
-            this->GetGeometry()[j].X0() -= delta;
-            //end: derive w.r.t. x-coordinate-----------------------------------------------------
-
-            //begin: derive w.r.t. y-coordinate---------------------------------------------------
-            // disturb the design variable
-            this->GetGeometry()[j].Y0() += delta;
-
-            // Compute stress on GP after disturbance
-            this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
-
-            // Compute derivative of stress w.r.t. design variable with finite differences
-            noalias(stress_vector_dist)  -= stress_vector_undist;
-            stress_vector_dist  /= delta;
-
-            for(size_t i = 0; i < num_gps; i++)
-                rOutput((1 + j*dimension),i) = stress_vector_dist[i]; 
-
-            // Reset pertubed vector
-            stress_vector_dist = Vector(0);
-
-            // undisturb the design variable
-            this->GetGeometry()[j].Y0() -= delta;
-            //end: derive w.r.t. y-coordinate-----------------------------------------------------
-
-            //begin: derive w.r.t. z-coordinate---------------------------------------------------
-            // disturb the design variable
-            this->GetGeometry()[j].Z0() += delta;
-
-            // Compute stress on GP after disturbance
-            this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
-
-            // Compute derivative of stress w.r.t. design variable with finite differences
-            noalias(stress_vector_dist)  -= stress_vector_undist;
-            stress_vector_dist  /= delta;
-
-            for(size_t i = 0; i < num_gps; i++)
-                rOutput((2 + j*dimension),i) = stress_vector_dist[i]; 
-
-            // Reset pertubed vector
-            stress_vector_dist = Vector(0);
-
-            // undisturb the design variable
-            this->GetGeometry()[j].Z0() -= delta;
-            //end: derive w.r.t. z-coordinate-----------------------------------------------------
-
+                // undisturb the design variable
+                node_i.GetInitialPosition()[coord_dir_i] -= delta;
+            }
+            index++;
         }// end loop over element nodes
     }
     else

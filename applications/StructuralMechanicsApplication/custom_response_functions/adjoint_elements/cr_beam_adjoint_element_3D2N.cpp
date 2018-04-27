@@ -192,9 +192,6 @@ namespace Kratos
 
             // Give element original properties back
             this->SetProperties(p_global_properties);
-
-            // Compute RHS again in order to ensure that changed member variables like mLHS get back their origin values
-            this->CalculateRightHandSide(RHS_dist, copy_of_process_info);
         }
         else
         {
@@ -225,92 +222,38 @@ namespace Kratos
             const int number_of_nodes = GetGeometry().PointsNumber();
             const int dimension = this->GetGeometry().WorkingSpaceDimension();
             const int local_size = number_of_nodes * dimension * 2;
+            unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
             rOutput.resize(dimension * number_of_nodes, local_size);
 
             // compute RHS before disturbing
             this->CalculateRightHandSide(RHS_undist, copy_of_process_info);
 
+            int index = 0;
             //TODO: look that this works also for parallel computing
-            for(int j = 0; j < number_of_nodes; j++)
+            for(auto& node_i : this->GetGeometry())
             {
-                //begin: derive w.r.t. x-coordinate---------------------------------------------------
+                for(std::size_t coord_dir_i = 0; coord_dir_i < num_coord_dir; coord_dir_i++)
+                {
+                    // disturb the design variable
+                    node_i.GetInitialPosition()[coord_dir_i] += delta;
 
-                // disturb the design variable
-                this->GetGeometry()[j].X0() += delta;
-                // Update CS and transformation matrix after geometry change
-                this->CalculateInitialLocalCS();
+                    // compute RHS after disturbance
+                    this->CalculateRightHandSide(RHS_dist, copy_of_process_info);
 
-                // compute RHS after disturbance
-                this->CalculateRightHandSide(RHS_dist, copy_of_process_info);
+                    //compute derivative of RHS w.r.t. design variable with finite differences
+                    noalias(RHS_dist) -= RHS_undist;
+                    RHS_dist /= delta;
+                    for(unsigned int i = 0; i < RHS_dist.size(); i++)
+                        rOutput( (coord_dir_i + index*dimension), i) = RHS_dist[i]; 
 
-                //compute derivative of RHS w.r.t. design variable with finite differences
-                noalias(RHS_dist) -= RHS_undist;
-                RHS_dist /= delta;
-                for(unsigned int i = 0; i < RHS_dist.size(); i++)
-                    rOutput( (0 + j*dimension), i) = RHS_dist[i];
+                    // Reset pertubed vector
+                    RHS_dist = Vector(0);
 
-                // Reset pertubed vector
-                RHS_dist = Vector(0);
-
-                // undisturb the design variable
-                this->GetGeometry()[j].X0() -= delta;
-
-                //end: derive w.r.t. x-coordinate-----------------------------------------------------
-
-                //begin: derive w.r.t. y-coordinate---------------------------------------------------
-
-                // disturb the design variable
-                this->GetGeometry()[j].Y0() += delta;
-                // Update CS and transformation matrix after geometry change
-                this->CalculateInitialLocalCS();
-
-                // compute RHS after disturbance
-                this->CalculateRightHandSide(RHS_dist, copy_of_process_info);
-
-                //compute derivative of RHS w.r.t. design variable with finite differences
-                noalias(RHS_dist) -= RHS_undist;
-                RHS_dist /= delta;
-                for(unsigned int i = 0; i < RHS_dist.size(); i++)
-                    rOutput((1 + j*dimension),i) = RHS_dist[i];
-
-                // Reset pertubed vector
-                RHS_dist = Vector(0);
-
-                // undisturb the design variable
-                this->GetGeometry()[j].Y0() -= delta;
-
-                //end: derive w.r.t. y-coordinate-----------------------------------------------------
-
-                //begin: derive w.r.t. z-coordinate---------------------------------------------------
-
-                // disturb the design variable
-                this->GetGeometry()[j].Z0() += delta;
-                // Update CS and transformation matrix after geometry change
-                this->CalculateInitialLocalCS();
-
-                // compute RHS after disturbance
-                this->CalculateRightHandSide(RHS_dist, copy_of_process_info);
-
-                //compute derivative of RHS w.r.t. design variable with finite differences
-                noalias(RHS_dist) -= RHS_undist;
-                RHS_dist /= delta;
-                for(unsigned int i = 0; i < RHS_dist.size(); i++)
-                    rOutput((2 + j*dimension),i) = RHS_dist[i];
-
-                // Reset pertubed vector
-                RHS_dist = Vector(0);
-
-                // undisturb the design variable
-                this->GetGeometry()[j].Z0() -= delta;
-                // Update CS and transformation matrix after geometry change
-                this->CalculateInitialLocalCS();
-
-                // Compute RHS again in order to ensure that changed member variables like mLHS get back their origin values
-                this->CalculateRightHandSide(RHS_dist, copy_of_process_info);
-
-                //end: derive w.r.t. z-coordinate-----------------------------------------------------
-
+                    // undisturb the design variable
+                    node_i.GetInitialPosition()[coord_dir_i] -= delta;
+                }
+                index++;
             }// end loop over element nodes
         }
         else
@@ -576,7 +519,6 @@ namespace Kratos
         // Define working variables
         Vector stress_vector_undist;
         Vector stress_vector_dist;
-        Matrix dummy_LHS;
         ProcessInfo copy_process_info = rCurrentProcessInfo;
 
         // Get disturbance measure
@@ -604,9 +546,6 @@ namespace Kratos
             const double current_property_value = this->GetProperties()[rDesignVariable];
             p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
 
-            // Update stiffness matrix
-            this->CalculateLeftHandSide(dummy_LHS, copy_process_info);
-
             // Compute stress on GP after disturbance
             this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
@@ -619,9 +558,6 @@ namespace Kratos
 
             // Give element original properties back
             this->SetProperties(p_global_properties);
-
-            // Update stiffness matrix
-            this->CalculateLeftHandSide(dummy_LHS, copy_process_info);
         }
         else
             rOutput.clear();
@@ -638,7 +574,6 @@ namespace Kratos
         // define working variables
         Vector stress_vector_undist;
         Vector stress_vector_dist;
-        Matrix dummy_LHS;
         ProcessInfo copy_process_info = rCurrentProcessInfo;
 
         // Get disturbance measure
@@ -650,6 +585,7 @@ namespace Kratos
         {
             const int number_of_nodes = GetGeometry().PointsNumber();
             const int dimension = this->GetGeometry().WorkingSpaceDimension();
+            unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
             // Compute stress on GP before disturbance
             this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
@@ -658,94 +594,32 @@ namespace Kratos
 
             rOutput.resize(dimension * number_of_nodes, stress_vector_size);
 
+            int index = 0;
             //TODO: look that this works also for parallel computing
-            for(int j = 0; j < number_of_nodes; j++)
+            for(auto& node_i : this->GetGeometry())
             {
-                //begin: derive w.r.t. x-coordinate---------------------------------------------------
+                for(std::size_t coord_dir_i = 0; coord_dir_i < num_coord_dir; coord_dir_i++)
+                {
+                    // Disturb the design variable
+                    node_i.GetInitialPosition()[coord_dir_i] += delta;
 
-                // disturb the design variable
-                this->GetGeometry()[j].X0() += delta;
-                // Update CS and transformation matrix after geometry change
-                this->CalculateInitialLocalCS();
-                // Update stiffness matrix
-                this->CalculateLeftHandSide(dummy_LHS, copy_process_info);
+                    // Compute stress on GP after disturbance
+                    this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
-                // Compute stress on GP after disturbance
-                this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+                    // Compute derivative of stress w.r.t. design variable with finite differences
+                    noalias(stress_vector_dist)  -= stress_vector_undist;
+                    stress_vector_dist  /= delta;
 
-                // Compute derivative of stress w.r.t. design variable with finite differences
-                noalias(stress_vector_dist)  -= stress_vector_undist;
-                stress_vector_dist  /= delta;
+                    for(int i = 0; i < stress_vector_size; i++)
+                        rOutput( (coord_dir_i + index*dimension), i) = stress_vector_dist[i];
 
-                for(int i = 0; i < stress_vector_size; i++)
-                    rOutput( (0 + j*dimension), i) = stress_vector_dist[i];
+                    // Reset pertubed vector
+                    stress_vector_dist = Vector(0);
 
-                // Reset pertubed vector
-                stress_vector_dist = Vector(0);
-
-                // undisturb the design variable
-                this->GetGeometry()[j].X0() -= delta;
-
-                //end: derive w.r.t. x-coordinate-----------------------------------------------------
-
-                //begin: derive w.r.t. y-coordinate---------------------------------------------------
-
-                // disturb the design variable
-                this->GetGeometry()[j].Y0() += delta;
-                // Update CS and transformation matrix after geometry change
-                this->CalculateInitialLocalCS();
-                // Update stiffness matrix
-                this->CalculateLeftHandSide(dummy_LHS, copy_process_info);
-
-                // Compute stress on GP after disturbance
-                this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
-
-                // Compute derivative of stress w.r.t. design variable with finite differences
-                noalias(stress_vector_dist)  -= stress_vector_undist;
-                stress_vector_dist  /= delta;
-
-                for(int i = 0; i < stress_vector_size; i++)
-                    rOutput((1 + j*dimension),i) = stress_vector_dist[i];
-
-                // Reset pertubed vector
-                stress_vector_dist = Vector(0);
-
-                // undisturb the design variable
-                this->GetGeometry()[j].Y0() -= delta;
-
-                //end: derive w.r.t. y-coordinate-----------------------------------------------------
-
-                //begin: derive w.r.t. z-coordinate---------------------------------------------------
-
-                // disturb the design variable
-                this->GetGeometry()[j].Z0() += delta;
-                // Update CS and transformation matrix after geometry change
-                this->CalculateInitialLocalCS();
-                // Update stiffness matrix
-                this->CalculateLeftHandSide(dummy_LHS, copy_process_info);
-
-                // Compute stress on GP after disturbance
-                this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
-
-                // Compute derivative of stress w.r.t. design variable with finite differences
-                noalias(stress_vector_dist)  -= stress_vector_undist;
-                stress_vector_dist  /= delta;
-
-                for(int i = 0; i < stress_vector_size; i++)
-                    rOutput((2 + j*dimension),i) = stress_vector_dist[i];
-
-                // Reset pertubed vector
-                stress_vector_dist = Vector(0);
-
-                // undisturb the design variable
-                this->GetGeometry()[j].Z0() -= delta;
-                // Update CS and transformation matrix after geometry change
-                this->CalculateInitialLocalCS();
-                // Update stiffness matrix
-                this->CalculateLeftHandSide(dummy_LHS, copy_process_info);
-
-                //end: derive w.r.t. z-coordinate-----------------------------------------------------
-
+                    // Undisturb the design variable
+                    node_i.GetInitialPosition()[coord_dir_i] -= delta;
+                }
+                index++;
             }// end loop over element nodes
         }
         else
