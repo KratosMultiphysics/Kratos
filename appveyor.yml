@@ -7,7 +7,7 @@ branches:
 version: "{build}"
 
 # set clone depth
-clone_depth: 1
+shallow_clone: true
 
 # Image
 image: Visual Studio 2017
@@ -45,10 +45,9 @@ before_build:
   - cmd: cd C:\projects\kratos\cmake_build
   - cmd: .\configure_appveyor_VS2017.bat
 
-# Build
-build:
-  project: C:\projects\kratos\cmake_build\kratosMultiphysics.sln  # path to Visual Studio solution or project
-  parallel: true                                                  # enable MSBuild parallel builds
-  verbosity: minimal                                              # MSBuild verbosity level (quiet|minimal|normal|detailed)
+# Custom build script
+build_script:
+  - cmd: SET preferredToolArchitecture=x64
+  - cmd: MSBuild.exe kratos/all_unity.vcxproj /p:Configuration=Debug /p:Platform="x64"
 
 test: off

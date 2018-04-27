@@ -136,7 +136,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
         KRATOS_TRY;
 
@@ -347,19 +347,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "MetisPartitioningProcessQuadratic";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MetisPartitioningProcessQuadratic";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -640,7 +640,7 @@ protected:
         mLogFile << rank << " : Elements added" << std::endl;
     }
 
-    virtual void AddingConditions(ModelPart::NodesContainerType& AllNodes, idxtype* NPart, idxtype* EPart, ModelPart::ConditionsContainerType& AllConditions)
+    void AddingConditions(ModelPart::NodesContainerType& AllNodes, idxtype* NPart, idxtype* EPart, ModelPart::ConditionsContainerType& AllConditions) override
     {
         int rank = GetRank();
 
@@ -759,6 +759,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_METIS_PARTITIONING_PROCESS_QUADRATIC_INCLUDED defined 
+#endif // KRATOS_METIS_PARTITIONING_PROCESS_QUADRATIC_INCLUDED defined
 
 

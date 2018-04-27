@@ -1286,7 +1286,7 @@ namespace Kratos {
 
 
         // Having 4 Intersection nodes, one can build 4 triangles. The 4 possible combinations are defined by indices in a matrix.
-        bounded_matrix<unsigned int,4,3> IndexNodesTriangles;
+        BoundedMatrix<unsigned int,4,3> IndexNodesTriangles;
 
         IndexNodesTriangles(0,0) = 0;
         IndexNodesTriangles(0,1) = 1;

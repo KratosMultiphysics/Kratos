@@ -317,12 +317,13 @@ namespace Kratos {
 
         double radius = r_sub_model_part_with_parameters[RADIUS];
         double max_radius = 1.5 * radius;
+        std::string distribution_type = r_sub_model_part_with_parameters[PROBABILITY_DISTRIBUTION];
 
         if (initial) {
             radius = max_radius;
         } else {
             double std_deviation = r_sub_model_part_with_parameters[STANDARD_DEVIATION];
-            std::string distribution_type = r_sub_model_part_with_parameters[PROBABILITY_DISTRIBUTION];
+            //double min_radius = r_sub_model_part_with_parameters[MIN_RADIUS];
             double min_radius = 0.5 * radius;
 
             if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
@@ -336,6 +337,7 @@ namespace Kratos {
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
         SphericParticle* spheric_p_particle = dynamic_cast<SphericParticle*> (p_particle.get());
+        spheric_p_particle->mpInlet=&(r_sub_model_part_with_parameters);
 
         if (initial) {
             array_of_injector_elements.push_back(p_particle);

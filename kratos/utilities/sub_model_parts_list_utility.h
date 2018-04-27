@@ -69,6 +69,9 @@ namespace Kratos
  * combinations of submodelparts each node, condition and element belongs to.
  * Modelpart key is 0. Each submodelpart has 1, 2... key. A submodelpart
  * combination has another key
+ * This class has two limitations:
+ * - A sub_sub_model_part name should not be duplicated
+ * - This class allows two sub_model_part levels
  * @author Miguel Maso Sotomayor
  * @author Vicente Mataix Ferrandiz
  */

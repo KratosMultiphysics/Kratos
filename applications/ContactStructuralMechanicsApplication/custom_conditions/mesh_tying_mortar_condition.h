@@ -376,8 +376,8 @@ protected:
     public:
 
         // Auxiliar types
-        typedef bounded_matrix<double, NumNodes, TTensor>  Type1;
-        typedef bounded_matrix<double, NumNodes, NumNodes> Type2;
+        typedef BoundedMatrix<double, NumNodes, TTensor>  Type1;
+        typedef BoundedMatrix<double, NumNodes, NumNodes> Type2;
 
         // The DoF
         Type1 LagrangeMultipliers, u1, u2;

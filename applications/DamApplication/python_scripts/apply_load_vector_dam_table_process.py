@@ -2,10 +2,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DamApplication import *
 from KratosMultiphysics.PoromechanicsApplication import *
 
-import math
-
 def Factory(settings, Model):
-    if(type(settings) != Parameters):
+    if not isinstance(settings, Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyLoadVectorDamTableProcess(Model, settings["Parameters"])
 
@@ -19,11 +17,11 @@ class ApplyLoadVectorDamTableProcess(Process):
         variable_name = settings["variable_name"].GetString()
 
         self.components_process_list = []
-        
+
         self.factor = settings["modulus"].GetDouble();
         self.direction = [settings["direction"][0].GetDouble(),settings["direction"][1].GetDouble(),settings["direction"][2].GetDouble()]
         self.value = [self.direction[0]*self.factor,self.direction[1]*self.factor,self.direction[2]*self.factor]
-        
+
         if abs(self.value[0])>1.0e-15:
             x_params = Parameters("{}")
             x_params.AddValue("model_part_name",settings["model_part_name"])

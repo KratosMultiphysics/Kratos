@@ -201,56 +201,56 @@ public:
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
-    void CalculateMaterialResponsePK1(Parameters& rValues) override;
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
-    void CalculateMaterialResponsePK2(Parameters& rValues) override;
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
-    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK1(Parameters& rValues) override;
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Kirchhoff stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
-    void FinalizeMaterialResponseKirchhoff(Parameters& rValues) override;
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Cauchy stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
-    void FinalizeMaterialResponseCauchy(Parameters& rValues) override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief calculates the value of a specified variable
@@ -259,7 +259,7 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    double& CalculateValue(Parameters& rParameterValues,
+    double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                            const Variable<double>& rThisVariable,
                            double& rValue) override;
 

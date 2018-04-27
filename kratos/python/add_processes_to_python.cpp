@@ -139,11 +139,11 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     class_<TranslationOperation, Process >(m,"TranslationOperation")
-            .def(init<ModelPart&, boost::numeric::ublas::vector<int> ,boost::numeric::ublas::vector<int> ,unsigned int>())
+            .def(init<ModelPart&, DenseVector<int> ,DenseVector<int> ,unsigned int>())
     ;
 
     class_<RotationOperation, Process >(m,"RotationOperation")
-            .def(init<ModelPart&, boost::numeric::ublas::vector<int> ,boost::numeric::ublas::vector<int> ,unsigned int>())
+            .def(init<ModelPart&, DenseVector<int> ,DenseVector<int> ,unsigned int>())
     ;
 
     class_<StructuredMeshGeneratorProcess, Process>(m,"StructuredMeshGeneratorProcess")
