@@ -254,15 +254,16 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
 
         self.TimeIntegrationMethod = None
-        time_integration_container = KratosSolid.TimeIntegrationMethodsContainer()
-        if( time_integration_container.HasProcessInfo(KratosSolid.TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo) ):
-            time_integration_methods = time_integration_container.GetFromProcessInfo(KratosSolid.TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo)
+        time_integration_container = KratosSolid.ComponentTimeIntegrationMethods()
+        if( time_integration_container.HasProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo) ):
+            time_integration_methods = time_integration_container.GetFromProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo)
 
             for var in variables:
                 if( time_integration_methods.Has(var) ):
                     self.TimeIntegrationMethod = time_integration_methods.Get(var).Clone()
                     break
 
+                
         if( self.TimeIntegrationMethod == None ):
             print(variable+": No time integration ")
 

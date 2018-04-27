@@ -86,41 +86,50 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         # set solution scheme and integration method dictionary
         self.integration_methods = {}
         if(integration_method == "Newmark"):
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.NewmarkScalarIntegration(),
-                                             'ROTATION': KratosSolid.NewmarkScalarIntegration()}) #shells
+            # create the time integration methods list to define the scheme
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.NewmarkComponentIntegration(),
+                                             'ROTATION': KratosSolid.NewmarkComponentIntegration()}) #shells
             mechanical_scheme = KratosSolid.DisplacementNewmarkScheme()
         elif(integration_method == "Bossak"):
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BossakScalarIntegration(),
-                                             'ROTATION': KratosSolid.BossakScalarIntegration()}) #shells
+            # create the time integration methods list to define the scheme
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BossakComponentIntegration(),
+                                             'ROTATION': KratosSolid.BossakComponentIntegration()}) #shells
             mechanical_scheme = KratosSolid.DisplacementBossakScheme()
         elif(integration_method == "Simo"):
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.SimoScalarIntegration(),
-                                             'ROTATION': KratosSolid.SimoScalarIntegration()}) #shells
+             # create the time integration methods list to define the scheme
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.SimoComponentIntegration(),
+                                             'ROTATION': KratosSolid.SimoComponentIntegration()}) #shells
             mechanical_scheme = KratosSolid.DisplacementSimoScheme()
         elif(integration_method == "BackwardEuler"):
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BackwardEulerScalarIntegration(),
-                                             'ROTATION': KratosSolid.BackwardEulerScalarIntegration()}) #shells
+            # create the time integration methods list to define the scheme
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BackwardEulerComponentIntegration(),
+                                             'ROTATION': KratosSolid.BackwardEulerComponentIntegration()}) #shells
             mechanical_scheme = KratosSolid.DisplacementBackwardEulerScheme()
         elif(integration_method == "BDF"):
             self.process_info[KratosSolid.TIME_INTEGRATION_ORDER] = self.time_integration_settings["time_integration_order"].GetInt()
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BdfScalarIntegration(),
-                                             'ROTATION': KratosSolid.BdfScalarIntegration()}) #shells
+            # create the time integration methods list to define the scheme
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BdfComponentIntegration(),
+                                             'ROTATION': KratosSolid.BdfComponentIntegration()}) #shells
             mechanical_scheme = KratosSolid.DisplacementBdfScheme()
         elif(integration_method == "RotationNewmark"):
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.NewmarkStepScalarIntegration(),
-                                             'ROTATION': KratosSolid.NewmarkStepRotationScalarIntegration()}) #beams
+            # create the time integration methods list to define the scheme
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.NewmarkStepComponentIntegration(),
+                                             'ROTATION': KratosSolid.NewmarkStepRotationComponentIntegration()}) #beams
             mechanical_scheme = KratosSolid.DisplacementRotationNewmarkScheme()
         elif(integration_method == "RotationBossak"):
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BossakStepScalarIntegration(),
-                                             'ROTATION': KratosSolid.BossakStepRotationScalarIntegration()}) #beams
+             # create the time integration methods list to define the scheme
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.BossakStepComponentIntegration(),
+                                             'ROTATION': KratosSolid.BossakStepRotationComponentIntegration()}) #beams
             mechanical_scheme = KratosSolid.DisplacementRotationBossakScheme()
         elif(integration_method == "RotationSimo"):
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.SimoStepScalarIntegration(),
-                                             'ROTATION': KratosSolid.SimoStepRotationScalarIntegration()}) #beams
+            # create the time integration methods list to define the scheme
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.SimoStepComponentIntegration(),
+                                             'ROTATION': KratosSolid.SimoStepRotationComponentIntegration()}) #beams
             mechanical_scheme = KratosSolid.DisplacementRotationSimoScheme()
         elif(integration_method == "RotationEMC"):
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.EmcStepScalarIntegration(),
-                                             'ROTATION': KratosSolid.EmcStepRotationScalarIntegration()}) #shells
+             # create the time integration methods list to define the scheme
+            self.integration_methods.update({'DISPLACEMENT': KratosSolid.EmcStepComponentIntegration(),
+                                             'ROTATION': KratosSolid.EmcStepRotationComponentIntegration()}) #shells
             mechanical_scheme = KratosSolid.DisplacementRotationEmcScheme()
         else:
             raise Exception("Unsupported integration_method: " + integration_method)
@@ -132,10 +141,12 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
 
     def _set_time_integration_methods(self):
 
-        # assign an default integration method (static) for all not set dofs
+        # a static dicctionary is needed to identify the variable type, component or scalar (for constraints assignment)
+        # now only component type is considered:
+        # assign an default integration method (static) for all dofs previously not set
         for i in range(0, self.settings["dofs"].size() ):
             if( not (self.settings["dofs"][i].GetString() in self.integration_methods.keys()) ):
-                self.integration_methods.update({self.settings["dofs"][i].GetString() : KratosSolid.StaticScalarIntegration()})
+                self.integration_methods.update({self.settings["dofs"][i].GetString() : KratosSolid.StaticComponentIntegration()})
 
         # first: calculate parameters (only once permitted) (set is included)
         #self.integration_methods['DISPLACEMENT'].CalculateParameters(self.process_info) #calculate
@@ -150,11 +161,11 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         print(" main dof ",main_dof, " ", self.integration_methods[main_dof])
         
         # add to integration methods container and set to process_info for processes acces
-        integration_methods_container = KratosSolid.TimeIntegrationMethodsContainer()
+        integration_methods_container = KratosSolid.ComponentTimeIntegrationMethods()
         for dof, method in self.integration_methods.items():
             method.SetParameters(self.process_info) #set same parameters to all methods from process_info values
             integration_methods_container.Set(dof,method)
-        integration_methods_container.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHODS, integration_methods_container, self.process_info)
+        integration_methods_container.AddToProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, integration_methods_container, self.process_info)
 
         #print(integration_methods_container)
 
