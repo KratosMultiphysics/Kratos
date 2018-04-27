@@ -135,11 +135,24 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters(parameters_file.read())
 
+        eigen_solver_settings = ProjectParametersPrimal["solver_settings"]["eigensolver_settings"]
+
         max_required_eigenfrequency = int(max(response_settings["traced_eigenfrequencies"].GetVector()))
-        if max_required_eigenfrequency is not ProjectParametersPrimal["solver_settings"]["eigensolver_settings"]["number_of_eigenvalues"].GetInt():
+        if max_required_eigenfrequency is not eigen_solver_settings["number_of_eigenvalues"].GetInt():
             print("\n> WARNING: Specified number of eigenvalues in the primal analysis and the max required eigenvalue according the response settings do not match!!!")
             print("  Primal parameters were adjusted accordingly!\n")
-            ProjectParametersPrimal["solver_settings"]["eigensolver_settings"]["number_of_eigenvalues"].SetInt(max_required_eigenfrequency)
+            eigen_solver_settings["number_of_eigenvalues"].SetInt(max_required_eigenfrequency)
+
+        if not eigen_solver_settings.Has("normalize_eigenvectors"):
+            eigen_solver_settings.AddEmptyValue("normalize_eigenvectors")
+            eigen_solver_settings["normalize_eigenvectors"].SetBool(True)
+            print("\n> WARNING: Eigenfrequency response function requires mass normalization of eigenvectors!")
+            print("  Primal parameters were adjusted accordingly!\n")
+
+        if not eigen_solver_settings["normalize_eigenvectors"].GetBool():
+            eigen_solver_settings["normalize_eigenvectors"].SetBool(True)
+            print("\n> WARNING: Eigenfrequency response function requires mass normalization of eigenvectors!")
+            print("  Primal parameters were adjusted accordingly!\n")
 
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal, model_part)
         self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)

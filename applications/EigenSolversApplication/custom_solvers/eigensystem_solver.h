@@ -61,6 +61,7 @@ class EigensystemSolver
         {
             "solver_type": "eigen_eigensystem",
             "number_of_eigenvalues": 1,
+            "normalize_eigenvectors": false,
             "max_iteration": 1000,
             "tolerance": 1e-6,
             "echo_level": 1
@@ -230,6 +231,8 @@ class EigensystemSolver
 
                 if (rtolv > tolerance) {
                     is_converged = false;
+                    if (echo_level > 1)
+                        std::cout << "EigensystemSolver: Convergence not reached for eigenvalue #"<<i+1<<": " << rtolv <<"." << std::endl;
                     break;
                 }
             }
@@ -267,8 +270,22 @@ class EigensystemSolver
             eigvecs.row(i) = solver.solve(tmp).normalized();
         }
 
-        // --- output
+        // --- normalization
+        // Given generalized eigenvalue problem (A - eigenvalue * B) * eigenvector = 0,
+        // eigenvector is normalized such that eigenvector^T * B * eigenvector = 1
+        if(mParam["normalize_eigenvectors"].GetBool())
+        {
+            if (echo_level > 0)
+                std::cout << "EigensystemSolver: Eigenvectors are normalized." << std::endl;
+            for (int i = 0; i != nroot; ++i)
+            {
+                const double tmp = eigvecs.row(i) * b * eigvecs.row(i).transpose();
+                const double factor = std::sqrt(1/tmp);
+                eigvecs.row(i) *=  factor;
+            }
+        }
 
+        // --- output
         if (echo_level > 0) {
             double end_time = OpenMPUtils::GetCurrentTime();
             double duration = end_time - start_time;
