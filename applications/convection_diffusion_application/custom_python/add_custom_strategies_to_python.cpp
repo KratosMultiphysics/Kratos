@@ -51,13 +51,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
-
+#include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
 #include "spaces/ublas_space.h"
@@ -84,9 +81,9 @@ namespace Kratos
 
 namespace Python
 {
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddCustomStrategiesToPython()
+void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -101,30 +98,34 @@ void  AddCustomStrategiesToPython()
 
 
     class_< ResidualBasedConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-            bases< BaseSolvingStrategyType >,  boost::noncopyable >
-            ("ResidualBasedConvectionDiffusionStrategy",
-             init<	ModelPart&, LinearSolverType::Pointer,	bool, int, int	>() )
+            ResidualBasedConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
+            BaseSolvingStrategyType >
+            (m,"ResidualBasedConvectionDiffusionStrategy")
+            .def(init<	ModelPart&, LinearSolverType::Pointer,	bool, int, int	>() )
             .def("Clear",&ResidualBasedConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
             ;
     
     class_< ResidualBasedEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-            bases< BaseSolvingStrategyType >,  boost::noncopyable >
-            ("ResidualBasedEulerianConvectionDiffusionStrategy",
-             init<	ModelPart&, LinearSolverType::Pointer,	bool, int	>() )
+            ResidualBasedEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
+            BaseSolvingStrategyType >
+            (m,"ResidualBasedEulerianConvectionDiffusionStrategy")
+            .def( init<	ModelPart&, LinearSolverType::Pointer,	bool, int	>() )
             .def("Clear",&ResidualBasedEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
             ;
             
     class_< ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-            bases< BaseSolvingStrategyType >,  boost::noncopyable >
-            ("ResidualBasedSemiEulerianConvectionDiffusionStrategy",
-             init<	ModelPart&, LinearSolverType::Pointer,	bool, int	>() )
+            ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
+            BaseSolvingStrategyType >
+            (m,"ResidualBasedSemiEulerianConvectionDiffusionStrategy")
+            .def( init<	ModelPart&, LinearSolverType::Pointer,	bool, int	>() )
             .def("Clear",&ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
             ;        
 
     class_< ResidualBasedConvectionDiffusionStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-            bases< BaseSolvingStrategyType >,  boost::noncopyable >
-            ("ResidualBasedConvectionDiffusionStrategyNonLinear",
-             init<	ModelPart&, LinearSolverType::Pointer,	bool, int, int ,double	>() )
+            ResidualBasedConvectionDiffusionStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
+            BaseSolvingStrategyType >
+            (m,"ResidualBasedConvectionDiffusionStrategyNonLinear")
+            .def( init<	ModelPart&, LinearSolverType::Pointer,	bool, int, int ,double	>() )
             .def("Clear",&ResidualBasedConvectionDiffusionStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
             ;
 }

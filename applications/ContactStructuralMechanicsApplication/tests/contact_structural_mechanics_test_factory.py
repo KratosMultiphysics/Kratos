@@ -46,7 +46,7 @@ class ContactStructuralMechanicsTestFactory(KratosUnittest.TestCase):
                 if (ProjectParameters.Has("output_configuration") is True):
                     list_nodal_var = ProjectParameters["output_configuration"]["result_file_configuration"]["nodal_results"]
                     for i in range(0, list_nodal_var.size()):
-                        if (list_nodal_var[i].GetString() == "NORMAL_CONTACT_STRESS"):
+                        if (list_nodal_var[i].GetString() == "LAGRANGE_MULTIPLIER_CONTACT_PRESSURE"):
                             list_nodal_var[i].SetString("VECTOR_LAGRANGE_MULTIPLIER")
                     new_list = list_nodal_var.Clone()
                     ProjectParameters["output_configuration"]["result_file_configuration"].RemoveValue("nodal_results")

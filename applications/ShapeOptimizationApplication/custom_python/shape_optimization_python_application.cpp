@@ -13,19 +13,18 @@
 // ------------------------------------------------------------------------------
 // System includes
 // ------------------------------------------------------------------------------
+#include <pybind11/pybind11.h>
 
 // ------------------------------------------------------------------------------
 // External includes
 // ------------------------------------------------------------------------------
-#include <boost/python.hpp>
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "shape_optimization_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "shape_optimization_application.h"
 
 // ==============================================================================
 
@@ -35,49 +34,46 @@ namespace Kratos
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace pybind11;
 
 
 
-  BOOST_PYTHON_MODULE(KratosShapeOptimizationApplication)
+  PYBIND11_MODULE(KratosShapeOptimizationApplication, m)
   {
 
 	  class_<KratosShapeOptimizationApplication,
 			  KratosShapeOptimizationApplication::Pointer,
-			  bases<KratosApplication>, boost::noncopyable >("KratosShapeOptimizationApplication")
+			  KratosApplication >(m, "KratosShapeOptimizationApplication")
+        .def(init<>())
 			;
 
-	AddCustomUtilitiesToPython();
+	AddCustomUtilitiesToPython(m);
+
 
 	//registering variables in python
 
 	// Geometry variables
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(NORMALIZED_SURFACE_NORMAL);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NORMALIZED_SURFACE_NORMAL);
 
     // Optimization variables
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(OBJECTIVE_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(OBJECTIVE_SURFACE_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MAPPED_OBJECTIVE_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(CONSTRAINT_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONSTRAINT_SURFACE_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MAPPED_CONSTRAINT_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(SEARCH_DIRECTION);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_UPDATE);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_CHANGE);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, OBJECTIVE_SENSITIVITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, OBJECTIVE_SURFACE_SENSITIVITY);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MAPPED_OBJECTIVE_SENSITIVITY);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CONSTRAINT_SENSITIVITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSTRAINT_SURFACE_SENSITIVITY);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MAPPED_CONSTRAINT_SENSITIVITY);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SEARCH_DIRECTION);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CONTROL_POINT_UPDATE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CONTROL_POINT_CHANGE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SHAPE_UPDATE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SHAPE_CHANGE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MESH_CHANGE);
 
     // For edge damping
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
-
-    // For Structure Sensitivity Analysis
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MASS_SHAPE_GRADIENT);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(EIGENFREQUENCY_SHAPE_GRADIENT);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DAMPING_FACTOR);
 
     // For mapping
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MAPPING_ID);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAPPING_ID);
   }
 
 

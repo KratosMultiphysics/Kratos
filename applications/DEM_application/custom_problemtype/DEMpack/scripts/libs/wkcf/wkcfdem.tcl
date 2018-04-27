@@ -607,7 +607,7 @@ proc ::wkcf::WriteAppliedLoadsData {AppId} {
     }
 }
 
-proc ::wkcf::WriteBoundingBoxDefaults {fileid} {	
+proc ::wkcf::WriteBoundingBoxDefaults {fileid} {        
 	global KPriv
 
 	if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
@@ -1189,6 +1189,8 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
 	
 	# PostPrintVirtualSeaSurface
 	if {[::wkcf::TranslateToBinaryJson [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-SeaSurface" dv]]} {
+	    puts $fileid "\"virtual_sea_surface_settings\"     : {"
+	    puts $fileid "\"print_sea_surface\"                : true,"
 	    puts $fileid "\"PostVirtualSeaSurfaceX1\"          : [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceX1" dv],"
 	    puts $fileid "\"PostVirtualSeaSurfaceY1\"          : [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceY1" dv],"
 	    puts $fileid "\"PostVirtualSeaSurfaceX2\"          : [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceX2" dv],"
@@ -1196,7 +1198,8 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
 	    puts $fileid "\"PostVirtualSeaSurfaceX3\"          : [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceX3" dv],"
 	    puts $fileid "\"PostVirtualSeaSurfaceY3\"          : [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceY3" dv],"
 	    puts $fileid "\"PostVirtualSeaSurfaceX4\"          : [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceX4" dv],"
-	    puts $fileid "\"PostVirtualSeaSurfaceY4\"          : [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceY4" dv],"
+	    puts $fileid "\"PostVirtualSeaSurfaceY4\"          : [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceY4" dv]"
+	    puts $fileid "},"
 	}
     }
 
@@ -1637,11 +1640,11 @@ proc ::wkcf::WriteExplicitSolverVariables {} {
     set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-CleanInitialIndentations"
     set CleanIndentationsOption [::xmlutils::setXml $cxpath $cproperty]
     if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-        puts $fileid "CleanIndentationsOption          = \"OFF\""
+	puts $fileid "CleanIndentationsOption          = \"OFF\""
     } elseif {$CleanIndentationsOption == "Yes"} {
-        puts $fileid "CleanIndentationsOption          = \"ON\""
+	puts $fileid "CleanIndentationsOption          = \"ON\""
     } else {
-        puts $fileid "CleanIndentationsOption          = \"OFF\""
+	puts $fileid "CleanIndentationsOption          = \"OFF\""
     }
 
     if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
@@ -2192,11 +2195,11 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-CleanInitialIndentations"
     set CleanIndentationsOption [::xmlutils::setXml $cxpath $cproperty]
     if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-        puts $fileid "\"CleanIndentationsOption\"          : false,"
+	puts $fileid "\"CleanIndentationsOption\"          : false,"
     } elseif {$CleanIndentationsOption == "Yes"} {
-        puts $fileid "\"CleanIndentationsOption\"          : true,"
+	puts $fileid "\"CleanIndentationsOption\"          : true,"
     } else {
-        puts $fileid "\"CleanIndentationsOption\"          : false,"
+	puts $fileid "\"CleanIndentationsOption\"          : false,"
     }
 
     if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
@@ -2389,7 +2392,6 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     set MaxTimeStep [::xmlutils::setXml $cxpath $cproperty]
     puts $fileid "\"MaxTimeStep\"                      : $MaxTimeStep,"
 
-    # Final Time
     if {"Fluid" in $ActiveAppList} {
 	set cxpath "GeneralApplicationData//c.SimulationOptions//i.EndTime"
 	set TTime [::xmlutils::setXml $cxpath $cproperty]
@@ -2399,17 +2401,16 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     }
     puts $fileid "\"FinalTime\"                        : $TTime,"
 
-    # Control Time
+    
     set cxpath "$rootid//c.DEM-SolutionStrategy//c.DEM-TimeParameters//i.DEM-ScreenInfoOutput"
     set CTime [::xmlutils::setXml $cxpath $cproperty]
     puts $fileid "\"ControlTime\"                      : $CTime,"
 
-    # Neighbour Search Frequency
+    
     set cxpath "$rootid//c.DEM-SolutionStrategy//c.DEM-TimeParameters//i.DEM-NeighbourSearchFrequency"
     set FrecTime [::xmlutils::setXml $cxpath $cproperty]
     puts $fileid "\"NeighbourSearchFrequency\"         : $FrecTime,"
 
-    # Material Test Data #########################################################################################
     if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	set cproperty "dv"
 	set cxpath "DEM//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-MaterialTestActivate"
@@ -2419,7 +2420,6 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 	}
     }
 
-    # SWIMMING-SPECIFIC SECTION BEGINS ###########################################################################
     if {"Fluid" in $ActiveAppList} {
 	set cxpath "$rootid//c.DEM-Fluid-interaction//i.DEM-TwoWayCoupling"
 	set cproperty "dv"

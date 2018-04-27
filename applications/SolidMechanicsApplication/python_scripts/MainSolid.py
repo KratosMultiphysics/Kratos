@@ -33,16 +33,8 @@ class Solution(object):
         # Set input file name
         self._set_input_file_name(file_name)
 
-        # Set echo level
-        self.echo_level = 0
-        if( self.ProjectParameters.Has("problem_data") ):
-            if( self.ProjectParameters["problem_data"].Has("echo_level") ):
-                self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
-
-        # Print solving time
-        self.report = False
-        if( self.echo_level > 0 ):
-            self.report = True
+        # Set logger severity level
+        self._set_severity_level()
 
         # Defining the number of threads
         num_threads =  self._get_parallel_size()
@@ -102,14 +94,6 @@ class Solution(object):
         # Initiliaze processes
         self.processes.ExecuteInitialize()
 
-        # Print model_part and properties
-        if(self.echo_level>0):
-            print("")
-            print(self.main_model_part)
-            for properties in self.main_model_part.Properties:
-                print(properties)
-
-
         # Start graphical output (GiD)
         output_model_part = self.model.GetOutputModelPart()
         self.output = self._get_graphical_output(output_model_part)
@@ -122,8 +106,14 @@ class Solution(object):
         if( self._is_not_restarted() ):
             self.output.ExecuteBeforeSolutionLoop()
 
-
         self.solver.ExecuteBeforeSolutionLoop()
+
+        # Print model_part and properties
+        if(self.echo_level>0):
+            print("")
+            print(self.main_model_part)
+            for properties in self.main_model_part.Properties:
+                print(properties)
 
         print(" ")
         print("::[KSM Simulation]:: Analysis -START- ")
@@ -170,7 +160,8 @@ class Solution(object):
 
         self.output.ExecuteInitializeSolutionStep()
 
-        self.solver.InitializeSolutionStep()
+        # Step by step (1)
+        #self.solver.InitializeSolutionStep()
 
         self._stop_time_measuring(self.clock_time,"Initialize Step", self.report);
 
@@ -179,12 +170,10 @@ class Solution(object):
 
         self.clock_time = self._start_time_measuring();
 
-        #self.solver.Predict()
-
+        # Step by step (2)
         #self.solver.SolveSolutionStep()
 
-        #self.solver.FinalizeSolutionStep()
-
+        # All steps included (1)(2)(3)
         self.solver.Solve()
 
         self._stop_time_measuring(self.clock_time,"Solve Step", self.report);
@@ -193,6 +182,9 @@ class Solution(object):
     def FinalizeSolutionStep(self):
 
         self.clock_time = self._start_time_measuring();
+
+        # Step by step (3)
+        #self.solver.FinalizeSolutionStep()
 
         self.output.ExecuteFinalizeSolutionStep()
 
@@ -363,6 +355,30 @@ class Solution(object):
         else:
             print("::[KSM Simulation]:: No Output")
             return (KratosMultiphysics.Process())
+
+    def _set_severity_level(self):
+        # Set echo level
+        self.echo_level = 0
+        if( self.ProjectParameters.Has("problem_data") ):
+            if( self.ProjectParameters["problem_data"].Has("echo_level") ):
+                self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
+
+        self.severity = KratosMultiphysics.Logger.Severity.WARNING
+        if( self.echo_level == 1 ):
+            self.severity = KratosMultiphysics.Logger.Severity.INFO
+        elif( self.echo_level == 2 ):
+            self.severity = KratosMultiphysics.Logger.Severity.DETAIL
+        elif( self.echo_level == 3 ):
+            self.severity = KratosMultiphysics.Logger.Severity.DEBUG
+        elif( self.echo_level == 4 ):
+            self.severity = KratosMultiphysics.Logger.Severity.TRACE
+
+        # Print solving time
+        self.report = False
+        if( self.echo_level > 0 ):
+            self.report = True
+
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(self.severity)
 
     def _set_parallel_size(self, num_threads):
         parallel = KratosMultiphysics.OpenMPUtils()

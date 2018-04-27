@@ -26,9 +26,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/variables.h"
-#include "includes/kratos_application.h"
+#include "constitutive_models_application_variables.h"
 
 namespace Kratos
 {

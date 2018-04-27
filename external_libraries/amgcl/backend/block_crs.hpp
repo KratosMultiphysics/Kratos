@@ -173,46 +173,46 @@ struct block_crs {
     static std::string name() { return "block_crs"; }
 
     /// Copy matrix from builtin backend.
-    static boost::shared_ptr<matrix>
-    copy_matrix(boost::shared_ptr< typename backend::builtin<real>::matrix > A,
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr< typename backend::builtin<real>::matrix > A,
             const params &prm)
     {
-        return boost::make_shared<matrix>(*A, prm.block_size);
+        return std::make_shared<matrix>(*A, prm.block_size);
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     copy_vector(const vector &x, const params&)
     {
-        return boost::make_shared<vector>(x);
+        return std::make_shared<vector>(x);
     }
 
-    static boost::shared_ptr< vector >
+    static std::shared_ptr< vector >
     copy_vector(const std::vector<value_type> &x, const params&)
     {
-        return boost::make_shared<vector>(x);
+        return std::make_shared<vector>(x);
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
-    copy_vector(boost::shared_ptr< vector > x, const params&)
+    static std::shared_ptr<vector>
+    copy_vector(std::shared_ptr< vector > x, const params&)
     {
         return x;
     }
 
     /// Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params&)
     {
-        return boost::make_shared<vector>(size);
+        return std::make_shared<vector>(size);
     }
 
-    static boost::shared_ptr<direct_solver>
+    static std::shared_ptr<direct_solver>
     create_solver(
-            boost::shared_ptr< typename backend::builtin<real>::matrix > A,
+            std::shared_ptr< typename backend::builtin<real>::matrix > A,
             const params&)
     {
-        return boost::make_shared<direct_solver>(*A);
+        return std::make_shared<direct_solver>(*A);
     }
 };
 

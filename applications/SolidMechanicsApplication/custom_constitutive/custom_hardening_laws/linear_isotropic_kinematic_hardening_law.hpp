@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED )
+#if !defined(KRATOS_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED)
 #define  KRATOS_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED
 
 // System includes
@@ -79,18 +79,18 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this hardening law
      */
-    virtual HardeningLaw::Pointer Clone() const;
+    HardeningLaw::Pointer Clone() const override;
 
     ///@}
     ///@name Operations
     ///@{
 
 	
-    double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues);
+    double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues) override;
 
-    double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues);
+    double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues) override;
 
-    double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const Parameters& rValues);
+    double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const Parameters& rValues) override;
 
 
     ///@}
@@ -192,9 +192,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry

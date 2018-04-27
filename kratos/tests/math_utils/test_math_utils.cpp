@@ -83,14 +83,14 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            bounded_matrix<double, 1, 1> mat11 = ZeroMatrix(1, 1);
+            BoundedMatrix<double, 1, 1> mat11 = ZeroMatrix(1, 1);
             mat11(0,0) = 1.0;
             
             double det = MathUtils<double>::DetMat(mat11);
 
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
             
-            bounded_matrix<double, 2, 2> mat22 = ZeroMatrix(2, 2);
+            BoundedMatrix<double, 2, 2> mat22 = ZeroMatrix(2, 2);
             mat22(0,0) = 1.0;
             mat22(1,1) = 1.0;
             
@@ -98,7 +98,7 @@ namespace Kratos
 
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
             
-            bounded_matrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
+            BoundedMatrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
             mat33(0,0) = 1.0;
             mat33(1,1) = 1.0;
             mat33(2,2) = 1.0;
@@ -107,7 +107,7 @@ namespace Kratos
 
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
             
-            bounded_matrix<double, 4, 4> mat44 = ZeroMatrix(4, 4);
+            BoundedMatrix<double, 4, 4> mat44 = ZeroMatrix(4, 4);
             mat44(0,0) = 1.0;
             mat44(1,1) = 1.0;
             mat44(2,2) = 1.0;
@@ -122,14 +122,14 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            bounded_matrix<double, 1, 1> mat11 = ZeroMatrix(1, 1);
+            BoundedMatrix<double, 1, 1> mat11 = ZeroMatrix(1, 1);
             mat11(0,0) = 2.0;
             
             double cofactor = MathUtils<double>::Cofactor(mat11, 0, 0);
 
             KRATOS_CHECK_EQUAL(cofactor, 1.0);
             
-            bounded_matrix<double, 2, 2> mat22 = ZeroMatrix(2, 2);
+            BoundedMatrix<double, 2, 2> mat22 = ZeroMatrix(2, 2);
             mat22(0,0) = -2.0; mat22(0,1) = 2.0;
             mat22(1,0) = -1.0; mat22(1,1) = 1.0;
             
@@ -139,7 +139,7 @@ namespace Kratos
             cofactor = MathUtils<double>::Cofactor(mat22, 0, 1);
             KRATOS_CHECK_EQUAL(cofactor, 1.0);
             
-            bounded_matrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
+            BoundedMatrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
             mat33(0,0) = -2.0; mat33(0,1) = 2.0; mat33(0,2) = -3.0;
             mat33(1,0) = -1.0; mat33(1,1) = 1.0; mat33(1,2) = 3.0;
             mat33(2,0) = 2.0; mat33(2,1) = 0.0; mat33(2,2) = -1.0;
@@ -152,12 +152,12 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            bounded_matrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
+            BoundedMatrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
             mat33(0,0) = 2.0; mat33(0,1) = 0.0; mat33(0,2) = 2.0;
             mat33(1,0) = 2.0; mat33(1,1) = 0.0; mat33(1,2) =-2.0;
             mat33(2,0) = 0.0; mat33(2,1) = 1.0; mat33(2,2) = 1.0;
 
-            bounded_matrix<double, 3, 3> ref33 = ZeroMatrix(3, 3);
+            BoundedMatrix<double, 3, 3> ref33 = ZeroMatrix(3, 3);
             ref33(0,0) = 2.0; ref33(0,1) =-2.0; ref33(0,2) = 2.0;
             ref33(1,0) = 2.0; ref33(1,1) = 2.0; ref33(1,2) =-2.0;
             ref33(2,0) = 0.0; ref33(2,1) = 8.0; ref33(2,2) = 0.0;
@@ -206,23 +206,23 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
 
-            bounded_matrix<double, 1, 1> mat11;
+            BoundedMatrix<double, 1, 1> mat11;
             mat11(0,0) = 0.896308;
             
             double det;
-            const bounded_matrix<double, 1, 1> inv11 = MathUtils<double>::InvertMatrix<1>(mat11, det);
-            const bounded_matrix<double, 1, 1> I11 = prod(inv11, mat11);
+            const BoundedMatrix<double, 1, 1> inv11 = MathUtils<double>::InvertMatrix<1>(mat11, det);
+            const BoundedMatrix<double, 1, 1> I11 = prod(inv11, mat11);
             
             KRATOS_CHECK_NEAR(I11(0,0), 1.0, tolerance);
             
-            bounded_matrix<double, 2, 2> mat22;
+            BoundedMatrix<double, 2, 2> mat22;
             mat22(0,0) = 0.670005;
             mat22(0,1) = 0.853367;
             mat22(1,0) = 1.47006;
             mat22(1,1) = 1.00029;
             
-            const bounded_matrix<double, 2, 2> inv22 = MathUtils<double>::InvertMatrix<2>(mat22, det);
-            const bounded_matrix<double, 2, 2> I22 = prod(inv22, mat22);
+            const BoundedMatrix<double, 2, 2> inv22 = MathUtils<double>::InvertMatrix<2>(mat22, det);
+            const BoundedMatrix<double, 2, 2> I22 = prod(inv22, mat22);
             
             for (unsigned int i = 0; i < 2; i++)
             {
@@ -239,7 +239,7 @@ namespace Kratos
                 }
             }
             
-            bounded_matrix<double, 3, 3> mat33;
+            BoundedMatrix<double, 3, 3> mat33;
             mat33(0,0) = 0.678589;
             mat33(0,1) = 0.386213;
             mat33(0,2) = 0.371126;
@@ -250,8 +250,8 @@ namespace Kratos
             mat33(2,1) = 1.08225;
             mat33(2,2) = 0.972831;
             
-            const bounded_matrix<double, 3, 3> inv33 = MathUtils<double>::InvertMatrix<3>(mat33, det);
-            const bounded_matrix<double, 3, 3> I33 = prod(inv33, mat33);
+            const BoundedMatrix<double, 3, 3> inv33 = MathUtils<double>::InvertMatrix<3>(mat33, det);
+            const BoundedMatrix<double, 3, 3> I33 = prod(inv33, mat33);
             
             for (unsigned int i = 0; i < 3; i++)
             {
@@ -268,7 +268,7 @@ namespace Kratos
                 }
             }
             
-            bounded_matrix<double, 4, 4> mat44;
+            BoundedMatrix<double, 4, 4> mat44;
             mat44(0,0) = 0.00959158;
             mat44(0,1) = 0.466699;
             mat44(0,2) = 0.167357;
@@ -286,8 +286,8 @@ namespace Kratos
             mat44(3,2) = 2.58081;
             mat44(3,3) = 3.3083;
             
-            const bounded_matrix<double, 4, 4> inv44 = MathUtils<double>::InvertMatrix<4>(mat44, det);
-            const bounded_matrix<double, 4, 4> I44 = prod(inv44, mat44);
+            const BoundedMatrix<double, 4, 4> inv44 = MathUtils<double>::InvertMatrix<4>(mat44, det);
+            const BoundedMatrix<double, 4, 4> I44 = prod(inv44, mat44);
             
             for (unsigned int i = 0; i < 4; i++)
             {
@@ -555,9 +555,9 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            bounded_matrix<double, 3, 3> mat33;
-            bounded_matrix<double, 3, 3> eigenmat33;
-            bounded_matrix<double, 3, 3> vectormat33;
+            BoundedMatrix<double, 3, 3> mat33;
+            BoundedMatrix<double, 3, 3> eigenmat33;
+            BoundedMatrix<double, 3, 3> vectormat33;
             
             mat33(0,0) = 0.678589;
             mat33(0,1) = 0.386213;
@@ -571,7 +571,7 @@ namespace Kratos
             
             bool converged = MathUtils<double>::EigenSystem<3>(mat33, vectormat33, eigenmat33);
 
-            bounded_matrix<double, 3, 3> auxmat33 = prod(trans(vectormat33), eigenmat33);
+            BoundedMatrix<double, 3, 3> auxmat33 = prod(trans(vectormat33), eigenmat33);
             auxmat33 = prod(auxmat33, vectormat33);
             
             for (unsigned int i = 0; i < 3; i++)

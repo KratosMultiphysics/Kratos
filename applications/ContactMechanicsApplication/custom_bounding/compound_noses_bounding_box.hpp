@@ -329,7 +329,7 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    double GetRadius(const PointType& rPoint)
+    double GetRadius(const PointType& rPoint) override
     {
       PointType LocalPoint = rPoint;
       BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, LocalPoint);
@@ -362,7 +362,7 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    void UpdateBoxPosition(const double & rCurrentTime)
+    void UpdateBoxPosition(const double & rCurrentTime) override
     {
       
       PointType Displacement  =  this->GetBoxDisplacement(rCurrentTime);
@@ -384,7 +384,7 @@ public:
     //************************************************************************************
    
 
-    bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0)
+    bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0) override
     {
       
       KRATOS_TRY   
@@ -464,7 +464,7 @@ public:
     //************************************************************************************
     //************************************************************************************
     
-    bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
+    bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
 
@@ -540,7 +540,7 @@ public:
     //************************************************************************************
 
     //Compound Noses
-    void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 )
+    void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 ) override
     {
       KRATOS_TRY
 	
@@ -806,19 +806,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "CompoundNosesBoundingBox";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         rOStream << this->mBox.UpperPoint << " , " << this->mBox.LowerPoint;
     }

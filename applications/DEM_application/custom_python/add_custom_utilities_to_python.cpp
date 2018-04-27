@@ -3,8 +3,8 @@
 //
 
 // External includes 
-#include <boost/python.hpp>
-#include <boost/python/overloads.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 // Project includes
 
@@ -29,9 +29,6 @@
 #include "custom_utilities/excavator_utility.h"
 #include "custom_utilities/analytic_tools/particles_history_watcher.h"
 
-#include "boost/python/list.hpp"
-#include "boost/python/extract.hpp"
-
 namespace Kratos {
 
 namespace Python {
@@ -41,33 +38,31 @@ typedef std::vector<array_1d<double, 3 > >           ComponentVectorType;
 typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
 typedef SpatialSearch::NodesContainerType            NodesArrayType;
 
-boost::python::list Aux_MeasureTopHeight(PreUtilities& ThisPreUtils, ModelPart& rModelPart)
+pybind11::list Aux_MeasureTopHeight(PreUtilities& ThisPreUtils, ModelPart& rModelPart)
 {
     double subtotal = 0.0;
     double weight = 0.0;
     ThisPreUtils.MeasureTopHeight(rModelPart,subtotal,weight);
 
     // Copy output to a Python list
-    boost::python::list Out;
-    boost::python::object py_subtotal(subtotal);
-    boost::python::object py_weight(weight);
-    Out.append( py_subtotal );
-    Out.append( py_weight );
+    pybind11::list Out;
+
+    Out.append( subtotal );
+    Out.append( weight );
     return Out;
 }
 
-boost::python::list Aux_MeasureBotHeight(PreUtilities& ThisPreUtils, ModelPart& rModelPart)
+pybind11::list Aux_MeasureBotHeight(PreUtilities& ThisPreUtils, ModelPart& rModelPart)
 {
     double subtotal = 0.0;
     double weight = 0.0;
     ThisPreUtils.MeasureBotHeight(rModelPart,subtotal,weight);
 
     // Copy output to a Python list
-    boost::python::list Out;
-    boost::python::object py_subtotal(subtotal);
-    boost::python::object py_weight(weight);
-    Out.append( py_subtotal );
-    Out.append( py_weight );
+    pybind11::list Out;
+    
+    Out.append( subtotal );
+    Out.append( weight );
     return Out;
 }
 
@@ -143,11 +138,11 @@ void CreatePropertiesProxies2(PropertiesProxiesManager& r_properties_proxy_manag
     r_properties_proxy_manager.CreatePropertiesProxies(r_modelpart, r_inlet_modelpart, r_clusters_modelpart); 
 }
 
-void AddCustomUtilitiesToPython() {
-    
-    using namespace boost::python;
+using namespace pybind11;
+
+void AddCustomUtilitiesToPython(pybind11::module& m) {
         
-    class_<ParticleCreatorDestructor, boost::noncopyable >("ParticleCreatorDestructor")
+    class_<ParticleCreatorDestructor, ParticleCreatorDestructor::Pointer>(m, "ParticleCreatorDestructor")
         .def(init<>())
         .def(init<AnalyticWatcher::Pointer>())
         .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
@@ -174,19 +169,23 @@ void AddCustomUtilitiesToPython() {
         .def("CreateSphericParticle", CreateSphericParticle6)
         ;
       
-    class_<DEM_Inlet, boost::noncopyable >
-        ("DEM_Inlet", init<ModelPart&>())
+    class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
+        .def(init<ModelPart&>())
         .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)        
-        .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet, (arg("model_part"), arg("creator_destructor"), arg("using_strategy_for_continuum") = false))
+        .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet
+            ,arg("model_part")
+            ,arg("creator_destructor")
+            ,arg("using_strategy_for_continuum") = false
+            )
         .def("GetNumberOfParticlesInjectedSoFar", &DEM_Inlet::CreateElementsFromInletMesh)
         ;
 
-    class_<DEM_Force_Based_Inlet, bases<DEM_Inlet> >
-        ("DEM_Force_Based_Inlet", init<ModelPart&, array_1d<double, 3>>())
+    class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")
+        .def(init<ModelPart&, array_1d<double, 3>>())
         ;
 
-    class_<SphericElementGlobalPhysicsCalculator, boost::noncopyable >
-        ("SphericElementGlobalPhysicsCalculator", init<ModelPart&>())
+    class_<SphericElementGlobalPhysicsCalculator, SphericElementGlobalPhysicsCalculator::Pointer >(m, "SphericElementGlobalPhysicsCalculator")
+        .def(init<ModelPart&>())
         .def("CalculateTotalVolume", &SphericElementGlobalPhysicsCalculator::CalculateTotalVolume)
         .def("CalculateTotalMass", &SphericElementGlobalPhysicsCalculator::CalculateTotalMass)
         .def("CalculateMaxNodalVariable", &SphericElementGlobalPhysicsCalculator::CalculateMaxNodalVariable)
@@ -210,46 +209,51 @@ void AddCustomUtilitiesToPython() {
     void (DemSearchUtilities::*SearchNodeNeigboursDistancesLM)(ModelPart&,NodesArrayType&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
     void (DemSearchUtilities::*SearchNodeNeigboursDistancesLL)(NodesArrayType&,NodesArrayType&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
 
-    class_<DemSearchUtilities, boost::noncopyable >
-        ("DemSearchUtilities", init<SpatialSearch::Pointer>())
+    class_<DemSearchUtilities, DemSearchUtilities::Pointer>(m, "DemSearchUtilities")
+        .def(init<SpatialSearch::Pointer>())
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesMM)
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesML)
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLM)
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLL)
         ;
 
-    class_<AnalyticModelPartFiller, boost::noncopyable >
-        ("AnalyticModelPartFiller", init<>())
-        .def("FillAnalyticModelPartGivenFractionOfParticlesToTransform", &AnalyticModelPartFiller::FillAnalyticModelPartGivenFractionOfParticlesToTransform, arg("analytic_sub_model_part_name") = "")
+    class_<AnalyticModelPartFiller, AnalyticModelPartFiller::Pointer>(m, "AnalyticModelPartFiller")
+        .def(init<>())
+        .def("FillAnalyticModelPartGivenFractionOfParticlesToTransform", &AnalyticModelPartFiller::FillAnalyticModelPartGivenFractionOfParticlesToTransform
+            ,arg("fraction_of_particles_to_convert")
+            ,arg("spheres_model_part")
+            ,arg("particle_creator_destructor")
+            ,arg("analytic_sub_model_part_name") = ""
+            )
         ;
 
-    class_<AnalyticParticleWatcher, boost::noncopyable >
-        ("AnalyticParticleWatcher", init<>())
+    class_<AnalyticParticleWatcher, AnalyticParticleWatcher::Pointer>(m, "AnalyticParticleWatcher")
+        .def(init<>())
         .def("MakeMeasurements", &AnalyticParticleWatcher::MakeMeasurements)
-        .def("GetTimeStepsData", &AnalyticParticleWatcher::GetTimeStepsData)
-        .def("GetParticleData", &AnalyticParticleWatcher::GetParticleData)
-        .def("GetAllParticlesData", &AnalyticParticleWatcher::GetAllParticlesData)
+        //.def("GetTimeStepsData", &AnalyticParticleWatcher::GetTimeStepsData)
+        //.def("GetParticleData", &AnalyticParticleWatcher::GetParticleData)
+        //.def("GetAllParticlesData", &AnalyticParticleWatcher::GetAllParticlesData)
         .def("SetNodalMaxImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxImpactVelocities)
         .def("SetNodalMaxFaceImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxFaceImpactVelocities)
         ;
 
-    class_<AnalyticFaceWatcher, boost::noncopyable >
-        ("AnalyticFaceWatcher", init<>())
+    class_<AnalyticFaceWatcher, AnalyticFaceWatcher::Pointer>(m, "AnalyticFaceWatcher")
+        .def(init<>())
         .def("ClearData", &AnalyticFaceWatcher::ClearData)
         .def("MakeMeasurements", &AnalyticFaceWatcher::MakeMeasurements)
-        .def("GetTimeStepsData", &AnalyticFaceWatcher::GetTimeStepsData)
-        .def("GetFaceData", &AnalyticFaceWatcher::GetFaceData)
-        .def("GetAllFacesData", &AnalyticFaceWatcher::GetAllFacesData)
+        //.def("GetTimeStepsData", &AnalyticFaceWatcher::GetTimeStepsData)
+        //.def("GetFaceData", &AnalyticFaceWatcher::GetFaceData)
+        //.def("GetAllFacesData", &AnalyticFaceWatcher::GetAllFacesData)
         .def("GetTotalFlux", &AnalyticFaceWatcher::GetTotalFlux)
         ;
 
-    class_<DEM_FEM_Search, boost::noncopyable >
-        ("DEM_FEM_Search", init<>())
+    class_<DEM_FEM_Search, DEM_FEM_Search::Pointer>(m, "DEM_FEM_Search")
+        .def(init<>())
         .def("GetBBHighPoint", &DEM_FEM_Search::GetBBHighPoint)
         .def("GetBBLowPoint", &DEM_FEM_Search::GetBBLowPoint)
         ;
     
-    class_<PreUtilities, boost::noncopyable >("PreUtilities")
+    class_<PreUtilities, PreUtilities::Pointer >(m, "PreUtilities")
         .def(init<>())
         .def(init<ModelPart&>())
         .def("MeasureTopHeigh", Aux_MeasureTopHeight)        
@@ -260,8 +264,8 @@ void AddCustomUtilitiesToPython() {
         .def("FillAnalyticSubModelPartUtility", &PreUtilities::FillAnalyticSubModelPartUtility)
         ;
          
-    class_<PostUtilities, boost::noncopyable >
-        ("PostUtilities", init<>())
+    class_<PostUtilities, PostUtilities::Pointer>(m, "PostUtilities")
+        .def(init<>())
         .def("VelocityTrap", &PostUtilities::VelocityTrap)
         .def("AddModelPartToModelPart", &PostUtilities::AddModelPartToModelPart)
         .def("AddSpheresNotBelongingToClustersToMixModelPart", &PostUtilities::AddSpheresNotBelongingToClustersToMixModelPart)
@@ -273,26 +277,26 @@ void AddCustomUtilitiesToPython() {
         .def("ComputeEulerAngles", &PostUtilities::ComputeEulerAngles)
         ;
      
-    class_<DEMFEMUtilities, boost::noncopyable >
-        ("DEMFEMUtilities", init<>())
+    class_<DEMFEMUtilities, DEMFEMUtilities::Pointer>(m, "DEMFEMUtilities")
+        .def(init<>())
         .def("ChangeMeshVelocity", &DEMFEMUtilities::ChangeMeshVelocity)
         .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
         .def("MoveAllMeshesUsingATable", &DEMFEMUtilities::MoveAllMeshesUsingATable)
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)     
         ;
 
-    class_<BenchmarkUtils, boost::noncopyable >
-        ("BenchmarkUtils", init<>())
+    class_<BenchmarkUtils, BenchmarkUtils::Pointer>(m, "BenchmarkUtils")
+        .def(init<>())
         .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
         ;
      
-    class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, bases<ReorderConsecutiveModelPartIO>,  boost::noncopyable>(
-        "ReorderConsecutiveFromGivenIdsModelPartIO",init<std::string const& >())
+    class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, ReorderConsecutiveModelPartIO>(m, "ReorderConsecutiveFromGivenIdsModelPartIO")
+        .def(init<std::string const& >())
         .def(init<std::string const&, const int, const int, const int>())
         ;  
     
-    class_<AuxiliaryUtilities, boost::noncopyable > 
-        ("AuxiliaryUtilities", init<>())
+    class_<AuxiliaryUtilities, AuxiliaryUtilities::Pointer>(m, "AuxiliaryUtilities")
+        .def(init<>())
         .def("GetIthSubModelPartIsForceIntegrationGroup", &AuxiliaryUtilities::GetIthSubModelPartIsForceIntegrationGroup)
         .def("GetIthSubModelPartName", &AuxiliaryUtilities::GetIthSubModelPartName)
         .def("GetIthSubModelPartIdentifier", &AuxiliaryUtilities::GetIthSubModelPartIdentifier)
@@ -303,24 +307,24 @@ void AddCustomUtilitiesToPython() {
         .def("GetIthSubModelPartNodes", &AuxiliaryUtilities::GetIthSubModelPartNodes)          
         ;
     
-    class_<PropertiesProxiesManager, boost::noncopyable >
-        ("PropertiesProxiesManager", init<>())
+    class_<PropertiesProxiesManager, PropertiesProxiesManager::Pointer>(m, "PropertiesProxiesManager")
+        .def(init<>())
         .def("CreatePropertiesProxies", CreatePropertiesProxies1)
         .def("CreatePropertiesProxies", CreatePropertiesProxies2)
         ;
 
-    class_<ExcavatorUtility, boost::noncopyable >("ExcavatorUtility",
-        init<ModelPart&, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double>())
+    class_<ExcavatorUtility, ExcavatorUtility::Pointer >(m, "ExcavatorUtility")
+        .def(init<ModelPart&, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double>())
         .def("ExecuteInitializeSolutionStep", &ExcavatorUtility::ExecuteInitializeSolutionStep)   
         ;
 
-    class_<AnalyticWatcher, AnalyticWatcher::Pointer >
-        ("AnalyticWatcher", init<>())
-        .def("GetNewParticlesData", &ParticlesHistoryWatcher::GetNewParticlesData)
+    class_<AnalyticWatcher, AnalyticWatcher::Pointer>(m, "AnalyticWatcher")
+        .def(init<>())
         ;
 
-    class_<ParticlesHistoryWatcher, ParticlesHistoryWatcher::Pointer, bases<AnalyticWatcher> >
-        ("ParticlesHistoryWatcher", init<>())
+    class_<ParticlesHistoryWatcher, ParticlesHistoryWatcher::Pointer, AnalyticWatcher>(m, "ParticlesHistoryWatcher")
+        .def(init<>())
+        .def("GetNewParticlesData", &ParticlesHistoryWatcher::GetNewParticlesData)
         ;
     }
 

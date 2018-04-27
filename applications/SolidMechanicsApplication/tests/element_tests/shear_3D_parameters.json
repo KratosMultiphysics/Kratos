@@ -29,22 +29,22 @@
     }],
     "loads_process_list"       : [{
         "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto2",
-        "variable_name"   : "SURFACE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [0.0,1.0,0.0]
     },{
         "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto3",
-        "variable_name"   : "SURFACE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [0.0,-1.0,0.0]
     },{
         "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto4",
-        "variable_name"   : "SURFACE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [-1.0,0.0,0.0]
     },{
         "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto5",
-        "variable_name"   : "SURFACE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [1.0,0.0,0.0]
     }],

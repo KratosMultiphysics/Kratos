@@ -60,7 +60,7 @@ namespace Kratos
  * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree 
  * @author Vicente Mataix Ferrandiz
  */
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 class TreeContactSearch
 {
 public:
@@ -90,6 +90,9 @@ public:
     /// KDtree definitions
     typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;
+
+    /// The definition of zero tolerance
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     /// Pointer definition of TreeContactSearch
     KRATOS_CLASS_POINTER_DEFINITION( TreeContactSearch );
@@ -357,7 +360,7 @@ private:
         IndexType& rConditionId,
         Condition::Pointer pCondSlave,
         PointVector& rPointsFound,
-        const unsigned int NumberOfPointsFound,
+        const IndexType NumberOfPointsFound,
         IndexSet::Pointer IndexesSet
         );
     
