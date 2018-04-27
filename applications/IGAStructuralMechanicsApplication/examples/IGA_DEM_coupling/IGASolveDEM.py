@@ -32,7 +32,7 @@ from KratosMultiphysics.IGAStructuralMechanicsApplication import *
 from KratosMultiphysics.NurbsBrepApplication import *
 
 from KratosMultiphysics import DEMApplication
-import main_script 
+import main_script
 
 from KratosExternalSolversApplication import *
 
@@ -48,25 +48,25 @@ ProjectParameters = Parameters( parameter_file.read())
 #set echo level
 echo_level = ProjectParameters["solver_settings"]["echo_level"].GetInt()
 
-model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
+iga_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
 # Not yet implemented in the parser
-model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
+iga_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
 
 ###TODO replace this "model" for real one once available in kratos core
-Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : model_part}
+Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : iga_model_part}
 
 
-#construct the solver (main setting methods are located in the solver_module)
+#construct the iga_solver (main setting methods are located in the solver_module)
 solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-solver = solver_module.CreateSolver(model_part, ProjectParameters["solver_settings"])
+iga_solver = solver_module.CreateSolver(iga_model_part, ProjectParameters["solver_settings"])
 
-solver.AddVariables()
+iga_solver.AddVariables()
 
 ##NURBSBREPAPPLICATION
 nurbs_brep_time = StartTimeMeasuring()
 import nurbs_brep_process
-NurbsBrepProcess = nurbs_brep_process.Factory(ProjectParameters["nurbs_brep_configuration"], model_part)
+NurbsBrepProcess = nurbs_brep_process.Factory(ProjectParameters["nurbs_brep_configuration"], iga_model_part)
 
 NurbsBrepProcess.ExecuteInitialize()
 NurbsBrepProcess.ExecuteFinalize()
@@ -75,13 +75,13 @@ StopTimeMeasuring(nurbs_brep_time, "NurbsBrepApplication time", True)
 import read_materials_process
 read_materials_process.Factory(ProjectParameters,Model)
 
-for properties in model_part.Properties:
+for properties in iga_model_part.Properties:
     print(properties)
 
 nurbs_brep_time = StartTimeMeasuring()
-solver.ImportModelPartNurbsBrep(NurbsBrepProcess.model_part_integration_domain, ProjectParameters)
+iga_solver.ImportModelPartNurbsBrep(NurbsBrepProcess.model_part_integration_domain, ProjectParameters)
 StopTimeMeasuring(nurbs_brep_time, "Import model part time", True)
-solver.AddDofs()
+iga_solver.AddDofs()
 
 dem_analysis = main_script.Solution()
 dem_analysis.Initialize()
@@ -94,16 +94,16 @@ dem_analysis.InitializeTimeStep()
 ##get the list of the submodel part in the object Model
 for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
     part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-    Model.update({part_name: model_part.GetSubModelPart(part_name)})
+    Model.update({part_name: iga_model_part.GetSubModelPart(part_name)})
 
-#print model_part
+#print iga_model_part
 if(echo_level>1):
     print("")
     print(NurbsBrepProcess.model_part_integration_domain)
-    print(model_part)
-    #for properties in model_part.Properties:
+    print(iga_model_part)
+    #for properties in iga_model_part.Properties:
         #print(properties)
-#### model_part settings end ####
+#### iga_model_part settings end ####
 #endregion
 #region Process Settings
 #--- processes settings start ####
@@ -116,7 +116,7 @@ if(echo_level>4):
     for process in list_of_processes:
         print(process)
 
-##TODO: decide which is the correct place to initialize the processes 
+##TODO: decide which is the correct place to initialize the processes
 for process in list_of_processes:
     process.ExecuteInitialize()
 #### processes settings end ####
@@ -126,7 +126,7 @@ for process in list_of_processes:
 #### START SOLUTION ####
 
 #TODO: think if there is a better way to do this
-computing_model_part = solver.GetComputeModelPart()
+iga_computing_model_part = iga_solver.GetComputeModelPart()
 
 
 #### output settings start ####
@@ -142,8 +142,8 @@ IGA_IO = iga_io_process.Factory(ProjectParameters["output_configuration"],Model)
 
 IGA_IO.ExecuteInitialize()
 
-# initialize solver and processes
-solver.Initialize()
+# initialize iga_solver and processes
+iga_solver.Initialize()
 
 for process in list_of_processes:
 	process.ExecuteBeforeSolutionLoop()
@@ -162,28 +162,28 @@ print(dem_analysis.spheres_model_part)
 # solving the problem (time integration)
 while dem_analysis.time < dem_analysis.final_time:
 
-    #TODO: this must be done by a solving_info utility in the solver
+    #TODO: this must be done by a solving_info utility in the iga_solver
     # store previous time step
-    #~ computing_model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = delta_time
+    #~ iga_computing_model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = delta_time
     # set new time step ( it can change when solve is called )
-    #~ delta_time = computing_model_part.ProcessInfo[DELTA_TIME]
+    #~ delta_time = iga_computing_model_part.ProcessInfo[DELTA_TIME]
 
     time = time + delta_time
     step = step + 1
-    model_part.ProcessInfo[TIME_STEPS] = step
-    model_part.CloneTimeStep(time)
+    iga_model_part.ProcessInfo[TIME_STEPS] = step
+    iga_model_part.CloneTimeStep(time)
 
     dem_analysis.RunSingleTemporalLoop()
-	
+
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
     nurbs_brep_time = StartTimeMeasuring()
-    solver.Solve()
+    iga_solver.Solve()
     StopTimeMeasuring(nurbs_brep_time, "Solving steo time", True)
-	
+
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
-		
+
     IGA_IO.ExecuteFinalizeSolutionStep()
 
 
@@ -192,7 +192,7 @@ for process in list_of_processes:
 
 # ending the problem (time integration finished)
 # check solving information for any problem
-#~ solver.InfoCheck() # InfoCheck not implemented yet.
+#~ iga_solver.InfoCheck() # InfoCheck not implemented yet.
 #endregion
 
 dem_analysis.Finalize()
