@@ -41,7 +41,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  SurfaceLoadCondition3D
     : public BaseLoadCondition
 {
@@ -49,7 +49,7 @@ public:
 
     ///@name Type Definitions
     ///@{
-    
+
     // Counted pointer of SurfaceLoadCondition3D
     KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoadCondition3D );
 
@@ -61,21 +61,21 @@ public:
     SurfaceLoadCondition3D();
 
     // Constructor using an array of nodes
-    SurfaceLoadCondition3D( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry 
+    SurfaceLoadCondition3D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry
         );
 
     // Constructor using an array of nodes with properties
-    SurfaceLoadCondition3D( 
+    SurfaceLoadCondition3D(
         IndexType NewId,
-        GeometryType::Pointer pGeometry, 
-        PropertiesType::Pointer pProperties 
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties
         );
 
     // Destructor
     ~SurfaceLoadCondition3D() override;
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -91,11 +91,11 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-    
+
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties 
+        PropertiesType::Pointer pProperties
         ) const override;
 
     ///@}
@@ -115,7 +115,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
 protected:
 
     ///@name Protected static Member Variables
@@ -132,7 +132,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
@@ -142,7 +142,7 @@ protected:
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
     void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
@@ -159,8 +159,8 @@ protected:
         const double Weight );
 
     void MakeCrossMatrix(
-        bounded_matrix<double, 3, 3>& M,
-        const array_1d<double, 3>& U 
+        BoundedMatrix<double, 3, 3>& M,
+        const array_1d<double, 3>& U
         );
 
     void CalculateAndAddPressureForce(
@@ -171,7 +171,7 @@ protected:
         const double Weight,
         const ProcessInfo& rCurrentProcessInfo
         );
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -183,7 +183,7 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
 private:
     ///@name Private static Member Variables
     ///@{
@@ -199,7 +199,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -244,4 +244,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED  defined 
+#endif // KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED  defined

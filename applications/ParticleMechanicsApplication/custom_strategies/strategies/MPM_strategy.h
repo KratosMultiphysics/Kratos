@@ -521,7 +521,7 @@ public:
         double Ne2 = 0.72849239295540;
         double Ne3 = 0.00839477740996;
 
-        boost::numeric::ublas::bounded_matrix<double,16,3> MP_ShapeFunctions;// = ZeroMatrix(16,3);
+        BoundedMatrix<double,16,3> MP_ShapeFunctions;// = ZeroMatrix(16,3);
         MP_ShapeFunctions(0,0) = Na1;
         MP_ShapeFunctions(0,1) = Na1;
         MP_ShapeFunctions(0,2) = Na1;
@@ -623,7 +623,7 @@ public:
         double Nh1 = 0.025734050548330;
         double Nh2 = 0.116251915907597;
         double Nh3 = 0.858014033544073;
-        boost::numeric::ublas::bounded_matrix<double,33,3> MP_ShapeFunctions;// = ZeroMatrix(16,3);
+        BoundedMatrix<double,33,3> MP_ShapeFunctions;// = ZeroMatrix(16,3);
 
         MP_ShapeFunctions(0,0) = Na1;
         MP_ShapeFunctions(0,1) = Na1;

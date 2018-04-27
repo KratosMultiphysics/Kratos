@@ -24,7 +24,6 @@
 #include "custom_response_functions/response_utilities/strain_energy_response_function_utility.h"
 #include "custom_response_functions/response_utilities/mass_response_function_utility.h"
 #include "custom_response_functions/response_utilities/eigenfrequency_response_function_utility.h"
-#include "custom_response_functions/response_utilities/eigenfrequency_response_function_lin_scal_utility.h"
 
 
 namespace Kratos
@@ -58,13 +57,6 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
       .def("Initialize", &EigenfrequencyResponseFunctionUtility::Initialize)
       .def("CalculateValue", &EigenfrequencyResponseFunctionUtility::CalculateValue)
       .def("CalculateGradient", &EigenfrequencyResponseFunctionUtility::CalculateGradient);
-
-    class_<EigenfrequencyResponseFunctionLinScalUtility, EigenfrequencyResponseFunctionLinScalUtility::Pointer >
-      (m, "EigenfrequencyResponseFunctionLinScalUtility")
-      .def(init<ModelPart&, Parameters>())
-      .def("Initialize", &EigenfrequencyResponseFunctionLinScalUtility::Initialize)
-      .def("CalculateValue", &EigenfrequencyResponseFunctionLinScalUtility::CalculateValue)
-      .def("CalculateGradient", &EigenfrequencyResponseFunctionLinScalUtility::CalculateGradient);
 }
 
 }  // namespace Python.

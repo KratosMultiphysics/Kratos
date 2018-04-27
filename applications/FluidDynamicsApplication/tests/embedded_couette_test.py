@@ -1,6 +1,11 @@
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+try:
+    import KratosMultiphysics.ExternalSolversApplication
+    have_external_solvers = True
+except ImportError as e:
+    have_external_solvers = False
+
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -17,13 +22,14 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class EmbeddedCouetteTest(UnitTest.TestCase):
 
     # Embedded element tests
     def testEmbeddedCouette2D(self):
         self.distance = 0.25
         self.slip_flag = False
-        self.work_folder = "EmbeddedCouette2DTest"   
+        self.work_folder = "EmbeddedCouette2DTest"
         self.reference_file = "reference_couette_embedded_2D"
         self.settings = "EmbeddedCouette2DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
@@ -31,7 +37,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
     def testEmbeddedCouette3D(self):
         self.distance = 0.25
         self.slip_flag = False
-        self.work_folder = "EmbeddedCouette3DTest"   
+        self.work_folder = "EmbeddedCouette3DTest"
         self.reference_file = "reference_couette_embedded_3D"
         self.settings = "EmbeddedCouette3DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
@@ -39,7 +45,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
     def testEmbeddedSlipCouette2D(self):
         self.distance = 0.25
         self.slip_flag = True
-        self.work_folder = "EmbeddedCouette2DTest"   
+        self.work_folder = "EmbeddedCouette2DTest"
         self.reference_file = "reference_couette_embedded_slip_2D"
         self.settings = "EmbeddedCouette2DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
@@ -47,7 +53,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
     def testEmbeddedSlipCouette3D(self):
         self.distance = 0.25
         self.slip_flag = True
-        self.work_folder = "EmbeddedCouette3DTest"   
+        self.work_folder = "EmbeddedCouette3DTest"
         self.reference_file = "reference_couette_embedded_slip_3D"
         self.settings = "EmbeddedCouette3DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
@@ -56,7 +62,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
     def testEmbeddedAusasCouette2D(self):
         self.distance = 0.25
         self.slip_flag = True
-        self.work_folder = "EmbeddedCouette2DTest"   
+        self.work_folder = "EmbeddedCouette2DTest"
         self.reference_file = "reference_couette_ausas_2D"
         self.settings = "EmbeddedAusasCouette2DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
@@ -64,7 +70,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
     def testEmbeddedAusasCouette3D(self):
         self.distance = 0.25
         self.slip_flag = True
-        self.work_folder = "EmbeddedCouette3DTest"   
+        self.work_folder = "EmbeddedCouette3DTest"
         self.reference_file = "reference_couette_ausas_3D"
         self.settings = "EmbeddedAusasCouette3DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
@@ -73,7 +79,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
     def testEmbeddedDevelopmentCouette2D(self):
         self.distance = 0.25
         self.slip_flag = False
-        self.work_folder = "EmbeddedCouette2DTest"   
+        self.work_folder = "EmbeddedCouette2DTest"
         self.reference_file = "reference_couette_development_2D"
         self.settings = "EmbeddedDevelopmentCouette2DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
@@ -81,7 +87,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
     def testEmbeddedSlipDevelopmentCouette2D(self):
         self.distance = 0.25
         self.slip_flag = True
-        self.work_folder = "EmbeddedCouette2DTest"   
+        self.work_folder = "EmbeddedCouette2DTest"
         self.reference_file = "reference_couette_development_slip_2D"
         self.settings = "EmbeddedDevelopmentCouette2DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
@@ -89,15 +95,15 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
     def testEmbeddedDevelopmentCouette3D(self):
         self.distance = 0.25
         self.slip_flag = False
-        self.work_folder = "EmbeddedCouette3DTest"   
+        self.work_folder = "EmbeddedCouette3DTest"
         self.reference_file = "reference_couette_development_3D"
-        self.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"  
+        self.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
 
     def testEmbeddedSlipDevelopmentCouette3D(self):
         self.distance = 0.25
         self.slip_flag = True
-        self.work_folder = "EmbeddedCouette3DTest"   
+        self.work_folder = "EmbeddedCouette3DTest"
         self.reference_file = "reference_couette_development_slip_3D"
         self.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
@@ -175,11 +181,11 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
 
     def setUpDistanceField(self):
         # Set the distance function
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): 
+        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             for node in self.main_model_part.Nodes:
                 distance = node.Y-self.distance
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
-        elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3): 
+        elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
             for node in self.main_model_part.Nodes:
                 distance = node.Z-self.distance
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
@@ -205,7 +211,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
             node.Fix(KratosMultiphysics.VELOCITY_X)
             node.Fix(KratosMultiphysics.VELOCITY_Y)
             node.Fix(KratosMultiphysics.VELOCITY_Z)
-        
+
         # Set the SLIP elemental flag (only used in Winter's formulation)
         if (self.slip_flag):
             for element in self.main_model_part.Elements:
@@ -280,7 +286,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
                 for process in self.list_of_processes:
                     process.ExecuteInitializeSolutionStep()
 
-                
+
                 self.solver.Solve()
 
                 for process in self.list_of_processes:
@@ -306,7 +312,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
     def checkResults(self):
         with WorkFolderScope(self.work_folder):
             ## 2D results check
-            if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): 
+            if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
                 if self.print_reference_values:
                     with open(self.reference_file+'.csv','w') as ref_file:
                         ref_file.write("#ID, VELOCITY_X, VELOCITY_Y\n")
@@ -332,7 +338,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
                         if line != '': # If we did not reach the end of the reference file
                             self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
             ## 3D results check
-            elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3): 
+            elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
                 if self.print_reference_values:
                     with open(self.reference_file+'.csv','w') as ref_file:
                         ref_file.write("#ID, VELOCITY_X, VELOCITY_Y, VELOCITY_Z\n")
@@ -368,7 +374,7 @@ if __name__ == '__main__':
     test.print_output = False
     test.print_reference_values = False
     test.work_folder = "EmbeddedCouette2DTest"
-    test.reference_file = "reference_couette_embedded_2D"   
+    test.reference_file = "reference_couette_embedded_2D"
     test.settings = "EmbeddedCouette2DTestParameters.json"
     test.setUpProblem()
     test.setUpDistanceField()
@@ -381,4 +387,4 @@ if __name__ == '__main__':
     test.runTest()
     test.tearDown()
     test.checkResults()
-    
+

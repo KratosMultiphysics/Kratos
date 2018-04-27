@@ -118,12 +118,13 @@ namespace Kratos {
     void ExplicitSolverStrategy::DisplayThreadInfo() {
 
         ModelPart& r_model_part = GetModelPart();
-        std::cout << "          **************************************************" << std::endl;
-        std::cout << "            Parallelism Info:  MPI number of nodes: " << r_model_part.GetCommunicator().TotalProcesses() << std::endl;
+        KRATOS_INFO("DEM") << "          **************************************************" << std::endl;
+        KRATOS_INFO("DEM") << "            Parallelism Info:  MPI number of nodes: " << r_model_part.GetCommunicator().TotalProcesses() << std::endl;
         if (r_model_part.GetCommunicator().TotalProcesses() > 1)
-            std::cout << "            Parallelism Info:  MPI node Id: " << r_model_part.GetCommunicator().MyPID() << std::endl;
-        std::cout << "            Parallelism Info:  OMP number of processors: " << mNumberOfThreads << std::endl;
-        std::cout << "          **************************************************" << std::endl << std::endl;
+            KRATOS_INFO("DEM") << "            Parallelism Info:  MPI node Id: " << r_model_part.GetCommunicator().MyPID() << std::endl;
+        KRATOS_INFO("DEM") << "            Parallelism Info:  OMP number of processors: " << mNumberOfThreads << std::endl;
+        KRATOS_INFO("DEM") << "          **************************************************" << std::endl;
+        KRATOS_INFO("DEM") << std::endl;
 
     }
 
@@ -257,7 +258,7 @@ namespace Kratos {
         if (t<critical_timestep && t>0.0){critical_timestep = t;}
 
         r_process_info[DELTA_TIME] = critical_timestep;
-        std::cout << " Applied timestep is " << critical_timestep << ". " << "\n" << std::endl;
+        KRATOS_INFO("DEM") << " Applied timestep is " << critical_timestep << ". " << "\n" << std::endl;
 
 
        //PropertiesContainerType pprop1 = *mpInlet_model_part->pProperties();
@@ -495,8 +496,8 @@ namespace Kratos {
 
         if (temp_time_step < mMaxTimeStep) process_info_delta_time = temp_time_step;
 
-        std::cout << std::scientific;
-        std::cout << std::setprecision(3) << "************* Using " << process_info_delta_time << " time step. (Critical: "
+        KRATOS_INFO("DEM") << std::scientific;
+        KRATOS_INFO("DEM") << std::setprecision(3) << "************* Using " << process_info_delta_time << " time step. (Critical: "
                   << temp_time_step << " with a diving factor: " << mSafetyFactor << " ) *************" << "\n" << std::endl;
         KRATOS_CATCH("")
     }

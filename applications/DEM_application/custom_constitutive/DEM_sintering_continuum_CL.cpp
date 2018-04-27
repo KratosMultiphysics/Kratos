@@ -26,7 +26,7 @@ namespace Kratos {
 	}
 
 	void DEM_sintering_continuum::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
-		std::cout << "\nAssigning DEM_sintering_continuum to properties " << pProp->Id() << std::endl;
+		KRATOS_INFO("DEM") << "Assigning DEM_sintering_continuum to properties " << pProp->Id() << std::endl;
 		pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
 	}
 

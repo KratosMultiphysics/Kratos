@@ -15,7 +15,7 @@ namespace Kratos {
     }
 
     void DEM_Dempack_dev::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) std::cout << "\nAssigning DEM_Dempack_dev to Properties " << pProp->Id() << std::endl;
+        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_Dempack_dev to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 

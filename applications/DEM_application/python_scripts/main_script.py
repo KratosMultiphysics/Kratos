@@ -8,14 +8,14 @@ sys.path.insert(0, '')
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
-    print("Running under MPI...........")
+    Logger.Print("Running under MPI...........",label="DEM")
     from KratosMultiphysics.MetisApplication import *
     from KratosMultiphysics.MPISearchApplication import *
     from KratosMultiphysics.mpi import *
     import DEM_procedures_mpi as DEM_procedures
     import DEM_material_test_script_mpi as DEM_material_test_script
 else:
-    print("Running under OpenMP........")
+    Logger.Print("Running under OpenMP........",label="DEM")
     import DEM_procedures
     import DEM_material_test_script
 
@@ -254,7 +254,7 @@ class Solution(object):
         self.AddAllDofs()
 
         os.chdir(self.main_path)
-        self.KRATOSprint("\nInitializing Problem...")
+        self.KRATOSprint("Initializing Problem...")
 
         self.GraphicalOutputInitialize()
 
@@ -291,7 +291,7 @@ class Solution(object):
 
         self.materialTest.Initialize(self.DEM_parameters, self.procedures, self.solver, self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
 
-        self.KRATOSprint("Initialization Complete" + "\n")
+        self.KRATOSprint("Initialization Complete")
 
         self.report.Prepare(timer, self.DEM_parameters["ControlTime"].GetDouble())
 

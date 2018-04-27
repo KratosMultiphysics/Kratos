@@ -149,6 +149,8 @@ class Solution(main_script.Solution):
             self.plotter.close_files()
             self.tang_plotter.close_files()
 
+        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
+
     def FinalizeTimeStep(self, time):
         super(Solution, self).FinalizeTimeStep(time)
         if self.nodeplotter:
