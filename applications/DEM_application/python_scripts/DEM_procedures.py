@@ -17,7 +17,7 @@ def Flush(a):
 
 
 def KratosPrint(*args):
-    print(*args)
+    Logger.Print(*args, label="DEM")
     Flush(sys.stdout)
 
 
@@ -158,12 +158,12 @@ class GranulometryUtils(object):
 
     def PrintCurrentData(self):
 
-        print("number_of_spheres: ", self.number_of_spheres)
-        print("solid volume: ", self.solid_volume)
-        print("voids volume: ", self.voids_volume)
-        print("global porosity: ", self.global_porosity)
-        print("D50: ", self.d_50)
-        print("spheres per area unit: ", self.spheres_per_area)
+        Logger.Print("number_of_spheres: ", self.number_of_spheres, label="")
+        Logger.Print("solid volume: ", self.solid_volume, label="")
+        Logger.Print("voids volume: ", self.voids_volume, label="")
+        Logger.Print("global porosity: ", self.global_porosity, label="")
+        Logger.Print("D50: ", self.d_50, label="")
+        Logger.Print("spheres per area unit: ", self.spheres_per_area, label="")
 
 
 class PostUtils(object):
@@ -856,7 +856,7 @@ class Procedures(object):
         a.flush()
 
     def KRATOSprint(self, message):
-        print(message)
+        Logger.Print(message, label="DEM")
         self.Flush(sys.stdout)
 
 
@@ -989,9 +989,9 @@ class DEMFEMProcedures(object):
             if not self.aux.GetIthSubModelPartData(model_part, mesh_number, TABLE_NUMBER):
                 continue
 
-            print("Info:")
-            print(self.aux.GetIthSubModelPartData(model_part, mesh_number, IDENTIFIER))
-            print(self.aux.GetIthSubModelPartData(model_part, mesh_number, TABLE_NUMBER))
+            Logger.Print("Info:", label="")
+            Logger.Print(self.aux.GetIthSubModelPartData(model_part, mesh_number, IDENTIFIER), label="")
+            Logger.Print(self.aux.GetIthSubModelPartData(model_part, mesh_number, TABLE_NUMBER), label="")
 
             for node in self.aux.GetIthSubModelPartNodes(model_part, mesh_number):
 
@@ -1209,61 +1209,54 @@ class Report(object):
         self.first_print = True
 
     def BeginReport(self, timer):
-
+        label = "DEM: "
         report = "Main loop starting..." + "\n" + \
-            "Total number of TIME STEPs expected in the calculation: " + \
-            str(self.total_steps_expected) + "\n"
+            label + "Total number of TIME STEPs expected in the calculation: " + \
+            str(self.total_steps_expected) + "\n" + label
 
         return report
 
     def StepiReport(self, timer, time, step):
 
-        incremental_time = (
-            timer.time() - self.initial_re_time) - self.prev_time
-
+        incremental_time = (timer.time() - self.initial_re_time) - self.prev_time
         report = ""
+        label = "DEM: "
 
         if incremental_time > self.control_time:
-
             percentage = 100 * (float(step) / self.total_steps_expected)
             elapsed_time = timer.time() - self.initial_re_time
 
             report = report + "Real time calculation: " + str(elapsed_time) + " seconds" + "\n"\
-                            + "In minutes: " + str(elapsed_time / 60.0) + " minutes" + "\n"\
-                            + "In hours: " + str(elapsed_time / 3600.0) + " hours" + "\n"\
-                            + "Simulation time: " + str(time) + " seconds" + "\n"\
-                            + "%s %.5f %s" % ("Percentage Completed: ", percentage, "%") + "\n"\
-                            + "Computed time steps: " + \
-                str(step) + " out of " + str(self.total_steps_expected) + "\n"
+                            + label + "In minutes: " + str(elapsed_time / 60.0) + " minutes" + "\n"\
+                            + label + "In hours: " + str(elapsed_time / 3600.0) + " hours" + "\n"\
+                            + label + "Simulation time: " + str(time) + " seconds" + "\n"\
+                            + label + "%s %.5f %s" % ("Percentage Completed: ", percentage, "%") + "\n"\
+                            + label + "Computed time steps: " + str(step) + " out of " + str(self.total_steps_expected) + "\n" + label
 
             self.prev_time = (timer.time() - self.initial_re_time)
 
         if (timer.time() - self.initial_re_time > 60) and self.first_print and step != 0:
-
             self.first_print = False
             estimated_sim_duration = 60.0 * (self.total_steps_expected / step)  # seconds
 
-            report = report + "The total estimated computation time is " + str(estimated_sim_duration) + " seconds" + "\n"\
-                + "In minutes: " + str(estimated_sim_duration / 60.0) + " minutes" + "\n"\
-                + "In hours:   " + str(estimated_sim_duration / 3600.0) + " hours" + "\n"\
-                + "In days:    " + \
-                str(estimated_sim_duration / 86400.0) + " days" + "\n"
-
-            if (estimated_sim_duration / 86400.0) > 2.0:
-                report = report + "WARNING: VERY LONG CALCULATION......!!!!!!" + "\n"
+            report = report + "\n" + label + "The total estimated computation time is " + str(estimated_sim_duration) + " seconds" + "\n"\
+                + label + "In minutes: " + str(estimated_sim_duration / 60.0) + " minutes" + "\n"\
+                + label + "In hours:   " + str(estimated_sim_duration / 3600.0) + " hours" + "\n"\
+                + label + "In days:    " + str(estimated_sim_duration / 86400.0) + " days" + "\n" + label
 
         return report
 
     def FinalReport(self, timer):
         elapsed_pr_time = timer.clock() - self.initial_pr_time
         elapsed_re_time = timer.time() - self.initial_re_time
+        label = "DEM: "
 
         report = "Calculation ends at instant: " + str(timer.time()) + "\n"\
-            + "Calculation ends at processing time instant: " + str(timer.clock()) + "\n"\
-            + "Elapsed processing time: " + str(elapsed_pr_time) + "\n"\
-            + "Elapsed real time: " + str(elapsed_re_time) + "\n"
+            + label + "Calculation ends at processing time instant: " + str(timer.clock()) + "\n"\
+            + label + "Elapsed processing time: " + str(elapsed_pr_time) + "\n"\
+            + label + "Elapsed real time: " + str(elapsed_re_time) + "\n" + label
 
-        report = report + "ANALYSIS COMPLETED" + "\n"
+        report = report + "\n" + label + "ANALYSIS COMPLETED"
 
         return report
 
@@ -1454,7 +1447,7 @@ class DEMIo(object):
             self.SeaSurfaceY4 = self.sea_settings["PostVirtualSeaSurfaceY4"].GetDouble()
 
     def KRATOSprint(self, message):
-        print(message)
+        Logger.Print(message,label="DEM")
         self.Flush(sys.stdout)
 
     @classmethod
