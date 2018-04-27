@@ -61,7 +61,7 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     using pointer = TDataType*;
 
 
-    Matrix() {}
+    Matrix(): base_type(0, 0) {}
 
     explicit Matrix(std::size_t TheSize1, std::size_t TheSize2)
         : base_type(TheSize1, TheSize2) {}
@@ -71,7 +71,7 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     Matrix(Matrix&& Other) : base_type(Other) {}
 
     template <typename TExpressionType, std::size_t TCategory>
-    explicit Matrix(AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other)
+    Matrix(AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other)
         : base_type(Other) {}
 
     template <typename TOtherMatrixType>
@@ -112,7 +112,7 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
         AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other) {
         for (std::size_t i = 0; i < size1(); i++)
             for (std::size_t j = 0; j < size2(); j++)
-                at(i, j) += Other(i, j);
+                at(i, j) += Other.expression()(i, j);
 
         return *this;
     }
@@ -160,6 +160,9 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
         return *this;
     }
 
+    AMatrix::MatrixUnaryMinusExpression<Matrix> operator-() const {
+        return AMatrix::MatrixUnaryMinusExpression<Matrix>(*this);
+    }
 
     void resize(std::size_t NewSize1, std::size_t NewSize2, bool preserve = 0){
         KRATOS_DEBUG_ERROR_IF(preserve) << "The preserve is not supported anymore" << std::endl;
@@ -213,6 +216,10 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
 
     Matrix& noalias() { return *this; }
 
+    AMatrix::TransposeMatrix<const Matrix<TDataType, TSize1, TSize2>> transpose() const {
+        return AMatrix::TransposeMatrix<const Matrix<TDataType, TSize1, TSize2>>(*this);
+    }
+
     AMatrix::TransposeMatrix<Matrix<TDataType, TSize1, TSize2>> transpose() {
         return AMatrix::TransposeMatrix<Matrix<TDataType, TSize1, TSize2>>(*this);
     }
@@ -220,6 +227,10 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     void clear(){
          for (std::size_t i = 0; i < size(); i++)
             at(i) = TDataType();
+    }
+
+    void swap(Matrix& Other){
+        base_type::swap(Other);
     }
 };
 
@@ -265,6 +276,8 @@ template <typename TDataType, std::size_t TSize> using BoundedVector=Internals::
 
 template <typename T> T& noalias(T& TheMatrix){return TheMatrix.noalias();}
 
+template <typename T> AMatrix::TransposeMatrix<const T> trans(const T& TheMatrix){return TheMatrix.transpose();}
+
 template <typename T> AMatrix::TransposeMatrix<T> trans(T& TheMatrix){return TheMatrix.transpose();}
 
 template <typename TExpressionType> using vector_expression = AMatrix::MatrixExpression<TExpressionType>;
@@ -286,22 +299,64 @@ AMatrix::MatrixProductExpression<TExpression1Type, TExpression2Type> prod(
 
 template <typename TExpression1Type, typename TExpression2Type,
     std::size_t TCategory1, std::size_t TCategory2>
+AMatrix::VectorOuterProductExpression<TExpression1Type, TExpression2Type> outer_prod(
+    AMatrix::MatrixExpression<TExpression1Type, TCategory1> const& First,
+    AMatrix::MatrixExpression<TExpression2Type, TCategory2> const& Second) {
+    return AMatrix::VectorOuterProductExpression<TExpression1Type, TExpression2Type>(
+        First.expression(), Second.expression());
+}
+
+template <typename TExpression1Type, typename TExpression2Type,
+    std::size_t TCategory1, std::size_t TCategory2>
 typename TExpression1Type::data_type inner_prod(
     AMatrix::MatrixExpression<TExpression1Type, TCategory1> const& First,
     AMatrix::MatrixExpression<TExpression2Type, TCategory2> const& Second) {
-    return First.dot(Second);
+
+        using data_type = typename TExpression1Type::data_type;
+        auto& the_expression1 = First.expression();
+        auto& the_expression2 = Second.expression();
+        data_type result = data_type();
+        for (std::size_t i = 0; i < the_expression1.size(); ++i) {
+            result += the_expression1[i] * the_expression2[i];
+        }
+    return result;
+
 }
 
 template <typename TExpressionType, std::size_t TCategory> 
     typename TExpressionType::data_type norm_2(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
-    return TheExpression.norm();
+        using data_type = typename TExpressionType::data_type;
+        auto& the_expression = TheExpression.expression();
+        data_type result = data_type();
+        for (std::size_t i = 0; i < the_expression.size(); ++i) {
+            result += the_expression[i] * the_expression[i];
+        }
+    return std::sqrt(result);
 }
 
 template <typename TExpressionType, std::size_t TCategory> 
-    AMatrix::SubMatrix<TExpressionType> row(
+    AMatrix::SubVector<const TExpressionType> row(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t RowIndex) {
-    return AMatrix::SubMatrix<TExpressionType>(TheExpression, RowIndex,0,1,TheExpression.size2());
+    return AMatrix::SubVector<const TExpressionType>(TheExpression.expression(), RowIndex * TheExpression.expression().size2() , (RowIndex + 1) * TheExpression.expression().size2());
+}
+
+template <typename TExpressionType, std::size_t TCategory> 
+    AMatrix::SubVector<TExpressionType> row(
+    AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t RowIndex) {
+    return AMatrix::SubVector<TExpressionType>(TheExpression.expression(), RowIndex * TheExpression.expression().size2() , (RowIndex + 1) * TheExpression.expression().size2());
+}
+
+template <typename TExpressionType, std::size_t TCategory> 
+    AMatrix::SubVector<const TExpressionType> subrange(
+    AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t From, std::size_t To) {
+    return AMatrix::SubVector<const TExpressionType>(TheExpression.expression(), From,To - From);
+}
+
+template <typename TExpressionType, std::size_t TCategory> 
+    AMatrix::SubVector<TExpressionType> subrange(
+    AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t From, std::size_t To) {
+    return AMatrix::SubVector<TExpressionType>(TheExpression.expression(), From,To - From);
 }
 
 ///@}
