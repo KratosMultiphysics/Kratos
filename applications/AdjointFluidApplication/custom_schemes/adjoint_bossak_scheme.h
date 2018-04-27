@@ -28,7 +28,10 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"
 #include "solving_strategies/response_functions/response_function.h"
-#include "../custom_utilities/numerical_diffusion.h"
+
+#ifdef EIGEN_ROOT
+    #include "custom_utilities/numerical_diffusion.h"
+#endif
 
 namespace Kratos
 {
@@ -79,9 +82,10 @@ public:
 
         rParameters.ValidateAndAssignDefaults(default_params);
 
-        Parameters numerical_diffusion_parameters(rParameters["numerical_diffusion"]);
-
-        mNumeicalDiffusion.SetNumericalDiffusionParamters(numerical_diffusion_parameters);
+        #ifdef EIGEN_ROOT
+            Parameters numerical_diffusion_parameters(rParameters["numerical_diffusion"]);
+            mNumeicalDiffusion.SetNumericalDiffusionParamters(numerical_diffusion_parameters);
+        #endif
 
         mAlphaBossak = rParameters["alpha_bossak"].GetDouble();
         mGammaNewmark = 0.5 - mAlphaBossak;
@@ -534,12 +538,14 @@ public:
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValuesVector[thread_id]);
 
         // Calculate added numerical diffusion stabilization term
-        mNumeicalDiffusion.CalculateNumericalDiffusion(
-            pCurrentElement,
-            mLeftHandSide[thread_id],
-            rCurrentProcessInfo
-        );
-        noalias(rLHS_Contribution) -= mLeftHandSide[thread_id];        
+        #ifdef EIGEN_ROOT
+            mNumeicalDiffusion.CalculateNumericalDiffusion(
+                pCurrentElement,
+                mLeftHandSide[thread_id],
+                rCurrentProcessInfo
+            );
+            noalias(rLHS_Contribution) -= mLeftHandSide[thread_id];        
+        #endif
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -666,7 +672,9 @@ private:
     std::vector<LocalSystemMatrixType> mFirstDerivsLHS;
     std::vector<LocalSystemMatrixType> mSecondDerivsLHS;
 
-    NumericalDiffusion mNumeicalDiffusion;
+    #ifdef EIGEN_ROOT
+        NumericalDiffusion mNumeicalDiffusion;
+    #endif
     std::ofstream mOutputFileStreamAdjointEnergy;
     ///@}
     ///@name Private Operators
