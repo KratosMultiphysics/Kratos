@@ -89,7 +89,7 @@ public:
 
     typedef Condition ConditionType;
 
-    typedef vector<int> NeighbourIndicesContainerType;
+    typedef DenseVector<int> NeighbourIndicesContainerType;
 
     typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
 
@@ -696,7 +696,7 @@ public:
     }
     
     
-    virtual bool AssembleNonHistoricalData(Variable<vector<array_1d<double,3> > > const& ThisVariable)
+    virtual bool AssembleNonHistoricalData(Variable<DenseVector<array_1d<double,3> > > const& ThisVariable)
     {
         // #if defined(KRATOS_USING_MPI )
         //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -747,7 +747,7 @@ public:
         return true;
     }
     
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<vector<array_1d<double,3> > > const& ThisVariable)
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<DenseVector<array_1d<double,3> > > const& ThisVariable)
     {
     /*#if defined(KRATOS_USING_MPI )
                 std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -755,7 +755,7 @@ public:
         return true;
     }
     
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<vector<int> > const& ThisVariable)
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<DenseVector<int> > const& ThisVariable)
     {
     /*#if defined(KRATOS_USING_MPI )
                 std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
