@@ -926,7 +926,9 @@
 *endif
 				      "STRESS_INV_P",
 				      "STRESS_INV_J2",
-				      "STRESS_INV_THETA"	
+				      "STRESS_INV_THETA",
+				      "PLASTIC_STRAIN",
+                                      "INCR_SHEAR_PLASTIC"	
 				    ],
 	    "additional_list_files": [
 *for(i=1;i<=GenData(List_Files,INT);i=i+1)
