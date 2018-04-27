@@ -1,25 +1,23 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
-# Importing the Kratos Library
-import KratosMultiphysics
+from KratosMultiphysics import *
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if(type(settings) != Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return PointOutputProcess(Model, settings["Parameters"])
 
 class PointOutputProcess(Process):
 
-    def __init__(self, Model, params):
+    defaults = Parameters('''{
+        "position"         : [],
+        "model_part_name"  : "",
+        "output_file_name" : "",
+        "output_variables" : []
+    }''')
 
-        default_settings = KratosMultiphysics.Parameters('''{
-            "point_positions"   :  [],
-            "node_positions"    :  [],
-            "model_part_name"   :  "",
-            "output_file_name"  :  "",
-            "output_variables"  :  []
-        }''')
+    # def __init__(self,model_part,params):
+    def __init__(self,Model,params):
 
+        # self.model_part = model_part
         self.model_part = Model[params["model_part_name"].GetString()]
 
         # Note: params is expected to be an array of valid point definitions.
@@ -27,7 +25,6 @@ class PointOutputProcess(Process):
         #     raise Exception("{0} Error: Input Parameters do not define a list of points".format(self.__class__.__name__))
 
         self.params = params
-        self.params.ValidateAndAssignDefaults(default_settings)
 
         self.positions = []
         self.elements = []
