@@ -6,6 +6,8 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+import subprocess
+
 try:
     import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
     missing_external_dependencies = False
@@ -359,5 +361,21 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssembleTestSuites())
+    print("\nRunning cpp unit tests ...")
     run_cpp_unit_tests.run()
+    print("Finished running cpp unit tests!")
+
+    print("\nRunning mpi python tests ...")
+    try:
+        import KratosMultiphysics.mpi as KratosMPI
+        import KratosMultiphysics.MetisApplication as MetisApplication
+        import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+        p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"])
+        p.wait()
+        print("Finished mpi python tests!")
+    except ImportError:
+        print("mpi is not available!")
+
+    print("\nRunning python tests ...")
+    KratosUnittest.runTests(AssembleTestSuites())
+    print("Finished python tests!")
