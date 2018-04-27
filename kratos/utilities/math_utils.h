@@ -450,6 +450,13 @@ public:
                 InvertedMatrix.resize(size1, size2,false);
             }
             
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+            Matrix temp(InputMatrix);
+            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
+            InputMatrixDet = lu_factorization.Determinant();
+            KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
+            lu_factorization.Invert(InvertedMatrix);
+#else
             int singular = 0;
             typedef permutation_matrix<SizeType> pmatrix;
             Matrix A(InputMatrix);
@@ -468,7 +475,8 @@ public:
             }
             
             KRATOS_ERROR_IF(singular == 1) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
-        }
+ #endif // ifdef KRATOS_USE_AMATRIX
+       }
     }
 
     /**
@@ -626,6 +634,11 @@ public:
         }
         else
         {
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+            Matrix temp(A);
+            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
+            Det = lu_factorization.Determinant();
+#else
             using namespace boost::numeric::ublas;
             typedef permutation_matrix<SizeType> pmatrix;
             Matrix Aux(A);
@@ -644,7 +657,8 @@ public:
                 unsigned int ki = pm[i] == i ? 0 : 1;
                 Det *= std::pow(-1.0, ki) * Aux(i,i);
             }
-        }
+#endif // ifdef KRATOS_USE_AMATRIX
+       }
 
         return Det;
     }
