@@ -234,7 +234,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         }
         else
         {
-            KRATOS_ERROR << "Your geometry contains " << geom.GetGeometryType() <<" which cannot be remeshed" << std::endl;
+            KRATOS_ERROR << "Your geometry contains " << geom.GetGeometryType() << " which cannot be refined" << std::endl;
         }
 
         // Once we have created all the sub elements, the origin element must be deleted
@@ -249,12 +249,31 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         // Get the condition
         Condition::Pointer p_condition = mrModelPart.Conditions()(id);
 
-        // Check the refinement level of the origin condition
-        // int step_refine_level = rThisLevel + 1;
-        // THIRD: Create the conditions
+        // Get the refinement level of the origin condition
+        int step_refine_level = rThisLevel + 1;
 
-        /* Do some stuff here */
+        // Get the geometry
+        Geometry<NodeType>& geom = p_condition->GetGeometry();
 
+        if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
+        {
+            NodeType::Pointer middle_node = GetNodeInEdge(geom);
+
+            // Create the sub conditions
+            std::vector<NodeType::Pointer> sub_condition_nodes(2);
+            for (int position = 0; position < 2; position++)
+            {
+                sub_condition_nodes = GetSubLineNodes(position, geom, middle_node);
+                CreateCondition(p_condition, sub_condition_nodes, step_refine_level);
+            }
+        }
+        else
+        {
+            KRATOS_ERROR << "Your geometry contains " << geom.GetGeometryType() << " which cannot be refined" << std::endl;
+        }
+
+        // Once we have created all the sub conditions, the origin conditions must be deleted
+        p_condition->Set(TO_ERASE, true);
     }
 
     mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
@@ -474,7 +493,71 @@ void UniformRefineUtility<TDim>::CreateElement(
         }
         mElemColorMap[sub_element->Id()] = key;
     }
+}
 
+
+/// Create a sub condition
+template<unsigned int TDim>
+void UniformRefineUtility<TDim>::CreateCondition(
+    Condition::Pointer pOriginCondition,
+    std::vector<NodeType::Pointer> ThisNodes,
+    const int& rRefinementLevel
+    )
+{
+    Condition::Pointer sub_condition = pOriginCondition->Create(++mLastElemId, ThisNodes, pOriginCondition->pGetProperties());
+    
+    if (sub_condition != nullptr) 
+    {
+        // Add the element to the origin model part
+        mrModelPart.AddCondition(sub_condition);
+
+        // Set the refinement level
+        int& this_cond_level = sub_condition->GetValue(REFINEMENT_LEVEL);
+        this_cond_level = rRefinementLevel;
+
+        // Add the element to the sub model parts
+        int key = mCondColorMap[pOriginCondition->Id()];
+        if (key != 0)  // NOTE: key==0 is the main model part
+        {
+            for (std::string sub_name : mColors[key])
+            {
+                ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
+                sub_model_part.AddCondition(sub_condition);
+            }
+        }
+        mCondColorMap[sub_condition->Id()] = key;
+    }
+}
+
+
+/// Return the nodes defining the i-subline
+template<unsigned int TDim>
+std::vector<Node<3>::Pointer> UniformRefineUtility<TDim>::GetSubLineNodes(
+    int Position,
+    Geometry<NodeType>& rGeom,
+    NodeType::Pointer& rMiddleNode
+    )
+{
+    std::vector<NodeType::Pointer> sub_line_nodes(2);
+
+    if (Position == 0)
+    {
+        // First sub line
+        sub_line_nodes[0] = rGeom.pGetPoint(0);
+        sub_line_nodes[1] = rMiddleNode;
+    }
+    else if (Position == 1)
+    {
+        // second sub line
+        sub_line_nodes[0] = rMiddleNode;
+        sub_line_nodes[1] = rGeom.pGetPoint(1);
+    }
+    else
+    {
+        KRATOS_ERROR << "Attempting to get " << Position << " sub-line inside a line" << std::endl;
+    }
+
+    return sub_line_nodes;
 }
 
 
@@ -486,42 +569,42 @@ std::vector<Node<3>::Pointer> UniformRefineUtility<TDim>::GetSubTriangleNodes(
     std::array<NodeType::Pointer, 3>& rMiddleNodes
     )
 {
-    std::vector<NodeType::Pointer> sub_element_nodes(3);
+    std::vector<NodeType::Pointer> sub_triangle_nodes(3);
 
     if (Position == 0)
     {
-        // First sub element
-        sub_element_nodes[0] = rGeom.pGetPoint(0);
-        sub_element_nodes[1] = rMiddleNodes[0];
-        sub_element_nodes[2] = rMiddleNodes[2];
+        // First sub triangle
+        sub_triangle_nodes[0] = rGeom.pGetPoint(0);
+        sub_triangle_nodes[1] = rMiddleNodes[0];
+        sub_triangle_nodes[2] = rMiddleNodes[2];
     }
     else if (Position == 1)
     {
-        // Second sub element
-        sub_element_nodes[0] = rGeom.pGetPoint(1);
-        sub_element_nodes[1] = rMiddleNodes[1];
-        sub_element_nodes[2] = rMiddleNodes[0];
+        // Second sub triangle
+        sub_triangle_nodes[0] = rGeom.pGetPoint(1);
+        sub_triangle_nodes[1] = rMiddleNodes[1];
+        sub_triangle_nodes[2] = rMiddleNodes[0];
     }
     else if (Position == 2)
     {
-        // Third sub element
-        sub_element_nodes[0] = rGeom.pGetPoint(2);
-        sub_element_nodes[1] = rMiddleNodes[2];
-        sub_element_nodes[2] = rMiddleNodes[1];
+        // Third sub triangle
+        sub_triangle_nodes[0] = rGeom.pGetPoint(2);
+        sub_triangle_nodes[1] = rMiddleNodes[2];
+        sub_triangle_nodes[2] = rMiddleNodes[1];
     }
     else if (Position == 3)
     {
-        // Fourth sub element (inner element)
-        sub_element_nodes[0] = rMiddleNodes[0];
-        sub_element_nodes[1] = rMiddleNodes[1];
-        sub_element_nodes[2] = rMiddleNodes[2];
+        // Fourth sub triangle (inner triangle)
+        sub_triangle_nodes[0] = rMiddleNodes[0];
+        sub_triangle_nodes[1] = rMiddleNodes[1];
+        sub_triangle_nodes[2] = rMiddleNodes[2];
     }
     else
     {
-        KRATOS_ERROR << "Attempting to get " << Position << " sub element inside a triangle" << std::endl;
+        KRATOS_ERROR << "Attempting to get " << Position << " sub-triangle inside a triangle" << std::endl;
     }
 
-    return sub_element_nodes;
+    return sub_triangle_nodes;
 }
 
 /// Return the nodes defining the i-subquadrilateral
@@ -532,46 +615,46 @@ std::vector<Node<3>::Pointer> UniformRefineUtility<TDim>::GetSubQuadrilateralNod
     std::array<NodeType::Pointer, 5>& rMiddleNodes
     )
 {
-    std::vector<NodeType::Pointer> sub_element_nodes(4);
+    std::vector<NodeType::Pointer> sub_triangle_nodes(4);
 
     if (Position == 0)
     {
         // First sub element
-        sub_element_nodes[0] = rGeom.pGetPoint(0);
-        sub_element_nodes[1] = rMiddleNodes[0];
-        sub_element_nodes[2] = rMiddleNodes[4];
-        sub_element_nodes[3] = rMiddleNodes[3];
+        sub_triangle_nodes[0] = rGeom.pGetPoint(0);
+        sub_triangle_nodes[1] = rMiddleNodes[0];
+        sub_triangle_nodes[2] = rMiddleNodes[4];
+        sub_triangle_nodes[3] = rMiddleNodes[3];
     }
     else if (Position == 1)
     {
         // Second sub element
-        sub_element_nodes[0] = rGeom.pGetPoint(1);
-        sub_element_nodes[1] = rMiddleNodes[1];
-        sub_element_nodes[2] = rMiddleNodes[4];
-        sub_element_nodes[3] = rMiddleNodes[0];
+        sub_triangle_nodes[0] = rGeom.pGetPoint(1);
+        sub_triangle_nodes[1] = rMiddleNodes[1];
+        sub_triangle_nodes[2] = rMiddleNodes[4];
+        sub_triangle_nodes[3] = rMiddleNodes[0];
     }
     else if (Position == 2)
     {
         // Third sub element
-        sub_element_nodes[0] = rGeom.pGetPoint(2);
-        sub_element_nodes[1] = rMiddleNodes[2];
-        sub_element_nodes[2] = rMiddleNodes[4];
-        sub_element_nodes[3] = rMiddleNodes[1];
+        sub_triangle_nodes[0] = rGeom.pGetPoint(2);
+        sub_triangle_nodes[1] = rMiddleNodes[2];
+        sub_triangle_nodes[2] = rMiddleNodes[4];
+        sub_triangle_nodes[3] = rMiddleNodes[1];
     }
     else if (Position == 3)
     {
         // Fourth sub element
-        sub_element_nodes[0] = rGeom.pGetPoint(3);
-        sub_element_nodes[1] = rMiddleNodes[3];
-        sub_element_nodes[2] = rMiddleNodes[4];
-        sub_element_nodes[3] = rMiddleNodes[2];
+        sub_triangle_nodes[0] = rGeom.pGetPoint(3);
+        sub_triangle_nodes[1] = rMiddleNodes[3];
+        sub_triangle_nodes[2] = rMiddleNodes[4];
+        sub_triangle_nodes[3] = rMiddleNodes[2];
     }
     else
     {
-        KRATOS_ERROR << "Attempting to get " << Position << " sub element inside a quadrilateral" << std::endl;
+        KRATOS_ERROR << "Attempting to get " << Position << " sub-quadrilateral inside a quadrilateral" << std::endl;
     }
 
-    return sub_element_nodes;
+    return sub_triangle_nodes;
 }
 
 

@@ -223,7 +223,7 @@ private:
 
     NodesInEdgeMapType mNodesMap;              /// Where the father nodes IDs are stored
     NodesInFaceMapType mNodesInFaceMap;        /// Where the father nodes IDs are stored
-    
+
     SubModelPartsListUtility mSubModelPartsColors;
 
 
@@ -294,6 +294,27 @@ private:
         );
 
     /**
+     * Create condition inside from an origin condition
+     * @param pOriginCondition pointer to the father condition
+     * @ThisNodes vector containing the sub condition nodes
+     * @param rRefinementLevel To assign to REFINEMENT_LEVEL flag
+     */
+    void CreateCondition(
+        Condition::Pointer pOriginCondition,
+        std::vector<NodeType::Pointer> ThisNodes,
+        const int& rRefinementLevel
+        );
+
+    /**
+     * Return the nodes defining the i-subline
+     */
+    std::vector<Node<3>::Pointer> GetSubLineNodes(
+        int Position,
+        Geometry<NodeType>& rGeom,
+        NodeType::Pointer& rMiddleNode
+        );
+
+    /**
      * Return the nodes defining the i-subtriangle
      */
     std::vector<Node<3>::Pointer> GetSubTriangleNodes(
@@ -303,7 +324,7 @@ private:
         );
 
     /**
-     * Return the nodes defining the i-subtriangle
+     * Return the nodes defining the i-subquadrilateral
      */
     std::vector<Node<3>::Pointer> GetSubQuadrilateralNodes(
         int Position,
