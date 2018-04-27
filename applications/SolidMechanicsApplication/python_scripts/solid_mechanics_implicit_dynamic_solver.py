@@ -100,7 +100,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             scheme_integration_methods.append(KratosSolid.NewmarkVectorIntegration(KratosMultiphysics.DISPLACEMENT,
                                                                                    KratosMultiphysics.VELOCITY,
                                                                                    KratosMultiphysics.ACCELERATION))
-            mechanical_scheme = KratosSolid.NewmarkScheme(scheme_integration_methods)
+            mechanical_scheme = KratosSolid.DynamicScheme(scheme_integration_methods)
         elif(integration_method == "Bossak"):
             # create the time integration methods list to define the scheme
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.BossakComponentIntegration(),
@@ -110,7 +110,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             scheme_integration_methods.append(KratosSolid.BossakVectorIntegration(KratosMultiphysics.DISPLACEMENT,
                                                                                   KratosMultiphysics.VELOCITY,
                                                                                   KratosMultiphysics.ACCELERATION))
-            mechanical_scheme = KratosSolid.BossakScheme(scheme_integration_methods)
+            mechanical_scheme = KratosSolid.DynamicScheme(scheme_integration_methods)
         elif(integration_method == "Simo"):
              # create the time integration methods list to define the scheme
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.SimoComponentIntegration(),
@@ -120,7 +120,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             scheme_integration_methods.append(KratosSolid.SimoVectorIntegration(KratosMultiphysics.DISPLACEMENT,
                                                                                 KratosMultiphysics.VELOCITY,
                                                                                 KratosMultiphysics.ACCELERATION))
-            mechanical_scheme = KratosSolid.BossakScheme(scheme_integration_methods)
+            mechanical_scheme = KratosSolid.DynamicScheme(scheme_integration_methods)
         elif(integration_method == "BackwardEuler"):
             # create the time integration methods list to define the scheme
             self.integration_methods.update({'DISPLACEMENT': KratosSolid.BackwardEulerComponentIntegration(),
@@ -159,7 +159,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
                                                                                            KratosMultiphysics.ANGULAR_ACCELERATION)
             rotation_integration_method.SetStepVariable(KratosSolid.STEP_ROTATION)
             scheme_integration_methods.append(rotation_integration_method)
-            mechanical_scheme = KratosSolid.NewmarkScheme(scheme_integration_methods)
+            mechanical_scheme = KratosSolid.DynamicScheme(scheme_integration_methods)
         elif(integration_method == "RotationBossak"):
             self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = True
              # create the time integration methods list to define the scheme
@@ -177,7 +177,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
                                                                                           KratosMultiphysics.ANGULAR_ACCELERATION)
             rotation_integration_method.SetStepVariable(KratosSolid.STEP_ROTATION)
             scheme_integration_methods.append(rotation_integration_method)
-            mechanical_scheme = KratosSolid.BossakScheme(scheme_integration_methods)
+            mechanical_scheme = KratosSolid.DynamicScheme(scheme_integration_methods)
         elif(integration_method == "RotationSimo"):
             self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = True
             # create the time integration methods list to define the scheme
@@ -195,7 +195,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
                                                                                         KratosMultiphysics.ANGULAR_ACCELERATION)
             rotation_integration_method.SetStepVariable(KratosSolid.STEP_ROTATION)
             scheme_integration_methods.append(rotation_integration_method)
-            mechanical_scheme = KratosSolid.BossakScheme(scheme_integration_methods)
+            mechanical_scheme = KratosSolid.DynamicScheme(scheme_integration_methods)
         elif(integration_method == "RotationEMC"):
             self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = True
             # create the time integration methods list to define the scheme

@@ -8,8 +8,8 @@
 //
 
 
-#if !defined(KRATOS_EIGENSOLVER_DYNAMIC_SCHEME_H_INCLUDED)
-#define  KRATOS_EIGENSOLVER_DYNAMIC_SCHEME_H_INCLUDED
+#if !defined(KRATOS_EIGENSOLVER_SCHEME_H_INCLUDED)
+#define  KRATOS_EIGENSOLVER_SCHEME_H_INCLUDED
 
 
 // System includes
@@ -54,13 +54,13 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace
          >
-class EigensolverDynamicScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
+class EigensolverScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
 {
  public:
   ///@name Type Definitions
   ///@{
 
-  KRATOS_CLASS_POINTER_DEFINITION( EigensolverDynamicScheme );
+  KRATOS_CLASS_POINTER_DEFINITION( EigensolverScheme );
 
   typedef SolutionScheme<TSparseSpace,TDenseSpace>                                    BaseType;
   typedef typename BaseType::SolutionSchemePointerType                         BasePointerType;
@@ -73,19 +73,19 @@ class EigensolverDynamicScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
   ///@{
 
   /// Default Constructor.
-  EigensolverDynamicScheme()
+  EigensolverScheme()
       :BaseType()
   {
   }
 
   /// Constructor.
-  EigensolverDynamicScheme(Flags& rOptions)
+  EigensolverScheme(Flags& rOptions)
       :BaseType(rOptions)
   {
   }
   
   /// Destructor.
-  ~EigensolverDynamicScheme() override {}
+  ~EigensolverScheme() override {}
 
   ///@}
   ///@name Operators
@@ -285,5 +285,5 @@ class EigensolverDynamicScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EIGENSOLVER_DYNAMIC_SCHEME_H_INCLUDED  defined 
+#endif // KRATOS_EIGENSOLVER_SCHEME_H_INCLUDED  defined 
 

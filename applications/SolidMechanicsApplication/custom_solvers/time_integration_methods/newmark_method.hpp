@@ -242,13 +242,13 @@ namespace Kratos
 
     
     // get parameters
-    double& GetFirstDerivativeParameter(double& rParameter) override
+    double& GetFirstDerivativeInertialParameter(double& rParameter) override
     {
       rParameter = mNewmark.c1;
       return rParameter;
     }
 
-    double& GetSecondDerivativeParameter(double& rParameter) override
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
     {
       rParameter = mNewmark.c0;
       return rParameter;

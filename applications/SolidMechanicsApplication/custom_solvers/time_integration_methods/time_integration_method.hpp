@@ -162,20 +162,27 @@ namespace Kratos
     
     }
     
-    // get parameters   
-    virtual double& GetMethodParameter(double& rParameter)
+    // get parameters for variables (RHS)
+    virtual double& GetFirstDerivativeKineticParameter(double& rParameter)
     {
       rParameter = 0.0;
       return rParameter;
     }
 
-    virtual double& GetFirstDerivativeParameter(double& rParameter)
+    virtual double& GetSecondDerivativeKineticParameter(double& rParameter)
+    {
+      rParameter = 0.0;
+      return rParameter;
+    }
+
+    // get parameters for matrices (LHS)
+    virtual double& GetFirstDerivativeInertialParameter(double& rParameter)
     {
       rParameter = 1.0;
       return rParameter;
     }
 
-    virtual double& GetSecondDerivativeParameter(double& rParameter)
+    virtual double& GetSecondDerivativeInertialParameter(double& rParameter)
     {
       rParameter = 1.0;
       return rParameter;

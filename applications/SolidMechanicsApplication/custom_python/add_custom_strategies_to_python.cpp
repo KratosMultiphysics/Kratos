@@ -40,8 +40,8 @@
 
 // Solution schemes
 #include "custom_solvers/solution_schemes/static_scheme.hpp"
-#include "custom_solvers/solution_schemes/bossak_scheme.hpp"
-#include "custom_solvers/solution_schemes/eigensolver_dynamic_scheme.hpp"
+#include "custom_solvers/solution_schemes/dynamic_scheme.hpp"
+#include "custom_solvers/solution_schemes/eigensolver_scheme.hpp"
 
 #include "custom_solvers/solution_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_solvers/solution_schemes/explicit_hamilton_scheme.hpp"
@@ -111,12 +111,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   // Solution scheme types
   typedef ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType>    ExplicitCentralDifferencesSchemeType;
   typedef ExplicitHamiltonScheme<SparseSpaceType, LocalSpaceType>                        ExplicitHamiltonSchemeType;
-  typedef EigensolverDynamicScheme<SparseSpaceType, LocalSpaceType>                    EigensolverDynamicSchemeType;
+  typedef EigensolverScheme<SparseSpaceType, LocalSpaceType>                                  EigensolverSchemeType;
 
   typedef StaticScheme<SparseSpaceType, LocalSpaceType>                                            StaticSchemeType;
   typedef DynamicScheme<SparseSpaceType, LocalSpaceType>                                          DynamicSchemeType;
-  typedef NewmarkScheme<SparseSpaceType, LocalSpaceType>                                          NewmarkSchemeType;
-  typedef BossakScheme<SparseSpaceType, LocalSpaceType>                                            BossakSchemeType;
 
   // Custom convergence criterion types
   typedef DisplacementConvergenceCriterion<SparseSpaceType,  LocalSpaceType>   DisplacementConvergenceCriterionType;
@@ -350,11 +348,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("Check", &SolutionSchemeType::Check)
       ;
 
-  // Explicit scheme: Central differences
-  class_<ExplicitCentralDifferencesSchemeType, typename ExplicitCentralDifferencesSchemeType::Pointer, SolutionSchemeType>(m,"ExplicitCentralDifferencesScheme")
-      .def(init<Flags& ,const double, const double, const double>())
-      ;
-
   // Static Scheme Type
   class_<StaticSchemeType, typename StaticSchemeType::Pointer, SolutionSchemeType>(m,"StaticScheme")
       .def(init<TimeIntegrationMethodsVector&, Flags&>())
@@ -367,20 +360,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<TimeIntegrationMethodsVector&>())
       ;
 
-  // Newmark Scheme Type
-  class_<NewmarkSchemeType, typename NewmarkSchemeType::Pointer, SolutionSchemeType>(m,"NewmarkScheme")
-      .def(init<TimeIntegrationMethodsVector&, Flags&>())
-      .def(init<TimeIntegrationMethodsVector&>())
-      ;
-
-  // Bossak Scheme Type
-  class_<BossakSchemeType, typename BossakSchemeType::Pointer, SolutionSchemeType>(m,"BossakScheme")
-      .def(init<TimeIntegrationMethodsVector&, Flags&>())
-      .def(init<TimeIntegrationMethodsVector&>())
+  // Explicit scheme: Central differences
+  class_<ExplicitCentralDifferencesSchemeType, typename ExplicitCentralDifferencesSchemeType::Pointer, SolutionSchemeType>(m,"ExplicitCentralDifferencesScheme")
+      .def(init<Flags& ,const double, const double, const double>())
       ;
   
   // Eigensolver Scheme Type
-  class_<EigensolverDynamicSchemeType, typename EigensolverDynamicSchemeType::Pointer, SolutionSchemeType>(m,"EigensolverDynamicScheme")
+  class_<EigensolverSchemeType, typename EigensolverSchemeType::Pointer, SolutionSchemeType>(m,"EigensolverScheme")
       .def(init<>())
       .def(init<Flags&>())
       ;

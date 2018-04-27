@@ -272,19 +272,13 @@ namespace Kratos
     ///@{
 
     // get parameters
-    double& GetMethodParameter(double& rParameter) override
-    {
-      rParameter = mDeltaTime;
-      return rParameter;
-    }
-
-    double& GetFirstDerivativeParameter(double& rParameter) override
+    double& GetFirstDerivativeInertialParameter(double& rParameter) override
     {
       rParameter = mBDF[0];
       return rParameter;
     }
 
-    double& GetSecondDerivativeParameter(double& rParameter) override
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
     {
       rParameter = mBDF[0]*mBDF[0];
       return rParameter;

@@ -148,6 +148,11 @@ namespace Kratos
 	mVector.v.resize(NumThreads);
 	mVector.a.resize(NumThreads);
 
+        double parameter = this->mTimeIntegrationMethods.front()->GetSecondDerivativeKineticParameter(parameter);
+
+        if( parameter != 0 )
+          mVector.c.resize(NumThreads);
+        
 	KRATOS_CATCH("")
     }
 
@@ -444,14 +449,14 @@ namespace Kratos
       // Adding mass contribution to the dynamic stiffness
       if (rM.size1() != 0) // if M matrix declared
         {
-	  parameter = this->mTimeIntegrationMethods.front()->GetSecondDerivativeParameter(parameter);
+	  parameter = this->mTimeIntegrationMethods.front()->GetSecondDerivativeInertialParameter(parameter);
 	  noalias(rLHS_Contribution) += rM * parameter;
         }
 
       // Adding  damping contribution
       if (rD.size1() != 0) // if D matrix declared
         {
-	  parameter = this->mTimeIntegrationMethods.front()->GetFirstDerivativeParameter(parameter);
+	  parameter = this->mTimeIntegrationMethods.front()->GetFirstDerivativeInertialParameter(parameter);
 	  noalias(rLHS_Contribution) += rD * parameter;
         }
     }
@@ -505,7 +510,19 @@ namespace Kratos
       if (rM.size1() != 0)
         {
 	  pCurrentElement->GetSecondDerivativesVector(mVector.a[thread], 0);
+          
+          double parameter = this->mTimeIntegrationMethods.front()->GetSecondDerivativeKineticParameter(parameter);
 
+          if( parameter != 0 ){
+
+            (mVector.a[thread]) *= (1.00 - parameter);
+
+            pCurrentElement->GetSecondDerivativesVector(mVector.c[thread], 1);
+
+            noalias(mVector.a[thread]) += parameter * mVector.c[thread];
+
+          }
+                     
 	  noalias(rRHS_Contribution) -= prod(rM, mVector.a[thread]);
         }
 
@@ -540,6 +557,18 @@ namespace Kratos
         {
 	  pCurrentCondition->GetSecondDerivativesVector(mVector.a[thread], 0);
 
+          double parameter = this->mTimeIntegrationMethods.front()->GetSecondDerivativeKineticParameter(parameter);
+          
+          if( parameter != 0 ){
+
+            (mVector.a[thread]) *= (1.00 - parameter);
+
+            pCurrentCondition->GetSecondDerivativesVector(mVector.c[thread], 1);
+
+            noalias(mVector.a[thread]) += parameter * mVector.c[thread];
+
+          }
+          
 	  noalias(rRHS_Contribution) -= prod(rM, mVector.a[thread]);
         }
 

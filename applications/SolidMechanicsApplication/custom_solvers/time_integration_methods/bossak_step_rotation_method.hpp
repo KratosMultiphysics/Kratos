@@ -203,13 +203,13 @@ namespace Kratos
      KRATOS_CATCH( "" )
     } 
     
-    double& GetMethodParameter(double& rParameter) override
+    double& GetSecondDerivativeKineticParameter(double& rParameter) override
     {
       rParameter = mAlpha;
       return rParameter;
     }
     
-    double& GetSecondDerivativeParameter(double& rParameter) override
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
     {
       rParameter = (1.0 - mAlpha) * this->mNewmark.c0;
       return rParameter;

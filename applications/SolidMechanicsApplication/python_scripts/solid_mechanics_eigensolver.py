@@ -65,7 +65,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         generalized eigenvalue problem.
         """
         if self.time_integration_settings["solution_type"].GetString() == "Dynamic":
-            solution_scheme = KratosSolid.EigensolverDynamicScheme()
+            solution_scheme = KratosSolid.EigensolverScheme()
         else:
             raise Exception("Unsupported solution_type: " + self.time_integration_settings["solution_type"])
         return solution_scheme
