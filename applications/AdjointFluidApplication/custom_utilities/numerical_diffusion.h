@@ -366,6 +366,7 @@ private:
         }
     }
 
+    // TODO: Still work is in progress
     template<unsigned int TDim>
     double CalculateNumericalDiffusionEigenFullMatrix(Element::Pointer pCurrentElement, const ProcessInfo& rCurrentProcessInfo)
     {
