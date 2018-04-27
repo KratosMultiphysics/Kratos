@@ -31,7 +31,6 @@ namespace Kratos
 {
 
 class Parameters;
-class Communicator;
 
 namespace HDF5
 {
@@ -62,31 +61,15 @@ public:
     ///@name Operations
     ///@{
 
-    void WriteElementResults(ElementsContainerType const& rElements, unsigned Step=0);
+    void WriteElementResults(ElementsContainerType const& rElements);
 
-    void ReadElementResults(ElementsContainerType& rElements, Communicator& rComm, unsigned Step=0);
+    void ReadElementResults(ElementsContainerType& rElements);
     
     ///@}
 
 protected:
     ///@name Protected Operations
     ///@{
-
-    std::string const& GetPrefix() const noexcept
-    {
-        return mPrefix;
-    }
-
-    std::vector<std::string> const& VariableNames() const noexcept
-    {
-        return mVariableNames;
-    }
-
-    File& GetFile()
-    {
-        return *mpFile;
-    }
-
     ///@}
 
 private:

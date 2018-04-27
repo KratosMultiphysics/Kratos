@@ -3,9 +3,7 @@
 #include "utilities/openmp_utils.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
 #include "includes/kratos_parameters.h"
-#include "includes/communicator.h"
 #include "custom_utilities/registered_variable_lookup.h"
-//#include "custom_utilities/local_ghost_splitting_utility.h"
 
 namespace Kratos
 {
@@ -16,14 +14,14 @@ namespace
 template <class TVariableType, class TFileDataType>
 void SetDataBuffer(TVariableType const& rVariable,
                    std::vector<ElementType*> const& rElements,
-                   Vector<TFileDataType>& rData,
-                   unsigned Step);
+                   Vector<TFileDataType>& rData
+                   );
 
 template <class TVariableType, class TFileDataType>
 void SetElementSolutionStepData(TVariableType const& rVariable,
                               Vector<TFileDataType> const& rData,
-                              std::vector<ElementType*>& rElements,
-                              unsigned Step);
+                              std::vector<ElementType*>& rElements
+                              );
 
 template <typename TVariable>
 class WriteVariableFunctor
@@ -31,13 +29,12 @@ class WriteVariableFunctor
 public:
     void operator()(TVariable const& rVariable,
                     std::vector<ElementType*>& rElements,
-                    unsigned Step,
                     File& rFile,
                     std::string const& rPrefix,
                     WriteInfo& rInfo)
     {
         Vector<typename TVariable::Type> data;
-        SetDataBuffer(rVariable, rElements, data, Step);
+        SetDataBuffer(rVariable, rElements, data);
         rFile.WriteDataSet(rPrefix + "/ElementResults/" + rVariable.Name(), data, rInfo);
     }
 };
@@ -48,7 +45,6 @@ class ReadVariableFunctor
 public:
     void operator()(TVariable const& rVariable,
                     std::vector<ElementType*>& rElements,
-                    unsigned Step,
                     File& rFile,
                     std::string const& rPrefix,
                     unsigned StartIndex,
@@ -57,14 +53,23 @@ public:
         Vector<typename TVariable::Type> data;
         rFile.ReadDataSet(rPrefix + "/ElementResults/" + rVariable.Name(), data,
                           StartIndex, BlockSize);
-        SetElementSolutionStepData(rVariable, data, rElements, Step);
+        SetElementSolutionStepData(rVariable, data, rElements);
     }
 };
 
-void GetElementReferences(ElementsContainerType const& rElements, std::vector<ElementType*>& rElementReferences )
+std::vector<ElementType*> GetElementReferences(ElementsContainerType const& rElements )
 {
-    for (auto it = rElements.begin(); it != rElements.end(); ++it)
-        rElementReferences.push_back(&(*it));
+    std::vector<ElementType*> rElementReferences;
+    rElementReferences.resize(rElements.size());
+
+    #pragma omp parallel for
+        for (int i = 0; i < rElements.size(); ++i)
+        {
+            auto it = rElements.begin() + i;
+            rElementReferences[i] = (&(*it));
+        }
+    
+    return rElementReferences;
 }
 } // unnamed namespace
 
@@ -90,7 +95,7 @@ ElementSolutionStepDataIO::ElementSolutionStepDataIO(Parameters Settings, File::
     KRATOS_CATCH("");
 }
 
-void ElementSolutionStepDataIO::WriteElementResults(ElementsContainerType const& rElements, unsigned Step)
+void ElementSolutionStepDataIO::WriteElementResults(ElementsContainerType const& rElements)
 {
     KRATOS_TRY;
 
@@ -98,15 +103,14 @@ void ElementSolutionStepDataIO::WriteElementResults(ElementsContainerType const&
         return;
 
     WriteInfo info;
-    std::vector<ElementType*> local_elements;
-    GetElementReferences(rElements, local_elements);
+    std::vector<ElementType*> local_elements = GetElementReferences(rElements);
 
     // Write each variable.
     for (const std::string& r_variable_name : mVariableNames)
         RegisteredVariableLookup<Variable<array_1d<double, 3>>,
                                  VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>,
                                  Variable<double>, Variable<int>>(r_variable_name)
-            .Execute<WriteVariableFunctor>(local_elements, Step, *mpFile, mPrefix, info);
+            .Execute<WriteVariableFunctor>(local_elements, *mpFile, mPrefix, info);
 
     // Write block partition.
     WritePartitionTable(*mpFile, mPrefix + "/ElementResults", info);
@@ -114,15 +118,14 @@ void ElementSolutionStepDataIO::WriteElementResults(ElementsContainerType const&
     KRATOS_CATCH("");
 }
 
-void ElementSolutionStepDataIO::ReadElementResults(ElementsContainerType& rElements, Communicator& rComm, unsigned Step)
+void ElementSolutionStepDataIO::ReadElementResults(ElementsContainerType& rElements)
 {
     KRATOS_TRY;
 
     if (mVariableNames.size() == 0)
         return;
 
-    std::vector<ElementType*> local_elements;
-    GetElementReferences(rElements, local_elements);
+    std::vector<ElementType*> local_elements = GetElementReferences(rElements);
     unsigned start_index, block_size;
     std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, mPrefix + "/ElementResults");
 
@@ -131,7 +134,7 @@ void ElementSolutionStepDataIO::ReadElementResults(ElementsContainerType& rEleme
         RegisteredVariableLookup<Variable<array_1d<double, 3>>,
                                  VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>,
                                  Variable<double>, Variable<int>>(r_variable_name)
-            .Execute<ReadVariableFunctor>(local_elements, Step, *mpFile, mPrefix,
+            .Execute<ReadVariableFunctor>(local_elements, *mpFile, mPrefix,
                                           start_index, block_size);
 
     KRATOS_CATCH("");
@@ -142,8 +145,8 @@ namespace
 template <class TVariableType, class TFileDataType>
 void SetDataBuffer(TVariableType const& rVariable,
                    std::vector<ElementType*> const& rElements,
-                   Vector<TFileDataType>& rData,
-                   unsigned Step)
+                   Vector<TFileDataType>& rData
+                   )
 {
     KRATOS_TRY;
 
@@ -159,8 +162,8 @@ void SetDataBuffer(TVariableType const& rVariable,
 template <class TVariableType, class TFileDataType>
 void SetElementSolutionStepData(TVariableType const& rVariable,
                               Vector<TFileDataType> const& rData,
-                              std::vector<ElementType*>& rElements,
-                              unsigned Step)
+                              std::vector<ElementType*>& rElements
+                              )
 {
     KRATOS_TRY;
 
