@@ -6,7 +6,7 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import subprocess
+from subprocess import Popen
 
 try:
     import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
@@ -370,7 +370,7 @@ if __name__ == '__main__':
         import KratosMultiphysics.mpi as KratosMPI
         import KratosMultiphysics.MetisApplication as MetisApplication
         import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-        p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"])
+        p = Popen(["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"])
         p.wait()
         print("Finished mpi python tests!")
     except ImportError:
