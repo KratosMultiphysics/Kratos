@@ -21,7 +21,6 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "uniform_refine_utility.h"
-#include "utilities/sub_model_parts_list_utility.h"
 
 
 namespace Kratos
@@ -30,7 +29,8 @@ namespace Kratos
 template< unsigned int TDim>
 UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int RefinementLevel) :
     mrModelPart(rModelPart),
-    mFinalRefinementLevel(RefinementLevel)
+    mFinalRefinementLevel(RefinementLevel),
+    mSubModelPartsColors(mrModelPart)
 {
     // Initialize the member variables storing the Id
     mLastNodeId = 0;
@@ -69,8 +69,8 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
     mDofs = mrModelPart.NodesBegin()->GetDofs();
 
     // Compute the sub model part maps
-    SubModelPartsListUtility sub_model_parts_list(mrModelPart);
-    sub_model_parts_list.ComputeSubModelPartsList(mNodesColorMap, mCondColorMap, mElemColorMap, mColors);
+    
+    mSubModelPartsColors.ComputeSubModelPartsList(mNodesColorMap, mCondColorMap, mElemColorMap, mColors);
 }
 
 
@@ -184,8 +184,6 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
             CreateNodeInFace( geom, step_refine_level );
-
-        // Encontrar el lugar para ejecutar SubModelPartsColors
     }
 
     // TODO: add OMP
@@ -286,7 +284,7 @@ void UniformRefineUtility<TDim>::CreateNodeInEdge(
         NodeType::Pointer middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
 
         // Store the node key in the map
-        mNodesMap.insert( std::pair< std::pair<int, int>, int > (node_key, middle_node->Id()) );
+        mNodesMap[node_key] = middle_node->Id();
 
         // interpolate the variables
         CalculateNodalStepData(middle_node, rEdge(0), rEdge(1));
@@ -299,19 +297,19 @@ void UniformRefineUtility<TDim>::CreateNodeInEdge(
         for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
             middle_node->pAddDof(*it_dof);
         
-        // Add the element to the sub model parts
+        // Add the node to the sub model parts
         int key0 = mNodesColorMap[rEdge(0)->Id()];
         int key1 = mNodesColorMap[rEdge(1)->Id()];
-        // int key = SubModelPartsListUtility::IntersectKeys(key0, key1, mColors);
-        // if (key != 0)  // NOTE: key==0 is the main model part
-        // {
-        //     for (std::string sub_name : mColors[key])
-        //     {
-        //         ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
-        //         sub_model_part.AddElement(sub_element);
-        //     }
-        // }
-        // mNodesColorMap.insert( std::pair<int,int>(sub_element->Id(), key) );
+        int key = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
+        if (key != 0)  // NOTE: key==0 is the main model part
+        {
+            for (std::string sub_name : mColors[key])
+            {
+                ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
+                sub_model_part.AddNode(middle_node);
+            }
+        }
+        mNodesColorMap[middle_node->Id()] = key;
     }
 }
 
@@ -350,9 +348,8 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
     )
 {
     // Get the middle node key
-    std::array<int, 4> node_key = {rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()};
+    std::array<IndexType, 4> node_key = {rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()};
     std::sort(node_key.begin(), node_key.end());
-    // node_key = std::sort(rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id());
 
     // Check if the node is not yet created
     auto search = mNodesInFaceMap.find(node_key);
@@ -365,7 +362,7 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
         Node<3>::Pointer middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
 
         // Store the node key in the map
-        mNodesInFaceMap.insert( std::pair< std::array<int, 4>, int > (node_key, middle_node->Id()) );
+        mNodesInFaceMap[node_key] = middle_node->Id();
 
         // interpolate the variables
         CalculateNodalStepData(middle_node, rFace(0), rFace(1));
@@ -377,6 +374,24 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
         // Set the DoF's
         for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
             middle_node->pAddDof(*it_dof);
+        
+        // Add the node to the sub model parts
+        int key0 = mNodesColorMap[rFace(0)->Id()];
+        int key1 = mNodesColorMap[rFace(1)->Id()];
+        int key2 = mNodesColorMap[rFace(2)->Id()];
+        int key3 = mNodesColorMap[rFace(3)->Id()];
+        key0 = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
+        key1 = mSubModelPartsColors.IntersectKeys(key2, key3, mColors);
+        key0 = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
+        if (key0 != 0)  // NOTE: key==0 is the main model part
+        {
+            for (std::string sub_name : mColors[key0])
+            {
+                ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
+                sub_model_part.AddNode(middle_node);
+            }
+        }
+        mNodesColorMap[middle_node->Id()] = key0;
     }
 }
 
@@ -389,7 +404,7 @@ Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeInFace(const FaceType& rFace
     NodeType::Pointer middle_node;
 
     // Get the middle node key
-    std::array<int, 4> node_key = {rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()};
+    std::array<IndexType, 4> node_key = {rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()};
     std::sort(node_key.begin(), node_key.end());
 
     // Check if the node exist
@@ -457,7 +472,7 @@ void UniformRefineUtility<TDim>::CreateElement(
                 sub_model_part.AddElement(sub_element);
             }
         }
-        mElemColorMap.insert( std::pair<int,int>(sub_element->Id(), key) );
+        mElemColorMap[sub_element->Id()] = key;
     }
 
 }

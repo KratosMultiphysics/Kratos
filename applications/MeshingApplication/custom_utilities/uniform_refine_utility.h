@@ -25,6 +25,7 @@
 
 
 // Project includes
+#include "includes/key_hash.h"
 #include "includes/define.h"
 #include "includes/node.h"
 #include "includes/element.h"
@@ -33,6 +34,7 @@
 #include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
+#include "utilities/sub_model_parts_list_utility.h"
 
 
 namespace Kratos
@@ -87,6 +89,17 @@ public:
      */
     typedef Quadrilateral3D4<NodeType> FaceType;
     
+    /**
+     * Type of IDs
+     */
+    typedef std::size_t IndexType;
+    
+    /**
+     * Map types to locate nodes in the mesh
+     */
+    typedef std::map<std::pair<IndexType, IndexType>, IndexType> NodesInEdgeMapType;
+    typedef std::unordered_map<std::array<IndexType, 4>, IndexType, KeyHasherRange<std::array<IndexType, 4>>, KeyComparorRange<std::array<IndexType, 4>>> NodesInFaceMapType;
+
     /// Pointer definition of UniformRefineUtility
     KRATOS_CLASS_POINTER_DEFINITION(UniformRefineUtility);
 
@@ -208,11 +221,10 @@ private:
     std::unordered_map<int,int> mElemColorMap;
     std::unordered_map<int,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
 
-    std::map<std::pair<int, int>, int> mNodesMap;              /// Where the father nodes IDs are stored
-    std::map<std::array<int, 4>, int> mNodesInFaceMap;         /// Where the father nodes IDs are stored
-    //std::unordered_map<std::pair<int, int>, int, KeyHasherRange<std::pair<int, int>>, KeyComparorRange<std::pair<int, int>> > mNodesMap;
+    NodesInEdgeMapType mNodesMap;              /// Where the father nodes IDs are stored
+    NodesInFaceMapType mNodesInFaceMap;        /// Where the father nodes IDs are stored
     
-    
+    SubModelPartsListUtility mSubModelPartsColors;
 
 
     ///@}
@@ -270,7 +282,10 @@ private:
         );
 
     /**
-     * Create a triangle inside the origin element
+     * Create an element from an origin element
+     * @param pOriginElement pointer to the father element
+     * @ThisNodes vector containing the sub element nodes
+     * @param rRefinementLevel To assign to REFINEMENT_LEVEL flag
      */
     void CreateElement(
         Element::Pointer pOriginElement,
