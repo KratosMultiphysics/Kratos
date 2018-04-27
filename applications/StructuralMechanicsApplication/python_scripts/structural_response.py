@@ -7,6 +7,7 @@ import structural_mechanics_analysis
 
 import time as timer
 
+# ==============================================================================
 class ResponseFunctionBase(object):
     """The base class for structural response functions. Each response function
     is able to calculate its response value and gradient.
@@ -14,7 +15,13 @@ class ResponseFunctionBase(object):
     solving of primal (and adjoint) analysis ...
     """
 
+    def RunCalculationProcess(self, calculate_gradient):
+        raise NotImplementedError("Run needs to be implemented by the base class")
+
     def Initialize(self):
+        pass
+
+    def InitializeSolutionStep(self):
         pass
 
     def CalculateValue(self):
@@ -23,15 +30,22 @@ class ResponseFunctionBase(object):
     def CalculateGradient(self):
         raise NotImplementedError("CalculateGradient needs to be implemented by the base class")
 
-    def GetShapeGradient(self):
-        raise NotImplementedError("GetShapeGradient needs to be implemented by the base class")
+    def FinalizeSolutionStep(self):
+        pass
 
     def Finalize(self):
         pass
 
+    def GetValue(self):
+        raise NotImplementedError("GetValue needs to be implemented by the base class")
+
+    def GetShapeGradient(self):
+        raise NotImplementedError("GetShapeGradient needs to be implemented by the base class")
+
+# ==============================================================================
 class StrainEnergyResponseFunction(ResponseFunctionBase):
     """Linear strain energy response function. It triggers the primal analysis and
-    uses the primal analysis results to evaluate response value and gradient.
+    uses the primal analysis results to calculate response value and gradient.
 
     Attributes
     ----------
@@ -50,27 +64,49 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal, model_part)
         self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
+    def RunCalculationProcess(self, calculate_gradient):
+        self.Initialize()
+        self.InitializeSolutionStep()
+        self.CalculateValue()
+        if calculate_gradient:
+            self.CalculateGradient()
+        self.FinalizeSolutionStep()
+        self.Finalize()
+
     def Initialize(self):
         self.primal_analysis.Initialize()
         self.response_function_utility.Initialize()
+
+    def InitializeSolutionStep(self):
+        self.primal_analysis.InitializeTimeStep()
 
     def CalculateValue(self):
         Logger.PrintInfo("\n> Starting primal analysis for response:", self.identifier)
 
         startTime = timer.time()
-        self.primal_analysis.InitializeTimeStep()
         self.primal_analysis.SolveTimeStep()
-        self.primal_analysis.FinalizeTimeStep()
         Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
         startTime = timer.time()
         value = self.response_function_utility.CalculateValue()
+        self.primal_analysis.GetModelPart().ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
         Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
-        return value
-
     def CalculateGradient(self):
+        Logger.PrintInfo("\n> Starting gradient calculation for response:", self.identifier)
+
+        startTime = timer.time()
         self.response_function_utility.CalculateGradient()
+        Logger.PrintInfo("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
+
+    def FinalizeSolutionStep(self):
+        self.primal_analysis.FinalizeTimeStep()
+
+    def Finalize(self):
+        self.primal_analysis.Finalize()
+
+    def GetValue(self):
+        return self.primal_analysis.GetModelPart().ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
 
     def GetShapeGradient(self):
         gradient = {}
@@ -78,13 +114,11 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
             gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
         return gradient
 
-    def Finalize(self):
-        self.primal_analysis.Finalize()
-
+# ==============================================================================
 class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
     """Eigenfrequency response function. The internal procedure is the same as
     for the StrainEnergyResponseFunction. It triggers the primal analysis and
-    uses the primal analysis results to evaluate response value and gradient.
+    uses the primal analysis results to calculate response value and gradient.
     Only the response_function_utility is a different object.
 
     Attributes
@@ -110,6 +144,7 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal, model_part)
         self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
+# ==============================================================================
 class MassResponseFunction(ResponseFunctionBase):
     """Mass response function. It reads the materials for the model part and
     calculates response value and gradient.
@@ -129,6 +164,12 @@ class MassResponseFunction(ResponseFunctionBase):
         self.model_part = model_part
         self.model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
+    def RunCalculationProcess(self, calculate_gradient):
+        self.Initialize()
+        self.CalculateValue()
+        if calculate_gradient:
+            self.CalculateGradient()
+
     def Initialize(self):
         import read_materials_process
         # Create a dictionary of model parts.
@@ -139,17 +180,30 @@ class MassResponseFunction(ResponseFunctionBase):
         self.response_function_utility.Initialize()
 
     def CalculateValue(self):
+        Logger.PrintInfo("\n> Starting primal analysis for response:", self.identifier)
+
+        startTime = timer.time()
         value = self.response_function_utility.CalculateValue()
-        return value
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
+        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
     def CalculateGradient(self):
+        Logger.PrintInfo("\n> Starting gradient calculation for response:", self.identifier)
+
+        startTime = timer.time()
         self.response_function_utility.CalculateGradient()
+        Logger.PrintInfo("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
+
+    def GetValue(self):
+        return self.model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
 
     def GetShapeGradient(self):
         gradient = {}
         for node in self.model_part.Nodes:
             gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
         return gradient
+
+# ==============================================================================
 
 
 
