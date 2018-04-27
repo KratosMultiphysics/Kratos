@@ -63,7 +63,6 @@ public:
     {
         singularValuePressureCoupled,
         singularValuePressureDecoupled,
-        eigenValueFullMatrix
     };
 
     ///@}
@@ -107,11 +106,9 @@ public:
             mNumericalDiffusionMethod = numericalDiffusionMethod::singularValuePressureCoupled;
         else if (method_name.compare("singular_value_pressure_decoupled")==0)
             mNumericalDiffusionMethod = numericalDiffusionMethod::singularValuePressureDecoupled;
-        else if (method_name.compare("eigen_value_full_matrix")==0)
-            mNumericalDiffusionMethod = numericalDiffusionMethod::eigenValueFullMatrix;
         else
             KRATOS_THROW_ERROR(std::runtime_error,
-                "numerical diffusion method only supports singular_value_pressure_coupled or singular_value_pressure_decoupled or eigen_values",
+                "numerical diffusion method only supports singular_value_pressure_coupled or singular_value_pressure_decoupled",
                 rParameters.PrettyPrintJsonString())
             
         KRATOS_CATCH("");
@@ -141,9 +138,6 @@ public:
                 case numericalDiffusionMethod::singularValuePressureDecoupled:
                     numerical_diffusion = CalculateNumericalDiffusionSVMethodPressureDecoupled<2>(pCurrentElement, rCurrentProcessInfo);
                     break;
-                case numericalDiffusionMethod::eigenValueFullMatrix:
-                    numerical_diffusion = CalculateNumericalDiffusionEigenFullMatrix<2>(pCurrentElement, rCurrentProcessInfo);
-                    break;
             }
 
             boost::numeric::ublas::bounded_matrix<double, 3, 2> DN_DX;
@@ -167,9 +161,6 @@ public:
                     break;
                 case numericalDiffusionMethod::singularValuePressureDecoupled:
                     numerical_diffusion = CalculateNumericalDiffusionSVMethodPressureDecoupled<3>(pCurrentElement, rCurrentProcessInfo);
-                    break;
-                case numericalDiffusionMethod::eigenValueFullMatrix:
-                    numerical_diffusion = CalculateNumericalDiffusionEigenFullMatrix<3>(pCurrentElement, rCurrentProcessInfo);
                     break;
             }
 
@@ -364,62 +355,6 @@ private:
                     rResult(a*TBlockSize+i,b*TBlockSize+i) += value;
             }
         }
-    }
-
-    // TODO: Still work is in progress
-    template<unsigned int TDim>
-    double CalculateNumericalDiffusionEigenFullMatrix(Element::Pointer pCurrentElement, const ProcessInfo& rCurrentProcessInfo)
-    {
-        // constexpr unsigned int TNumNodes = TDim + 1;
-
-        // boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        // array_1d< double, TNumNodes > N;
-        // double Volume;
-
-        // GeometryType& rGeom = pCurrentElement->GetGeometry();
-
-        // GeometryUtils::CalculateGeometryData(rGeom,DN_DX,N,Volume);
-
-        // MatrixType vms_steady_term_primal_gradient;
-
-        // pCurrentElement->Calculate(
-        //                     VMS_STEADY_TERM_PRIMAL_GRADIENT_MATRIX,
-        //                     vms_steady_term_primal_gradient,
-        //                     rCurrentProcessInfo);
-
-        // boost::numeric::ublas::vector<double> adjoint_values_vector;
-        // boost::numeric::ublas::vector<double> temp;
-
-        // adjoint_values_vector.resize(TNumNodes*(TDim+1));
-        // temp.resize(TNumNodes*(TDim+1));
-
-        // pCurrentElement->GetValuesVector(adjoint_values_vector, 1);
-
-        // noalias(temp) = prod(vms_steady_term_primal_gradient, adjoint_values_vector);
-        
-        // double adjoint_energy = 0.0;
-        // for (IndexType i = 0; i < temp.size(); i++)
-        //     adjoint_energy += temp[i]*adjoint_values_vector[i];
-        
-
-        // MatrixType numerical_diffusion_matrix;
-        // InitializeMatrix<TDim>(numerical_diffusion_matrix);
-
-        // AddNumericalDiffusionTerm<TDim>(numerical_diffusion_matrix, DN_DX, Volume);
-
-        // double diffusion_energy = 0.0;
-        // noalias(temp) = prod(numerical_diffusion_matrix, adjoint_values_vector);
-        // for (IndexType i = 0; i < temp.size(); i++)
-        //     diffusion_energy += temp[i]*adjoint_values_vector[i];
-
-        double numerical_diffusion = 0.0;
-
-        // std::cout<<adjoint_energy<<", "<<diffusion_energy<<std::endl;
-
-        // if (adjoint_energy < 0.0 and diffusion_energy != 0.0)
-        //     numerical_diffusion = -adjoint_energy/diffusion_energy;
-
-        return numerical_diffusion;
     }
 
     ///@}
