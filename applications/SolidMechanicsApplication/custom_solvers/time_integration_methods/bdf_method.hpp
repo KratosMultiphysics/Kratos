@@ -135,8 +135,6 @@ namespace Kratos
        if( mBDF.size() > 1 && (order + 1) != mBDF.size() )
          order = mBDF.size()-1;
      }
-
-     std::cout<<" Calculate Parameters "<<std::endl;
      
      if (mBDF.size() == 0 ){
        
@@ -190,7 +188,7 @@ namespace Kratos
 
      }
 
-     rCurrentProcessInfo[TIME_INTEGRATION_ORDER] = order;
+     rCurrentProcessInfo[TIME_INTEGRATION_ORDER] = order;     
      rCurrentProcessInfo[BDF_COEFFICIENTS] = mBDF;
      
      this->SetParameters(rCurrentProcessInfo);
@@ -233,6 +231,41 @@ namespace Kratos
      KRATOS_CATCH( "" )
     }
 
+
+
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * @return 0 all ok
+     */
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override
+    {
+      KRATOS_TRY
+
+
+      // Perform base integration method checks
+      int ErrorCode = 0;
+      ErrorCode = BaseType::Check(rCurrentProcessInfo);
+
+      // Check that all required variables have been registered               
+      if( this->mpFirstDerivative == nullptr ){
+        KRATOS_ERROR << " time integration method FirstDerivative not set " <<std::endl;
+      }
+      else{
+        KRATOS_CHECK_VARIABLE_KEY((*this->mpFirstDerivative));
+      }
+
+      if( this->mpSecondDerivative == nullptr ){
+        KRATOS_ERROR << " time integration method SecondDerivative not set " <<std::endl;
+      }
+      else{
+        KRATOS_CHECK_VARIABLE_KEY((*this->mpSecondDerivative));
+      }
+      
+      return ErrorCode;
+      
+      KRATOS_CATCH("")
+    }
+    
 
     ///@}
     ///@name Access

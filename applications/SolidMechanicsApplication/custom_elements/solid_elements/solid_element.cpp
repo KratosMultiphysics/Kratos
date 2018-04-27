@@ -735,9 +735,9 @@ void SolidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
 
     IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
     
-    if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) ){
+    if( rCurrentProcessInfo.Has(COMPUTE_CONSISTENT_MASS_MATRIX) ){
 
-      if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true){
+      if(rCurrentProcessInfo[COMPUTE_CONSISTENT_MASS_MATRIX] == true){
 	//full quadrature integration:
 	this->IncreaseIntegrationMethod(mThisIntegrationMethod,1);
       }

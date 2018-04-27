@@ -135,7 +135,38 @@ namespace Kratos
      KRATOS_CATCH( "" )
     }
 
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * @return 0 all ok
+     */
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override
+    {
+      KRATOS_TRY
 
+      // Perform base integration method checks
+      int ErrorCode = 0;
+      ErrorCode = BaseType::Check(rCurrentProcessInfo);
+
+      // Check that all required variables have been registered               
+      if( this->mpFirstDerivative == nullptr ){
+        KRATOS_ERROR << " time integration method FirstDerivative not set " <<std::endl;
+      }
+      else{
+        KRATOS_CHECK_VARIABLE_KEY((*this->mpFirstDerivative));
+      }
+
+      if( this->mpSecondDerivative == nullptr ){
+        KRATOS_ERROR << " time integration method SecondDerivative not set " <<std::endl;
+      }
+      else{
+        KRATOS_CHECK_VARIABLE_KEY((*this->mpSecondDerivative));
+      }
+      
+      return ErrorCode;
+      
+      KRATOS_CATCH("")
+    }
+    
     ///@}
     ///@name Access
     ///@{

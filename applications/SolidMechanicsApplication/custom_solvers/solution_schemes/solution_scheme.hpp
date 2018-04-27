@@ -154,6 +154,10 @@ class SolutionScheme : public Flags
 
     this->InitializeConditions(rModelPart);
 
+    for(typename IntegrationMethodsVectorType::iterator it=mTimeIntegrationMethods.begin();
+        it!=mTimeIntegrationMethods.end(); ++it)
+      (*it)->SetParameters(rModelPart.GetProcessInfo());
+
     this->Set(LocalFlagType::INITIALIZED, true);
 
     KRATOS_CATCH("")

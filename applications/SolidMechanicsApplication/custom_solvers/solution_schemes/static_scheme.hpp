@@ -17,8 +17,6 @@
 // Project includes
 #include "custom_solvers/solution_schemes/solution_scheme.hpp"
 
-#include "custom_solvers/time_integration_methods/static_method.hpp"
-
 namespace Kratos
 {
   ///@name Kratos Globals
@@ -81,7 +79,6 @@ namespace Kratos
         :BaseType(rTimeIntegrationMethods)
     {
     }
-
     
     /// Copy Constructor.
     StaticScheme(StaticScheme& rOther)
@@ -222,20 +219,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << " StaticScheme";
+        buffer << "StaticScheme";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << " StaticScheme";
+        rOStream << "StaticScheme";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << " StaticScheme Data";
+      rOStream << "StaticScheme Data";
     }
 
     ///@}

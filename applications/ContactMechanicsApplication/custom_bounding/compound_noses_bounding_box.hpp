@@ -343,7 +343,7 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    PointType GetCenter(const PointType& rPoint)
+    PointType GetCenter(const PointType& rPoint) override
     {
       PointType LocalPoint = rPoint;
       BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, LocalPoint);

@@ -7,16 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_DISPLACEMENT_SIMO_SCHEME_H_INCLUDED)
-#define  KRATOS_DISPLACEMENT_SIMO_SCHEME_H_INCLUDED
+#if !defined(KRATOS_NEWMARK_SCHEME_H_INCLUDED)
+#define  KRATOS_NEWMARK_SCHEME_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_solvers/solution_schemes/displacement_bossak_scheme.hpp"
-#include "custom_solvers/time_integration_methods/simo_method.hpp"
+#include "custom_solvers/solution_schemes/dynamic_scheme.hpp"
 
 namespace Kratos
 {
@@ -35,16 +34,16 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /** @brief Simo integration scheme (for dynamic problems)
+  /** @brief Newmark integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class DisplacementSimoScheme: public DisplacementBossakScheme<TSparseSpace,TDenseSpace>
+  class NewmarkScheme: public DynamicScheme<TSparseSpace,TDenseSpace>
   {
   public:
 
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( DisplacementSimoScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( NewmarkScheme );
 
     typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
     typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
@@ -52,30 +51,32 @@ namespace Kratos
     typedef typename BaseType::LocalSystemVectorType                LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType;
 
-    typedef DisplacementBossakScheme<TSparseSpace,TDenseSpace>                DerivedType;
-
-    typedef typename DerivedType::IntegrationPointerType           IntegrationPointerType;
+    typedef DynamicScheme<TSparseSpace,TDenseSpace>                           DerivedType;
 
     typedef typename DerivedType::NodeType                                       NodeType;
+
+    typedef typename BaseType::IntegrationType                            IntegrationType;
+    typedef typename BaseType::IntegrationPointerType              IntegrationPointerType;
+    typedef typename BaseType::IntegrationMethodsVectorType  IntegrationMethodsVectorType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default Constructor.
-    DisplacementSimoScheme()
-      :DerivedType()
+    /// Constructor.
+    NewmarkScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods, Flags& rOptions)
+        :DerivedType(rTimeIntegrationMethods, rOptions)
     {
     }
 
-    /// Default Constructor.
-    DisplacementSimoScheme(Flags& rOptions)
-      :DerivedType(rOptions)
+    /// Constructor.
+    NewmarkScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods)
+        :DerivedType(rTimeIntegrationMethods)
     {
     }
 
     /// Copy Constructor.
-    DisplacementSimoScheme(DisplacementSimoScheme& rOther)
+    NewmarkScheme(NewmarkScheme& rOther)
       :DerivedType(rOther)
     {
     }
@@ -83,11 +84,11 @@ namespace Kratos
     /// Clone.
     BasePointerType Clone() override
     {
-      return BasePointerType( new DisplacementSimoScheme(*this) );
+      return BasePointerType( new NewmarkScheme(*this) );
     }
 
     /// Destructor.
-    ~DisplacementSimoScheme() override {}
+    ~NewmarkScheme() override {}
 
     ///@}
     ///@name Operators
@@ -113,20 +114,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Displacement SimoScheme";
+        buffer << "NewmarkScheme";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Displacement SimoScheme";
+        rOStream << "NewmarkScheme";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Displacement SimoScheme Data";
+      rOStream << "NewmarkScheme Data";
     }
 
     ///@}
@@ -151,19 +152,6 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
-    {
-      if ( this->mTimeIntegrationMethods.size() == 0 ) {
-        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< SimoMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(DISPLACEMENT,VELOCITY,ACCELERATION));
-
-        // Set scheme parameters
-        this->mTimeIntegrationMethods.front()->SetParameters(rCurrentProcessInfo);
-
-        // Set parameters to process info
-        this->mTimeIntegrationMethods.back()->SetProcessInfoParameters(rCurrentProcessInfo);
-      }
-    }
 
     ///@}
     ///@name Protected  Access
@@ -213,7 +201,7 @@ namespace Kratos
     ///@{
 
     ///@}
-  }; // Class DisplacementSimoScheme
+  }; // Class NewmarkScheme
   ///@}
 
   ///@name Type Definitions
@@ -231,4 +219,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DISPLACEMENT_BOSSAK_SCHEME_H_INCLUDED defined
+#endif // KRATOS_NEWMARK_SCHEME_H_INCLUDED defined

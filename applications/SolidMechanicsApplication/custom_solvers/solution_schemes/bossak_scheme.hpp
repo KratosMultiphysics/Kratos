@@ -7,16 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_DISPLACEMENT_BOSSAK_SCHEME_H_INCLUDED)
-#define  KRATOS_DISPLACEMENT_BOSSAK_SCHEME_H_INCLUDED
+#if !defined(KRATOS_BOSSAK_SCHEME_H_INCLUDED)
+#define  KRATOS_BOSSAK_SCHEME_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_solvers/solution_schemes/displacement_newmark_scheme.hpp"
-#include "custom_solvers/time_integration_methods/bossak_method.hpp"
+#include "custom_solvers/solution_schemes/newmark_scheme.hpp"
 
 namespace Kratos
 {
@@ -38,13 +37,13 @@ namespace Kratos
   /** @brief Bossak integration scheme (for dynamic problems)
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class DisplacementBossakScheme: public DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>
+  class BossakScheme: public NewmarkScheme<TSparseSpace,TDenseSpace>
   {
   public:
 
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( DisplacementBossakScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( BossakScheme );
 
     typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
     typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
@@ -52,30 +51,32 @@ namespace Kratos
     typedef typename BaseType::LocalSystemVectorType                LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType;
 
-    typedef DisplacementNewmarkScheme<TSparseSpace,TDenseSpace>               DerivedType;
-
-    typedef typename DerivedType::IntegrationPointerType           IntegrationPointerType;
+    typedef NewmarkScheme<TSparseSpace,TDenseSpace>                           DerivedType;
 
     typedef typename DerivedType::NodeType                                       NodeType;
+
+    typedef typename BaseType::IntegrationType                            IntegrationType;
+    typedef typename BaseType::IntegrationPointerType              IntegrationPointerType;
+    typedef typename BaseType::IntegrationMethodsVectorType  IntegrationMethodsVectorType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default Constructor.
-    DisplacementBossakScheme()
-      :DerivedType()
+    /// Constructor.
+    BossakScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods, Flags& rOptions)
+        :DerivedType(rTimeIntegrationMethods, rOptions)
     {
     }
 
     /// Constructor.
-    DisplacementBossakScheme(Flags& rOptions)
-      :DerivedType(rOptions)
+    BossakScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods)
+        :DerivedType(rTimeIntegrationMethods)
     {
     }
 
     /// Copy Constructor.
-    DisplacementBossakScheme(DisplacementBossakScheme& rOther)
+    BossakScheme(BossakScheme& rOther)
       :DerivedType(rOther)
     {
     }
@@ -83,11 +84,11 @@ namespace Kratos
     /// Clone.
     BasePointerType Clone() override
     {
-      return BasePointerType( new DisplacementBossakScheme(*this) );
+      return BasePointerType( new BossakScheme(*this) );
     }
 
     /// Destructor.
-    ~DisplacementBossakScheme() override {}
+    ~BossakScheme() override {}
 
     ///@}
     ///@name Operators
@@ -109,7 +110,7 @@ namespace Kratos
 
 	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 
-	this->mVector.ap.resize(NumThreads);
+	this->mVector.c.resize(NumThreads);
 
 	KRATOS_CATCH("")
     }
@@ -130,20 +131,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Displacement BossakScheme";
+        buffer << "BossakScheme";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Displacement BossakScheme";
+        rOStream << "BossakScheme";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Displacement BossakScheme Data";
+      rOStream << "BossakScheme Data";
     }
 
     ///@}
@@ -169,29 +170,16 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
-    {
-      if ( this->mTimeIntegrationMethods.size() == 0 ) {
-        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< BossakMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(DISPLACEMENT,VELOCITY,ACCELERATION));
-
-        // Set scheme parameters
-        this->mTimeIntegrationMethods.front()->SetParameters(rCurrentProcessInfo);
-
-        // Set parameters to process info
-        this->mTimeIntegrationMethods.back()->SetProcessInfoParameters(rCurrentProcessInfo);
-      }
-    }
-
     /**
      * It adds the dynamic RHS contribution of the elements: b - M*a - D*v
-     * @param rCurrentElement: The element to compute
-     * @param RHS_Contribution: The dynamic contribution for the RHS
+     * @param pCurrentElement: The element to compute
+     * @param rRHS_Contribution: The dynamic contribution for the RHS
      * @param D: The damping matrix
      * @param M: The mass matrix
      * @param rCurrentProcessInfo: The current process info instance
      */
 
-    void AddDynamicsToRHS(Element::Pointer rCurrentElement,
+    void AddDynamicsToRHS(Element::Pointer pCurrentElement,
 			  LocalSystemVectorType& rRHS_Contribution,
 			  LocalSystemMatrixType& rD,
 			  LocalSystemMatrixType& rM,
@@ -204,13 +192,13 @@ namespace Kratos
         {
 	  double parameter = this->mTimeIntegrationMethods.front()->GetMethodParameter(parameter);
 
-          rCurrentElement->GetSecondDerivativesVector(this->mVector.a[thread], 0);
+          pCurrentElement->GetSecondDerivativesVector(this->mVector.a[thread], 0);
 
 	  (this->mVector.a[thread]) *= (1.00 - parameter);
 
-	  rCurrentElement->GetSecondDerivativesVector(this->mVector.ap[thread], 1);
+	  pCurrentElement->GetSecondDerivativesVector(this->mVector.c[thread], 1);
 
-	  noalias(this->mVector.a[thread]) += parameter * this->mVector.ap[thread];
+	  noalias(this->mVector.a[thread]) += parameter * this->mVector.c[thread];
 
 	  noalias(rRHS_Contribution) -= prod(rM, this->mVector.a[thread]);
         }
@@ -218,7 +206,7 @@ namespace Kratos
       // Adding damping contribution
       if (rD.size1() != 0)
         {
-	  rCurrentElement->GetFirstDerivativesVector(this->mVector.v[thread], 0);
+	  pCurrentElement->GetFirstDerivativesVector(this->mVector.v[thread], 0);
 
 	  noalias(rRHS_Contribution) -= prod(rD, this->mVector.v[thread]);
         }
@@ -226,14 +214,14 @@ namespace Kratos
 
     /**
      * It adds the dynamic RHS contribution of the condition: b - M*a - D*v
-     * @param rCurrentCondition: The condition to compute
+     * @param pCurrentCondition: The condition to compute
      * @param rRHS_Contribution: The dynamic contribution for the RHS
      * @param rD: The damping matrix
      * @param rM: The mass matrix
      * @param rCurrentProcessInfo: The current process info instance
      */
 
-    void AddDynamicsToRHS(Condition::Pointer rCurrentCondition,
+    void AddDynamicsToRHS(Condition::Pointer pCurrentCondition,
 			  LocalSystemVectorType& rRHS_Contribution,
 			  LocalSystemMatrixType& rD,
 			  LocalSystemMatrixType& rM,
@@ -247,22 +235,21 @@ namespace Kratos
         {
 	  parameter = this->mTimeIntegrationMethods.front()->GetMethodParameter(parameter);
 
-          rCurrentCondition->GetSecondDerivativesVector(this->mVector.a[thread], 0);
+          pCurrentCondition->GetSecondDerivativesVector(this->mVector.a[thread], 0);
 
 	  (this->mVector.a[thread]) *= (1.00 - parameter);
 
-	  rCurrentCondition->GetSecondDerivativesVector(this->mVector.ap[thread], 1);
+	  pCurrentCondition->GetSecondDerivativesVector(this->mVector.c[thread], 1);
 
-	  noalias(this->mVector.a[thread]) += parameter * this->mVector.ap[thread];
+	  noalias(this->mVector.a[thread]) += parameter * this->mVector.c[thread];
 
 	  noalias(rRHS_Contribution) -= prod(rM, this->mVector.a[thread]);
         }
 
       // Adding damping contribution
-      // Damping contribution
       if (rD.size1() != 0)
         {
-	  rCurrentCondition->GetFirstDerivativesVector(this->mVector.v[thread], 0);
+	  pCurrentCondition->GetFirstDerivativesVector(this->mVector.v[thread], 0);
 
 	  noalias(rRHS_Contribution) -= prod(rD, this->mVector.v[thread]);
         }
@@ -317,7 +304,7 @@ namespace Kratos
     ///@{
 
     ///@}
-  }; // Class DisplacementBossakScheme
+  }; // Class BossakScheme
   ///@}
 
   ///@name Type Definitions
@@ -335,4 +322,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DISPLACEMENT_BOSSAK_SCHEME_H_INCLUDED defined
+#endif // KRATOS_BOSSAK_SCHEME_H_INCLUDED defined

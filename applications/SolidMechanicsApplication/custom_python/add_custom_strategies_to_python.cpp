@@ -40,22 +40,27 @@
 
 // Solution schemes
 #include "custom_solvers/solution_schemes/static_scheme.hpp"
-
-#include "custom_solvers/solution_schemes/displacement_bossak_scheme.hpp"
+#include "custom_solvers/solution_schemes/bossak_scheme.hpp"
 #include "custom_solvers/solution_schemes/eigensolver_dynamic_scheme.hpp"
 
 #include "custom_solvers/solution_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_solvers/solution_schemes/explicit_hamilton_scheme.hpp"
 
-#include "custom_solvers/solution_schemes/displacement_rotation_static_scheme.hpp"
-#include "custom_solvers/solution_schemes/displacement_rotation_emc_scheme.hpp"
-#include "custom_solvers/solution_schemes/displacement_simo_scheme.hpp"
-#include "custom_solvers/solution_schemes/displacement_backward_euler_scheme.hpp"
-
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
 
-// Time integration methods
+// Time integration method
+#include "custom_solvers/time_integration_methods/backward_euler_method.hpp"
+#include "custom_solvers/time_integration_methods/bdf_method.hpp"
+#include "custom_solvers/time_integration_methods/simo_method.hpp"
+
+#include "custom_solvers/time_integration_methods/static_step_rotation_method.hpp"
+#include "custom_solvers/time_integration_methods/newmark_step_rotation_method.hpp"
+#include "custom_solvers/time_integration_methods/bossak_step_rotation_method.hpp"
+#include "custom_solvers/time_integration_methods/simo_step_rotation_method.hpp"
+#include "custom_solvers/time_integration_methods/emc_step_rotation_method.hpp"
+
+// Time integration methods container
 #include "custom_solvers/time_integration_methods/time_integration_methods_container.hpp"
 
 
@@ -109,21 +114,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef EigensolverDynamicScheme<SparseSpaceType, LocalSpaceType>                    EigensolverDynamicSchemeType;
 
   typedef StaticScheme<SparseSpaceType, LocalSpaceType>                                            StaticSchemeType;
-  typedef DisplacementStaticScheme<SparseSpaceType, LocalSpaceType>                    DisplacementStaticSchemeType;
-  typedef DisplacementRotationStaticScheme<SparseSpaceType, LocalSpaceType>    DisplacementRotationStaticSchemeType;
-
-  typedef DisplacementNewmarkScheme<SparseSpaceType, LocalSpaceType>                  DisplacementNewmarkSchemeType;
-  typedef DisplacementRotationNewmarkScheme<SparseSpaceType, LocalSpaceType>  DisplacementRotationNewmarkSchemeType;
-
-  typedef DisplacementBossakScheme<SparseSpaceType, LocalSpaceType>                    DisplacementBossakSchemeType;
-  typedef DisplacementRotationBossakScheme<SparseSpaceType, LocalSpaceType>    DisplacementRotationBossakSchemeType;
-
-  typedef DisplacementSimoScheme<SparseSpaceType, LocalSpaceType>                        DisplacementSimoSchemeType;
-  typedef DisplacementBackwardEulerScheme<SparseSpaceType, LocalSpaceType>      DisplacementBackwardEulerSchemeType;
-  typedef DisplacementBdfScheme<SparseSpaceType, LocalSpaceType>                          DisplacementBdfSchemeType;
-
-  typedef DisplacementRotationSimoScheme<SparseSpaceType, LocalSpaceType>        DisplacementRotationSimoSchemeType;
-  typedef DisplacementRotationEmcScheme<SparseSpaceType, LocalSpaceType>          DisplacementRotationEmcSchemeType;
+  typedef DynamicScheme<SparseSpaceType, LocalSpaceType>                                          DynamicSchemeType;
+  typedef NewmarkScheme<SparseSpaceType, LocalSpaceType>                                          NewmarkSchemeType;
+  typedef BossakScheme<SparseSpaceType, LocalSpaceType>                                            BossakSchemeType;
 
   // Custom convergence criterion types
   typedef DisplacementConvergenceCriterion<SparseSpaceType,  LocalSpaceType>   DisplacementConvergenceCriterionType;
@@ -362,79 +355,30 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<Flags& ,const double, const double, const double>())
       ;
 
-  // Displacement Static Scheme Type
+  // Static Scheme Type
   class_<StaticSchemeType, typename StaticSchemeType::Pointer, SolutionSchemeType>(m,"StaticScheme")
       .def(init<TimeIntegrationMethodsVector&, Flags&>())
       .def(init<TimeIntegrationMethodsVector&>())
       ;
+
+  // Dynamic Scheme Type
+  class_<DynamicSchemeType, typename DynamicSchemeType::Pointer, SolutionSchemeType>(m,"DynamicScheme")
+      .def(init<TimeIntegrationMethodsVector&, Flags&>())
+      .def(init<TimeIntegrationMethodsVector&>())
+      ;
+
+  // Newmark Scheme Type
+  class_<NewmarkSchemeType, typename NewmarkSchemeType::Pointer, SolutionSchemeType>(m,"NewmarkScheme")
+      .def(init<TimeIntegrationMethodsVector&, Flags&>())
+      .def(init<TimeIntegrationMethodsVector&>())
+      ;
+
+  // Bossak Scheme Type
+  class_<BossakSchemeType, typename BossakSchemeType::Pointer, SolutionSchemeType>(m,"BossakScheme")
+      .def(init<TimeIntegrationMethodsVector&, Flags&>())
+      .def(init<TimeIntegrationMethodsVector&>())
+      ;
   
-  // Displacement Static Scheme Type
-  class_<DisplacementStaticSchemeType, typename DisplacementStaticSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementStaticScheme")
-      .def(init<>())
-      .def(init<Flags&>())
-      ;
-
-  // Displacement Rotation Static Scheme Type
-  class_<DisplacementRotationStaticSchemeType, typename DisplacementRotationStaticSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementRotationStaticScheme")
-      .def(init<>())
-      .def(init<Flags&>())
-      ;
-
-  // Displacement Newmark Scheme Type
-  class_<DisplacementNewmarkSchemeType, typename DisplacementNewmarkSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementNewmarkScheme")
-      .def(init<>())
-      .def(init<Flags&>())
-      ;
-
-  // Displacement Rotation Newmark Scheme Type
-  class_<DisplacementRotationNewmarkSchemeType,  typename DisplacementRotationNewmarkSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementRotationNewmarkScheme")
-      .def(init<>())
-      .def(init<Flags&>())
-      ;
-
-  // Displacement Bossak Scheme Type
-  class_<DisplacementBossakSchemeType, typename DisplacementBossakSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementBossakScheme")
-      .def(init<>())
-      .def(init<Flags&>())
-      ;
-
-  // Displacement Rotation Bossak Scheme Type
-  class_<DisplacementRotationBossakSchemeType, typename DisplacementRotationBossakSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementRotationBossakScheme")
-      .def(init<>())
-      .def(init<Flags&>())
-      ;
-
-  // Displacement Simo Scheme Type
-  class_<DisplacementSimoSchemeType,  typename DisplacementSimoSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementSimoScheme")
-      .def(init<>())
-      .def(init<Flags&>())
-      ;
-
-  // Displacement Backward Euler Scheme Type
-  class_<DisplacementBackwardEulerSchemeType,  typename DisplacementBackwardEulerSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementBackwardEulerScheme")
-      .def(init<>())
-      .def(init<Flags&>())
-      ;
-
-  // Displacement Bdf Scheme Type
-  class_<DisplacementBdfSchemeType,  typename DisplacementBdfSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementBdfScheme")
-      .def(init<>())
-      .def(init<Flags&>())
-      ;
-
-  // Displacement Rotation Simo Scheme Type
-  class_<DisplacementRotationSimoSchemeType, typename DisplacementRotationSimoSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementRotationSimoScheme")
-      .def(init<>())
-      .def(init<Flags&>())
-      ;
-
-  // Displacement Rotation Emc Scheme Type
-  class_<DisplacementRotationEmcSchemeType,  typename DisplacementRotationEmcSchemeType::Pointer, SolutionSchemeType>(m,"DisplacementRotationEmcScheme")
-      .def(init<>())
-      .def(init<Flags&>())
-      ;
-
-
   // Eigensolver Scheme Type
   class_<EigensolverDynamicSchemeType, typename EigensolverDynamicSchemeType::Pointer, SolutionSchemeType>(m,"EigensolverDynamicScheme")
       .def(init<>())
@@ -611,7 +555,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("__repr__", &TimeIntegrationMethodScalarType::Info)
       ;
 
-
+  
   class_<StaticMethodScalarType, typename StaticMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"StaticScalarIntegration")
       .def(init<>())
@@ -689,37 +633,37 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   class_<StaticStepRotationMethodScalarType, typename StaticStepRotationMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"StaticStepRotationScalarIntegration")
-      //.def(init<>())
+      .def(init<>())
       .def(init<const VariableScalarType&>())
       ;
 
-  // class_<NewmarkStepRotationMethodScalarType, typename NewmarkStepRotationMethodScalarType::Pointer,
-  //        TimeIntegrationMethodScalarType>(m,"NewmarkStepRotationScalarIntegration")
-  //     .def(init<>())
-  //     .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-  //     .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-  //     ;
+  class_<NewmarkStepRotationMethodScalarType, typename NewmarkStepRotationMethodScalarType::Pointer,
+         TimeIntegrationMethodScalarType>(m,"NewmarkStepRotationScalarIntegration")
+      .def(init<>())
+      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      ;
 
-  // class_<BossakStepRotationMethodScalarType, typename BossakStepRotationMethodScalarType::Pointer,
-  //        TimeIntegrationMethodScalarType>(m,"BossakStepRotationScalarIntegration")
-  //     .def(init<>())
-  //     .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-  //     .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-  //     ;
+  class_<BossakStepRotationMethodScalarType, typename BossakStepRotationMethodScalarType::Pointer,
+         TimeIntegrationMethodScalarType>(m,"BossakStepRotationScalarIntegration")
+      .def(init<>())
+      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      ;
 
-  // class_<SimoStepRotationMethodScalarType, typename SimoStepRotationMethodScalarType::Pointer,
-  //        TimeIntegrationMethodScalarType>(m,"SimoStepRotationScalarIntegration")
-  //     .def(init<>())
-  //     .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-  //     .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-  //     ;
+  class_<SimoStepRotationMethodScalarType, typename SimoStepRotationMethodScalarType::Pointer,
+         TimeIntegrationMethodScalarType>(m,"SimoStepRotationScalarIntegration")
+      .def(init<>())
+      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      ;
 
-  // class_<EmcStepRotationMethodScalarType, typename EmcStepRotationMethodScalarType::Pointer,
-  //        TimeIntegrationMethodScalarType>(m,"EmcStepRotationScalarIntegration")
-  //     .def(init<>())     
-  //     .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-  //     .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-  //     ;
+  class_<EmcStepRotationMethodScalarType, typename EmcStepRotationMethodScalarType::Pointer,
+         TimeIntegrationMethodScalarType>(m,"EmcStepRotationScalarIntegration")
+      .def(init<>())     
+      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      ;
   
   // Time integration methods for variable components
   class_<TimeIntegrationMethodComponentType, typename TimeIntegrationMethodComponentType::Pointer>(m,"ComponentTimeIntegration")

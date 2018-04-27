@@ -7,16 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_DISPLACEMENT_NEWMARK_SCHEME_H_INCLUDED)
-#define  KRATOS_DISPLACEMENT_NEWMARK_SCHEME_H_INCLUDED
+#if !defined(KRATOS_DYNAMIC_SCHEME_H_INCLUDED)
+#define  KRATOS_DYNAMIC_SCHEME_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_solvers/solution_schemes/solution_scheme.hpp"
-#include "custom_solvers/time_integration_methods/newmark_method.hpp"
+#include "custom_solvers/solution_schemes/static_scheme.hpp"
 
 namespace Kratos
 {
@@ -35,10 +34,10 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /** @brief Newmark integration scheme (for dynamic problems)
+  /** @brief Dynamic integration scheme
    */
   template<class TSparseSpace,  class TDenseSpace >
-  class DisplacementNewmarkScheme: public SolutionScheme<TSparseSpace,TDenseSpace>
+  class DynamicScheme: public StaticScheme<TSparseSpace,TDenseSpace>
   {
   protected:
 
@@ -52,7 +51,7 @@ namespace Kratos
     {
       std::vector< Vector > v;    // Velocity
       std::vector< Vector > a;    // Acceleration
-      std::vector< Vector > ap;   // Previous acceleration
+      std::vector< Vector > c;    // Composed Variable 
     };
 
     
@@ -60,12 +59,14 @@ namespace Kratos
     
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( DisplacementNewmarkScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( DynamicScheme );
     
     typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
     typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
-     typedef typename BaseType::LocalFlagType                               LocalFlagType;
+    typedef typename BaseType::LocalFlagType                                LocalFlagType;
 
+    typedef StaticScheme<TSparseSpace,TDenseSpace>                           DerivedType;
+    
     typedef typename BaseType::NodeType                                          NodeType;
     typedef typename BaseType::DofsArrayType                                DofsArrayType;
     typedef typename BaseType::SystemMatrixType                          SystemMatrixType;
@@ -76,27 +77,36 @@ namespace Kratos
     typedef typename BaseType::NodesContainerType                      NodesContainerType;
     typedef typename BaseType::ElementsContainerType                ElementsContainerType;
     typedef typename BaseType::ConditionsContainerType            ConditionsContainerType;
-    typedef typename BaseType::IntegrationPointerType              IntegrationPointerType;
 
+    typedef typename BaseType::IntegrationType                            IntegrationType;
+    typedef typename BaseType::IntegrationPointerType              IntegrationPointerType;
+    typedef typename BaseType::IntegrationMethodsVectorType  IntegrationMethodsVectorType;
+   
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default Constructor.
-    DisplacementNewmarkScheme()
-      :BaseType()
+    /// Constructor.
+    DynamicScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods, Flags& rOptions)
+        :DerivedType(rTimeIntegrationMethods, rOptions)
     {
     }
 
     /// Constructor.
-    DisplacementNewmarkScheme(Flags& rOptions)
-      :BaseType(rOptions)
+    DynamicScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods)
+        :DerivedType(rTimeIntegrationMethods)
+    {
+    }
+
+    /// Constructor.
+    DynamicScheme(Flags& rOptions)
+      :DerivedType(rOptions)
     {
     }
     
     /// Copy Constructor.
-    DisplacementNewmarkScheme(DisplacementNewmarkScheme& rOther)
-      :BaseType(rOther)
+    DynamicScheme(DynamicScheme& rOther)
+      :DerivedType(rOther)
       ,mMatrix(rOther.mMatrix)
       ,mVector(rOther.mVector)
     {
@@ -105,11 +115,11 @@ namespace Kratos
     /// Clone.
     BasePointerType Clone() override
     {
-      return BasePointerType( new DisplacementNewmarkScheme(*this) );
+      return BasePointerType( new DynamicScheme(*this) );
     }
 
     /// Destructor.
-    ~DisplacementNewmarkScheme() override {}
+    ~DynamicScheme() override {}
 
     ///@}
     ///@name Operators
@@ -127,13 +137,8 @@ namespace Kratos
     {
         KRATOS_TRY
 
-	BaseType::Initialize(rModelPart);
+	DerivedType::Initialize(rModelPart);
 	  
-	ProcessInfo& rCurrentProcessInfo= rModelPart.GetProcessInfo();
-
-	// Set integration method
-	this->SetIntegrationMethod(rCurrentProcessInfo);
-            
 	// Allocate auxiliary memory
 	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 
@@ -146,61 +151,19 @@ namespace Kratos
 	KRATOS_CATCH("")
     }
 
-    
-    /**
-     * Performing the update of the solution
-     * Incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
-     * @param rModelPart: The model of the problem to solve
-     * @param rDofSet: Set of all primary variables
-     * @param rDx: incremental update of primary variables
-      */
-
-    void Update(ModelPart& rModelPart,
-		DofsArrayType& rDofSet,
-		SystemVectorType& rDx) override
-    {
-      KRATOS_TRY;
-
-      this->UpdateDofs(rModelPart,rDofSet,rDx);
-      this->UpdateVariables(rModelPart);
-      this->MoveMesh(rModelPart);
-            
-      KRATOS_CATCH("")
-    }
-
-    /**
-     * Performing the prediction of the solution
-     * It predicts the solution for the current step: x = xold + vold * Dt
-     * @param rModelPart: The model of the problem to solve
-     * @param rDofSet set of all primary variables
-     * @param rDx: Incremental update of primary variables
-     */
-
-    void Predict(ModelPart& rModelPart,
-		 DofsArrayType& rDofSet,
-		 SystemVectorType& rDx) override
-    {
-      KRATOS_TRY;
-
-      this->PredictVariables(rModelPart);
-      this->MoveMesh(rModelPart); 
-
-      KRATOS_CATCH("")
-    }
-
    
     /**
      * This function is designed to be called in the builder and solver to introduce
      * @param pCurrentElement: The element to compute
-     * @param LHS_Contribution: The LHS matrix contribution
-     * @param RHS_Contribution: The RHS vector contribution
+     * @param rLHS_Contribution: The LHS matrix contribution
+     * @param rRHS_Contribution: The RHS vector contribution
      * @param EquationId: The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo: The current process info instance
      */
 
     void CalculateSystemContributions(Element::Pointer pCurrentElement,
-				      LocalSystemMatrixType& LHS_Contribution,
-				      LocalSystemVectorType& RHS_Contribution,
+				      LocalSystemMatrixType& rLHS_Contribution,
+				      LocalSystemVectorType& rRHS_Contribution,
 				      Element::EquationIdVectorType& EquationId,
 				      ProcessInfo& rCurrentProcessInfo) override
     {
@@ -208,35 +171,46 @@ namespace Kratos
 
       int thread = OpenMPUtils::ThisThread();
 
-      //(pCurrentElement) -> InitializeNonLinearIteration(rCurrentProcessInfo);
-
-      (pCurrentElement) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution, rCurrentProcessInfo);
+      (pCurrentElement) -> CalculateLocalSystem(rLHS_Contribution,rRHS_Contribution, rCurrentProcessInfo);
 
       (pCurrentElement) -> EquationIdVector(EquationId, rCurrentProcessInfo);
 
-      (pCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
+      if ( rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true ){
 
-      (pCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread], rCurrentProcessInfo);
+        (pCurrentElement) -> CalculateSecondDerivativesContributions(this->mMatrix.M[thread],this->mVector.a[thread],rCurrentProcessInfo);
 
-      AddDynamicsToLHS (LHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+        (pCurrentElement) -> CalculateFirstDerivativesContributions(this->mMatrix.D[thread],this->mVector.v[thread],rCurrentProcessInfo);
 
-      AddDynamicsToRHS (pCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+        AddDynamicTangentsToLHS(rLHS_Contribution,this->mMatrix.D[thread],this->mMatrix.M[thread],rCurrentProcessInfo);
 
-      //AssembleTimeSpaceLHS(pCurrentElement, LHS_Contribution, DampMatrix, MassMatrix, rCurrentProcessInfo);
+        AddDynamicForcesToRHS(rRHS_Contribution,this->mVector.v[thread],this->mVector.a[thread],rCurrentProcessInfo);        
+        
+      }
+      else{
+        
+        (pCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
+        
+        (pCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread], rCurrentProcessInfo);
+        
+        AddDynamicsToLHS (rLHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+        
+        AddDynamicsToRHS (pCurrentElement, rRHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+        
+      }
 
       KRATOS_CATCH("")
     }
 
     /**
      * This function is designed to calculate just the RHS contribution
-     * @param rCurrentElement: The element to compute
-     * @param RHS_Contribution: The RHS vector contribution
+     * @param pCurrentElement: The element to compute
+     * @param rRHS_Contribution: The RHS vector contribution
      * @param EquationId: The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo: The current process info instance
      */
 
     void Calculate_RHS_Contribution(Element::Pointer pCurrentElement,
-				    LocalSystemVectorType& RHS_Contribution,
+				    LocalSystemVectorType& rRHS_Contribution,
 				    Element::EquationIdVectorType& EquationId,
 				    ProcessInfo& rCurrentProcessInfo) override
     {
@@ -245,19 +219,31 @@ namespace Kratos
 
       int thread = OpenMPUtils::ThisThread();
 
-      // Initializing the non linear iteration for the current element
-      // (pCurrentElement) -> InitializeNonLinearIteration(rCurrentProcessInfo);
-
       // Basic operations for the element considered
-      (pCurrentElement) -> CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
-
-      (pCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
-
-      (pCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread], rCurrentProcessInfo);
+      (pCurrentElement) -> CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
 
       (pCurrentElement) -> EquationIdVector(EquationId, rCurrentProcessInfo);
+      
+      if ( rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true ){
 
-      AddDynamicsToRHS (pCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+        (pCurrentElement) -> CalculateSecondDerivativesRHS(this->mVector.a[thread],rCurrentProcessInfo);
+
+        (pCurrentElement) -> CalculateFirstDerivativesRHS(this->mVector.v[thread],rCurrentProcessInfo);
+        
+        AddDynamicForcesToRHS(rRHS_Contribution,this->mVector.v[thread],this->mVector.a[thread],rCurrentProcessInfo);
+
+      }
+      else{
+
+        (pCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
+
+        (pCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread], rCurrentProcessInfo);
+        
+        AddDynamicsToRHS (pCurrentElement, rRHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+        
+      }     
+
+
 
       KRATOS_CATCH("")
     }
@@ -265,15 +251,15 @@ namespace Kratos
     /**
      * Functions totally analogous to the precedent but applied to the "condition" objects
      * @param pCurrentCondition: The condition to compute
-     * @param LHS_Contribution: The LHS matrix contribution
-     * @param RHS_Contribution: The RHS vector contribution
+     * @param rLHS_Contribution: The LHS matrix contribution
+     * @param rRHS_Contribution: The RHS vector contribution
      * @param EquationId: The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo: The current process info instance
      */
 
     void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
-						LocalSystemMatrixType& LHS_Contribution,
-						LocalSystemVectorType& RHS_Contribution,
+						LocalSystemMatrixType& rLHS_Contribution,
+						LocalSystemVectorType& rRHS_Contribution,
 						Element::EquationIdVectorType& EquationId,
 						ProcessInfo& rCurrentProcessInfo) override
     {
@@ -281,37 +267,46 @@ namespace Kratos
 
       int thread = OpenMPUtils::ThisThread();
 
-      // Initializing the non linear iteration for the current condition
-      //(pCurrentCondition) -> InitializeNonLinearIteration(rCurrentProcessInfo);
-
       // Basic operations for the condition considered
-      (pCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution, rCurrentProcessInfo);
+      (pCurrentCondition) -> CalculateLocalSystem(rLHS_Contribution,rRHS_Contribution, rCurrentProcessInfo);
 
       (pCurrentCondition) -> EquationIdVector(EquationId, rCurrentProcessInfo);
 
-      (pCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
+      if ( rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true ){
 
-      (pCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread], rCurrentProcessInfo);
+        (pCurrentCondition) -> CalculateSecondDerivativesContributions(this->mMatrix.M[thread],this->mVector.a[thread],rCurrentProcessInfo);
 
-      AddDynamicsToLHS  (LHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+        (pCurrentCondition) -> CalculateFirstDerivativesContributions(this->mMatrix.D[thread],this->mVector.v[thread],rCurrentProcessInfo);
 
-      AddDynamicsToRHS  (pCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+        AddDynamicTangentsToLHS(rLHS_Contribution,this->mMatrix.D[thread],this->mMatrix.M[thread],rCurrentProcessInfo);
 
-      // AssembleTimeSpaceLHS_Condition(pCurrentCondition, LHS_Contribution,DampMatrix, MassMatrix, rCurrentProcessInfo);
+        AddDynamicForcesToRHS(rRHS_Contribution,this->mVector.v[thread],this->mVector.a[thread],rCurrentProcessInfo);
+        
+      }
+      else{
+      
+        (pCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
 
+        (pCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread], rCurrentProcessInfo);
+
+        AddDynamicsToLHS  (rLHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+
+        AddDynamicsToRHS  (pCurrentCondition, rRHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+      }
+      
       KRATOS_CATCH("")
     }
 
     /**
      * Functions that calculates the RHS of a "condition" object
      * @param pCurrentCondition: The condition to compute
-     * @param RHS_Contribution: The RHS vector contribution
+     * @param rRHS_Contribution: The RHS vector contribution
      * @param EquationId: The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo: The current process info instance
      */
 
     void Condition_Calculate_RHS_Contribution(Condition::Pointer pCurrentCondition,
-					      LocalSystemVectorType& RHS_Contribution,
+					      LocalSystemVectorType& rRHS_Contribution,
 					      Element::EquationIdVectorType& EquationId,
 					      ProcessInfo& rCurrentProcessInfo) override
     {
@@ -319,51 +314,32 @@ namespace Kratos
 
       int thread = OpenMPUtils::ThisThread();
 
-      // Initializing the non linear iteration for the current condition
-      //(pCurrentCondition) -> InitializeNonLinearIteration(rCurrentProcessInfo);
-
       // Basic operations for the condition considered
-      (pCurrentCondition) -> CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+      (pCurrentCondition) -> CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
 
       (pCurrentCondition) -> EquationIdVector(EquationId, rCurrentProcessInfo);
+      
+      if ( rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true ){
 
-      (pCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
+        (pCurrentCondition) -> CalculateSecondDerivativesRHS(this->mVector.a[thread],rCurrentProcessInfo);
 
-      (pCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread], rCurrentProcessInfo);
+        (pCurrentCondition) -> CalculateFirstDerivativesRHS(this->mVector.v[thread],rCurrentProcessInfo);
+      
+        AddDynamicForcesToRHS(rRHS_Contribution,this->mVector.v[thread],this->mVector.a[thread],rCurrentProcessInfo);
 
-      // Adding the dynamic contributions (static is already included)
-      AddDynamicsToRHS  (pCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+      }
+      else{
+
+        (pCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
+
+        (pCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread], rCurrentProcessInfo);
+
+        AddDynamicsToRHS  (pCurrentCondition, rRHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+      }
 
       KRATOS_CATCH("")
     }
 
-    /**
-     * Function that returns the list of Degrees of freedom to be assembled in the system for a Given Element
-     * @param pCurrentElement: The element to compute
-     * @param rElementalDofsList: The element dofs list 
-     * @param rCurrentProcessInfo: The current process info instance
-     */
-
-    void GetElementalDofList(Element::Pointer pCurrentElement,
-			     Element::DofsVectorType& rElementalDofList,
-			     ProcessInfo& rCurrentProcessInfo) override
-    {
-      pCurrentElement->GetDofList(rElementalDofList, rCurrentProcessInfo);
-    }
-
-    /**
-     * Function that returns the list of Degrees of freedom to be assembled in the system for a Given Element
-     * @param pCurrentCondition: The condition to compute
-     * @param rConditionDofsList: The condition dofs list 
-     * @param rCurrentProcessInfo: The current process info instance
-     */
-
-    void GetConditionDofList(Condition::Pointer pCurrentCondition,
-			     Element::DofsVectorType& rConditionDofList,
-			     ProcessInfo& rCurrentProcessInfo) override
-    {
-      pCurrentCondition->GetDofList(rConditionDofList, rCurrentProcessInfo);
-    }
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -379,39 +355,12 @@ namespace Kratos
 
       // Perform base base checks
       int ErrorCode = 0;
-      ErrorCode  = BaseType::Check(rModelPart);
+      ErrorCode  = DerivedType::Check(rModelPart);
 
-      // Check that all required variables have been registered
-      KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-      KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-      KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+      if( !rModelPart.GetProcessInfo().Has(COMPUTE_DYNAMIC_TANGENT) )
+        KRATOS_ERROR << "COMPUTE_DYNAMIC_TANGENT must be set to use a Dynamic Scheme" << std::endl;
 
-      // Check that variables are correctly allocated
-      for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); ++it)
-        {
-	  // Nodal data
-	  KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,(*it));
-	  KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,(*it));
-	  KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,(*it));
-
-	  // Nodal dofs
-	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,(*it));
-	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,(*it));
-	  if( rModelPart.GetProcessInfo()[SPACE_DIMENSION] == 3 )
-	    KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,(*it));
-        }
-
-      // Check for minimum value of the buffer index
-      if (rModelPart.GetBufferSize() < 2)
-        {
-	  KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
-        }
-
-      // if( this->mTimeIntegrationMethods.size() == 0  ) {
-      //    ProcessInfo & rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      //    this->SetIntegrationMethod( rCurrentProcessInfo);
-      // }
-
+      
       return ErrorCode;
       
       KRATOS_CATCH("")
@@ -433,20 +382,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Displacement NewmarkScheme";
+        buffer << "DynamicScheme";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Displacement NewmarkScheme";
+        rOStream << "DynamicScheme";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Displacement NewmarkScheme Data";     
+      rOStream << "DynamicScheme Data";     
     }
     
     ///@}
@@ -475,20 +424,6 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-
-    virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo)
-    {
-      if ( this->mTimeIntegrationMethods.size() == 0 ) {
-        this->mTimeIntegrationMethods.push_back(Kratos::make_shared< NewmarkMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > >(DISPLACEMENT,VELOCITY,ACCELERATION));
-
-        // Set scheme parameters
-        this->mTimeIntegrationMethods.front()->SetParameters(rCurrentProcessInfo);
-
-        // Set parameters to process info
-        this->mTimeIntegrationMethods.back()->SetProcessInfoParameters(rCurrentProcessInfo);
-
-      }
-    }
 
 
     /**
@@ -521,6 +456,34 @@ namespace Kratos
         }
     }
 
+
+    /**
+     * It adds the dynamic LHS contribution of the elements: M + D + K
+     * @param rLHS_Contribution: The dynamic contribution for the LHS
+     * @param rD: The damping matrix
+     * @param rM: The mass matrix
+     * @param rCurrentProcessInfo: The current process info instance
+     */
+
+    virtual void AddDynamicTangentsToLHS(LocalSystemMatrixType& rLHS_Contribution,
+                                         LocalSystemMatrixType& rD,
+                                         LocalSystemMatrixType& rM,
+                                         ProcessInfo& rCurrentProcessInfo)
+    {
+
+      // Adding mass contribution to the dynamic stiffness
+      if (rM.size1() != 0) // if M matrix declared
+        {
+	  noalias(rLHS_Contribution) += rM ;
+        }
+
+      // Adding  damping contribution
+      if (rD.size1() != 0) // if D matrix declared
+        {
+	  noalias(rLHS_Contribution) += rD;
+        }
+    }
+    
     /**
      * It adds the dynamic RHS contribution of the elements: b - M*a - D*v
      * @param pCurrentElement: The element to compute
@@ -581,7 +544,6 @@ namespace Kratos
         }
 
       // Adding damping contribution
-      // Damping contribution
       if (rD.size1() != 0)
         {
 	  pCurrentCondition->GetFirstDerivativesVector(mVector.v[thread], 0);
@@ -591,6 +553,34 @@ namespace Kratos
 
     }
 
+
+    /**
+     * It adds the dynamic RHS contribution of the elements: b - M*a - D*v
+     * @param pCurrentElement: The element to compute
+     * @param rRHS_Contribution: The dynamic contribution for the RHS
+     * @param rfv: The damping component vector
+     * @param rfa: The mass component vector
+     * @param rCurrentProcessInfo: The current process info instance
+     */
+    void AddDynamicForcesToRHS(LocalSystemVectorType& rRHS_Contribution,
+			       LocalSystemVectorType& rfv ,
+			       LocalSystemVectorType& rfa,
+			       ProcessInfo& rCurrentProcessInfo)
+    {
+
+      // Adding inertia contribution
+      if (rfa.size() != 0)
+        {
+	  noalias(rRHS_Contribution) -=  rfa;
+        }
+
+      // Adding damping contribution
+      if (rfv.size() != 0)
+        {
+	  noalias(rRHS_Contribution) -=  rfv;
+        }
+    }
+    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -639,7 +629,7 @@ namespace Kratos
     ///@{
   
     ///@}
-  }; // Class DisplacementNewmarkScheme
+  }; // Class DynamicScheme
   ///@}
 
   ///@name Type Definitions
@@ -657,4 +647,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_DISPLACEMENT_NEWMARK_SCHEME_H_INCLUDED defined
+#endif // KRATOS_DYNAMIC_SCHEME_H_INCLUDED defined
