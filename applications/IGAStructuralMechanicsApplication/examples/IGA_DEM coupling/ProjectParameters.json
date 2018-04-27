@@ -1,5 +1,5 @@
 {
-  
+
   "problem_data": {
     "problem_name": "IGA_DEM_kratos",
     "model_part_name": "IGAModelPart",
@@ -54,10 +54,24 @@
           "faces_embedded": false,
           "faces_reversed": false,
           "edges": true,
-          "coupling_edges": true
+          "coupling_edges": false
         }
       },
-      "geometry_refinement": false
+      "geometry_refinement": [                {
+        "selection": "ALL",
+        "parameters": {
+          "knot_insertions_u": [ ],
+          "knot_insertions_v": [ ],
+          "multiply_knots_u": 0,
+          "multiply_knots_v": 0,
+          "max_element_size_u": 0,
+          "max_element_size_v": 0,
+          "min_order_p": 0,
+          "min_order_q": 0,
+          "order_elevation_p": 0,
+          "order_elevation_q": 0
+        }
+      }]
     },
     "compute_surface_area": true,
     "write_integration_domain_global": true,
