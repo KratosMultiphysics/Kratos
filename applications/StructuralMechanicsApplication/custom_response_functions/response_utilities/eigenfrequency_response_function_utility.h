@@ -262,7 +262,7 @@ protected:
         for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
         {
             traced_eigenvalues[i] = GetEigenvalue(mTracedEigenfrequencyIds[i]);
-            gradient_prefactors[i] = 1 / (2 * 2 * Globals::Pi * std::sqrt(traced_eigenvalues[i]));
+            gradient_prefactors[i] = 1 / (4 * Globals::Pi * std::sqrt(traced_eigenvalues[i]));
         }
 
         // Element-wise computation of gradients
@@ -307,8 +307,7 @@ protected:
                         aux_matrix.clear();
                         aux_vector.clear();
 
-                        noalias(aux_matrix) = perturbed_LHS;
-                        noalias(aux_matrix) -= (perturbed_mass_matrix * traced_eigenvalues[i]);
+                        noalias(aux_matrix) = perturbed_LHS - perturbed_mass_matrix * traced_eigenvalues[i];
                         noalias(aux_vector) = prod(aux_matrix , eigenvectors_of_element[i]);
 
                         gradient_contribution[coord_dir_i] += gradient_prefactors[i] * inner_prod(eigenvectors_of_element[i] , aux_vector) * mWeightingFactors[i];
