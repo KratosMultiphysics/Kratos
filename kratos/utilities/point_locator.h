@@ -81,11 +81,11 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      bool FindNode(const Point& rThePoint, int& rNodeId, double DistanceThreshold=1e-12) const;
+      int FindNode(const Point& rThePoint, const double DistanceThreshold=1e-12) const;
 
-      bool FindElement(const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues) const;
+      int FindElement(const Point& rThePoint, Vector& rShapeFunctionValues) const;
 
-      bool FindCondition(const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues) const;
+      int FindCondition(const Point& rThePoint, Vector& rShapeFunctionValues) const;
 
       ///@}
       ///@name Access
@@ -181,7 +181,7 @@ namespace Kratos
       ///@{
 
       template<typename TObjectType>
-      bool FindObject(const TObjectType& rObjects, const std::string& rObjectType,
+      void FindObject(const TObjectType& rObjects, const std::string& rObjectType,
                       const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues) const;
 
       void CheckResults(const std::string& rObjectType,

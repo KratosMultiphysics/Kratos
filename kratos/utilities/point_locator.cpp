@@ -23,11 +23,10 @@
 
 namespace Kratos
 {
-    bool PointLocator::FindNode(const Point& rThePoint,
-                                int& rNodeId,
-                                double DistanceThreshold) const
+    int PointLocator::FindNode(const Point& rThePoint,
+                               const double DistanceThreshold) const
     {
-        rNodeId = -1;
+        int found_node_id = -1; // if no node is found this will be returned
         bool is_close_enough = false;
 
         int global_nodes_found = 0;
@@ -39,40 +38,40 @@ namespace Kratos
             if (is_close_enough)
             {
                 global_nodes_found = 1;
-                rNodeId = r_node.Id();
+                found_node_id = r_node.Id();
                 break;
             }
         }
 
         CheckResults("Node", rThePoint, global_nodes_found);
 
-        return is_close_enough;
+        return found_node_id;
     }
 
-    bool PointLocator::FindElement(const Point& rThePoint,
-                                   int& rObjectId,
-                                   Vector& rShapeFunctionValues) const
+    int PointLocator::FindElement(const Point& rThePoint,
+                                  Vector& rShapeFunctionValues) const
     {
+        int found_element_id = -1; // if no element is found this will be returned
         const auto& r_elements = mrModelPart.GetCommunicator().LocalMesh().Elements();
-        const bool is_inside = FindObject(r_elements, "Element",
-                                          rThePoint, rObjectId,
-                                          rShapeFunctionValues);
-        return is_inside;
+        FindObject(r_elements, "Element",
+                   rThePoint, found_element_id,
+                   rShapeFunctionValues);
+        return found_element_id;
     }
 
-    bool PointLocator::FindCondition(const Point& rThePoint,
-                                     int& rObjectId,
-                                     Vector& rShapeFunctionValues) const
+    int PointLocator::FindCondition(const Point& rThePoint,
+                                    Vector& rShapeFunctionValues) const
     {
+        int found_condition_id = -1; // if no condition is found this will be returned
         const auto& r_conditions = mrModelPart.GetCommunicator().LocalMesh().Conditions();
-        const bool is_inside = FindObject(r_conditions, "Condition",
-                                          rThePoint, rObjectId,
-                                          rShapeFunctionValues);
-        return is_inside;
+        FindObject(r_conditions, "Condition",
+                   rThePoint, found_condition_id,
+                   rShapeFunctionValues);
+        return found_condition_id;
     }
 
     template<typename TObjectType>
-    bool PointLocator::FindObject(const TObjectType& rObjects,
+    void PointLocator::FindObject(const TObjectType& rObjects,
                                   const std::string& rObjectName,
                                   const Point& rThePoint,
                                   int& rObjectId,
@@ -88,7 +87,6 @@ namespace Kratos
             << r_geom.WorkingSpaceDimension() << ") of the " << rObjectName
             << " are not equal!" << std::endl;
 
-        rObjectId = -1;
         bool is_inside;
 
         int global_objects_found = 0;
@@ -109,8 +107,6 @@ namespace Kratos
         }
 
         CheckResults(rObjectName, rThePoint, global_objects_found);
-
-        return is_inside;
     }
 
     void PointLocator::CheckResults(const std::string& rObjectName,

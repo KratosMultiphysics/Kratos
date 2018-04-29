@@ -35,13 +35,10 @@ namespace Kratos {
 
             Point the_point(0.1, 0.25, 0.0);
 
-            int found_id = -1;
-
             Vector shape_function_values;
 
-            const bool search_successful = point_locator.FindElement(the_point, found_id, shape_function_values);
+            const int found_id = point_locator.FindElement(the_point, shape_function_values);
 
-            KRATOS_CHECK(search_successful);
             KRATOS_CHECK_EQUAL(found_id, elem_id_to_be_found);
             KRATOS_CHECK_EQUAL(shape_function_values.size(), 3);
 
@@ -68,13 +65,10 @@ namespace Kratos {
 
             Point the_point(0.13, 0.52, 0.0);
 
-            int found_id = -1;
-
             Vector shape_function_values;
 
-            const bool search_successful = point_locator.FindElement(the_point, found_id, shape_function_values);
+            const int found_id = point_locator.FindElement(the_point, shape_function_values);
 
-            KRATOS_CHECK(search_successful);
             KRATOS_CHECK_EQUAL(found_id, elem_id_to_be_found);
             KRATOS_CHECK_EQUAL(shape_function_values.size(), 4);
 
@@ -102,13 +96,10 @@ namespace Kratos {
 
             Point the_point(0.25, 0.12, 0.32);
 
-            int found_id = -1;
-
             Vector shape_function_values;
 
-            const bool search_successful = point_locator.FindElement(the_point, found_id, shape_function_values);
+            const int found_id = point_locator.FindElement(the_point, shape_function_values);
 
-            KRATOS_CHECK(search_successful);
             KRATOS_CHECK_EQUAL(found_id, elem_id_to_be_found);
             KRATOS_CHECK_EQUAL(shape_function_values.size(), 4);
 
@@ -140,13 +131,10 @@ namespace Kratos {
 
             Point the_point(0.28, 0.32, 0.72);
 
-            int found_id = -1;
-
             Vector shape_function_values;
 
-            const bool search_successful = point_locator.FindElement(the_point, found_id, shape_function_values);
+            const int found_id = point_locator.FindElement(the_point, shape_function_values);
 
-            KRATOS_CHECK(search_successful);
             KRATOS_CHECK_EQUAL(found_id, elem_id_to_be_found);
             KRATOS_CHECK_EQUAL(shape_function_values.size(), 8);
 
@@ -178,11 +166,8 @@ namespace Kratos {
 
             Point the_point(coord_x, coord_y, coord_z);
 
-            int found_id = -1;
+            const int found_id = point_locator.FindNode(the_point);
 
-            const bool search_successful = point_locator.FindNode(the_point, found_id);
-
-            KRATOS_CHECK(search_successful);
             KRATOS_CHECK_EQUAL(found_id, node_id_to_be_found);
         }
 
@@ -204,13 +189,10 @@ namespace Kratos {
 
             Point the_point(0.13, 0.52, 0.0);
 
-            int found_id = -1;
-
             Vector shape_function_values;
 
-            const bool search_successful = point_locator.FindCondition(the_point, found_id, shape_function_values);
+            const int found_id = point_locator.FindCondition(the_point, shape_function_values);
 
-            KRATOS_CHECK(search_successful);
             KRATOS_CHECK_EQUAL(found_id, cond_id_to_be_found);
             KRATOS_CHECK_EQUAL(shape_function_values.size(), 4);
 
