@@ -181,13 +181,10 @@ void FIC<TElementData>::PrintInfo(std::ostream& rOStream) const
 template< class TElementData >
 void FIC<TElementData>::AlgebraicMomentumResidual(
     const TElementData& rData,
-    const array_1d<double,3> &rConvectionVelocity,
+    const Vector& rConvection,
     array_1d<double,3>& rResidual) const
 {
     const GeometryType rGeom = this->GetGeometry();
-
-    Vector convection; // u * grad(N)
-    this->ConvectionOperator(convection,rConvectionVelocity,rData.DN_DX);
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const auto& r_body_forces = rData.BodyForce;
@@ -197,7 +194,7 @@ void FIC<TElementData>::AlgebraicMomentumResidual(
     for (unsigned int i = 0; i < NumNodes; i++) {
         const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
         for (unsigned int d = 0; d < Dim; d++) {
-            rResidual[d] += density * ( rData.N[i]*(r_body_forces(i,d) - r_acceleration[d]) - convection[i]*r_velocities(i,d)) - rData.DN_DX(i,d)*r_pressures[i];
+            rResidual[d] += density * ( rData.N[i]*(r_body_forces(i,d) - r_acceleration[d]) - rConvection[i]*r_velocities(i,d)) - rData.DN_DX(i,d)*r_pressures[i];
         }
     }
 }
@@ -253,7 +250,7 @@ void FIC<TElementData>::AddVelocitySystem(
 
     // Residual (used by FIC shock-capturing term)
     array_1d<double,3> MomRes(3,0.0);
-    this->AlgebraicMomentumResidual(rData,convective_velocity,MomRes);
+    this->AlgebraicMomentumResidual(rData,AGradN,MomRes);
 
     // Multiplying some quantities by density to have correct units
     body_force *= density; // Force per unit of volume

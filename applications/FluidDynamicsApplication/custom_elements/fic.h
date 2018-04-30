@@ -313,7 +313,7 @@ protected:
 
     virtual void AlgebraicMomentumResidual(
         const TElementData& rData,
-        const array_1d<double,3> &rConvectionVelocity,
+        const Vector& rConvection,
         array_1d<double,3>& rResidual) const;
 
     ///@}
