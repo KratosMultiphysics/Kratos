@@ -83,8 +83,13 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         with open(self.output_file_name,'r') as out_file:
             lines_out = out_file.readlines()
 
-        if len(lines_ref) != len(lines_out):
-            self.assertTrue(False, msg="Files have different number of lines!")
+        num_lines_ref = len(lines_ref)
+        num_lines_out = len(lines_out)
+
+        err_msg  = "Files have different number of lines!"
+        err_msg += "\nNum Lines Reference File: " + str(num_lines_ref)
+        err_msg += "\nNum Lines Output File: " + str(num_lines_out)
+        self.assertTrue(num_lines_ref == num_lines_out, msg=err_msg)
 
         return lines_ref, lines_out
 
