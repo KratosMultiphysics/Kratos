@@ -37,7 +37,7 @@
   #include "external_includes/pastix_solver.h"
   #include "external_includes/pastix_complex_solver.h"
 #endif
-  
+
 
 namespace Kratos
 {
