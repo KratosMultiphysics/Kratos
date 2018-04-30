@@ -32,6 +32,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
 
         ## Overwrite the default settings with user-provided parameters
         params.ValidateAndAssignDefaults(default_parameters)
+
         self.reference_file_name = os.path.join(os.getcwd(), params["reference_file_name"].GetString())
         self.output_file_name = os.path.join(os.getcwd(), params["output_file_name"].GetString())
         self.remove_output_file = params["remove_output_file"].GetBool()
