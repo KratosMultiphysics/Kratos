@@ -33,8 +33,8 @@ set( KRATOS_ULF_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosULFApplication SHARED ${KRATOS_ULF_APPLICATION_SOURCES})
-target_link_libraries(KratosULFApplication KratosCore )
+pybind11_add_module(KratosULFApplication MODULE THIN_LTO ${KRATOS_ULF_APPLICATION_SOURCES} )
+target_link_libraries(KratosULFApplication PRIVATE KratosCore )
 set_target_properties(KratosULFApplication PROPERTIES PREFIX "")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

@@ -52,7 +52,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 
 // Project includes
@@ -99,9 +98,9 @@ namespace Kratos
 
 namespace Python
 {
-void  AddProcessesToPython()
+void  AddProcessesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
     /*	  class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",
     		 init<ModelPart&>())
@@ -130,54 +129,65 @@ void  AddProcessesToPython()
     	 init<ModelPart&>())
     	 ;
      */
-    class_<PressureCalculateProcess, bases<Process> >("PressureCalculateProcess",
-            init<ModelPart&, unsigned int>())
+    class_<PressureCalculateProcess, Process >(m,"PressureCalculateProcess")
+    .def(init<ModelPart&, unsigned int>())
     ;
-    class_<PressureCalculateProcessAxisym, bases<Process> >("PressureCalculateProcessAxisym",
-            init<ModelPart&, unsigned int>())
-    ;
-
-    class_<MassCalculateProcess, bases<Process> >("MassCalculateProcess",
-            init<ModelPart&>())
+    class_<PressureCalculateProcessAxisym, Process> (m,"PressureCalculateProcessAxisym")
+    
+    .def(init<ModelPart&, unsigned int>())
     ;
 
-    class_<UlfApplyBCProcess, bases<Process> >("UlfApplyBCProcess",
-            init<ModelPart&>())
+    class_<MassCalculateProcess, Process > (m,"MassCalculateProcess")
+    .def(init<ModelPart&>())
     ;
-    class_<UlfTimeStepDecProcess, bases<Process> >("UlfTimeStepDecProcess",init<ModelPart&>())
+
+    class_<UlfApplyBCProcess, Process > (m,"UlfApplyBCProcess")
+    .def(init<ModelPart&>())
+    ;
+    class_<UlfTimeStepDecProcess, Process > (m,"UlfTimeStepDecProcess")
+    .def(init<ModelPart&>())
     .def("EstimateDeltaTime",&UlfTimeStepDecProcess::EstimateDeltaTime)
     ;
-    class_<MarkOuterNodesProcess, bases<Process> >("MarkOuterNodesProcess",init<ModelPart&>())
+    class_<MarkOuterNodesProcess, Process > (m,"MarkOuterNodesProcess")
+    .def(init<ModelPart&>())
     .def("MarkOuterNodes",&MarkOuterNodesProcess::MarkOuterNodes)
     ;
-    class_<MarkFluidProcess, bases<Process> >("MarkFluidProcess",
-            init<ModelPart&>())
+    class_<MarkFluidProcess, Process > (m,"MarkFluidProcess")
+    .def(init<ModelPart&>())
     ;
-    class_<MarkCloseNodesProcess, bases<Process> >("MarkCloseNodesProcess", init<ModelPart&>())
+    class_<MarkCloseNodesProcess, Process > (m,"MarkCloseNodesProcess")
+    .def(init<ModelPart&>())
     .def("MarkCloseNodes", &MarkCloseNodesProcess::MarkCloseNodes)
     ;
-    class_<SaveStructureModelPartProcess, bases<Process> >("SaveStructureModelPartProcess", init<>())
+    class_<SaveStructureModelPartProcess, Process> (m, "SaveStructureModelPartProcess")
+    .def(init<>())
     .def("SaveStructure", &SaveStructureModelPartProcess::SaveStructure)
     ;
-    class_<SaveStructureConditionsProcess, bases<Process> >("SaveStructureConditionsProcess", init<>())
+    class_<SaveStructureConditionsProcess, Process> (m,"SaveStructureConditionsProcess")
+    .def(init<>())
     .def("SaveStructureConditions", &SaveStructureConditionsProcess::SaveStructureConditions)
     ;
-    class_<MergeModelPartsProcess, bases<Process> >("MergeModelPartsProcess", init<> ())
+    class_<MergeModelPartsProcess, Process >(m,"MergeModelPartsProcess")
+    .def(init<> ())
     .def("MergeParts", &MergeModelPartsProcess::MergeParts)
     ;
-    class_<SaveFluidOnlyProcess, bases<Process> >("SaveFluidOnlyProcess", init<> ())
+    class_<SaveFluidOnlyProcess, Process >(m,"SaveFluidOnlyProcess")
+    .def(init<> ())
     .def("SaveFluidOnly", &SaveFluidOnlyProcess::SaveFluidOnly)
     ;
-    class_<LagrangianInletProcess, bases<Process> >("LagrangianInletProcess",
-            init<ModelPart&, double,  array_1d<double,3> >())
+    class_<LagrangianInletProcess, Process >(m,"LagrangianInletProcess")
+    .def(init<ModelPart&, double,  array_1d<double,3> >())
     ;
-    class_<RemoveAndSaveWallNodesProcess, bases<Process> >("RemoveAndSaveWallNodesProcess", init<> ())
+    class_<RemoveAndSaveWallNodesProcess, Process> (m,"RemoveAndSaveWallNodesProcess")
+    .def(init<> ())
     .def("RemoveAndSave", &RemoveAndSaveWallNodesProcess::RemoveAndSave)
     ;     
-    class_<AddWallProcess, bases<Process> >("AddWallProcess", init<> ())
+    class_<AddWallProcess, Process >("AddWallProcess")
+    .def(init<> ())
     .def("AddWall", &AddWallProcess::AddWall)
     ;  
-    class_<CalculateCurvature > ("CalculateCurvature", init<>())
+    class_<CalculateCurvature, Process > (m,"CalculateCurvature")
+    .def(init<>())
     .def("CalculateCurvature2D", &CalculateCurvature::CalculateCurvature2D)
     .def("CalculateCurvature3D", &CalculateCurvature::CalculateCurvature3D)
     .def("CalculateCurvatureContactLine", &CalculateCurvature::CalculateCurvatureContactLine)
@@ -185,31 +195,37 @@ void  AddProcessesToPython()
     ;
     
     
-    class_<CalculateNormalEq > ("CalculateNormalEq", init<>())
+    class_<CalculateNormalEq, Process > (m,"CalculateNormalEq")
+    .def(init<>())
     .def("CalculateNormalEq3D", &CalculateNormalEq::CalculateNormalEq3D)
     ;   
     
-    class_<CalculateContactAngle > ("CalculateContactAngle", init<>())
+    class_<CalculateContactAngle, Process > (m,"CalculateContactAngle")
+    .def(init<>())
     .def("CalculateContactAngle2D", &CalculateContactAngle::CalculateContactAngle2D)
     .def("CalculateContactAngle3D", &CalculateContactAngle::CalculateContactAngle3D)
     ;   
     
-     class_<FindTriplePoint > ("FindTriplePoint", init<>())
+     class_<FindTriplePoint, Process > (m,"FindTriplePoint")
+    .def(init<>())
     .def("FindTriplePoint2D", &FindTriplePoint::FindTriplePoint2D)
     .def("FindTriplePoint3D", &FindTriplePoint::FindTriplePoint3D)
     ;
     
-     class_<CalculateNodalLength > ("CalculateNodalLength", init<>())
+     class_<CalculateNodalLength, Process > (m,"CalculateNodalLength")
+    .def(init<>())
     .def("CalculateNodalLength2D", &CalculateNodalLength::CalculateNodalLength2D)
     .def("CalculateNodalLength3D", &CalculateNodalLength::CalculateNodalLength3D)
     ;    
     
-    class_<FindNodalNeighboursSurfaceProcess > ("FindNodalNeighboursSurfaceProcess", init<ModelPart&, const int, const int>())
+    class_<FindNodalNeighboursSurfaceProcess, Process > (m,"FindNodalNeighboursSurfaceProcess")
+    .def(init<ModelPart&, const int, const int>())
     .def("Execute", &FindNodalNeighboursSurfaceProcess::Execute)
     ; 
     
 
-    class_<CalculateAdhesionForce > ("CalculateAdhesionForce", init<>())
+    class_<CalculateAdhesionForce, Process > (m,"CalculateAdhesionForce)
+    .def(init<>())
     .def("CalculateAdhesionForce3D", &CalculateAdhesionForce::CalculateAdhesionForce3D)
     ;
     

@@ -244,7 +244,7 @@ void SurfaceTension<2>::GetValueOnIntegrationPoints( const Variable<array_1d<dou
 
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        BoundedMatrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
@@ -257,7 +257,7 @@ void SurfaceTension<2>::GetValueOnIntegrationPoints( const Variable<array_1d<dou
     {
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        BoundedMatrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         array_1d<double,3> AdvVel;
@@ -324,7 +324,7 @@ void SurfaceTension<3>::GetValueOnIntegrationPoints( const Variable<array_1d<dou
 
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        BoundedMatrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
@@ -339,7 +339,7 @@ void SurfaceTension<3>::GetValueOnIntegrationPoints( const Variable<array_1d<dou
     {
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        BoundedMatrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         array_1d<double,3> AdvVel;
@@ -388,7 +388,7 @@ void SurfaceTension<3>::GetValueOnIntegrationPoints( const Variable<array_1d<dou
 
 
 template <>
-double SurfaceTension<2,3>::EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double,3,2> &rDN_DX) const
+double SurfaceTension<2,3>::EquivalentStrainRate(const BoundedMatrix<double,3,2> &rDN_DX) const
 {
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -408,7 +408,7 @@ double SurfaceTension<2,3>::EquivalentStrainRate(const boost::numeric::ublas::bo
 
 
 template <>
-double SurfaceTension<3,4>::EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double,4,3> &rDN_DX) const
+double SurfaceTension<3,4>::EquivalentStrainRate(const BoundedMatrix<double,4,3> &rDN_DX) const
 {
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -434,8 +434,8 @@ double SurfaceTension<3,4>::EquivalentStrainRate(const boost::numeric::ublas::bo
  * See SurfaceTension::CalculateB
  */
 template <>
-void SurfaceTension<2,3>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 3, 6 >& rB,
-                           const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rShapeDeriv)
+void SurfaceTension<2,3>::CalculateB( BoundedMatrix<double, 3, 6 >& rB,
+                           const BoundedMatrix<double, 3, 2 >& rShapeDeriv)
 {
     for (unsigned int i = 0; i < 3; i++)
     {
@@ -454,8 +454,8 @@ void SurfaceTension<2,3>::CalculateB( boost::numeric::ublas::bounded_matrix<doub
  * See SurfaceTension::CalculateB
  */
 template <>
-void SurfaceTension<3,4>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 6, 12 >& rB,
-                           const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv)
+void SurfaceTension<3,4>::CalculateB( BoundedMatrix<double, 6, 12 >& rB,
+                           const BoundedMatrix<double, 4, 3 >& rShapeDeriv)
 {
     const unsigned int Dim = 3;
     const unsigned int NumNodes = 4;
@@ -489,7 +489,7 @@ void SurfaceTension<3,4>::CalculateB( boost::numeric::ublas::bounded_matrix<doub
  * See SurfaceTension::CalculateC
  */
 template <>
-void SurfaceTension<2,3>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & rC,
+void SurfaceTension<2,3>::CalculateC(BoundedMatrix<double, 3, 3 > & rC,
                           const double Viscosity)
 {
     rC(0, 0) =  Viscosity*(1.3333333333333333333333333333333);
@@ -507,7 +507,7 @@ void SurfaceTension<2,3>::CalculateC(boost::numeric::ublas::bounded_matrix<doubl
  * See SurfaceTension::CalculateC
  */
 template <>
-void SurfaceTension<3,4>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 6,6 > & rC,
+void SurfaceTension<3,4>::CalculateC(BoundedMatrix<double, 6,6 > & rC,
                           const double Viscosity)
 {
     noalias(rC) = ZeroMatrix(6,6);
@@ -542,7 +542,7 @@ void SurfaceTension<3,4>::CalculateC(boost::numeric::ublas::bounded_matrix<doubl
  */
 template <>
 void SurfaceTension<2,3>::AddViscousTerm(MatrixType& rDampingMatrix,
-                              const boost::numeric::ublas::bounded_matrix<double,3,2>& rShapeDeriv,
+                              const BoundedMatrix<double,3,2>& rShapeDeriv,
                               const double Weight)
 {
     const unsigned int NumNodes = 3;
@@ -577,7 +577,7 @@ void SurfaceTension<2,3>::AddViscousTerm(MatrixType& rDampingMatrix,
  */
 template <>
 void SurfaceTension<3,4>::AddViscousTerm(MatrixType& rDampingMatrix,
-                              const boost::numeric::ublas::bounded_matrix<double,4,3>& rShapeDeriv,
+                              const BoundedMatrix<double,4,3>& rShapeDeriv,
                               const double Weight)
 {
     const unsigned int NumNodes = 4;

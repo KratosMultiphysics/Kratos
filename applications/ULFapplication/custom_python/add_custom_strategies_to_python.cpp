@@ -52,17 +52,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
 
 
 // Project includes
 #include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-
+#include "processes/process.h"
 #include "spaces/ublas_space.h"
-
+#include "custom_utilities/solver_settings.h"
 
 //builder_and_solvers
 #include "custom_strategies/builder_and_solvers/residualbased_elimination_quasiincompresible_builder_and_solver.h"
@@ -77,9 +74,9 @@ namespace Kratos
 
 namespace Python
 {
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddCustomStrategiesToPython()
+void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -105,8 +102,8 @@ void  AddCustomStrategiesToPython()
 //
 //
 
-    class_< ResidualBasedIncompressibleBuilderType2D, bases< BuilderAndSolverType >, boost::noncopyable>
-    ("ResidualBasedIncompressibleBuilder2D", init< LinearSolverType::Pointer>() )
+    class_< ResidualBasedIncompressibleBuilderType2D, ResidualBasedIncompressibleBuilderType2D::Pointer, BuilderAndSolverType > (m, "ResidualBasedIncompressibleBuilder2D")
+    .def(init< LinearSolverType::Pointer>() )
     .def("AssembleLHS", &ResidualBasedIncompressibleBuilderType2D::AssembleLHS )
     .def("AssembleRHS", &ResidualBasedIncompressibleBuilderType2D::AssembleRHS )
     .def("BuildAndSolve", &ResidualBasedIncompressibleBuilderType2D::BuildAndSolve)
@@ -141,7 +138,8 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 3> ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D;
 
 
-    class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D, bases< BuilderAndSolverType >, boost::noncopyable> ("ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver3D", init< LinearSolverType::Pointer>() )
+    class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D, ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::Pointer, BuilderAndSolverType > (m,"ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver3D")
+    .def(init< LinearSolverType::Pointer>() )
     .def("AssembleLHS", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleLHS )
     .def("AssembleRHS", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleRHS )
     .def("BuildAndSolve", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::BuildAndSolve)
@@ -172,7 +170,8 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 //strategy base class
-    class_< BaseSolvingStrategyType, boost::noncopyable >("SolvingStrategy", init< ModelPart&, bool >() )
+    class_< BaseSolvingStrategyType, BaseSolvingStrategyType::Pointer >(m,"SolvingStrategy")
+    .def(init< ModelPart&, bool >() )
     .def("Predict", &BaseSolvingStrategyType::Predict )
     .def("Solve", &BaseSolvingStrategyType::Solve )
     .def("IsConverged", &BaseSolvingStrategyType::IsConverged )
@@ -189,16 +188,16 @@ void  AddCustomStrategiesToPython()
     ;
     typedef LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy2D;
 
-    class_< LapModifiedLinearStrategy2D,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    ("LapModifiedLinearStrategy2D",
-     init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
+    class_< LapModifiedLinearStrategy2D, LapModifiedLinearStrategy2D::Pointer, BaseSolvingStrategyType >
+    (m,"LapModifiedLinearStrategy2D")
+     .def(init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
     .def("Solve", &LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
     ;
     typedef LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy3D;
 
-    class_< LapModifiedLinearStrategy3D,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    ("LapModifiedLinearStrategy3D",
-     init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
+    class_< LapModifiedLinearStrategy3D, LapModifiedLinearStrategy3D::Pointer, BaseSolvingStrategyType >
+    (m,"LapModifiedLinearStrategy3D)
+     .def(init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
     .def("Solve", &LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
     ;
 
