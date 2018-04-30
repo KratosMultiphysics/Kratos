@@ -40,29 +40,29 @@ class PreUtilities
 
     /// Default constructor
     PreUtilities() {}
-    
+
     PreUtilities(ModelPart& rModelPart)
     {
         //mInitialCenterOfMassAndMass = CalculateCenterOfMass(rModelPart);
         //mInitialMass                = CalculateTotalMass(rModelPart);
     }
-    
+
     /// Destructor
     virtual ~PreUtilities() {}
 
     void SetClusterInformationInProperties(std::string const& name,
-                                           pybind11::list& list_of_coordinates, 
-                                           pybind11::list& list_of_radii, 
-                                           double size, 
-                                           double volume, 
-                                           pybind11::list& inertias, 
+                                           pybind11::list& list_of_coordinates,
+                                           pybind11::list& list_of_radii,
+                                           double size,
+                                           double volume,
+                                           pybind11::list& inertias,
                                            Properties::Pointer& p_properties) {
         ClusterInformation cl_info;
 
         cl_info.mName = name;
 
         array_1d<double,3> coords(3,0.0);
-        
+
         for (int i = 0; i < (int)pybind11::len(list_of_coordinates); i++) {
             pybind11::list list(list_of_coordinates[i]);
             coords[0] =  pybind11::cast<double>(list[0]);
@@ -81,7 +81,7 @@ class PreUtilities
         cl_info.mInertias[2] = pybind11::cast<double>(inertias[2]);
 
         p_properties->SetValue(CLUSTER_INFORMATION, cl_info);
-    }        
+    }
 
 
     void FillAnalyticSubModelPartUtility(ModelPart& rSpheresModelPart, ModelPart& rAnalyticSpheresModelPart){
@@ -178,14 +178,14 @@ class PreUtilities
     }
 
     void CreateCartesianSpecimenMdpa(std::string filename) {
-        
+
         // We have a prismatic specimen of dimensions 1m x 1m x 2m
         const double side = 0.15;
         int divisions;
-        std::cout << "\nEnter the number of divisions: ";
+        KRATOS_WARNING("DEM") << "\nEnter the number of divisions: ";
         std::cin >> divisions;
         if (!divisions) {
-            std::cout << "\nCannot divide by zero. Program stopped.\n\n";
+            KRATOS_WARNING("DEM") << "\nCannot divide by zero. Program stopped.\n\n";
             exit(EXIT_FAILURE);
         }
         const double radius = 0.5 * side / divisions;
@@ -194,29 +194,29 @@ class PreUtilities
         std::vector<int> top_nodes;
         std::vector<int> bottom_nodes;
         filename += "DEM.mdpa";
-        
+
         //
-        
+
         std::ifstream infile(filename);
         if(infile.good()) {
             while(1){
-                std::cout << "\nThe file already exists. Do you want to overwrite it? (y/n) ";
+                KRATOS_WARNING("DEM") << "\nThe file already exists. Do you want to overwrite it? (y/n) ";
                 char yn;
                 std::cin >> yn;
                 if(yn == 'n') {
-                    std::cout << "\nStopped.\n\n";
+                    KRATOS_WARNING("DEM") << "\nStopped.\n\n";
                     exit(EXIT_FAILURE);
                 }
                 if(yn=='y') break;
             }
         }
-        
-        std::cout << "\nGenerating mesh...\n\n";
-        
+
+        KRATOS_INFO("DEM") << "\nGenerating mesh...\n\n";
+
         clock_t initial_time, final_time;
         initial_time = clock();
         std::ofstream outputfile(filename, std::ios_base::out);
-        outputfile << "Begin ModelPartData\nEnd ModelPartData\n\n";        
+        outputfile << "Begin ModelPartData\nEnd ModelPartData\n\n";
         outputfile << "Begin Properties 1\n";
         outputfile << "PARTICLE_DENSITY 2550.0\n";
         outputfile << "YOUNG_MODULUS 35e9\n";
@@ -243,14 +243,14 @@ class PreUtilities
         outputfile << "CONTACT_SIGMA_MIN 1\n";
         outputfile << "CONTACT_INTERNAL_FRICC 20\n";
         outputfile << "End Properties\n";
-        
+
         outputfile << "\nBegin Nodes\n";
 
         // Relative sizes according to axes:
         int ai=1;
         int aj=2;
         int ak=1;
-        
+
         //Generation of the samble
         for (int k = 0; k < ai*divisions; k++) {
             for (int j = 0; j < aj* divisions; j++) {
@@ -294,10 +294,10 @@ class PreUtilities
         outputfile.close();
         final_time = clock();
         double elapsed_time = (double(final_time) - double(initial_time)) / CLOCKS_PER_SEC;
-        std::cout << "\nfinished!\n\n";
-        std::cout << "\nTotal number of elements: " << node_counter << '\n';
-        std::cout << "\nTime required to create the mdpa file: " << elapsed_time << " seconds\n\n";
-    } 
+        KRATOS_INFO("DEM") << "\nfinished!\n\n";
+        KRATOS_INFO("DEM") << "\nTotal number of elements: " << node_counter << '\n';
+        KRATOS_INFO("DEM") << "\nTime required to create the mdpa file: " << elapsed_time << " seconds\n\n";
+    }
 
     void MeasureTopHeight(ModelPart& rModelPart, double& subtotal, double& weight)
     {
@@ -309,9 +309,9 @@ class PreUtilities
 
             if( it->GetGeometry()[0].FastGetSolutionStepValue(GROUP_ID) == 1 )
             {
-                ParticleWeakVectorType& mrNeighbours = it->GetValue(NEIGHBOUR_ELEMENTS);            
+                ParticleWeakVectorType& mrNeighbours = it->GetValue(NEIGHBOUR_ELEMENTS);
 
-                for(ParticleWeakIteratorType ineighbour = mrNeighbours.begin();  
+                for(ParticleWeakIteratorType ineighbour = mrNeighbours.begin();
                 ineighbour != mrNeighbours.end(); ineighbour++)
                 {
                     if( ineighbour->GetGeometry()[0].FastGetSolutionStepValue(GROUP_ID) != 1 )
