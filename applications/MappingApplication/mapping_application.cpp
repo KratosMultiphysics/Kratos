@@ -77,8 +77,7 @@ void KratosMappingApplication::Register()
 
     if (rank == 0) std::cout << banner.str();
 
-    ModelPart dummy_model_part;
-    dummy_model_part = ModelPart();
+    ModelPart dummy_model_part("dummy");
 
     MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>
         ("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper<
