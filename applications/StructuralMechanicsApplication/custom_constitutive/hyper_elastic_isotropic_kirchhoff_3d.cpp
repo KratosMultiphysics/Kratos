@@ -67,7 +67,7 @@ void HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponsePK1 (Constitutiv
 //************************************************************************************
 //************************************************************************************
 
-void  HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) {
+void HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) {
 
     // Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
@@ -90,10 +90,6 @@ void  HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponsePK2(Constitutiv
     }
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-         if (rValues.IsSetDeformationGradientF() == true) {
-            CalculateGreenLagrangianStrain(rValues, strain_vector);
-        }
-
         if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
             noalias(stress_vector) = prod(constitutive_matrix, strain_vector);
