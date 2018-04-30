@@ -24,9 +24,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-//only include validation with c++11 since raw_literals do not exist in c++03
-#if __cplusplus >= 201103L
-
         Parameters default_parameters( R"(
             {
                 "add_string": "NAME_OF_ADD_STRING",
@@ -34,12 +31,9 @@ namespace Kratos
                 "add_before_in_condition_name": "ADD_STRING_BEFORE",
                 "elements_conditions_to_ignore": "NAME_OF_EXEPTION",
                 "from_primal_to_adjoint": true
-            }  )" );
-
+            }  )" );    
         //now validate agains defaults -- this also ensures no type mismatch*/
-        Settings.ValidateAndAssignDefaults(default_parameters);
-#endif
-
+        Settings.ValidateAndAssignDefaults(default_parameters); 
         
         KRATOS_CATCH("")
     }
