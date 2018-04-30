@@ -63,52 +63,59 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             value = filecmp.cmp(self.reference_file_name, self.output_file_name)
             self.assertTrue(value)
         elif (self.comparison_type == "mesh_file"):
-            error = _ReadVertices(self.reference_file_name, self.output_file_name, self.dimension)
-            self.assertTrue(error < GetTolerance(self.decimal_places))
+            self.__CompareMeshVertivesFile()
         elif (self.comparison_type == "sol_file"):
-            error = ReadMetric(self.reference_file_name, self.output_file_name, self.dimension)
-            self.assertTrue(error < GetTolerance(self.decimal_places))
+            self.__CompareSolMetricFile()
         elif (self.comparison_type == "post_res_file"):
             self.__ComparePostResFile()
+        elif (self.comparison_type == "dat_file"):
+            self.__CompareDatFile()
         else:
             raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
 
         if self.remove_output_file == True:
             kratos_utils.DeleteFileIfExisting(self.output_file_name)
 
-    def __ComparePostResFile(self):
-        with open(self.reference_file_name,'r') as ref_file, open(self.output_file_name,'r') as out_file:
+    def __GetFileLines(self):
+        with open(self.reference_file_name,'r') as ref_file:
             lines_ref = ref_file.readlines()
+        with open(self.output_file_name,'r') as out_file:
             lines_out = out_file.readlines()
-            num_lines_1 = len(lines_ref)
 
-            if num_lines_1 != len(lines_out):
-                self.assertTrue(False, msg="Files have different number of lines!")
+        if len(lines_ref) != len(lines_out):
+            self.assertTrue(False, msg="Files have different number of lines!")
 
-            results_start_index = -1
-            results_found = False
+        return lines_ref, lines_out
 
-            # comparing the header
-            for i in range(num_lines_1):
-                if lines_ref[i].startswith("Result "):
-                    results_start_index = i
-                    results_found = True
-                    break
+    def __ComparePostResFile(self):
+        lines_ref, lines_out = self.__GetFileLines()
 
-                lines_ref_splitted = lines_ref[i].split()
-                lines_out_splitted = lines_out[i].split()
+        results_start_index = -1
+        results_found = False
 
-                if len(lines_ref_splitted) != len(lines_out_splitted):
-                    self.assertTrue(False, msg="Lines have different length!")
+        num_lines = len(lines_ref)
 
-                for ref_value, out_value in zip(lines_ref_splitted, lines_out_splitted):
-                    self.assertTrue(ref_value == out_value,
-                                    msg=ref_value + " != " + out_value)
+        # comparing the header
+        for i in range(num_lines):
+            if lines_ref[i].startswith("Result "):
+                results_start_index = i
+                results_found = True
+                break
 
-            # comparing the results
-            if results_found:
-                while results_start_index < num_lines_1:
-                    results_start_index = self.__CompareResultsBlock(lines_ref, lines_out, results_start_index)
+            lines_ref_splitted = lines_ref[i].split()
+            lines_out_splitted = lines_out[i].split()
+
+            if len(lines_ref_splitted) != len(lines_out_splitted):
+                self.assertTrue(False, msg="Lines have different length!")
+
+            for ref_value, out_value in zip(lines_ref_splitted, lines_out_splitted):
+                self.assertTrue(ref_value == out_value,
+                                msg=ref_value + " != " + out_value)
+
+        # comparing the results
+        if results_found:
+            while results_start_index < num_lines:
+                results_start_index = self.__CompareResultsBlock(lines_ref, lines_out, results_start_index)
 
     def __CompareResultsBlock(self, lines1, lines2, current_index):
         # comparing result labels
@@ -139,52 +146,54 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
 
         return current_index+2 # directly incrementing to get the new result label
 
+    def __CompareDatFile(self):
+        lines_ref, lines_out = self.__GetFileLines()
 
-def ConvertStringToListFloat(line, space = " ", endline = ""):
-    list_values = []
-    string_values = (line.replace(endline,"")).split(space)
-    for string in string_values:
-        list_values.append(float(string))
+        # assert headers are the same
+        while lines_ref[0].lstrip()[0] == '#' or lines_out[0].lstrip()[0] == '#':
+            self.assertTrue(lines_ref.pop(0) == lines_out.pop(0))
 
-    return list_values
+        # assert values are equal up to given tolerance
+        for line_ref, line_out in zip(lines_ref, lines_out):
+            for v1, v2 in zip(line_ref.split(), line_out.split()):
+                self.assertAlmostEqual(float(v1),
+                                       float(v2),
+                                       self.decimal_places)
 
-def _ReadVertices(input_file1, input_file2, dimension):
-    with open(input_file1,'r') as f1, open(input_file2,'r') as f2:
-        lines1 = f1.readlines()
-        lines2 = f2.readlines()
+    def __CompareMeshVertivesFile(self):
+        lines_ref, lines_out = self.__GetFileLines()
 
         numline = 0
-        for line1 in lines1:
+        for line1 in lines_ref:
             numline += 1
 
             if("Vertices" in line1):
-                line = lines1[numline]
+                line = lines_ref[numline]
                 nvertices = int(line)
                 numline += 1
                 break
 
         error = 0.0
         for i in range(numline, nvertices + numline):
-            tmp1 = ConvertStringToListFloat(lines1[i], "", "\n")
-            tmp2 = ConvertStringToListFloat(lines2[i], "", "\n")
+            tmp1 = ConvertStringToListFloat(lines_ref[i], "", "\n")
+            tmp2 = ConvertStringToListFloat(lines_out[i], "", "\n")
             if (dimension == 2):
                 error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0)**(0.5)
             else:
                 error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0 + (tmp1[2] - tmp2[2])**2.0)**(0.5)
 
-    return (error/nvertices)
+        error /= nvertices
+        self.assertTrue(error < GetTolerance(self.decimal_places))
 
-def ReadMetric(input_file1, input_file2, dimension):
-    with open(input_file1,'r') as f1, open(input_file2,'r') as f2:
-        lines1 = f1.readlines()
-        lines2 = f2.readlines()
+    def __CompareSolMetricFile(self):
+        lines_ref, lines_out = self.__GetFileLines()
 
         numline = 0
-        for line1 in lines1:
+        for line1 in lines_ref:
             numline += 1
 
             if("SolAtVertices" in line1):
-                line = lines1[numline]
+                line = lines_ref[numline]
                 nvertices = int(line)
                 numline += 2
                 break
@@ -199,19 +208,29 @@ def ReadMetric(input_file1, input_file2, dimension):
                 space = "  "
                 end_line = "  \n"
 
-            if (lines1[i][0] == " "):
-                lines1[i] = lines1[i][1:]
-            if (lines2[i][0] == " "):
-                lines1[i][0] = lines2[i][1:]
-            tmp1 = ConvertStringToListFloat(lines1[i], space, end_line)
-            tmp2 = ConvertStringToListFloat(lines2[i], space, end_line)
+            if (lines_ref[i][0] == " "):
+                lines_ref[i] = lines_ref[i][1:]
+            if (lines_out[i][0] == " "):
+                lines_ref[i][0] = lines_out[i][1:]
+            tmp1 = ConvertStringToListFloat(lines_ref[i], space, end_line)
+            tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
 
             if (dimension == 2):
                 error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0 + (tmp1[2] - tmp2[2])**2.0)**(0.5)
             else:
                 error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0 + (tmp1[2] - tmp2[2])**2.0 + (tmp1[3] - tmp2[3])**2.0 + (tmp1[4] - tmp2[4])**2.0 + (tmp1[5] - tmp2[5])**2.0)**(0.5)
 
-    return (error/nvertices)
+        error /= nvertices
+        self.assertTrue(error < GetTolerance(self.decimal_places))
+
+
+def ConvertStringToListFloat(line, space = " ", endline = ""):
+    list_values = []
+    string_values = (line.replace(endline,"")).split(space)
+    for string in string_values:
+        list_values.append(float(string))
+
+    return list_values
 
 def GetTolerance(decimal_places):
     # convert e.g. 5 to 1e-5
