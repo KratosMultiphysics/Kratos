@@ -59,22 +59,23 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         pass
 
     def ExecuteFinalize(self):
-        if (self.comparison_type == "deterministic"):
-            value = filecmp.cmp(self.reference_file_name, self.output_file_name)
-            self.assertTrue(value)
-        elif (self.comparison_type == "mesh_file"):
-            self.__CompareMeshVertivesFile()
-        elif (self.comparison_type == "sol_file"):
-            self.__CompareSolMetricFile()
-        elif (self.comparison_type == "post_res_file"):
-            self.__ComparePostResFile()
-        elif (self.comparison_type == "dat_file"):
-            self.__CompareDatFile()
-        else:
-            raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
+        if kratos_utils.IsRankZero():
+            if (self.comparison_type == "deterministic"):
+                value = filecmp.cmp(self.reference_file_name, self.output_file_name)
+                self.assertTrue(value)
+            elif (self.comparison_type == "mesh_file"):
+                self.__CompareMeshVertivesFile()
+            elif (self.comparison_type == "sol_file"):
+                self.__CompareSolMetricFile()
+            elif (self.comparison_type == "post_res_file"):
+                self.__ComparePostResFile()
+            elif (self.comparison_type == "dat_file"):
+                self.__CompareDatFile()
+            else:
+                raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
 
         if self.remove_output_file == True:
-            kratos_utils.DeleteFileIfExisting(self.output_file_name)
+            kratos_utils.DeleteFileIfExisting(self.output_file_name) # this checks internally if it is rank 0
 
     def __GetFileLines(self):
         with open(self.reference_file_name,'r') as ref_file:
