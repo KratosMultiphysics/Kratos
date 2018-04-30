@@ -960,15 +960,6 @@ public:
     }
 
     /**
-    this function is intended to be called at the end of the solution step to clean up memory
-    storage not needed
-     */
-    void Clear() override
-    {
-        BaseType::Clear();
-    }
-
-    /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.

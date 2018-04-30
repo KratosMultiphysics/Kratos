@@ -1326,15 +1326,6 @@ public:
         TSystemVectorType& b) override
     {}
 
-    /**
-    this function is intended to be called at the end of the solution step to clean up memory
-    storage not needed
-    */
-    void Clear() override
-    {
-        BaseType::Clear();
-    }
-
 
     /*@} */
     /**@name Operations */
