@@ -21,6 +21,7 @@
 #include "utilities/geometry_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
+#include "utilities/geometrical_sensitivity_utility.h"
 
 namespace Kratos
 {
@@ -269,6 +270,63 @@ void TotalLagrangian::CalculateAxisymmetricB(Matrix& rB,
     KRATOS_CATCH("")
 }
 
+void TotalLagrangian::CalculateShapeSensitivity(std::size_t NodeIndex,
+                                                std::size_t CoordIndex,
+                                                Matrix& rDN_DX0_Deriv,
+                                                Matrix& rF_Deriv,
+                                                double& rDetJ0_Deriv,
+                                                std::size_t IntegrationPointIndex)
+{
+    KRATOS_TRY;
+    const unsigned ws_dim = GetGeometry().WorkingSpaceDimension();
+    const unsigned ls_dim = GetGeometry().LocalSpaceDimension();
+    Matrix J0(ws_dim, ls_dim);
+    GeometryUtils::JacobianOnInitialConfiguration(
+        GetGeometry(), GetGeometry().IntegrationPoints()[IntegrationPointIndex], J0);
+    const Matrix& rDN_De = GetGeometry().ShapeFunctionsLocalGradients()[IntegrationPointIndex];
+    auto sensitivity_utility =
+        GeometricalSensitivityUtility(J0, rDN_De);
+    sensitivity_utility.CalculateSensitivity(NodeIndex, CoordIndex,
+                                             rDetJ0_Deriv, rDN_DX0_Deriv);
+    rF_Deriv.resize(ws_dim, ws_dim);
+    rF_Deriv.clear();
+    for (unsigned i = 0; i < ws_dim; ++i)
+        for (unsigned j = 0; j < ws_dim; ++j)
+        {
+            for (unsigned k = 0; k < GetGeometry().PointsNumber(); ++k)
+                rF_Deriv(i, j) +=
+                    GetGeometry()[k].Coordinates()[i] * rDN_DX0_Deriv(k, j);
+        }
+    KRATOS_CATCH("");
+}
+
+void TotalLagrangian::CalculateShapeSensitivity(Matrix const& rDN_DX,
+                                                Matrix const& rF,
+                                                Matrix const& rDN_DX_Deriv,
+                                                Matrix const& rF_Deriv,
+                                                Matrix& rB_Deriv)
+{
+    KRATOS_TRY;
+    const unsigned dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned strain_size = GetProperties()[CONSTITUTIVE_LAW]->GetStrainSize();
+    rB_Deriv.resize(strain_size, dimension * GetGeometry().PointsNumber(), false);
+    Matrix B_deriv1(rB_Deriv.size1(), rB_Deriv.size2());
+    Matrix B_deriv2(rB_Deriv.size1(), rB_Deriv.size2());
+    CalculateB(B_deriv1, rF_Deriv, rDN_DX);
+    CalculateB(B_deriv2, rF, rDN_DX_Deriv);
+    rB_Deriv = B_deriv1 + B_deriv2;
+    KRATOS_CATCH("");
+}
+
+void TotalLagrangian::CalculateShapeSensitivity(Matrix const& rF,
+                                                Matrix const& rF_Deriv,
+                                                Matrix& rE_Deriv)
+{
+    KRATOS_TRY;
+    rE_Deriv = 0.5 * (prod(trans(rF_Deriv), rF) + prod(trans(rF), rF_Deriv));
+    KRATOS_CATCH("");
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -281,6 +339,76 @@ int  TotalLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
     return ier;
 
     KRATOS_CATCH( "" );
+}
+
+void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable,
+                                                 Matrix& rOutput,
+                                                 const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    const std::size_t ws_dim = GetGeometry().WorkingSpaceDimension();
+    const std::size_t mat_dim = GetGeometry().PointsNumber() * ws_dim;
+    rOutput.resize(mat_dim, mat_dim);
+    if (rDesignVariable == SHAPE_SENSITIVITY)
+    {
+        ConstitutiveLaw::Parameters cl_params(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveLaw::Parameters cl_params_deriv(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        cl_params_deriv.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS | ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+        double detJ0, detJ0_deriv;
+        Matrix F, F_deriv, J, J0, InvJ0, DN_DX0_deriv, strain_tensor_deriv, DN_De, DN_DX0, B, B_deriv;
+        const std::size_t strain_size =
+            GetProperties()[CONSTITUTIVE_LAW]->GetStrainSize();
+        B.resize(strain_size, ws_dim * GetGeometry().PointsNumber());
+        rOutput.clear();
+        Vector strain_vector(strain_size), strain_vector_deriv(strain_size), stress_vector, stress_vector_deriv;
+        for (std::size_t g = 0; g < GetGeometry().IntegrationPointsNumber(); ++g)
+        {
+            GetGeometry().Jacobian(J, g);
+            GeometryUtils::JacobianOnInitialConfiguration(
+                GetGeometry(), GetGeometry().IntegrationPoints()[g], J0);
+            MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+            GeometryUtils::DeformationGradient(J, InvJ0, F);
+            const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients()[g];
+            GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DN_DX0);
+            CalculateB(B, F, DN_DX0);
+            cl_params.SetDeformationGradientF(F);
+            cl_params.SetStrainVector(strain_vector);
+            cl_params.SetStressVector(stress_vector);
+            mConstitutiveLawVector[g]->CalculateMaterialResponse(
+                cl_params, ConstitutiveLaw::StressMeasure_PK2);
+            double weight = GetIntegrationWeight(GetGeometry().IntegrationPoints(), g, detJ0);
+
+            for (std::size_t i = 0; i < GetGeometry().PointsNumber(); ++i)
+            {
+                for (std::size_t d = 0; d < ws_dim; ++d)
+                {
+                    CalculateShapeSensitivity(i, d, DN_DX0_deriv, F_deriv, detJ0_deriv, g);
+                    CalculateShapeSensitivity(F, F_deriv, strain_tensor_deriv);
+                    noalias(strain_vector_deriv) =
+                        MathUtils<double>::StrainTensorToVector(strain_tensor_deriv);
+                    cl_params_deriv.SetStrainVector(strain_vector_deriv);
+                    cl_params_deriv.SetStressVector(stress_vector_deriv);
+                    mConstitutiveLawVector[g]->CalculateMaterialResponse(
+                        cl_params_deriv, ConstitutiveLaw::StressMeasure_PK2);
+                    CalculateShapeSensitivity(DN_DX0, F, DN_DX0_deriv, F_deriv, B_deriv);
+                    double weight_deriv = GetIntegrationWeight(
+                        GetGeometry().IntegrationPoints(), g, detJ0_deriv);
+                    Vector output = -weight_deriv * prod(trans(B), stress_vector);
+                    output -= weight * prod(trans(B_deriv), stress_vector);
+                    output -= weight * prod(trans(B), stress_vector_deriv);
+                    for (std::size_t k = 0; k < output.size(); ++k)
+                        rOutput(k, i * ws_dim + d) = output(k);
+                }
+            }
+        }
+    }
+    else
+        KRATOS_ERROR << "Unsupported variable: " << rDesignVariable << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/

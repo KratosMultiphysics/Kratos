@@ -104,6 +104,10 @@ public:
 
     //std::string Info() const;
 
+    void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable,
+                                    Matrix& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -195,6 +199,10 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
    
     /**
      * @brief This method computes the deformation matrix B
@@ -207,9 +215,20 @@ private:
 
     void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+    void CalculateShapeSensitivity(std::size_t NodeIndex,
+                                   std::size_t CoordIndex,
+                                   Matrix& rDN_DX0_Deriv,
+                                   Matrix& rF_Deriv,
+                                   double& rDetJ0_Deriv,
+                                   std::size_t IntegrationPointIndex);
+
+    void CalculateShapeSensitivity(Matrix const& rDN_DX,
+                                   Matrix const& rF,
+                                   Matrix const& rDN_DX_Deriv,
+                                   Matrix const& rF_Deriv,
+                                   Matrix& rB_Deriv);
+
+    void CalculateShapeSensitivity(Matrix const& rF, Matrix const& rF_Deriv, Matrix& rE_Deriv);
 
     ///@}
     ///@name Private  Access

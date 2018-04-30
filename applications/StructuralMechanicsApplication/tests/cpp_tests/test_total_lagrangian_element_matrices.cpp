@@ -526,5 +526,37 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D10_StrainEnergy, KratosStructuralMech
     // Check that strain energy didn't change.
     KRATOS_CHECK_NEAR(rotated_element_strain_energy, element_strain_energy, 1e-7);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosStructuralMechanicsFastSuite)
+{
+    ModelPart test_model_part("test");
+    CreateTotalLagrangianTestModelPart("TotalLagrangianElement3D4N", test_model_part);
+    AssignNodalData4(test_model_part);
+    auto p_elem = test_model_part.pGetElement(1);
+    Matrix sensitivity_matrix, semi_analytic_sensitivity_matrix;
+    p_elem->CalculateSensitivityMatrix(SHAPE_SENSITIVITY, sensitivity_matrix,
+                                       test_model_part.GetProcessInfo());
+    semi_analytic_sensitivity_matrix.resize(sensitivity_matrix.size1(),
+                                            sensitivity_matrix.size2(), false);
+    Vector R, R_perturb, semi_analytic_sensitivity_vector;
+    p_elem->CalculateRightHandSide(R, test_model_part.GetProcessInfo());
+    std::size_t ws_dim = p_elem->GetGeometry().WorkingSpaceDimension();
+    for (std::size_t i = 0; i < p_elem->GetGeometry().PointsNumber(); ++i)
+        for (std::size_t d = 0; d < ws_dim; ++d)
+        {
+            const double delta = 0.00000001;
+            p_elem->GetGeometry()[i].GetInitialPosition()[d] += delta;
+            p_elem->CalculateRightHandSide(R_perturb, test_model_part.GetProcessInfo());
+            p_elem->GetGeometry()[i].GetInitialPosition()[d] -= delta;
+            semi_analytic_sensitivity_vector = (1.0 / delta) * (R_perturb - R);
+            for (std::size_t k = 0; k < semi_analytic_sensitivity_vector.size(); ++k)
+                semi_analytic_sensitivity_matrix(k, i * ws_dim + d) =
+                    semi_analytic_sensitivity_vector(k);
+        }
+    for (std::size_t i = 0; i < sensitivity_matrix.size1(); ++i)
+        for (std::size_t j = 0; j < sensitivity_matrix.size2(); ++j)
+            KRATOS_CHECK_NEAR(sensitivity_matrix(i, j), semi_analytic_sensitivity_matrix(i,j), 1e-1);
+}
+
 }
 }
