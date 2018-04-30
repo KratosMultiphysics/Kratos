@@ -8,6 +8,7 @@ def import_solver(SolverSettings):
 def IsRankZero():
     try:
         import KratosMultiphysics.mpi as KratosMPI
+        KratosMPI.mpi.world.barrier()
         my_rank = KratosMPI.mpi.rank
     except ImportError:
         my_rank = 0

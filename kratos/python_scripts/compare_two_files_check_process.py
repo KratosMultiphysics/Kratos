@@ -31,14 +31,13 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         """)
 
         ## Overwrite the default settings with user-provided parameters
-        self.params = params
-        self.params.ValidateAndAssignDefaults(default_parameters)
-        self.reference_file_name = os.path.join(os.getcwd(), self.params["reference_file_name"].GetString())
-        self.output_file_name = os.path.join(os.getcwd(), self.params["output_file_name"].GetString())
-        self.remove_output_file = self.params["remove_output_file"].GetBool()
-        self.comparison_type = self.params["comparison_type"].GetString()
-        self.decimal_places = self.params["decimal_places"].GetInt()
-        self.dimension = self.params["dimension"].GetInt()
+        params.ValidateAndAssignDefaults(default_parameters)
+        self.reference_file_name = os.path.join(os.getcwd(), params["reference_file_name"].GetString())
+        self.output_file_name = os.path.join(os.getcwd(), params["output_file_name"].GetString())
+        self.remove_output_file = params["remove_output_file"].GetBool()
+        self.comparison_type = params["comparison_type"].GetString()
+        self.decimal_places = params["decimal_places"].GetInt()
+        self.dimension = params["dimension"].GetInt()
 
     def ExecuteInitialize(self):
         pass
