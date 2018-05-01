@@ -21,10 +21,8 @@
 #include<boost/timer.hpp>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/ublas_interface.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "utilities/builtin_timer.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"

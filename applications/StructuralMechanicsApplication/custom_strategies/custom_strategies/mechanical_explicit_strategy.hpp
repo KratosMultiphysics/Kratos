@@ -18,8 +18,6 @@
 /* System includes */
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
@@ -76,17 +74,14 @@ public:
     // saving the scheme
     this->mpScheme = pScheme;
 
-    // saving the linear solver
-    // mpLinearSolver = pNewLinearSolver; //Not used in explicit strategies
-
     // set flags to start correcty the calculations
     this->mSolutionStepIsInitialized = false;
     this->mInitializeWasPerformed = false;
 
-    // set EchoLevel to the deffault value (only time is displayed)
-    SetEchoLevel(1);
+    // set EchoLevel to the default value (only time is displayed)
+    BaseType::SetEchoLevel(1);
 
-    // set RebuildLevel to the deffault value
+    // set RebuildLevel to the default value
     BaseType::SetRebuildLevel(0);
 
     KRATOS_CATCH("")
@@ -107,7 +102,7 @@ public:
 
   typename TSchemeType::Pointer GetScheme() { return this->mpScheme; };
 
-  // Ser and Get Flags
+  // Set and Get Flags
 
   void SetInitializePerformedFlag(bool InitializePerformedFlag = true) {
     this->mInitializeWasPerformed = InitializePerformedFlag;
@@ -122,22 +117,10 @@ public:
   bool GetCalculateReactionsFlag() { return this->mCalculateReactionsFlag; }
 
   void SetReformDofSetAtEachStepFlag(bool flag) {
-
     this->mReformDofSetAtEachStep = flag;
   }
 
   bool GetReformDofSetAtEachStepFlag() { return this->mReformDofSetAtEachStep; }
-
-  // level of echo for the solving strategy
-  // 0 -> mute... no echo at all
-  // 1 -> printing time and basic informations
-  // 2 -> printing linear solver data
-  // 3 -> Print of debug informations:
-  //    Echo of stiffness matrix, Dx, b...
-
-  void SetEchoLevel(int Level) override { 
-      this->BaseType::mEchoLevel = Level; 
-  }
 
   //**********************************************************************
   //**********************************************************************
@@ -193,17 +176,9 @@ public:
     KRATOS_TRY
 
     if(!this->mSolutionStepIsInitialized){
-      
+
       typename TSchemeType::Pointer pScheme = GetScheme();
       ModelPart &r_model_part = BaseType::GetModelPart();
-
-      // prints informations about the current time
-      if (this->GetEchoLevel() == 2 &&
-          r_model_part.GetCommunicator().MyPID() == 0) {
-        std::cout << " " << std::endl;
-        std::cout << "CurrentTime = " << r_model_part.GetProcessInfo()[TIME]
-                  << std::endl;
-      }
 
       TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
       TSystemVectorType mDx = TSystemVectorType();
@@ -288,10 +263,9 @@ public:
   //**********************************************************************
   //**********************************************************************
   void FinalizeSolutionStep() override
-  { 
+  {
     typename TSchemeType::Pointer pScheme = GetScheme();
     ModelPart &r_model_part = BaseType::GetModelPart();
-    DofsArrayType dof_set_dummy;
     TSystemMatrixType mA = TSystemMatrixType();
     TSystemVectorType mDx = TSystemVectorType();
     TSystemVectorType mb = TSystemVectorType();
@@ -319,6 +293,25 @@ public:
     std::cout << "Explicit strategy Clear function used" << std::endl;
 
     GetScheme()->Clear();
+
+    KRATOS_CATCH("")
+  }
+  //**********************************************************************
+  //**********************************************************************
+
+  /**
+   * function to perform expensive checks.
+   * It is designed to be called ONCE to verify that the input is correct.
+   */
+
+  int Check() override {
+    KRATOS_TRY
+
+    BaseType::Check();
+
+    GetScheme()->Check(BaseType::GetModelPart());
+
+    return 0;
 
     KRATOS_CATCH("")
   }
@@ -418,30 +411,6 @@ protected:
   /**@name Private Operators*/
   /*@{ */
 
-  //**********************************************************************
-  //**********************************************************************
-
-  void CalculateReactions() {}
-
-  //**********************************************************************
-  //**********************************************************************
-
-  /**
-   * function to perform expensive checks.
-   * It is designed to be called ONCE to verify that the input is correct.
-   */
-
-  int Check() override {
-    KRATOS_TRY
-
-    BaseType::Check();
-
-    GetScheme()->Check(BaseType::GetModelPart());
-
-    return 0;
-
-    KRATOS_CATCH("")
-  }
 
   //***************************************************************************
   //***************************************************************************
