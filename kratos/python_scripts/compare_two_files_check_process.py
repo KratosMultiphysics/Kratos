@@ -231,7 +231,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         for i in range(numline, nvertices + numline):
             tmp1 = ConvertStringToListFloat(lines_ref[i], "", "\n")
             tmp2 = ConvertStringToListFloat(lines_out[i], "", "\n")
-            if (dimension == 2):
+            if (self.dimension == 2):
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2)
             else:
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
@@ -258,8 +258,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
 
         error = 0.0
         for i in range(numline, nvertices + numline):
-
-            if dimension == 2:
+            if self.dimension == 2:
                 space = " "
                 end_line = " \n"
             else:
@@ -273,7 +272,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             tmp1 = ConvertStringToListFloat(lines_ref[i], space, end_line)
             tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
 
-            if (dimension == 2):
+            if (self.dimension == 2):
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
             else:
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2 + (tmp1[3] - tmp2[3])**2 + (tmp1[4] - tmp2[4])**2 + (tmp1[5] - tmp2[5])**2)
