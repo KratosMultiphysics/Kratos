@@ -253,8 +253,6 @@ public:
             std::cout << "Entering Initialize() of EigensolverStrategy." << std::endl;
         }
 
-        this->Check();
-
         SchemePointerType& pScheme = this->pGetScheme();
 
         if (pScheme->SchemeIsInitialized() == false)

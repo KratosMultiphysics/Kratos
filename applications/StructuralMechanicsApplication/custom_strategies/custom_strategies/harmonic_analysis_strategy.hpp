@@ -227,8 +227,6 @@ public:
             if (BaseType::GetEchoLevel() > 2 && rank == 0)
                 std::cout << "Entering Initialize() of HarmonicAnalysisStrategy." << std::endl;
 
-            this->Check();
-
             auto& p_scheme = this->pGetScheme();
 
             if (p_scheme->SchemeIsInitialized() == false)
@@ -400,7 +398,7 @@ public:
 
             if (BaseType::GetEchoLevel() > 2 && rank == 0)
                 std::cout << "Exiting Initialize() of HarmonicAnalysisStrategy" << std::endl;
-        
+
         } //initializeWasPerformed
 
         KRATOS_CATCH("")
@@ -527,7 +525,7 @@ public:
     void InitializeSolutionStep() override
     {
         KRATOS_TRY
-        
+
         auto& r_model_part = BaseType::GetModelPart();
         const auto rank = r_model_part.GetCommunicator().MyPID();
 
