@@ -112,6 +112,7 @@ public:
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
 
         mInitializeWasPerformed = false;
+        mSolutionStepIsInitialized = false;
 
         // default echo level (mute)
         this->SetEchoLevel(0);
@@ -249,21 +250,18 @@ public:
         KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             <<  "Entering Initialize" << std::endl;
 
-        SchemePointerType& pScheme = this->pGetScheme();
-
-        if (pScheme->SchemeIsInitialized() == false)
+        if (mInitializeWasPerformed == false)
         {
-            pScheme->Initialize(rModelPart);
-        }
+            SchemePointerType& pScheme = this->pGetScheme();
 
-        if (pScheme->ElementsAreInitialized() == false)
-        {
-            pScheme->InitializeElements(rModelPart);
-        }
+            if (pScheme->SchemeIsInitialized() == false)
+                pScheme->Initialize(rModelPart);
 
-        if (pScheme->ConditionsAreInitialized() == false)
-        {
-            pScheme->InitializeConditions(rModelPart);
+            if (pScheme->ElementsAreInitialized() == false)
+                pScheme->InitializeElements(rModelPart);
+
+            if (pScheme->ConditionsAreInitialized() == false)
+                pScheme->InitializeConditions(rModelPart);
         }
 
         KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
@@ -284,14 +282,10 @@ public:
         pBuilderAndSolver->GetLinearSystemSolver()->Clear();
 
         if (this->pGetMassMatrix() != nullptr)
-        {
             this->pGetMassMatrix() = nullptr;
-        }
 
         if (this->pGetStiffnessMatrix() != nullptr)
-        {
             this->pGetStiffnessMatrix() = nullptr;
-        }
 
         // Re-setting internal flag to ensure that the dof sets are recalculated
         pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
@@ -320,88 +314,102 @@ public:
         KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             <<  "Entering InitializeSolutionStep" << std::endl;
 
-        BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
-        SchemePointerType& pScheme = this->pGetScheme();
-        SparseMatrixPointerType& pStiffnessMatrix = this->pGetStiffnessMatrix();
-        SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
-
-        // Initialize dummy vectors
-        SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer();
-        SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& rDx = *pDx;
-        auto& rb = *pb;
-
-        // Reset solution dofs
-        boost::timer system_construction_time;
-        if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
-                pBuilderAndSolver->GetReshapeMatrixFlag() == true)
+        if (mSolutionStepIsInitialized == false)
         {
-            // Set up list of dofs
-            boost::timer setup_dofs_time;
-            pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
+            BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
+            SchemePointerType& pScheme = this->pGetScheme();
+            SparseMatrixPointerType& pStiffnessMatrix = this->pGetStiffnessMatrix();
+            SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
+
+            // Initialize dummy vectors
+            SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer();
+            SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer();
+            auto& rDx = *pDx;
+            auto& rb = *pb;
+
+            // Reset solution dofs
+            boost::timer system_construction_time;
+            if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
+                    pBuilderAndSolver->GetReshapeMatrixFlag() == true)
             {
-                std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
+                // Set up list of dofs
+                boost::timer setup_dofs_time;
+                pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
+                if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                {
+                    std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
+                }
+
+                // Set global equation ids
+                boost::timer setup_system_time;
+                pBuilderAndSolver->SetUpSystem(rModelPart);
+                if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                {
+                    std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
+                }
+
+                // Resize and initialize system matrices
+                boost::timer system_matrix_resize_time;
+                SparseMatrixPointerType& pMassMatrix = this->pGetMassMatrix();
+
+                // Mass matrix
+                pBuilderAndSolver->ResizeAndInitializeVectors(pScheme,
+                        pMassMatrix,
+                        pDx,
+                        pb,
+                        rModelPart.Elements(),
+                        rModelPart.Conditions(),
+                        rModelPart.GetProcessInfo());
+
+                // Stiffness matrix
+                pBuilderAndSolver->ResizeAndInitializeVectors(pScheme,
+                        pStiffnessMatrix,
+                        pDx,
+                        pb,
+                        rModelPart.Elements(),
+                        rModelPart.Conditions(),
+                        rModelPart.GetProcessInfo());
+
+                if (BaseType::GetEchoLevel() > 0 && rank == 0)
+                {
+                    std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
+                }
+            }
+            else
+            {
+                SparseSpaceType::Resize(rb,SparseSpaceType::Size1(rStiffnessMatrix));
+                SparseSpaceType::Set(rb,0.0);
+                SparseSpaceType::Resize(rDx,SparseSpaceType::Size1(rStiffnessMatrix));
+                SparseSpaceType::Set(rDx,0.0);
             }
 
-            // Set global equation ids
-            boost::timer setup_system_time;
-            pBuilderAndSolver->SetUpSystem(rModelPart);
             if (BaseType::GetEchoLevel() > 0 && rank == 0)
             {
-                std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
+                std::cout << "System_construction_time : " << system_construction_time.elapsed() << std::endl;
             }
 
-            // Resize and initialize system matrices
-            boost::timer system_matrix_resize_time;
-            SparseMatrixPointerType& pMassMatrix = this->pGetMassMatrix();
+            // Initial operations ... things that are constant over the solution step
+            pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(),rStiffnessMatrix,rDx,rb);
 
-            // Mass matrix
-            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme,
-                    pMassMatrix,
-                    pDx,
-                    pb,
-                    rModelPart.Elements(),
-                    rModelPart.Conditions(),
-                    rModelPart.GetProcessInfo());
+            // Initial operations ... things that are constant over the solution step
+            pScheme->InitializeSolutionStep(BaseType::GetModelPart(),rStiffnessMatrix,rDx,rb);
 
-            // Stiffness matrix
-            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme,
-                    pStiffnessMatrix,
-                    pDx,
-                    pb,
-                    rModelPart.Elements(),
-                    rModelPart.Conditions(),
-                    rModelPart.GetProcessInfo());
-
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            {
-                std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
-            }
-        }
-        else
-        {
-            SparseSpaceType::Resize(rb,SparseSpaceType::Size1(rStiffnessMatrix));
-            SparseSpaceType::Set(rb,0.0);
-            SparseSpaceType::Resize(rDx,SparseSpaceType::Size1(rStiffnessMatrix));
-            SparseSpaceType::Set(rDx,0.0);
+            mSolutionStepIsInitialized == true;
         }
 
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        {
-            std::cout << "System_construction_time : " << system_construction_time.elapsed() << std::endl;
-        }
-
-        // Initial operations ... things that are constant over the solution step
-        pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(),rStiffnessMatrix,rDx,rb);
-
-        // Initial operations ... things that are constant over the solution step
-        pScheme->InitializeSolutionStep(BaseType::GetModelPart(),rStiffnessMatrix,rDx,rb);
-
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0, )
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             <<  "Exiting InitializeSolutionStep" << std::endl;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     */
+    void FinalizeSolutionStep() override
+    {
+        mSolutionStepIsInitialized == false;
     }
 
     bool SolveSolutionStep() override
@@ -549,6 +557,8 @@ private:
 
     bool mInitializeWasPerformed;
 
+    bool mSolutionStepIsInitialized;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -565,8 +575,7 @@ private:
      */
     void ApplyDirichletConditions(
         SparseMatrixType& rA,
-        double Factor
-        )
+        double Factor)
     {
         KRATOS_TRY
 

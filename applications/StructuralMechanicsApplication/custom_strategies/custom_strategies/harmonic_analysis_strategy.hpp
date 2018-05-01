@@ -114,6 +114,7 @@ public:
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
 
         mInitializeWasPerformed = false;
+        mSolutionStepIsInitialized = false;
 
         mpForceVector = SparseSpaceType::CreateEmptyVectorPointer();
         mpModalMatrix = DenseSpaceType::CreateEmptyMatrixPointer();
@@ -216,14 +217,15 @@ public:
     {
         KRATOS_TRY
 
+        auto& r_model_part = BaseType::GetModelPart();
+        const auto rank = r_model_part.GetCommunicator().MyPID();
+
+        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        <<  "Entering Initialize" << std::endl;
+
         if( !mInitializeWasPerformed )
         {
-            auto& r_model_part = BaseType::GetModelPart();
             auto& r_process_info = r_model_part.GetProcessInfo();
-            const auto rank = r_model_part.GetCommunicator().MyPID();
-
-            KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
-            <<  "Entering Initialize" << std::endl;
 
             auto& p_scheme = this->pGetScheme();
 
@@ -391,13 +393,11 @@ public:
                     KRATOS_WATCH(mMaterialDampingRatios)
                 }
             }
-
             mInitializeWasPerformed = true;
+        }
 
-            KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
-            <<  "Exiting Initialize" << std::endl;
-
-        } //initializeWasPerformed
+        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        <<  "Exiting Initialize" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -411,15 +411,6 @@ public:
 
         KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             <<  "Entering SolveSolutionStep" << std::endl;
-
-        // operations to be done once
-        if (this->GetIsInitialized() == false)
-        {
-            Initialize();
-            this->SetIsInitialized(true);
-        }
-
-        this->InitializeSolutionStep();
 
         auto& r_process_info = r_model_part.GetProcessInfo();
         double excitation_frequency = r_process_info[TIME];
@@ -481,7 +472,6 @@ public:
         }
 
         this->AssignVariables(modal_displacement);
-        this->FinalizeSolutionStep();
 
         KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             << "Exiting SolveSolutionStep" << std::endl;
@@ -530,31 +520,45 @@ public:
         KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             << "Entering InitializeSolutionStep" << std::endl;
 
-        BuilderAndSolverPointerType& p_builder_and_solver = this->pGetBuilderAndSolver();
-        SchemePointerType& p_scheme = this->pGetScheme();
-        auto& r_force_vector = *mpForceVector;
+        if (mSolutionStepIsInitialized == false)
+        {
+            BuilderAndSolverPointerType& p_builder_and_solver = this->pGetBuilderAndSolver();
+            SchemePointerType& p_scheme = this->pGetScheme();
+            auto& r_force_vector = *mpForceVector;
 
-        // // initialize dummy vectors
-        auto pA = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto pDx = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& rA = *pA;
-        auto& rDx = *pDx;
+            // // initialize dummy vectors
+            auto pA = SparseSpaceType::CreateEmptyMatrixPointer();
+            auto pDx = SparseSpaceType::CreateEmptyVectorPointer();
+            auto& rA = *pA;
+            auto& rDx = *pDx;
 
-        SparseSpaceType::Resize(rA,SparseSpaceType::Size(r_force_vector),SparseSpaceType::Size(r_force_vector));
-        SparseSpaceType::SetToZero(rA);
-        SparseSpaceType::Resize(rDx,SparseSpaceType::Size(r_force_vector));
-        SparseSpaceType::Set(rDx,0.0);
+            SparseSpaceType::Resize(rA,SparseSpaceType::Size(r_force_vector),SparseSpaceType::Size(r_force_vector));
+            SparseSpaceType::SetToZero(rA);
+            SparseSpaceType::Resize(rDx,SparseSpaceType::Size(r_force_vector));
+            SparseSpaceType::Set(rDx,0.0);
 
-        // initial operations ... things that are constant over the solution step
-        p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,r_force_vector);
+            // initial operations ... things that are constant over the solution step
+            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,r_force_vector);
 
-        // initial operations ... things that are constant over the solution step
-        p_scheme->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,r_force_vector);
+            // initial operations ... things that are constant over the solution step
+            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,r_force_vector);
+
+            mSolutionStepIsInitialized == true;
+        }
 
         KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             << "Exiting InitializeSolutionStep" << std::endl;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     */
+    void FinalizeSolutionStep() override
+    {
+        mSolutionStepIsInitialized == false;
     }
 
     /// Check whether initial input is valid.
@@ -642,6 +646,8 @@ private:
     BuilderAndSolverPointerType mpBuilderAndSolver;
 
     bool mInitializeWasPerformed;
+
+    bool mSolutionStepIsInitialized;
 
     SparseVectorPointerType mpForceVector;
 
