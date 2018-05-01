@@ -11,12 +11,12 @@ namespace Kratos {
     }
 
     void DEM_KDEM2D::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) std::cout << "\nAssigning DEM_KDEM2D to Properties " << pProp->Id() << std::endl;
+        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_KDEM2D to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
     void DEM_KDEM2D::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
-        
+
         KRATOS_TRY
         double radius_sum = radius + other_radius;
         double equiv_radius = radius * other_radius / radius_sum;

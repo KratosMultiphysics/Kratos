@@ -32,9 +32,9 @@ namespace Kratos
 {
 
 template<
-    class TSolver,
-    class TSparseSpaceType,
-    class TDenseSpaceType,
+    class TSolverType,
+    class TSparseSpaceType = typename TSolverType::TGlobalSpace,
+    class TDenseSpaceType = typename TSolverType::TLocalSpace,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigensystemSolver
@@ -103,8 +103,8 @@ class EigensystemSolver
 
         // --- wrap ublas matrices
 
-        UblasWrapper<> a_wrapper(rK);
-        UblasWrapper<> b_wrapper(rM);
+        UblasWrapper<scalar_t> a_wrapper(rK);
+        UblasWrapper<scalar_t> b_wrapper(rM);
 
         const auto& a = a_wrapper.matrix();
         const auto& b = b_wrapper.matrix();
@@ -178,7 +178,7 @@ class EigensystemSolver
             r(ij, j) = 1.0;
         }
 
-        typename TSolver::TSolver solver;
+        typename TSolverType::TSolver solver;
         solver.compute(a);
 
         int iteration = 0;
@@ -293,25 +293,6 @@ class EigensystemSolver
      */
     void PrintData(std::ostream &rOStream) const override
     {
-    }
-
-    /**
-     * This method returns directly the first eigen value obtained
-     * @param rK: The stiffness matrix
-     * @param rM: The mass matrix
-     * @return The first eigenvalue
-     */
-    double GetEigenValue(
-        SparseMatrixType& rK,
-        SparseMatrixType& rM
-        )
-    {
-        VectorType eigen_values;
-        DenseMatrixType eigen_vectors;
-
-        Solve(rK, rM, eigen_values, eigen_vectors);
-
-        return eigen_values[0];
     }
 
 }; // class EigensystemSolver

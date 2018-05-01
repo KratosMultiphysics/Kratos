@@ -53,7 +53,7 @@ if benchmark_number==1 or benchmark_number==2:
     nodeplotter = 1
 else:
     nodeplotter = 0
-    
+
 ####################
 final_time, dt, output_time_step, number_of_points_in_the_graphic = COC.initialize_time_parameters(benchmark_number)
 benchmark_class_name = 'Benchmark' + str(benchmark_number)
@@ -100,33 +100,33 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     procedures.AddMpiVariables(cluster_model_part)
     procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
     procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
-    solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
+    solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)
     #
     procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
     procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
     procedures.AddMpiVariables(rigid_face_model_part)
-    
+
     problem_name                = 'benchmark' + str(benchmark_number)
     spheres_mp_filename         = problem_name + "DEM"
     DEM_parameters["problem_name"] = problem_name
-    
+
     model_part_io_spheres = ModelPartIO(spheres_mp_filename)
-    
+
     if "do_not_perform_initial_partition" in DEM_parameters.keys() and DEM_parameters["do_not_perform_initial_partition"].GetBool(): #TODO: add subIndex _option to this variable? Or the type is enough? Discuss with the team
         pass
     else:
         parallelutils.PerformInitialPartition(model_part_io_spheres)
 
     [model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.SetCommunicator(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
-        
+
     model_part_io_spheres.ReadModelPart(spheres_model_part)
-        
+
     ###################################################### CHUNG, OOI BENCHMARKS
-    
+
     benchmark.get_initial_data(spheres_model_part, iteration, number_of_points_in_the_graphic)
-        
+
     ###################################################### CHUNG, OOI BENCHMARKS
-            
+
     rigidFace_mp_filename = DEM_parameters["problem_name"].GetString() + "DEM_FEM_boundary"
     model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
     model_part_io_fem.ReadModelPart(rigid_face_model_part)
@@ -135,7 +135,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     model_part_io_clusters = ModelPartIO(clusters_mp_filename)
     model_part_io_clusters.ReadModelPart(cluster_model_part)
 
-    DEM_Inlet_filename = 'benchmark' + "DEM_Inlet"  
+    DEM_Inlet_filename = 'benchmark' + "DEM_Inlet"
     model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
     model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
@@ -149,7 +149,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     solver.AddDofs(spheres_model_part)
     solver.AddDofs(cluster_model_part)
     solver.AddDofs(DEM_inlet_model_part)
-    
+
     # Creating necessary directories
     main_path = os.getcwd()
     [post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters["problem_name"].GetString()))
@@ -211,37 +211,37 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
     solver.Initialize()    # Possible modifications of DELTA_TIME
-        
+
     if (DEM_parameters["ContactMeshOption"].GetBool()):
         contact_model_part = solver.contact_model_part
 
-    # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
+    # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
     # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
 
-    if DEM_parameters["dem_inlet_option"].GetBool():    
+    if DEM_parameters["dem_inlet_option"].GetBool():
         max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
         max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
 
         if ( max_FEM_node_Id > max_node_Id):
             max_node_Id = max_FEM_node_Id
 
-        creator_destructor.SetMaxNodeId(max_node_Id)                            
+        creator_destructor.SetMaxNodeId(max_node_Id)
 
         for properties in DEM_inlet_model_part.Properties:
 
                 DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
                 DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-                DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)             
+                DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
 
-        # constructing the inlet and intializing it (must be done AFTER the spheres_model_part Initialize)    
-        DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
+        # constructing the inlet and intializing it (must be done AFTER the spheres_model_part Initialize)
+        DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
         DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor)
 
     DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
 
     materialTest.Initialize(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
-    KRATOSprint("Initialization Complete" + "\n")
+    KRATOSprint("Initialization Complete")
 
     step           = 0
     time           = 0.0
@@ -281,14 +281,14 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
 
     # creating a Post Utils object that executes several post-related tasks
     post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
-    
+
     list_of_nodes_ids = [1]
-       
+
     if nodeplotter:
         os.chdir(main_path)
         plotter = plot_variables.variable_plotter(spheres_model_part, list_of_nodes_ids) #Related to the benchmark in Chung, Ooi
-    
-    step = 0  
+
+    step = 0
 
     while (time < final_time):
         #
@@ -313,14 +313,14 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
         #########mesh_motion.MoveSphereMeshes(spheres_model_part, time, dt)
 
         #### SOLVE #########################################
-        
+
         solver.Solve()
-                
+
         #### TIME CONTROL ##################################
 
         # adding DEM elements by the inlet:
-        if DEM_parameters["dem_inlet_option"].GetBool(): 
-            DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
+        if DEM_parameters["dem_inlet_option"].GetBool():
+            DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.
 
         stepinfo = report.StepiReport(timer,time,step)
         if stepinfo:
@@ -338,12 +338,12 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
 
         #### GENERAL FORCE GRAPHS ############################
         DEMFEMProcedures.PrintGraph(time)
-        DEMFEMProcedures.PrintBallsGraph(time)  
+        DEMFEMProcedures.PrintBallsGraph(time)
 
         #### GiD IO ##########################################
         time_to_print = time - time_old_print
 
-        if (output_time_step - time_to_print < 1e-2*dt):            
+        if (output_time_step - time_to_print < 1e-2*dt):
 
             '''KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
             KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
@@ -365,7 +365,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
             os.chdir(main_path)
 
             time_old_print = time
-                
+
         if nodeplotter:
             os.chdir(main_path)
             plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
@@ -378,12 +378,12 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     #
     #
     ###################################################### CHUNG, OOI BENCHMARKS
-                               
+
     benchmark.get_final_data(spheres_model_part)
-        
+
     ###################################################### CHUNG, OOI BENCHMARKS
     #
-        
+
     demio.FinalizeMesh()
     materialTest.FinalizeGraphs()
     DEMFEMProcedures.FinalizeGraphs(rigid_face_model_part)
@@ -396,12 +396,12 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
         plotter.close_files() #Related to the benchmark in Chung, Ooi
 
     os.chdir(main_path)
-                
+
     # Print times and more info
-      
+
     KRATOSprint(report.FinalReport(timer))
-    
+
 benchmark.print_results(number_of_points_in_the_graphic, dt)
 
-COC.delete_archives(nodeplotter) #.......Removing some unuseful files 
+COC.delete_archives(nodeplotter) #.......Removing some unuseful files
 
