@@ -237,13 +237,15 @@ private:
                                    double& rDetJ0_Deriv,
                                    std::size_t IntegrationPointIndex);
 
-    void CalculateShapeSensitivity(Matrix const& rDN_DX,
-                                   Matrix const& rF,
-                                   Matrix const& rDN_DX_Deriv,
-                                   Matrix const& rF_Deriv,
-                                   Matrix& rB_Deriv);
+    void CalculateBSensitivity(Matrix const& rDN_DX,
+                               Matrix const& rF,
+                               Matrix const& rDN_DX_Deriv,
+                               Matrix const& rF_Deriv,
+                               Matrix& rB_Deriv);
 
-    void CalculateShapeSensitivity(Matrix const& rF, Matrix const& rF_Deriv, Matrix& rE_Deriv);
+    void CalculateGreenLagrangeStrainSensitivity(Matrix const& rF,
+                                                 Matrix const& rF_Deriv,
+                                                 Matrix& rE_Deriv);
 
     ///@}
     ///@name Private  Access

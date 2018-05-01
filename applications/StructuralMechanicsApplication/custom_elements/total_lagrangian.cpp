@@ -393,11 +393,11 @@ void TotalLagrangian::CalculateShapeSensitivity(std::size_t NodeIndex,
     KRATOS_CATCH("");
 }
 
-void TotalLagrangian::CalculateShapeSensitivity(Matrix const& rDN_DX,
-                                                Matrix const& rF,
-                                                Matrix const& rDN_DX_Deriv,
-                                                Matrix const& rF_Deriv,
-                                                Matrix& rB_Deriv)
+void TotalLagrangian::CalculateBSensitivity(Matrix const& rDN_DX,
+                                            Matrix const& rF,
+                                            Matrix const& rDN_DX_Deriv,
+                                            Matrix const& rF_Deriv,
+                                            Matrix& rB_Deriv)
 {
     KRATOS_TRY;
     const unsigned dimension = GetGeometry().WorkingSpaceDimension();
@@ -411,9 +411,9 @@ void TotalLagrangian::CalculateShapeSensitivity(Matrix const& rDN_DX,
     KRATOS_CATCH("");
 }
 
-void TotalLagrangian::CalculateShapeSensitivity(Matrix const& rF,
-                                                Matrix const& rF_Deriv,
-                                                Matrix& rE_Deriv)
+void TotalLagrangian::CalculateGreenLagrangeStrainSensitivity(Matrix const& rF,
+                                                              Matrix const& rF_Deriv,
+                                                              Matrix& rE_Deriv)
 {
     KRATOS_TRY;
     rE_Deriv = 0.5 * (prod(trans(rF_Deriv), rF) + prod(trans(rF), rF_Deriv));
@@ -470,12 +470,12 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
                 for (std::size_t d = 0; d < ws_dim; ++d)
                 {
                     CalculateShapeSensitivity(i, d, DN_DX0_deriv, F_deriv, detJ0_deriv, g);
-                    CalculateShapeSensitivity(F, F_deriv, strain_tensor_deriv);
+                    CalculateGreenLagrangeStrainSensitivity(F, F_deriv, strain_tensor_deriv);
                     noalias(strain_vector_deriv) =
                         MathUtils<double>::StrainTensorToVector(strain_tensor_deriv);
                     CalculateStress(strain_vector_deriv, g, stress_vector_deriv,
                                     rCurrentProcessInfo);
-                    CalculateShapeSensitivity(DN_DX0, F, DN_DX0_deriv, F_deriv, B_deriv);
+                    CalculateBSensitivity(DN_DX0, F, DN_DX0_deriv, F_deriv, B_deriv);
                     double weight_deriv = GetIntegrationWeight(
                         r_geom.IntegrationPoints(), g, detJ0_deriv);
                     Vector output = -weight_deriv * prod(trans(B), stress_vector);
