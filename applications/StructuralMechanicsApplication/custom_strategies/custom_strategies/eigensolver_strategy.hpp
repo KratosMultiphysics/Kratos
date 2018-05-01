@@ -277,29 +277,6 @@ public:
     }
 
     /**
-     * The problem of interest is solved.
-     * This function calls sequentially: Initialize(), InitializeSolutionStep(), ApplyDirichletConditions(),
-     * AssignVariables() and FinalizeSolutionStep().
-     * All those functions can otherwise be called separately.
-     */
-    double Solve() override
-    {
-        KRATOS_TRY
-
-        if (this->GetIsInitialized() == false)
-        {
-            Initialize();
-            this->SetIsInitialized(true);
-        }
-        this->InitializeSolutionStep();
-        this->SolveSolutionStep();
-        this->FinalizeSolutionStep();
-
-        return 0.0;
-        KRATOS_CATCH("")
-    }
-
-    /**
      * Clears the internal storage
      */
     void Clear() override

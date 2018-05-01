@@ -161,22 +161,22 @@ public:
     void SetScheme(SchemePointerType pScheme)
     {
         mpScheme = pScheme;
-    };
+    }
 
     SchemePointerType& pGetScheme()
     {
         return mpScheme;
-    };
+    }
 
     void SetBuilderAndSolver(BuilderAndSolverPointerType pNewBuilderAndSolver)
     {
         mpBuilderAndSolver = pNewBuilderAndSolver;
-    };
+    }
 
     BuilderAndSolverPointerType& pGetBuilderAndSolver()
     {
         return mpBuilderAndSolver;
-    };
+    }
 
     void SetReformDofSetAtEachStepFlag(bool flag)
     {

@@ -293,6 +293,7 @@ public:
     std::cout << "Explicit strategy Clear function used" << std::endl;
 
     GetScheme()->Clear();
+    mInitializeWasPerformed = false;
 
     KRATOS_CATCH("")
   }
