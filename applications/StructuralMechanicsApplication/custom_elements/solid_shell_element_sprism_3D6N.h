@@ -33,7 +33,7 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -319,10 +319,10 @@ public:
             MatrixType& rDampingMatrix,
             ProcessInfo& rCurrentProcessInfo
             ) override;
-    
+
     /**
       * @brief This is called during the assembling process in order
-      * to calculate the elemental damping matrix 
+      * to calculate the elemental damping matrix
       * (Reusing the stiffness matrix and mass matrix)
       * @param rDampingMatrix the elemental damping matrix
       * @param rStiffnessMatrix the elemental stiffness matrix
@@ -559,17 +559,17 @@ protected:
     {
         /* Declare cartesian derivatives (reference configuration) */
         /* In-plane components */
-        array_1d<bounded_matrix<double, 2, 4 >, 6> InPlaneCartesianDerivativesGauss;
+        array_1d<BoundedMatrix<double, 2, 4 >, 6> InPlaneCartesianDerivativesGauss;
 
         /* Transversal components */
         // Central node
-        bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesCenter;
+        BoundedMatrix<double, 6, 1 > TransversalCartesianDerivativesCenter;
         // Gauss nodes
-        array_1d<bounded_matrix<double, 6, 1 >, 6> TransversalCartesianDerivativesGauss;
+        array_1d<BoundedMatrix<double, 6, 1 >, 6> TransversalCartesianDerivativesGauss;
 
         /* Inverse of the Jaconians */
-        bounded_matrix<double, 2, 2 > JInvPlaneLower;
-        bounded_matrix<double, 2, 2 > JInvPlaneUpper;
+        BoundedMatrix<double, 2, 2 > JInvPlaneLower;
+        BoundedMatrix<double, 2, 2 > JInvPlaneUpper;
 
         /**
         * @brief Reset components
@@ -595,17 +595,17 @@ protected:
     struct CommonComponents
     {
         /* Declaring operators */
-        bounded_matrix<double, 3, 18 > BMembraneLower; /// Membrane (lower)
-        bounded_matrix<double, 3, 18 > BMembraneUpper; /// Membrane (upper)
-        bounded_matrix<double, 2, 18 > BShearLower;    /// Transverse shear (lower)
-        bounded_matrix<double, 2, 18 > BShearUpper;    /// Transverse shear (upper)
-        bounded_matrix<double, 1, 18 > BNormal;         /// Transverse normal
+        BoundedMatrix<double, 3, 18 > BMembraneLower; /// Membrane (lower)
+        BoundedMatrix<double, 3, 18 > BMembraneUpper; /// Membrane (upper)
+        BoundedMatrix<double, 2, 18 > BShearLower;    /// Transverse shear (lower)
+        BoundedMatrix<double, 2, 18 > BShearUpper;    /// Transverse shear (upper)
+        BoundedMatrix<double, 1, 18 > BNormal;         /// Transverse normal
 
         /* Components of Cauchy tensor C*/
-        bounded_matrix<double, 3, 1 > CMembraneLower; /// Membrane (lower)
-        bounded_matrix<double, 3, 1 > CMembraneUpper; /// Membrane (upper)
-        bounded_matrix<double, 2, 1 > CShearLower;    /// Transverse shear (lower)
-        bounded_matrix<double, 2, 1 > CShearUpper;    /// Transverse shear (upper)
+        BoundedMatrix<double, 3, 1 > CMembraneLower; /// Membrane (lower)
+        BoundedMatrix<double, 3, 1 > CMembraneUpper; /// Membrane (upper)
+        BoundedMatrix<double, 2, 1 > CShearLower;    /// Transverse shear (lower)
+        BoundedMatrix<double, 2, 1 > CShearUpper;    /// Transverse shear (upper)
         double CNormal;                                                       // Transverse normal
 
         /**
@@ -689,7 +689,7 @@ protected:
         /* The EAS components*/
         double mRHSAlpha;
         double mStiffAlpha;
-        bounded_matrix<double, 1, 36 > mHEAS;
+        BoundedMatrix<double, 1, 36 > mHEAS;
 
         /**
         * Reset components
@@ -886,7 +886,7 @@ protected:
      * @brief  It gets the nodal coordinates, according to the configutaion
      */
     void GetNodalCoordinates(
-        bounded_matrix<double, 12, 3 >& NodesCoord,
+        BoundedMatrix<double, 12, 3 >& NodesCoord,
         WeakPointerVector< NodeType >& pNeighbourNodes,
         const Configuration ThisConfiguration
         );
@@ -895,7 +895,7 @@ protected:
      * @brief Calculate the cartesian derivatives
      */
     void CalculateCartesianDerivatives(CartesianDerivatives& rCartesianDerivatives);
-    
+
     /**
      * @brief Calculate the necessary components for the Kinematic calculus
      */
@@ -926,7 +926,7 @@ protected:
      * @param rLocalCoordinates The local coordinates
      */
     void ComputeLocalDerivatives(
-        bounded_matrix<double, 6, 3 >& LocalDerivativePatch,
+        BoundedMatrix<double, 6, 3 >& LocalDerivativePatch,
         const array_1d<double, 3>& rLocalCoordinates
         );
 
@@ -936,7 +936,7 @@ protected:
      * @param NodeGauss The Gauss node index
      */
     void ComputeLocalDerivativesQuadratic(
-        bounded_matrix<double, 4, 2 >& rLocalDerivativePatch,
+        BoundedMatrix<double, 4, 2 >& rLocalDerivativePatch,
         const IndexType NodeGauss
         );
 
@@ -966,9 +966,9 @@ protected:
      */
     void CalculateJacobian(
         double& detJ,
-        bounded_matrix<double, 3, 3 >& J,
-        bounded_matrix<double, 6, 3 >& LocalDerivativePatch,
-        const bounded_matrix<double, 12, 3 >& NodesCoord,
+        BoundedMatrix<double, 3, 3 >& J,
+        BoundedMatrix<double, 6, 3 >& LocalDerivativePatch,
+        const BoundedMatrix<double, 12, 3 >& NodesCoord,
         const array_1d<double, 3>& rLocalCoordinates
         );
 
@@ -981,10 +981,10 @@ protected:
      * @param rLocalCoordinates The local coordinates
      */
     void CalculateJacobianAndInv(
-        bounded_matrix<double, 3, 3 >& J,
-        bounded_matrix<double, 3, 3 >& Jinv,
-        bounded_matrix<double, 6, 3 >& LocalDerivativePatch,
-        const bounded_matrix<double, 3, 6 >& NodesCoord,
+        BoundedMatrix<double, 3, 3 >& J,
+        BoundedMatrix<double, 3, 3 >& Jinv,
+        BoundedMatrix<double, 6, 3 >& LocalDerivativePatch,
+        const BoundedMatrix<double, 3, 6 >& NodesCoord,
         const array_1d<double, 3>& rLocalCoordinates
         );
 
@@ -996,9 +996,9 @@ protected:
      * @param rLocalCoordinates The local coordinates
      */
     void CalculateJacobianAndInv(
-        bounded_matrix<double, 3, 3 >& J,
-        bounded_matrix<double, 3, 3 >& Jinv,
-        const bounded_matrix<double, 3, 6 >& NodesCoord,
+        BoundedMatrix<double, 3, 3 >& J,
+        BoundedMatrix<double, 3, 3 >& Jinv,
+        const BoundedMatrix<double, 3, 6 >& NodesCoord,
         const array_1d<double, 3>& rLocalCoordinates
         );
 
@@ -1008,7 +1008,7 @@ protected:
      * @param Part The enum that indicates upper or lower face
      */
     void CalculateCartesianDerOnCenterPlane(
-        bounded_matrix<double, 2, 4 >& CartesianDerivativesCenter,
+        BoundedMatrix<double, 2, 4 >& CartesianDerivativesCenter,
         const OrthogonalBase& ThisOrthogonalBase,
         const GeometricLevel Part
         );
@@ -1021,8 +1021,8 @@ protected:
      * @param InPlaneCartesianDerivativesGauss The cartesian derivatives in the plane
      */
     void CalculateCartesianDerOnGaussPlane(
-        bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
-        const bounded_matrix<double, 12, 3 > & NodesCoord,
+        BoundedMatrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
+        const BoundedMatrix<double, 12, 3 > & NodesCoord,
         const OrthogonalBase& ThisOrthogonalBase,
         const IndexType NodeGauss,
         const GeometricLevel Part
@@ -1035,8 +1035,8 @@ protected:
      * @param rLocalCoordinates The local coordinates
      */
     void CalculateCartesianDerOnGaussTrans(
-        bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
-        const bounded_matrix<double, 12, 3 > & NodesCoord,
+        BoundedMatrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
+        const BoundedMatrix<double, 12, 3 > & NodesCoord,
         const OrthogonalBase& ThisOrthogonalBase,
         const array_1d<double, 3>& rLocalCoordinates
         );
@@ -1049,7 +1049,7 @@ protected:
      */
     void CalculateCartesianDerOnCenterTrans(
         CartesianDerivatives& rCartesianDerivatives,
-        const bounded_matrix<double, 12, 3 >& NodesCoord,
+        const BoundedMatrix<double, 12, 3 >& NodesCoord,
         const OrthogonalBase& ThisOrthogonalBase,
         const GeometricLevel Part
         );
@@ -1063,9 +1063,9 @@ protected:
      * @param Part The enum that indicates upper or lower face
      */
     void CalculateInPlaneGradientFGauss(
-        bounded_matrix<double, 3, 2 >& InPlaneGradientFGauss,
-        const bounded_matrix<double, 2, 4 >& InPlaneCartesianDerivativesGauss,
-        const bounded_matrix<double, 12, 3 >& NodesCoord,
+        BoundedMatrix<double, 3, 2 >& InPlaneGradientFGauss,
+        const BoundedMatrix<double, 2, 4 >& InPlaneCartesianDerivativesGauss,
+        const BoundedMatrix<double, 12, 3 >& NodesCoord,
         const IndexType NodeGauss,
         const GeometricLevel Part
         );
@@ -1078,8 +1078,8 @@ protected:
      */
     void CalculateTransverseGradientF(
         array_1d<double, 3 >& TransverseGradientF,
-        const bounded_matrix<double, 6, 1 >& TransversalCartesianDerivativesGauss,
-        const bounded_matrix<double, 12, 3 >& NodesCoord
+        const BoundedMatrix<double, 6, 1 >& TransversalCartesianDerivativesGauss,
+        const BoundedMatrix<double, 12, 3 >& NodesCoord
         );
 
     /**
@@ -1090,7 +1090,7 @@ protected:
      */
     void CalculateTransverseGradientFinP(
         TransverseGradientIsoParametric& rTransverseGradientIsoParametric,
-        const bounded_matrix<double, 12, 3 >& NodesCoord,
+        const BoundedMatrix<double, 12, 3 >& NodesCoord,
         const GeometricLevel Part
         );
 
@@ -1103,10 +1103,10 @@ protected:
      * @param NodeGauss Number of Gauss node calculated
      */
     void CalculateAndAddBMembrane(
-        bounded_matrix<double, 3, 18 >& BMembrane,
-        bounded_matrix<double, 3, 1 >& CMembrane,
-        const bounded_matrix<double, 2, 4 >& InPlaneCartesianDerivativesGauss,
-        const bounded_matrix<double, 3, 2 >& InPlaneGradientFGauss,
+        BoundedMatrix<double, 3, 18 >& BMembrane,
+        BoundedMatrix<double, 3, 1 >& CMembrane,
+        const BoundedMatrix<double, 2, 4 >& InPlaneCartesianDerivativesGauss,
+        const BoundedMatrix<double, 3, 2 >& InPlaneGradientFGauss,
         const IndexType NodeGauss
         );
 
@@ -1117,7 +1117,7 @@ protected:
      * @param Part The enum that indicates upper or lower face
      */
     void CalculateAndAddMembraneKgeometric(
-        bounded_matrix<double, 36, 36 >& Kgeometricmembrane,
+        BoundedMatrix<double, 36, 36 >& Kgeometricmembrane,
         const CartesianDerivatives& rCartesianDerivatives,
         const array_1d<double, 3 >& SMembrane,
         const GeometricLevel Part
@@ -1133,8 +1133,8 @@ protected:
      * @param Part The enum that indicates upper or lower face
      */
     void CalculateAndAddBShear(
-        bounded_matrix<double, 2, 18 >& BShear,
-        bounded_matrix<double, 2, 1 >& CShear,
+        BoundedMatrix<double, 2, 18 >& BShear,
+        BoundedMatrix<double, 2, 1 >& CShear,
         const CartesianDerivatives& rCartesianDerivatives,
         const TransverseGradient& rTransverseGradient,
         const TransverseGradientIsoParametric& rTransverseGradientIsoParametric,
@@ -1149,7 +1149,7 @@ protected:
      * @param Part The enum that indicates upper or lower face
      */
     void CalculateAndAddShearKgeometric(
-        bounded_matrix<double, 36, 36 >& Kgeometricshear,
+        BoundedMatrix<double, 36, 36 >& Kgeometricshear,
         const CartesianDerivatives& rCartesianDerivatives,
         const array_1d<double, 2 >& SShear,
         const GeometricLevel Part
@@ -1162,9 +1162,9 @@ protected:
      * @param TransversalDeformationGradientF Transversal components of the deformation gradient in the central point of the element
      */
     void CalculateAndAddBNormal(
-        bounded_matrix<double, 1, 18 >& BNormal,
+        BoundedMatrix<double, 1, 18 >& BNormal,
         double& CNormal,
-        const bounded_matrix<double, 6, 1 >& TransversalCartesianDerivativesGaussCenter,
+        const BoundedMatrix<double, 6, 1 >& TransversalCartesianDerivativesGaussCenter,
         const array_1d<double, 3 >& TransversalDeformationGradientF
         );
 
@@ -1175,8 +1175,8 @@ protected:
      * @param SNormal Enhanced transversal component of the PK2 tensor
      */
     void CalculateAndAddNormalKgeometric(
-        bounded_matrix<double, 36, 36 >& Kgeometricnormal,
-        const bounded_matrix<double, 6, 1 >& TransversalCartesianDerivativesGaussCenter,
+        BoundedMatrix<double, 36, 36 >& Kgeometricnormal,
+        const BoundedMatrix<double, 6, 1 >& TransversalCartesianDerivativesGaussCenter,
         const double SNormal
         );
 
@@ -1184,13 +1184,13 @@ protected:
      * @brief Calculates the vector of current position
      * @return VectorCurrentPosition: Vector of current position
      */
-    bounded_matrix<double, 36, 1 > GetVectorCurrentPosition();
+    BoundedMatrix<double, 36, 1 > GetVectorCurrentPosition();
 
     /**
      * Calculates the vector of previous position
      * @return VectorCurrentPosition: Vector of previous position
      */
-    bounded_matrix<double, 36, 1 > GetVectorPreviousPosition();
+    BoundedMatrix<double, 36, 1 > GetVectorPreviousPosition();
 
     /**
      * @brief Integrates stresses in zeta using the Gauss Quadrature
@@ -1297,7 +1297,7 @@ protected:
      * @param AlphaEAS The internal variable for the EAS
      */
     void ApplyEASRHS(
-        bounded_matrix<double, 36, 1 >& rRHSFull,
+        BoundedMatrix<double, 36, 1 >& rRHSFull,
         const EASComponents& rEAS,
         double& AlphaEAS
         );
@@ -1421,7 +1421,7 @@ protected:
         GeneralVariables& rVariables,
         const IndexType rPointNumber
         );
-    
+
     /**
      * @brief Calculation of the Hencky strain tensor:
      * @param rC The right Cauchy tensor

@@ -51,7 +51,7 @@ DistanceModificationProcess::DistanceModificationProcess(
     Parameters default_parameters( R"(
     {
         "model_part_name"                        : "default_model_part_name",
-        "distance_factor"                        : 2.0, 
+        "distance_factor"                        : 2.0,
         "distance_threshold"                     : 0.001,
         "continuous_distance"                    : true,
         "check_at_each_time_step"                : false,
@@ -75,7 +75,7 @@ void DistanceModificationProcess::ExecuteInitialize() {
 
     KRATOS_TRY;
 
-    // Continuous distance field required variables check 
+    // Continuous distance field required variables check
     if (mContinuousDistance){
         const auto& r_node = *mrModelPart.NodesBegin();
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_H, r_node);
@@ -135,7 +135,6 @@ void DistanceModificationProcess::ExecuteFinalizeSolutionStep() {
 void DistanceModificationProcess::ModifyDistance() {
 
     ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
-    ModelPart::ElementsContainerType& rElements = mrModelPart.Elements();
 
     // Distance modification
     // Case in where the original distance does not need to be preserved (e.g. CFD)
@@ -166,7 +165,7 @@ void DistanceModificationProcess::ModifyDistance() {
     // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
     else {
 
-        const unsigned int num_chunks = 2 * OpenMPUtils::GetNumThreads();
+        const int num_chunks = 2 * OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector partition_vec;
         OpenMPUtils::DivideInPartitions(r_nodes.size(),num_chunks,partition_vec);
 
@@ -246,7 +245,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
     } else {
         // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
 
-        const unsigned int num_chunks = 2 * OpenMPUtils::GetNumThreads();
+        const int num_chunks = 2 * OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector partition_vec;
         OpenMPUtils::DivideInPartitions(n_elems,num_chunks,partition_vec);
 

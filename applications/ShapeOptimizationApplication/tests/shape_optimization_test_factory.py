@@ -56,6 +56,10 @@ class opt_process_eigenfrequency_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_eigenfrequency_test"
     execution_file = "run_test"
 
+class opt_process_weighted_eigenfrequency_test(ShapeOptimizationTestFactory):
+    execution_directory = "opt_process_weighted_eigenfrequency_test"
+    execution_file = "run_test"
+
 class algorithm_steepest_descent_test(ShapeOptimizationTestFactory):
     execution_directory = "algorithm_steepest_descent_test"
     execution_file = "run_test"

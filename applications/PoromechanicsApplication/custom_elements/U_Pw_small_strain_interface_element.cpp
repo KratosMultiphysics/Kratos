@@ -118,12 +118,12 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix( Matrix
     double IntegrationCoefficient;
     const double& Porosity = Prop[POROSITY];
     const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
-    boost::numeric::ublas::bounded_matrix<double,TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
+    BoundedMatrix<double,TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+    BoundedMatrix<double,TDim, TDim> RotationMatrix;
     this->CalculateRotationMatrix(RotationMatrix,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> LocalRelDispVector;
     array_1d<double,TDim> RelDispVector;
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
@@ -165,9 +165,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Proce
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+    BoundedMatrix<double,TDim, TDim> RotationMatrix;
     this->CalculateRotationMatrix(RotationMatrix,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> RelDispVector;
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
     double JointWidth;
@@ -343,16 +343,16 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         array_1d<double,TDim> BodyAcceleration;
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
         array_1d<double,TDim> LocalRelDispVector;
         array_1d<double,TDim> RelDispVector;
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         double JointWidth;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim> GradNpT;
+        BoundedMatrix<double,TNumNodes, TDim> GradNpT;
         const double& Transversal_Permeability = Prop[TRANSVERSAL_PERMEABILITY];
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
+        BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
         const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
         const double& FluidDensity = Prop[DENSITY_WATER];
         array_1d<double,TDim> LocalFluidFlux;
@@ -371,7 +371,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
                 
             this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
         
-            this->CalculateShapeFunctionsGradients< boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> >(GradNpT,SFGradAuxVars,JContainer[GPoint],RotationMatrix,
+            this->CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(GradNpT,SFGradAuxVars,JContainer[GPoint],RotationMatrix,
                                                                                                                 DN_DeContainer[GPoint],NContainer,JointWidth,GPoint);
             
             ElementUtilities::InterpolateVariableWithComponents(BodyAcceleration,NContainer,VolumeAcceleration,GPoint);
@@ -396,9 +396,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
         array_1d<double,TDim> RelDispVector;
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         double JointWidth;
@@ -450,9 +450,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
         array_1d<double,TDim> LocalRelDispVector;
         array_1d<double,TDim> RelDispVector;
                 
@@ -489,16 +489,16 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         array_1d<double,TDim> BodyAcceleration;
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
         array_1d<double,TDim> LocalRelDispVector;
         array_1d<double,TDim> RelDispVector;
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         double JointWidth;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim> GradNpT; 
+        BoundedMatrix<double,TNumNodes, TDim> GradNpT; 
         const double& Transversal_Permeability = Prop[TRANSVERSAL_PERMEABILITY];
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
+        BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
         const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
         const double& FluidDensity = Prop[DENSITY_WATER];
         array_1d<double,TDim> LocalFluidFlux;
@@ -516,7 +516,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
             
             this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
 
-            this->CalculateShapeFunctionsGradients< boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> >(GradNpT,SFGradAuxVars,JContainer[GPoint],RotationMatrix,
+            this->CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(GradNpT,SFGradAuxVars,JContainer[GPoint],RotationMatrix,
                                                                                                                 DN_DeContainer[GPoint],NContainer,JointWidth,GPoint);
             
             ElementUtilities::InterpolateVariableWithComponents(BodyAcceleration,NContainer,VolumeAcceleration,GPoint);
@@ -554,16 +554,16 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         //Defining necessary variables
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
         array_1d<double,TDim> LocalRelDispVector;
         array_1d<double,TDim> RelDispVector;
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         double JointWidth;
         const double& Transversal_Permeability = Prop[TRANSVERSAL_PERMEABILITY];
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> PermeabilityMatrix;
+        BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
+        BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
     
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
@@ -578,7 +578,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
 
             InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,JointWidth,Transversal_Permeability);
             
-            noalias(PermeabilityMatrix) = prod(trans(RotationMatrix),boost::numeric::ublas::bounded_matrix<double,TDim, TDim>(prod(LocalPermeabilityMatrix,RotationMatrix)));
+            noalias(PermeabilityMatrix) = prod(trans(RotationMatrix),BoundedMatrix<double,TDim, TDim>(prod(LocalPermeabilityMatrix,RotationMatrix)));
             
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
@@ -595,15 +595,15 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         //Defining necessary variables
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
         array_1d<double,TDim> LocalRelDispVector;
         array_1d<double,TDim> RelDispVector;
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         double JointWidth;
         const double& Transversal_Permeability = Prop[TRANSVERSAL_PERMEABILITY];
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
+        BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
     
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
@@ -985,7 +985,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::InitializeElementVariables(
 //----------------------------------------------------------------------------------------
 
 template<>
-void UPwSmallStrainInterfaceElement<2,4>::CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,2,2>& rRotationMatrix, const GeometryType& Geom)
+void UPwSmallStrainInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatrix<double,2,2>& rRotationMatrix, const GeometryType& Geom)
 {
     KRATOS_TRY
     
@@ -1042,7 +1042,7 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateRotationMatrix(boost::numeric
 //----------------------------------------------------------------------------------------
 
 template<>
-void UPwSmallStrainInterfaceElement<3,6>::CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
+void UPwSmallStrainInterfaceElement<3,6>::CalculateRotationMatrix(BoundedMatrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
 {
     KRATOS_TRY
     
@@ -1094,7 +1094,7 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateRotationMatrix(boost::numeric
 //----------------------------------------------------------------------------------------
 
 template<>
-void UPwSmallStrainInterfaceElement<3,8>::CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
+void UPwSmallStrainInterfaceElement<3,8>::CalculateRotationMatrix(BoundedMatrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
 {
     KRATOS_TRY
     
@@ -1198,7 +1198,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CheckAndCalculateJointWidth
 template< >
 template< class TMatrixType >
 void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,SFGradAuxVariables& rAuxVariables,
-                                                    const Matrix& Jacobian,const boost::numeric::ublas::bounded_matrix<double,2,2>& RotationMatrix,
+                                                    const Matrix& Jacobian,const BoundedMatrix<double,2,2>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint)
 {
     //Quadrilateral_interface_2d_4
@@ -1217,7 +1217,7 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients(TMatr
 template< >
 template< class TMatrixType >
 void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,SFGradAuxVariables& rAuxVariables,
-                                                    const Matrix& Jacobian,const boost::numeric::ublas::bounded_matrix<double,3,3>& RotationMatrix,
+                                                    const Matrix& Jacobian,const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint)
 {
     //Prism_interface_3d_6
@@ -1259,7 +1259,7 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients(TMatr
 template< >
 template< class TMatrixType >
 void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,SFGradAuxVariables& rAuxVariables,
-                                                    const Matrix& Jacobian,const boost::numeric::ublas::bounded_matrix<double,3,3>& RotationMatrix,
+                                                    const Matrix& Jacobian,const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint)
 {
     //Hexahedral_interface_3d_8
@@ -1319,7 +1319,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
 {
     noalias(rVariables.DimMatrix) = prod(trans(rVariables.RotationMatrix),
-                                        boost::numeric::ublas::bounded_matrix<double,TDim,TDim>(prod(rVariables.ConstitutiveMatrix,
+                                        BoundedMatrix<double,TDim,TDim>(prod(rVariables.ConstitutiveMatrix,
                                         rVariables.RotationMatrix)));
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),rVariables.DimMatrix);
     noalias(rVariables.UMatrix) = prod(rVariables.UDimMatrix,rVariables.Nu)*rVariables.IntegrationCoefficient;
@@ -1356,7 +1356,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCompressibil
     noalias(rVariables.PMatrix) = rVariables.DtPressureCoefficient*rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
     
     //Distribute compressibility block matrix into the elemental matrix
-    ElementUtilities::AssemblePBlockMatrix< boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
+    ElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1369,7 +1369,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddPermeability
     noalias(rVariables.PMatrix) = rVariables.DynamicViscosityInverse*prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.JointWidth*rVariables.IntegrationCoefficient;
     
     //Distribute permeability block matrix into the elemental matrix
-    ElementUtilities::AssemblePBlockMatrix< boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
+    ElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1632,29 +1632,29 @@ void UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputValues( std::vector<T
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients< boost::numeric::ublas::bounded_matrix<double,4,2> >
-                                                    ( boost::numeric::ublas::bounded_matrix<double,4,2>& rGradNpT, SFGradAuxVariables& rAuxVariables,
-                                                    const Matrix& Jacobian,const boost::numeric::ublas::bounded_matrix<double,2,2>& RotationMatrix,
+template void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients< BoundedMatrix<double,4,2> >
+                                                    ( BoundedMatrix<double,4,2>& rGradNpT, SFGradAuxVariables& rAuxVariables,
+                                                    const Matrix& Jacobian,const BoundedMatrix<double,2,2>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
 template void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients< Matrix >
                                                     ( Matrix& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian, 
-                                                    const boost::numeric::ublas::bounded_matrix<double,2,2>& RotationMatrix,
+                                                    const BoundedMatrix<double,2,2>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
-template void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients< boost::numeric::ublas::bounded_matrix<double,6,3> >
-                                                    ( boost::numeric::ublas::bounded_matrix<double,6,3>& rGradNpT, SFGradAuxVariables& rAuxVariables,
-                                                    const Matrix& Jacobian,const boost::numeric::ublas::bounded_matrix<double,3,3>& RotationMatrix,
+template void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients< BoundedMatrix<double,6,3> >
+                                                    ( BoundedMatrix<double,6,3>& rGradNpT, SFGradAuxVariables& rAuxVariables,
+                                                    const Matrix& Jacobian,const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
 template void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients< Matrix >
                                                     ( Matrix& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian, 
-                                                    const boost::numeric::ublas::bounded_matrix<double,3,3>& RotationMatrix,
+                                                    const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
-template void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients< boost::numeric::ublas::bounded_matrix<double,8,3> >
-                                                    ( boost::numeric::ublas::bounded_matrix<double,8,3>& rGradNpT, SFGradAuxVariables& rAuxVariables,
-                                                    const Matrix& Jacobian,const boost::numeric::ublas::bounded_matrix<double,3,3>& RotationMatrix,
+template void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients< BoundedMatrix<double,8,3> >
+                                                    ( BoundedMatrix<double,8,3>& rGradNpT, SFGradAuxVariables& rAuxVariables,
+                                                    const Matrix& Jacobian,const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
 template void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients< Matrix >
                                                     ( Matrix& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian, 
-                                                    const boost::numeric::ublas::bounded_matrix<double,3,3>& RotationMatrix,
+                                                    const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
