@@ -151,6 +151,8 @@ protected:
 
     void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
 
+    void CreateNeighborInfosForSearching();
+
 
     ///@}
     ///@name Protected  Access

@@ -44,6 +44,7 @@ namespace Kratos
     void InterfaceCommunicator::PrepareInterface()
     {
         AssignInterfaceEquationIds();
+        CreateNeighborInfosForSearching();
     }
 
     void InterfaceCommunicator::AssignInterfaceEquationIds()
@@ -72,6 +73,29 @@ namespace Kratos
         }
 
         rModelPartCommunicator.SynchronizeVariable(INTERFACE_EQUATION_ID);
+    }
+
+    void InterfaceCommunicator::CreateNeighborInfosForSearching()
+    {
+        typedef std::vector<MapperInterfaceInfo::Pointer> InterfaceInfoPointerVector; // TODO centralize this
+
+        auto& r_local_mesh = mpInterfaceModelPart->GetCommunicator().LocalMesh();
+
+        std::vector<InterfaceInfoPointerVector> interface_infos_vector(r_local_mesh.NumberOfConditions());
+
+        // Creating the InterfaceInfos
+        // TODO I think this can be made omp parallel
+        int index = 0;
+        for (auto& mapper_cond : r_local_mesh.Conditions())
+        {
+            InterfaceInfoPointerVector interface_info_vec(1);
+            const auto interface_info = mpMapperInterfaceInfo->Create(/*mapper_cond.GetGeometry()*/);
+
+            mapper_cond.SetValue(INTERFACE_INFO, interface_info);
+            interface_infos_vector[index] = interface_info;
+
+            ++index;
+        }
     }
 
     /***********************************************************************************/
