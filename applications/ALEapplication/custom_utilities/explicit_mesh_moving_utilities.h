@@ -61,6 +61,7 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
+    typedef Element::GeometryType::PointsArrayType                             PointsArrayType;
     typedef BinsObjectDynamic<NodeConfigure>                                      NodeBinsType;
     typedef SpatialSearch::DistanceType                                           DistanceType;
     typedef SpatialSearch::ResultNodesContainerType                   ResultNodesContainerType;
@@ -93,39 +94,30 @@ namespace Kratos
     ///@{
 
     /**
-    * According to mSearchRadius, performs the bins search of the close structure nodes for each fluid node
-    * @return rSearchResults vector containing the the rStructureModelPart nodes inside 
-    * @return rSearchDistanceResults vector containing the the rStructureModelPart nodes 
-    * inside SearchRadius distance values for each rModelPart nodes
-    */
-    void SearchStructureNodes(
-        VectorResultNodesContainerType &rSearchResults,
-        VectorDistanceType &rSearchDistanceResults);
-
-    /**
-    * Computes the MESH_DISPLACEMENT value for each fluid node. This operation is explicitly computed 
-    * as a weighted average of the structure nodes DISPLACEMENT values within the mSearchRadius. The 
-    * weights are computed using a kernel function.
-    * @param rSearchResults vector containing the the rStructureModelPart nodes inside 
-    * @param rSearchDistanceResults vector containing the the rStructureModelPart nodes 
-    * inside SearchRadius distance values for each rModelPart nodes
-    */
-    void ComputeMeshDisplacement(
-        const VectorResultNodesContainerType &rSearchResults,
-        const VectorDistanceType &rSearchDistanceResults);
-
-    /**
-    * Computes the kernel function value for a given normalised distance value
-    * @param NormalisedDistance structure node distance value normalised with the mSearchRadius
-    */
-    inline double ComputeKernelValue(const double NormalisedDistance);
-
-    /**
     * This method performs the explicit mesh movement (computes the MESH_DISPLACEMENT value and moves
     * the mesh accordingly) and computes the MESH_VELOCITY values.
     * @param DeltaTime time step value (used in the computation of the MESH_VELOCITY values)
     */
     void ComputeExplicitMeshMovement(const double DeltaTime);
+
+    /**
+    * This method fills the mrModelPart with the nodes and elmens of a given model part
+    * It is supposed to be performed once. 
+    * @param rOriginModelPart model part from where the nodes and elements are copied
+    */
+    void FillVirtualModelPart(ModelPart& rOriginModelPart);
+
+    /**
+    * This method undoes the performed mesh movement to recover the original mesh in 
+    */
+    void UndoMeshMovement();
+
+    /**
+    * This method projects the virtual model part mesh values to the origin mesh
+    * @param rOriginModelPart model part to where the values are projected
+    */
+    template <unsigned int TDim>
+    void ProjectVirtualValues(ModelPart& rOriginModelPart);
 
     ///@}
     ///@name Access
@@ -180,6 +172,33 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+    * According to mSearchRadius, performs the bins search of the close structure nodes for each fluid node
+    * @return rSearchResults vector containing the the rStructureModelPart nodes inside 
+    * @return rSearchDistanceResults vector containing the the rStructureModelPart nodes 
+    * inside SearchRadius distance values for each rModelPart nodes
+    */
+    void SearchStructureNodes(
+        VectorResultNodesContainerType &rSearchResults,
+        VectorDistanceType &rSearchDistanceResults);
+
+    /**
+    * Computes the MESH_DISPLACEMENT value for each fluid node. This operation is explicitly computed 
+    * as a weighted average of the structure nodes DISPLACEMENT values within the mSearchRadius. The 
+    * weights are computed using a kernel function.
+    * @param rSearchResults vector containing the the rStructureModelPart nodes inside 
+    * @param rSearchDistanceResults vector containing the the rStructureModelPart nodes 
+    * inside SearchRadius distance values for each rModelPart nodes
+    */
+    void ComputeMeshDisplacement(
+        const VectorResultNodesContainerType &rSearchResults,
+        const VectorDistanceType &rSearchDistanceResults);
+
+    /**
+    * Computes the kernel function value for a given normalised distance value
+    * @param NormalisedDistance structure node distance value normalised with the mSearchRadius
+    */
+    inline double ComputeKernelValue(const double NormalisedDistance);
 
     ///@}
     ///@name Private  Access

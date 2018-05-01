@@ -22,6 +22,7 @@
 
 // Project includes
 #include "spatial_containers/spatial_containers.h"
+#include "utilities/binbased_fast_point_locator.h"
 #include "utilities/spatial_containers_configure.h"
 
 namespace Kratos
@@ -32,10 +33,89 @@ namespace Kratos
         ModelPart &rModelPart,
         ModelPart &rStructureModelPart,
         const double SearchRadius) : 
+        mSearchRadius(SearchRadius),
         mrModelPart(rModelPart),
-        mrStructureModelPart(rStructureModelPart),
-        mSearchRadius(SearchRadius) {
+        mrStructureModelPart(rStructureModelPart){
     }
+
+    void ExplicitMeshMovingUtilities::FillVirtualModelPart(ModelPart& rOriginModelPart){
+
+        // Copy the origin model part nodes
+        auto &r_nodes_array = rOriginModelPart.NodesArray(); 
+        for(auto node : r_nodes_array){
+            auto p_node = mrModelPart.CreateNewNode(node->Id(),*node, 0);
+        }
+
+        // Copy the origin model part elements
+        auto &r_elems = rOriginModelPart.Elements();
+        for(auto elem : r_elems){
+            // Set the array of virtual nodes to create the element from the original ids.
+            PointsArrayType nodes_array;
+            auto &r_orig_geom = elem.GetGeometry();
+            for (unsigned int i = 0; i < r_orig_geom.PointsNumber(); ++i){
+                nodes_array.push_back(mrModelPart.pGetNode(r_orig_geom[i].Id()));
+            }
+
+            // Create the same element but using the virtual model part nodes
+            auto p_elem = elem.Create(elem.Id(), nodes_array, elem.pGetProperties());
+            mrModelPart.AddElement(p_elem);
+        }
+    }
+
+    void ExplicitMeshMovingUtilities::ComputeExplicitMeshMovement(const double DeltaTime){
+
+        const int time_order = 1;
+        auto &r_nodes = mrModelPart.Nodes();
+        ModelPart::Pointer p_model_part = Kratos::make_shared<ModelPart>(mrModelPart);
+        VectorResultNodesContainerType search_results;
+        VectorDistanceType search_distance_results;
+
+        SearchStructureNodes(search_results, search_distance_results);
+        ComputeMeshDisplacement(search_results, search_distance_results);
+        MoveMeshUtilities::CalculateMeshVelocities(p_model_part,time_order,DeltaTime);
+        MoveMeshUtilities::MoveMesh(r_nodes);
+    }
+
+    void ExplicitMeshMovingUtilities::UndoMeshMovement(){
+
+        auto &r_nodes = mrModelPart.Nodes();
+        MoveMeshUtilities::SetMeshToInitialConfiguration(r_nodes);
+    }
+
+    template <unsigned int TDim>
+    void ExplicitMeshMovingUtilities::ProjectVirtualValues(ModelPart& rOriginModelPart){
+
+        // Set the binbased fast point locator utility
+        BinBasedFastPointLocator<TDim> bin_based_point_locator(mrModelPart);
+        bin_based_point_locator.UpdateSearchDatabase();
+
+        // Search the origin model part nodes in the virtual mesh elements and 
+        // interpolate the values in the virtual element to the origin model part node
+        auto &r_nodes_array = rOriginModelPart.NodesArray(); 
+        for(auto node : r_nodes_array){
+            // Find the origin model part node in the virtual mesh
+            array_1d<double, TDim + 1> aux_N;
+            Element::Pointer p_elem;
+            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin;
+            const unsigned int max_number_of_results = 1;
+            bin_based_point_locator.FindPointOnMesh(node, aux_N, p_elem, result_begin,max_number_of_results);
+
+            // Interpolate the origin model part node value
+            auto &r_geom = p_elem->GetGeometry();
+            node->GetSolutionStepValue(PRESSURE, 1) = 0.0;
+            node->GetSolutionStepValue(PRESSURE, 2) = 0.0;
+            node->GetSolutionStepValue(VELOCITY, 1) = ZeroVector(3);
+            node->GetSolutionStepValue(VELOCITY, 2) = ZeroVector(3);
+            for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node){
+                node->GetSolutionStepValue(PRESSURE, 1) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(PRESSURE, 1);
+                node->GetSolutionStepValue(PRESSURE, 2) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(PRESSURE, 2);
+                node->GetSolutionStepValue(VELOCITY, 1) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(VELOCITY, 1);
+                node->GetSolutionStepValue(VELOCITY, 2) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(VELOCITY, 2);
+            }
+        }
+    }
+
+    /* Private functions *******************************************************/
 
     void ExplicitMeshMovingUtilities::SearchStructureNodes(
         VectorResultNodesContainerType &rSearchResults,
@@ -112,20 +192,6 @@ namespace Kratos
     inline double ExplicitMeshMovingUtilities::ComputeKernelValue(const double NormalisedDistance){
         // Epachenikov (parabolic) kernel function
         return (3.0/4.0)*(1.0-std::pow(NormalisedDistance,2));
-    }
-
-    void ExplicitMeshMovingUtilities::ComputeExplicitMeshMovement(const double DeltaTime){
-
-        const int time_order = 1;
-        auto &r_nodes = mrModelPart.Nodes();
-        ModelPart::Pointer p_model_part = Kratos::make_shared<ModelPart>(mrModelPart);
-        VectorResultNodesContainerType search_results;
-        VectorDistanceType search_distance_results;
-
-        SearchStructureNodes(search_results, search_distance_results);
-        ComputeMeshDisplacement(search_results, search_distance_results);
-        MoveMeshUtilities::CalculateMeshVelocities(p_model_part,time_order,DeltaTime);
-        MoveMeshUtilities::MoveMesh(r_nodes);
     }
 
     /* External functions *****************************************************/
