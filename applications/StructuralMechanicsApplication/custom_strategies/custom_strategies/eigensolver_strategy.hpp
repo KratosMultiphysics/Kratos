@@ -21,7 +21,6 @@
 #include<iterator>
 
 // External includes
-#include<boost/timer.hpp>
 
 // Project includes
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -328,28 +327,26 @@ public:
             auto& rb = *pb;
 
             // Reset solution dofs
-            boost::timer system_construction_time;
+            BuiltinTimer system_construction_time;
             if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
                     pBuilderAndSolver->GetReshapeMatrixFlag() == true)
             {
                 // Set up list of dofs
-                boost::timer setup_dofs_time;
+                BuiltinTimer setup_dofs_time;
                 pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
-                if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                {
-                    std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
-                }
+
+                KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                    << setup_dofs_time.ElapsedSeconds() << std::endl;
 
                 // Set global equation ids
-                boost::timer setup_system_time;
+                BuiltinTimer setup_system_time;
                 pBuilderAndSolver->SetUpSystem(rModelPart);
-                if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                {
-                    std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
-                }
+
+                KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                    << setup_system_time.ElapsedSeconds() << std::endl;
 
                 // Resize and initialize system matrices
-                boost::timer system_matrix_resize_time;
+                BuiltinTimer system_matrix_resize_time;
                 SparseMatrixPointerType& pMassMatrix = this->pGetMassMatrix();
 
                 // Mass matrix
@@ -370,10 +367,9 @@ public:
                         rModelPart.Conditions(),
                         rModelPart.GetProcessInfo());
 
-                if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                {
-                    std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
-                }
+                KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                    << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+
             }
             else
             {
@@ -383,10 +379,8 @@ public:
                 SparseSpaceType::Set(rDx,0.0);
             }
 
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            {
-                std::cout << "System_construction_time : " << system_construction_time.elapsed() << std::endl;
-            }
+            KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << system_construction_time.ElapsedSeconds() << std::endl;
 
             // Initial operations ... things that are constant over the solution step
             pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(),rStiffnessMatrix,rDx,rb);
@@ -394,7 +388,7 @@ public:
             // Initial operations ... things that are constant over the solution step
             pScheme->InitializeSolutionStep(BaseType::GetModelPart(),rStiffnessMatrix,rDx,rb);
 
-            mSolutionStepIsInitialized == true;
+            mSolutionStepIsInitialized = true;
         }
 
         KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
@@ -409,7 +403,7 @@ public:
      */
     void FinalizeSolutionStep() override
     {
-        mSolutionStepIsInitialized == false;
+        mSolutionStepIsInitialized = false;
     }
 
     bool SolveSolutionStep() override
@@ -447,16 +441,15 @@ public:
         DenseMatrixType Eigenvectors;
 
         // Solve for eigenvalues and eigenvectors
-        boost::timer system_solve_time;
+        BuiltinTimer system_solve_time;
         this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
                 rStiffnessMatrix,
                 rMassMatrix,
                 Eigenvalues,
                 Eigenvectors);
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
-        {
-            std::cout << "system_solve_time : " << system_solve_time.elapsed() << std::endl;
-        }
+
+        KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << system_solve_time.ElapsedSeconds() << std::endl;
 
         this->AssignVariables(Eigenvalues,Eigenvectors);
 

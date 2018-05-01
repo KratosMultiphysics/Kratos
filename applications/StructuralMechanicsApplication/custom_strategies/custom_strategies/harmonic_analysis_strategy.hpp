@@ -18,7 +18,6 @@
 #include<iterator>
 
 // External includes
-#include<boost/timer.hpp>
 
 // Project includes
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -242,37 +241,30 @@ public:
             auto& p_builder_and_solver = this->pGetBuilderAndSolver();
 
             // Reset solution dofs
-            boost::timer system_construction_time;
             // Set up list of dofs
-            boost::timer setup_dofs_time;
+            BuiltinTimer setup_dofs_time;
             p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            {
-                std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
-            }
+            KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << setup_dofs_time.ElapsedSeconds() << std::endl;
 
             // Set global equation ids
-            boost::timer setup_system_time;
+            BuiltinTimer setup_system_time;
             p_builder_and_solver->SetUpSystem(r_model_part);
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            {
-                std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
-            }
+            KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << setup_system_time.ElapsedSeconds() << std::endl;
 
             // initialize the force vector; this does not change during the computation
             auto& r_force_vector = *mpForceVector;
             const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize();
 
-            boost::timer force_vector_build_time;
+            BuiltinTimer force_vector_build_time;
             if (r_force_vector.size() != system_size)
                 r_force_vector.resize(system_size, false);
             r_force_vector = ZeroVector( system_size );
             p_builder_and_solver->BuildRHS(p_scheme,r_model_part,r_force_vector);
 
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            {
-                std::cout << "force_vector_build_time : " << force_vector_build_time.elapsed() << std::endl;
-            }
+            KRATOS_INFO_IF("Force Vector Build Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << force_vector_build_time.ElapsedSeconds() << std::endl;
 
             // initialize the modal matrix
             auto& r_modal_matrix = *mpModalMatrix;
@@ -281,7 +273,7 @@ public:
                 r_modal_matrix.resize( system_size, n_modes, false );
             r_modal_matrix = ZeroMatrix( system_size, n_modes );
 
-            boost::timer modal_matrix_build_time;
+            BuiltinTimer modal_matrix_build_time;
             for( std::size_t i = 0; i < n_modes; ++i )
             {
                 for( auto& node : r_model_part.Nodes() )
@@ -303,10 +295,8 @@ public:
                 }
             }
 
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            {
-                std::cout << "modal_matrix_build_time : " << modal_matrix_build_time.elapsed() << std::endl;
-            }
+            KRATOS_INFO_IF("Modal Matrix Build Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << modal_matrix_build_time.ElapsedSeconds() << std::endl;
 
             // get the damping coefficients if they exist
             for( auto& property : r_model_part.PropertiesArray() )
@@ -344,7 +334,7 @@ public:
                 SparseSpaceType::Set(rb,0.0);
 
                 //loop over all modes and initialize the material damping ratio per mode
-                boost::timer material_damping_build_time;
+                BuiltinTimer material_damping_build_time;
 
                 for( std::size_t i = 0; i < n_modes; ++i )
                 {
@@ -387,11 +377,8 @@ public:
                     mMaterialDampingRatios(i) = up / down;
                 }
 
-                if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                {
-                    std::cout << "modal_matrix_build_time : " << material_damping_build_time.elapsed() << std::endl;
-                    KRATOS_WATCH(mMaterialDampingRatios)
-                }
+                KRATOS_INFO_IF("Material Damping Build Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                    << material_damping_build_time.ElapsedSeconds() << std::endl;
             }
             mInitializeWasPerformed = true;
         }
@@ -543,7 +530,7 @@ public:
             // initial operations ... things that are constant over the solution step
             p_scheme->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,r_force_vector);
 
-            mSolutionStepIsInitialized == true;
+            mSolutionStepIsInitialized = true;
         }
 
         KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
@@ -558,7 +545,7 @@ public:
      */
     void FinalizeSolutionStep() override
     {
-        mSolutionStepIsInitialized == false;
+        mSolutionStepIsInitialized = false;
     }
 
     /// Check whether initial input is valid.
