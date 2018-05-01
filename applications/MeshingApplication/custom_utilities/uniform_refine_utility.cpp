@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Miguel Maso Sotomayor
@@ -14,7 +14,7 @@
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -69,7 +69,7 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
     mDofs = mrModelPart.NodesBegin()->GetDofs();
 
     // Compute the sub model part maps
-    
+
     mSubModelPartsColors.ComputeSubModelPartsList(mNodesColorMap, mCondColorMap, mElemColorMap, mColors);
 }
 
@@ -106,11 +106,6 @@ void UniformRefineUtility<TDim>::PrintData(std::ostream& rOStream) const {
 template< unsigned int TDim>
 void UniformRefineUtility<TDim>::Refine()
 {
-    std::cout << "--------------------------------------" << std::endl;
-    std::cout << "----------- Before remeshing ---------" << std::endl;
-    std::cout << "--------------------------------------" << std::endl;
-    KRATOS_WATCH(mrModelPart)
-    
     // Get the lowest refinement level
     int minimum_refinement_level = 1e6;
     const int n_elements = mrModelPart.Elements().size();
@@ -125,11 +120,6 @@ void UniformRefineUtility<TDim>::Refine()
     {
         RefineLevel(level);
     }
-
-    std::cout << "--------------------------------------" << std::endl;
-    std::cout << "----------- After remeshing ----------" << std::endl;
-    std::cout << "--------------------------------------" << std::endl;
-    KRATOS_WATCH(mrModelPart)
 }
 
 
@@ -181,7 +171,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         // Loop the edges of the father element and get the nodes
         for (auto edge : geom.Edges())
             CreateNodeInEdge(edge, step_refine_level);
-        
+
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
             CreateNodeInFace( geom, step_refine_level );
     }
@@ -315,7 +305,7 @@ void UniformRefineUtility<TDim>::CreateNodeInEdge(
         // Set the DoF's
         for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
             middle_node->pAddDof(*it_dof);
-        
+
         // Add the node to the sub model parts
         int key0 = mNodesColorMap[rEdge(0)->Id()];
         int key1 = mNodesColorMap[rEdge(1)->Id()];
@@ -393,7 +383,7 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
         // Set the DoF's
         for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
             middle_node->pAddDof(*it_dof);
-        
+
         // Add the node to the sub model parts
         int key0 = mNodesColorMap[rFace(0)->Id()];
         int key1 = mNodesColorMap[rFace(1)->Id()];
@@ -444,8 +434,8 @@ Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeInFace(const FaceType& rFace
 /// Compute the nodal data of a node
 template< unsigned int TDim >
 void UniformRefineUtility<TDim>::CalculateNodalStepData(
-    NodeType::Pointer pNewNode, 
-    const NodeType::Pointer pNode0, 
+    NodeType::Pointer pNewNode,
+    const NodeType::Pointer pNode0,
     const NodeType::Pointer pNode1
     )
 {
@@ -471,8 +461,8 @@ void UniformRefineUtility<TDim>::CreateElement(
     )
 {
     Element::Pointer sub_element = pOriginElement->Create(++mLastElemId, ThisNodes, pOriginElement->pGetProperties());
-    
-    if (sub_element != nullptr) 
+
+    if (sub_element != nullptr)
     {
         // Add the element to the origin model part
         mrModelPart.AddElement(sub_element);
@@ -505,8 +495,8 @@ void UniformRefineUtility<TDim>::CreateCondition(
     )
 {
     Condition::Pointer sub_condition = pOriginCondition->Create(++mLastElemId, ThisNodes, pOriginCondition->pGetProperties());
-    
-    if (sub_condition != nullptr) 
+
+    if (sub_condition != nullptr)
     {
         // Add the element to the origin model part
         mrModelPart.AddCondition(sub_condition);
@@ -662,5 +652,3 @@ std::vector<Node<3>::Pointer> UniformRefineUtility<TDim>::GetSubQuadrilateralNod
 template class UniformRefineUtility<2>;
 
 }  // namespace Kratos.
-
-
