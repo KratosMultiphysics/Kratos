@@ -6,8 +6,10 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+# Other imports
 import filecmp
 import os
+import math
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -17,7 +19,11 @@ def Factory(settings, Model):
 class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
 
     def __init__(self, model, params):
-
+        """This process compares files that are written during a simulation
+        against reference files.
+        Please see the "ExecuteFinalize" functions for details about the
+        available file-formats
+        """
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
@@ -59,12 +65,15 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         pass
 
     def ExecuteFinalize(self):
+        """The files are compared in this function
+        Please see the respective files for details on the format of the files
+        """
         if kratos_utils.IsRankZero():
             if (self.comparison_type == "deterministic"):
                 value = filecmp.cmp(self.reference_file_name, self.output_file_name)
                 self.assertTrue(value)
             elif (self.comparison_type == "mesh_file"):
-                self.__CompareMeshVertivesFile()
+                self.__CompareMeshVerticesFile()
             elif (self.comparison_type == "sol_file"):
                 self.__CompareSolMetricFile()
             elif (self.comparison_type == "post_res_file"):
@@ -78,6 +87,10 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             kratos_utils.DeleteFileIfExisting(self.output_file_name) # this checks internally if it is rank 0
 
     def __GetFileLines(self):
+        """This function reads the reference and the output file
+        It returns the lines read from both files and also compares
+        if they contain the same numer of lines
+        """
         with open(self.reference_file_name,'r') as ref_file:
             lines_ref = ref_file.readlines()
         with open(self.output_file_name,'r') as out_file:
@@ -94,16 +107,30 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         return lines_ref, lines_out
 
     def __ComparePostResFile(self):
+        """Comparing output files from GiD containing results in ASCII format
+        => *.post.res
+        see https://www.gidhome.com/documents/customizationmanual/POSTPROCESS%20DATA%20FILES
+        """
+
         lines_ref, lines_out = self.__GetFileLines()
 
+        results_found, results_start_index = self.__ComparePostResFileHeader(lines_ref, lines_out)
+
+        # comparing the results (if there are any)
+        if results_found:
+            while results_start_index < len(lines_ref):
+                results_start_index = self.__ComparePostResFileResultsBlock(lines_ref, lines_out, results_start_index)
+
+    def __ComparePostResFileHeader(self, lines_ref, lines_out):
+        """This function compares the headers of *.post.res files
+        It loops the lines until Results are found
+        """
         results_start_index = -1
         results_found = False
 
-        num_lines = len(lines_ref)
-
-        # comparing the header
-        for i in range(num_lines):
+        for i in range(len(lines_ref)):
             if lines_ref[i].startswith("Result "):
+                # Now the end of the header is found
                 results_start_index = i
                 results_found = True
                 break
@@ -111,19 +138,18 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             lines_ref_splitted = lines_ref[i].split()
             lines_out_splitted = lines_out[i].split()
 
-            if len(lines_ref_splitted) != len(lines_out_splitted):
-                self.assertTrue(False, msg="Lines have different length!")
+            self.assertTrue(len(lines_ref_splitted) == len(lines_out_splitted),
+                            msg="Lines have different length!")
 
             for ref_value, out_value in zip(lines_ref_splitted, lines_out_splitted):
                 self.assertTrue(ref_value == out_value,
                                 msg=ref_value + " != " + out_value)
 
-        # comparing the results
-        if results_found:
-            while results_start_index < num_lines:
-                results_start_index = self.__CompareResultsBlock(lines_ref, lines_out, results_start_index)
+        return results_found, results_start_index
 
-    def __CompareResultsBlock(self, lines1, lines2, current_index):
+    def __ComparePostResFileResultsBlock(self, lines1, lines2, current_index):
+        """This function compares results blocks of *.post.res files
+        """
         # comparing result labels
         lines_1_splitted = lines1[current_index].split()
         lines_2_splitted = lines2[current_index].split()
@@ -153,20 +179,42 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         return current_index+2 # directly incrementing to get the new result label
 
     def __CompareDatFile(self):
+        """This function compares files with tabular data.
+        => *.dat
+        Lines starting with "#" are comments and therefore compared for equality
+        Other lines are compared to be almost equal with the specified tolerance
+        """
         lines_ref, lines_out = self.__GetFileLines()
 
         # assert headers are the same
+        self.__CompareDatFileHeader(lines_ref, lines_out)
+
+        # assert values are equal up to given tolerance
+        self.__CompareDatFileResults(lines_ref, lines_out)
+
+    def __CompareDatFileHeader(self, lines_ref, lines_out):
+        """This function compares the header of files with tabular data
+        The lines starting with "#" are being compared
+        These lines are removed from the list of lines
+        """
         while lines_ref[0].lstrip()[0] == '#' or lines_out[0].lstrip()[0] == '#':
             self.assertTrue(lines_ref.pop(0) == lines_out.pop(0))
 
-        # assert values are equal up to given tolerance
+    def __CompareDatFileResults(self, lines_ref, lines_out):
+        """This function compares the data of files with tabular data
+        The comment lines were removed beforehand
+        """
         for line_ref, line_out in zip(lines_ref, lines_out):
             for v1, v2 in zip(line_ref.split(), line_out.split()):
                 self.assertAlmostEqual(float(v1),
                                        float(v2),
                                        self.decimal_places)
 
-    def __CompareMeshVertivesFile(self):
+    def __CompareMeshVerticesFile(self):
+        """This function compares the output of the MMG meshing library
+        => *.mesh
+        see https://www.mmgtools.org/mmg-remesher-try-mmg/mmg-remesher-tutorials
+        """
         lines_ref, lines_out = self.__GetFileLines()
 
         numline = 0
@@ -184,14 +232,18 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             tmp1 = ConvertStringToListFloat(lines_ref[i], "", "\n")
             tmp2 = ConvertStringToListFloat(lines_out[i], "", "\n")
             if (dimension == 2):
-                error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0)**(0.5)
+                error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2)
             else:
-                error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0 + (tmp1[2] - tmp2[2])**2.0)**(0.5)
+                error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
 
         error /= nvertices
         self.assertTrue(error < GetTolerance(self.decimal_places))
 
     def __CompareSolMetricFile(self):
+        """This function compares the output of the MMG meshing library
+        => *.sol
+        see https://www.mmgtools.org/mmg-remesher-try-mmg/mmg-remesher-options/mmg-remesher-option-sol
+        """
         lines_ref, lines_out = self.__GetFileLines()
 
         numline = 0
@@ -222,15 +274,17 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
 
             if (dimension == 2):
-                error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0 + (tmp1[2] - tmp2[2])**2.0)**(0.5)
+                error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
             else:
-                error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0 + (tmp1[2] - tmp2[2])**2.0 + (tmp1[3] - tmp2[3])**2.0 + (tmp1[4] - tmp2[4])**2.0 + (tmp1[5] - tmp2[5])**2.0)**(0.5)
+                error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2 + (tmp1[3] - tmp2[3])**2 + (tmp1[4] - tmp2[4])**2 + (tmp1[5] - tmp2[5])**2)
 
         error /= nvertices
         self.assertTrue(error < GetTolerance(self.decimal_places))
 
 
 def ConvertStringToListFloat(line, space = " ", endline = ""):
+    """This function converts a string into a list of floats
+    """
     list_values = []
     string_values = (line.replace(endline,"")).split(space)
     for string in string_values:
@@ -239,7 +293,9 @@ def ConvertStringToListFloat(line, space = " ", endline = ""):
     return list_values
 
 def GetTolerance(decimal_places):
-    # convert e.g. 5 to 1e-5
+    """This function converts decimal places into a tolerance
+    e.g. 5 to 1e-5
+    """
     tolerance = 0.1**decimal_places
     tolerance = round(tolerance, decimal_places) # to remove rounding errors
     return(tolerance)
