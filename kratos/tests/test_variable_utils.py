@@ -16,6 +16,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         origin_model_part = ModelPart("OriginModelPart")
         origin_model_part.AddNodalSolutionStepVariable(VISCOSITY)
         origin_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        origin_model_part.SetBufferSize(2)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(origin_model_part)
 
@@ -23,6 +24,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         destination_model_part = ModelPart("DestinationModelPart")
         destination_model_part.AddNodalSolutionStepVariable(VISCOSITY)
         destination_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        destination_model_part.SetBufferSize(2)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(destination_model_part)
 
