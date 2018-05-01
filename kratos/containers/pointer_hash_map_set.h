@@ -22,8 +22,7 @@
 
 
 // External includes
-// TODO: I should change this to std::unordered_map when we switch to c++11
-#include "boost/unordered_map.hpp"
+#include <unordered_map>
 
 // Project includes
 #include "includes/define.h"
@@ -86,8 +85,7 @@ public:
     typedef TPointerType pointer_type;
     typedef TDataType& reference;
     typedef const TDataType& const_reference;
-	// TODO: I should change this to std::unordered_map when we switch to c++11
-	typedef boost::unordered_map<key_type, TPointerType, hasher> ContainerType;
+	typedef std::unordered_map<key_type, TPointerType, hasher> ContainerType;
 
     typedef typename ContainerType::size_type size_type;
     typedef typename ContainerType::iterator ptr_iterator;
