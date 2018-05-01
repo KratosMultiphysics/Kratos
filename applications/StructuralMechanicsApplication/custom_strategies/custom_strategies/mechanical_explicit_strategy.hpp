@@ -290,7 +290,9 @@ public:
   //**********************************************************************
   void Clear() override {
     KRATOS_TRY
-    std::cout << "Explicit strategy Clear function used" << std::endl;
+
+    KRATOS_INFO("MechanicalExplicitStrategy")
+      << "Clear function used" << std::endl;
 
     GetScheme()->Clear();
     mInitializeWasPerformed = false;

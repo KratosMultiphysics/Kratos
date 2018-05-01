@@ -13,9 +13,6 @@
 #define  KRATOS_HARMONIC_ANALYSIS_STRATEGY
 
 // System includes
-#include<iostream>
-#include<vector>
-#include<iterator>
 
 // External includes
 
@@ -78,13 +75,7 @@ public:
 
     typedef TSparseSpace SparseSpaceType;
 
-    typedef typename TSparseSpace::VectorType SparseVectorType;
-
     typedef typename TSparseSpace::VectorPointerType SparseVectorPointerType;
-
-    typedef typename TSparseSpace::MatrixType SparseMatrixType;
-
-    typedef typename TSparseSpace::MatrixPointerType SparseMatrixPointerType;
 
     typedef std::complex<double> ComplexType;
 

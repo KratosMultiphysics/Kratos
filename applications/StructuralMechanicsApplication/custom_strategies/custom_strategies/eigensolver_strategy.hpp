@@ -16,9 +16,6 @@
 #define  KRATOS_EIGENSOLVER_STRATEGY
 
 // System includes
-#include<iostream>
-#include<vector>
-#include<iterator>
 
 // External includes
 
@@ -70,10 +67,6 @@ public:
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
 
     typedef typename BaseType::TBuilderAndSolverType::Pointer BuilderAndSolverPointerType;
-
-    typedef typename TDenseSpace::VectorPointerType DenseVectorPointerType;
-
-    typedef typename TDenseSpace::MatrixPointerType DenseMatrixPointerType;
 
     typedef typename TDenseSpace::VectorType DenseVectorType;
 
