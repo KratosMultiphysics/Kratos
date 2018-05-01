@@ -24,9 +24,9 @@
 // Utilities
 #include "custom_utilities/uniform_refine_utility.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
 
@@ -40,7 +40,7 @@ namespace Kratos
         /**
          * Checks the correct refining utility
          */
-        KRATOS_TEST_CASE_IN_SUITE(TestUniformRefineTrianglesUtility, KratosUniformRefineUtilityFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(UniformRefineTrianglesUtility, MeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
 
@@ -112,25 +112,54 @@ namespace Kratos
                 distance = DistanceFunction(it_node);
             }
 
-            // Check the number of entities in the main model part
-            unsigned int initial_nodes = this_model_part.NumberOfNodes();
-            unsigned int initial_elems = this_model_part.NumberOfElements();
-            unsigned int initial_conds = this_model_part.NumberOfConditions();
+            // Store the initial values
+            std::vector<unsigned int> initial_nodes(3);
+            std::vector<unsigned int> initial_elems(3);
+            std::vector<unsigned int> initial_conds(3);
+            initial_nodes[0] = this_model_part.NumberOfNodes();
+            initial_elems[0] = this_model_part.NumberOfElements();
+            initial_conds[0] = this_model_part.NumberOfConditions();
+            initial_nodes[1] = p_sub_model_part_1->NumberOfNodes();
+            initial_elems[1] = p_sub_model_part_1->NumberOfElements();
+            initial_conds[1] = p_sub_model_part_1->NumberOfConditions();
+            initial_nodes[2] = p_sub_model_part_2->NumberOfNodes();
+            initial_nodes[2] = p_sub_model_part_2->NumberOfElements();
+            initial_conds[2] = p_sub_model_part_2->NumberOfConditions();
 
+            // Execute the utility
             int refinement_level = 2;
             UniformRefineUtility<2> uniform_refine_utility(this_model_part, refinement_level);
             uniform_refine_utility.Refine();
 
-            unsigned int final_nodes = ((0.5*initial_nodes*1)*std::pow(2,refinement_level)+1) * (std::pow(2,refinement_level)+1);
+            // Check the number of entities in the main model part
+            unsigned int final_nodes = (std::pow(2,refinement_level)+1) * ((0.5*initial_nodes[0]-1)*std::pow(2,refinement_level)+1);
             KRATOS_CHECK_EQUAL(final_nodes, this_model_part.NumberOfNodes());
 
-            unsigned int final_elems = initial_elems * std::pow(2,refinement_level);
+            unsigned int final_elems = initial_elems[0] * std::pow(4,refinement_level);
             KRATOS_CHECK_EQUAL(final_elems, this_model_part.NumberOfElements());
 
-            unsigned int final_conds = initial_conds * std::pow(2,refinement_level);
+            unsigned int final_conds = initial_conds[0] * std::pow(2,refinement_level);
             KRATOS_CHECK_EQUAL(final_conds, this_model_part.NumberOfConditions());
 
-            // Check the number of entities in the sub model parts
+            // Check the number of entities in the first sub model part
+            final_nodes = (std::pow(2,refinement_level)+1) * ((0.5*initial_nodes[1]-1)*std::pow(2,refinement_level)+1);
+            KRATOS_CHECK_EQUAL(final_nodes, p_sub_model_part_1->NumberOfNodes());
+
+            final_elems = initial_elems[1] * std::pow(4,refinement_level);
+            KRATOS_CHECK_EQUAL(final_elems, p_sub_model_part_1->NumberOfElements());
+
+            final_conds = initial_conds[1] * std::pow(2,refinement_level);
+            KRATOS_CHECK_EQUAL(final_conds, p_sub_model_part_1->NumberOfConditions());
+
+            // Check the number of entities in the second sub model part
+            final_nodes = (std::pow(2,refinement_level)+1);
+            KRATOS_CHECK_EQUAL(final_nodes, p_sub_model_part_2->NumberOfNodes());
+
+            final_elems = initial_elems[2] * std::pow(4,refinement_level);
+            KRATOS_CHECK_EQUAL(final_elems, p_sub_model_part_2->NumberOfElements());
+
+            final_conds = initial_conds[2] * std::pow(2,refinement_level);
+            KRATOS_CHECK_EQUAL(final_conds, p_sub_model_part_2->NumberOfConditions());
 
             // Check the variables interpolation
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
