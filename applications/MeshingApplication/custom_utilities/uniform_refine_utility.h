@@ -88,12 +88,12 @@ public:
      * Type of face geometry
      */
     typedef Quadrilateral3D4<NodeType> FaceType;
-    
+
     /**
      * Type of IDs
      */
     typedef std::size_t IndexType;
-    
+
     /**
      * Map types to locate nodes in the mesh
      */
@@ -205,7 +205,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrModelPart;             /// The model part to refine
     int mFinalRefinementLevel;          /// The model part will be refined to this level
 
@@ -235,7 +235,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
      * Execute the refinement once
      * Only the entities with level = ThisLevel are refined to ThisLevel+1
@@ -272,7 +272,7 @@ private:
 
     /**
      * Calculate the nodal data
-     * The destination node is assumed to be at the mid point between 
+     * The destination node is assumed to be at the mid point between
      * the origin nodes
      */
     void CalculateNodalStepData(
@@ -280,6 +280,19 @@ private:
         const NodeType::Pointer pNode0,
         const NodeType::Pointer pNode1
         );
+
+      /**
+       * Calculate the nodal data
+       * The destination node is assumed to be at the mid point among
+       * the origin nodes
+       */
+      void CalculateNodalStepData(
+          NodeType::Pointer pNewNode,
+          const NodeType::Pointer pNode0,
+          const NodeType::Pointer pNode1,
+          const NodeType::Pointer pNode2,
+          const NodeType::Pointer pNode3
+          );
 
     /**
      * Create an element from an origin element

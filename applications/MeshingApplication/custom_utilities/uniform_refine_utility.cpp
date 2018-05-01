@@ -374,7 +374,7 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
         mNodesInFaceMap[node_key] = middle_node->Id();
 
         // interpolate the variables
-        CalculateNodalStepData(middle_node, rFace(0), rFace(1));
+        CalculateNodalStepData(middle_node, rFace(0), rFace(1), rFace(2), rFace(3));
 
         // Set the refinement level
         int& this_node_level = middle_node->GetValue(REFINEMENT_LEVEL);
@@ -448,6 +448,32 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
 
         for (unsigned int variable = 0; variable < mStepDataSize; variable++)
             new_node_data[variable] = 0.5 * node_data_0[variable] + 0.5 * node_data_1[variable];
+    }
+}
+
+
+/// Compute the nodal data of a node
+template< unsigned int TDim >
+void UniformRefineUtility<TDim>::CalculateNodalStepData(
+    NodeType::Pointer pNewNode,
+    const NodeType::Pointer pNode0,
+    const NodeType::Pointer pNode1,
+    const NodeType::Pointer pNode2,
+    const NodeType::Pointer pNode3
+    )
+{
+    for (unsigned int step = 0; step < mBufferSize; step++)
+    {
+        double* new_node_data = pNewNode->SolutionStepData().Data(step);
+
+        const double* node_data_0 = pNode0->SolutionStepData().Data(step);
+        const double* node_data_1 = pNode1->SolutionStepData().Data(step);
+        const double* node_data_2 = pNode2->SolutionStepData().Data(step);
+        const double* node_data_3 = pNode3->SolutionStepData().Data(step);
+
+        for (unsigned int variable = 0; variable < mStepDataSize; variable++)
+            new_node_data[variable] = 0.25 * node_data_0[variable] + 0.25 * node_data_1[variable] +
+                                      0.25 * node_data_2[variable] + 0.25 * node_data_3[variable];
     }
 }
 
