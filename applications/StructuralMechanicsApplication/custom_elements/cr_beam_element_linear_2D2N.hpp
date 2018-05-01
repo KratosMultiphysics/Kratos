@@ -7,8 +7,8 @@
 //  license: 	 structural_mechanics_application/license.txt
 //
 //  Main authors: Klaus B. Sautter
-//                   
-//                   
+//
+//
 //
 
 #if !defined(KRATOS_CR_BEAM_ELEMENT_LINEAR_2D2N_H_INCLUDED )
@@ -27,11 +27,11 @@
 
 namespace Kratos
 {
-	/** 
+	/**
      * @class CrBeamElementLinear2D2N
-     * 
+     *
      * @brief This is a linear 2D-2node beam element with 2 translational dofs and 1 rotational dof per node inheriting from CrBeamElement2D2N
-     * 
+     *
      * @author Klaus B Sautter
      */
 
@@ -51,7 +51,7 @@ namespace Kratos
 			PropertiesType::Pointer pProperties) const override;
 
 
-		~CrBeamElementLinear2D2N() override;		
+		~CrBeamElementLinear2D2N() override;
 
 		void CalculateLocalSystem(
 			MatrixType& rLeftHandSideMatrix,
@@ -74,7 +74,7 @@ namespace Kratos
 		/**
          * @brief This function calculates the transformation matrix to globalize/localize vectors and/or matrices
          */
-		bounded_matrix<double,msElementSize,msElementSize> CreateRotationMatrix() override;
+		BoundedMatrix<double,msElementSize,msElementSize> CreateRotationMatrix() override;
 
 		/**
          * @brief This function calculates the reference length
@@ -98,7 +98,7 @@ namespace Kratos
 		// stores the globalized master stiffness matrix for reaction forces
 		Matrix mK_Master = ZeroMatrix(msElementSize,msElementSize);
 
-		
+
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;
 		void load(Serializer& rSerializer) override;
