@@ -534,14 +534,14 @@ class ResidualBasedNewtonRaphsonStrategy
                 //setting up the list of the DOFs to be solved
                 BuiltinTimer setup_dofs_time;
                 p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
-                if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                    KRATOS_INFO("Setup Dofs Time") << setup_dofs_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                    << setup_dofs_time.ElapsedSeconds() << std::endl;
 
                 //shaping correctly the system
                 BuiltinTimer setup_system_time;
                 p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
-                if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                    KRATOS_INFO("Setup System Time") << setup_system_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                    << setup_system_time.ElapsedSeconds() << std::endl;
 
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
@@ -549,12 +549,12 @@ class ResidualBasedNewtonRaphsonStrategy
                                                                  BaseType::GetModelPart().Elements(),
                                                                  BaseType::GetModelPart().Conditions(),
                                                                  BaseType::GetModelPart().GetProcessInfo());
-                if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                    KRATOS_INFO("System Matrix Resize Time") << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                    << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
 
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                KRATOS_INFO("System Construction Time") << system_construction_time.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << system_construction_time.ElapsedSeconds() << std::endl;
 
             TSystemMatrixType& rA  = *mpA;
             TSystemVectorType& rDx = *mpDx;
