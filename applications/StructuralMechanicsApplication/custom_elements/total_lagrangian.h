@@ -215,6 +215,21 @@ private:
 
     void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
 
+    void CalculateStress(Vector& rStrain,
+                         std::size_t IntegrationPoint,
+                         Vector& rStress,
+                         ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateStress(Matrix const& rF,
+                         std::size_t IntegrationPoint,
+                         Vector& rStress,
+                         ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateStrain(Matrix const& rF,
+                         std::size_t IntegrationPoint,
+                         Vector& rStrain,
+                         ProcessInfo const& rCurrentProcessInfo);
+
     void CalculateShapeSensitivity(std::size_t NodeIndex,
                                    std::size_t CoordIndex,
                                    Matrix& rDN_DX0_Deriv,
