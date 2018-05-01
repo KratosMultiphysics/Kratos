@@ -176,9 +176,9 @@ for normalvar in range(normal_combs):
                     augmented_lm = (ScaleFactor * LM.row(node) + PenaltyParameter[node] * NormalGap[node] * NormalSlave.row(node))
                     rv_galerkin += DynamicFactor[node] * (augmented_lm).dot(Dw1Mw2.row(node))
                     rv_galerkin -= ScaleFactor * NormalGap[node] * wLMNormal[node]
-                    rv_galerkin -= ScaleFactor**2.0/PenaltyParameter[node] * (wLMTangent.row(node).dot(LMTangent.row(node)))
+                    rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLMTangent.row(node).dot(LMTangent.row(node)))
                 else:
-                    rv_galerkin -= ScaleFactor**2.0/PenaltyParameter[node] * (wLM.row(node).dot(LM.row(node)))
+                    rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLM.row(node).dot(LM.row(node)))
 
             if(do_simplifications):
                 rv_galerkin = simplify(rv_galerkin)
