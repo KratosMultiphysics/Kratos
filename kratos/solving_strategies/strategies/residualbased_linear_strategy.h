@@ -416,6 +416,8 @@ public:
         GetBuilderAndSolver()->Clear();
         GetScheme()->Clear();
 
+        mInitializeWasPerformed = false;
+
         KRATOS_CATCH("");
     }
 
