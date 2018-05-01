@@ -55,7 +55,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "includes/define.h"
+// #include "includes/define.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_processes_to_python.h"
 
@@ -182,11 +183,11 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<> ())
     .def("RemoveAndSave", &RemoveAndSaveWallNodesProcess::RemoveAndSave)
     ;     
-    class_<AddWallProcess, Process >("AddWallProcess")
+    class_<AddWallProcess>(m,"AddWallProcess")
     .def(init<> ())
     .def("AddWall", &AddWallProcess::AddWall)
     ;  
-    class_<CalculateCurvature, Process > (m,"CalculateCurvature")
+    class_<CalculateCurvature> (m,"CalculateCurvature")
     .def(init<>())
     .def("CalculateCurvature2D", &CalculateCurvature::CalculateCurvature2D)
     .def("CalculateCurvature3D", &CalculateCurvature::CalculateCurvature3D)
@@ -195,36 +196,36 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
     
     
-    class_<CalculateNormalEq, Process > (m,"CalculateNormalEq")
+    class_<CalculateNormalEq> (m,"CalculateNormalEq")
     .def(init<>())
     .def("CalculateNormalEq3D", &CalculateNormalEq::CalculateNormalEq3D)
     ;   
     
-    class_<CalculateContactAngle, Process > (m,"CalculateContactAngle")
+    class_<CalculateContactAngle> (m,"CalculateContactAngle")
     .def(init<>())
     .def("CalculateContactAngle2D", &CalculateContactAngle::CalculateContactAngle2D)
     .def("CalculateContactAngle3D", &CalculateContactAngle::CalculateContactAngle3D)
     ;   
     
-     class_<FindTriplePoint, Process > (m,"FindTriplePoint")
+     class_<FindTriplePoint> (m,"FindTriplePoint")
     .def(init<>())
     .def("FindTriplePoint2D", &FindTriplePoint::FindTriplePoint2D)
     .def("FindTriplePoint3D", &FindTriplePoint::FindTriplePoint3D)
     ;
     
-     class_<CalculateNodalLength, Process > (m,"CalculateNodalLength")
+     class_<CalculateNodalLength> (m,"CalculateNodalLength")
     .def(init<>())
     .def("CalculateNodalLength2D", &CalculateNodalLength::CalculateNodalLength2D)
     .def("CalculateNodalLength3D", &CalculateNodalLength::CalculateNodalLength3D)
     ;    
     
-    class_<FindNodalNeighboursSurfaceProcess, Process > (m,"FindNodalNeighboursSurfaceProcess")
+    class_<FindNodalNeighboursSurfaceProcess> (m,"FindNodalNeighboursSurfaceProcess")
     .def(init<ModelPart&, const int, const int>())
     .def("Execute", &FindNodalNeighboursSurfaceProcess::Execute)
     ; 
     
 
-    class_<CalculateAdhesionForce, Process > (m,"CalculateAdhesionForce)
+    class_<CalculateAdhesionForce> (m,"CalculateAdhesionForce")
     .def(init<>())
     .def("CalculateAdhesionForce3D", &CalculateAdhesionForce::CalculateAdhesionForce3D)
     ;

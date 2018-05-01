@@ -55,11 +55,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "includes/define.h"
+// #include "includes/define.h"
+
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "processes/process.h"
 #include "spaces/ublas_space.h"
-#include "custom_utilities/solver_settings.h"
+// #include "custom_utilities/solver_settings.h"
 
 //builder_and_solvers
 #include "custom_strategies/builder_and_solvers/residualbased_elimination_quasiincompresible_builder_and_solver.h"
@@ -196,7 +197,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy3D;
 
     class_< LapModifiedLinearStrategy3D, LapModifiedLinearStrategy3D::Pointer, BaseSolvingStrategyType >
-    (m,"LapModifiedLinearStrategy3D)
+    (m,"LapModifiedLinearStrategy3D")
      .def(init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
     .def("Solve", &LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
     ;

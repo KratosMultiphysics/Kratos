@@ -568,9 +568,9 @@ namespace Kratos
 		
 // 		boost::numeric::ublas::bounded_matrix<double, 3, 3> LHSmat = ZeroMatrix(3,3);
 // 		array_1d<double,3> RHSvec = ZeroVector(3);
-		boost::numeric::ublas::bounded_matrix<double, 2, 2> LHSmat = ZeroMatrix(2,2);
+		BoundedMatrix<double, 2, 2> LHSmat = ZeroMatrix(2,2);
 		array_1d<double,2> RHSvec = ZeroVector(2);		
-		boost::numeric::ublas::bounded_matrix<double, 2, 2> B = ZeroMatrix(2,2);
+		BoundedMatrix<double, 2, 2> B = ZeroMatrix(2,2);
 		
 		//STEP 1: find (u,v) basis of tangent plane at node i
 		//Coordinates to create vector u (basis vector of tangent plane)
@@ -870,9 +870,9 @@ namespace Kratos
     
     void FindComponentsUV(double& alfa, double& beta, array_1d<double,3>& dij, array_1d<double,3>& u_vec, array_1d<double,3>& v_vec)
     {
-      boost::numeric::ublas::bounded_matrix<double, 2, 2> mat_syst;
-      boost::numeric::ublas::bounded_matrix<double, 2, 2> mat_dx;
-      boost::numeric::ublas::bounded_matrix<double, 2, 2> mat_dy;
+      BoundedMatrix<double, 2, 2> mat_syst;
+      BoundedMatrix<double, 2, 2> mat_dx;
+      BoundedMatrix<double, 2, 2> mat_dy;
       int num_case = 0;
       mat_syst(0,0) = u_vec[0];
       mat_syst(1,0) = u_vec[1];
@@ -934,12 +934,12 @@ namespace Kratos
       beta = det_matdy/det_matsys;
     }
     
-    void SolveSys2x2(double& a, double& b,boost::numeric::ublas::bounded_matrix<double, 2, 2>& LHSmat,
+    void SolveSys2x2(double& a, double& b,BoundedMatrix<double, 2, 2>& LHSmat,
 		     array_1d<double,2>& RHSvec)
     {
-      boost::numeric::ublas::bounded_matrix<double, 2, 2> mat_syst = ZeroMatrix(2,2);
-      boost::numeric::ublas::bounded_matrix<double, 2, 2> mat_dx = ZeroMatrix(2,2);
-      boost::numeric::ublas::bounded_matrix<double, 2, 2> mat_dy = ZeroMatrix(2,2);
+      BoundedMatrix<double, 2, 2> mat_syst = ZeroMatrix(2,2);
+      BoundedMatrix<double, 2, 2> mat_dx = ZeroMatrix(2,2);
+      BoundedMatrix<double, 2, 2> mat_dy = ZeroMatrix(2,2);
       
       CopyMatrix2x2(LHSmat,mat_syst);
       CopyMatrix2x2(LHSmat,mat_dx);
@@ -960,13 +960,13 @@ namespace Kratos
       b = det_matdy/det_matsys;
     }
     
-    void SolveSys3x3(double& a, double& b, double& c,boost::numeric::ublas::bounded_matrix<double, 3, 3>& LHSmat,
+    void SolveSys3x3(double& a, double& b, double& c,BoundedMatrix<double, 3, 3>& LHSmat,
 		     array_1d<double,3>& RHSvec)
     {
-      boost::numeric::ublas::bounded_matrix<double, 3, 3> mat_syst = ZeroMatrix(3,3);
-      boost::numeric::ublas::bounded_matrix<double, 3, 3> mat_dx = ZeroMatrix(3,3);
-      boost::numeric::ublas::bounded_matrix<double, 3, 3> mat_dy = ZeroMatrix(3,3);
-      boost::numeric::ublas::bounded_matrix<double, 3, 3> mat_dz = ZeroMatrix(3,3);
+      BoundedMatrix<double, 3, 3> mat_syst = ZeroMatrix(3,3);
+      BoundedMatrix<double, 3, 3> mat_dx = ZeroMatrix(3,3);
+      BoundedMatrix<double, 3, 3> mat_dy = ZeroMatrix(3,3);
+      BoundedMatrix<double, 3, 3> mat_dz = ZeroMatrix(3,3);
       
       CopyMatrix3x3(LHSmat,mat_syst);
       CopyMatrix3x3(LHSmat,mat_dx);
@@ -996,7 +996,7 @@ namespace Kratos
 //     void AddTermsToSys(double& kappaN_ij, double& alfa, double& beta, int& num_neighbs,
 // 		       boost::numeric::ublas::bounded_matrix<double, 3, 3>& LHSmat, array_1d<double,3>& RHSvec)
     void AddTermsToSys(double& kappaN_ij, double& kappa_H, double& alfa, double& beta, int& num_neighbs,
-		       boost::numeric::ublas::bounded_matrix<double, 2, 2>& LHSmat, array_1d<double,2>& RHSvec, const int& option)
+		       BoundedMatrix<double, 2, 2>& LHSmat, array_1d<double,2>& RHSvec, const int& option)
     {
       double weight = 1.0/num_neighbs;
       /*
@@ -1143,12 +1143,12 @@ namespace Kratos
       return (2.0*(kappa_H - x));
     }
     
-    double Det2x2(boost::numeric::ublas::bounded_matrix<double, 2, 2>& input)
+    double Det2x2(BoundedMatrix<double, 2, 2>& input)
     {
       return (input(0,0)*input(1,1) - input(0,1)*input(1,0));
     }
     
-    double Det3x3(boost::numeric::ublas::bounded_matrix<double, 3, 3>& input)
+    double Det3x3(BoundedMatrix<double, 3, 3>& input)
     {
       return (input(0,0)*input(1,1) - input(0,1)*input(1,0));
     }
@@ -1174,8 +1174,8 @@ namespace Kratos
       }
     }
     
-    void CopyMatrix3x3(boost::numeric::ublas::bounded_matrix<double, 3, 3>& input,
-		       boost::numeric::ublas::bounded_matrix<double, 3, 3>& output)
+    void CopyMatrix3x3(BoundedMatrix<double, 3, 3>& input,
+		       BoundedMatrix<double, 3, 3>& output)
     {
       for (unsigned int i = 0; i < 3; i++)
       {
@@ -1186,8 +1186,8 @@ namespace Kratos
       }
     }
     
-    void CopyMatrix2x2(boost::numeric::ublas::bounded_matrix<double, 2, 2>& input,
-		       boost::numeric::ublas::bounded_matrix<double, 2, 2>& output)
+    void CopyMatrix2x2(BoundedMatrix<double, 2, 2>& input,
+		       BoundedMatrix<double, 2, 2>& output)
     {
       for (unsigned int i = 0; i < 2; i++)
       {

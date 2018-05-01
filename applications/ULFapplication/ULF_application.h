@@ -24,6 +24,8 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
+#include "ULF_application_variables.h"
+
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/condition.h"
@@ -39,8 +41,8 @@
 #include "custom_conditions/Point_Neumann3D.h"
 #include "custom_conditions/Point_Neumann2D.h"
 #include "custom_conditions/Point_Neumann_Axisym.h"
-#include "custom_elements/surface_tension.h"
-#include "includes/ublas_interface.h"
+//#include "custom_elements/surface_tension.h"
+//#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -209,10 +211,10 @@ private:
     const PointNeumann2D  mPointNeumann2D;
     const PointNeumannAxisym  mPointNeumannAxisym;
     
-       /// 2D instance of the SurfaceTension element
-    const SurfaceTension<2> mSurfaceTension2D;
-    /// 3D instance of the SurfaceTension element
-    const SurfaceTension<3> mSurfaceTension3D;
+//        /// 2D instance of the SurfaceTension element
+//     const SurfaceTension<2> mSurfaceTension2D;
+//     /// 3D instance of the SurfaceTension element
+//     const SurfaceTension<3> mSurfaceTension3D;
 
     ///@}
     ///@name Private Operators

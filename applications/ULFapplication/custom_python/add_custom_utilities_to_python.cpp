@@ -57,7 +57,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/model_part.h"
-#include "includes/define.h"
+// #include "includes/define.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/ulf_utilities.h"

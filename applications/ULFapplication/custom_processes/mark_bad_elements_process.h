@@ -172,7 +172,7 @@ public:
             msJinv(1,0) = -msJ(1,0);
             msJinv(1,1) =  msJ(0,0);
 
-            bounded_matrix<double,2,2> check;
+            BoundedMatrix<double,2,2> check;
 
 
             if(detJ < 1e-12)

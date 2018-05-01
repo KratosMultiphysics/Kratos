@@ -53,9 +53,9 @@ KratosULFApplication::KratosULFApplication():
     mUlfFrac3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mPointNeumann3D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mPointNeumann2D(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mPointNeumannAxisym(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mSurfaceTension2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mSurfaceTension3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+    mPointNeumannAxisym(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1))))
+//     mSurfaceTension2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+//     mSurfaceTension3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
     
 
 {}
@@ -85,6 +85,14 @@ void KratosULFApplication::Register()
     KRATOS_REGISTER_VARIABLE( PRINCIPAL_CURVATURE_1 )
     KRATOS_REGISTER_VARIABLE( PRINCIPAL_CURVATURE_2 )
     KRATOS_REGISTER_VARIABLE(SUBSCALE_PRESSURE)
+    KRATOS_REGISTER_VARIABLE(INITIAL_MESH_SIZE)
+    
+    KRATOS_REGISTER_VARIABLE(DISSIPATIVE_FORCE_COEFF_JM)
+    KRATOS_REGISTER_VARIABLE(DISSIPATIVE_FORCE_COEFF_BM)
+    KRATOS_REGISTER_VARIABLE(DISSIPATIVE_FORCE_COEFF_SM)
+    KRATOS_REGISTER_VARIABLE(SOLID_LIQIUD_SURFTENS_COEFF)
+    KRATOS_REGISTER_VARIABLE(SOLID_AIR_SURFTENS_COEFF)
+    
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VISCOUS_STRESSX )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VISCOUS_STRESSY )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VISCOUS_STRESSZ ) 
@@ -112,10 +120,10 @@ void KratosULFApplication::Register()
     KRATOS_REGISTER_CONDITION("PointNeumann2D", mPointNeumann2D);
     KRATOS_REGISTER_CONDITION("PointNeumannAxisym", mPointNeumannAxisym);
     
-    KRATOS_REGISTER_ELEMENT("SurfaceTension2D3N",mSurfaceTension2D); //this is the name the element should have according to the naming convention
-    KRATOS_REGISTER_ELEMENT("SurfaceTension3D4N",mSurfaceTension3D); //this is the name the element should have according to the naming convention
-    KRATOS_REGISTER_ELEMENT("SurfaceTension2D",mSurfaceTension2D);
-    KRATOS_REGISTER_ELEMENT("SurfaceTension3D",mSurfaceTension3D);
+//     KRATOS_REGISTER_ELEMENT("SurfaceTension2D3N",mSurfaceTension2D); //this is the name the element should have according to the naming convention
+//     KRATOS_REGISTER_ELEMENT("SurfaceTension3D4N",mSurfaceTension3D); //this is the name the element should have according to the naming convention
+//     KRATOS_REGISTER_ELEMENT("SurfaceTension2D",mSurfaceTension2D);
+//     KRATOS_REGISTER_ELEMENT("SurfaceTension3D",mSurfaceTension3D);
 
 
 }

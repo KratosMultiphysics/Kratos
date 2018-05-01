@@ -28,7 +28,7 @@
 
 
 // External includes
-//#include "boost/smart_ptr.hpp"
+#include "boost/smart_ptr.hpp"
 
 
 
@@ -378,7 +378,6 @@ public:
         noalias(rDampingMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
         // Get this element's geometric properties
-        double Area;
         double Area;
         array_1d<double, TNumNodes> N;
         BoundedMatrix<double, TNumNodes, TDim> DN_DX;

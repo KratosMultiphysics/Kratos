@@ -222,8 +222,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    static boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors;
-    static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_Dx;
+    static BoundedMatrix<double,4,4> msMassFactors;
+    static BoundedMatrix<double,4,3> msDN_Dx;
     static array_1d<double,4> msN; //dimension = number of nodes
     //static Matrix msDN_DX;
     //static Matrix msMassFactors;
@@ -231,9 +231,9 @@ private:
     static array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes
     static array_1d<double,4> ms_u_DN;
 
-    static boost::numeric::ublas::bounded_matrix<double,6,12> msB;
-    static boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
-    static boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
+    static BoundedMatrix<double,6,12> msB;
+    static BoundedMatrix<double,6,6> ms_constitutive_matrix;
+    static BoundedMatrix<double,6,12> ms_temp;
 
     static array_1d<double,6> ms_temp_vec;
     /*

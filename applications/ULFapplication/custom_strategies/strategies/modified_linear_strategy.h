@@ -16,6 +16,8 @@
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
+#include <stdlib.h>
+#include <boost/timer.hpp>
 
 
 /* Project includes */
@@ -874,7 +876,7 @@ private:
         TSystemMatrixType WorkMatrix(reduced_dim,reduced_dim);
         //KRATOS_WATCH(WorkMatrix)
 
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        BoundedMatrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N;
         array_1d<unsigned int ,TDim+1> local_indices;
         //array_1d<double,TDim+1> rhs_contribution;
@@ -997,7 +999,7 @@ private:
 
         //WorkMatrix = D * G
         //TSparseSpace::Mult(mD, matG, WorkMatrix);
-        WorkMatrix=boost::numeric::ublas::prod(mD, matG);
+        WorkMatrix=prod(mD, matG);
         //KRATOS_WATCH(WorkMatrix)
 
         KRATOS_CATCH (" ")
