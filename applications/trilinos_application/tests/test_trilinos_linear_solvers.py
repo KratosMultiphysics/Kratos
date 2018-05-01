@@ -17,6 +17,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
 
         for i in range(all_settings["test_list"].size()):
             settings = all_settings["test_list"][i]
+            #print("running with settings = ",settings)
+
             self._auxiliary_test_function(settings)
 
     def _auxiliary_test_function(self, settings, matrix_name="A.mm", absolute_norm=False):
@@ -43,6 +45,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         space.SetToZeroVector(px.GetReference())
         #space.SetToZeroVector(boriginal)
         #space.UnaliasedAdd(boriginal, 1.0, b) #boriginal=1*bs
+        
 
         #construct the solver
         import trilinos_linear_solver_factory
@@ -86,25 +89,49 @@ class TestLinearSolvers(KratosUnittest.TestCase):
 
 
 
-    @KratosUnittest.expectedFailure
     def test_amesos_superludist(self):
+        if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Superludist") ):
+            self.skipTest("Amesos_Superludist is not between the available Amesos Solvers")
+
         self._RunParametrized("""
             {
                 "test_list" : [
                     {
-                        "solver_type" : "SuperLUSolver",
+                        "solver_type" : "AmesosSolver",
+                        "amesos_solver_type" : "Amesos_Superludist",
                         "scaling" : false
                     }
                 ]
             }
             """)
 
-    def test_amesos_klu(self):
+    def test_amesos_mumps(self):
+        if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Mumps") ):
+            self.skipTest("Amesos_Mumps is not between the available Amesos Solvers")
+
         self._RunParametrized("""
             {
                 "test_list" : [
                     {
-                        "solver_type" : "Klu",
+                        "solver_type" : "AmesosSolver",
+                        "amesos_solver_type" : "Amesos_Mumps",
+                        "scaling" : false
+                    }
+                ]
+            }
+            """)
+
+
+    def test_amesos_klu(self):
+        if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Klu") ):
+            self.skipTest("Amesos_Klu is not between the available Amesos Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "AmesosSolver",
+                        "amesos_solver_type" : "Amesos_Klu",
                         "scaling" : false
                     }
                 ]

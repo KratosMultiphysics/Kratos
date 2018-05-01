@@ -51,7 +51,8 @@ public:
     {
         Parameters default_settings( R"(
         {
-        "solver_type": "Superludist",
+        "solver_type": "AmesosSolver",
+        "amesos_solver_type" : "Amesos_Mumps",
         "scaling":false,
         "trilinos_amesos_parameter_list": {
             }
@@ -70,7 +71,7 @@ public:
 
         }
 
-        mSolverName = settings["solver_type"].GetString();
+        mSolverName = settings["amesos_solver_type"].GetString();
 
         //check if the solver is available and throw an error otherwise
         Amesos Factory;
@@ -98,6 +99,12 @@ public:
      * Destructor
      */
     virtual ~AmesosSolver() {}
+    
+    static bool HasSolver(std::string AmesosSolverName)
+    {
+        Amesos Factory;
+        return Factory.Query(AmesosSolverName);
+    }
 
     /**
      * Normal solve method.
