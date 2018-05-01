@@ -7,8 +7,8 @@ import KratosMultiphysics
 KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
 
 # Import applications
-import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.ALEApplication as KratosALE
 
 # Import base class file
 import navier_stokes_embedded_solver
@@ -77,10 +77,6 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        # TODO: Remove this once we finish the new implementations
-        if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
-            self.element_name = "EmbeddedSymbolicNavierStokes"
-
         ## Construct the linear solver
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
@@ -95,7 +91,8 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
         if (self.fm_ale_step_frequency != 0):
             self.fm_ale_step = 1
             self.virtual_model_part = ModelPart("VirtualModelPart")
-            self.search_radius = self.settings["fm_ale_settings"]["search_radius"].GetDouble()
+            self.mesh_moving_util = KratosALE.ExplicitMeshMovingUtilities(
+                self.virtual_model_part, self.structure_model_part, self.settings["fm_ale_settings"]["search_radius"].GetDouble())
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedFMALEMonolithicSolver", "Construction of NavierStokesEmbeddedFMALEMonolithicSolver finished.")
@@ -136,20 +133,7 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
 
         ## Set the virtual model part geometry
         if (self.fm_ale_step_frequency != 0):
-            self.fast_transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(
-                self.virtual_model_part, self.main_model_part, KratosMultiphysics.NODESANDELEMENTS)
-            self.fast_transfer_process.Execute()
-
-
-    def Initialize(self):
-        super(NavierStokesEmbeddedFMALEMonolithicSolver, self).Initialize()
-
-        ## Set the explicit mesh movement utility
-        if (self.fm_ale_step_frequency != 0):
-            self.mesh_moving_util = KratosALE.ExplicitMeshMovingUtilities(
-                self.virtual_model_part, self.structure_model_part, self.search_radius)
-
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedFMALEMonolithicSolver", "Solver initialization finished.")
+            self.mesh_moving_util.FillVirtualModelPart(self.virtual_model_part, self.main_model_part)
 
 
     def InitializeSolutionStep(self):
@@ -159,28 +143,22 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
         # Perform the FM-ALE operations
         if (self._IsFMALEStep()):
             # Fill the virtual model part variable values: VELOCITY (n,nn), PRESSURE (n,nn)
+            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(PRESSURE,self.main_model_part,self.virtual_model_part,1)
+            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(VELOCITY,self.main_model_part,self.virtual_model_part,1)
+            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(PRESSURE,self.main_model_part,self.virtual_model_part,2)
+            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(VELOCITY,self.main_model_part,self.virtual_model_part,2)
+
             # Solve the mesh problem
             delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
             self.mesh_moving_util.ComputeExplicitMeshMovement(delta_time)
+
             # Project the obtained MESH_VELOCITY and historical VELOCITY and PRESSURE values to the origin mesh
+            self.mesh_moving_util.ProjectVirtualValues(self.main_model_part)
         else:
             self.fm_ale_step += 1
 
         # Fluid solver step initialization
         (self.solver).InitializeSolutionStep()
-
-
-    def SolveSolutionStep(self):
-        # Note that the first two time steps are dropped to fill the BDF buffer
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= 2):
-            (self.solver).SolveSolutionStep()
-
-
-    def Solve(self):
-        (self.bdf_process).Execute()
-        # Note that the first two time steps are dropped to fill the BDF buffer
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= 2):
-            (self.solver).Solve()
 
 
     def FinalizeSolutionStep(self):
