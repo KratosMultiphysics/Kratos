@@ -246,10 +246,8 @@ public:
         ModelPart& rModelPart = BaseType::GetModelPart();
         const int rank = rModelPart.GetCommunicator().MyPID();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-        {
-            std::cout << "Entering Initialize() of EigensolverStrategy." << std::endl;
-        }
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering Initialize" << std::endl;
 
         SchemePointerType& pScheme = this->pGetScheme();
 
@@ -268,10 +266,8 @@ public:
             pScheme->InitializeConditions(rModelPart);
         }
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-        {
-            std::cout << "Exiting Initialize() of EigensolverStrategy." << std::endl;
-        }
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Exiting Initialize" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -321,10 +317,8 @@ public:
         ModelPart& rModelPart = BaseType::GetModelPart();
         const int rank = rModelPart.GetCommunicator().MyPID();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-        {
-            std::cout << "Entering InitializeSolutionStep() of EigensolverStrategy" << std::endl;
-        }
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering InitializeSolutionStep" << std::endl;
 
         BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
         SchemePointerType& pScheme = this->pGetScheme();
@@ -404,10 +398,8 @@ public:
         // Initial operations ... things that are constant over the solution step
         pScheme->InitializeSolutionStep(BaseType::GetModelPart(),rStiffnessMatrix,rDx,rb);
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-        {
-            std::cout << "Exiting InitializeSolutionStep() of EigensolverStrategy" << std::endl;
-        }
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0, )
+            <<  "Exiting InitializeSolutionStep" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -475,10 +467,8 @@ public:
         ModelPart& rModelPart = BaseType::GetModelPart();
         const int rank = rModelPart.GetCommunicator().MyPID();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-        {
-            std::cout << "Entering Check() of EigensolverStrategy" << std::endl;
-        }
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering Check" << std::endl;
 
         // check the model part
         BaseType::Check();
@@ -489,10 +479,8 @@ public:
         // check the builder and solver
         this->pGetBuilderAndSolver()->Check(rModelPart);
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-        {
-            std::cout << "Exiting Check() of EigensolverStrategy" << std::endl;
-        }
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Exiting Check" << std::endl;
 
         return 0;
 
@@ -584,10 +572,8 @@ private:
 
         const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-        {
-            std::cout << "Entering ApplyDirichletConditions() of EigensolverStrategy" << std::endl;
-        }
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering ApplyDirichletConditions" << std::endl;
 
         const std::size_t SystemSize = rA.size1();
         std::vector<double> ScalingFactors(SystemSize);
@@ -653,10 +639,8 @@ private:
             }
         }
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-        {
-            std::cout << "Exiting ApplyDirichletConditions() of EigensolverStrategy" << std::endl;
-        }
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Exiting ApplyDirichletConditions" << std::endl;
 
         KRATOS_CATCH("")
     }

@@ -222,8 +222,8 @@ public:
             auto& r_process_info = r_model_part.GetProcessInfo();
             const auto rank = r_model_part.GetCommunicator().MyPID();
 
-            if (BaseType::GetEchoLevel() > 2 && rank == 0)
-                std::cout << "Entering Initialize() of HarmonicAnalysisStrategy." << std::endl;
+            KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering Initialize" << std::endl;
 
             auto& p_scheme = this->pGetScheme();
 
@@ -394,8 +394,8 @@ public:
 
             mInitializeWasPerformed = true;
 
-            if (BaseType::GetEchoLevel() > 2 && rank == 0)
-                std::cout << "Exiting Initialize() of HarmonicAnalysisStrategy" << std::endl;
+            KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Exiting Initialize" << std::endl;
 
         } //initializeWasPerformed
 
@@ -409,8 +409,8 @@ public:
         auto& r_model_part = BaseType::GetModelPart();
         const auto rank = r_model_part.GetCommunicator().MyPID();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Entering SolveSolutionStep() of HarmonicAnalysisStrategy" << std::endl;
+        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering SolveSolutionStep" << std::endl;
 
         // operations to be done once
         if (this->GetIsInitialized() == false)
@@ -483,8 +483,8 @@ public:
         this->AssignVariables(modal_displacement);
         this->FinalizeSolutionStep();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Exiting SolveSolutionStep() of HarmonicAnalysisStrategy" << std::endl;
+        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            << "Exiting SolveSolutionStep" << std::endl;
 
         return true;
 
@@ -527,8 +527,8 @@ public:
         auto& r_model_part = BaseType::GetModelPart();
         const auto rank = r_model_part.GetCommunicator().MyPID();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Entering InitializeSolutionStep() of HarmonicAnalysisStrategy" << std::endl;
+        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            << "Entering InitializeSolutionStep" << std::endl;
 
         BuilderAndSolverPointerType& p_builder_and_solver = this->pGetBuilderAndSolver();
         SchemePointerType& p_scheme = this->pGetScheme();
@@ -551,8 +551,8 @@ public:
         // initial operations ... things that are constant over the solution step
         p_scheme->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,r_force_vector);
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Exiting InitializeSolutionStep() of HarmonicAnalysisStrategy" << std::endl;
+        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            << "Exiting InitializeSolutionStep" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -565,8 +565,8 @@ public:
         auto& r_model_part = BaseType::GetModelPart();
         const auto rank = r_model_part.GetCommunicator().MyPID();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Entering Check() of HarmonicAnalysisStrategy" << std::endl;
+        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            << "Entering Check" << std::endl;
 
         // check the model part
         BaseType::Check();
@@ -577,8 +577,8 @@ public:
         // check the builder and solver
         this->pGetBuilderAndSolver()->Check(r_model_part);
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Exiting Check() of HarmonicAnalysisStrategy" << std::endl;
+        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            << "Exiting Check" << std::endl;
 
         return 0;
 
