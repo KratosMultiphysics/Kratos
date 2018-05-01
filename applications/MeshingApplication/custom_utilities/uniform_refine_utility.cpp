@@ -47,8 +47,8 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
     }
 
     // Get the elements id
-    const int n_elements = mrModelPart.Elements().size();
-    for (int i = 0; i < n_elements; i++)
+    const IndexType n_elements = mrModelPart.Elements().size();
+    for (IndexType i = 0; i < n_elements; i++)
     {
         ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
         if (ielement->Id() > mLastElemId)
@@ -56,8 +56,8 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
     }
 
     // Get the conditions id
-    const int n_conditions = mrModelPart.Conditions().size();
-    for (int i = 0; i < n_conditions; i++)
+    const IndexType n_conditions = mrModelPart.Conditions().size();
+    for (IndexType i = 0; i < n_conditions; i++)
     {
         ModelPart::ConditionsContainerType::iterator icondition = mrModelPart.ConditionsBegin() + i;
         if (icondition->Id() > mLastCondId)
@@ -133,8 +133,8 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
 
 
     // Get the elements id
-    const int n_elements = mrModelPart.Elements().size();
-    for (int i = 0; i < n_elements; i++)
+    const IndexType n_elements = mrModelPart.Elements().size();
+    for (IndexType i = 0; i < n_elements; i++)
     {
         ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
 
@@ -145,8 +145,8 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
     }
 
     // Get the conditions id
-    const int n_conditions = mrModelPart.Conditions().size();
-    for (int i = 0; i < n_conditions; i++)
+    const IndexType n_conditions = mrModelPart.Conditions().size();
+    for (IndexType i = 0; i < n_conditions; i++)
     {
         ModelPart::ConditionsContainerType::iterator icondition = mrModelPart.ConditionsBegin() + i;
 
@@ -157,7 +157,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
     }
 
     // Loop the origin elements to create the middle nodes
-    for (int id : elements_id)
+    for (auto id : elements_id)
     {
         // Get the element
         Element::Pointer p_element = mrModelPart.Elements()(id);
@@ -178,7 +178,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
 
     // TODO: add OMP
     // Create the elements
-    for (int id : elements_id)
+    for (auto id : elements_id)
     {
         // Get the element
         Element::Pointer p_element = mrModelPart.Elements()(id);
@@ -234,7 +234,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
     mrModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
     // Loop the origin conditions
-    for (const int id : conditions_id)
+    for (auto id : conditions_id)
     {
         // Get the condition
         Condition::Pointer p_condition = mrModelPart.Conditions()(id);
@@ -287,9 +287,9 @@ void UniformRefineUtility<TDim>::CreateNodeInEdge(
     if (search == mNodesMap.end() )
     {
         // Create the new node
-        double new_x = 0.5*rEdge(0)->X() + 0.5*rEdge(1)->X();
-        double new_y = 0.5*rEdge(0)->Y() + 0.5*rEdge(1)->Y();
-        double new_z = 0.5*rEdge(0)->Z() + 0.5*rEdge(1)->Z();
+        const double new_x = 0.5*rEdge(0)->X() + 0.5*rEdge(1)->X();
+        const double new_y = 0.5*rEdge(0)->Y() + 0.5*rEdge(1)->Y();
+        const double new_z = 0.5*rEdge(0)->Z() + 0.5*rEdge(1)->Z();
         NodeType::Pointer middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
 
         // Store the node key in the map
@@ -307,9 +307,9 @@ void UniformRefineUtility<TDim>::CreateNodeInEdge(
             middle_node->pAddDof(*it_dof);
 
         // Add the node to the sub model parts
-        int key0 = mNodesColorMap[rEdge(0)->Id()];
-        int key1 = mNodesColorMap[rEdge(1)->Id()];
-        int key = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
+        const int key0 = mNodesColorMap[rEdge(0)->Id()];
+        const int key1 = mNodesColorMap[rEdge(1)->Id()];
+        const int key = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
         if (key != 0)  // NOTE: key==0 is the main model part
         {
             for (std::string sub_name : mColors[key])
@@ -325,7 +325,7 @@ void UniformRefineUtility<TDim>::CreateNodeInEdge(
 
 /// Get the middle node on an edge
 template <unsigned int TDim>
-Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeInEdge(const EdgeType& rEdge)
+typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInEdge(const EdgeType& rEdge)
 {
     // Initialize the output
     NodeType::Pointer middle_node;
@@ -365,10 +365,10 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
     if (search == mNodesInFaceMap.end() )
     {
         // Create the new node
-        double new_x = 0.25*rFace(0)->X() + 0.25*rFace(1)->X() + 0.25*rFace(2)->X() + 0.25*rFace(3)->X();
-        double new_y = 0.25*rFace(0)->Y() + 0.25*rFace(1)->Y() + 0.25*rFace(2)->Y() + 0.25*rFace(3)->Y();
-        double new_z = 0.25*rFace(0)->Z() + 0.25*rFace(1)->Z() + 0.25*rFace(2)->Z() + 0.25*rFace(3)->Z();
-        Node<3>::Pointer middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
+        const double new_x = 0.25*rFace(0)->X() + 0.25*rFace(1)->X() + 0.25*rFace(2)->X() + 0.25*rFace(3)->X();
+        const double new_y = 0.25*rFace(0)->Y() + 0.25*rFace(1)->Y() + 0.25*rFace(2)->Y() + 0.25*rFace(3)->Y();
+        const double new_z = 0.25*rFace(0)->Z() + 0.25*rFace(1)->Z() + 0.25*rFace(2)->Z() + 0.25*rFace(3)->Z();
+        NodeType::Pointer middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
 
         // Store the node key in the map
         mNodesInFaceMap[node_key] = middle_node->Id();
@@ -407,7 +407,7 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
 
 /// Get the middle node on a face defined by four nodes. If the node does not exist, it creates one
 template< unsigned int TDim>
-Node<3>::Pointer UniformRefineUtility<TDim>::GetNodeInFace(const FaceType& rFace)
+typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInFace(const FaceType& rFace)
 {
     // Initialize the output
     NodeType::Pointer middle_node;
@@ -548,9 +548,9 @@ void UniformRefineUtility<TDim>::CreateCondition(
 
 /// Return the nodes defining the i-subline
 template<unsigned int TDim>
-std::vector<Node<3>::Pointer> UniformRefineUtility<TDim>::GetSubLineNodes(
-    int Position,
-    Geometry<NodeType>& rGeom,
+std::vector<typename NodeType::Pointer> UniformRefineUtility<TDim>::GetSubLineNodes(
+    const int Position,
+    const Geometry<NodeType>& rGeom,
     NodeType::Pointer& rMiddleNode
     )
 {
@@ -579,9 +579,9 @@ std::vector<Node<3>::Pointer> UniformRefineUtility<TDim>::GetSubLineNodes(
 
 /// Return the nodes defining the i-subtriangle
 template<unsigned int TDim>
-std::vector<Node<3>::Pointer> UniformRefineUtility<TDim>::GetSubTriangleNodes(
-    int Position,
-    Geometry<NodeType>& rGeom,
+std::vector<typename NodeType::Pointer> UniformRefineUtility<TDim>::GetSubTriangleNodes(
+    const int Position,
+    const Geometry<NodeType>& rGeom,
     std::array<NodeType::Pointer, 3>& rMiddleNodes
     )
 {
@@ -625,9 +625,9 @@ std::vector<Node<3>::Pointer> UniformRefineUtility<TDim>::GetSubTriangleNodes(
 
 /// Return the nodes defining the i-subquadrilateral
 template<unsigned int TDim>
-std::vector<Node<3>::Pointer> UniformRefineUtility<TDim>::GetSubQuadrilateralNodes(
-    int Position,
-    Geometry<NodeType>& rGeom,
+std::vector<typename NodeType::Pointer> UniformRefineUtility<TDim>::GetSubQuadrilateralNodes(
+    const int Position,
+    const Geometry<NodeType>& rGeom,
     std::array<NodeType::Pointer, 5>& rMiddleNodes
     )
 {

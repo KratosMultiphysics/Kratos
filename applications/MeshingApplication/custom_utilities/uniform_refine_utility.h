@@ -253,7 +253,7 @@ private:
      * Get the middle node on an edge and return a pointer to it
      * CreateNodeInEdge should be executed before to ensure the node existance
      */
-    Node<3>::Pointer GetNodeInEdge(const EdgeType& rEdge);
+    typename NodeType::Pointer GetNodeInEdge(const EdgeType& rEdge);
 
     /**
      * Create a node at the middle point of a face
@@ -268,7 +268,7 @@ private:
      * TODO: If the middle node exist, returns a pointer to the existing node
      * If the middle node does not exist, create a new one and returns a pointer to it
      */
-    Node<3>::Pointer GetNodeInFace(const FaceType& rFace);
+    typename NodeType::Pointer GetNodeInFace(const FaceType& rFace);
 
     /**
      * Calculate the nodal data
@@ -321,27 +321,27 @@ private:
     /**
      * Return the nodes defining the i-subline
      */
-    std::vector<Node<3>::Pointer> GetSubLineNodes(
-        int Position,
-        Geometry<NodeType>& rGeom,
+    std::vector<typename NodeType::Pointer> GetSubLineNodes(
+        const int Position,
+        const Geometry<NodeType>& rGeom,
         NodeType::Pointer& rMiddleNode
         );
 
     /**
      * Return the nodes defining the i-subtriangle
      */
-    std::vector<Node<3>::Pointer> GetSubTriangleNodes(
-        int Position,
-        Geometry<NodeType>& rGeom,
+    std::vector<typename NodeType::Pointer> GetSubTriangleNodes(
+        const int Position,
+        const Geometry<NodeType>& rGeom,
         std::array<NodeType::Pointer, 3>& rMiddleNodes
         );
 
     /**
      * Return the nodes defining the i-subquadrilateral
      */
-    std::vector<Node<3>::Pointer> GetSubQuadrilateralNodes(
-        int Position,
-        Geometry<NodeType>& rGeom,
+    std::vector<typename NodeType::Pointer> GetSubQuadrilateralNodes(
+        const int Position,
+        const Geometry<NodeType>& rGeom,
         std::array<NodeType::Pointer, 5>& rMiddleNodes
         );
 
