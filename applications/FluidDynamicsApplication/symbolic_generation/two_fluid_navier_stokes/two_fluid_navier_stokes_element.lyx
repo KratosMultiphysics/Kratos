@@ -842,7 +842,7 @@ Putting all together:
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-\left(\mathbf{w},\rho\mathbf{f}\right)_{\Omega}-\left(\mathbf{w},\rho\frac{\partial\mathbf{u_{h}}}{\partial t}\right)_{\Omega}+\left(\nabla\cdot\mathbf{w},p_{h}\right)_{\Omega}+\left(\nabla\cdot\mathbf{w},p_{s}\right)_{\Omega}-\left(\nabla\mathbf{w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)_{\Omega}+\int_{\Gamma}\mathbf{w}\cdot\left(\mathbb{C}\text{\nabla}^{s}\mathbf{u}_{h}-p_{h}\mathbf{I}\right)\mathbf{\cdot n}-\\
+\left(\mathbf{w},\rho\mathbf{f}\right)_{\Omega}-\left(\mathbf{w},\rho\frac{\partial\mathbf{u_{h}}}{\partial t}\right)_{\Omega}+\left(\nabla\cdot\mathbf{w},p_{h}\right)_{\Omega}+\left(\mathbf{\nabla\cdot w},p_{enr}\right)_{\Omega}+\left(\nabla\cdot\mathbf{w},p_{s}\right)_{\Omega}-\left(\nabla\mathbf{w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)_{\Omega}+\int_{\Gamma}\mathbf{w}\cdot\left(\mathbb{C}\text{\nabla}^{s}\mathbf{u}_{h}-p_{h}\mathbf{I}\right)\mathbf{\cdot n}-\\
 -\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{h}}\right)_{\Omega}+\left(\rho(\nabla\cdot\mathbf{a})\mathbf{w},\mathbf{u_{s}}\right)_{\Omega}+\left(\rho\mathbf{a}\cdot\nabla\mathbf{w},\mathbf{u_{s}}\right)_{\Omega}-\left(q,\rho\nabla\cdot\mathbf{u_{h}}\right)_{\Omega}+\left(\nabla q,\rho\mathbf{u_{s}}\right)_{\Omega}+\left(\nabla q_{enr},\rho\mathbf{u_{s}}\right)_{\Omega} & =0
 \end{align*}
 

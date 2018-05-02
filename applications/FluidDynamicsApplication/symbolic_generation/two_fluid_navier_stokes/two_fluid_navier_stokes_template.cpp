@@ -4,10 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Daniel Diez, Ruben Zorrilla
+//  Main author:     Daniel Diez
+//  Co-authors:      Ruben Zorrilla
 //
 
 #include "two_fluid_navier_stokes.h"
