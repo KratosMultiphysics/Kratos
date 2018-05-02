@@ -52,7 +52,7 @@
 \pdf_backref section
 \pdf_pdfusetitle false
 \papersize default
-\use_geometry false
+\use_geometry true
 \use_package amsmath 2
 \use_package amssymb 2
 \use_package cancel 1
@@ -76,6 +76,10 @@
 \shortcut idx
 \color #008000
 \end_index
+\leftmargin 3cm
+\topmargin 2cm
+\rightmargin 3cm
+\bottommargin 2.5cm
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
@@ -540,7 +544,7 @@ Developing terms in the decomposed Galerkin residual weak form considering
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-\left(\mathbf{w},\rho\mathbf{f}\right)_{\Omega}-\left(\mathbf{w},\rho\frac{\partial\mathbf{u_{h}}}{\partial t}\right)_{\Omega}-\left(\mathbf{w},\nabla p_{h}\right)_{\Omega}-\left(\mathbf{w},\nabla p_{s}\right)_{\Omega}+\left(\mathbf{w},\nabla\cdot\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)_{\Omega}+\left(\mathbf{w},\nabla\cdot\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{s}}\right)_{\Omega}-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{h}}\right)_{\Omega}-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{s}}\right)_{\Omega}-\left(q,\frac{1}{c^{2}}\frac{\partial p_{h}}{\partial t}\right)_{\Omega}-\left(q,\rho\nabla\cdot\mathbf{u_{h}}\right)_{\Omega}-\left(q,\rho\nabla\cdot\mathbf{u_{s}}\right)_{\Omega} & =0
+\left(\mathbf{w},\rho\mathbf{f}\right)_{\Omega}-\left(\mathbf{w},\rho\frac{\partial\mathbf{u_{h}}}{\partial t}\right)_{\Omega}-\left(\mathbf{w},\nabla p_{h}\right)_{\Omega}-\left(\mathbf{w},\nabla p_{s}\right)_{\Omega}+\left(\mathbf{w},\nabla\cdot\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)_{\Omega}+\left(\mathbf{w},\nabla\cdot\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{s}}\right)_{\Omega}-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{h}}\right)_{\Omega}-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{s}}\right)_{\Omega}-\left(q,\rho\nabla\cdot\mathbf{u_{h}}\right)_{\Omega}-\left(q,\rho\nabla\cdot\mathbf{u_{s}}\right)_{\Omega} & =0
 \end{align*}
 
 \end_inset
@@ -772,7 +776,7 @@ We have to take into account that now the residual of the momentum equation
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\mathbf{R}^{M}(\mathbf{u},p)=\rho\mathbf{f}-\rho\frac{\partial\mathbf{u}}{\partial t}+\nabla\cdot\left(-p\mathbf{I}-p_{enr}\mathbf{I}+\boldsymbol{\tau}\right)-\rho\mathbf{a}\cdot\nabla\mathbf{u}
+\mathbf{R_{enr}}^{M}(\mathbf{u},p)=\rho\mathbf{f}-\rho\frac{\partial\mathbf{u}}{\partial t}+\nabla\cdot\left(-p\mathbf{I}-p_{enr}\mathbf{I}+\boldsymbol{\tau}\right)-\rho\mathbf{a}\cdot\nabla\mathbf{u}
 \]
 
 \end_inset
@@ -823,8 +827,24 @@ Finally we have a term from the mass equation tested against the enriched
 \begin_layout Standard
 \begin_inset Formula 
 \[
-+\left(\nabla q_{enr},\rho\tau_{1}\mathbf{R}^{M}(\mathbf{u_{h}},p_{h})\right)
++\left(\nabla q_{enr},\rho\tau_{1}\mathbf{R_{enr}}^{M}(\mathbf{u_{h}},p_{h})\right)
 \]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Putting all together:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\left(\mathbf{w},\rho\mathbf{f}\right)_{\Omega}-\left(\mathbf{w},\rho\frac{\partial\mathbf{u_{h}}}{\partial t}\right)_{\Omega}+\left(\nabla\cdot\mathbf{w},p_{h}\right)_{\Omega}+\left(\nabla\cdot\mathbf{w},p_{s}\right)_{\Omega}-\left(\nabla\mathbf{w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)_{\Omega}+\int_{\Gamma}\mathbf{w}\cdot\left(\mathbb{C}\text{\nabla}^{s}\mathbf{u}_{h}-p_{h}\mathbf{I}\right)\mathbf{\cdot n}-\\
+-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{h}}\right)_{\Omega}+\left(\rho(\nabla\cdot\mathbf{a})\mathbf{w},\mathbf{u_{s}}\right)_{\Omega}+\left(\rho\mathbf{a}\cdot\nabla\mathbf{w},\mathbf{u_{s}}\right)_{\Omega}-\left(q,\rho\nabla\cdot\mathbf{u_{h}}\right)_{\Omega}+\left(\nabla q,\rho\mathbf{u_{s}}\right)_{\Omega}+\left(\nabla q_{enr},\rho\mathbf{u_{s}}\right)_{\Omega} & =0
+\end{align*}
 
 \end_inset
 

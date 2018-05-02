@@ -213,11 +213,11 @@ for dim in dim_vector:
     if (divide_by_rho):
         #rv_enriched = -qenr_gauss*div_v
         rv_stab_enriched = grad_qenr.transpose()*vel_subscale_enr
-        rv_stab_enriched -= rho*grad_q.transpose()*tau1*grad_penr
+        rv_stab_enriched -= grad_q.transpose()*tau1*grad_penr
     else:
         #rv_enriched = -qenr_gauss*rho*div_v
         rv_stab_enriched = rho*grad_qenr.transpose()*vel_subscale_enr
-        rv_stab_enriched -= grad_q.transpose()*tau1*grad_penr
+        rv_stab_enriched -= rho*grad_q.transpose()*tau1*grad_penr
 
     rv_galerkin_enriched = div_w*penr_gauss    
 

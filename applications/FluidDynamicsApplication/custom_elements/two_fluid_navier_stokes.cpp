@@ -134,6 +134,11 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 				Kee_tot.resize(NumNodes, NumNodes, false);
 				rhs_ee_tot.resize(NumNodes, false);
 
+                noalias(Vtot) = ZeroMatrix(NumNodes*(Dim + 1), NumNodes);
+                noalias(Htot) = ZeroMatrix(NumNodes, NumNodes*(Dim + 1));
+                noalias(Kee_tot) = ZeroMatrix(NumNodes, NumNodes);
+                noalias(rhs_ee_tot) = ZeroVector(NumNodes);
+
 				for (unsigned int g = 0; g < data.PartitionsSigns.size(); g++) {
 					data.UpdateGeometryValues(data.PartitionsVolumes[g],
 						row(shape_functions, g),
@@ -155,7 +160,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 					ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
 				}
 
-					CondenseEnrichment(data, rLeftHandSideMatrix,rRightHandSideVector,Htot,Vtot,Kee_tot, rhs_ee_tot);
+				CondenseEnrichment(data, rLeftHandSideMatrix,rRightHandSideVector,Htot,Vtot,Kee_tot, rhs_ee_tot);
 
 			}
 		}
@@ -1348,7 +1353,7 @@ const double cV13 =             1.0*DNenr(1,1)*cV0*cV3*rho;
 const double cV14 =             1.0*DNenr(1,1)*cV3*rho;
 const double cV15 =             1.0*DNenr(2,1)*cV0*cV3*rho;
 const double cV16 =             1.0*DNenr(2,1)*cV3*rho;
-const double cV17 =             1.0*cV3*rho;
+const double cV17 =             1.0*cV3;
 const double cV18 =             DN(1,0)*cV1 + DN(1,1)*cV2;
 const double cV19 =             DN(2,0)*cV1 + DN(2,1)*cV2;
             V(0,0)=-DN(0,0)*Nenr[0] + N[0]*cV4 + cV5*cV6;
@@ -1530,7 +1535,7 @@ const double cV26 =             1.0*DNenr(2,2)*cV0*cV4*rho;
 const double cV27 =             1.0*DNenr(2,2)*cV4*rho;
 const double cV28 =             1.0*DNenr(3,2)*cV0*cV4*rho;
 const double cV29 =             1.0*DNenr(3,2)*cV4*rho;
-const double cV30 =             1.0*cV4*rho;
+const double cV30 =             1.0*cV4;
 const double cV31 =             DN(1,0)*cV1 + DN(1,1)*cV2 + DN(1,2)*cV3;
 const double cV32 =             DN(2,0)*cV1 + DN(2,1)*cV2 + DN(2,2)*cV3;
 const double cV33 =             DN(3,0)*cV1 + DN(3,1)*cV2 + DN(3,2)*cV3;
