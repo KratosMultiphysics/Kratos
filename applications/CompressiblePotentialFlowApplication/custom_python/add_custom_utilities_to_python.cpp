@@ -13,7 +13,7 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+//#include <boost/python.hpp>
 
 
 // Project includes
@@ -36,20 +36,20 @@ namespace Python
 {
 
 
-  void  AddCustomUtilitiesToPython()
+  void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
-	using namespace boost::python;
+	using namespace pybind11;
 
 
 // 		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 // 		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 // 		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-  KRATOS_REGISTER_IN_PYTHON_VARIABLE( UPPER_SURFACE )
-  KRATOS_REGISTER_IN_PYTHON_VARIABLE( LOWER_SURFACE )
-  KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( WAKE_NORMAL )
-  KRATOS_REGISTER_IN_PYTHON_VARIABLE( PROJECTION_MATRIX )
-  KRATOS_REGISTER_IN_PYTHON_VARIABLE( UPPER_PROJECTION )
-  KRATOS_REGISTER_IN_PYTHON_VARIABLE( LOWER_PROJECTION )
+  // KRATOS_REGISTER_IN_PYTHON_VARIABLE( UPPER_SURFACE )
+  // KRATOS_REGISTER_IN_PYTHON_VARIABLE( LOWER_SURFACE )
+  // KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( WAKE_NORMAL )
+  // KRATOS_REGISTER_IN_PYTHON_VARIABLE( PROJECTION_MATRIX )
+  // KRATOS_REGISTER_IN_PYTHON_VARIABLE( UPPER_PROJECTION )
+  // KRATOS_REGISTER_IN_PYTHON_VARIABLE( LOWER_PROJECTION )
 
   }
 

@@ -642,7 +642,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, INTEGRATION_COORDINATES )
 
     //for Compressible Potential application
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( GAMMA )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GAMMA )
 
     class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer >	(m,"ConvectionDiffusionSettings")
     .def(init<	>() )
