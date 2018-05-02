@@ -33,21 +33,20 @@ class KratosInternalAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
     def AnalyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
 
         for identifier, response in self.response_function_list.items():
+
+            response.InitializeSolutionStep()
+
             # response values
             if communicator.isRequestingValueOf(identifier):
-                startTime = timer.time()
-                print("> Calculating response value of '" + identifier + "'...")
-                value = response.CalculateValue()
-                communicator.reportValue(identifier, value)
-                print("> Time needed for calculating response value of '" + identifier + "' = ",round(timer.time() - startTime,2),"s")
+                response.CalculateValue()
+                communicator.reportValue(identifier, response.GetValue())
 
             # response gradients
             if communicator.isRequestingGradientOf(identifier):
-                startTime = timer.time()
-                print("> Calculating response gradient of '" + identifier + "'...")
                 response.CalculateGradient()
                 communicator.reportGradient(identifier, response.GetShapeGradient())
-                print("> Time needed for calculating response gradient of '" + identifier + "' = ",round(timer.time() - startTime,2),"s")
+
+            response.FinalizeSolutionStep()
 
     # --------------------------------------------------------------------------
     def FinalizeAfterOptimizationLoop( self ):
