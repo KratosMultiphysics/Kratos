@@ -136,66 +136,66 @@ Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
     // ValidateParameters(MapperSettings);
     // mEchoLevel = MapperSettings["echo_level"].GetInt();
 
-    mpInterfaceModelPart = Kratos::make_shared<ModelPart>("Mapper-Interface");
+    // mpInterfaceModelPart = Kratos::make_shared<ModelPart>("Mapper-Interface");
     // maybe add the PARTITION_INDEX here to the mpInterfaceModelPart -> currently done in the InterfacePreprocessor
 
-    mpInterfacePreprocessor = Kratos::make_shared<InterfacePreprocessor>(mrModelPartDestination,
-                                                                         mpInterfaceModelPart);
+    // mpInterfacePreprocessor = Kratos::make_shared<InterfacePreprocessor>(mrModelPartDestination,
+    //                                                                      mpInterfaceModelPart);
 
-    GenerateInterfaceModelPart();
+    // GenerateInterfaceModelPart();
     Initialize();
 }
 
 template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::Initialize()
 {
-    InitializeInterfaceCommunicator();
+    // InitializeInterfaceCommunicator();
     InitializeMappingOperationUtility();
 }
 
 /***********************************************************************************/
 /* PRIVATE Methods */
 /***********************************************************************************/
-template<class TSparseSpace, class TDenseSpace>
-void Mapper<TSparseSpace, TDenseSpace>::InitializeInterfaceCommunicator()
-{
-    const auto mapper_interface_info = GetMapperInterfaceInfo();
+// template<class TSparseSpace, class TDenseSpace>
+// void Mapper<TSparseSpace, TDenseSpace>::InitializeInterfaceCommunicator()
+// {
+//     const auto mapper_interface_info = GetMapperInterfaceInfo();
 
-    mpInterfaceCommunicator = Kratos::make_shared<InterfaceCommunicator>(
-        mrModelPartOrigin, mpInterfaceModelPart, mapper_interface_info);
+//     mpInterfaceCommunicator = Kratos::make_shared<InterfaceCommunicator>(
+//         mrModelPartOrigin, mpInterfaceModelPart, mapper_interface_info);
 
-// #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-//     int mpi_initialized;
-//     MPI_Initialized(&mpi_initialized);
-//     if (mpi_initialized) // parallel execution, i.e. mpi imported in python
-//     {
-//         int comm_size;
-//         MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-//         if (comm_size > 1)
-//             mpInterfaceCommunicator = CreateInterfaceCommunicator(mrModelPartOrigin,
-//                                                                      mpInterfaceModelPart,
-//                                                                      mapper_interface_info);
-//     }
-// #else // serial compilation
-//     mpInterfaceCommunicator = CreateInterfaceCommunicator(mrModelPartOrigin,
-//                                                           mpInterfaceModelPart,
-//                                                           mapper_interface_info);
-// #endif
-}
+// // #ifdef KRATOS_USING_MPI // mpi-parallel compilation
+// //     int mpi_initialized;
+// //     MPI_Initialized(&mpi_initialized);
+// //     if (mpi_initialized) // parallel execution, i.e. mpi imported in python
+// //     {
+// //         int comm_size;
+// //         MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+// //         if (comm_size > 1)
+// //             mpInterfaceCommunicator = CreateInterfaceCommunicator(mrModelPartOrigin,
+// //                                                                      mpInterfaceModelPart,
+// //                                                                      mapper_interface_info);
+// //     }
+// // #else // serial compilation
+// //     mpInterfaceCommunicator = CreateInterfaceCommunicator(mrModelPartOrigin,
+// //                                                           mpInterfaceModelPart,
+// //                                                           mapper_interface_info);
+// // #endif
+// }
 
 template<>
 void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
 {
-    KRATOS_WATCH("Without MPI")
-    mpMappingOperationUtility = CreateMappingOperationUtility(mpInterfaceModelPart);
+    // KRATOS_WATCH("Without MPI")
+    // mpMappingOperationUtility = CreateMappingOperationUtility(mpInterfaceModelPart);
 }
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 template<>
 void Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
 {
-    KRATOS_WATCH("With MPI")
-    mpMappingOperationUtility = CreateMappingOperationUtility(mpInterfaceModelPart);
+    // KRATOS_WATCH("With MPI")
+    // mpMappingOperationUtility = CreateMappingOperationUtility(mpInterfaceModelPart);
 }
 #endif
 

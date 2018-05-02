@@ -22,12 +22,12 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_utilities/interface_communicator.h"
 #include "custom_utilities/matrix_based_mapping_operation_utility.h"
 #include "custom_utilities/interface_preprocessor.h"
 #include "includes/kratos_parameters.h"
-#include "custom_utilities/mapper_utilities.h"
+#include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapper_interface_info.h"
+#include "custom_utilities/mapper_utilities.h"
 #include "custom_utilities/mapper_flags.h"
 
 // For MPI-parallel Mapper
@@ -85,13 +85,15 @@ public:
     /// Pointer definition of Mapper
     KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
-    using InterfaceCommunicatorPointerType = InterfaceCommunicator::Pointer;
+    // using InterfaceCommunicatorPointerType = InterfaceCommunicator::Pointer;
     typedef MappingOperationUtility<TSparseSpace, TDenseSpace> MappingOperationUtilityType;
     typedef typename MappingOperationUtilityType::Pointer MappingOperationUtilityPointerType;
     using InterfacePreprocessorPointerType = InterfacePreprocessor::Pointer;
     using ModelPartPointerType = ModelPart::Pointer;
     using SizeType = std::size_t;
     using IndexType = std::size_t;
+
+    using MapperLocalSystemPointer = std::unique_ptr<MapperLocalSystem>;
 
     ///@}
     ///@name Life Cycle
@@ -140,12 +142,6 @@ public:
     virtual Mapper<TSparseSpace, TDenseSpace>::Pointer Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) = 0;
-
-    // Developer function only being used if this class needs to be accessed from outside!
-    InterfaceCommunicatorPointerType pGetInterfaceCommunicator()
-    {
-        return mpInterfaceCommunicator;
-    }
 
     // Developer function only being used if this class needs to be accessed from outside!
     // can be overridden in case it is needed (e.g. for Mortar where Mdd != I !)
@@ -211,10 +207,11 @@ protected:
 
     bool mInverseMapperIsInitialized = false;
 
-    InterfaceCommunicatorPointerType mpInterfaceCommunicator;
+    // InterfaceCommunicatorPointerType mpInterfaceCommunicator;
     MappingOperationUtilityPointerType mpMappingOperationUtility;
     InterfacePreprocessorPointerType mpInterfacePreprocessor;
-    ModelPartPointerType mpInterfaceModelPart;
+    // ModelPartPointerType mpInterfaceModelPart;
+    std::vector<MapperLocalSystemPointer> mMapperLocalSystems;
 
     Mapper::Pointer mpInverseMapper;
 
@@ -380,7 +377,7 @@ protected:
     virtual Parameters GetInterfaceParameters() = 0;
 
 
-    virtual MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() = 0;
+    // virtual MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() = 0;
 
 
 
@@ -462,12 +459,12 @@ private:
         mGeneralMapperSettings.RecursivelyValidateAndAssignDefaults(mGeneralMapperSettingsDefaults);
     }
 
-    void GenerateInterfaceModelPart()
-    {
-        mpInterfacePreprocessor->GenerateInterfaceModelPart(GetInterfaceParameters());
-    }
+    // void GenerateInterfaceModelPart()
+    // {
+    //     mpInterfacePreprocessor->GenerateInterfaceModelPart(GetInterfaceParameters());
+    // }
 
-    void InitializeInterfaceCommunicator();
+    // void InitializeInterfaceCommunicator();
 
     void InitializeMappingOperationUtility();
 
@@ -493,7 +490,6 @@ private:
     ///@}
 
 }; // Class Mapper
-
 
 }  // namespace Kratos.
 

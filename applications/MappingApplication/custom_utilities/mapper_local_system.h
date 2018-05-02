@@ -13,16 +13,19 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPER_INTERFACE_INFO_H_INCLUDED)
-#define  KRATOS_MAPPER_INTERFACE_INFO_H_INCLUDED
+#if !defined(KRATOS_MAPPER_LOCAL_SYSTEM_H_INCLUDED )
+#define  KRATOS_MAPPER_LOCAL_SYSTEM_H_INCLUDED
+
 
 // System includes
 
+
 // External includes
+
 
 // Project includes
 #include "includes/define.h"
-#include "custom_searching/interface_object.h"
+#include "mapper_interface_info.h"
 
 
 namespace Kratos
@@ -49,29 +52,30 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
+/// This is the "Condition" of the Mappers.
 /** Detail class definition.
 */
-class MapperInterfaceInfo
+class MapperLocalSystem
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of MapperInterfaceInfo
-    KRATOS_CLASS_POINTER_DEFINITION(MapperInterfaceInfo);
+    /// Pointer definition of MapperLocalSystem
+    KRATOS_CLASS_POINTER_DEFINITION(MapperLocalSystem);
+
+    using MapperLocalSystemUniquePointer = std::unique_ptr<MapperLocalSystem>;
+    using MapperInterfaceInfoPointer = MapperInterfaceInfo::Pointer;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MapperInterfaceInfo();
+    MapperLocalSystem();
 
     /// Destructor.
-    virtual ~MapperInterfaceInfo() {
-        std::cout << "Destructor of MapperInterfaceInfo called" << std::endl;
-    }
+    virtual ~MapperLocalSystem() {}
 
 
     ///@}
@@ -83,32 +87,19 @@ public:
     ///@name Operations
     ///@{
 
-    // void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject)
-    // {
+    virtual MapperLocalSystemUniquePointer Create() = 0;
 
-    // }
+    virtual void CalculateAll() = 0;
 
-
-    std::vector<int> GetNeighborIds() const
+    void AddInterfaceInfo(MapperInterfaceInfoPointer pInterfaceInfo)
     {
-        std::vector<int> neighbor_ids(1);
-        // neighbor_ids[0] = mNeighborId;
-        return neighbor_ids;
+        mInterfaceInfos.push_back(pInterfaceInfo);
     }
 
-    std::vector<double> GetNeighborDistances() const
+    virtual void Clear()
     {
-        std::vector<double> neighbor_distances(1);
-        // neighbor_distances[0] = mNeighborDistance;
-        return neighbor_distances;
+        mInterfaceInfos.clear();
     }
-
-    MapperInterfaceInfo::Pointer Create() const
-    {
-        return Kratos::make_shared<MapperInterfaceInfo>();
-    }
-
-    void Clear() {}
 
 
     ///@}
@@ -126,10 +117,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "MapperInterfaceInfo";
-    }
+    virtual std::string Info() const {return "MapperLocalSystem";}
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const {}
@@ -154,7 +142,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    std::size_t mRank;
+    std::vector<MapperInterfaceInfoPointer> mInterfaceInfos;
+
 
     ///@}
     ///@name Protected Operators
@@ -207,16 +196,6 @@ private:
     ///@name Private  Access
     ///@{
 
-    friend class Serializer;
-
-    virtual void save(Serializer& rSerializer) const {
-        KRATOS_ERROR << "This Object cannot be serialized!" << std::endl;
-    }
-
-    virtual void load(Serializer& rSerializer) {
-        KRATOS_ERROR << "This Object cannot be serialized!" << std::endl;
-    }
-
 
     ///@}
     ///@name Private Inquiry
@@ -227,15 +206,16 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    // MapperInterfaceInfo& operator=(MapperInterfaceInfo const& rOther) {}
+    // /// Assignment operator.
+    // MapperLocalSystem& operator=(MapperLocalSystem const& rOther);
 
-    /// Copy constructor.
-    // MapperInterfaceInfo(MapperInterfaceInfo const& rOther) {}
+    // /// Copy constructor.
+    // MapperLocalSystem(MapperLocalSystem const& rOther);
+
 
     ///@}
 
-}; // Class MapperInterfaceInfo
+}; // Class MapperLocalSystem
 
 ///@}
 
@@ -247,29 +227,25 @@ private:
 ///@name Input and output
 ///@{
 
-inline std::istream & operator >> (std::istream& rIStream, MapperInterfaceInfo& rThis);
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                MapperLocalSystem& rThis);
 
 /// output stream function
-inline std::ostream & operator << (std::ostream& rOStream, const MapperInterfaceInfo& rThis) {
-//   rThis.PrintInfo(rOStream);
-  rOStream << " : " << std::endl;
-//   rThis.PrintData(rOStream);
-  return rOStream;
+inline std::ostream& operator << (std::ostream& rOStream,
+                const MapperLocalSystem& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
 }
-
-/// output stream function
-inline std::ostream & operator << (std::ostream& rOStream, const std::vector<MapperInterfaceInfo::Pointer>& rThis) {
-//   rThis.PrintInfo(rOStream);
-  rOStream << " : " << std::endl;
-//   rThis.PrintData(rOStream);
-  return rOStream;
-}
-
-
 ///@}
 
 ///@} addtogroup block
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MAPPER_INTERFACE_INFO_H_INCLUDED  defined
+#endif // KRATOS_MAPPER_LOCAL_SYSTEM_H_INCLUDED  defined

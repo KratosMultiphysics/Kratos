@@ -167,6 +167,19 @@ public:
     ///@}
 
 protected:
+    class NearestElementLocalSystem : public MapperLocalSystem
+    {
+        std::unique_ptr<MapperLocalSystem> Create() override
+        {
+            return std::make_unique<NearestElementLocalSystem>();
+        }
+
+        void CalculateAll() override
+        {
+
+        }
+
+    };
     ///@name Protected static Member Variables
     ///@{
 
@@ -196,10 +209,10 @@ protected:
         return mapper_interface_parameters;
     }
 
-    MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() override
-    {
+    // MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() override
+    // {
 
-    }
+    // }
 
     ///@}
     ///@name Protected  Access

@@ -187,10 +187,10 @@ protected:
         return mapper_interface_parameters;
     }
 
-    MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() override
-    {
+    // MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() override
+    // {
 
-    }
+    // }
 
     ///@}
     ///@name Protected  Access
