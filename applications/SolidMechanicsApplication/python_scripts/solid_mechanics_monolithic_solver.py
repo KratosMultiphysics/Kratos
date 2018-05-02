@@ -9,10 +9,10 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 KratosMultiphysics.CheckForPreviousImport()
 
 def CreateSolver(custom_settings):
-    return MechanicalSolver(custom_settings)
+    return MonolithicSolver(custom_settings)
 
 #Base class to develop other solvers
-class MechanicalSolver(object):
+class MonolithicSolver(object):
     """The base class for solid mechanics solvers.
 
     This class provides functions for importing and exporting models,
@@ -120,7 +120,7 @@ class MechanicalSolver(object):
         time_integration_order = self.time_integration_settings["time_integration_order"].GetInt()
         if( buffer_size <= time_integration_order ):
             buffer_size = time_integration_order + 1
-        return buffer_size;
+        return buffer_size
 
     def SetComputingModelPart(self, computing_model_part):
         self.model_part = computing_model_part
@@ -379,7 +379,7 @@ class MechanicalSolver(object):
 
         # Construction of the class convergence_criterion
         import convergence_criteria_factory
-        convergence_criterion = convergence_criteria_factory.ConvergenceCriterion(conv_params)
+        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
 
         return convergence_criterion.mechanical_convergence_criterion
 

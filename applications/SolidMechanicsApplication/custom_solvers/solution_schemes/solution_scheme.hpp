@@ -57,11 +57,11 @@ class SolverLocalFlags
 
   /// Flags for the solution options:
   KRATOS_DEFINE_LOCAL_FLAG( REFORM_DOFS );
+  KRATOS_DEFINE_LOCAL_FLAG( INCREMENTAL_SOLUTION );
   KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_REACTIONS );
   KRATOS_DEFINE_LOCAL_FLAG( CONSTANT_SYSTEM_MATRIX );
   KRATOS_DEFINE_LOCAL_FLAG( RAYLEIGH_DAMPING );
   KRATOS_DEFINE_LOCAL_FLAG( IMPLEX );
-
 };
 
 
@@ -114,7 +114,7 @@ class SolutionScheme : public Flags
 
   /// Constructor.
   SolutionScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods, Flags& rOptions) : Flags(), mOptions(rOptions), mTimeIntegrationMethods(rTimeIntegrationMethods) {}
-  
+
   /// Constructor.
   SolutionScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods) : Flags(), mTimeIntegrationMethods(rTimeIntegrationMethods) {}
 
@@ -149,6 +149,9 @@ class SolutionScheme : public Flags
   virtual void Initialize(ModelPart& rModelPart)
   {
     KRATOS_TRY
+
+    if( this->mOptions.IsNotDefined(LocalFlagType::INCREMENTAL_SOLUTION) )
+      mOptions.Set(LocalFlagType::INCREMENTAL_SOLUTION); //default : dof is the variable increment
 
     this->InitializeElements(rModelPart);
 
@@ -309,12 +312,46 @@ class SolutionScheme : public Flags
 
 
   /**
-   * @brief Performing the update of the solution Dofs
+   * @brief Performing the update of the solution Dofs (total solution)
    * @details this function must be called only once per iteration
    */
-  virtual void UpdateDofs(ModelPart& rModelPart,
-                          DofsArrayType& rDofSet,
-                          SystemVectorType& rDx)
+  static inline void SetSolution(ModelPart& rModelPart,
+                                 DofsArrayType& rDofSet,
+                                 SystemVectorType& rDx)
+  {
+    KRATOS_TRY
+
+    const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+
+    // Update of displacement (by DOF)
+    OpenMPUtils::PartitionVector DofPartition;
+    OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofPartition);
+
+    const int ndof = static_cast<int>(rDofSet.size());
+    typename DofsArrayType::iterator DofBegin = rDofSet.begin();
+
+    #pragma omp parallel for firstprivate(DofBegin)
+    for(int i = 0;  i < ndof; i++)
+    {
+      typename DofsArrayType::iterator itDof = DofBegin + i;
+
+      if (itDof->IsFree() )
+      {
+        itDof->GetSolutionStepValue() = TSparseSpace::GetValue(rDx,itDof->EquationId());
+      }
+    }
+
+    KRATOS_CATCH("")
+  }
+
+
+  /**
+   * @brief Performing the update of the solution Dofs (incremental solution)
+   * @details this function must be called only once per iteration
+   */
+  static inline void AddSolution(ModelPart& rModelPart,
+                                 DofsArrayType& rDofSet,
+                                 SystemVectorType& rDx)
   {
     KRATOS_TRY
 
@@ -337,6 +374,24 @@ class SolutionScheme : public Flags
         itDof->GetSolutionStepValue() += TSparseSpace::GetValue(rDx,itDof->EquationId());
       }
     }
+
+    KRATOS_CATCH("")
+  }
+
+  /**
+   * @brief Performing the update of the solution Dofs
+   * @details this function must be called only once per iteration
+   */
+  virtual void UpdateDofs(ModelPart& rModelPart,
+                          DofsArrayType& rDofSet,
+                          SystemVectorType& rDx)
+  {
+    KRATOS_TRY
+
+    if( mOptions.Is(LocalFlagType::INCREMENTAL_SOLUTION) )
+      AddSolution(rModelPart,rDofSet,rDx);  //dof = incremental variable
+    else
+      SetSolution(rModelPart,rDofSet,rDx);  //dof = total variable
 
     KRATOS_CATCH("")
   }
@@ -834,10 +889,11 @@ KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONDITIONS_INITIALIZED,    4 );
  * Flags for the Strategy options
  */
 KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, REFORM_DOFS,               0 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, COMPUTE_REACTIONS,         1 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONSTANT_SYSTEM_MATRIX,    2 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, RAYLEIGH_DAMPING,          3 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, IMPLEX,                    4 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INCREMENTAL_SOLUTION,      1 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, COMPUTE_REACTIONS,         2 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONSTANT_SYSTEM_MATRIX,    3 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, RAYLEIGH_DAMPING,          4 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, IMPLEX,                    5 );
 ///@}
 ///@name Input and output
 ///@{

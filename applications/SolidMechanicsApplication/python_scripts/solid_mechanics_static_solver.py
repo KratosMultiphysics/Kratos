@@ -35,12 +35,9 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         time_integration_settings = custom_settings["time_integration_settings"]
 
         # Validate the remaining settings in the base class.
-        if not time_integration_settings.Has("solution_type"):
-            time_integration_settings.AddEmptyValue("solution_type")
-            time_integration_settings["solution_type"].SetString("Static") # Override defaults in the base class.
         if not time_integration_settings.Has("integration_method"):
             time_integration_settings.AddEmptyValue("integration_method")
-            time_integration_settings["integration_method"].SetString("Non-Linear") # Override defaults in the base class.
+            time_integration_settings["integration_method"].SetString("Static") # Override defaults in the base class.
 
         # Construct the base solver.
         # Calling base class of ImplicitMechanicalSolver it is ok.
@@ -52,40 +49,13 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
 
     def _create_solution_scheme (self):
 
-        integration_method = self.time_integration_settings["integration_method"].GetString()
-        # set solution scheme and integration method dictionary
-        self.integration_methods = {}
-        if(integration_method == "Linear"):
-            # create dictionary for the correct variables assigment when setting the constraints
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticComponentIntegration(),
-                                             'ROTATION': KratosSolid.StaticComponentIntegration()}) #shells
-            scheme_integration_methods = []
-            # create the time integration methods list to define the scheme
-            scheme_integration_methods.append(KratosSolid.StaticVectorIntegration(KratosMultiphysics.DISPLACEMENT))
-            mechanical_scheme = KratosSolid.StaticScheme(scheme_integration_methods)
-        elif(integration_method == "Non-Linear" ):
-            # create dictionary for the correct variables assigment when setting the constraints
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticComponentIntegration(),
-                                             'ROTATION': KratosSolid.StaticComponentIntegration()}) #shells
-            scheme_integration_methods = []
-            # create the time integration methods list to define the scheme
-            scheme_integration_methods.append(KratosSolid.StaticVectorIntegration(KratosMultiphysics.DISPLACEMENT))
-            mechanical_scheme = KratosSolid.StaticScheme(scheme_integration_methods)
-        elif(integration_method == "RotationStatic"):
-            # create dictionary for the correct variables assigment when setting the constraints
-            self.integration_methods.update({'DISPLACEMENT': KratosSolid.StaticStepComponentIntegration(),
-                                             'ROTATION': KratosSolid.StaticStepRotationComponentIntegration()}) #beams
-            scheme_integration_methods = []
-            # create the time integration methods list to define the scheme
-            displacement_integration_method = KratosSolid.StaticStepVectorIntegration(KratosMultiphysics.DISPLACEMENT)
-            displacement_integration_method.SetStepVariable(KratosSolid.STEP_DISPLACEMENT)
-            scheme_integration_methods.append(displacement_integration_method)
-            rotation_integration_method = KratosSolid.StaticStepRotationVectorIntegration(KratosMultiphysics.ROTATION)
-            rotation_integration_method.SetStepVariable(KratosSolid.STEP_ROTATION)
-            scheme_integration_methods.append(rotation_integration_method)
-            mechanical_scheme = KratosSolid.StaticScheme(scheme_integration_methods)
-        else:
-            raise Exception("Unsupported integration_method: " + integration_method)
+        # set solution scheme
+        import schemes_factory
+        Schemes = schemes_factory.SolutionScheme(self.time_integration_settings,self.settings["dofs"])
+        mechanical_scheme = Schemes.GetSolutionScheme()
+
+        # set integration method dictionary
+        self.integration_methods = Schemes.GetIntegrationMethods()
 
         # set integration parameters
         self._set_time_integration_methods()
@@ -96,10 +66,10 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         if(self.solving_strategy_settings["line_search"].GetBool() == True):
             mechanical_solver = self._create_line_search_strategy()
         else:
-            if(self.time_integration_settings["integration_method"].GetString() == "Linear"):
-                mechanical_solver = self._create_linear_strategy()
-            else:
+            if(self.time_integration_settings["solution_type"].GetString() == "Quasi-static"):
                 mechanical_solver = self._create_newton_raphson_strategy()
+            else:
+                mechanical_solver = self._create_linear_strategy()
 
         return mechanical_solver
 

@@ -247,7 +247,15 @@ namespace Kratos
       KRATOS_CATCH( "" )              
     }
     
-
+    void UpdateFromFirstDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+          
+      KRATOS_ERROR << " Calling UpdateFromSecondDerivative for Simo time integration method : NOT IMPLEMENTED " <<std::endl;
+       
+      KRATOS_CATCH( "" )
+    }
+    
     void UpdateVariable(NodeType& rNode) override
     {
       KRATOS_TRY

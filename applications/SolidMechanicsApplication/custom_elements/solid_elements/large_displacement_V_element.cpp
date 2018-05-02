@@ -144,14 +144,14 @@ void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult,
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension + number_of_nodes;
+    unsigned int       dofs_size       = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        int index = i * dimension + i;
+        int index = i * dimension;
         rResult[index]     = GetGeometry()[i].GetDof( VELOCITY_X ).EquationId();
         rResult[index + 1] = GetGeometry()[i].GetDof( VELOCITY_Y ).EquationId();
 
@@ -430,7 +430,21 @@ int  LargeDisplacementVElement::Check( const ProcessInfo& rCurrentProcessInfo )
     // Perform base element checks
     int ErrorCode = 0;
     ErrorCode = LargeDisplacementElement::Check(rCurrentProcessInfo);
-    
+
+    // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
+    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+      {
+	// Nodal data
+	Node<3> &rNode = this->GetGeometry()[i];
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
+	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+	
+	// Nodal dofs
+	KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
+	KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
+	if( rCurrentProcessInfo[SPACE_DIMENSION] == 3)
+	  KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+      }
     // Check compatibility with the constitutive law
 
     // Check that all required variables have been registered

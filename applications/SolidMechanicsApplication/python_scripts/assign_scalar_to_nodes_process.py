@@ -199,14 +199,14 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                     break
 
         if( self.fix_derivated_variable ):
-            params["variable_name"].SetString(self.derivated_variable_name)
-            fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
-            self.FixDofsProcesses.append(fix_dof_process)
-            free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
-            self.FreeDofsProcesses.append(free_dof_process)
-            params["variable_name"].SetString(self.settings["variable_name"].GetString())
-
             if( self.fix_time_integration == False ):
+                params["variable_name"].SetString(self.derivated_variable_name)
+                fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+                self.FixDofsProcesses.append(fix_dof_process)
+                free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+                self.FreeDofsProcesses.append(free_dof_process)
+                params["variable_name"].SetString(self.settings["variable_name"].GetString())
+
                 fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
                 self.FixDofsProcesses.append(fix_dof_process)
                 free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)

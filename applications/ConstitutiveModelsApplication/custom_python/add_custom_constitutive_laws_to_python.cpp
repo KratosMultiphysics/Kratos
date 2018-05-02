@@ -52,6 +52,7 @@
 #include "custom_models/elasticity_models/borja_model.hpp"
 #include "custom_models/elasticity_models/ogden_model.hpp"
 #include "custom_models/elasticity_models/isochoric_ogden_model.hpp"
+#include "custom_models/elasticity_models/hypo_elastic_model.hpp"
 
 // Plasticity models
 #include "custom_models/plasticity_models/von_mises_linear_elastic_plasticity_model.hpp"
@@ -217,11 +218,17 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       (m, "OgdenModel")
       .def( init<>() )
       ;
+  
   class_< IsochoricOgdenModel, typename IsochoricOgdenModel::Pointer, ConstitutiveModelBaseType >
       (m, "IsochoricOgdenModel")
       .def( init<>() )
       ;
-
+  
+  class_< HypoElasticModel, typename HypoElasticModel::Pointer, ConstitutiveModelBaseType >
+      (m, "HypoElasticModel")
+      .def( init<>() )
+      ;
+  
   //plasticity models
   class_< VonMisesLinearElasticPlasticityModel, typename VonMisesLinearElasticPlasticityModel::Pointer, ConstitutiveModelBaseType >
       (m, "VonMisesLinearElasticPlasticityModel")

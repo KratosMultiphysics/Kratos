@@ -9,7 +9,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 KratosMultiphysics.CheckForPreviousImport()
 
 # Convergence criteria class
-class convergence_criterion:
+class ConvergenceCriterion:
 
     def __init__(self, convergence_criterion_parameters):
         """Create a convergence criterion from json parameters.

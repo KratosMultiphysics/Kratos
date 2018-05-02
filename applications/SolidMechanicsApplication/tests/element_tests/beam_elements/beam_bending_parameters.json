@@ -15,14 +15,14 @@
             },
             "time_integration_settings" : {
                 "solution_type"      : "Static",
-                "integration_method" : "RotationStatic"
+                "integration_method" : "StaticStep"
             },
             "solving_strategy_settings" : {
                 "convergence_criterion"       : "Residual_criterion",
                 "residual_relative_tolerance" : 1e-6,
                 "residual_absolute_tolerance" : 1e-9
             },
-	    "dofs" : ["ROTATION"]
+	    "dofs" : ["DISPLACEMENT","ROTATION"]
         }
     },
     "constraints_process_list" : [{

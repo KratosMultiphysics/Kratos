@@ -419,6 +419,18 @@ namespace Kratos
 
       KRATOS_CATCH( "" )
     }
+
+
+    void PredictFromFirstDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+
+      this->PredictFirstDerivative(rNode);
+      this->PredictSecondDerivative(rNode);
+      this->PredictVariable(rNode);
+     
+      KRATOS_CATCH( "" )
+    }
     
     void PredictVariable(NodeType& rNode) override
     {
@@ -479,6 +491,34 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
+    void UpdateFromFirstDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+          
+      TValueType& CurrentVariable                = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      TValueType& CurrentSecondDerivative        = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
+      const TValueType& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
+      	          
+      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
+      const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
+      const TValueType& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 1);
+ 
+      CurrentSecondDerivative = (this->mNewmark.c0/this->mNewmark.c1) * (CurrentFirstDerivative + this->mNewmark.c4 * PreviousFirstDerivative + this->mNewmark.c5 * PreviousSecondDerivative) - this->mNewmark.c2 * PreviousFirstDerivative - this->mNewmark.c3 * PreviousSecondDerivative;
+      
+      CurrentVariable = PreviousVariable + (1.0/this->mNewmark.c1) * (CurrentFirstDerivative + this->mNewmark.c4 * PreviousFirstDerivative + this->mNewmark.c5 * PreviousSecondDerivative);
+      
+      KRATOS_CATCH( "" )
+    }
+
+    
+    void UpdateFromSecondDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+          
+      KRATOS_ERROR << " Calling UpdateFromSecondDerivative for Newmark time integration method : NOT IMPLEMENTED " <<std::endl;
+      
+      KRATOS_CATCH( "" )
+    }
     
     void UpdateVariable(NodeType& rNode) override
     {
@@ -493,7 +533,7 @@ namespace Kratos
       KRATOS_TRY
 	
       const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      TValueType& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
+      TValueType& CurrentFirstDerivative         = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
  	          
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
@@ -519,7 +559,10 @@ namespace Kratos
     
       KRATOS_CATCH( "" )              
     }
+    
 
+
+    
     ///@}
     ///@name Protected Operations
     ///@{

@@ -279,7 +279,11 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    
+    /**
+     * Stress update for a hypoelastic model
+     */
+    void AddHistoricalStress(ModelDataType& rValues, MatrixType& rStressMatrix);
+
     /**
      * Calculate Stresses
      */

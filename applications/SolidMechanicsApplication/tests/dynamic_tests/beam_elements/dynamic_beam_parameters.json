@@ -16,7 +16,7 @@
             "time_integration_settings" : {
                 "solution_type"      : "Dynamic",
                 "time_integration"   : "Implicit",
-                "integration_method" : "RotationSimo"
+                "integration_method" : "SimoStep"
             },
             "solving_strategy_settings" : {
                 "line_search"                 : false,
@@ -26,7 +26,7 @@
                 "max_iteration"               : 15,
                 "bossak_factor"               : 0.0
             },
-	    "dofs" : ["ROTATION"]
+	    "dofs" : ["DISPLACEMENT","ROTATION"]
         }
     },
     "constraints_process_list" : [{

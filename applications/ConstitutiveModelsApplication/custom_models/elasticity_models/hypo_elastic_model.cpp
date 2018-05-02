@@ -12,8 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/linear_elastic_model.hpp"
-#include "utilities/quaternion.h"
+#include "custom_models/elasticity_models/hypo_elastic_model.hpp"
 
 namespace Kratos
 {
@@ -136,14 +135,14 @@ namespace Kratos
     MatrixType W = 0.5 * rDeltaTime * (rSpatialVelocityGradient - trans(rSpatialVelocityGradient));
 
     // Exponential map using quaternions
-    Quaternion<double> QuaternionValue = QuaternionType<double>::FromRotationMatrix( W );
+    Quaternion<double> QuaternionValue = Quaternion<double>::FromRotationMatrix( W );
     QuaternionValue.ToRotationMatrix(W);
     
     MatrixType PreviousStressMatrix;
-    PreviousStressMatrix = ConstitutiveModelUtilities::SymmetricTensorToVector(this->HistoryVector, PreviousStressMatrix);
+    PreviousStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector, PreviousStressMatrix);
 
     PreviousStressMatrix = prod( W, PreviousStressMatrix );
-    PreviousStressMatrix = prod( PreviousstressMatrix, trans(W) );
+    PreviousStressMatrix = prod( PreviousStressMatrix, trans(W) );
 
     rStressMatrix += PreviousStressMatrix;
 

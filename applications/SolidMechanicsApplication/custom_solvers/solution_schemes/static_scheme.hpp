@@ -111,7 +111,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-	BaseType::Initialize(rModelPart);
+	BaseType::Initialize(rModelPart);         
 
 	KRATOS_CATCH("")
     }
