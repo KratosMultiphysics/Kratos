@@ -77,7 +77,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/planestress_from_3d_constitutive_law_adapter.h"
 #include "constitutive_laws/planestrain_from_3d_constitutive_law_adapter.h"
 #include "constitutive_laws/interpolated_constitutive_law_2d.h"
-#include "multiscale_application_variables.h"
+#include "multiscmesh_moving_application_variables.h"
 
 namespace Kratos
 {
@@ -102,23 +102,23 @@ void AddConstitutiveLawsToPython()
 	class_< ConvDiffConstitutiveLaw3D, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ConvDiffConstitutiveLaw3D",
 		init<>())
-		; 
+		;
 
 	class_< ConvDiffAnisotropic3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ConvDiffAnisotropic3DLaw",
 		init<>())
 		;
-	
+
 	class_< ConvDiffPlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ConvDiffPlaneStress2DLaw",
 		init<>())
-		; 
+		;
 
 	class_< ConvDiffAnisotropic2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ConvDiffAnisotropic2DLaw",
 		init<>())
 		;
-	
+
 
 	class_< LinearElasticThickShellLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"LinearElasticThickShellLaw",
@@ -149,7 +149,7 @@ void AddConstitutiveLawsToPython()
 		"ScalarDamageInterface2DLaw",
 		init<>())
 		;
-	
+
 	class_< ScalarDamageInterface3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ScalarDamageInterface3DLaw",
 		init<>())

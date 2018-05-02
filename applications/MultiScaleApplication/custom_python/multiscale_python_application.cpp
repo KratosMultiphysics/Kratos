@@ -59,8 +59,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "multiscale_application.h"
-#include "multiscale_application_variables.h"
+#include "multiscmesh_moving_application.h"
+#include "multiscmesh_moving_application_variables.h"
 #include "add_linear_solvers_to_python.h"
 #include "add_conditions_to_python.h"
 #include "add_strategies_to_python.h"
@@ -179,7 +179,7 @@ BOOST_PYTHON_MODULE( KratosMultiScaleApplication )
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(GAP_INTERFACE)
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONVECTION_DEGRADATION )
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE( EXPONENTIAL_DAMAGE )
-	
+
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE( DAMAGE_T_INTERFACE )
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE( DAMAGE_C_INTERFACE )
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE( DAMAGE_T )

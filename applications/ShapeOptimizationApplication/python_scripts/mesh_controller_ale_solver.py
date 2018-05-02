@@ -13,7 +13,7 @@ from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 from KratosMultiphysics import *
-from KratosMultiphysics.ALEApplication import *
+from KratosMultiphysics.MeshMovingApplication import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Additional imports
@@ -37,7 +37,7 @@ class MeshControllerUsingALESolver(MeshController) :
             },
             "solver_settings" : {
                 "solver_type" : "mesh_solver_structural_similarity",
-                "ale_linear_solver_settings" : {
+                "mesh_motion_linear_solver_settings" : {
                     "solver_type" : "AMGCL",
                     "smoother_type":"ilu0",
                     "krylov_type": "gmres",

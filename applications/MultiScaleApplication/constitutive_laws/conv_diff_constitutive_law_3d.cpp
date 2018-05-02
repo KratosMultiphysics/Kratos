@@ -45,12 +45,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * ***********************************************************/
 
 #include "conv_diff_constitutive_law_3d.h"
-#include "multiscale_application_variables.h"
+#include "multiscmesh_moving_application_variables.h"
 
 namespace Kratos
 {
 
-	ConvDiffConstitutiveLaw3D::ConvDiffConstitutiveLaw3D() 
+	ConvDiffConstitutiveLaw3D::ConvDiffConstitutiveLaw3D()
 		: ConstitutiveLaw()
 		, m_initialized(false)
 		, m_init_gradT()
