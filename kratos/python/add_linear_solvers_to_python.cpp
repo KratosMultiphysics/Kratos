@@ -82,6 +82,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     typedef SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexSkylineLUSolverType;
 
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
+    void (LinearSolverType::*pointer_to_solve_eigen)(LinearSolverType::SparseMatrixType& rK, LinearSolverType::SparseMatrixType& rM,LinearSolverType::DenseVectorType& Eigenvalues, LinearSolverType::DenseMatrixType& Eigenvectors) = &LinearSolverType::Solve;
     bool (ComplexLinearSolverType::*pointer_to_complex_solve)(ComplexLinearSolverType::SparseMatrixType& rA, ComplexLinearSolverType::VectorType& rX, ComplexLinearSolverType::VectorType& rB) = &ComplexLinearSolverType::Solve;
     
     using namespace pybind11;
@@ -121,6 +122,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def( init< >() )
     .def("Initialize",&LinearSolverType::Initialize)
     .def("Solve",pointer_to_solve)
+    .def("Solve",pointer_to_solve_eigen)
     .def("Clear",&LinearSolverType::Clear)
     .def("__repr__", &LinearSolverType::Info )
     ;
@@ -170,19 +172,16 @@ void  AddLinearSolversToPython(pybind11::module& m)
     class_<PowerIterationEigenvalueSolverType, PowerIterationEigenvalueSolverType::Pointer, LinearSolverType>(m,"PowerIterationEigenvalueSolver")
     .def(init<double, unsigned int, unsigned int, LinearSolverType::Pointer>())
     .def(init<Parameters, LinearSolverType::Pointer>())
-    .def( "GetEigenValue",&PowerIterationEigenvalueSolverType::GetEigenValue)
     ;
 
     class_<PowerIterationHighestEigenvalueSolverType, PowerIterationHighestEigenvalueSolverType::Pointer, LinearSolverType>(m,"PowerIterationHighestEigenvalueSolver")
     .def(init<double, unsigned int, unsigned int, LinearSolverType::Pointer>())
     .def(init<Parameters, LinearSolverType::Pointer>())
-    .def( "GetEigenValue",&PowerIterationHighestEigenvalueSolverType::GetEigenValue)
     ;
 
     class_<RayleighQuotientIterationEigenvalueSolverType, RayleighQuotientIterationEigenvalueSolverType::Pointer, LinearSolverType>(m,"RayleighQuotientIterationEigenvalueSolver")
     .def(init<double, unsigned int, unsigned int, LinearSolverType::Pointer, double>())
     .def(init<Parameters, LinearSolverType::Pointer>())
-    .def( "GetEigenValue",&RayleighQuotientIterationEigenvalueSolverType::GetEigenValue)
     ;
 
     typedef Reorderer<SpaceType,  LocalSpaceType > ReordererType;

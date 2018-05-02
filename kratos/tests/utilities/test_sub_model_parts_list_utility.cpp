@@ -152,13 +152,13 @@ namespace Kratos
 
                 for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfNodes(); i++) {
                     auto it_first_node = r_first_sub_model_part.Nodes().begin() + i;
-                    auto it_second_node = r_second_sub_model_part.Nodes().begin() + i;
-                    KRATOS_CHECK_EQUAL(it_first_node->Id(), it_second_node->Id());
+                    auto it_found_second_node = r_second_sub_model_part.Nodes().find(it_first_node->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_node, r_second_sub_model_part.NodesEnd());
                 }
                 for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfElements(); i++) {
                     auto it_first_elem = r_first_sub_model_part.Elements().begin() + i;
-                    auto it_second_elem = r_second_sub_model_part.Elements().begin() + i;
-                    KRATOS_CHECK_EQUAL(it_first_elem->Id(), it_second_elem->Id());
+                    auto it_found_second_elem = r_second_sub_model_part.Elements().find(it_first_elem->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_elem, r_second_sub_model_part.ElementsEnd());
                 }
             }
         }
@@ -169,7 +169,7 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosSubModelPartsListUtilityFastSuite)
         {
-            // Creating the refrence model part and the relative submodelparts
+            // Creating the reference model part and the relative submodelparts
             ModelPart first_model_part("Main");
             ModelPart::Pointer p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart::Pointer p_first_sub_modelpart_1a = p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
@@ -178,7 +178,7 @@ namespace Kratos
             ModelPart::Pointer p_first_sub_modelpart_3 = first_model_part.CreateSubModelPart("ZSubModelPart3");
             ModelPart::Pointer p_first_sub_modelpart_4 = first_model_part.CreateSubModelPart("YSubModelPart4");
 
-            // Creaing the Properties
+            // Creating the Properties
             Properties::Pointer p_elem_prop = first_model_part.pGetProperties(0);
 
             // First we create the nodes
@@ -294,16 +294,68 @@ namespace Kratos
 
                 for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfNodes(); i++) {
                     auto it_first_node = r_first_sub_model_part.Nodes().begin() + i;
-                    auto it_second_node = r_second_sub_model_part.Nodes().begin() + i;
-                    KRATOS_CHECK_EQUAL(it_first_node->Id(), it_second_node->Id());
+                    auto it_found_second_node = r_second_sub_model_part.Nodes().find(it_first_node->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_node, r_second_sub_model_part.NodesEnd());
                 }
                 for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfElements(); i++) {
                     auto it_first_elem = r_first_sub_model_part.Elements().begin() + i;
-                    auto it_second_elem = r_second_sub_model_part.Elements().begin() + i;
-                    KRATOS_CHECK_EQUAL(it_first_elem->Id(), it_second_elem->Id());
+                    auto it_found_second_elem = r_second_sub_model_part.Elements().find(it_first_elem->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_elem, r_second_sub_model_part.ElementsEnd());
                 }
             }
         }
+
+
+        /**
+        * Checks the correct work of the modelparts colors utility (computing the colors intersection)
+        */
+
+        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityIntersections, KratosSubModelPartsListUtilityFastSuite)
+        {
+            // Creating the reference model part and the relative submodelparts
+            ModelPart model_part("Main");
+            ModelPart::Pointer p_sub_modelpart_1 = model_part.CreateSubModelPart("BSubModelPart1");
+            ModelPart::Pointer p_sub_modelpart_2 = model_part.CreateSubModelPart("ASubModelPart2");
+            ModelPart::Pointer p_sub_modelpart_3 = model_part.CreateSubModelPart("ZSubModelPart3");
+
+            // First we create the nodes
+            NodeType::Pointer p_node_1 = model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_2 = model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_3 = model_part.CreateNewNode(3, 2.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_4 = model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+            NodeType::Pointer p_node_5 = model_part.CreateNewNode(5, 1.0 , 1.0 , 0.0);
+            NodeType::Pointer p_node_6 = model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
+
+            // Add the nodes to sub model parts
+            p_sub_modelpart_1->AddNode(p_node_1);
+            p_sub_modelpart_1->AddNode(p_node_4);
+            p_sub_modelpart_2->AddNode(p_node_4);
+            p_sub_modelpart_2->AddNode(p_node_5);
+            p_sub_modelpart_2->AddNode(p_node_6);
+            p_sub_modelpart_3->AddNode(p_node_3);
+            p_sub_modelpart_3->AddNode(p_node_6);
+
+            SubModelPartsListUtility colors_utility(model_part);
+
+            IntIntMapType nodes_colors, cond_colors, elem_colors;
+            IntStringMapType colors;
+            colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
+
+            int key;
+            // The intersection gives the main model part
+            key = colors_utility.IntersectKeys(nodes_colors[p_node_1->Id()], nodes_colors[p_node_3->Id()], colors);
+            KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_2->Id()]);
+            KRATOS_CHECK_EQUAL(key, 0);
+
+            // The intersection is a sub model part
+            key = colors_utility.IntersectKeys(nodes_colors[p_node_4->Id()], nodes_colors[p_node_6->Id()], colors);
+            KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_5->Id()]);
+
+            // The input is included in the intersection
+            key = colors_utility.IntersectKeys(nodes_colors[p_node_1->Id()], nodes_colors[p_node_4->Id()], colors);
+            KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_1->Id()]);
+        }
+
     } // namespace Testing
 }  // namespace Kratos.
 
