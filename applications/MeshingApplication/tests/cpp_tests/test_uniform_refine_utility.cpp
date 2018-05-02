@@ -221,10 +221,10 @@ namespace Kratos
             // Setting the variables
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
-                double& veloctity_x = it_node->FastGetSolutionStepValue(VELOCITY_X);
-                double& veloctity_y = it_node->FastGetSolutionStepValue(VELOCITY_Y);
-                veloctity_x = DistanceFunction(it_node);
-                veloctity_y = DistanceFunction(it_node);
+                double& velocity_x = it_node->FastGetSolutionStepValue(VELOCITY_X);
+                double& velocity_y = it_node->FastGetSolutionStepValue(VELOCITY_Y);
+                velocity_x = DistanceFunction(it_node);
+                velocity_y = DistanceFunction(it_node);
             }
 
             // Store the initial values
@@ -257,11 +257,11 @@ namespace Kratos
             // Check the variables interpolation
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
-                const double& veloctity_x = it_node->FastGetSolutionStepValue(VELOCITY_X);
-                const double& veloctity_y = it_node->FastGetSolutionStepValue(VELOCITY_Y);
+                const double& velocity_x = it_node->FastGetSolutionStepValue(VELOCITY_X);
+                const double& velocity_y = it_node->FastGetSolutionStepValue(VELOCITY_Y);
                 double value = DistanceFunction(it_node);
-                KRATOS_CHECK_NEAR(value, veloctity_x, Tolerance);
-                KRATOS_CHECK_NEAR(value, veloctity_y, Tolerance);
+                KRATOS_CHECK_NEAR(value, velocity_x, Tolerance);
+                KRATOS_CHECK_NEAR(value, velocity_y, Tolerance);
             }
         } // UniformRefineQuadrilateralsUtility
 
