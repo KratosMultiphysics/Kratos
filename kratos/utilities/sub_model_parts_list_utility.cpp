@@ -44,7 +44,7 @@ void SubModelPartsListUtility::ComputeSubModelPartsList(
     IntStringMapType& rColors
     )
 {
-    // Initialize and create the auxiliar maps
+    // Initialize and create the auxiliary maps
     std::unordered_map<int,std::set<int>> aux_nodes_colors, aux_cond_colors, aux_elem_colors;
 
     // We compute the list of submodelparts and subsubmodelparts
@@ -115,7 +115,7 @@ void SubModelPartsListUtility::ComputeSubModelPartsList(
 
         if (value.size() == 0)
             rNodesColors[key] = 0; // Main Model Part
-        else if (value.size() == 1) // Another Model Part
+        else if (value.size() == 1) // A Sub Model Part
             rNodesColors[key] = *value.begin();
         else // There is a combination
             rNodesColors[key] = combinations[value];
@@ -128,7 +128,7 @@ void SubModelPartsListUtility::ComputeSubModelPartsList(
 
         if (value.size() == 0)
             rCondColors[key] = 0; // Main Model Part
-        else if (value.size() == 1) // Another Model Part
+        else if (value.size() == 1) // A Sub Model Part
             rCondColors[key] = *value.begin();
         else // There is a combination
             rCondColors[key] = combinations[value];
@@ -141,7 +141,7 @@ void SubModelPartsListUtility::ComputeSubModelPartsList(
 
         if (value.size() == 0)
             rElemColors[key] = 0; // Main Model Part
-        else if (value.size() == 1) // Another Model Part
+        else if (value.size() == 1) // A Sub Model Part
             rElemColors[key] = *value.begin();
         else // There is a combination
             rElemColors[key] = combinations[value];
@@ -170,10 +170,9 @@ std::vector<std::string> SubModelPartsListUtility::GetRecursiveSubModelPartNames
     }
 
     // Check for repeated names on the submodelparts (this is not checked by model_part.h if we work with subsubmodelparts)
-    std::vector<std::string> check_repeated = model_part_names;
-    std::sort(check_repeated.begin()+1, check_repeated.end());
-    auto last = std::unique(check_repeated.begin()+1, check_repeated.end());
-    KRATOS_ERROR_IF_NOT(last == check_repeated.end()) << "ERROR:: Repeated names in subsubmodelparts. Check subsubmodelparts names please" << std::endl;
+    std::sort(model_part_names.begin()+1, model_part_names.end());
+    auto last = std::unique(model_part_names.begin()+1, model_part_names.end());
+    KRATOS_ERROR_IF_NOT(last == model_part_names.end()) << "ERROR:: Repeated names in subsubmodelparts. Check subsubmodelparts names please" << std::endl;
 
     return model_part_names;
 }
@@ -204,6 +203,57 @@ ModelPart& SubModelPartsListUtility::GetRecursiveSubModelPart(
     }
 
     return ThisModelPart;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int SubModelPartsListUtility::IntersectKeys(
+        int Key0,
+        int Key1,
+        IntStringMapType& rColors 
+    )
+{
+    std::vector<int> intersection_key = {Key0, Key1};
+    auto search = mIntersections.find(intersection_key);
+    if (search != mIntersections.end() )
+    {
+        return search->second;
+    }
+    else
+    {
+        // We check the order of the names again
+        std::sort(rColors[Key0].begin(), rColors[Key0].end());
+        std::sort(rColors[Key1].begin(), rColors[Key1].end());
+
+        // Computing the intersection
+        std::vector<std::string> intersection;
+        std::set_intersection(rColors[Key0].begin(), rColors[Key0].end(),
+                              rColors[Key1].begin(), rColors[Key1].end(),
+                              std::back_inserter(intersection));
+        
+        // Null intersection: MainModelPart
+        if (intersection.size()==0) {
+            mIntersections[intersection_key] = 0;
+            return 0;
+        }
+
+        // Find the intersection key
+        int color_id;
+        for (auto color : rColors)
+        {
+            if (color.second == intersection) {
+                mIntersections[intersection_key] = color.first;
+                return color.first;
+            }
+            color_id = color.first;
+        }
+
+        // In that case, we need to add a new color
+        rColors[++color_id] = intersection;
+        mIntersections[intersection_key] = color_id;
+        return color_id;
+    }
 }
 
 }  // namespace Kratos.
