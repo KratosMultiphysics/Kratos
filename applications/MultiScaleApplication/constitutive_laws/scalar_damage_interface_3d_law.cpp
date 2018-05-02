@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * ***********************************************************/
 
 #include "scalar_damage_interface_3d_law.h"
-#include "multiscmesh_moving_application_variables.h"
+#include "multiscale_variables.h"
 #include "custom_utilities/math_helpers.h"
 
 namespace Kratos

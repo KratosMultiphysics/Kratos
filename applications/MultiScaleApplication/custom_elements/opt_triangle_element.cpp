@@ -7,7 +7,7 @@
 //
 
 #include "opt_triangle_element.hpp"
-#include "multiscmesh_moving_application_variables.h"
+#include "multiscale_variables.h"
 
 #include "geometries/triangle_2d_3.h"
 

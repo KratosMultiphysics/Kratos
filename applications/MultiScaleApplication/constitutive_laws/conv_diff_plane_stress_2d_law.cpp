@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * ***********************************************************/
 
 #include "conv_diff_plane_stress_2d_law.h"
-#include "multiscmesh_moving_application_variables.h"
+#include "multiscale_variables.h"
 
 namespace Kratos
 {

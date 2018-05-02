@@ -95,7 +95,7 @@ endif(${MULTISCMESH_MOVING_APPLICATION_USE_EIGEN} MATCHES ON)
 
 set( KRATOS_MULTISCMESH_MOVING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/multiscale_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/multiscmesh_moving_application_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/multiscale_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_constitutive_law_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_anisotropic_3d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_plane_stress_2d_law.cpp

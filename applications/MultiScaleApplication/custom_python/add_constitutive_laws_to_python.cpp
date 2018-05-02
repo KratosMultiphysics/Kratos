@@ -77,7 +77,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/planestress_from_3d_constitutive_law_adapter.h"
 #include "constitutive_laws/planestrain_from_3d_constitutive_law_adapter.h"
 #include "constitutive_laws/interpolated_constitutive_law_2d.h"
-#include "multiscmesh_moving_application_variables.h"
+#include "multiscale_variables.h"
 
 namespace Kratos
 {

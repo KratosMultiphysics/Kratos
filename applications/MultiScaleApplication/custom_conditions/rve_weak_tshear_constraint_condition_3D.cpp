@@ -61,7 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rve_weak_tshear_constraint_condition_3D.h"
 #include "utilities/math_utils.h"
 #include "geometries/point_3d.h"
-#include "multiscmesh_moving_application_variables.h"
+#include "multiscale_variables.h"
 #include "custom_utilities/math_helpers.h"
 
 namespace Kratos

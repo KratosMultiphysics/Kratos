@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * ***********************************************************/
 
 #include "damage_iso_plane_stress_2d_law.h"
-#include "multiscmesh_moving_application_variables.h"
+#include "multiscale_variables.h"
 #include "custom_utilities/math_helpers.h"
 #include "custom_utilities/imperfection_utilities.h"
 #include "includes/variables.h"

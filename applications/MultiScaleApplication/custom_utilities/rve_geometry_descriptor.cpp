@@ -51,7 +51,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <list>
 
-#include "multiscmesh_moving_application_variables.h"
+#include "multiscale_variables.h"
 #include "rve_geometry_descriptor.h"
 #include "rve_utilities.h"
 

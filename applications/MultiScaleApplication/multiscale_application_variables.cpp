@@ -2,7 +2,7 @@
 //         |\ / |  |   |  |      |     |
 //        _|  _|  \___/  _____| _|   ___| SCALE
 //
-#include "multiscmesh_moving_application_variables.h"
+#include "multiscale_variables.h"
 
 namespace Kratos
 {

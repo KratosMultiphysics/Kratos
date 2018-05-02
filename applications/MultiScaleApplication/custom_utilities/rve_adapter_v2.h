@@ -70,7 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 #include "utilities/timer.h"
 
-#include "multiscmesh_moving_application_variables.h"
+#include "multiscale_variables.h"
 #include "rve_adapter_settings.h"
 #include "math_helpers.h"
 #include "time_line.h"

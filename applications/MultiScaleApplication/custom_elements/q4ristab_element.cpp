@@ -7,7 +7,7 @@
 //
 
 #include "q4ristab_element.hpp"
-#include "multiscmesh_moving_application_variables.h"
+#include "multiscale_variables.h"
 
 #include <string>
 #include <iomanip>
