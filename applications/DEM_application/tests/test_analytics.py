@@ -7,6 +7,8 @@ import main_script
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+this_working_dir_backup = os.getcwd()
+
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
@@ -97,6 +99,43 @@ class AnalyticsTestSolution(main_script.Solution):
         super(AnalyticsTestSolution, self).Finalize()
         self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
 
+
+class GhostsTestSolution(main_script.Solution):
+
+    def GetParametersFileName(self):
+        return os.path.join(self.main_path, "ProjectParametersDEM.json")
+
+    def GetMainPath(self):
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
+
+    def GetProblemNameWithPath(self):
+        return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
+
+    def MakeAnalyticsMeasurements(self):
+        self.face_watcher.MakeMeasurements(self.GetAnalyticFacesModelParts())
+
+        times = []
+        neighbour_ids = []
+        normal_relative_vel = []
+        tangential_relative_vel = []
+        my_id = []
+        masses = []
+        n_particles = []
+
+        self.face_watcher.GetTotalFlux(times, n_particles, masses)
+
+        '''print("IN PYTHON, TIME====")
+        print(times)
+        print("IN PYTHON, N_PARTICLES====")
+        print(n_particles)
+        print("IN PYTHON, MASS====")
+        print(masses)'''
+
+    def Finalize(self):
+        super(GhostsTestSolution, self).Finalize()
+        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
+
+
 class TestAnalytics(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -106,13 +145,18 @@ class TestAnalytics(KratosUnittest.TestCase):
     def test_Analytics_1(self):
         AnalyticsTestSolution().Run()
 
-    @classmethod
+    classmethod
     def test_Analytics_2(self):
-        pass
+        GhostsTestSolution().Run()
 
     def tearDown(self):
         file_to_remove = os.path.join("analytics_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+
+        file_to_remove = os.path.join("ghost_tests_files", "TimesPartialRelease")
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+
+        os.chdir(this_working_dir_backup)
 
 
 if __name__ == "__main__":
