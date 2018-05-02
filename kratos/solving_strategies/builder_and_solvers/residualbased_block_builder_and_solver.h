@@ -15,29 +15,25 @@
 
 
 /* System includes */
-
-#include "utilities/openmp_utils.h"
-
-
 #include <unordered_set>
+// #include <iostream>
+// #include <fstream>
+
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
-#include "utilities/timer.h"
-
-/* Project includes */
-#include "includes/define.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "includes/model_part.h"
-#include "includes/kratos_flags.h"
-
 // #define USE_GOOGLE_HASH
 #ifdef USE_GOOGLE_HASH
     #include "sparsehash/dense_hash_set" //included in external libraries
 #endif
 // #define USE_LOCKS_IN_ASSEMBLY
-// #include <iostream>
-// #include <fstream>
+
+/* Project includes */
+#include "includes/define.h"
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "includes/model_part.h"
+#include "includes/key_hash.h"
+#include "utilities/timer.h"
+#include "utilities/openmp_utils.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -145,8 +141,8 @@ public:
         size_t operator()(const Node<3>::DofType::Pointer& it) const
         {
             std::size_t seed = 0;
-            boost::hash_combine(seed, it->Id());
-            boost::hash_combine(seed, (it->GetVariable()).Key());
+            HashCombine(seed, it->Id());
+            HashCombine(seed, (it->GetVariable()).Key());
             return seed;
         }
     };
