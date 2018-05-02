@@ -43,14 +43,12 @@ using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalV
 NodalVectorData Velocity;
 NodalVectorData MeshVelocity;
 NodalVectorData BodyForce;
-NodalVectorData MomentumProjection;
 
 NodalScalarData Pressure;
 
 double Density;
 double DeltaTime;      // Time increment
 double FICBeta;        // FIC Beta parameter
-int UseOSS;
 
 /// Auxiliary container for the local matrix at the integration point (stored to save reallocation at each point)
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> LHS;
@@ -69,12 +67,10 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
-    this->FillFromNodalData(MomentumProjection,ADVPROJ,r_geometry);
     this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
     this->FillFromProperties(Density,DENSITY,r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(FICBeta,FIC_BETA,rProcessInfo);
-    this->FillFromProcessInfo(UseOSS,OSS_SWITCH,rProcessInfo);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
@@ -84,21 +80,18 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
-    KRATOS_CHECK_VARIABLE_KEY(ADVPROJ);
     KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADVPROJ,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,r_geometry[i]);
     }
 
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
     KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
     KRATOS_CHECK_VARIABLE_KEY(FIC_BETA);
-    KRATOS_CHECK_VARIABLE_KEY(OSS_SWITCH);
 
     return 0;
 }

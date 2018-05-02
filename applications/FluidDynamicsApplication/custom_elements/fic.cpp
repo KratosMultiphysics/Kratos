@@ -236,7 +236,6 @@ void FIC<TElementData>::AddVelocitySystem(
     // Interpolate nodal data on the integration point
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     array_1d<double,3> body_force = this->GetAtCoordinate(rData.BodyForce,rData.N);
-    array_1d<double,3> momentum_projection = this->GetAtCoordinate(rData.MomentumProjection,rData.N);
 
     double TauIncompr;
     double TauMomentum;
@@ -314,7 +313,7 @@ void FIC<TElementData>::AddVelocitySystem(
         {
             rLocalRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*body_force
             rLocalRHS[row+d] += rData.Weight * TauMomentum * AGradN[i] * body_force[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
-            forcing += rData.DN_DX(i, d) * (body_force[d] - momentum_projection[d]);
+            forcing += rData.DN_DX(i, d) * body_force[d];
         }
         rLocalRHS[row + Dim] += rData.Weight * TauIncompr * forcing; // Grad(q) * TauOne * (density * body_force)
     }
@@ -401,8 +400,7 @@ void FIC<TElementData>::AddMassStabilization(
             for (unsigned int d = 0; d < Dim; d++)
             {
                 rMassMatrix(row+d,col+d) += K;
-                if ( rData.UseOSS != 1.0 )
-                    rMassMatrix(row+Dim,col+d) += TauIncompr*weight*rData.DN_DX(i,d)*rData.N[j];
+                rMassMatrix(row+Dim,col+d) += TauIncompr*weight*rData.DN_DX(i,d)*rData.N[j];
             }
         }
     }
