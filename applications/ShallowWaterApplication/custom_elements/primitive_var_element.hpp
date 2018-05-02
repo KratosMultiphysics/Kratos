@@ -11,18 +11,18 @@
 //
 
 #if !defined(KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED)
-#define  KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED 
+#define  KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/variables.h" 
+#include "includes/variables.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 
@@ -93,7 +93,7 @@ public:
     ///@{
 
     /// Create a new Primitive variables element and return a pointer to it
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Element::Pointer(new PrimitiveVarElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
@@ -102,24 +102,24 @@ public:
 
 
     /// Check that all required data containers are properly initialized and registered in Kratos
-    /** 
+    /**
      * @return 0 if no errors are detected.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Fill given vector with the linear system row index for the element's degrees of freedom
     /**
      * @param rResult
      * @param rCurrentProcessInfo
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /// Fill given array with containing the element's degrees of freedom
     /**
      * @param rElementalDofList
      * @param rCurrentProcessInfo
      */
-    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo) override;
 
     /// Evaluate the elemental contribution to the problem for turbulent viscosity.
     /**
@@ -127,11 +127,11 @@ public:
      * @param rRightHandSideVector Elemental right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containg the element
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -199,19 +199,19 @@ protected:
     void InitializeElement(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateGeometry(bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
-    
+
     double ComputeElemSize(const bounded_matrix<double, TNumNodes, 2>& rDN_DX);
-    
+
     void GetNodalValues(ElementVariables& rVariables);
-    
+
     void GetElementValues(const bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
-    
+
     void ComputeStabilizationParameters(const ElementVariables& rVariables,
                                         const double& rElemSize,
                                         double& rTauU,
                                         double& rTauH,
                                         double& rKdc);
-    
+
     void ComputeAuxMatrices(
             const bounded_matrix<double,TNumNodes, TNumNodes>& rNcontainer,
             const bounded_matrix<double,TNumNodes,2>& rDN_DX,
