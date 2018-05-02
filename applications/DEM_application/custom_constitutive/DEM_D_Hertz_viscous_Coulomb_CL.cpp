@@ -134,16 +134,16 @@ namespace Kratos {
     // DEM-FEM INTERACTION //
     /////////////////////////
     
-    void DEM_D_Hertz_viscous_Coulomb::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta) {
+    void DEM_D_Hertz_viscous_Coulomb::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
         //Get effective Radius
         const double my_radius           = element->GetRadius(); //Get equivalent Radius
         const double effective_radius    = my_radius - ini_delta;
 
         //Get equivalent Young's Modulus
         const double my_young            = element->GetYoung();
-        const double walls_young         = wall->GetYoung();
+        const double walls_young         = wall->GetProperties()[YOUNG_MODULUS];
         const double my_poisson          = element->GetPoisson();
-        const double walls_poisson       = wall->GetPoisson();
+        const double walls_poisson       = wall->GetProperties()[POISSON_RATIO];
         const double equiv_young         = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
 
         //Get equivalent Shear Modulus
@@ -167,7 +167,7 @@ namespace Kratos {
                                                              double ViscoDampingLocalContactForce[3],
                                                              double& cohesive_force,
                                                              SphericParticle* const element,
-                                                             DEMWall* const wall,
+                                                             Condition* const wall,
                                                              bool& sliding) {
 
         InitializeContactWithFEM(element, wall, indentation);
@@ -229,7 +229,7 @@ namespace Kratos {
         AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
         const double my_tg_of_friction_angle        = element->GetTgOfFrictionAngle();
-        const double neighbour_tg_of_friction_angle = neighbour->GetTgOfFrictionAngle();
+        const double neighbour_tg_of_friction_angle = neighbour->GetProperties()[FRICTION];
         const double equiv_tg_of_fri_ang            = 0.5 * (my_tg_of_friction_angle + neighbour_tg_of_friction_angle);    
         
         MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_fri_ang;
@@ -284,7 +284,7 @@ namespace Kratos {
     void DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                                                 double ViscoDampingLocalContactForce[3],
                                                                 SphericParticle* const element,
-                                                                DEMWall* const wall) {                                        
+                                                                Condition* const wall) {                                        
         
         const double my_mass    = element->GetMass();              
         const double gamma = element->GetProperties()[DAMPING_GAMMA];
@@ -305,7 +305,7 @@ namespace Kratos {
         return 0.0;
     }
     
-    double DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation){
+    double DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation){
         return 0.0;
     }
 

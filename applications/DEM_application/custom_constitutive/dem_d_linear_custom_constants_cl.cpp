@@ -25,7 +25,7 @@ namespace Kratos {
         mKt = 0.5 * (element1->GetParticleKTangential() + element2->GetParticleKTangential());
     }
 
-    void DEM_D_Linear_Custom_Constants::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta) {
+    void DEM_D_Linear_Custom_Constants::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
                 
         //Normal and Tangent elastic constants
         mKn = element->GetParticleKNormal();
