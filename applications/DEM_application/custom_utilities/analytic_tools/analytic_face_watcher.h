@@ -2,6 +2,8 @@
 #ifndef ANALYTIC_FACE_WATCHER_H
 #define ANALYTIC_FACE_WATCHER_H
 
+#include <pybind11/pybind11.h>
+
 // System includes
 
 #include <limits>
@@ -12,8 +14,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "../../custom_conditions/RigidFace.h"
-
-#include <pybind11/pybind11.h>
 
 /* External includes */
 #ifdef _OPENMP
@@ -64,7 +64,7 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         mId2.push_back(std::abs(id2));
         mRelVelNormal.push_back(normal_vel);
         mRelVelTangential.push_back(tang_vel);
-    }    
+    }
 
     int GetTotalThroughput()
     {
@@ -170,7 +170,7 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
 
         int mNCrossings;
         int mNSignedCrossings;
-        //int mId;        
+        //int mId;
         double mMass;
         std::vector<double> mTimes;
         std::vector<double> mMasses;

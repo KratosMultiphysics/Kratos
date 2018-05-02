@@ -1,6 +1,7 @@
 //   $Author: Guillermo Casas
 
 // Project includes
+#include "analytic_face_watcher.h"
 
 // System includes
 #include <limits>
@@ -13,7 +14,6 @@
 #endif
 
 // Project includes
-#include "analytic_face_watcher.h"
 #include "DEM_application.h"
 
 // Project includes
@@ -22,7 +22,7 @@
 
 namespace Kratos
 {
-    
+
 
 typedef ModelPart::ConditionsContainerType::iterator ConditionsIteratorType;
 typedef AnalyticRigidFace3D AnalyticFace;
@@ -85,7 +85,7 @@ void AnalyticFaceWatcher::GetAllFacesData(ModelPart& analytic_model_part,
     masses.clear();
     normal_relative_vel.clear();
     tangential_relative_vel.clear();
-    
+
     KRATOS_WATCH("AnalyticFaceWatcher::GetAllFacesData outside loop")
 
     for (ConditionsIteratorType i_cond = analytic_model_part.ConditionsBegin(); i_cond != analytic_model_part.ConditionsEnd(); ++i_cond){
@@ -94,9 +94,9 @@ void AnalyticFaceWatcher::GetAllFacesData(ModelPart& analytic_model_part,
         std::list<double> masses_i;
         std::list<double> normal_relative_vel_i;
         std::list<double> tangential_relative_vel_i;
-        
+
         const int id = int(i_cond->Id());
-                
+
         GetFaceData(id, times_i, neighbour_ids_i, masses_i, normal_relative_vel_i, tangential_relative_vel_i);
 
         times.insert(times.end(), times_i.begin(), times_i.end());
@@ -121,13 +121,13 @@ void AnalyticFaceWatcher::GetTimeStepsData(std::list<int>& ids,
                                            std::list<double>& tangential_relative_vel)
 {
     //KRATOS_WATCH(ids.size())
-    
+
     ids.clear();
     neighbour_ids.clear();
     masses.clear();
     normal_relative_vel.clear();
     tangential_relative_vel.clear();
-    
+
     //KRATOS_WATCH(ids.size())
 
     const int n_time_steps = mVectorOfTimeStepDatabases.size();
@@ -140,16 +140,16 @@ void AnalyticFaceWatcher::GetTimeStepsData(std::list<int>& ids,
         std::list<double> tangential_relative_vel_i;
 
         mVectorOfTimeStepDatabases[i].FillUpPythonLists(ids_i, neighbour_ids_i, masses_i, normal_relative_vel_i, tangential_relative_vel_i);
-        
+
         ids.insert(ids.end(), ids_i.begin(), ids_i.end());
         neighbour_ids.insert(neighbour_ids.end(), neighbour_ids_i.begin(), neighbour_ids_i.end());
         masses.insert(masses.end(), masses_i.begin(), masses_i.end());
         normal_relative_vel.insert(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
         tangential_relative_vel.insert(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
     }
-    
+
     KRATOS_WATCH("AnalyticFaceWatcher::GetTimeStepsData")
-    
+
     /*
     std::list<int>::iterator it_int;
     std::list<int>::iterator it_int_2;
