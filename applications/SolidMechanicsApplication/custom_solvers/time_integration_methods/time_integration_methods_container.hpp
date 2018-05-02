@@ -106,7 +106,18 @@ public:
       return false;
   }
   
-      
+  LabelType GetMethodVariableName(LabelType const& rLabel)
+  {
+
+    for(typename std::map<LabelType,TimeIntegrationMethodPointerType>::const_iterator it=mTimeIntegrationMethods.begin(); it!=mTimeIntegrationMethods.end(); ++it)
+    {      
+      if( (*it->second).HasVariableName(rLabel) )
+        return it->first;
+    }
+
+    return rLabel;
+  }
+  
   ///@}
   ///@name Inquiry
   ///@{

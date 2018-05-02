@@ -83,7 +83,7 @@ namespace Kratos
     BackwardEulerMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : BaseType(rVariable,rFirstDerivative,rSecondDerivative) {}
     
     /// Constructor.
-    BackwardEulerMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable) {}
+    BackwardEulerMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
 
     /// Copy Constructor.
     BackwardEulerMethod(BackwardEulerMethod& rOther)

@@ -57,10 +57,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.model         = Model
         self.variable_name = self.settings["variable_name"].GetString()
 
-        ## dynamic variables
-        self.LinearDynamicVariables  = ["ACCELERATION","VELOCITY"]
-        self.AngularDynamicVariables = ["ANGULAR_ACCELERATION","ANGULAR_VELOCITY"]
-
         ## set the interval
         self.finalized = False
         self.interval_started = False
@@ -183,123 +179,41 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     #
     def SetFixAndFreeProcesses(self,params):
 
-        for dynamic_variable in self.AngularDynamicVariables:
-            if dynamic_variable == self.variable_name[:-2]:
-                self.derivated_variable_name = "ROTATION" + self.variable_name[-2:]
-                self.fix_derivated_variable = True
-                self.SetAngularTimeIntegration()
-                break
-
-        if( self.fix_derivated_variable == False ):
-            for dynamic_variable in self.LinearDynamicVariables:
-                if dynamic_variable == self.variable_name[:-2]:
-                    self.derivated_variable_name = "DISPLACEMENT" + self.variable_name[-2:]
-                    self.fix_derivated_variable = True
-                    self.SetLinearTimeIntegration()
-                    break
-
-        if( self.fix_derivated_variable ):
-            if( self.fix_time_integration == False ):
-                params["variable_name"].SetString(self.derivated_variable_name)
-                fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
-                self.FixDofsProcesses.append(fix_dof_process)
-                free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
-                self.FreeDofsProcesses.append(free_dof_process)
-                params["variable_name"].SetString(self.settings["variable_name"].GetString())
-
-                fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
-                self.FixDofsProcesses.append(fix_dof_process)
-                free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
-                self.FreeDofsProcesses.append(free_dof_process)
-        else:
-            if( "ROTATION" == self.variable_name[:-2] ):
-                self.SetAngularTimeIntegration()
-            elif( "DISPLACEMENT" == self.variable_name[:-2] ):
-                self.SetLinearTimeIntegration()
-
+        if( self.fix_time_integration == True ):
             params["variable_name"].SetString(self.settings["variable_name"].GetString())
-            fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
-            self.FixDofsProcesses.append(fix_dof_process)
-            free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
-            self.FreeDofsProcesses.append(free_dof_process)
+            self.primary_variable_name = self.TimeIntegrationMethod.GetPrimaryVariableName()
+            if( self.primary_variable_name != self.variable_name ):
+                params["variable_name"].SetString(self.primary_variable_name)
 
+        fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+        self.FixDofsProcesses.append(fix_dof_process)
+        free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+        self.FreeDofsProcesses.append(free_dof_process)
 
     #
     def SetTimeIntegration(self):
         self.fix_time_integration  = False
-
-        angular_variables = self.AngularDynamicVariables[:]
-        angular_variables.append("ROTATION")
-
-        linear_variables = self.LinearDynamicVariables[:]
-        linear_variables.append("DISPLACEMENT")
-
-        self.variable_type = None
-        variables = []
-        variable = self.variable_name[:-2]
-        try:
-            index_value = angular_variables.index(variable)
-            variables = angular_variables[:]
-            self.variable_type = "Angular"
-        except ValueError:
-            self.variable_type = None
-
-        if( self.variable_type == None ):
-            try:
-                index_value = linear_variables.index(variable)
-                variables = linear_variables[:]
-                self.variable_type ="Linear"
-            except ValueError:
-                self.variable_type = None
-
 
         self.TimeIntegrationMethod = None
         time_integration_container = KratosSolid.ComponentTimeIntegrationMethods()
         if( time_integration_container.HasProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo) ):
             time_integration_methods = time_integration_container.GetFromProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo)
 
-            for var in variables:
-                if( time_integration_methods.Has(var) ):
-                    self.TimeIntegrationMethod = time_integration_methods.Get(var).Clone()
-                    break
+            if( time_integration_methods.Has(self.variable_name) ):
+                self.TimeIntegrationMethod = time_integration_methods.Get(self.variable_name).Clone()
+            else:
+                method_variable_name = time_integration_methods.GetMethodVariableName(self.variable_name)
+                if( method_variable_name != self.variable_name ):
+                    self.TimeIntegrationMethod = time_integration_methods.Get(method_variable_name).Clone()
 
-                
+
         if( self.TimeIntegrationMethod == None ):
-            print(variable+": No time integration ")
-
-
-
-    #
-    def SetLinearTimeIntegration(self):
-        if( self.TimeIntegrationMethod != None ):
-            variable          = KratosMultiphysics.KratosGlobals.GetVariable("DISPLACEMENT" + self.variable_name[-2:])
-            first_derivative  = KratosMultiphysics.KratosGlobals.GetVariable("VELOCITY" + self.variable_name[-2:])
-            second_derivative = KratosMultiphysics.KratosGlobals.GetVariable("ACCELERATION" + self.variable_name[-2:])
-            self.TimeIntegrationMethod.SetVariables(variable, first_derivative, second_derivative)
-            if( self.TimeIntegrationMethod.HasStepVariable() ):
-                step_variable = KratosMultiphysics.KratosGlobals.GetVariable("STEP_DISPLACEMENT" + self.variable_name[-2:])
-                self.TimeIntegrationMethod.SetStepVariable(step_variable)
-
-            self.fix_time_integration  = True
-            input_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.variable_name)
-            self.TimeIntegrationMethod.SetInputVariable(input_variable)
-
-
-    #
-    def SetAngularTimeIntegration(self):
-        if( self.TimeIntegrationMethod != None ):
-            variable          = KratosMultiphysics.KratosGlobals.GetVariable("ROTATION" + self.variable_name[-2:])
-            first_derivative  = KratosMultiphysics.KratosGlobals.GetVariable("ANGULAR_VELOCITY" + self.variable_name[-2:])
-            second_derivative = KratosMultiphysics.KratosGlobals.GetVariable("ANGULAR_ACCELERATION" + self.variable_name[-2:])
-            self.TimeIntegrationMethod.SetVariables(variable, first_derivative, second_derivative)
-            if( self.TimeIntegrationMethod.HasStepVariable() ):
-                step_variable = KratosMultiphysics.KratosGlobals.GetVariable("STEP_ROTATION" + self.variable_name[-2:])
-                self.TimeIntegrationMethod.SetStepVariable(step_variable)
-
+            print(self.variable_name+": No time integration ")
+        else:
             self.fix_time_integration = True
+            #set input variable
             input_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.variable_name)
             self.TimeIntegrationMethod.SetInputVariable(input_variable)
-
 
     #
     def CreateAssignmentProcess(self, params):

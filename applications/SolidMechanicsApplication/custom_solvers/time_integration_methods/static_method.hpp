@@ -83,7 +83,7 @@ namespace Kratos
     StaticMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : BaseType(rVariable,rFirstDerivative,rSecondDerivative) {}
     
     /// Constructor.
-    StaticMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rInputVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rInputVariable) {}
+    StaticMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
     
     /// Copy Constructor.
     StaticMethod(StaticMethod& rOther) : BaseType(rOther) {}

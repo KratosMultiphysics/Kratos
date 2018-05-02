@@ -54,8 +54,8 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         Schemes = schemes_factory.SolutionScheme(self.time_integration_settings,self.settings["dofs"])
         mechanical_scheme = Schemes.GetSolutionScheme()
 
-        # set integration method dictionary
-        self.integration_methods = Schemes.GetIntegrationMethods()
+        # set integration method dictionary for components
+        self.integration_methods = Schemes.GetComponentIntegrationMethods()
 
         # set integration parameters
         self._set_time_integration_methods()

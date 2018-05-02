@@ -74,7 +74,7 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = False
         if( integration_method.find("Step") != -1 ):
             self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = True
-            
+
         # compute mass lumped matrix
         if( self.implicit_solver_settings["lumped_mass_matrix"].GetBool() == True ):
             self.process_info[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
@@ -91,31 +91,24 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
 
-          
+
         # set solution scheme
         import schemes_factory
         Schemes = schemes_factory.SolutionScheme(self.time_integration_settings,self.settings["dofs"])
         mechanical_scheme = Schemes.GetSolutionScheme()
 
-        # set integration method dictionary
-        self.integration_methods = Schemes.GetIntegrationMethods()
+        # set integration method dictionary for components
+        self.integration_methods = Schemes.GetComponentIntegrationMethods()
 
         # set time order
         self.process_info[KratosSolid.TIME_INTEGRATION_ORDER] = Schemes.GetTimeIntegrationOrder()
-        
+
         # set integration parameters
         self._set_time_integration_methods()
 
         return mechanical_scheme
 
     def _set_time_integration_methods(self):
-
-        # a static dicctionary is needed to identify the variable type, component or scalar (for constraints assignment)
-        # now only component type is considered:
-        # assign an default integration method (static) for all dofs previously not set
-        for i in range(0, self.settings["dofs"].size() ):
-            if( not (self.settings["dofs"][i].GetString() in self.integration_methods.keys()) ):
-                self.integration_methods.update({self.settings["dofs"][i].GetString() : KratosSolid.StaticComponentIntegration()})
 
         # first: calculate parameters (only once permitted) (set is included)
         #self.integration_methods['DISPLACEMENT'].CalculateParameters(self.process_info) #calculate

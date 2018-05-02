@@ -38,53 +38,126 @@ class SolutionScheme:
 
     def GetSolutionScheme(self):
 
-        scheme_integration_methods = []
+        integration_methods = []
 
         for dof in self.dofs:
+
+            ##check if variable type is a vector
+            kratos_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof)
+            if( not isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) ):
+                raise Exception("DOF is incorrect. Must be a three-component vector.")
 
             integration_method_name   = self._get_integration_method_name(dof)
             vector_integration_method = getattr(KratosSolid, integration_method_name+'VectorIntegration')
 
-            variables = self._get_integration_method_variables(dof)
-            scheme_integration_method = None
+            variable_names = self._get_integration_method_variables(dof)
+            variables = []
+            for variable in variable_names:
+                variables = variables + [KratosMultiphysics.KratosGlobals.GetVariable(variable)]
+
+            integration_method = None
             if( len(variables) == 4 ):
-                scheme_integration_method = vector_integration_method(variables[0],variables[1],variables[2],variables[3])
+                integration_method = vector_integration_method(variables[0],variables[1],variables[2],variables[3])
             elif( len(variables) == 1 ):
-                scheme_integration_method = vector_integration_method(variables[0])
+                integration_method = vector_integration_method(variables[0])
             else:
                 raise Exception('len(variables) = ' + str(len(variables)))
-            
+
             if(integration_method_name.find("Step") != -1):
                 step_variable_name = 'STEP_'+dof
-                scheme_integration_method.SetStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(step_variable_name))
+                integration_method.SetStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(step_variable_name))
 
-            print("Integration", scheme_integration_method)
-            scheme_integration_methods.append(scheme_integration_method)
-            
+            #print("Integration", integration_method)
+            integration_methods.append(integration_method)
+
         solution_scheme = None
         if(self.settings["solution_type"].GetString() == "Dynamic"):
 
             if(self.settings["time_integration"].GetString() == "Implicit"):
-                solution_scheme = KratosSolid.DynamicScheme(scheme_integration_methods)
+                solution_scheme = KratosSolid.DynamicScheme(integration_methods)
 
         elif(self.settings["solution_type"].GetString() == "Static" or self.settings["solution_type"].GetString() == "Quasi-static"):
-            solution_scheme = KratosSolid.StaticScheme(scheme_integration_methods)
+            solution_scheme = KratosSolid.StaticScheme(integration_methods)
 
         return solution_scheme
 
     #
-    def GetIntegrationMethods(self):
+    def GetComponentIntegrationMethods(self):
 
         # set solution scheme and integration method dictionary
         integration_methods = {}
 
         for dof in self.dofs:
 
-            integration_method_name      = self._get_integration_method_name(dof)
-            component_integration_method = getattr(KratosSolid, integration_method_name+'ComponentIntegration')
-            
-            integration_methods.update({dof: component_integration_method()})
-           
+            integration_method_name = self._get_integration_method_name(dof)
+            variable_names = self._get_integration_method_variables(dof)
+
+            ##check if variable type is a vector
+            kratos_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof)
+            if( isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) ):
+
+                component_integration_method = getattr(KratosSolid, integration_method_name+'ComponentIntegration')
+
+                variable_components = ['_X','_Y','_Z']
+                for component in variable_components:
+                    variables = []
+                    for variable in variable_names:
+                        variables = variables + [KratosMultiphysics.KratosGlobals.GetVariable(variable+component)]
+
+                    integration_method = None
+                    if( len(variables) == 4 ):
+                        integration_method = component_integration_method(variables[0],variables[1],variables[2],variables[3])
+                    elif( len(variables) == 1 ):
+                        integration_method = component_integration_method(variables[0])
+                    else:
+                        raise Exception('len(variables) = ' + str(len(variables)))
+
+                    if(integration_method_name.find("Step") != -1):
+                        step_variable_name = 'STEP_'+dof+component
+                        integration_method.SetStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(step_variable_name))
+
+                    integration_methods.update({variables[0].Name(): integration_method})
+
+        #print("Component time integration methods ", integration_methods)
+
+        return integration_methods
+
+
+    #
+    def GetScalarIntegrationMethods(self):
+
+        # set solution scheme and integration method dictionary
+        integration_methods = {}
+
+        for dof in self.dofs:
+
+            integration_method_name = self._get_integration_method_name(dof)
+            variable_names = self._get_integration_method_variables(dof)
+
+            ##check if variable type is a scalar
+            kratos_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof)
+            if( isinstance(kratos_variable,KratosMultiphysics.DoubleVariable) ):
+
+                scalar_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
+
+                variables = []
+                for variable in variable_names:
+                    variables = variables + [KratosMultiphysics.KratosGlobals.GetVariable(variable)]
+
+                integration_method = None
+                if( len(variables) == 4 ):
+                    integration_method = scalar_integration_method(variables[0],variables[1],variables[2],variables[3])
+                elif( len(variables) == 1 ):
+                    integration_method = scalar_integration_method(variables[0])
+                else:
+                    raise Exception('len(variables) = ' + str(len(variables)))
+
+                if(integration_method_name.find("Step") != -1):
+                    step_variable_name = 'STEP_'+dof
+                    integration_method.SetStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(step_variable_name))
+
+                integration_methods.update({variables[0].Name(): integration_method})
+
         return integration_methods
 
     #
@@ -116,26 +189,13 @@ class SolutionScheme:
         variables = []
         if(self.settings["solution_type"].GetString() == "Dynamic" ):
             if(dof == 'DISPLACEMENT' or dof == 'VELOCITY' or dof == 'ACCELERATION'):
-                variables = [KratosMultiphysics.DISPLACEMENT,KratosMultiphysics.VELOCITY,KratosMultiphysics.ACCELERATION]
-                if(dof == 'DISPLACEMENT'):
-                    variables = variables + [KratosMultiphysics.DISPLACEMENT]
-                elif(dof == 'VELOCITY'):
-                    variables = variables + [KratosMultiphysics.VELOCITY]
-                elif(dof == 'ACCELERATION'):
-                    variables = variables + [KratosMultiphysics.ACCELERATION]
-
+                variables = variables + ['DISPLACEMENT','VELOCITY','ACCELERATION',dof]
             elif(dof == 'ROTATION' or dof == 'ANGULAR_VELOCITY' or dof == 'ANGULAR_ACCELERATION'):
-                variables = [KratosMultiphysics.ROTATION,KratosMultiphysics.ANGULAR_VELOCITY,KratosMultiphysics.ANGULAR_ACCELERATION]
-                if(dof == 'ROTATION'):
-                    variables = variables + [KratosMultiphysics.ROTATION]
-                elif(dof == 'ANGULAR_VELOCITY'):
-                    variables = variables + [KratosMultiphysics.ANGULAR_VELOCITY]
-                elif(dof == 'ANGULAR_ACCELERATION'):
-                    variables = variables + [KratosMultiphysics.ANGULAR_ACCELERATION]
+                variables = variables + ['ROTATION','ANGULAR_VELOCITY','ANGULAR_ACCELERATION',dof]
             else:
-                variables = [KratosMultiphysics.KratosGlobals.GetVariable(dof)]
+                variables = variables + [dof]
         else:
-            variables = [KratosMultiphysics.KratosGlobals.GetVariable(dof)]
+            variables = variables + [dof]
 
         return variables
 
