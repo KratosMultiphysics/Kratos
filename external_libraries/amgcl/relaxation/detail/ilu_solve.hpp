@@ -74,9 +74,9 @@ class ilu_solve {
 
     public:
         ilu_solve(
-                boost::shared_ptr<build_matrix> L,
-                boost::shared_ptr<build_matrix> U,
-                boost::shared_ptr<backend::numa_vector<value_type> > D,
+                std::shared_ptr<build_matrix> L,
+                std::shared_ptr<build_matrix> U,
+                std::shared_ptr<backend::numa_vector<value_type> > D,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
                 ) :
@@ -107,10 +107,10 @@ class ilu_solve {
         }
 
     private:
-        boost::shared_ptr<matrix> L;
-        boost::shared_ptr<matrix> U;
-        boost::shared_ptr<matrix_diagonal> D;
-        boost::shared_ptr<vector> t1, t2;
+        std::shared_ptr<matrix> L;
+        std::shared_ptr<matrix> U;
+        std::shared_ptr<matrix_diagonal> D;
+        std::shared_ptr<vector> t1, t2;
 };
 
 template <class value_type>
@@ -143,9 +143,9 @@ class ilu_solve< backend::builtin<value_type> > {
         } prm;
 
         ilu_solve(
-                boost::shared_ptr<build_matrix> L,
-                boost::shared_ptr<build_matrix> U,
-                boost::shared_ptr<backend::numa_vector<value_type> > D,
+                std::shared_ptr<build_matrix> L,
+                std::shared_ptr<build_matrix> U,
+                std::shared_ptr<backend::numa_vector<value_type> > D,
                 const params &prm = params(),
                 const backend_params& = backend_params()
                 ) : prm(prm)
@@ -183,14 +183,14 @@ class ilu_solve< backend::builtin<value_type> > {
 
         // copies of the input matrices for the fallback (serial)
         // implementation:
-        boost::shared_ptr<matrix>          L;
-        boost::shared_ptr<matrix>          U;
-        boost::shared_ptr<matrix_diagonal> D;
+        std::shared_ptr<matrix>          L;
+        std::shared_ptr<matrix>          U;
+        std::shared_ptr<matrix_diagonal> D;
 
         void serial_init(
-                boost::shared_ptr<build_matrix>    L,
-                boost::shared_ptr<build_matrix>    U,
-                boost::shared_ptr<matrix_diagonal> D
+                std::shared_ptr<build_matrix>    L,
+                std::shared_ptr<build_matrix>    U,
+                std::shared_ptr<matrix_diagonal> D
                 )
         {
             this->L = L;
@@ -387,17 +387,17 @@ class ilu_solve< backend::builtin<value_type> > {
             }
         };
 
-        boost::shared_ptr< sptr_solve<true > > lower;
-        boost::shared_ptr< sptr_solve<false> > upper;
+        std::shared_ptr< sptr_solve<true > > lower;
+        std::shared_ptr< sptr_solve<false> > upper;
 
         void parallel_init(
-                boost::shared_ptr<build_matrix> L,
-                boost::shared_ptr<build_matrix> U,
-                boost::shared_ptr<backend::numa_vector<value_type> > D
+                std::shared_ptr<build_matrix> L,
+                std::shared_ptr<build_matrix> U,
+                std::shared_ptr<backend::numa_vector<value_type> > D
                 )
         {
-            lower = boost::make_shared< sptr_solve<true > >(*L, D->data());
-            upper = boost::make_shared< sptr_solve<false> >(*U, D->data());
+            lower = std::make_shared< sptr_solve<true > >(*L, D->data());
+            upper = std::make_shared< sptr_solve<false> >(*U, D->data());
         }
 
         template <class Vector>

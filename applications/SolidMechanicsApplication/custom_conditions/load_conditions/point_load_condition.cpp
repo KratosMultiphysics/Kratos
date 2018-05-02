@@ -117,8 +117,8 @@ namespace Kratos
    
     //FORCE CONDITION:
     //defined on condition
-    if( this->Has( POINT_LOAD ) ){
-      array_1d<double, 3 > & PointLoad = this->GetValue( POINT_LOAD );
+    if( this->Has( FORCE_LOAD ) ){
+      array_1d<double, 3 > & PointLoad = this->GetValue( FORCE_LOAD );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
@@ -127,8 +127,8 @@ namespace Kratos
     }
     
     //defined on condition nodes
-    if( this->Has( POINT_LOAD_VECTOR ) ){
-      Vector& PointLoads = this->GetValue( POINT_LOAD_VECTOR );
+    if( this->Has( FORCE_LOAD_VECTOR ) ){
+      Vector& PointLoads = this->GetValue( FORCE_LOAD_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
@@ -141,7 +141,7 @@ namespace Kratos
 	}
     }
     
-    //defined on condition nodes      
+    //defined on condition nodes (legacy)     
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( POINT_LOAD ) ){
@@ -151,6 +151,18 @@ namespace Kratos
  
 	}
       }
+
+    //defined on condition nodes      
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+      {
+	if( GetGeometry()[i].SolutionStepsDataHas( FORCE_LOAD ) ){
+	  array_1d<double, 3 > & PointLoad = GetGeometry()[i].FastGetSolutionStepValue( FORCE_LOAD );
+	  for( unsigned int k = 0; k < dimension; k++ )
+	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
+ 
+	}
+      }
+    
 
     KRATOS_CATCH( "" )
   }
@@ -222,7 +234,8 @@ namespace Kratos
 
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(POINT_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(POINT_LOAD_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(FORCE_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(FORCE_LOAD_VECTOR);
         
     return ErrorCode;
     

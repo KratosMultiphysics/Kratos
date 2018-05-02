@@ -78,9 +78,9 @@ public:
     typedef ModelPart::NodesContainerType NodesArrayType;
     typedef ModelPart::ElementsContainerType ElementsArrayType;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    typedef boost::numeric::ublas::vector<Matrix> Matrix_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector> Vector_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
+    typedef DenseVector<Matrix> Matrix_Order_Tensor;
+    typedef DenseVector<Vector> Vector_Order_Tensor;
+    typedef DenseVector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
     typedef Node < 3 > PointType;
     typedef Node < 3 > ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
@@ -157,14 +157,14 @@ public:
         KRATOS_WATCH(Xp);
         KRATOS_TRY
 
-        boost::numeric::ublas::vector<array_1d<int, 2 > > Position_Node;
-        boost::numeric::ublas::vector<int> List_New_Nodes;
+        DenseVector<array_1d<int, 2 > > Position_Node;
+        DenseVector<int> List_New_Nodes;
 
         compressed_matrix<int> Coord;
         ModelPart& this_model_part = mr_model_part;
         ModelPart& new_model_part = mr_new_model_part;
 
-        boost::numeric::ublas::vector<int>  Elems_In_Plane( this_model_part.Elements().size());          //our (int) vector, where we write 1 when the element is cut by the cutting plane. when it is 2, it means we have 2 triangles (4 cutting points)
+        DenseVector<int>  Elems_In_Plane( this_model_part.Elements().size());          //our (int) vector, where we write 1 when the element is cut by the cutting plane. when it is 2, it means we have 2 triangles (4 cutting points)
         int number_of_triangles = 0;
         double tolerance = tolerance_factor*smallest_edge; //if Find_Smallest_Edge is not run , then the tolerance is absolute
 
@@ -205,7 +205,7 @@ public:
         std::cout <<"Adding Skin Conditions to the new model part, added in layer:" << std::endl;
         KRATOS_WATCH(plane_number)
         KRATOS_TRY
-        boost::numeric::ublas::vector<int>  Condition_Nodes( this_model_part.Nodes().size());          //our (int) vector, where we write -1 when the node is part of the condition faces
+        DenseVector<int>  Condition_Nodes( this_model_part.Nodes().size());          //our (int) vector, where we write -1 when the node is part of the condition faces
         int number_of_triangles = 0; //we set it to zero to start
         int number_of_nodes = 0; //same as above
         int number_of_previous_nodes = 0; // nodes from the previous conditions (planes) created
@@ -278,7 +278,7 @@ public:
 			}//finished the list of nodes to be added.
 
 			//now to the conditions!
-			boost::numeric::ublas::vector<int>  triangle_nodes(3); //here we'll save the nodes' ids with the new node names
+			DenseVector<int>  triangle_nodes(3); //here we'll save the nodes' ids with the new node names
 			Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");         //condition type
 			Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(plane_number); 		//this will allow us later to turn this layer on/off in GID
 
@@ -353,7 +353,7 @@ public:
     //************************************************************************************************
 
     void FirstLoop(ModelPart& this_model_part, compressed_matrix<int>& Coord, array_1d<double, 3 > versor, array_1d<double, 3 > Xp,
-                   int number_of_triangles, boost::numeric::ublas::vector<int>&  Elems_In_Plane, double tolerance)//
+                   int number_of_triangles, DenseVector<int>&  Elems_In_Plane, double tolerance)//
     {
         //Xp is a random point that belongs to the cutting plane
         //versor is a vector normal to the plane
@@ -495,8 +495,8 @@ public:
 
     ///************************************************************************************************
 
-    void Create_List_Of_New_Nodes_Mod(ModelPart& this_model_part, ModelPart& new_model_part, compressed_matrix<int>& Coord, boost::numeric::ublas::vector<int> &List_New_Nodes,
-                                      boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node) //plane number = 1 -- inf (but the first one should be always one!
+    void Create_List_Of_New_Nodes_Mod(ModelPart& this_model_part, ModelPart& new_model_part, compressed_matrix<int>& Coord, DenseVector<int> &List_New_Nodes,
+                                      DenseVector<array_1d<int, 2 > >& Position_Node) //plane number = 1 -- inf (but the first one should be always one!
     {
 
         unsigned int number_of_new_nodes = 0;
@@ -565,8 +565,8 @@ public:
     ///************************************************************************************************
 
     void Calculate_Coordinate_And_Insert_New_Nodes_Mod(ModelPart& this_model_part, ModelPart& new_model_part,
-            const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node,
-            const boost::numeric::ublas::vector<int> &List_New_Nodes,
+            const DenseVector<array_1d<int, 2 > >& Position_Node,
+            const DenseVector<int> &List_New_Nodes,
             array_1d<double, 3 > versor, array_1d<double, 3 > Xp, double tolerance)//,
     {
 
@@ -581,7 +581,7 @@ public:
         //double dist_neigh_point;
         double dist_node_intersect;
         double weight;
-        boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node;
+        DenseVector< array_1d<double, 3 > > Coordinate_New_Node;
         Coordinate_New_Node.resize(Position_Node.size());
         //unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
         //Node < 3 > ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
@@ -649,7 +649,7 @@ public:
     ///**********************************************************************************
 
 
-    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, boost::numeric::ublas::vector<int> Elems_In_Plane, compressed_matrix<int>& Coord, array_1d<double, 3 > versor, int plane_number)
+    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, DenseVector<int> Elems_In_Plane, compressed_matrix<int>& Coord, array_1d<double, 3 > versor, int plane_number)
     {
         array_1d<double, 3 > temp_vector1;
         array_1d<double, 3 > temp_vector2;

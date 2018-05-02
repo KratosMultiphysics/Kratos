@@ -216,7 +216,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         self.nearest_neighbor_mapper.UpdateInterface(Mapper.REMESHED)
 
     def TestMapConstantVectorValues(self, output_time):
-        map_value = [15.99, -2.88, 3.123]
+        map_value = Vector([15.99, -2.88, 3.123])
         variable_origin = FORCE
         variable_destination = VELOCITY
 
@@ -278,7 +278,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
                          [-x for x in map_value])
 
     def TestInverseMapConstantVectorValues(self, output_time):
-        map_value = [1.4785, -0.88, -33.123]
+        map_value = Vector([1.4785, -0.88, -33.123])
         variable_origin = VELOCITY
         variable_destination = FORCE
 
@@ -514,7 +514,10 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
 
     def SetValuesOnNodesPrescribedExec(self, node, variable, nodal_values):
         nodal_coords = (node.X, node.Y, node.Z)
-        node.SetSolutionStepValue(variable, nodal_values[nodal_coords])
+        value_to_prescribe = nodal_values[nodal_coords]
+        if isinstance(value_to_prescribe, tuple):
+            value_to_prescribe = Vector(list(value_to_prescribe))
+        node.SetSolutionStepValue(variable, value_to_prescribe)
 
 
     def CheckValues(self, model_part, variable, value_mapped):

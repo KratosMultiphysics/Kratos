@@ -109,7 +109,7 @@ void NavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
 
 
 template<>
-void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const ElementDataStruct& data)
+void NavierStokes<3>::ComputeGaussPointLHSContribution(BoundedMatrix<double,16,16>& lhs, const ElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -126,12 +126,12 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,
     // const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
-    const bounded_matrix<double,nnodes,dim>& v = data.v;
-    // const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    // const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    // const bounded_matrix<double,nnodes,dim>& f = data.f;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
+    // const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+    // const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+    const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
+    const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
+    // const BoundedMatrix<double,nnodes,dim>& f = data.f;
     // const array_1d<double,nnodes>& p = data.p;
     // const array_1d<double,nnodes>& pn = data.pn;
     // const array_1d<double,nnodes>& pnn = data.pnn;
@@ -142,7 +142,7 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
 
@@ -754,7 +754,7 @@ const double clhs337 =             N[3] + clhs108*clhs40;
 
 
 template<>
-void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9>& lhs, const ElementDataStruct& data)
+void NavierStokes<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,9,9>& lhs, const ElementDataStruct& data)
 {
     const int nnodes = 3;
     const int dim = 2;
@@ -771,12 +771,12 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9
     // const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
-    const bounded_matrix<double,nnodes,dim>& v = data.v;
-    // const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    // const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    // const bounded_matrix<double,nnodes,dim>& f = data.f;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
+    // const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+    // const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+    const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
+    const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
+    // const BoundedMatrix<double,nnodes,dim>& f = data.f;
     // const array_1d<double,nnodes>& p = data.p;
     // const array_1d<double,nnodes>& pn = data.pn;
     // const array_1d<double,nnodes>& pnn = data.pnn;
@@ -787,7 +787,7 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
 
@@ -1035,12 +1035,12 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs,
     const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
-    const bounded_matrix<double,nnodes,dim>& v = data.v;
-    const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    const bounded_matrix<double,nnodes,dim>& f = data.f;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
+    const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+    const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+    const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
+    const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
+    const BoundedMatrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
     const array_1d<double,nnodes>& pn = data.pn;
     const array_1d<double,nnodes>& pnn = data.pnn;
@@ -1051,7 +1051,7 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs,
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
@@ -1148,12 +1148,12 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, 
     const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
-    const bounded_matrix<double,nnodes,dim>& v = data.v;
-    const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    const bounded_matrix<double,nnodes,dim>& f = data.f;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
+    const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+    const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+    const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
+    const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
+    const BoundedMatrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
     const array_1d<double,nnodes>& pn = data.pn;
     const array_1d<double,nnodes>& pnn = data.pnn;
@@ -1164,7 +1164,7 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, 
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
@@ -1240,12 +1240,12 @@ double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
-    const bounded_matrix<double,nnodes,dim>& v = data.v;
-    const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    const bounded_matrix<double,nnodes,dim>& f = data.f;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
+    const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+    const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+    const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
+    const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
+    const BoundedMatrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
     // const array_1d<double,nnodes>& pn = data.pn;
     // const array_1d<double,nnodes>& pnn = data.pnn;
@@ -1256,7 +1256,7 @@ double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data)
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // Auxiliary variables used in the calculation of the error estimator
     array_1d<double,dim> v_s_gauss;
@@ -1307,19 +1307,19 @@ double NavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
-    const bounded_matrix<double,nnodes,dim>& v = data.v;
-    const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    const bounded_matrix<double,nnodes,dim>& f = data.f;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
+    const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+    const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+    const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
+    const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
+    const BoundedMatrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
     // const array_1d<double,nnodes>& pn = data.pn;
     // const array_1d<double,nnodes>& pnn = data.pnn;
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // Auxiliary variables used in the calculation of the error estimator
     array_1d<double,dim> v_s_gauss;

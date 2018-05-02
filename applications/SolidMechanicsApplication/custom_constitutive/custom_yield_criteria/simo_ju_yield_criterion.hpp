@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SIMO_JU_YIELD_CRITERION_H_INCLUDED )
+#if !defined(KRATOS_SIMO_JU_YIELD_CRITERION_H_INCLUDED)
 #define  KRATOS_SIMO_JU_YIELD_CRITERION_H_INCLUDED
 
 // System includes
@@ -84,19 +84,19 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoJuYieldCriterion
 	 * Clone function (has to be implemented by any derived class)
 	 * @return a pointer to a new instance of this yield criterion
 	 */
-        virtual YieldCriterion::Pointer Clone() const;
+        YieldCriterion::Pointer Clone() const override;
 
         ///@}
         ///@name Operations
         ///@{
 
-        double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables);
+        double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables) override;
         
         
-        double& CalculateStateFunction(double & rStateFunction, const Parameters& rVariables);
+        double& CalculateStateFunction(double & rStateFunction, const Parameters& rVariables) override;
 
 
-        double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rVariables);
+        double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rVariables) override;
 
         ///@}
         ///@name Access
@@ -187,9 +187,9 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoJuYieldCriterion
 
 	// A private default constructor necessary for serialization
 
-	virtual void save(Serializer& rSerializer) const;
+	void save(Serializer& rSerializer) const override;
 
-	virtual void load(Serializer& rSerializer);
+	void load(Serializer& rSerializer) override;
 
         ///@}
         ///@name Private Inquiry

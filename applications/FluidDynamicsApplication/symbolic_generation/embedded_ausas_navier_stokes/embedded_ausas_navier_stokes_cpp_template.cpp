@@ -109,7 +109,7 @@ void EmbeddedAusasNavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, 
 
 
 template<>
-void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const ElementDataStruct& data)
+void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(BoundedMatrix<double,16,16>& lhs, const ElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -126,12 +126,12 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matr
     // const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
-    const bounded_matrix<double,nnodes,dim>& v = data.v;
-    // const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    // const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    // const bounded_matrix<double,nnodes,dim>& f = data.f;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
+    // const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+    // const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+    const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
+    const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
+    // const BoundedMatrix<double,nnodes,dim>& f = data.f;
     // const array_1d<double,nnodes>& p = data.p;
     // const array_1d<double,nnodes>& pn = data.pn;
     // const array_1d<double,nnodes>& pnn = data.pnn;
@@ -142,7 +142,7 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matr
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
 
@@ -160,7 +160,7 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matr
 
 
 template<>
-void EmbeddedAusasNavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9>& lhs, const ElementDataStruct& data)
+void EmbeddedAusasNavierStokes<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,9,9>& lhs, const ElementDataStruct& data)
 {
     const int nnodes = 3;
     const int dim = 2;
@@ -177,12 +177,12 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matr
     // const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
-    const bounded_matrix<double,nnodes,dim>& v = data.v;
-    // const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    // const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    // const bounded_matrix<double,nnodes,dim>& f = data.f;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
+    // const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+    // const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+    const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
+    const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
+    // const BoundedMatrix<double,nnodes,dim>& f = data.f;
     // const array_1d<double,nnodes>& p = data.p;
     // const array_1d<double,nnodes>& pn = data.pn;
     // const array_1d<double,nnodes>& pnn = data.pnn;
@@ -193,7 +193,7 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matr
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
 
@@ -228,12 +228,12 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<dou
     const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
-    const bounded_matrix<double,nnodes,dim>& v = data.v;
-    const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    const bounded_matrix<double,nnodes,dim>& f = data.f;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
+    const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+    const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+    const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
+    const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
+    const BoundedMatrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
     const array_1d<double,nnodes>& pn = data.pn;
     const array_1d<double,nnodes>& pnn = data.pnn;
@@ -244,7 +244,7 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<dou
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
@@ -286,12 +286,12 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<dou
     const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
-    const bounded_matrix<double,nnodes,dim>& v = data.v;
-    const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    const bounded_matrix<double,nnodes,dim>& f = data.f;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
+    const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+    const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+    const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
+    const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
+    const BoundedMatrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
     const array_1d<double,nnodes>& pn = data.pn;
     const array_1d<double,nnodes>& pnn = data.pnn;
@@ -302,7 +302,7 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<dou
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,dim> f_gauss = prod(trans(f), N);

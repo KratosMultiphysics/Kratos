@@ -19,14 +19,6 @@
 #include <algorithm>
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
-
-// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
@@ -132,6 +124,8 @@ public:
         KRATOS_TRY;
 
         const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+        KRATOS_ERROR_IF((domain_size == 3 && mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
+            "> Normal calculation of 2-noded conditions in 3D domains is not possible!" << std::endl;
         CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
         CalculateUnitNormals();
 

@@ -60,8 +60,7 @@ class ShellQ4_LocalCoordinateSystem;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N
-    : public BaseShellElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N : public BaseShellElement
 {
 public:
 
@@ -194,8 +193,8 @@ public:
         array_1d<double, 24> displ_converged;   /*!< (converged) vector containing the displacement vector */
 
         array_1d<double, 5>           residual; /*!< vector containing the 5 residuals for the 5 enhanced strain parameters */
-        bounded_matrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
-        bounded_matrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
+        BoundedMatrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
+        BoundedMatrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
 
         bool mInitialized;                      /*!< Initialization flag */
 
