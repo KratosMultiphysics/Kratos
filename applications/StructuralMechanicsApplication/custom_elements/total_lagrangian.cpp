@@ -73,6 +73,13 @@ private:
     double mDetJ0;
     std::size_t mCurrentIntegrationPoint = -1;
 };
+
+void CalculateGreenLagrangeStrainSensitivity(Matrix const& rF,
+                                             Matrix const& rF_Deriv,
+                                             Matrix& rE_Deriv)
+{
+    rE_Deriv = 0.5 * (prod(trans(rF_Deriv), rF) + prod(trans(rF), rF_Deriv));
+}
 }
 
 TotalLagrangian::TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -363,8 +370,7 @@ void TotalLagrangian::CalculateStrain(Matrix const& rF,
     KRATOS_CATCH("");
 }
 
-void TotalLagrangian::CalculateShapeSensitivity(std::size_t NodeIndex,
-                                                std::size_t CoordIndex,
+void TotalLagrangian::CalculateShapeSensitivity(ShapeParameter Deriv,
                                                 Matrix& rDN_DX0_Deriv,
                                                 Matrix& rF_Deriv,
                                                 double& rDetJ0_Deriv,
@@ -379,8 +385,7 @@ void TotalLagrangian::CalculateShapeSensitivity(std::size_t NodeIndex,
     const Matrix& rDN_De = GetGeometry().ShapeFunctionsLocalGradients()[IntegrationPointIndex];
     auto sensitivity_utility =
         GeometricalSensitivityUtility(J0, rDN_De);
-    sensitivity_utility.CalculateSensitivity(NodeIndex, CoordIndex,
-                                             rDetJ0_Deriv, rDN_DX0_Deriv);
+    sensitivity_utility.CalculateSensitivity(Deriv, rDetJ0_Deriv, rDN_DX0_Deriv);
     rF_Deriv.resize(ws_dim, ws_dim);
     rF_Deriv.clear();
     for (unsigned i = 0; i < ws_dim; ++i)
@@ -408,15 +413,6 @@ void TotalLagrangian::CalculateBSensitivity(Matrix const& rDN_DX,
     CalculateB(B_deriv1, rF_Deriv, rDN_DX);
     CalculateB(B_deriv2, rF, rDN_DX_Deriv);
     rB_Deriv = B_deriv1 + B_deriv2;
-    KRATOS_CATCH("");
-}
-
-void TotalLagrangian::CalculateGreenLagrangeStrainSensitivity(Matrix const& rF,
-                                                              Matrix const& rF_Deriv,
-                                                              Matrix& rE_Deriv)
-{
-    KRATOS_TRY;
-    rE_Deriv = 0.5 * (prod(trans(rF_Deriv), rF) + prod(trans(rF), rF_Deriv));
     KRATOS_CATCH("");
 }
 
@@ -454,6 +450,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
         B.resize(strain_size, ws_dim * nnodes);
         Vector strain_vector_deriv(strain_size);
         Vector stress_vector(strain_size), stress_vector_deriv(strain_size);
+        Vector residual_deriv(ws_dim * nnodes);
         double detJ0_deriv;
         LargeDisplacementKinematics large_disp_kinematics(r_geom);
         for (std::size_t g = 0; g < r_geom.IntegrationPointsNumber(); ++g)
@@ -465,25 +462,22 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
             double weight = GetIntegrationWeight(
                 r_geom.IntegrationPoints(), g, large_disp_kinematics.DetJ0(g));
 
-            for (std::size_t i = 0; i < nnodes; ++i)
+            for (auto s = ShapeParameter::Sequence(nnodes, ws_dim); s; ++s)
             {
-                for (std::size_t d = 0; d < ws_dim; ++d)
-                {
-                    CalculateShapeSensitivity(i, d, DN_DX0_deriv, F_deriv, detJ0_deriv, g);
-                    CalculateGreenLagrangeStrainSensitivity(F, F_deriv, strain_tensor_deriv);
-                    noalias(strain_vector_deriv) =
-                        MathUtils<double>::StrainTensorToVector(strain_tensor_deriv);
-                    CalculateStress(strain_vector_deriv, g, stress_vector_deriv,
-                                    rCurrentProcessInfo);
-                    CalculateBSensitivity(DN_DX0, F, DN_DX0_deriv, F_deriv, B_deriv);
-                    double weight_deriv = GetIntegrationWeight(
-                        r_geom.IntegrationPoints(), g, detJ0_deriv);
-                    Vector output = -weight_deriv * prod(trans(B), stress_vector);
-                    output -= weight * prod(trans(B_deriv), stress_vector);
-                    output -= weight * prod(trans(B), stress_vector_deriv);
-                    for (std::size_t k = 0; k < output.size(); ++k)
-                        rOutput(k, i * ws_dim + d) = output(k);
-                }
+                const auto& deriv = s.CurrentValue();
+                CalculateShapeSensitivity(deriv, DN_DX0_deriv, F_deriv, detJ0_deriv, g);
+                CalculateGreenLagrangeStrainSensitivity(F, F_deriv, strain_tensor_deriv);
+                noalias(strain_vector_deriv) =
+                    MathUtils<double>::StrainTensorToVector(strain_tensor_deriv);
+                CalculateStress(strain_vector_deriv, g, stress_vector_deriv, rCurrentProcessInfo);
+                CalculateBSensitivity(DN_DX0, F, DN_DX0_deriv, F_deriv, B_deriv);
+                const double weight_deriv =
+                    GetIntegrationWeight(r_geom.IntegrationPoints(), g, detJ0_deriv);
+                noalias(residual_deriv) = -weight_deriv * prod(trans(B), stress_vector);
+                residual_deriv -= weight * prod(trans(B_deriv), stress_vector);
+                residual_deriv -= weight * prod(trans(B), stress_vector_deriv);
+                for (std::size_t k = 0; k < residual_deriv.size(); ++k)
+                    rOutput(k, deriv.NodeIndex * ws_dim + deriv.Direction) = residual_deriv(k);
             }
         }
     }

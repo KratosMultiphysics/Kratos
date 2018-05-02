@@ -44,6 +44,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class ShapeParameter;
+
 /**
  * @class TotalLagrangian
  * @ingroup StructuralMechanicsApplication
@@ -230,8 +232,7 @@ private:
                          Vector& rStrain,
                          ProcessInfo const& rCurrentProcessInfo);
 
-    void CalculateShapeSensitivity(std::size_t NodeIndex,
-                                   std::size_t CoordIndex,
+    void CalculateShapeSensitivity(ShapeParameter Deriv,
                                    Matrix& rDN_DX0_Deriv,
                                    Matrix& rF_Deriv,
                                    double& rDetJ0_Deriv,
@@ -242,10 +243,6 @@ private:
                                Matrix const& rDN_DX_Deriv,
                                Matrix const& rF_Deriv,
                                Matrix& rB_Deriv);
-
-    void CalculateGreenLagrangeStrainSensitivity(Matrix const& rF,
-                                                 Matrix const& rF_Deriv,
-                                                 Matrix& rE_Deriv);
 
     ///@}
     ///@name Private  Access
