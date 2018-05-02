@@ -132,8 +132,7 @@ class Solution(object):
         self.face_watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(analytic_face_watcher=self.face_watcher, path=self.main_path)
         
     def MakeAnalyticsMeasurements(self):
-        self.face_watcher.MakeMeasurements()
-        self.particle_watcher.MakeMeasurements()
+        pass
         
     def GetAnalyticFacesModelParts(self):
         analytic_face_submodelpart_number = 3
@@ -446,42 +445,13 @@ class Solution(object):
             self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
             
             #Phantom                
-            #self.MakeAnalyticsMeasurements()
+            self.MakeAnalyticsMeasurements()
             
-            self.face_watcher.MakeMeasurements(self.GetAnalyticFacesModelParts())
+            '''
+            if self.analytic_data_counter.Tick():
+                self.ProcessAnalyticData()
+            ''' 
             
-            if False: #self.analytic_data_counter.Tick():
-                pass
-                #self.ProcessAnalyticData()
-                
-            times = []
-            neighbour_ids = []
-            normal_relative_vel = []
-            tangential_relative_vel = []
-            my_id = []
-            masses = []
-            n_particles = []
-            
-            '''print("PRINTING IN PYTHON!!!!!!!!!!!!!!!!!!!!!!!!")
-            print(my_id)
-            print(neighbour_ids)
-            print(masses)
-            print(normal_relative_vel)
-            print(tangential_relative_vel)
-            print(n_particles)
-            print(times)'''
-            self.face_watcher.GetTotalFlux(times, n_particles, masses)
-            #self.face_watcher.GetAllFacesData(self.GetAnalyticFacesModelParts(), times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
-            #self.face_watcher.GetTimeStepsData(my_id, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
-            
-            print(self.GetAnalyticFacesModelParts())
-            print("IN PYTHON, TIME====")
-            print(times)
-            print("IN PYTHON, N_PARTICLES====")
-            print(n_particles)
-            print("IN PYTHON, MASS====")
-            print(masses)
-
             self.BeforePrintingOperations(self.time)
 
             #### GiD IO ##########################################
