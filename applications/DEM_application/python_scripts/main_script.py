@@ -21,17 +21,11 @@ else:
 
 class Solution(object):
 
-    @classmethod
     def GetParametersFileName(self):
         return "ProjectParametersDEM.json"
 
-    @classmethod
     def GetInputParameters(self):
         parameters_file_name = self.GetParametersFileName()
-        print("GetInputParameters in main")
-        print(parameters_file_name)
-        print(os.getcwd())
-        #lele
         parameters_file = open(parameters_file_name, 'r')
         return Parameters(parameters_file.read())
 
