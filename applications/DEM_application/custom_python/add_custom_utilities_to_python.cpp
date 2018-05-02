@@ -4,7 +4,6 @@
 
 // External includes 
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 
 // Project includes
 
@@ -236,7 +235,28 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("SetNodalMaxImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxImpactVelocities)
         .def("SetNodalMaxFaceImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxFaceImpactVelocities)
         ;
+    
 
+    class_<std::list<int>>(m, "IntList")
+        .def(init<>())
+        //.def("clear", &std::list<int>::clear)
+        //.def("pop_back", &std::list<int>::pop_back)
+        //.def("__len__", [](const std::list<int> &v) { return v.size(); })
+        //.def("__iter__", [](std::list<int> &v) {
+        //return make_iterator(v.begin(), v.end());
+        //}
+        ;
+    
+    class_<std::list<double>>(m, "DoubleList")
+        .def(init<>())
+        //.def("clear", &std::list<int>::clear)
+        //.def("pop_back", &std::list<int>::pop_back)
+        //.def("__len__", [](const std::list<int> &v) { return v.size(); })
+        //.def("__iter__", [](std::list<int> &v) {
+        //return make_iterator(v.begin(), v.end());
+        //}
+        ;
+    
     class_<AnalyticFaceWatcher, AnalyticFaceWatcher::Pointer>(m, "AnalyticFaceWatcher")
         .def(init<>())
         .def("ClearData", &AnalyticFaceWatcher::ClearData)

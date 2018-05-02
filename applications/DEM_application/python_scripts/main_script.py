@@ -455,14 +455,14 @@ class Solution(object):
                 pass
                 #self.ProcessAnalyticData()
                 
-            times = [5.5]
+            times = []
             neighbour_ids = [1]
             masses = [3.3]
             normal_relative_vel = [3.3]
             tangential_relative_vel = [4.4]
             #my_id = [2]
-            mass = [5.6]
-            n_particles = [4]
+            mass = []
+            n_particles = []
             print(self.GetAnalyticFacesModelParts())
             
             #self.face_watcher.GetAllFacesData(self.GetAnalyticFacesModelParts(), times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
@@ -470,6 +470,7 @@ class Solution(object):
             #lele
             #self.face_watcher.GetTimeStepsData(self.my_id, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
             
+            print("PRINTING IN PYTHON!!!!!!!!!!!!!!!!!!!!!!!!")
             print(self.my_id)
             print(neighbour_ids)
             print(masses)
@@ -482,11 +483,14 @@ class Solution(object):
             print(times)
             self.face_watcher.GetTotalFlux(times, n_particles, mass)
             
+            
+            print("IN PYTHON, TIME====")
             print(times)
+            print("IN PYTHON, N_PARTICLES====")
             print(n_particles)
-            for m in mass:
-                print(m)
-            que
+            '''for m in mass:
+                print(m)'''
+            #que
 
             self.BeforePrintingOperations(self.time)
 

@@ -13,6 +13,8 @@
 #include "includes/model_part.h"
 #include "../../custom_conditions/RigidFace.h"
 
+#include <pybind11/pybind11.h>
+
 /* External includes */
 #ifdef _OPENMP
 #include <omp.h>
@@ -199,7 +201,7 @@ void GetTimeStepsData(std::list<int>& ids,
                       std::list<double>& normal_relative_vel,
                       std::list<double>& tangential_relative_vel);
 
-void GetTotalFlux(std::list<double> &times, std::list<int> &n_particles, std::list<double> &mass);
+void GetTotalFlux(pybind11::list &times, pybind11::list &n_particles, pybind11::list &mass);
 
 virtual void MakeMeasurements(ModelPart& analytic_model_part);
 
