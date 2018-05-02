@@ -112,7 +112,7 @@ public:
     UpdatedLagrangianFluidInc(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~UpdatedLagrangianFluidInc();
+    ~UpdatedLagrangianFluidInc() override;
 
 
     ///@}
@@ -160,13 +160,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "UpdatedLagrangianFluidInc #" ;
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -252,13 +252,13 @@ private:
     {
     }
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
 
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

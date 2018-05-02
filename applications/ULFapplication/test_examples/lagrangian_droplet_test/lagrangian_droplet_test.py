@@ -95,7 +95,8 @@ else:
     print("Unknown GiD multiple file mode, assuming Single")
     multifile = MultiFileFlag.SingleFile
 
-input_file_name = "lagrangian_droplet_test"
+#input_file_name = "lagrangian_droplet_test"
+input_file_name = "square3"
 
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 

@@ -58,10 +58,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <pybind11/pybind11.h>
 
 // External includes
-
+#include "includes/define.h"
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 
 
 namespace Kratos

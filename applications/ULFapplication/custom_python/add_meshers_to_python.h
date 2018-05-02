@@ -61,7 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 
 
 namespace Kratos

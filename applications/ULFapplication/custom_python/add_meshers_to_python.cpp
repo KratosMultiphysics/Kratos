@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 // #include "includes/define.h
-#include "includes/define_python.h""
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_meshers_to_python.h"
 #include "includes/model_part.h"

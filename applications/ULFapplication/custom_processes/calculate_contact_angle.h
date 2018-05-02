@@ -25,7 +25,10 @@
 
 
 // Project includes
+#include <pybind11/pybind11.h>
 #include "includes/define.h"
+#include "includes/define_python.h"
+
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "utilities/math_utils.h"
@@ -88,7 +91,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~CalculateContactAngle()
+    ~CalculateContactAngle() override
     {
     }
 
@@ -420,19 +423,19 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "CalculateContactAngle";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "CalculateContactAngle";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

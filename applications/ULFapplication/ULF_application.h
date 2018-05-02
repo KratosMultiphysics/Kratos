@@ -41,8 +41,8 @@
 #include "custom_conditions/Point_Neumann3D.h"
 #include "custom_conditions/Point_Neumann2D.h"
 #include "custom_conditions/Point_Neumann_Axisym.h"
-//#include "custom_elements/surface_tension.h"
-//#include "includes/ublas_interface.h"
+#include "custom_elements/surface_tension.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -88,7 +88,8 @@ public:
     KratosULFApplication();
 
     /// Destructor.
-    virtual ~KratosULFApplication() {}
+//     virtual ~KratosULFApplication() {}
+    ~KratosULFApplication() override {}
 
 
     ///@}
@@ -100,7 +101,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
 
 
@@ -119,20 +120,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosULFApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in KratosULFApplication");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -211,10 +212,10 @@ private:
     const PointNeumann2D  mPointNeumann2D;
     const PointNeumannAxisym  mPointNeumannAxisym;
     
-//        /// 2D instance of the SurfaceTension element
-//     const SurfaceTension<2> mSurfaceTension2D;
-//     /// 3D instance of the SurfaceTension element
-//     const SurfaceTension<3> mSurfaceTension3D;
+       /// 2D instance of the SurfaceTension element
+    const SurfaceTension<2> mSurfaceTension2D;
+    /// 3D instance of the SurfaceTension element
+    const SurfaceTension<3> mSurfaceTension3D;
 
     ///@}
     ///@name Private Operators

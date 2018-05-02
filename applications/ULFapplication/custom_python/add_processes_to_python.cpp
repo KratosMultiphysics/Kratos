@@ -55,7 +55,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-// #include "includes/define.h"
+#include <pybind11/pybind11.h>
+#include "includes/define.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_processes_to_python.h"
@@ -89,6 +90,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // #include "custom_processes/assign_surface_tension_conditions.h"
 #include "custom_processes/calculate_adhesion_force.h"
+
+#include "spaces/ublas_space.h"
+
+#include "linear_solvers/linear_solver.h"
 
 
 

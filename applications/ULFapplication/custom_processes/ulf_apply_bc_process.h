@@ -122,7 +122,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~UlfApplyBCProcess()
+    ~UlfApplyBCProcess() override
     {
     }
 
@@ -141,7 +141,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
         KRATOS_TRY
         for(ModelPart::NodesContainerType::const_iterator in = mr_model_part.NodesBegin(); in!=mr_model_part.NodesEnd(); in++)
@@ -193,19 +193,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "UlfApplyBCProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "UlfApplyBCProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

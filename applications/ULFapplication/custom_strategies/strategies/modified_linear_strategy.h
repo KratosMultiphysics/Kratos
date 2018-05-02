@@ -15,10 +15,14 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
+// #include "boost/smart_ptr.hpp"
 #include <stdlib.h>
 #include <boost/timer.hpp>
 
+
+#include <pybind11/pybind11.h>
+#include "includes/define.h"
+#include "includes/define_python.h"
 
 /* Project includes */
 #include "includes/define.h"
@@ -229,7 +233,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~LapModifiedLinearStrategy() {}
+    ~LapModifiedLinearStrategy() override{}
 
     /** Destructor.
     */

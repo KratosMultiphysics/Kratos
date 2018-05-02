@@ -26,6 +26,7 @@
 
 // Project includes
 #include "includes/define.h"
+
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "meshing_application.h"
@@ -110,7 +111,7 @@ public:
 
     //*******************************************************************************************
     //*******************************************************************************************
-    void ReGenerateMesh(
+    void ReGenerateMeshDROPLET(
         ModelPart& ThisModelPart ,
         Element const& rReferenceElement,
         Condition const& rReferenceBoundaryCondition,

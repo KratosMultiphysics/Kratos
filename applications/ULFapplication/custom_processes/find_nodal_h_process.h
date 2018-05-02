@@ -48,8 +48,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //
 
-#if !defined(KRATOS_MARK_OUTER_NODES_PROCESS_INCLUDED )
-#define  KRATOS_MARK_OUTER_NODES_PROCESS_INCLUDED
+
+#if !defined(KRATOS_FIND_NODAL_H_PROCESS_INCLUDED )
+#define  KRATOS_FIND_NODAL_H_PROCESS_INCLUDED
 
 
 
@@ -67,8 +68,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-#include "custom_utilities/geometry_utilities2D.h"
-#include "custom_elements/updated_lagrangian_fluid.h"
 
 
 namespace Kratos
@@ -96,33 +95,34 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-	Update the PRESSURE_FORCE on the nodes
+	calculate the nodal H for all the nodes depending on the min distance
+	of the neighbouring nodes.
 
-
+	lonely nodes are given the average value of the H
 */
 
-class MarkOuterNodesProcess
+class FindNodalHProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of PushStructureProcess
-    KRATOS_CLASS_POINTER_DEFINITION(MarkOuterNodesProcess);
+    /// Pointer definition of FindNodalHProcess
+    KRATOS_CLASS_POINTER_DEFINITION(FindNodalHProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MarkOuterNodesProcess(ModelPart& model_part)
+    FindNodalHProcess(ModelPart& model_part)
         : mr_model_part(model_part)
     {
     }
 
     /// Destructor.
-    ~MarkOuterNodesProcess() override
+    virtual ~FindNodalHProcess()
     {
     }
 
@@ -131,67 +131,68 @@ public:
     ///@name Operators
     ///@{
 
+    void operator()()
+    {
+        Execute();
+    }
 
-    void MarkOuterNodes(const array_1d<double,3>& corner1, const array_1d<double,3>& corner2)
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    virtual void Execute()
     {
         KRATOS_TRY
-        //add a big number to the id of the nodes to be erased
-        int n_erased = 0;
-        double xmax, xmin, ymax,ymin, zmax, zmin;
+        ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+        //
 
-        if(corner1[0] > corner2[0])
-        {
-            xmax = corner1[0];
-            xmin = corner2[0];
-        }
-        else
-        {
-            xmax = corner2[0];
-            xmin = corner1[0];
-        }
-        if(corner1[1] > corner2[1])
-        {
-            ymax = corner1[1];
-            ymin = corner2[1];
-        }
-        else
-        {
-            ymax = corner2[1];
-            ymin = corner1[1];
-        }
-        if(corner1[2] > corner2[2])
-        {
-            zmax = corner1[2];
-            zmin = corner2[2];
-        }
-        else
-        {
-            zmax = corner2[2];
-            zmin = corner1[2];
-        }
-        //for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-        for(ModelPart::NodesContainerType::iterator in = mr_model_part.NodesBegin() ;
-                in != mr_model_part.NodesEnd() ; ++in)
-        {
-            bool erase = false;
-            double& x = in->X();
-            double& y = in->Y();
-            double& z = in->Z();
+        double havg = 0.00;
+        double h_nodes = 0;
 
-            if(x<xmin || x>xmax)		erase = true;
-            else if(y<ymin || y>ymax)	erase = true;
-            else if(z<zmin || z>zmax)	erase = true;
-
-            if(erase == true)
+        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+        {
+            if((in->GetValue(NEIGHBOUR_NODES)).size() != 0)
             {
-                n_erased += 1;
-                in->Set(TO_ERASE, true);
-                KRATOS_WATCH("ERRASING OUTER NODE!!!!!!");
-                KRATOS_WATCH("ERRASING OUTER NODE!!!!!!");
-                KRATOS_WATCH("ERRASING OUTER NODE!!!!!!");
+                double xc = in->X();
+                double yc = in->Y();
+                double zc = in->Z();
+
+                double h = 1000.0;
+                for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+                        i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
+                {
+                    double x = i->X();
+                    double y = i->Y();
+                    double z = i->Z();
+                    double l = (x-xc)*(x-xc);
+                    l += (y-yc)*(y-yc);
+                    l += (z-zc)*(z-zc);
+
+                    //if(l>h) h = l;
+                    if(l<h) h = l;
+                }
+                h = sqrt(h);
+                havg += h;
+                h_nodes += 1;
+
+                in->FastGetSolutionStepValue(NODAL_H) = h;
             }
         }
 
+        //calculate average h
+        if(h_nodes == 0)
+            KRATOS_THROW_ERROR(std::logic_error,"no node has neighbours!!!!","");
+        havg /= h_nodes;
+
+        //set the h to the average to the nodes without neighours
+        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+        {
+            if((in->GetValue(NEIGHBOUR_NODES)).size() == 0)
+            {
+                in->FastGetSolutionStepValue(NODAL_H) = havg;
+            }
+        }
         KRATOS_CATCH("")
     }
 
@@ -211,19 +212,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
-        return "MarkOuterNodesProcess";
+        return "FindNodalHProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "MarkOuterNodesProcess";
+        rOStream << "FindNodalHProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
     }
 
@@ -281,11 +282,12 @@ private:
     ///@name Member Variables
     ///@{
     ModelPart& mr_model_part;
+    double m_min_h;
+
 
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -307,15 +309,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//		MarkOuterNodesProcess& operator=(MarkOuterNodesProcess const& rOther);
+    FindNodalHProcess& operator=(FindNodalHProcess const& rOther);
 
     /// Copy constructor.
-//		MarkOuterNodesProcess(MarkOuterNodesProcess const& rOther);
+    //FindNodalHProcess(FindNodalHProcess const& rOther);
 
 
     ///@}
 
-}; // Class MarkOuterNodesProcess
+}; // Class FindNodalHProcess
 
 ///@}
 
@@ -330,11 +332,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  MarkOuterNodesProcess& rThis);
+                                  FindNodalHProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MarkOuterNodesProcess& rThis)
+                                  const FindNodalHProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -347,6 +349,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MARK_OUTER_NODES_PROCESS_INCLUDED  defined 
+#endif // KRATOS_FIND_NODAL_H_PROCESS_INCLUDED  defined 
 
 

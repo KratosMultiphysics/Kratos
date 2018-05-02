@@ -122,7 +122,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~UlfTimeStepDecProcess()
+    ~UlfTimeStepDecProcess() override
     {
     }
 
@@ -256,19 +256,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "UlfTimeStepDecProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "UlfTimeStepDecProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

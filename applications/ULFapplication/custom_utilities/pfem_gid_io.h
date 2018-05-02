@@ -56,7 +56,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
+#include <pybind11/pybind11.h>
 #include "includes/define.h"
+#include "includes/define_python.h"
+
 //#include "includes/datafile_io.h"
 #include "includes/gid_io.h"
 

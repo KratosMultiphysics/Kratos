@@ -49,6 +49,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
+#include "includes/define.h"
 #include "includes/define_python.h"
 #include "ULF_application.h"
 #include "custom_python/add_custom_io_to_python.h"

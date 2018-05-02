@@ -141,7 +141,7 @@ lagrangian_model_part.SetBufferSize(3)
 
 for node in lagrangian_model_part.Nodes:
   node.SetSolutionStepValue(DENSITY,0, 1000.0)
-  node.SetSolutionStepValue(VISCOSITY,0, 0.0001)
+  node.SetSolutionStepValue(VISCOSITY,0, 8.90 * 1e-4)
   node.SetSolutionStepValue(BODY_FORCE_X, 0, 0.0)
   node.SetSolutionStepValue(BODY_FORCE_Y, 0, -9.81)
   node.SetSolutionStepValue(PRESSURE,0, 0.0)
