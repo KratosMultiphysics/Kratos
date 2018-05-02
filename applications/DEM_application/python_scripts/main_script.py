@@ -92,7 +92,6 @@ class Solution(object):
         #self.dt = DEM_parameters.MaxTimeStep
         self.Setdt()
         self.SetFinalTime()
-        self.my_id = [444]
 
     def CreateModelParts(self):
         self.spheres_model_part = ModelPart("SpheresPart")
@@ -456,41 +455,32 @@ class Solution(object):
                 #self.ProcessAnalyticData()
                 
             times = []
-            neighbour_ids = [1]
-            masses = [3.3]
-            normal_relative_vel = [3.3]
-            tangential_relative_vel = [4.4]
-            #my_id = [2]
-            mass = []
+            neighbour_ids = []
+            normal_relative_vel = []
+            tangential_relative_vel = []
+            my_id = []
+            masses = []
             n_particles = []
-            print(self.GetAnalyticFacesModelParts())
             
-            #self.face_watcher.GetAllFacesData(self.GetAnalyticFacesModelParts(), times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
-            
-            #lele
-            #self.face_watcher.GetTimeStepsData(self.my_id, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
-            
-            print("PRINTING IN PYTHON!!!!!!!!!!!!!!!!!!!!!!!!")
-            print(self.my_id)
+            '''print("PRINTING IN PYTHON!!!!!!!!!!!!!!!!!!!!!!!!")
+            print(my_id)
             print(neighbour_ids)
             print(masses)
             print(normal_relative_vel)
             print(tangential_relative_vel)
-            print(mass)
             print(n_particles)
-            for m in mass:
-                print(m)
-            print(times)
-            self.face_watcher.GetTotalFlux(times, n_particles, mass)
+            print(times)'''
+            self.face_watcher.GetTotalFlux(times, n_particles, masses)
+            #self.face_watcher.GetAllFacesData(self.GetAnalyticFacesModelParts(), times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
+            #self.face_watcher.GetTimeStepsData(my_id, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
             
-            
+            print(self.GetAnalyticFacesModelParts())
             print("IN PYTHON, TIME====")
             print(times)
             print("IN PYTHON, N_PARTICLES====")
             print(n_particles)
-            '''for m in mass:
-                print(m)'''
-            #que
+            print("IN PYTHON, MASS====")
+            print(masses)
 
             self.BeforePrintingOperations(self.time)
 

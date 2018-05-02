@@ -150,6 +150,7 @@ void AnalyticFaceWatcher::GetTimeStepsData(std::list<int>& ids,
     
     KRATOS_WATCH("AnalyticFaceWatcher::GetTimeStepsData")
     
+    /*
     std::list<int>::iterator it_int;
     std::list<int>::iterator it_int_2;
     std::list<double>::iterator it_double;
@@ -181,14 +182,15 @@ void AnalyticFaceWatcher::GetTimeStepsData(std::list<int>& ids,
     for (it_int_2 = neighbour_ids.begin(); it_int_2 != neighbour_ids.end(); it_int_2++) {
         if (*it_int_2) {
 
-            /*KRATOS_WATCH(my_id)
+            KRATOS_WATCH(my_id)
             KRATOS_WATCH(*it_int_2)
             KRATOS_WATCH(particle_mass)
             KRATOS_WATCH(normal_relative_vel_d)
-            KRATOS_WATCH(tangential_relative_vel_d)*/
+            KRATOS_WATCH(tangential_relative_vel_d)
 
         }
     }
+    */
 }
 
 void AnalyticFaceWatcher::GetTotalFlux(pybind11::list &times, pybind11::list &n_particles, pybind11::list &mass)

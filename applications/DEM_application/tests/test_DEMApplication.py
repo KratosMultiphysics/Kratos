@@ -4,6 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_particle_creator_destructor
 import test_analytics
+#SLS
 import ghost_analytics
 
 
@@ -26,6 +27,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_particle_creator_destructor.TestParticleCreatorDestructor("test_CreateSphericParticle2"))
     smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_1"))
     smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_2"))
+    #SLS
     smallSuite.addTest(ghost_analytics.GhostAnalytics("ghost_Analytics_1"))
     
 
