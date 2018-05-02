@@ -24,7 +24,7 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
             "sub_model_part_name"      : "",
             "time_frequency"           : 0.10,
             "write_points": {
-              "sub_model_part_name": [ "POINT_4" ],
+              "sub_model_part_name": [ ],
               "output_file_name": "convergence.txt"
             }
         }
@@ -136,12 +136,13 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
 
         if(self.params.Has("write_points")):
             with open(self.params["write_points"]["output_file_name"].GetString(), 'a') as convergence_file:
-                check_model_part = self.model_part[self.params["model_part_name"].GetString()].GetSubModelPart(self.params["write_points"]["sub_model_part_name"][0].GetString())
-                convergence_file.write(str(self.sub_model_part.NumberOfElements()) + "  " + str(self.sub_model_part.NumberOfNodes()) + "  ")
-                for condition in check_model_part.Conditions:
-                    disp = condition.CalculateOnIntegrationPoints(KratosMultiphysics.DISPLACEMENT, check_model_part.ProcessInfo)
-                    convergence_file.write(str(disp[0][0]) + "  " + str(disp[0][1]) + "  " + str(disp[0][2]) + "  ")
-                convergence_file.write("\n")
+                for i in range(0, self.params["write_points"]["sub_model_part_name"].size()):
+                    check_model_part = self.model_part[self.params["model_part_name"].GetString()].GetSubModelPart(self.params["write_points"]["sub_model_part_name"][i].GetString())
+                    convergence_file.write(str(self.sub_model_part.NumberOfElements()) + "  " + str(self.sub_model_part.NumberOfNodes()) + "  ")
+                    for condition in check_model_part.Conditions:
+                        disp = condition.CalculateOnIntegrationPoints(KratosMultiphysics.DISPLACEMENT, check_model_part.ProcessInfo)
+                        convergence_file.write(str(disp[0][0]) + "  " + str(disp[0][1]) + "  " + str(disp[0][2]) + "  ")
+                    convergence_file.write("\n")
 
     def ExecuteBeforeOutputStep(self):
         pass

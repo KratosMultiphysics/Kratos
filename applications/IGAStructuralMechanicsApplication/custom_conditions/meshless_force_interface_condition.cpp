@@ -74,7 +74,7 @@ namespace Kratos
 	void MeshlessForceInterfaceCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
-
+			std::cout << "start MeshlessForceInterfaceCondition" << std::endl;
 		const unsigned int number_of_points = GetGeometry().size();
 
 		if (rLeftHandSideMatrix.size1() != number_of_points * 3)
@@ -85,11 +85,11 @@ namespace Kratos
 			rRightHandSideVector.resize(number_of_points * 3, false);
 		rRightHandSideVector = ZeroVector(number_of_points * 3); //resetting RHS
 
-		
 		const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
 		const Vector& force_vector = this->GetValue(EXTERNAL_FORCES_VECTOR);
-
-		Vector fLoads(number_of_points * 3);
+		KRATOS_WATCH(N)
+		KRATOS_WATCH(force_vector)
+		Vector fLoads = ZeroVector(number_of_points * 3);
 
 		for (unsigned int i = 0; i < number_of_points; i++)
 		{
@@ -99,6 +99,8 @@ namespace Kratos
 			fLoads[index + 2] = - force_vector[2] * N[i];
 		}
 		noalias(rRightHandSideVector) -= fLoads;
+
+		KRATOS_WATCH(rRightHandSideVector)
 		KRATOS_CATCH("")
 	}
 	/***********************************************************************************/

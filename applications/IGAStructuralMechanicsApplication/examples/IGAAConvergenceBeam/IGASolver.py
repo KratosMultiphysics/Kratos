@@ -30,11 +30,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.IGAStructuralMechanicsApplication import *
 from KratosMultiphysics.NurbsBrepApplication import *
+import KratosMultiphysics.ExternalSolversApplication 
 
-from KratosMultiphysics import DEMApplication
-import main_script 
-
-from KratosExternalSolversApplication import *
 
 import iga_structural_mechanics_solver
 
@@ -75,19 +72,8 @@ StopTimeMeasuring(nurbs_brep_time, "NurbsBrepApplication time", True)
 import read_materials_process
 read_materials_process.Factory(ProjectParameters,Model)
 
-for properties in model_part.Properties:
-    print(properties)
-
-nurbs_brep_time = StartTimeMeasuring()
 solver.ImportModelPartNurbsBrep(NurbsBrepProcess.model_part_integration_domain, ProjectParameters)
-StopTimeMeasuring(nurbs_brep_time, "Import model part time", True)
 solver.AddDofs()
-
-dem_analysis = main_script.Solution()
-dem_analysis.Initialize()
-dem_analysis.InitializeTimeStep()
-
-
 
 #build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
 ##TODO: replace MODEL for the Kratos one ASAP
@@ -97,7 +83,7 @@ for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_li
     Model.update({part_name: model_part.GetSubModelPart(part_name)})
 
 #print model_part
-if(echo_level>1):
+if(echo_level>3):
     print("")
     print(NurbsBrepProcess.model_part_integration_domain)
     print(model_part)
@@ -157,10 +143,10 @@ step = 0
 time = ProjectParameters["problem_data"]["start_time"].GetDouble()
 end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
-print(dem_analysis.spheres_model_part)
+
 
 # solving the problem (time integration)
-while dem_analysis.time < dem_analysis.final_time:
+while(time <= end_time):
 
     #TODO: this must be done by a solving_info utility in the solver
     # store previous time step
@@ -173,14 +159,11 @@ while dem_analysis.time < dem_analysis.final_time:
     model_part.ProcessInfo[TIME_STEPS] = step
     model_part.CloneTimeStep(time)
 
-    dem_analysis.RunSingleTemporalLoop()
-	
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
-    nurbs_brep_time = StartTimeMeasuring()
+
     solver.Solve()
-    StopTimeMeasuring(nurbs_brep_time, "Solving steo time", True)
-	
+       
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
 		
@@ -195,8 +178,6 @@ for process in list_of_processes:
 #~ solver.InfoCheck() # InfoCheck not implemented yet.
 #endregion
 
-dem_analysis.Finalize()
-dem_analysis.CleanUpOperations()
 
 #### END SOLUTION ####
 # measure process time

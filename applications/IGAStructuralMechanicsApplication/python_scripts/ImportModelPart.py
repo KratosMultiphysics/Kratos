@@ -47,18 +47,25 @@ class ModelPartIOIGA():
 			for variable in range(0,element_type["parameters"]["variables"].size()):
 				list_var_nurbs.append(KratosMultiphysics.KratosGlobals.GetVariable(element_type["parameters"]["variables"][variable]["cad_variable"].GetString()))
 				list_var_iga.append(KratosMultiphysics.KratosGlobals.GetVariable(element_type["parameters"]["variables"][variable]["iga_variable"].GetString()))
-
+			#for node in cad_model_part.Nodes:
+			#	print(node.Id)
+			#	print(node.X)
+			#	print(node.Y)
+			#	print(node.Z)
+			#	print(node.GetValue(KratosMultiphysics.INTEGRATION_WEIGHT))
+			#	print(node.GetValue(KratosMultiphysics.NurbsBrepApplication.LOCAL_PARAMETERS))
+			#	print(node.GetValue(KratosMultiphysics.NurbsBrepApplication.NURBS_SHAPE_FUNCTIONS))
 			for node in cad_model_part.Nodes:
-					control_points = node.GetValue(var)
-					int_control_points = []
-					for cp in control_points:
-						int_control_points.append(int(cp))
-						iga_model_part.AddNode(model_part.GetNode(int(cp)),0)
+				control_points = node.GetValue(var)
+				int_control_points = []
+				for cp in control_points:
+					int_control_points.append(int(cp))
+					iga_model_part.AddNode(model_part.GetNode(int(cp)),0)
 
-					element = iga_model_part.CreateNewElement(element_name, node.Id, int_control_points, properties)
-					i = 1
-					for iga_var, brep_var in zip(list_var_iga, list_var_nurbs):# in range(0,element_type["parameters"]["variables"].size()):#element_type["parameters"]["variables"]:
-						element.SetValue(iga_var, node.GetValue(brep_var))
+				element = iga_model_part.CreateNewElement(element_name, node.Id, int_control_points, properties)
+				i = 1
+				for iga_var, brep_var in zip(list_var_iga, list_var_nurbs):# in range(0,element_type["parameters"]["variables"].size()):#element_type["parameters"]["variables"]:
+					element.SetValue(iga_var, node.GetValue(brep_var))
 
 		for condition_id in range(0,self.project_parameters["condition_list"].size()): #project_parameters["condition_list"]:
 			condition_type = self.project_parameters["condition_list"][condition_id]
@@ -85,7 +92,6 @@ class ModelPartIOIGA():
 				for variable in range(0,condition_type["parameters"]["variables"].size()):
 					list_var_nurbs.append(KratosMultiphysics.KratosGlobals.GetVariable(condition_type["parameters"]["variables"][variable]["cad_variable"].GetString()))
 					list_var_iga.append(KratosMultiphysics.KratosGlobals.GetVariable(condition_type["parameters"]["variables"][variable]["iga_variable"].GetString()))
-					print(condition_type["parameters"]["variables"][variable]["iga_variable"].GetString())
 
 				for node in cad_model_part.Nodes:
 					int_control_points = []

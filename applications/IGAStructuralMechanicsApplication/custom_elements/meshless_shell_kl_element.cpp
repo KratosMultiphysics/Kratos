@@ -91,6 +91,7 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
+			std::cout << "here something..." << std::endl;
 			if (GetProperties()[CONSTITUTIVE_LAW] != NULL)
 			{
 				//get shape functions for evaluation of stresses inside the constitutive law
@@ -122,6 +123,8 @@ namespace Kratos
 	)
 	{
 		KRATOS_TRY
+
+		std::cout << "here something..." << std::endl;
 		// definition of problem size
 		const unsigned int number_of_nodes = GetGeometry().size();
 		unsigned int mat_size = number_of_nodes * 3;

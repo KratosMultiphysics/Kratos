@@ -115,7 +115,7 @@ namespace Kratos
   //}
   std::vector<BrepModel> BrepModelGeometryReader::ReadGeometry(ModelPart& model_part)
   {
-	  std::cout << "\n> Start reading CAD geometry..." << std::endl;
+	  std::cout << "\n> Start reading CAD geometry" << std::endl;
 
 
 	  std::vector<BrepModel> r_brep_model_vector;
@@ -144,7 +144,7 @@ namespace Kratos
 			  //sub_model_part_face.CreateSubModelPart("FACE_" + std::to_string(face_id) + "_CPS");
 			  ModelPart::Pointer sub_model_part_face_cp = sub_model_part_face->CreateSubModelPart("FACE_" + std::to_string(face_id) + "_CPS");
 
-			  std::cout << "> Reading face " << face_id << "..." << std::endl;
+			  //std::cout << "> Reading face " << face_id << "..." << std::endl;
 
 			  bool is_trimmed = brep_json["faces"][i]["surface"]["is_trimmed"].GetBool();
 			  bool is_rational = brep_json["faces"][i]["surface"]["is_rational"].GetBool();
@@ -374,7 +374,7 @@ namespace Kratos
 			  //model_part.CreateSubModelPart("FACE_" + std::to_string(face_id));
 			  ModelPart::Pointer sub_model_part_edge = model_part.CreateSubModelPart("EDGE_" + std::to_string(edge_id));
 
-			  std::cout << "> Reading edge " << edge_id << "..." << std::endl;
+			  //std::cout << "> Reading edge " << edge_id << "..." << std::endl;
 
 			  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			  // 3d curve
@@ -493,7 +493,7 @@ namespace Kratos
 
 		  r_brep_model_vector.push_back(brep);// [brep_i] = &brep;
 	  }
-	  std::cout << "\n> Finished reading CAD geometry..." << std::endl;
+	  std::cout << "\n> Finished reading CAD geometry" << std::endl;
 	  return r_brep_model_vector;
   }
 

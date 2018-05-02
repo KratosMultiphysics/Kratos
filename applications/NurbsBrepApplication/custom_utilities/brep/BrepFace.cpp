@@ -559,7 +559,7 @@ namespace Kratos
   //To be deleted
  // std::vector<Node<3>::Pointer> BrepFace::GetQuadraturePointsOfTrimmingCurveWithPoints(const int& shapefunction_order, const int& trim_index, std::vector<Point> intersection_points)
  // {
- //   BrepTrimmingCurve& trimming_curve = GetTrimmingCurve(trim_index);
+ //   BrepTrimmingCurve trimming_curve = GetTrimmingCurve(trim_index);
  //   //trimming_curve.PrintData();
  //
  //   std::vector<array_1d<double, 2>> intersection_points_2d;
@@ -1273,7 +1273,7 @@ namespace Kratos
 			this_order_elevation_q = std::max((int)(rGeometryRefinementParameters.min_order_q - m_q),
 				this_order_elevation_q);
 
-		std::cout << "check here degree elevation this_order_elevation_p: " << this_order_elevation_p << ", this_order_elevation_q: " << this_order_elevation_q << std::endl;
+		//std::cout << "check here degree elevation this_order_elevation_p: " << this_order_elevation_p << ", this_order_elevation_q: " << this_order_elevation_q << std::endl;
 		if (this_order_elevation_p > 0 ||
 			this_order_elevation_q > 0)
 			DegreeElevate(this_order_elevation_p, this_order_elevation_q);
@@ -1305,7 +1305,7 @@ namespace Kratos
 				{
 					for (int j = 0; j < rGeometryRefinementParameters.multiply_knots_u - 1; j++)
 					{
-						this_knot_insertions_u.resize(this_knot_insertions_u.size() + 1);
+						this_knot_insertions_u.resize(this_knot_insertions_u.size() + 1, true);
 						this_knot_insertions_u[this_knot_insertions_u.size() - 1] = ((1.0 + j) / rGeometryRefinementParameters.multiply_knots_u*(m_knot_vector_u[i + 1] - m_knot_vector_u[i]) + m_knot_vector_u[i]);
 					}
 				}
@@ -1327,7 +1327,7 @@ namespace Kratos
 				{
 					for (int j = 0; j < rGeometryRefinementParameters.multiply_knots_v - 1; j++)
 					{
-						this_knot_insertions_v.resize(this_knot_insertions_v.size() + 1);
+						this_knot_insertions_v.resize(this_knot_insertions_v.size() + 1, true);
 						this_knot_insertions_v[this_knot_insertions_v.size() - 1] = ((1.0 + j) / rGeometryRefinementParameters.multiply_knots_v*(m_knot_vector_v[i + 1] - m_knot_vector_v[i]) + m_knot_vector_v[i]);
 					}
 				}
@@ -1341,8 +1341,7 @@ namespace Kratos
 			//	knot_insertion += new_knot_size;
 			//}
 		}
-		KRATOS_WATCH(this_knot_insertions_u)
-		KRATOS_WATCH(this_knot_insertions_v)
+
 		if (this_knot_insertions_u.size() > 0 ||
 			this_knot_insertions_v.size() > 0)
 			RefineKnotVector(this_knot_insertions_u, this_knot_insertions_v);
@@ -1455,13 +1454,13 @@ namespace Kratos
 			}
 			number_control_points_u += Ru.size();
 
-			m_knot_vector_u.resize(m_knot_vector_u.size());
+			m_knot_vector_u.resize(m_knot_vector_u.size(), true);
 			m_knot_vector_u = knot_vector_u;
 			KRATOS_WATCH(Pw)
 			Pw = Qw;
 			KRATOS_WATCH(Pw)
 		}
-		Qw.resize(number_control_points_u, number_control_points_v + Rv.size()); // New control points
+		Qw.resize(number_control_points_u, number_control_points_v + Rv.size(), true); // New control points
 		std::cout << "here" << std::endl;
 		if (Rv.size() > 0)
 		{
@@ -1552,7 +1551,7 @@ namespace Kratos
 		//m_knot_vector_v = knot_vector_v;
 		KRATOS_WATCH(m_knot_vector_u)
 		KRATOS_WATCH(m_knot_vector_v)
-		m_control_points_ids.resize(Qw.size1()*Qw.size2());
+		m_control_points_ids.resize(Qw.size1()*Qw.size2(), true);
 		std::cout << "control point ids:";
 		for (int i = 0; i < Qw.size1(); i++)
 		{
@@ -1799,16 +1798,16 @@ namespace Kratos
 				}
 			}
 			m_p = ph;
-			m_knot_vector_u.resize(u_ele.size());
+			m_knot_vector_u.resize(u_ele.size(), true);
 			m_knot_vector_u = u_ele;
 			number_control_points_u = number_control_points_u + tp;
 
-			Pw.resize(Qw.size1(),Qw.size2());
+			Pw.resize(Qw.size1(),Qw.size2(), true);
 			Pw = Qw;
 		} // end of big loop through knot vector
 
 		if (tq) {
-			Qw.resize(number_control_points_u, number_control_points_v + tq);
+			Qw.resize(number_control_points_u, number_control_points_v + tq, true);
 			Matrix bezalfs = ZeroMatrix(m_q + tq + 1, m_q + 1); // coefficients for degree elevating the Bézier segments
 			matrix<array_1d<double, 4>> bpts(number_control_points_u, m_q + 1); //pth-degree Bézier control points of the current segment
 			matrix<array_1d<double, 4>> ebpts(number_control_points_u, m_q + tq + 1); //((p+t)th-degree Bézier control points of the current segment
@@ -2018,11 +2017,11 @@ namespace Kratos
 			}// end of big loop through knot vector
 
 			m_q = qh;
-			m_knot_vector_v.resize(v_ele.size());
+			m_knot_vector_v.resize(v_ele.size(), true);
 			m_knot_vector_v = v_ele;
 		}
 
-		m_control_points_ids.resize(Qw.size1()*Qw.size2());
+		m_control_points_ids.resize(Qw.size1()*Qw.size2(), true);
 		std::cout << "Control ids: ";
 		for (int i = 0; i < Qw.size1(); i++)
 		{
@@ -2195,7 +2194,7 @@ namespace Kratos
     Vector N;
     Vector M;
 
-    R.resize(m_p + 1, m_q + 1);
+    R.resize(m_p + 1, m_q + 1, true);
     noalias(R) = ZeroMatrix(m_p + 1, m_q + 1);
 
     // Evaluate basis functions with derivatives
@@ -2255,8 +2254,8 @@ namespace Kratos
 
     vector<double> r(number_of_control_points);
     r.clear();
-    DN_De.resize(number_of_control_points, 2);
-    DDN_DDe.resize(number_of_control_points, 3);
+    DN_De.resize(number_of_control_points, 2, true);
+    DDN_DDe.resize(number_of_control_points, 3, true);
 
     double sum = 0.0;
     Vector dsum = ZeroVector(2);

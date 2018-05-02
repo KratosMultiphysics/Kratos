@@ -8,7 +8,7 @@ class IGAApplyContinuity(python_process.PythonProcess):
 
         for condition in model_part.Conditions:
             for variable_key in variables:
-                condition.SetValue(eval(variable_key), variables[variable_key])
+                condition.SetValue(KratosMultiphysics.KratosGlobals.GetVariable(variable_key), variables[variable_key])
 
         print("Finished construction of IGAApplyContinuity Process")
         
@@ -49,9 +49,9 @@ def Factory(settings, Model):
 	#if(settings["process_name"] == "IGAApplyLoad"):
 	for variable_i in range (0,params["variables"].size()):
 		variable_name = params["variables"][variable_i]["variable_name"].GetString()
-		if (variable_name == "KratosMultiphysics.IGAStructuralMechanicsApplication.PENALTY_FACTOR"):
+		if (variable_name == "PENALTY_FACTOR"):
 			variables.update({variable_name : params["variables"][variable_i]["variable"].GetDouble()})
-		if (variable_name == "KratosMultiphysics.IGAStructuralMechanicsApplication.DISPLACEMENT_ROTATION_FIX"):
+		if (variable_name == "DISPLACEMENT_ROTATION_FIX"):
 			DisplacementRotationFix = 0 #defined by rot, dispx, dispy, dispz
 			if (params["variables"][variable_i]["variable"]["C1-Continuity"]["t1"].GetBool()):
 				DisplacementRotationFix += 1000
@@ -62,7 +62,7 @@ def Factory(settings, Model):
 			if (params["variables"][variable_i]["variable"]["C0-Continuity"]["z"].GetBool()):
 				DisplacementRotationFix += 1
 			variables.update({variable_name : DisplacementRotationFix})
-		if (variable_name == "KratosMultiphysics.DISPLACEMENT"):
+		if (variable_name == "DISPLACEMENT"):
 			displacements = KratosMultiphysics.Vector(3)
 			displacements[0] = params["variables"][variable_i]["variable"]["C0-Continuity"]["x"].GetDouble()
 			displacements[1] = params["variables"][variable_i]["variable"]["C0-Continuity"]["y"].GetDouble()

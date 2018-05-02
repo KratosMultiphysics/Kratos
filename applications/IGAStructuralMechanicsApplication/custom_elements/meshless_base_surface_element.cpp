@@ -36,6 +36,7 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
+		std::cout << "here something..." << std::endl;
 		//Constitutive Law initialisation
 		InitializeMaterial();
 

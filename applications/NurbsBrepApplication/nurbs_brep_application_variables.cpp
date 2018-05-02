@@ -5,7 +5,8 @@
 namespace Kratos
 {
 	//variables for IGA - DEM coupling
-	//KRATOS_CREATE_VARIABLE(std::vector<Condition::Pointer>, WALL_POINT_CONDITION_POINTERS)
+	KRATOS_CREATE_VARIABLE(WeakPointerVector<Condition>, WALL_POINT_CONDITION_POINTERS)
+	KRATOS_CREATE_VARIABLE(double, RADIUS)
 	//KRATOS_CREATE_VARIABLE(NurbsBrepModeler::tree::Pointer, SEARCH_TREE)
 
 	KRATOS_CREATE_VARIABLE(double, CONTROL_POINT_WEIGHT)
@@ -20,6 +21,7 @@ namespace Kratos
 	KRATOS_CREATE_VARIABLE(Vector, CONTROL_POINT_IDS)
 
 	////Values of Shapefunctions N
+	KRATOS_CREATE_VARIABLE(Vector, SHAPE_FUNCTION_VALUES)
 	KRATOS_CREATE_VARIABLE(Vector, NURBS_SHAPE_FUNCTIONS)
 	////Values of Shapefunctionderivatives in local space DN_De
 	KRATOS_CREATE_VARIABLE(Matrix, NURBS_SHAPE_FUNCTION_DERIVATIVES)

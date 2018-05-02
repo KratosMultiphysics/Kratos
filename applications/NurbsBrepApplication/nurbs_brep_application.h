@@ -36,11 +36,12 @@ namespace Kratos {
 ///@name Kratos Globals
 ///@{
 
-  //Variables definition
-  //KRATOS_DEFINE_VARIABLE(Tree::Pointer, SEARCH_TREE)
+	//Variables definition
+	//KRATOS_DEFINE_VARIABLE(Tree::Pointer, SEARCH_TREE)
 	//KRATOS_DEFINE_VARIABLE(NurbsBrepModeler::tree::Pointer, SEARCH_TREE)
 	//variables for IGA - DEM coupling
-	//KRATOS_DEFINE_VARIABLE(std::vector<Condition::Pointer>, WALL_POINT_CONDITION_POINTERS)
+	KRATOS_DEFINE_VARIABLE(WeakPointerVector<Condition>, WALL_POINT_CONDITION_POINTERS)
+	KRATOS_DEFINE_VARIABLE(double, RADIUS)
 
 	KRATOS_DEFINE_VARIABLE(double, CONTROL_POINT_WEIGHT)
 
@@ -54,6 +55,7 @@ namespace Kratos {
 	KRATOS_DEFINE_VARIABLE(Vector, CONTROL_POINT_IDS)
 	KRATOS_DEFINE_VARIABLE(Vector, CONTROL_POINT_IDS_SLAVE)
 
+	KRATOS_DEFINE_VARIABLE(Vector, SHAPE_FUNCTION_VALUES)
 	KRATOS_DEFINE_VARIABLE(Vector, NURBS_SHAPE_FUNCTIONS)
 	KRATOS_DEFINE_VARIABLE(Matrix, NURBS_SHAPE_FUNCTION_DERIVATIVES)
 	KRATOS_DEFINE_VARIABLE(Matrix, NURBS_SHAPE_FUNCTION_SECOND_DERIVATIVES)
@@ -68,76 +70,76 @@ namespace Kratos {
 	KRATOS_DEFINE_VARIABLE(Matrix, NURBS_SHAPE_FUNCTION_DERIVATIVES_SLAVE)
 	KRATOS_DEFINE_VARIABLE(Matrix, NURBS_SHAPE_FUNCTION_SECOND_DERIVATIVES_SLAVE)
 
-  KRATOS_DEFINE_VARIABLE(double, CURVE_PARAMETER_KNOT_LOCATION_PERCENTAGE)
+	KRATOS_DEFINE_VARIABLE(double, CURVE_PARAMETER_KNOT_LOCATION_PERCENTAGE)
 
 ///@}
 class KratosNurbsBrepApplication : public KratosApplication {
 public:
-  ///@name Type Definitions
-  ///@{
-  /// Pointer definition of KratosNurbsBrepApplication
-  KRATOS_CLASS_POINTER_DEFINITION(KratosNurbsBrepApplication);
-  ///@}
-  ///@name Life Cycle
-  ///@{
+	///@name Type Definitions
+	///@{
+	/// Pointer definition of KratosNurbsBrepApplication
+	KRATOS_CLASS_POINTER_DEFINITION(KratosNurbsBrepApplication);
+	///@}
+	///@name Life Cycle
+	///@{
 
-  /// Default constructor.
-  KratosNurbsBrepApplication();
+	/// Default constructor.
+	KratosNurbsBrepApplication();
 
-  /// Destructor.
-  virtual ~KratosNurbsBrepApplication(){}
+	/// Destructor.
+	virtual ~KratosNurbsBrepApplication() {}
 
-  ///@}
-  ///@name Operations
-  ///@{
+	///@}
+	///@name Operations
+	///@{
 
-  virtual void Register();
-  
-  ///@}
-  ///@name Input and output
-  ///@{
+	virtual void Register();
 
-  /// Turn back information as a string.
-  virtual std::string Info() const {
-    return "KratosNurbsBrepApplication";
-  }
+	///@}
+	///@name Input and output
+	///@{
 
-  /// Print information about this object.
-  virtual void PrintInfo(std::ostream& rOStream) const {
-    rOStream << Info();
-    PrintData(rOStream);
-  }
+	/// Turn back information as a string.
+	virtual std::string Info() const {
+		return "KratosNurbsBrepApplication";
+	}
 
-  ///// Print object's data.
-  virtual void PrintData(std::ostream& rOStream) const {
-      KRATOS_WATCH("in my application");
-      KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+	/// Print information about this object.
+	virtual void PrintInfo(std::ostream& rOStream) const {
+		rOStream << Info();
+		PrintData(rOStream);
+	}
 
-    rOStream << "Variables:" << std::endl;
-    KratosComponents<VariableData>().PrintData(rOStream);
-    rOStream << std::endl;
-    rOStream << "Elements:" << std::endl;
-    KratosComponents<Element>().PrintData(rOStream);
-    rOStream << std::endl;
-    rOStream << "Conditions:" << std::endl;
-    KratosComponents<Condition>().PrintData(rOStream);
-    }
+	///// Print object's data.
+	virtual void PrintData(std::ostream& rOStream) const {
+		KRATOS_WATCH("in my application");
+		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
 
-  ///@}
+		rOStream << "Variables:" << std::endl;
+		KratosComponents<VariableData>().PrintData(rOStream);
+		rOStream << std::endl;
+		rOStream << "Elements:" << std::endl;
+		KratosComponents<Element>().PrintData(rOStream);
+		rOStream << std::endl;
+		rOStream << "Conditions:" << std::endl;
+		KratosComponents<Condition>().PrintData(rOStream);
+	}
+
+	///@}
 protected:
 
 private:
-  ///@name Un accessible methods
-  ///@{
+	///@name Un accessible methods
+	///@{
 
-  /// Assignment operator.
-  KratosNurbsBrepApplication& operator=(KratosNurbsBrepApplication const& rOther);
+	/// Assignment operator.
+	KratosNurbsBrepApplication& operator=(KratosNurbsBrepApplication const& rOther);
 
-  /// Copy constructor.
-  KratosNurbsBrepApplication(KratosNurbsBrepApplication const& rOther);
-  ///@}
+	/// Copy constructor.
+	KratosNurbsBrepApplication(KratosNurbsBrepApplication const& rOther);
+	///@}
 
-}; // Class KratosNurbsBrepApplication
+	}; // Class KratosNurbsBrepApplication
 }  // namespace Kratos.
 
 #endif // KRATOS_NURBS_BREP_APPLICATION_H_INCLUDED  defined

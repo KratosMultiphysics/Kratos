@@ -8,7 +8,7 @@ class IGAApplyLoad(python_process.PythonProcess):
         
         for condition in model_part.Conditions:
             for variable_key in variables:
-                condition.SetValue(eval(variable_key), variables[variable_key])
+                condition.SetValue(KratosMultiphysics.KratosGlobals.GetVariable(variable_key), variables[variable_key])
 
 
         print("Finished construction of IGAApplyLoad Process")
@@ -51,7 +51,7 @@ def Factory(settings, Model):
 	#if(settings["process_name"] == "IGAApplyLoad"):
 	for variable_i in range (0,params["variables"].size()):
 		variable_name = params["variables"][variable_i]["variable_name"].GetString()
-		if (variable_name == "KratosMultiphysics.IGAStructuralMechanicsApplication.LOAD_TYPE"):
+		if (variable_name == "LOAD_TYPE"):
 			condition_type = params["variables"][variable_i]["variable"].GetString()
 			if (condition_type == "EDGE_LOAD"):
 				conditionTypeInt = 1
@@ -60,9 +60,9 @@ def Factory(settings, Model):
 			if (condition_type == "SURFACE_PRESSURE"):
 				conditionTypeInt = 100
 			variables.update({variable_name : conditionTypeInt})
-		if (variable_name == "KratosMultiphysics.IGAStructuralMechanicsApplication.DISTRIBUTED_LOAD_FACTOR"):
+		if (variable_name == "DISTRIBUTED_LOAD_FACTOR"):
 			variables.update({variable_name : params["variables"][variable_i]["variable"].GetDouble()})
-		if (variable_name == "KratosMultiphysics.DIRECTION"):
+		if (variable_name == "DIRECTION"):
 			direction = KratosMultiphysics.Vector(3)
 			direction[0] = params["variables"][variable_i]["variable"]["x"].GetDouble()
 			direction[1] = params["variables"][variable_i]["variable"]["y"].GetDouble()

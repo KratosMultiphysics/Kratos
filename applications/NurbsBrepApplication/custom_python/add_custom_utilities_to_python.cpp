@@ -50,6 +50,7 @@ namespace Python
 			.def("ApplyGeometryRefinement", &NurbsBrepModeler::ApplyGeometryRefinement)
 			.def("ComputeArea", &NurbsBrepModeler::ComputeArea)
 			.def("MapNode", &NurbsBrepModeler::MapNode)
+			.def("GetInterfaceConditions", &NurbsBrepModeler::GetInterfaceConditions)
 			;
 
 		class_<BrepModelGeometryReader, typename BrepModelGeometryReader::Pointer>(m, "BrepModelGeometryReader")
