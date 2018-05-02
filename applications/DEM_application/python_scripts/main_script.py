@@ -115,25 +115,23 @@ class Solution(object):
         return False
 
     def SetAnalyticParticleWatcher(self):
-        self.main_path = os.getcwd()  #revisar
         from analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
         self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher=self.particle_watcher, path=self.main_path)
-        
+
     def SetAnalyticFaceWatcher(self):
-        self.main_path = os.getcwd()  #revisar
         from analytic_tools import analytic_data_procedures
         self.face_watcher = AnalyticFaceWatcher()
         self.face_watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(analytic_face_watcher=self.face_watcher, path=self.main_path)
-        
+
     def MakeAnalyticsMeasurements(self):
         pass
-        
+
     def GetAnalyticFacesModelParts(self):
         analytic_face_submodelpart_number = 3
         analytic_face_submodelpart_name = self.rigid_face_model_part.GetSubModelPart(str(analytic_face_submodelpart_number))
         return analytic_face_submodelpart_name
-        
+
     def SetFinalTime(self):
         self.final_time = self.DEM_parameters["FinalTime"].GetDouble()
 
