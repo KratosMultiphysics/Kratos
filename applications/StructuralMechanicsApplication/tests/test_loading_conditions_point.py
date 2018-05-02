@@ -69,7 +69,7 @@ class TestLoadingConditionsPoint(KratosUnittest.TestCase):
         mp.SetBufferSize(2)
 
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
         
         # create node
@@ -78,9 +78,9 @@ class TestLoadingConditionsPoint(KratosUnittest.TestCase):
         # ensure that the property 1 is created
         mp.GetProperties()[1]
 
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,mp)
 
         cond = mp.CreateNewCondition("PointMomentCondition3D1N", 1, [1], mp.GetProperties()[1])
 

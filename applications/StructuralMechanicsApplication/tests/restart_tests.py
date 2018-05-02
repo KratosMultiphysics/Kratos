@@ -9,6 +9,9 @@ import structural_mechanics_analysis
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+
 # This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
 
@@ -80,14 +83,7 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
         raw_path, raw_file_name = os.path.split(self.file_name)
         folder_name = os.path.join(raw_path, raw_file_name + "__restart_files")
 
-        t = self.start_time
-        while(t < self.end_time): # using while bcs range does not support floats
-            t +=  self.time_step
-            file_path = os.path.join(folder_name, raw_file_name + "_" + str(t) + ".rest")
-            kratos_utils.DeleteFileIfExisting(file_path)
-
-        if os.path.isdir(folder_name):
-            os.rmdir(folder_name)
+        kratos_utils.DeleteDirectoryIfExisting(GetFilePath(folder_name))
 
 
 class TestSmallDisplacement2D4N(StructuralMechanicsRestartTestFactory):

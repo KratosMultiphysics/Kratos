@@ -27,9 +27,9 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
         node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
         node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
-        node.AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X)
-        node.AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y)
-        node.AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z)
+        node.AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X)
+        node.AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y)
+        node.AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z)
 
     def _add_bcs(self,node):
         node.Fix(KratosMultiphysics.DISPLACEMENT_X)
