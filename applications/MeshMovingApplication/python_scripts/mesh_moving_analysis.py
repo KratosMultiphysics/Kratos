@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.MeshMovingApplication as KratosALE
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
 # Importing the solvers (if available)
 try:

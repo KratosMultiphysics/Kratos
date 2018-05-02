@@ -7,7 +7,7 @@ import KratosMultiphysics
 KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
 
 # Import applications
-import KratosMultiphysics.MeshMovingApplication as KratosALE
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
 # Other imports
 import os
