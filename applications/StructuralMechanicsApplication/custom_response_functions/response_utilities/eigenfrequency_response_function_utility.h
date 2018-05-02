@@ -275,7 +275,8 @@ protected:
             elem_i.CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
             elem_i.CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
 
-            int num_dofs_element = mass_matrix_org.size1();
+            const unsigned int num_dofs_element = mass_matrix_org.size1();
+            const unsigned int domain_size = CurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
             Matrix aux_matrix = Matrix(num_dofs_element,num_dofs_element);
             Vector aux_vector = Vector(num_dofs_element);
@@ -292,7 +293,7 @@ protected:
                 Matrix perturbed_LHS = Matrix(num_dofs_element,num_dofs_element);
                 Matrix perturbed_mass_matrix = Matrix(num_dofs_element,num_dofs_element);
 
-                for(std::size_t coord_dir_i = 0; coord_dir_i < CurrentProcessInfo.GetValue(DOMAIN_SIZE); coord_dir_i++)
+                for(std::size_t coord_dir_i = 0; coord_dir_i < domain_size; coord_dir_i++)
                 {
                     node_i.GetInitialPosition()[coord_dir_i] += mDelta;
 
@@ -331,8 +332,8 @@ protected:
     {
         rEigenvectorOfElement.resize(size_of_eigenvector,false);
 
-        const int num_nodes = traced_element.GetGeometry().size();
-        const int num_node_dofs = size_of_eigenvector/num_nodes;
+        const unsigned int num_nodes = traced_element.GetGeometry().size();
+        const unsigned int num_node_dofs = size_of_eigenvector/num_nodes;
 
         for (std::size_t node_index=0; node_index<num_nodes; node_index++)
         {
