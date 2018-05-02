@@ -337,7 +337,7 @@ void TotalLagrangian::CalculateStress(Vector& rStrain,
     cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS | ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     cl_params.SetStrainVector(rStrain);
     cl_params.SetStressVector(rStress);
-    mConstitutiveLawVector[IntegrationPoint]->CalculateMaterialResponse(cl_params, ConstitutiveLaw::StressMeasure_PK2);
+    mConstitutiveLawVector[IntegrationPoint]->CalculateMaterialResponse(cl_params, GetStressMeasure());
     KRATOS_CATCH("");
 }
 
@@ -353,7 +353,7 @@ void TotalLagrangian::CalculateStress(Matrix const& rF,
     cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS | ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     cl_params.SetStrainVector(strain);
     cl_params.SetStressVector(rStress);
-    mConstitutiveLawVector[IntegrationPoint]->CalculateMaterialResponse(cl_params, ConstitutiveLaw::StressMeasure_PK2);
+    mConstitutiveLawVector[IntegrationPoint]->CalculateMaterialResponse(cl_params, GetStressMeasure());
     KRATOS_CATCH("");
 }
 
@@ -366,7 +366,7 @@ void TotalLagrangian::CalculateStrain(Matrix const& rF,
     ConstitutiveLaw::Parameters cl_params(GetGeometry(), GetProperties(), rCurrentProcessInfo);
     cl_params.SetDeformationGradientF(rF);
     cl_params.SetStrainVector(rStrain);
-    mConstitutiveLawVector[IntegrationPoint]->CalculateMaterialResponse(cl_params, ConstitutiveLaw::StressMeasure_PK2);
+    mConstitutiveLawVector[IntegrationPoint]->CalculateMaterialResponse(cl_params, GetStressMeasure());
     KRATOS_CATCH("");
 }
 
