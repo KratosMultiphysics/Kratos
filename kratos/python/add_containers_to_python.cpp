@@ -267,15 +267,15 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<Flags>())
     .def("Is", &Flags::Is)
     .def("IsNot", &Flags::IsNot)
-    .def("Set", FlagsSet1)
-    .def("Set", FlagsSet2)
+    .def("Set", &FlagsSet1)
+    .def("Set", &FlagsSet2)
     .def("IsDefined", &Flags::IsDefined)
     .def("IsNotDefined", &Flags::IsNotDefined)
     .def("Reset", &Flags::Reset)
     .def("Flip", &Flags::Flip)
     .def("Clear", &Flags::Clear)
-    .def("__or__", FlagsOr)
-    .def("__and__", FlagsOr) // this is not an error, the and and or are considered both as add. Pooyan.
+    .def("__or__", &FlagsOr)
+    .def("__and__", &FlagsOr) // this is not an error, the and and or are considered both as add. Pooyan.
     .def("__repr__", &Flags::Info )
     ;
 

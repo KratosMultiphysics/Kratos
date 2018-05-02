@@ -160,18 +160,18 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def("SetSolutionStepValue", [](Node<3>& node, const Variable<array_1d<double, 3> > & rV, typename NodeType::IndexType SolutionStepIndex, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,3>(rValue);} );
    
     node_binder.def("GetBufferSize", &NodeType::GetBufferSize);
-    node_binder.def("AddDof", NodeAddDof<Variable<double> >);
-    node_binder.def("AddDof", NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
-    node_binder.def("AddDof", NodeAddDofwithReaction<Variable<double> >);
-    node_binder.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
-    node_binder.def("Fix", NodeFix<Variable<double> >);
-    node_binder.def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
-    node_binder.def("Free", NodeFree<Variable<double> >);
-    node_binder.def("Free", NodeFree<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
-    node_binder.def("IsFixed", NodeIsFixed<Variable<double> >);
-    node_binder.def("IsFixed", NodeIsFixed<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
-    node_binder.def("HasDofFor", NodeHasDofFor<Variable<double> >);
-    node_binder.def("HasDofFor", NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("AddDof", &NodeAddDof<Variable<double> >);
+    node_binder.def("AddDof", &NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("AddDof", &NodeAddDofwithReaction<Variable<double> >);
+    node_binder.def("AddDof", &NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("Fix", &NodeFix<Variable<double> >);
+    node_binder.def("Fix", &NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("Free", &NodeFree<Variable<double> >);
+    node_binder.def("Free", &NodeFree<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("IsFixed", &NodeIsFixed<Variable<double> >);
+    node_binder.def("IsFixed", &NodeIsFixed<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("HasDofFor", &NodeHasDofFor<Variable<double> >);
+    node_binder.def("HasDofFor", &NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<bool> >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<int> >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<double> >);
@@ -181,9 +181,9 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
     node_binder.def("__repr__", &NodeType::Info);
     node_binder.def("OverwriteSolutionStepData", &NodeType::OverwriteSolutionStepData);
-    node_binder.def_property("X0", PointGetX0, PointSetX0);
-    node_binder.def_property("Y0", PointGetY0, PointSetY0);
-    node_binder.def_property("Z0", PointGetZ0, PointSetZ0);
+    node_binder.def_property("X0", &PointGetX0, &PointSetX0);
+    node_binder.def_property("Y0", &PointGetY0, &PointSetY0);
+    node_binder.def_property("Z0", &PointGetZ0, &PointSetZ0);
 
     PointerVectorSetPythonInterface<MeshType::NodesContainerType>().CreateInterface(m,"NodesArray");
 

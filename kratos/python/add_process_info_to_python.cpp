@@ -42,7 +42,7 @@ void  AddProcessInfoToPython(pybind11::module& m)
     class_<ProcessInfo, ProcessInfo::Pointer, DataValueContainer, Flags >(m,"ProcessInfo")
     .def(init<>())
     .def("CreateSolutionStepInfo", &ProcessInfo::CreateSolutionStepInfo)
-	.def("GetPreviousSolutionStepInfo", ProcessInfoGetPreviousSolutionStepInfo)
+    .def("GetPreviousSolutionStepInfo", &ProcessInfoGetPreviousSolutionStepInfo)
     .def("__repr__", &ProcessInfo::Info)
     ;
 }
