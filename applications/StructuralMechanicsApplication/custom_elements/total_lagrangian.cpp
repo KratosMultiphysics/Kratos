@@ -451,6 +451,8 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
         Vector strain_vector_deriv(strain_size);
         Vector stress_vector(strain_size), stress_vector_deriv(strain_size);
         Vector residual_deriv(ws_dim * nnodes);
+        Vector N(r_geom.PointsNumber());
+        Vector body_force;
         double detJ0_deriv;
         LargeDisplacementKinematics large_disp_kinematics(r_geom);
         for (std::size_t g = 0; g < r_geom.IntegrationPointsNumber(); ++g)
@@ -461,6 +463,8 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
             CalculateStress(F, g, stress_vector, rCurrentProcessInfo);
             double weight = GetIntegrationWeight(
                 r_geom.IntegrationPoints(), g, large_disp_kinematics.DetJ0(g));
+            noalias(N) = row(GetGeometry().ShapeFunctionsValues(), g);
+            body_force = GetBodyForce(r_geom.IntegrationPoints(), g);
 
             for (auto s = ShapeParameter::Sequence(nnodes, ws_dim); s; ++s)
             {
@@ -476,6 +480,8 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
                 noalias(residual_deriv) = -weight_deriv * prod(trans(B), stress_vector);
                 residual_deriv -= weight * prod(trans(B_deriv), stress_vector);
                 residual_deriv -= weight * prod(trans(B), stress_vector_deriv);
+                CalculateAndAddExtForceContribution(
+                    N, rCurrentProcessInfo, body_force, residual_deriv, weight_deriv);
                 for (std::size_t k = 0; k < residual_deriv.size(); ++k)
                     rOutput(k, deriv.NodeIndex * ws_dim + deriv.Direction) = residual_deriv(k);
             }

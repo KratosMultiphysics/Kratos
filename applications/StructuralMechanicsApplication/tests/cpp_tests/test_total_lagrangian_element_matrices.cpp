@@ -532,6 +532,8 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosStructural
     ModelPart test_model_part("test");
     CreateTotalLagrangianTestModelPart("TotalLagrangianElement3D4N", test_model_part);
     AssignNodalData4(test_model_part);
+    for (auto& r_node : test_model_part.Nodes())
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION_X) = 98.1;
     auto p_elem = test_model_part.pGetElement(1);
     Matrix sensitivity_matrix, semi_analytic_sensitivity_matrix;
     p_elem->CalculateSensitivityMatrix(SHAPE_SENSITIVITY, sensitivity_matrix,
