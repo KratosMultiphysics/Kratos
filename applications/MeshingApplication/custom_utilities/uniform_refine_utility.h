@@ -209,11 +209,11 @@ private:
     ModelPart& mrModelPart;             /// The model part to refine
     int mFinalRefinementLevel;          /// The model part will be refined to this level
 
-    unsigned int mLastNodeId;           /// The node Id
-    unsigned int mLastElemId;           /// The element Id
-    unsigned int mLastCondId;           /// The condition Id
-    unsigned int mStepDataSize;         /// The size of the nodal database
-    unsigned int mBufferSize;           /// The buffer size
+    IndexType mLastNodeId;           /// The node Id
+    IndexType mLastElemId;           /// The element Id
+    IndexType mLastCondId;           /// The condition Id
+    IndexType mStepDataSize;         /// The size of the nodal database
+    IndexType mBufferSize;           /// The buffer size
     NodeType::DofsContainerType mDofs;  /// Storage for the dof of the node
 
     std::unordered_map<int,int> mNodesColorMap;

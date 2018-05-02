@@ -38,8 +38,8 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
     mLastCondId = 0;
 
     // Get the last node id
-    const int nnodes = mrModelPart.Nodes().size();
-    for (int i = 0; i < nnodes; i++)
+    const IndexType nnodes = mrModelPart.Nodes().size();
+    for (IndexType i = 0; i < nnodes; i++)
     {
         ModelPart::NodesContainerType::iterator inode = mrModelPart.NodesBegin() + i;
         if (inode->Id() > mLastNodeId)
@@ -108,8 +108,8 @@ void UniformRefineUtility<TDim>::Refine()
 {
     // Get the lowest refinement level
     int minimum_refinement_level = 1e6;
-    const int n_elements = mrModelPart.Elements().size();
-    for (int i = 0; i < n_elements; i++)
+    const IndexType n_elements = mrModelPart.Elements().size();
+    for (IndexType i = 0; i < n_elements; i++)
     {
         ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
         if (ielement->GetValue(REFINEMENT_LEVEL) < minimum_refinement_level)
@@ -128,9 +128,8 @@ template< unsigned int TDim>
 void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
 {
     // Initialize the entities Id lists
-    std::vector<int> elements_id;
-    std::vector<int> conditions_id;
-
+    std::vector<IndexType> elements_id;
+    std::vector<IndexType> conditions_id;
 
     // Get the elements id
     const IndexType n_elements = mrModelPart.Elements().size();
@@ -279,7 +278,7 @@ void UniformRefineUtility<TDim>::CreateNodeInEdge(
     )
 {
     // Get the middle node key
-    std::pair<int, int> node_key;
+    std::pair<IndexType, IndexType> node_key;
     node_key = std::minmax(rEdge(0)->Id(), rEdge(1)->Id());
 
     // Check if the node is not yet created
@@ -331,7 +330,7 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInEdge(const EdgeT
     NodeType::Pointer middle_node;
 
     // Get the middle node key
-    std::pair<int, int> node_key;
+    std::pair<IndexType, IndexType> node_key;
     node_key = std::minmax(rEdge(0)->Id(), rEdge(1)->Id());
 
     // Check if the node exist
@@ -439,14 +438,14 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
     const NodeType::Pointer pNode1
     )
 {
-    for (unsigned int step = 0; step < mBufferSize; step++)
+    for (IndexType step = 0; step < mBufferSize; step++)
     {
         double* new_node_data = pNewNode->SolutionStepData().Data(step);
 
         const double* node_data_0 = pNode0->SolutionStepData().Data(step);
         const double* node_data_1 = pNode1->SolutionStepData().Data(step);
 
-        for (unsigned int variable = 0; variable < mStepDataSize; variable++)
+        for (IndexType variable = 0; variable < mStepDataSize; variable++)
             new_node_data[variable] = 0.5 * node_data_0[variable] + 0.5 * node_data_1[variable];
     }
 }
@@ -462,7 +461,7 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
     const NodeType::Pointer pNode3
     )
 {
-    for (unsigned int step = 0; step < mBufferSize; step++)
+    for (IndexType step = 0; step < mBufferSize; step++)
     {
         double* new_node_data = pNewNode->SolutionStepData().Data(step);
 
@@ -471,7 +470,7 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
         const double* node_data_2 = pNode2->SolutionStepData().Data(step);
         const double* node_data_3 = pNode3->SolutionStepData().Data(step);
 
-        for (unsigned int variable = 0; variable < mStepDataSize; variable++)
+        for (IndexType variable = 0; variable < mStepDataSize; variable++)
             new_node_data[variable] = 0.25 * node_data_0[variable] + 0.25 * node_data_1[variable] +
                                       0.25 * node_data_2[variable] + 0.25 * node_data_3[variable];
     }
