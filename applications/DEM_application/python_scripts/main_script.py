@@ -55,6 +55,7 @@ class Solution(object):
 
     def __init__(self):
 
+        self.main_path = self.GetMainPath()
         self.LoadParametersFile()
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
@@ -64,11 +65,11 @@ class Solution(object):
         self.SetAnalyticFaceWatcher()
         self.PreUtilities = PreUtilities()
 
+
         # Set the print function TO_DO: do this better...
         self.KRATOSprint = self.procedures.KRATOSprint
 
         # Creating necessary directories:
-        self.main_path = self.GetMainPath()
         self.problem_name = self.GetProblemTypeFilename()
         [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name))
 
