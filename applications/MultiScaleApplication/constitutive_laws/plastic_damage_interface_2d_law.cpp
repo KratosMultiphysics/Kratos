@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * ***********************************************************/
 
 #include "plastic_damage_interface_2d_law.h"
-#include "multiscale_variables.h"
+#include "multiscale_application_variables.h"
 #include "custom_utilities/math_helpers.h"
 
 //#define PDINTERF_2D_TEST_ELASTIC

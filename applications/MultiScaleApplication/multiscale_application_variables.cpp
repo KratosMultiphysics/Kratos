@@ -2,7 +2,7 @@
 //         |\ / |  |   |  |      |     |
 //        _|  _|  \___/  _____| _|   ___| SCALE
 //
-#include "multiscale_variables.h"
+#include "multiscale_application_variables.h"
 
 namespace Kratos
 {

@@ -7,7 +7,7 @@
 //
 
 #include "small_displacement_interface_element.hpp"
-#include "multiscale_variables.h"
+#include "multiscale_application_variables.h"
 
 #include <string>
 #include <iomanip>

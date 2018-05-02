@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "multiscale_application.h"
-#include "multiscale_variables.h"
+#include "multiscale_application_variables.h"
 #include "add_linear_solvers_to_python.h"
 #include "add_conditions_to_python.h"
 #include "add_strategies_to_python.h"

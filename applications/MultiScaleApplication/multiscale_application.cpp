@@ -32,7 +32,7 @@
 #include "includes/constitutive_law.h"
 
 #include "multiscale_application.h"
-#include "multiscale_variables.h"
+#include "multiscale_application_variables.h"
 
 namespace Kratos {
 KratosMultiScaleApplication::KratosMultiScaleApplication()

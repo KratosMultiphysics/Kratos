@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iomanip>
 #include <stdio.h>
 
-#include "multiscale_variables.h"
+#include "multiscale_application_variables.h"
 #include "rve_predictor_calculator.h"
 #include "rve_utilities.h"
 #include "math_helpers.h"

@@ -51,7 +51,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rapidjson/filereadstream.h"
 
 #include "interpolated_constitutive_law_3d.h"
-#include "multiscale_variables.h"
+#include "multiscale_application_variables.h"
 
 #define SIGMA_SIGN(X) (X == 0.0 ? 1.0 : ( X > 0.0 ? 1.0 : -1.0 ))
 

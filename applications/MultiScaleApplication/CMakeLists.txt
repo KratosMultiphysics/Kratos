@@ -13,7 +13,7 @@ if(${MULTISCALE_APPLICATION_USE_EIGEN} MATCHES ON)
 	add_definitions(-DMULTISCALE_APPLICATION_USE_EIGEN)
 
 	message("Configuring Eigen")
-	message(${MULTISCMESH_MOVING_APPLICATION_EIGEN_DIR})
+	message(${MULTISCALE_APPLICATION_EIGEN_DIR})
 
 endif(${MULTISCALE_APPLICATION_USE_EIGEN} MATCHES ON)
 
@@ -22,8 +22,8 @@ if(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 	add_definitions(-DMULTISCALE_APPLICATION_USE_MUMPS)
 
 	message("Configuring OpenBLAS")
-	message(${MULTISCMESH_MOVING_APPLICATION_OPENBLAS_DIR})
-	set( OPENBLAS_LIB_DIR  ${MULTISCMESH_MOVING_APPLICATION_OPENBLAS_DIR} )
+	message(${MULTISCALE_APPLICATION_OPENBLAS_DIR})
+	set( OPENBLAS_LIB_DIR  ${MULTISCALE_APPLICATION_OPENBLAS_DIR} )
 	set( OPENBLAS_LIB ${OPENBLAS_LIB_DIR}/libopenblas.lib )
 	set( OPENBLAS_INSTALL_FILES
 		${OPENBLAS_LIB_DIR}/libopenblas.dll
@@ -34,10 +34,10 @@ if(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 	)
 
 	message("Configuring MUMPS")
-	message(${MULTISCMESH_MOVING_APPLICATION_MUMPS_INCLUDE_DIR})
-	message(${MULTISCMESH_MOVING_APPLICATION_MUMPS_LIB_DIR})
-	set( MUMPS_INCLUDE_DIR  ${MULTISCMESH_MOVING_APPLICATION_MUMPS_INCLUDE_DIR} )
-	set( MUMPS_LIB_DIR      ${MULTISCMESH_MOVING_APPLICATION_MUMPS_LIB_DIR} )
+	message(${MULTISCALE_APPLICATION_MUMPS_INCLUDE_DIR})
+	message(${MULTISCALE_APPLICATION_MUMPS_LIB_DIR})
+	set( MUMPS_INCLUDE_DIR  ${MULTISCALE_APPLICATION_MUMPS_INCLUDE_DIR} )
+	set( MUMPS_LIB_DIR      ${MULTISCALE_APPLICATION_MUMPS_LIB_DIR} )
 	set( MUMPS_LIB ${MUMPS_LIB_DIR}/libmumps.lib )
 	set( MUMPS_INSTALL_FILES ${MUMPS_LIB_DIR}/libmumps.dll )
 
@@ -46,8 +46,8 @@ else(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 	message("MUMPS will not be configured")
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		message("OpenBLAS will be configured")
-		message(${MULTISCMESH_MOVING_APPLICATION_OPENBLAS_DIR})
-		set( OPENBLAS_LIB_DIR  ${MULTISCMESH_MOVING_APPLICATION_OPENBLAS_DIR} )
+		message(${MULTISCALE_APPLICATION_OPENBLAS_DIR})
+		set( OPENBLAS_LIB_DIR  ${MULTISCALE_APPLICATION_OPENBLAS_DIR} )
 		set( OPENBLAS_LIB ${OPENBLAS_LIB_DIR}/libopenblas.lib )
 		set( OPENBLAS_INSTALL_FILES
 			${OPENBLAS_LIB_DIR}/libopenblas.dll
@@ -58,8 +58,8 @@ else(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 		)
 	else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		message("BLAS will be configured")
-		message("${MULTISCMESH_MOVING_APPLICATION_BLAS_DIR}")
-		set( BLAS_LIB_DIR  ${MULTISCMESH_MOVING_APPLICATION_BLAS_DIR})
+		message("${MULTISCALE_APPLICATION_BLAS_DIR}")
+		set( BLAS_LIB_DIR  ${MULTISCALE_APPLICATION_BLAS_DIR})
 		set( BLAS_INSTALL_FILES ${BLAS_LIB_DIR}/libblas.so)
 	endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
@@ -82,7 +82,7 @@ endif(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
 if(${MULTISCALE_APPLICATION_USE_EIGEN} MATCHES ON)
 	message("Eigen will be included")
-	include_directories( ${MULTISCMESH_MOVING_APPLICATION_EIGEN_DIR} )
+	include_directories( ${MULTISCALE_APPLICATION_EIGEN_DIR} )
 else(${MULTISCALE_APPLICATION_USE_EIGEN} MATCHES ON)
 	message("Eigen will not be included")
 endif(${MULTISCALE_APPLICATION_USE_EIGEN} MATCHES ON)
@@ -93,9 +93,9 @@ endif(${MULTISCALE_APPLICATION_USE_EIGEN} MATCHES ON)
 #
 ######################################################################################
 
-set( KRATOS_MULTISCMESH_MOVING_APPLICATION_SOURCES
+set( KRATOS_MULTISCALE_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/multiscale_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/multiscale_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/multiscale_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_constitutive_law_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_anisotropic_3d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_plane_stress_2d_law.cpp
@@ -129,7 +129,7 @@ set( KRATOS_MULTISCMESH_MOVING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rve_weak_tshear_constraint_condition_3D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_geometry_descriptor.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_predictor_calculator.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/multiscmesh_moving_python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/multiscale_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_constitutive_laws_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_conditions_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_linear_solvers_to_python.cpp
@@ -145,7 +145,7 @@ set( KRATOS_MULTISCMESH_MOVING_APPLICATION_SOURCES
 #
 ######################################################################################
 
-add_library(KratosMultiScaleApplication SHARED ${KRATOS_MULTISCMESH_MOVING_APPLICATION_SOURCES})
+add_library(KratosMultiScaleApplication SHARED ${KRATOS_MULTISCALE_APPLICATION_SOURCES})
 
 if(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
@@ -245,22 +245,22 @@ foreach( lapack_lib ${LAPACK_LIBRARIES})
     CHECK_LIBRARY_EXISTS(${lapack_lib} "dgels" "" CHECK_HAVE_DGELS)
 	if(CHECK_HAVE_DGELS)
 		message("found dgels")
-		add_definitions(-DMULTISCMESH_MOVING_APPLICATION_LAPACK_HAS_DGELS)
-		add_definitions(-DMULTISCMESH_MOVING_APPLICATION_LAPACK_DGELS=dgels)
+		add_definitions(-DMULTISCALE_APPLICATION_LAPACK_HAS_DGELS)
+		add_definitions(-DMULTISCALE_APPLICATION_LAPACK_DGELS=dgels)
 	else()
 		message("checking DGELS in library: " ${lapack_lib})
         CHECK_LIBRARY_EXISTS(${lapack_lib} "DGELS" "" CHECK_HAVE_DGELS_1)
 		if(CHECK_HAVE_DGELS_1)
 			message("found DGELS")
-			add_definitions(-DMULTISCMESH_MOVING_APPLICATION_LAPACK_HAS_DGELS)
-			add_definitions(-DMULTISCMESH_MOVING_APPLICATION_LAPACK_DGELS=DGELS)
+			add_definitions(-DMULTISCALE_APPLICATION_LAPACK_HAS_DGELS)
+			add_definitions(-DMULTISCALE_APPLICATION_LAPACK_DGELS=DGELS)
 		else()
 			message("checking dgels_ in library: " ${lapack_lib})
             CHECK_LIBRARY_EXISTS(${lapack_lib} "dgels_" "" CHECK_HAVE_DGELS_2)
 			if(CHECK_HAVE_DGELS_2)
 				message("found dgels_")
-				add_definitions(-DMULTISCMESH_MOVING_APPLICATION_LAPACK_HAS_DGELS)
-				add_definitions(-DMULTISCMESH_MOVING_APPLICATION_LAPACK_DGELS=dgels_)
+				add_definitions(-DMULTISCALE_APPLICATION_LAPACK_HAS_DGELS)
+				add_definitions(-DMULTISCALE_APPLICATION_LAPACK_DGELS=dgels_)
 			else()
 				message("Cannot find DGELS")
 			endif()
