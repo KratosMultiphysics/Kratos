@@ -7,7 +7,7 @@
 //
 
 #include "small_displacement_elastic_link_element.hpp"
-#include "multiscmesh_moving_application.h"
+#include "multiscale_application.h"
 #include "custom_utilities/math_helpers.h"
 #include <string>
 #include <iomanip>

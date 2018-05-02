@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * ***********************************************************/
 
 #include "linear_elastic_thick_shell_law.h"
-#include "multiscmesh_moving_application.h"
+#include "multiscale_application.h"
 #include "custom_utilities/math_helpers.h"
 #include "includes/variables.h"
 

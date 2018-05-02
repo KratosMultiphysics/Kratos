@@ -61,7 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "shell_edge_load_condition_3D2N.h"
 #include "utilities/math_utils.h"
 #include "geometries/point_3d.h"
-#include "multiscmesh_moving_application.h"
+#include "multiscale_application.h"
 #include "custom_utilities/math_helpers.h"
 
 namespace Kratos

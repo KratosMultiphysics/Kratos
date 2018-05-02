@@ -31,7 +31,7 @@
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 
-#include "multiscmesh_moving_application.h"
+#include "multiscale_application.h"
 #include "multiscmesh_moving_application_variables.h"
 
 namespace Kratos {

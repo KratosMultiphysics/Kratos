@@ -68,7 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/node.h"
 #include "includes/define.h"
 #include "includes/serializer.h"
-#include "multiscmesh_moving_application.h"
+#include "multiscale_application.h"
 
 namespace Kratos
 {
