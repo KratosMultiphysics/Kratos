@@ -73,7 +73,7 @@ public:
 	KratosFluidTransportApplication();
 
 	/// Destructor.
-	virtual ~KratosFluidTransportApplication(){}
+	~KratosFluidTransportApplication() override {}
 
 
 	///@}
@@ -85,7 +85,7 @@ public:
 	///@name Operations
 	///@{
 
-	virtual void Register();
+    void Register() override;
 
 
 
@@ -104,18 +104,21 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const {
+    std::string Info() const override
+	{
 		return "KratosFluidTransportApplication";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream& rOStream) const {
+    void PrintInfo(std::ostream& rOStream) const override
+	{
 		rOStream << Info();
 		PrintData(rOStream);
 	}
 
 	///// Print object's data.
-	virtual void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const override
+	{
   		KRATOS_WATCH("in my application");
   		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 		rOStream << "Variables:" << std::endl;
@@ -183,6 +186,9 @@ private:
 	///@name Member Variables
 	///@{
 	const SteadyConvectionDiffusionFICElement<2,3> mSteadyConvectionDiffusionFICElement2D3N;
+	const SteadyConvectionDiffusionFICElement<2,4> mSteadyConvectionDiffusionFICElement2D4N;
+	const SteadyConvectionDiffusionFICElement<3,4> mSteadyConvectionDiffusionFICElement3D4N;
+	const SteadyConvectionDiffusionFICElement<3,8> mSteadyConvectionDiffusionFICElement3D8N;
 
 	// const Elem2D   mElem2D;
 	// const Elem3D   mElem3D;

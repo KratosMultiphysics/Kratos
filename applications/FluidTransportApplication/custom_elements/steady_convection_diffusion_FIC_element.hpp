@@ -90,9 +90,9 @@ public:
     
     //void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
     
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
             
-    void GetValuesVector(Vector& rValues, int Step = 0);
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -117,9 +117,13 @@ protected:
     struct ElementVariables
     {
         ///Properties variables
-        double alpha;
+        double rho_dot_c;
+        double Peclet;
+        double AlphaV;
+        double lv;
+
         array_1d<double,TDim> HVector;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> AlphaMatrix;
+        BoundedMatrix<double,TDim,TDim> DifMatrixK;
 
         ///ProcessInfo variables
     
@@ -133,16 +137,16 @@ protected:
         double QSource;
         array_1d<double,TNumNodes> N;
         array_1d<double,TDim> VelInter;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> GradNT;
+        BoundedMatrix<double,TNumNodes,TDim> GradNT;
 
         //Auxiliary
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> AdvMatrixAux;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> DifMatrixAux;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> FICMatrixAuxOne;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TNumNodes> FICMatrixAuxTwo;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> AdvMatrixAuxTwo;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> DifMatrixAuxTwo;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> FICMatrixAuxThree;
+        BoundedMatrix<double,TNumNodes,TDim> AdvMatrixAux;
+        BoundedMatrix<double,TNumNodes,TDim> DifMatrixAux;
+        BoundedMatrix<double,TDim,TDim> FICMatrixAuxOne;
+        BoundedMatrix<double,TDim,TNumNodes> FICMatrixAuxTwo;
+        BoundedMatrix<double,TNumNodes,TNumNodes> AdvMatrixAuxTwo;
+        BoundedMatrix<double,TNumNodes,TNumNodes> DifMatrixAuxTwo;
+        BoundedMatrix<double,TNumNodes,TNumNodes> FICMatrixAuxThree;
 
         ///Constitutive Law parameters
         //Vector StrainVector;
@@ -163,7 +167,8 @@ protected:
 
     void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateHVector(ElementVariables& rVariables);
+    void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+
 
     double ProjectedElementSize(const Geometry<Node<3> >& rGeometry, const array_1d<double,3>& rVelocity);
 
@@ -192,9 +197,7 @@ protected:
     void CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddSourceForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-    
-    void CalculateAndAddFICForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-    
+        
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight);
 

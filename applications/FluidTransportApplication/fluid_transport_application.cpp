@@ -20,6 +20,9 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "includes/variables.h"
 
 // Application includes
@@ -30,7 +33,10 @@ namespace Kratos
 
 KratosFluidTransportApplication::KratosFluidTransportApplication():
     KratosApplication("FluidTransportApplication"),
-    mSteadyConvectionDiffusionFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>>( Element::GeometryType::PointsArrayType (3) ) ) )
+    mSteadyConvectionDiffusionFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>>( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mSteadyConvectionDiffusionFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3>>( Element::GeometryType::PointsArrayType (4) ) ) ),
+    mSteadyConvectionDiffusionFICElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mSteadyConvectionDiffusionFICElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8))))
     {}
 
 void KratosFluidTransportApplication::Register() 
@@ -40,6 +46,10 @@ void KratosFluidTransportApplication::Register()
  	std::cout << "Initializing KratosFluidTransportApplication... " << std::endl;
 
     KRATOS_REGISTER_ELEMENT( "SteadyConvectionDiffusionFICElement2D3N", mSteadyConvectionDiffusionFICElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "SteadyConvectionDiffusionFICElement2D4N", mSteadyConvectionDiffusionFICElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "SteadyConvectionDiffusionFICElement3D4N", mSteadyConvectionDiffusionFICElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "SteadyConvectionDiffusionFICElement3D8N", mSteadyConvectionDiffusionFICElement3D8N )
+
 }
 
 }  // namespace Kratos.

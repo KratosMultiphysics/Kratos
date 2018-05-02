@@ -15,11 +15,15 @@
 // System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes
-#include <boost/python.hpp>
+// System includes
+#include <pybin11/pybind11.h>
 
 // Project includes
+#include "includes/define.h"
+#include "includes/define_python.h"
+
 #include "fluid_transport_application.h"
+
 
 namespace Kratos
 {
@@ -27,14 +31,15 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-BOOST_PYTHON_MODULE(KratosFluidTransportApplication)
+PYBIND11_MODULE(KratosFluidTransportApplication, m)
 {
 	class_<KratosFluidTransportApplication,
 	KratosFluidTransportApplication::Pointer,
-	bases<KratosApplication>, boost::noncopyable >("KratosFluidTransportApplication");
-
+    KratosApplication>(m, "KratosDamApplication")
+	.def(init<>());
+	
 	//registering variables in python
 }
 

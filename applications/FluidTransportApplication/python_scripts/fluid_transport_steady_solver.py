@@ -96,7 +96,7 @@ class FluidTransportSteadySolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         
         # Add thermal variables
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONDUCTIVITY)
@@ -122,7 +122,7 @@ class FluidTransportSteadySolver(object):
             #node.AddDof(KratosMultiphysics.VELOCITY_Z,KratosMultiphysics.REACTION_Z)
 
             ## Thermal dofs
-            node.AddDof(KratosMultiphysics.TEMPERATURE)
+            node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION)
                 
         print("DOFs correctly added")
 
