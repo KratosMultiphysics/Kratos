@@ -1082,7 +1082,7 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 4, 2 );
+            rResult[pnt].resize( 4, 2, false );
 
             for ( unsigned int i = 0; i < 4; i++ )
             {
@@ -1295,7 +1295,7 @@ public:
 
         for ( unsigned  int i = 0; i < this->PointsNumber(); i++ )
         {
-            rResult[i].resize( 2, 2 );
+            rResult[i].resize( 2, 2 , false);
             noalias( rResult[i] ) = ZeroMatrix( 2, 2 );
         }
 
@@ -1384,7 +1384,7 @@ public:
             for ( int j = 0; j < 2; j++ )
             {
                 rResult[i][j].resize( 2, 2 , false);
-                noalias( rResult[i][j] ) = ZeroMatrix( 2, 2 , false);
+                noalias( rResult[i][j] ) = ZeroMatrix( 2, 2);
             }
         }
 

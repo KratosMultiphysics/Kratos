@@ -751,10 +751,10 @@ public:
             rResult.swap( temp );
         }
 
-        rResult[0].resize( 2, 2 );
-        rResult[1].resize( 2, 2 );
-        rResult[2].resize( 2, 2 );
-        rResult[3].resize( 2, 2 );
+        rResult[0].resize( 2, 2 , false);
+        rResult[1].resize( 2, 2 , false);
+        rResult[2].resize( 2, 2 , false);
+        rResult[3].resize( 2, 2 , false);
 
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.25;
@@ -806,7 +806,7 @@ public:
         {
             for ( unsigned int j = 0; j < 2; j++ )
             {
-                rResult[i][j].resize( 2, 2 );
+                rResult[i][j].resize( 2, 2 , false);
                 noalias( rResult[i][j] ) = ZeroMatrix( 2, 2 );
             }
         }
