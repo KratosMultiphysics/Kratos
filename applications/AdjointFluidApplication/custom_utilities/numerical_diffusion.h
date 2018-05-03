@@ -114,9 +114,7 @@ public:
         else if (method_name.compare("eigen_value_full_element_matrix")==0)
             mNumericalDiffusionMethod = NumericalDiffusionMethod::eigenValueFullMatrix;
         else
-            KRATOS_THROW_ERROR(std::runtime_error,
-                "numerical diffusion method only supports singular_value_pressure_coupled or singular_value_pressure_decoupled or eigen_value_full_element_matrix",
-                DiffusionParameters.PrettyPrintJsonString())
+            KRATOS_ERROR<<"numerical diffusion method only supports singular_value_pressure_coupled or singular_value_pressure_decoupled or eigen_value_full_element_matrix"<<DiffusionParameters.PrettyPrintJsonString();
             
         KRATOS_CATCH("");
         
@@ -189,9 +187,7 @@ public:
         }
         else
         {
-            KRATOS_THROW_ERROR(std::runtime_error,
-                "numerical diffusion method only supports 2D or 3D elements",
-                "")            
+            KRATOS_ERROR<<"numerical diffusion method only supports 2D or 3D elements";
         }        
 
         pCurrentElement->SetValue(NUMERICAL_DIFFUSION, numerical_diffusion);
