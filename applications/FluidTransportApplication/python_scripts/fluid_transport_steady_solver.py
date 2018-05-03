@@ -17,12 +17,6 @@ def CreateSolver(main_model_part, custom_settings):
 
 class FluidTransportSteadySolver(object):
 
-    ##constructor. the constructor shall only take care of storing the settings 
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the 
-    ##model part is still not filled and the variables are not yet allocated
-    ##
-    ##real construction shall be delayed to the function "Initialize" which 
-    ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings): 
         
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
@@ -44,8 +38,8 @@ class FluidTransportSteadySolver(object):
             "move_mesh_flag":                     false,
             "reform_dofs_at_each_step":           false,
             "block_builder":                      true,
-            "solution_type":                      "Quasi-Static",
-            "strategy_type":                      "Newton-Raphson",
+            "solution_type":                      "Steady",
+            "strategy_type":                      "Linear",
             "convergence_criterion":              "And_criterion",
             "displacement_relative_tolerance":    1.0E-4,
             "displacement_absolute_tolerance":    1.0E-9,
@@ -93,20 +87,19 @@ class FluidTransportSteadySolver(object):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, thermal_settings)
 
         ## Convection Variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         
         # Add thermal variables
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONDUCTIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_FLUX)
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SPECIFIC_HEAT)
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
-
-
 
         print("Variables correctly added")
 
@@ -122,7 +115,7 @@ class FluidTransportSteadySolver(object):
             #node.AddDof(KratosMultiphysics.VELOCITY_Z,KratosMultiphysics.REACTION_Z)
 
             ## Thermal dofs
-            node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION)
+            node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX)
                 
         print("DOFs correctly added")
 
@@ -154,20 +147,10 @@ class FluidTransportSteadySolver(object):
         # Solution scheme creation
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
-        # Get the convergence criterion
-                
         # Solver creation
-
-        compute_norm_dx_flag = False
-
-        self.Solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.computing_model_part, 
-                                                                     scheme, 
-                                                                     self.linear_solver, 
-                                                                     builder_and_solver, 
-                                                                     self.settings["compute_reactions"].GetBool(), 
-                                                                     self.settings["reform_dofs_at_each_step"].GetBool(), 
-                                                                     compute_norm_dx_flag, 
-                                                                     self.settings["move_mesh_flag"].GetBool())
+        self.Solver = self._ConstructSolver(builder_and_solver,
+                                            scheme,
+                                            self.settings["strategy_type"].GetString())
 
         # Set echo_level
         self.Solver.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -243,10 +226,6 @@ class FluidTransportSteadySolver(object):
         import check_and_prepare_model_process_fluid_transport
         check_and_prepare_model_process_fluid_transport.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
 
-        # # Constitutive law import
-        # import poromechanics_constitutivelaw_utility
-        # poromechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
-
         self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
         minimum_buffer_size = self.GetMinimumBufferSize()
         if(minimum_buffer_size > self.main_model_part.GetBufferSize()):
@@ -261,3 +240,65 @@ class FluidTransportSteadySolver(object):
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
         
         return builder_and_solver
+
+    def _ConstructSolver(self, builder_and_solver, scheme, strategy_type):
+        
+        compute_reactions = self.settings["compute_reactions"].GetBool()
+        reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
+        move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
+
+        if strategy_type == "Newton-Raphson":
+
+            convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
+
+            solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part,
+                                                                            scheme,
+                                                                            self.linear_solver,
+                                                                            convergence_criterion,
+                                                                            builder_and_solver,
+                                                                            self.settings["max_iteration"].GetInt(),
+                                                                            compute_reactions,
+                                                                            reform_step_dofs,
+                                                                            move_mesh_flag)
+        else:
+            compute_norm_dx_flag = False
+
+            solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.computing_model_part, 
+                                                                        scheme, 
+                                                                        self.linear_solver, 
+                                                                        builder_and_solver, 
+                                                                        compute_reactions, 
+                                                                        reform_step_dofs, 
+                                                                        compute_norm_dx_flag, 
+                                                                        move_mesh_flag)
+        
+        return solver
+
+    def _ConstructConvergenceCriterion(self, convergence_criterion):
+        
+        D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
+        D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
+        R_RT = self.settings["residual_relative_tolerance"].GetDouble()
+        R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
+        echo_level = self.settings["echo_level"].GetInt()
+        
+        if(convergence_criterion == "Displacement_criterion"):
+            convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
+            convergence_criterion.SetEchoLevel(echo_level)
+        elif(convergence_criterion == "Residual_criterion"):
+            convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            convergence_criterion.SetEchoLevel(echo_level)
+        elif(convergence_criterion == "And_criterion"):
+            Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
+            Displacement.SetEchoLevel(echo_level)
+            Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            Residual.SetEchoLevel(echo_level)
+            convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
+        elif(convergence_criterion == "Or_criterion"):
+            Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
+            Displacement.SetEchoLevel(echo_level)
+            Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            Residual.SetEchoLevel(echo_level)
+            convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
+        
+        return convergence_criterion

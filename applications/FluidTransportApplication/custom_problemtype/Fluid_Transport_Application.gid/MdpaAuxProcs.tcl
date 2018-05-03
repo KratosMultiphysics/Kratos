@@ -217,6 +217,19 @@ proc Quadrilateral2D4Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
+proc Hexahedron3D8Connectivities { ElemId } {
+    
+    #It is the same for Quadrilateral2D8
+    
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+    [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]\
+    [lindex $ElementInfo 9] [lindex $ElementInfo 10]"
+}
+
+#-------------------------------------------------------------------------------
+
 
 proc WriteElementSubmodelPart {FileVar CondName} {
     set Groups [GiD_Info conditions $CondName groups]

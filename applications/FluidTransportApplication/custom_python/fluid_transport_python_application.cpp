@@ -37,7 +37,7 @@ PYBIND11_MODULE(KratosFluidTransportApplication, m)
 {
 	class_<KratosFluidTransportApplication,
 	KratosFluidTransportApplication::Pointer,
-    KratosApplication>(m, "KratosDamApplication")
+    KratosApplication>(m, "KratosFluidTransportApplication")
 	.def(init<>());
 	
 	//registering variables in python

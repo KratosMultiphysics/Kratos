@@ -23,7 +23,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     PressureTable FileVar TableId TableDict Phi_Value TEMPERATURE
     # Face_Heat_Flux
     ScalarTable FileVar TableId TableDict Face_Heat_Flux FACE_HEAT_FLUX
-#    puts $FileVar ""
+    puts $FileVar ""
     
     ## Properties
     set PropertyId 0
@@ -62,7 +62,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     puts $FileVar ""
     
     ## Elements
-    set IsQuadratic [GiD_Info Project Quadratic]
+    #set IsQuadratic [GiD_Info Project Quadratic]
     # Body_Part
     set Groups [GiD_Info conditions Body_Part groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
@@ -73,6 +73,10 @@ proc WriteMdpa { basename dir problemtypedir } {
         WriteElements FileVar [lindex $Groups $i] triangle SteadyConvectionDiffusionFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
         # SteadyConvectionDiffusionFICElement2D4N
         WriteElements FileVar [lindex $Groups $i] quadrilateral SteadyConvectionDiffusionFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+        # SteadyConvectionDiffusionFICElement3D4N
+        WriteElements FileVar [lindex $Groups $i] tetrahedra SteadyConvectionDiffusionFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+        # SteadyConvectionDiffusionFICElement3D8N
+        WriteElements FileVar [lindex $Groups $i] hexahedra SteadyConvectionDiffusionFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
     }
     puts $FileVar ""
 
@@ -80,21 +84,20 @@ proc WriteMdpa { basename dir problemtypedir } {
     set ConditionId 0
     set ConditionDict [dict create]
     set Dim [GiD_AccessValue get gendata Domain_Size]
-
     # Face_Heat_Flux
     set Groups [GiD_Info conditions Face_Heat_Flux groups]
     if {$Dim eq 2} {
         # FluxCondition2D2N
         WriteFaceConditions FileVar ConditionId ConditionDict $Groups FluxCondition2D2N $PropertyDict
-    # } else {
-    #     for {set i 0} {$i < [llength $Groups]} {incr i} {
-    #         set MyConditionList [list]
-    #         # UPwNormalFluxCondition3D3N
-    #         WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra UPwNormalFluxCondition3D3N $PropertyDict
-    #         # UPwNormalFluxCondition3D4N
-    #         WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra UPwNormalFluxCondition3D4N $PropertyDict
-    #         dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
-    #     }
+    } else {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            set MyConditionList [list]
+            # FluxCondition3D3N
+            WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra FluxCondition3D3N $PropertyDict
+            # FluxCondition3D4N
+            WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra FluxCondition3D4N $PropertyDict
+            dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+        }
     }
 
     puts $FileVar ""

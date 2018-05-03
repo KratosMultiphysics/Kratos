@@ -12,7 +12,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     ## problem_data
     puts $FileVar "    \"problem_data\": \{"
     puts $FileVar "        \"problem_name\":         \"$basename\","
-    puts $FileVar "        \"model_part_name\":      \"PorousDomain\","
+    puts $FileVar "        \"model_part_name\":      \"FluidTransportDomain\","
     puts $FileVar "        \"domain_size\":          [GiD_AccessValue get gendata Domain_Size],"
     puts $FileVar "        \"start_time\":           [GiD_AccessValue get gendata Start_Time],"
     puts $FileVar "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
@@ -112,12 +112,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     append PutStrings \]
     puts $FileVar "        \"processes_sub_model_part_list\":      $PutStrings"
 
-    # ## body_domain_sub_model_part_list
-    # set PutStrings \[
-    # AppendGroupNames PutStrings Body_Part
-    # set PutStrings [string trimright $PutStrings ,]
-    # append PutStrings \]
-    # puts $FileVar "        \"body_domain_sub_model_part_list\":    $PutStrings"
     puts $FileVar "    \},"
     
     ## output_configuration
@@ -143,7 +137,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendOutputVariables PutStrings iGroup Write_Phi_Value TEMPERATURE
     if {[GiD_AccessValue get gendata Write_Reactions] eq true} {
         incr iGroup
-        append PutStrings \" REACTION \" , \" REACTION_TEMPERATURE \" ,
+        append PutStrings \" REACTION_FLUX \" ,
     }
     AppendOutputVariables PutStrings iGroup Write_Face_Heat_Flux FACE_HEAT_FLUX
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {

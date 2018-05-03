@@ -9,30 +9,6 @@ proc AppendGroupNames {String CondName} {
 
 #-------------------------------------------------------------------------------
 
-proc AppendGroupNamesWithNum {String GroupNum CondName} {
-    upvar $String MyString
-    upvar $GroupNum MyGroupNum
-    
-    set Groups [GiD_Info conditions $CondName groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        incr MyGroupNum
-        append MyString \" [lindex [lindex $Groups $i] 1] \" ,
-    }
-}
-
-#-------------------------------------------------------------------------------
-
-proc AppendGroupVariables {String CondName VarName} {
-    upvar $String MyString
-    
-    set Groups [GiD_Info conditions $CondName groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append MyString \" $VarName \" ,
-    }
-}
-
-#-------------------------------------------------------------------------------
-
 proc AppendOutputVariables {String GroupNum QuestionName VarName} {
     upvar $String MyString
     upvar $GroupNum MyGroupNum
@@ -120,11 +96,7 @@ proc WriteLoadScalarProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
         puts $MyFileVar "            \"variable_name\":   \"$VarName\","
         puts $MyFileVar "            \"value\":           [lindex [lindex $Groups $i] 3],"
-        if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
-            puts $MyFileVar "            \"table\":           0"
-        } else {
-            puts $MyFileVar "            \"table\":           [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0]"
-        }
+        puts $MyFileVar "            \"table\":           [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0]"
         puts $MyFileVar "        \}"
         if {$MyGroupNum < $NumGroups} {
             puts $MyFileVar "    \},\{"
