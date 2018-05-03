@@ -12,6 +12,8 @@ from sympy_fe_utilities import *
 # DIVIDE BY RHO:
 # If set to true, divides the mass conservation equation by rho in order to have a better conditioned matrix. Otherwise the original form is kept.
 
+##TO DO: include (div_vconv) term ?? -> commented now
+
 ## Symbolic generation settings
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
@@ -53,7 +55,6 @@ for dim in dim_vector:
     v = DefineMatrix('v',nnodes,dim)            # Current step velocity (v(i,j) refers to velocity of node i component j)
     vn = DefineMatrix('vn',nnodes,dim)          # Previous step velocity 
     vnn = DefineMatrix('vnn',nnodes,dim)        # 2 previous step velocity
-    #vconv = DefineMatrix('vconv',nnodes,dim)    # Convection velocity
     p = DefineVector('p',nnodes)                # Pressure
     penr= DefineVector('penr',nnodes)	        # Enriched Pressure
 
@@ -111,7 +112,6 @@ for dim in dim_vector:
     tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))   # Stabilization parameter 1
     tau2 = mu + (stab_c2*vconv_gauss_norm*h)/stab_c1                                        # Stabilization parameter 2
 
-    ### TAU 1 Y TAU 2 IGUAL EN TWO FLUID???
 
     accel_gauss = (bdf0*v +bdf1*vn + bdf2*vnn).transpose()*N
     p_gauss = p.transpose()*N
@@ -168,7 +168,7 @@ for dim in dim_vector:
         rv_stab = rho*grad_q.transpose()*vel_subscale
 
     rv_stab += rho*vconv_gauss.transpose()*grad_w*vel_subscale
-    rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
+    #rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
     rv_stab += div_w*mas_subscale
 
     ## Add the stabilization terms to the original residual terms
@@ -210,19 +210,19 @@ for dim in dim_vector:
     vel_residual_enr = rho*f_gauss - rho*(accel_gauss + convective_term.transpose()) - grad_p - grad_penr
     vel_subscale_enr = vel_residual_enr * tau1
 
+    rv_galerkin_enriched = div_w*penr_gauss    
+
     if (divide_by_rho):
-        #rv_enriched = -qenr_gauss*div_v
+        rv_galerkin_enriched += -qenr_gauss*div_v
         rv_stab_enriched = grad_qenr.transpose()*vel_subscale_enr
         rv_stab_enriched -= grad_q.transpose()*tau1*grad_penr
     else:
-        #rv_enriched = -qenr_gauss*rho*div_v
+        rv_galerkin_enriched += -qenr_gauss*rho*div_v
         rv_stab_enriched = rho*grad_qenr.transpose()*vel_subscale_enr
         rv_stab_enriched -= rho*grad_q.transpose()*tau1*grad_penr
 
-    rv_galerkin_enriched = div_w*penr_gauss    
-
     rv_stab_enriched -= rho*vconv_gauss.transpose()*grad_w*tau1*grad_penr
-    rv_stab_enriched -= rho*div_vconv*w_gauss.transpose()*tau1*grad_penr
+    #rv_stab_enriched -= rho*div_vconv*w_gauss.transpose()*tau1*grad_penr
     
     rv_enriched = rv_galerkin_enriched
     ## Add the stabilization terms to the original residual terms
