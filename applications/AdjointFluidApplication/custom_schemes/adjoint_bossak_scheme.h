@@ -100,7 +100,6 @@ public:
     /// Destructor.
     ~AdjointBossakScheme() override
     {
-        mOutputFileStreamAdjointEnergy.close();
     }
 
     ///@}
@@ -149,8 +148,6 @@ public:
         mpResponseFunction->Initialize(rModelPart);
 
         InitializeNodeNeighbourCount(rModelPart.Nodes());
-
-        mOutputFileStreamAdjointEnergy.open("Adjoint_Energy.data");
 
         KRATOS_CATCH("");
     }
@@ -275,9 +272,6 @@ public:
         rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_FLUID_VECTOR_1);
 
         mpResponseFunction->FinalizeSolutionStep(rModelPart);
-
-        // Creates a file with total adjont energy for each time step.
-        CalculateAdjointEnergy(rModelPart);        
 
         KRATOS_CATCH("");
     }
@@ -674,7 +668,6 @@ private:
     #ifdef EIGEN_ROOT
         NumericalDiffusion mNumericalDiffusion;
     #endif
-    std::ofstream mOutputFileStreamAdjointEnergy;
     ///@}
     ///@name Private Operators
     ///@{
@@ -690,55 +683,6 @@ private:
             r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) =
                 NUMBER_OF_NEIGHBOUR_ELEMENTS.Zero();
     }
-
-    void CalculateAdjointEnergy(ModelPart& rModelPart)
-    {
-        double total_energy = 0.0;
-        double matrix_energy = 0.0;
-
-        #pragma omp parallel reduction(+:total_energy)
-        {
-            ModelPart::NodeIterator nodes_begin;
-            ModelPart::NodeIterator nodes_end;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
-            for (auto it = nodes_begin; it != nodes_end; ++it)
-            {
-                const array_1d<double,3>& v = it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1, 0);
-                double p = it->FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1, 0);
-                total_energy += inner_prod(v,v) + p*p;
-            }
-        }
-
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        #pragma omp parallel reduction(+:matrix_energy)
-        {
-            ModelPart::ElementIterator elements_begin;
-            ModelPart::ElementIterator elements_end;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(), elements_begin, elements_end);
-            for (auto it = elements_begin; it != elements_end; ++it)
-            {
-
-                LocalSystemMatrixType vms_steady_term_primal_gradient;
-
-                it->Calculate(
-                            VMS_STEADY_TERM_PRIMAL_GRADIENT_MATRIX,
-                            vms_steady_term_primal_gradient,
-                            r_current_process_info);
-                
-                LocalSystemVectorType adjoint_values_vector;
-                LocalSystemVectorType temp;
-                it->GetValuesVector(adjoint_values_vector, 0);
-
-                noalias(temp) = prod(vms_steady_term_primal_gradient, adjoint_values_vector);
-                matrix_energy += inner_prod(temp, adjoint_values_vector);
-            }
-        }        
-
-        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
-        double time = rProcessInfo[TIME];
-        mOutputFileStreamAdjointEnergy<<time<<","<<total_energy<<","<<matrix_energy<<std::endl;
-    }    
 
     ///@}
     ///@name Private  Access
