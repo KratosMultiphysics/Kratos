@@ -13,14 +13,10 @@
 #if !defined(KRATOS_BUILDER_AND_SOLVER )
 #define  KRATOS_BUILDER_AND_SOLVER
 
-
 /* System includes */
 #include <set>
 
-
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -29,7 +25,6 @@
 
 //default linear solver
 //#include "linear_solvers/linear_solver.h"
-
 
 namespace Kratos
 {
