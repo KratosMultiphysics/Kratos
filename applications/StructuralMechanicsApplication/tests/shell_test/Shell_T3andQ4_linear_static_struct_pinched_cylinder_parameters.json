@@ -154,20 +154,10 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","TORQUE"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","REACTION_MOMENT"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
-    },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
     },
 	"json_check_process": [
     {
@@ -179,6 +169,8 @@
             "check_variables"  : ["DISPLACEMENT_Z"],
             "input_file_name"  : "shell_test/Shell_T3andQ4_linear_static_struct_pinched_cylinder_results.json",
             "model_part_name"  : "GENERIC_ref_node",
+            "tolerance"            : 1e-9,
+            "relative_tolerance"   : 1e-12,
             "time_frequency"   : 0.01
         }
     }],

@@ -303,7 +303,6 @@ endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 ##*****************************
 #finding Mpi
-set(MPI_NEEDED OFF)
 if(${METIS_APPLICATION} MATCHES ON )
   set(MPI_NEEDED ON)
 endif(${METIS_APPLICATION} MATCHES ON )
