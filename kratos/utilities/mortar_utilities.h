@@ -248,8 +248,9 @@ public:
             noalias(DN) = prod(X,ShapeFunctionsGradients);
 
             noalias(J) = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
-            auto sub_range = subrange(current_destiny_global_coords - current_global_coords,0,2);
-            Vector RHS = prod(trans(DN), sub_range);
+
+            const array_1d<double, 3>  temp = current_destiny_global_coords - current_global_coords;
+            Vector RHS = prod(trans(DN), subrange(temp,0,2));
             
             old_delta_xi = DeltaXi;
             DeltaXi = RHS[0]/J(0, 0);
