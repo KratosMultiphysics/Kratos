@@ -55,7 +55,6 @@ endif(DEFINED EIGEN_ROOT)
 ## generate variables with the sources
 set( KRATOS_TRILINOS_APPLICATION_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application_variables.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/trilinos_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_space_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_convergence_criterias_to_python.cpp
