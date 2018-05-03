@@ -305,19 +305,19 @@ void UniformRefineUtility<TDim>::CreateNodeInEdge(
         for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
             middle_node->pAddDof(*it_dof);
 
-        // Add the node to the sub model parts
-        const int key0 = mNodesColorMap[rEdge(0)->Id()];
-        const int key1 = mNodesColorMap[rEdge(1)->Id()];
-        const int key = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
-        if (key != 0)  // NOTE: key==0 is the main model part
-        {
-            for (std::string sub_name : mColors[key])
-            {
-                ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
-                sub_model_part.AddNode(middle_node);
-            }
-        }
-        mNodesColorMap[middle_node->Id()] = key;
+        // // Add the node to the sub model parts
+        // const int key0 = mNodesColorMap[rEdge(0)->Id()];
+        // const int key1 = mNodesColorMap[rEdge(1)->Id()];
+        // const int key = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
+        // if (key != 0)  // NOTE: key==0 is the main model part
+        // {
+        //     for (std::string sub_name : mColors[key])
+        //     {
+        //         ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
+        //         sub_model_part.AddNode(middle_node);
+        //     }
+        // }
+        // mNodesColorMap[middle_node->Id()] = key;
     }
 }
 
@@ -383,23 +383,23 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
         for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
             middle_node->pAddDof(*it_dof);
 
-        // Add the node to the sub model parts
-        int key0 = mNodesColorMap[rFace(0)->Id()];
-        int key1 = mNodesColorMap[rFace(1)->Id()];
-        int key2 = mNodesColorMap[rFace(2)->Id()];
-        int key3 = mNodesColorMap[rFace(3)->Id()];
-        key0 = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
-        key1 = mSubModelPartsColors.IntersectKeys(key2, key3, mColors);
-        key0 = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
-        if (key0 != 0)  // NOTE: key==0 is the main model part
-        {
-            for (std::string sub_name : mColors[key0])
-            {
-                ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
-                sub_model_part.AddNode(middle_node);
-            }
-        }
-        mNodesColorMap[middle_node->Id()] = key0;
+        // // Add the node to the sub model parts
+        // int key0 = mNodesColorMap[rFace(0)->Id()];
+        // int key1 = mNodesColorMap[rFace(1)->Id()];
+        // int key2 = mNodesColorMap[rFace(2)->Id()];
+        // int key3 = mNodesColorMap[rFace(3)->Id()];
+        // key0 = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
+        // key1 = mSubModelPartsColors.IntersectKeys(key2, key3, mColors);
+        // key0 = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
+        // if (key0 != 0)  // NOTE: key==0 is the main model part
+        // {
+        //     for (std::string sub_name : mColors[key0])
+        //     {
+        //         ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
+        //         sub_model_part.AddNode(middle_node);
+        //     }
+        // }
+        // mNodesColorMap[middle_node->Id()] = key0;
     }
 }
 

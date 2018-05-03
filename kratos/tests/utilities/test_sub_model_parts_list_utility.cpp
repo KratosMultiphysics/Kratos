@@ -27,8 +27,9 @@ namespace Kratos
     {
         typedef Node<3> NodeType;
         typedef std::size_t IndexSize;
-        typedef std::unordered_map<IndexSize,int> IntIntMapType;
+        typedef std::unordered_map<IndexSize,int> IndexIntMapType;
         typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
+        typedef std::map<std::pair<int,int>,int> PairIntMapType;
 
         /**
         * Checks the correct work of the sub modelparts list utility
@@ -99,7 +100,7 @@ namespace Kratos
 
             SubModelPartsListUtility colors_utility(first_model_part);
 
-            IntIntMapType nodes_colors, cond_colors, elem_colors;
+            IndexIntMapType nodes_colors, cond_colors, elem_colors;
             IntStringMapType colors;
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
@@ -239,7 +240,7 @@ namespace Kratos
 
             SubModelPartsListUtility colors_utility(first_model_part);
 
-            IntIntMapType nodes_colors, cond_colors, elem_colors;
+            IndexIntMapType nodes_colors, cond_colors, elem_colors;
             IntStringMapType colors;
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
@@ -336,24 +337,29 @@ namespace Kratos
             p_sub_modelpart_3->AddNode(p_node_3);
             p_sub_modelpart_3->AddNode(p_node_6);
 
+            // Initialize the utility
             SubModelPartsListUtility colors_utility(model_part);
 
-            IntIntMapType nodes_colors, cond_colors, elem_colors;
+            // Get the colors
+            IndexIntMapType nodes_colors, cond_colors, elem_colors;
             IntStringMapType colors;
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
+            // Compute the intersections
+            PairIntMapType intersections; 
+            SubModelPartsListUtility::IntersectColors(colors, intersections);
             int key;
             // The intersection gives the main model part
-            key = colors_utility.IntersectKeys(nodes_colors[p_node_1->Id()], nodes_colors[p_node_3->Id()], colors);
+            key = intersections[{nodes_colors[p_node_1->Id()], nodes_colors[p_node_3->Id()]}];
             KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_2->Id()]);
             KRATOS_CHECK_EQUAL(key, 0);
 
             // The intersection is a sub model part
-            key = colors_utility.IntersectKeys(nodes_colors[p_node_4->Id()], nodes_colors[p_node_6->Id()], colors);
+            key = intersections[{nodes_colors[p_node_4->Id()], nodes_colors[p_node_6->Id()]}];
             KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_5->Id()]);
 
             // The input is included in the intersection
-            key = colors_utility.IntersectKeys(nodes_colors[p_node_1->Id()], nodes_colors[p_node_4->Id()], colors);
+            key = intersections[{nodes_colors[p_node_1->Id()], nodes_colors[p_node_4->Id()]}];
             KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_1->Id()]);
         }
 

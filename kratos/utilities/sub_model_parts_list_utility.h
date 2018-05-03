@@ -88,7 +88,7 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
     typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
 
     /// The map containing the intersections of submodelparts combinations
-    typedef std::unordered_map<std::vector<int>, int, KeyHasherRange<std::vector<int>>, KeyComparorRange<std::vector<int>>> VectorIntMapType;
+    typedef std::map<std::pair<int,int>, int> PairIntMapType;
 
     /// Pointer definition of SubModelPartsListUtility
     KRATOS_CLASS_POINTER_DEFINITION( SubModelPartsListUtility );
@@ -153,15 +153,12 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
 
     /**
      * @brief This method returns the id corresponding to the intersection of two combinations of sub_model_parts
-     * @param Key0 the first combination to intersect
-     * @param Key1 the second combination to intersect
      * @param rColors the map containign the combinations
-     * @return the intersection is a combination
+     * @param rIntersections tha map containing the key combinations and its corresponding color
      */
-    int IntersectKeys(
-        int Key0,
-        int Key1,
-        IntStringMapType& rColors 
+    static void IntersectColors(
+        IntStringMapType& rColors,
+        PairIntMapType rIntersections
     );
 
     ///@}
@@ -250,8 +247,6 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
     ///@{
 
     ModelPart& mrModelPart;             /// The model part to compute
-    IntStringMapType mColors;           /// Where the sub model parts IDs are stored
-    VectorIntMapType mIntersections;    /// Where to store the possible intersections
 
     ///@}
     ///@name Private Operators

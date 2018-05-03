@@ -208,51 +208,76 @@ ModelPart& SubModelPartsListUtility::GetRecursiveSubModelPart(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int SubModelPartsListUtility::IntersectKeys(
-        int Key0,
-        int Key1,
-        IntStringMapType& rColors 
+void SubModelPartsListUtility::IntersectColors(
+    IntStringMapType& rColors,
+    PairIntMapType rIntersections
     )
 {
-    std::vector<int> intersection_key = {Key0, Key1};
-    auto search = mIntersections.find(intersection_key);
-    if (search != mIntersections.end() )
+    // Check the alphabetic order of the names again
+    for (auto& color : rColors)
     {
-        return search->second;
+        std::sort(color.second.begin(), color.second.end());
     }
-    else
+
+    // Auxiliary variables
+    bool new_color = false;
+    std::unordered_map<std::vector<std::string>, int, KeyHasherRange<std::vector<std::string>>, KeyComparorRange<std::vector<std::string>>> aux_colors;
+
+    // Generate the intersections map
+    for (SizeType i = 0; i < rColors.size(); i++)
     {
-        // We check the order of the names again
-        std::sort(rColors[Key0].begin(), rColors[Key0].end());
-        std::sort(rColors[Key1].begin(), rColors[Key1].end());
-
-        // Computing the intersection
-        std::vector<std::string> intersection;
-        std::set_intersection(rColors[Key0].begin(), rColors[Key0].end(),
-                              rColors[Key1].begin(), rColors[Key1].end(),
-                              std::back_inserter(intersection));
-        
-        // Null intersection: MainModelPart
-        if (intersection.size()==0) {
-            mIntersections[intersection_key] = 0;
-            return 0;
-        }
-
-        // Find the intersection key
-        int color_id;
-        for (auto color : rColors)
+        for (SizeType j = i; j < rColors.size(); j++)
         {
-            if (color.second == intersection) {
-                mIntersections[intersection_key] = color.first;
-                return color.first;
+            std::pair<int,int> intersection_key = {i,j};
+            if (i == j)
+            {
+                rIntersections[intersection_key] = i;
             }
-            color_id = color.first;
-        }
+            else
+            {
+                std::vector<std::string> intersection_names;
+                std::set_intersection(rColors[i].begin(), rColors[i].end(),
+                                      rColors[j].begin(), rColors[j].end(),
+                                      std::back_inserter(intersection_names));
 
-        // In that case, we need to add a new color
-        rColors[++color_id] = intersection;
-        mIntersections[intersection_key] = color_id;
-        return color_id;
+                // Null intersection: Main Model Part
+                if (intersection_names.size()==0)
+                {
+                    rIntersections[intersection_key] = 0;
+                }
+
+                // Find the intersection color
+                int color_id = 0;
+                bool intersection_found = false;
+                for (auto color : rColors)
+                {
+                    if (color.second == intersection_names)
+                    {
+                        rIntersections[intersection_key] = color.first;
+                        intersection_found = true;
+                    }
+                    else
+                        color_id = color.first;
+                }
+
+                // Store the new intersection
+                if (!intersection_found)
+                {
+                    rIntersections[intersection_key] = ++color_id;
+                    aux_colors[intersection_names] = color_id;
+                    new_color = true;
+                }
+            }
+        }
+    }
+
+    // Add the new combinations to the colors
+    if (new_color)
+    {
+        for (auto aux_color : aux_colors)
+        {
+            rColors[aux_color.second] = aux_color.first;
+        }
     }
 }
 
