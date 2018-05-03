@@ -249,7 +249,7 @@ public:
                     int node_position = this_model_part.Nodes().find(geom[i].Id()) - it_begin_node_old; //probably there-s a better way to do this, i only need the position in the array, (not the ID)
                     used_nodes[node_position]=true; //we will have to clone this node into the new model part, no matter if owned or not.
                     int ierr = aux_non_overlapping_graph->ReplaceGlobalValues( 1 , &aux_ids, &this_partition_index,0); // saving that this processor owns this node
-                    if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln 183", "");
+                    KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
                 }
             }
         }
@@ -257,13 +257,13 @@ public:
 
         int ierr = -1;
         ierr = aux_non_overlapping_graph->GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
-        KRATOS_ERROR_IF(ierr < 0) << "epetra failure --> " << __LINE__ << std::endl;
+        KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
         //now in our local graph we have also the nodes that are required by other processors
 
 
         double* local_non_ov = new double  [nlocal_nodes]; //a human readeable copy of the FEvector
         ierr = aux_non_overlapping_graph->ExtractCopy(local_non_ov,nlocal_nodes);
-        KRATOS_ERROR_IF(ierr < 0) << "epetra failure --> " << __LINE__ << std::endl;
+        KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
 
 
         int n_owned_nonzeros = 0;
@@ -332,13 +332,13 @@ public:
                 ++node_id;
                 double node_id_double=double(node_id);
                 ierr = IDs_non_overlapping_graph->ReplaceMyValue ( index  ,  0 ,  node_id_double ); //saving the ID
-                if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln 183", "");
+                KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
             }
         }
 
         ierr = -1;
         ierr = IDs_non_overlapping_graph->GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
-        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure --> ln 249", "");
+        KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
 
         //KRATOS_WATCH('line333')
 
@@ -612,7 +612,7 @@ public:
                 aux_ids[i] = geom[i].Id() - 1;
 
             int ierr = mp_non_overlapping_graph->InsertGlobalIndices(geom.size(), aux_ids, geom.size(), aux_ids);
-            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln174", "");
+            KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
         }
         for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
         {
@@ -621,7 +621,7 @@ public:
                 aux_ids[i] = geom[i].Id() - 1;
 
             int ierr = mp_non_overlapping_graph->InsertGlobalIndices(geom.size(), aux_ids, geom.size(), aux_ids);
-            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln 183", "");
+            KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
         }
         mp_non_overlapping_graph->GlobalAssemble();
 
@@ -969,13 +969,10 @@ public:
             GlobalRow = p_edge_ids->GRID(Row);
             int num_id_entries = -1;
             int ierr = p_edge_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, num_id_entries, id_values, Indices);
-            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln420", "");
+            KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
 
             ierr = p_partition_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, NumEntries, partition_values, Indices);
-            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln423", "");
-
-            //ierr = used_nodes_matrix->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, NumEntries, used_nodes_matrix_row, Indices);
-            //if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln423", "");
+            KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
 
             if (NumEntries != num_id_entries) KRATOS_THROW_ERROR(std::logic_error, "we should have the same number of new_ids and of partition_values", "");
             for (Col = 0; Col < NumEntries; ++Col)
