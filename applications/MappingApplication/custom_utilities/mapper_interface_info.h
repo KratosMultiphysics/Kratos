@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "geometries/point.h"
 #include "custom_searching/interface_object.h"
 
 
@@ -66,7 +67,9 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperInterfaceInfo();
+    MapperInterfaceInfo() {}
+
+    MapperInterfaceInfo(const Point rPoint, const int LocalSystemIndex, const int SouceRank=0);
 
     /// Destructor.
     virtual ~MapperInterfaceInfo() {
@@ -83,11 +86,7 @@ public:
     ///@name Operations
     ///@{
 
-    // void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject)
-    // {
-
-    // }
-
+    virtual void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject) = 0;
 
     std::vector<int> GetNeighborIds() const
     {
@@ -103,12 +102,11 @@ public:
         return neighbor_distances;
     }
 
-    MapperInterfaceInfo::Pointer Create() const
-    {
-        return Kratos::make_shared<MapperInterfaceInfo>();
-    }
+    virtual MapperInterfaceInfo::Pointer Create(const Point rPoint, const int LocalSystemIndex, const int SouceRank) = 0;
 
     void Clear() {}
+
+    int GetSourceRank() const { return mSourceRank; }
 
 
     ///@}
@@ -154,7 +152,12 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    std::size_t mRank;
+    // These variables need serialization
+    int mLocalSystemIndex;
+
+    // These variables are NOT being serialized bcs they are not needed after searching!
+    int mSourceRank = 0;
+    array_1d<double, 3> mCoordinates;
 
     ///@}
     ///@name Protected Operators
@@ -209,14 +212,15 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const {
-        KRATOS_ERROR << "This Object cannot be serialized!" << std::endl;
+    virtual void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("LocalSysIdx", mLocalSystemIndex);
     }
 
-    virtual void load(Serializer& rSerializer) {
-        KRATOS_ERROR << "This Object cannot be serialized!" << std::endl;
+    virtual void load(Serializer& rSerializer)
+    {
+        rSerializer.load("LocalSysIdx", mLocalSystemIndex);
     }
-
 
     ///@}
     ///@name Private Inquiry

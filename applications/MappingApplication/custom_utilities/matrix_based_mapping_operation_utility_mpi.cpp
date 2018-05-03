@@ -30,12 +30,12 @@ namespace Kratos
     template<>
     MatrixBasedMappingOperationUtility<MapperDefinitions::MPISparseSpaceType,
         MapperDefinitions::DenseSpaceType>::MatrixBasedMappingOperationUtility(
-        ModelPartPointerType pInterfaceModelPart)
+        MapperLocalSystemPointerVectorPointerType pMapperLocalSystems)
         : MappingOperationUtility<MapperDefinitions::MPISparseSpaceType,
-          MapperDefinitions::DenseSpaceType>(pInterfaceModelPart)
+          MapperDefinitions::DenseSpaceType>(pMapperLocalSystems)
     {
 
-        KRATOS_WATCH("MPI-Consructor")
+        KRATOS_WATCH("MPI-Constructor")
 
 
         typedef MapperDefinitions::MPISparseSpaceType SparseSpaceType;

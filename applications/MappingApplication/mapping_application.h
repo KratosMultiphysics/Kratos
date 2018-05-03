@@ -198,6 +198,8 @@ private:
     const InterfaceNode             mInterfaceNode;
     const InterfaceGeometryObject   mInterfaceGeometryObject;
 
+    // TODO maybe the mapper_local_infos have to be registered too bcs of the serializer
+
     // const NearestNeighborCondition mNearestNeighborCondition;
     // const NearestElementCondition  mNearestElementCondition;
 

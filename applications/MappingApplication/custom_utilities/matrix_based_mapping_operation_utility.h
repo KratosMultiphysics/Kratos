@@ -63,8 +63,8 @@ class MatrixBasedMappingOperationUtility
     KRATOS_CLASS_POINTER_DEFINITION(MatrixBasedMappingOperationUtility);
 
     using BaseType = MappingOperationUtility<TSparseSpace, TDenseSpace>;
-    typedef typename BaseType::ModelPartPointerType ModelPartPointerType;
-
+    using MapperLocalSystemPointerType = typename BaseType::MapperLocalSystemPointer;
+    using MapperLocalSystemPointerVectorPointerType = typename BaseType::MapperLocalSystemPointerVectorPointer;
 
 
 
@@ -73,7 +73,7 @@ class MatrixBasedMappingOperationUtility
     ///@{
 
     /// Default constructor.
-    MatrixBasedMappingOperationUtility(ModelPartPointerType pInterfaceModelPart);
+    MatrixBasedMappingOperationUtility(MapperLocalSystemPointerVectorPointerType pMapperLocalSystems);
 
     /// Destructor.
     virtual ~MatrixBasedMappingOperationUtility() {}

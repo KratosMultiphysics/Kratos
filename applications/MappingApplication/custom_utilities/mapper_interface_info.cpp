@@ -19,14 +19,19 @@
 
 // Project includes
 #include "mapper_interface_info.h"
-#include "mapping_application_variables.h"
+// #include "mapping_application_variables.h"
 
 namespace Kratos
 {
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
-    MapperInterfaceInfo::MapperInterfaceInfo()
+    MapperInterfaceInfo::MapperInterfaceInfo(const Point rPoint,
+                                             const int LocalSystemIndex,
+                                             const int SourceRank)
+        : mLocalSystemIndex(LocalSystemIndex),
+          mSourceRank(SourceRank),
+          mCoordinates(rPoint)
     {
     }
 

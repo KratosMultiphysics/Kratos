@@ -174,7 +174,9 @@ protected:
             return std::make_unique<NearestElementLocalSystem>();
         }
 
-        void CalculateAll() override
+        void CalculateAll(MappingWeightsVector& rMappingWeights,
+                          OriginIdVector&       rOriginIds,
+                          DestinationIdVector&  rDestinationIds) override
         {
 
         }

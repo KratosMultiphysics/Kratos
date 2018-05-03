@@ -67,6 +67,10 @@ public:
     using MapperLocalSystemUniquePointer = std::unique_ptr<MapperLocalSystem>;
     using MapperInterfaceInfoPointer = MapperInterfaceInfo::Pointer;
 
+    using MappingWeightsVector = std::vector<double>;
+    using OriginIdVector       = std::vector<int>;
+    using DestinationIdVector  = std::vector<int>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -89,7 +93,9 @@ public:
 
     virtual MapperLocalSystemUniquePointer Create() = 0;
 
-    virtual void CalculateAll() = 0;
+    virtual void CalculateAll(MappingWeightsVector& rMappingWeights,
+                              OriginIdVector&       rOriginIds,
+                              DestinationIdVector&  rDestinationIds) = 0;
 
     void AddInterfaceInfo(MapperInterfaceInfoPointer pInterfaceInfo)
     {

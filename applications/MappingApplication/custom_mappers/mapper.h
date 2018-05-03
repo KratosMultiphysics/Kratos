@@ -85,7 +85,6 @@ public:
     /// Pointer definition of Mapper
     KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
-    // using InterfaceCommunicatorPointerType = InterfaceCommunicator::Pointer;
     typedef MappingOperationUtility<TSparseSpace, TDenseSpace> MappingOperationUtilityType;
     typedef typename MappingOperationUtilityType::Pointer MappingOperationUtilityPointerType;
     using InterfacePreprocessorPointerType = InterfacePreprocessor::Pointer;
@@ -94,6 +93,7 @@ public:
     using IndexType = std::size_t;
 
     using MapperLocalSystemPointer = std::unique_ptr<MapperLocalSystem>;
+    using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<std::vector<MapperLocalSystemPointer>>;
 
     ///@}
     ///@name Life Cycle
@@ -211,7 +211,7 @@ protected:
     MappingOperationUtilityPointerType mpMappingOperationUtility;
     InterfacePreprocessorPointerType mpInterfacePreprocessor;
     // ModelPartPointerType mpInterfaceModelPart;
-    std::vector<MapperLocalSystemPointer> mMapperLocalSystems;
+    MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
 
     Mapper::Pointer mpInverseMapper;
 
@@ -348,9 +348,9 @@ protected:
     // }
 
     virtual MappingOperationUtilityPointerType CreateMappingOperationUtility(
-        ModelPartPointerType pInterfaceModelPart) const
+        MapperLocalSystemPointerVectorPointer pMapperLocalSystems) const
     {   // here we could return the MatrixFree variant in the future
-        return Kratos::make_shared<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>(pInterfaceModelPart);
+        return Kratos::make_shared<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>(pMapperLocalSystems);
     }
 
 // #ifdef KRATOS_USING_MPI // mpi-parallel compilation

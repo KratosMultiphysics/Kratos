@@ -136,21 +136,27 @@ Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
     // ValidateParameters(MapperSettings);
     // mEchoLevel = MapperSettings["echo_level"].GetInt();
 
-    // mpInterfaceModelPart = Kratos::make_shared<ModelPart>("Mapper-Interface");
-    // maybe add the PARTITION_INDEX here to the mpInterfaceModelPart -> currently done in the InterfacePreprocessor
-
-    // mpInterfacePreprocessor = Kratos::make_shared<InterfacePreprocessor>(mrModelPartDestination,
-    //                                                                      mpInterfaceModelPart);
-
+    // mpInterfacePreprocessor = std::make_unique<InterfacePreprocessor>(mrModelPartDestination,
+    //                                                                   mpMapperLocalSystems);
     // GenerateInterfaceModelPart();
+
+
+    // InitializeInterfacePreprocessor();
+    InitializeMappingOperationUtility();
+
     Initialize();
 }
 
+
+/* This function initializes the Mapper
+It is a separate function because it is also being called if the interface is updated with remeshing!
+*/
 template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::Initialize()
 {
-    // InitializeInterfaceCommunicator();
-    InitializeMappingOperationUtility();
+    mpMapperLocalSystems->clear();
+    if(mpInterfacePreprocessor) mpInterfacePreprocessor->Initialize();
+    if(mpMappingOperationUtility) mpMappingOperationUtility->Initialize();
 }
 
 /***********************************************************************************/
@@ -187,7 +193,7 @@ template<>
 void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
 {
     // KRATOS_WATCH("Without MPI")
-    // mpMappingOperationUtility = CreateMappingOperationUtility(mpInterfaceModelPart);
+    mpMappingOperationUtility = CreateMappingOperationUtility(mpMapperLocalSystems);
 }
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
@@ -195,7 +201,7 @@ template<>
 void Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
 {
     // KRATOS_WATCH("With MPI")
-    // mpMappingOperationUtility = CreateMappingOperationUtility(mpInterfaceModelPart);
+    mpMappingOperationUtility = CreateMappingOperationUtility(mpMapperLocalSystems);
 }
 #endif
 

@@ -22,7 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
+#include "mapper_local_system.h"
 
 
 namespace Kratos
@@ -62,17 +62,19 @@ class MappingOperationUtility
     /// Pointer definition of MappingOperationUtility
     KRATOS_CLASS_POINTER_DEFINITION(MappingOperationUtility);
 
-    using ModelPartPointerType = ModelPart::Pointer;
     using SizeType = std::size_t;
     using IndexType = std::size_t;
+
+    using MapperLocalSystemPointer = std::unique_ptr<MapperLocalSystem>;
+    using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<std::vector<MapperLocalSystemPointer>>;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MappingOperationUtility(ModelPartPointerType pInterfaceModelPart)
-        : mpInterfaceModelPart(pInterfaceModelPart)
+    MappingOperationUtility(MapperLocalSystemPointerVectorPointer pMapperLocalSystems)
+        : mpMapperLocalSystems(pMapperLocalSystems)
     {
 
     }
@@ -153,7 +155,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPartPointerType mpInterfaceModelPart;
+    MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
 
 
     ///@}
@@ -221,7 +223,7 @@ private:
     // MappingOperationUtility& operator=(MappingOperationUtility const& rOther) {}
 
     /// Copy constructor.
-    MappingOperationUtility(MappingOperationUtility const& rOther) {}
+    // MappingOperationUtility(MappingOperationUtility const& rOther) {}
 
     ///@}
 

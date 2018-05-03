@@ -22,7 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/serializer.h"
+#include "geometries/point.h"
 #include "custom_utilities/mapper_utilities.h"
 
 
