@@ -30,7 +30,7 @@
 
 
 // Application includes
-#include "../custom_elements/vms_adjoint_element.h"
+#include "custom_elements/vms_adjoint_element.h"
 
 namespace Kratos
 {
@@ -59,10 +59,11 @@ public:
 
     typedef Element::VectorType VectorType;
 
-    enum class numericalDiffusionMethod
+    enum class NumericalDiffusionMethod
     {
         singularValuePressureCoupled,
         singularValuePressureDecoupled,
+        eigenValueFullMatrix
     };
 
     ///@}
@@ -86,7 +87,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    void SetNumericalDiffusionParamters(Parameters& rParameters)
+    void SetNumericalDiffusionParameters(Parameters DiffusionParameters)
     {
         KRATOS_TRY;
 
@@ -96,20 +97,22 @@ public:
             "beta": 0.0
         })");
 
-        rParameters.ValidateAndAssignDefaults(default_params);
+        DiffusionParameters.ValidateAndAssignDefaults(default_params);
 
-        mBeta = rParameters["beta"].GetDouble();
+        mBeta = DiffusionParameters["beta"].GetDouble();
 
-        std::string method_name = rParameters["method"].GetString();
+        std::string method_name = DiffusionParameters["method"].GetString();
         
         if (method_name.compare("singular_value_pressure_coupled")==0)
-            mNumericalDiffusionMethod = numericalDiffusionMethod::singularValuePressureCoupled;
+            mNumericalDiffusionMethod = NumericalDiffusionMethod::singularValuePressureCoupled;
         else if (method_name.compare("singular_value_pressure_decoupled")==0)
-            mNumericalDiffusionMethod = numericalDiffusionMethod::singularValuePressureDecoupled;
+            mNumericalDiffusionMethod = NumericalDiffusionMethod::singularValuePressureDecoupled;
+        else if (method_name.compare("eigen_value_full_element_matrix")==0)
+            mNumericalDiffusionMethod = NumericalDiffusionMethod::eigenValueFullMatrix;
         else
             KRATOS_THROW_ERROR(std::runtime_error,
-                "numerical diffusion method only supports singular_value_pressure_coupled or singular_value_pressure_decoupled",
-                rParameters.PrettyPrintJsonString())
+                "numerical diffusion method only supports singular_value_pressure_coupled or singular_value_pressure_decoupled or eigen_value_full_element_matrix",
+                DiffusionParameters.PrettyPrintJsonString())
             
         KRATOS_CATCH("");
         
@@ -132,23 +135,26 @@ public:
             InitializeMatrix<2>(rAdjointMatrix);
             switch (mNumericalDiffusionMethod)
             {
-                case numericalDiffusionMethod::singularValuePressureCoupled:
+                case NumericalDiffusionMethod::singularValuePressureCoupled:
                     numerical_diffusion = CalculateNumericalDiffusionSVMethodPressureCoupled<2>(pCurrentElement, rCurrentProcessInfo);
                     break;
-                case numericalDiffusionMethod::singularValuePressureDecoupled:
+                case NumericalDiffusionMethod::singularValuePressureDecoupled:
                     numerical_diffusion = CalculateNumericalDiffusionSVMethodPressureDecoupled<2>(pCurrentElement, rCurrentProcessInfo);
                     break;
+                case NumericalDiffusionMethod::eigenValueFullMatrix:
+                    numerical_diffusion = CalculateNumericalDiffusionEigenFullMatrix<2>(pCurrentElement, rCurrentProcessInfo);
+                    break;                    
             }
 
-            boost::numeric::ublas::bounded_matrix<double, 3, 2> DN_DX;
-            array_1d< double, 3 > N;
+            BoundedMatrix<double, 3, 2> dn_dx;
+            array_1d< double, 3 > n;
             double volume;
     
-            GeometryUtils::CalculateGeometryData(pCurrentElement->GetGeometry(),DN_DX,N,volume);
+            GeometryUtils::CalculateGeometryData(pCurrentElement->GetGeometry(),dn_dx,n,volume);
 
-            numerical_diffusion = mBeta * numerical_diffusion;
+            numerical_diffusion = mBeta * numerical_diffusion * volume;
 
-            AddNumericalDiffusionTerm<2>(rAdjointMatrix, DN_DX, numerical_diffusion);            
+            AddNumericalDiffusionTerm<2>(rAdjointMatrix, dn_dx, numerical_diffusion);            
         }
         else if (domain_size == 3)
         {
@@ -156,23 +162,26 @@ public:
 
             switch (mNumericalDiffusionMethod)
             {
-                case numericalDiffusionMethod::singularValuePressureCoupled:
+                case NumericalDiffusionMethod::singularValuePressureCoupled:
                     numerical_diffusion = CalculateNumericalDiffusionSVMethodPressureCoupled<3>(pCurrentElement, rCurrentProcessInfo);
                     break;
-                case numericalDiffusionMethod::singularValuePressureDecoupled:
+                case NumericalDiffusionMethod::singularValuePressureDecoupled:
                     numerical_diffusion = CalculateNumericalDiffusionSVMethodPressureDecoupled<3>(pCurrentElement, rCurrentProcessInfo);
                     break;
+                case NumericalDiffusionMethod::eigenValueFullMatrix:
+                    numerical_diffusion = CalculateNumericalDiffusionEigenFullMatrix<3>(pCurrentElement, rCurrentProcessInfo);
+                    break;                                        
             }
 
-            boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
-            array_1d< double, 4 > N;
+            BoundedMatrix<double, 4, 3> dn_dx;
+            array_1d< double, 4 > n;
             double volume;
     
-            GeometryUtils::CalculateGeometryData(pCurrentElement->GetGeometry(),DN_DX,N,volume);
+            GeometryUtils::CalculateGeometryData(pCurrentElement->GetGeometry(),dn_dx,n,volume);
 
-            numerical_diffusion = mBeta * numerical_diffusion;
+            numerical_diffusion = mBeta * numerical_diffusion * volume;
 
-            AddNumericalDiffusionTerm<3>(rAdjointMatrix, DN_DX, numerical_diffusion);
+            AddNumericalDiffusionTerm<3>(rAdjointMatrix, dn_dx, numerical_diffusion);
         }
         else
         {
@@ -190,7 +199,7 @@ public:
 private:
     ///@name Member Variables
     ///@{
-    numericalDiffusionMethod mNumericalDiffusionMethod = numericalDiffusionMethod::singularValuePressureCoupled;
+    NumericalDiffusionMethod mNumericalDiffusionMethod = NumericalDiffusionMethod::singularValuePressureCoupled;
     double mBeta = 0.0;
     ///@}
     ///@name Private Operators
@@ -207,17 +216,14 @@ private:
         if (rAdjointMatrix.size1() != TFluidLocalSize || rAdjointMatrix.size2() != TFluidLocalSize)
             rAdjointMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
 
-        for (IndexType i=0; i < TFluidLocalSize; i++)
-            for (IndexType j=0; j < TFluidLocalSize; j++)
-                rAdjointMatrix(i,j) = 0.0;
+        rAdjointMatrix.clear();
 
         KRATOS_CATCH("")
     }
 
     template<unsigned int TDim>
     void CalculateVelocityGradientTensor(
-        Element::Pointer pElement,
-        const ProcessInfo& rCurrentProcessInfo,
+        Element::Pointer const pElement,
         MatrixType& rMatrix
     )
     {
@@ -228,44 +234,37 @@ private:
         
         rMatrix.clear();
 
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        array_1d< double, TNumNodes > N;
-        double Volume;
-        GeometryUtils::CalculateGeometryData(pElement->GetGeometry(),DN_DX,N,Volume);
+        BoundedMatrix<double, TNumNodes, TDim> dn_dx;
+        array_1d< double, TNumNodes > n;
+        double volume;
+        GeometryUtils::CalculateGeometryData(pElement->GetGeometry(),dn_dx,n,volume);
 
-        std::vector<array_1d<double, TDim>> rNodalVelocityVectors;
+        std::vector<array_1d<double, TDim>> r_nodal_velocity_vectors;
+        r_nodal_velocity_vectors.resize(TNumNodes);
+
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-            rNodalVelocityVectors.push_back(pElement->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY));
+            r_nodal_velocity_vectors[iNode] = pElement->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
 
         for (unsigned int i = 0; i < TDim; i++)
             for (unsigned int j = 0; j < TDim; j++)
                 for (unsigned int k = 0; k < TNumNodes; k++)
-                    rMatrix(i,j) += DN_DX(k,i)*rNodalVelocityVectors[k][j];
+                    rMatrix(i,j) += dn_dx(k,i)*r_nodal_velocity_vectors[k][j];
 
     }
 
-    template<unsigned int TDim>
-    double CalculateNumericalDiffusionSVMethodPressureCoupled(Element::Pointer pCurrentElement, const ProcessInfo& rCurrentProcessInfo)
+    
+    template<unsigned int TSize, unsigned int TDim>
+    Eigen::Matrix<double, TSize, TSize>  CalculateSVMethodCharacteristicMatrix(Element::Pointer const pElement)
     {
-        constexpr unsigned int TNumNodes = TDim + 1;        
-
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        array_1d< double, TNumNodes > N;
-        double Volume;
-
-        GeometryType& rGeom = pCurrentElement->GetGeometry();
-
-        GeometryUtils::CalculateGeometryData(rGeom,DN_DX,N,Volume);
-
         MatrixType velocity_gradient;
 
-        CalculateVelocityGradientTensor<TDim>(pCurrentElement, rCurrentProcessInfo, velocity_gradient);
+        CalculateVelocityGradientTensor<TDim>(pElement, velocity_gradient);
 
         double velocity_divergence = 0.0;
         for (IndexType i=0;i<TDim; i++)
             velocity_divergence += velocity_gradient(i,i);
         
-        Eigen::Matrix<double, TDim+1, TDim+1>  characteristic_matrix;
+        Eigen::Matrix<double, TSize, TSize>  characteristic_matrix;
         for (IndexType i=0; i < TDim; i++)
             characteristic_matrix(i,i) = 0.5 * velocity_divergence - velocity_gradient(i,i);
         for (IndexType i=0; i < TDim; i++)
@@ -274,11 +273,38 @@ private:
                 characteristic_matrix(i,j) =  velocity_gradient(i,j);
                 characteristic_matrix(j,i) =  velocity_gradient(j,i);
             }
+        
+        return characteristic_matrix;
+    }
+
+    template<unsigned int TDim>
+    double CalculateVelocityDivergence(Element::Pointer const pElement)
+    {
+        MatrixType velocity_gradient;
+
+        CalculateVelocityGradientTensor<TDim>(pElement, velocity_gradient);
+
+        double velocity_divergence = 0.0;
+        for (IndexType i=0;i<TDim; i++)
+            velocity_divergence += velocity_gradient(i,i);
+        
+        return velocity_divergence;
+    }
+
+    template<unsigned int TDim>
+    double CalculateNumericalDiffusionSVMethodPressureCoupled(Element::Pointer const pElement, const ProcessInfo& rCurrentProcessInfo)
+    {
+
+        Eigen::Matrix<double, TDim+1, TDim+1>  characteristic_matrix = 
+                            CalculateSVMethodCharacteristicMatrix<TDim+1, TDim>(pElement);
+
         for (IndexType i=0; i < TDim + 1; i++)
         {
             characteristic_matrix(TDim, i) = 0.0;
             characteristic_matrix(i, TDim) = 0.0;
         }
+        
+        double velocity_divergence = CalculateVelocityDivergence<TDim>(pElement);
         characteristic_matrix(TDim, TDim) = 0.5 * velocity_divergence;
 
         Eigen::JacobiSVD<Eigen::Matrix<double, TDim+1, TDim+1>> svd(
@@ -294,36 +320,12 @@ private:
     }
 
     template<unsigned int TDim>
-    double CalculateNumericalDiffusionSVMethodPressureDecoupled(Element::Pointer pCurrentElement, const ProcessInfo& rCurrentProcessInfo)
+    double CalculateNumericalDiffusionSVMethodPressureDecoupled(Element::Pointer const pElement, const ProcessInfo& rCurrentProcessInfo)
     {
-        constexpr unsigned int TNumNodes = TDim + 1;
+        Eigen::Matrix<double, TDim, TDim>  characteristic_matrix = 
+                CalculateSVMethodCharacteristicMatrix<TDim, TDim>(pElement);
 
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        array_1d< double, TNumNodes > N;
-        double Volume;
-
-        GeometryType& rGeom = pCurrentElement->GetGeometry();
-
-        GeometryUtils::CalculateGeometryData(rGeom,DN_DX,N,Volume);
-
-        MatrixType velocity_gradient;
-        CalculateVelocityGradientTensor<TDim>(pCurrentElement, rCurrentProcessInfo, velocity_gradient);
-
-        double velocity_divergence = 0.0;
-        for (IndexType i=0;i<TDim; i++)
-            velocity_divergence += velocity_gradient(i,i);
-        
-        Eigen::Matrix<double, TDim+1, TDim+1>  characteristic_matrix;
-        for (IndexType i=0; i < TDim; i++)
-            characteristic_matrix(i,i) = 0.5 * velocity_divergence - velocity_gradient(i,i);
-        for (IndexType i=0; i < TDim; i++)
-            for (IndexType j=i+1; j < TDim; j++)
-            {
-                characteristic_matrix(i,j) =  velocity_gradient(i,j);
-                characteristic_matrix(j,i) =  velocity_gradient(j,i);
-            }
-
-        Eigen::JacobiSVD<Eigen::Matrix<double, TDim+1, TDim+1>> svd(
+        Eigen::JacobiSVD<Eigen::Matrix<double, TDim, TDim>> svd(
             characteristic_matrix, Eigen::ComputeThinU | Eigen::ComputeThinV
             );
 
@@ -335,10 +337,63 @@ private:
         return numerical_viscosity;    
     }
 
+    template<unsigned int TDim>
+    double CalculateNumericalDiffusionEigenFullMatrix(Element::Pointer const pElement, const ProcessInfo& rCurrentProcessInfo)
+    {
+        constexpr unsigned int TNumNodes = TDim + 1;
+
+        BoundedMatrix<double, TNumNodes, TDim> dn_dx;
+        array_1d< double, TNumNodes > n;
+        double volume;
+
+        GeometryUtils::CalculateGeometryData(pElement->GetGeometry(),dn_dx,n,volume);
+
+        MatrixType vms_steady_term_primal_gradient;
+
+        pElement->Calculate(
+                            VMS_STEADY_TERM_PRIMAL_GRADIENT_MATRIX,
+                            vms_steady_term_primal_gradient,
+                            rCurrentProcessInfo);
+
+        Vector adjoint_values_vector;
+        Vector temp;
+
+        adjoint_values_vector.resize(TNumNodes*(TDim+1));
+        temp.resize(TNumNodes*(TDim+1));
+
+        pElement->GetValuesVector(adjoint_values_vector, 1);
+
+        noalias(temp) = prod(vms_steady_term_primal_gradient, adjoint_values_vector);
+        
+        double adjoint_energy = 0.0;
+        for (IndexType i = 0; i < temp.size(); i++)
+            adjoint_energy += temp[i]*adjoint_values_vector[i];
+        
+
+        MatrixType numerical_diffusion_matrix;
+        InitializeMatrix<TDim>(numerical_diffusion_matrix);
+
+        AddNumericalDiffusionTerm<TDim>(numerical_diffusion_matrix, dn_dx, volume);
+
+        double diffusion_energy = 0.0;
+        noalias(temp) = prod(numerical_diffusion_matrix, adjoint_values_vector);
+        for (IndexType i = 0; i < temp.size(); i++)
+            diffusion_energy += temp[i]*adjoint_values_vector[i];
+
+        double numerical_diffusion = 0.0;
+
+        if (adjoint_energy > 0.0 and diffusion_energy > 0.0)
+            numerical_diffusion = adjoint_energy/diffusion_energy;
+
+        // std::cout<<pElement->Id()<<", diffu:"<<diffusion_energy<<", adoint:"<<adjoint_energy<<", num:"<<numerical_diffusion<<std::endl;
+
+        return numerical_diffusion;
+    }    
+
     template<IndexType TDim>
     void AddNumericalDiffusionTerm(
         MatrixType& rResult,
-        const boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim>& rDN_DX,
+        const BoundedMatrix<double, TDim + 1, TDim>& rDN_DX,
         const double Weight)
     {
         constexpr SizeType NumNodes = TDim + 1;
