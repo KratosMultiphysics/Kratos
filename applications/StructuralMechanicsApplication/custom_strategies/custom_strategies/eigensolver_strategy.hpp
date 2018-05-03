@@ -429,6 +429,27 @@ public:
         KRATOS_CATCH("")
     }
 
+    void FinalizeSolutionStep() override
+    {
+        KRATOS_TRY;
+
+        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering FinalizeSolutionStep" << std::endl;
+
+        SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
+        SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer();
+        SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer();
+        pGetBuilderAndSolver()->FinalizeSolutionStep(
+            BaseType::GetModelPart(), rStiffnessMatrix, *pDx, *pb);
+        pGetScheme()->FinalizeSolutionStep(BaseType::GetModelPart(),
+                                           rStiffnessMatrix, *pDx, *pb);
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Exiting FinalizeSolutionStep" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
     /**
      * Function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
