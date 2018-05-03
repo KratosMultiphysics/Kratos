@@ -117,6 +117,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         """ Initialize GiD  I/O """
         self.output_post  = self.ProjectParameters.Has("output_configuration")
         if (self.output_post == True):
+            self.__CheckForDeprecatedGiDSettings()
             if (self.parallel_type == "OpenMP"):
                 from gid_output_process import GiDOutputProcess as output_process
             elif (self.parallel_type == "MPI"):
@@ -274,6 +275,21 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
     def _GetSimulationName(self):
         return "::[KSM Simulation]:: "
+
+
+    def __CheckForDeprecatedGiDSettings(self):
+        if self.ProjectParameters["output_configuration"].Has("result_file_configuration"):
+            res_file_config = self.ProjectParameters["output_configuration"]["result_file_configuration"]
+            if res_file_config.Has("nodal_results"):
+                nodal_res = res_file_config["nodal_results"]
+                for i in range(nodal_res.size()):
+                    var_name = nodal_res[i].GetString()
+                    if var_name == "TORQUE":
+                        err_msg  = 'Requesting output for "TORQUE" which is not available any more\n'
+                        err_msg += 'It was renamed to "MOMENT_REACTION"'
+                        raise Exception(err_msg)
+
+
 
 if __name__ == "__main__":
     from sys import argv
