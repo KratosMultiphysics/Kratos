@@ -733,9 +733,9 @@ class Algorithm(object):
                     self.projection_module.ProjectFromParticles()
                     
                 #Phantom                
-                self.MakeAnalyticsMeasurements()
+                #self.MakeAnalyticsMeasurements()
                 
-                if self.analytic_data_counter.Tick():
+                if False: #self.analytic_data_counter.Tick():
                     self.ProcessAnalyticData()
                 
                 times = []
@@ -744,7 +744,7 @@ class Algorithm(object):
                 normal_relative_vel = []
                 tangential_relative_vel = []
                 
-                self.watcher.GetAllFacesData(self.GetAnalyticFacesModelParts(), times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
+                #self.watcher.GetAllFacesData(self.GetAnalyticFacesModelParts(), times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
 
             #### PRINTING GRAPHS ####
             os.chdir(self.graphs_path)
