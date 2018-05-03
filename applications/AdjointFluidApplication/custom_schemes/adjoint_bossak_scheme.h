@@ -28,6 +28,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"
 #include "solving_strategies/response_functions/response_function.h"
+#include "adjoint_fluid_application_variables.h"
 
 #ifdef EIGEN_ROOT
     #include "custom_utilities/numerical_diffusion.h"
@@ -83,8 +84,7 @@ public:
         rParameters.ValidateAndAssignDefaults(default_params);
 
         #ifdef EIGEN_ROOT
-            Parameters numerical_diffusion_parameters(rParameters["numerical_diffusion"]);
-            mNumeicalDiffusion.SetNumericalDiffusionParamters(numerical_diffusion_parameters);
+            mNumericalDiffusion.SetNumericalDiffusionParameters(rParameters["numerical_diffusion"]);
         #endif
 
         mAlphaBossak = rParameters["alpha_bossak"].GetDouble();
@@ -539,7 +539,7 @@ public:
 
         // Calculate added numerical diffusion stabilization term
         #ifdef EIGEN_ROOT
-            mNumeicalDiffusion.CalculateNumericalDiffusion(
+            mNumericalDiffusion.CalculateNumericalDiffusion(
                 pCurrentElement,
                 mLeftHandSide[thread_id],
                 rCurrentProcessInfo
@@ -673,7 +673,7 @@ private:
     std::vector<LocalSystemMatrixType> mSecondDerivsLHS;
 
     #ifdef EIGEN_ROOT
-        NumericalDiffusion mNumeicalDiffusion;
+        NumericalDiffusion mNumericalDiffusion;
     #endif
     std::ofstream mOutputFileStreamAdjointEnergy;
     ///@}
@@ -695,17 +695,55 @@ private:
     void CalculateAdjointEnergy(ModelPart& rModelPart)
     {
         double total_energy = 0.0;
-        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it) 
+        double matrix_energy = 0.0;
+        double v_x, v_y, v_z, p;
+
+        #pragma omp parallel private(v_x, v_y, v_z, p) reduction(+:total_energy)
         {
-            double v_x = it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1_X, 0);
-            double v_y = it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1_Y, 0);
-            double v_z = it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1_Z, 0);
-            double p = it->FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1, 0);
-            total_energy += (v_x*v_x+v_y*v_y+v_z*v_z+p*p);
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
+            for (auto it = nodes_begin; it != nodes_end; ++it)
+            {
+                v_x = it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1_X, 0);
+                v_y = it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1_Y, 0);
+                v_z = it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1_Z, 0);
+                p = it->FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1, 0);
+                total_energy += (v_x*v_x+v_y*v_y+v_z*v_z+p*p);
+            }
         }
+
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        #pragma omp parallel reduction(+:matrix_energy)
+        {
+            ModelPart::ElementIterator elements_begin;
+            ModelPart::ElementIterator elements_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Elements(), elements_begin, elements_end);
+            for (auto it = elements_begin; it != elements_end; ++it)
+            {
+
+                LocalSystemMatrixType vms_steady_term_primal_gradient;
+
+                it->Calculate(
+                            VMS_STEADY_TERM_PRIMAL_GRADIENT_MATRIX,
+                            vms_steady_term_primal_gradient,
+                            r_current_process_info);
+                
+                LocalSystemVectorType adjoint_values_vector;
+                LocalSystemVectorType temp;
+                it->GetValuesVector(adjoint_values_vector, 0);
+
+                noalias(temp) = prod(vms_steady_term_primal_gradient, adjoint_values_vector);
+
+                for (unsigned int i = 0; i < temp.size(); i++)
+                    matrix_energy += temp[i]*adjoint_values_vector[i];
+            }
+        }        
+
         ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
         double time = rProcessInfo[TIME];
-        mOutputFileStreamAdjointEnergy<<time<<","<<total_energy<<std::endl;
+        mOutputFileStreamAdjointEnergy<<time<<","<<total_energy<<","<<matrix_energy<<std::endl;
     }    
 
     ///@}

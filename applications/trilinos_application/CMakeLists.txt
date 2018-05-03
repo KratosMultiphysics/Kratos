@@ -9,6 +9,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/ )
 
 #dependecies on other application -- TRILINOS specific
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/AdjointFluidApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
 
@@ -45,19 +46,16 @@ if(TRILINOS_USE_AMGCL MATCHES ON)
 
 endif(TRILINOS_USE_AMGCL MATCHES ON)
 
-if(ADJOINT_FLUID_APPLICATION MATCHES ON)
-    if( NOT DEFINED EIGEN_ROOT )
-        message( FATAL_ERROR "EIGEN_ROOT not defined" )
-    endif(NOT DEFINED EIGEN_ROOT)
-    # including header only eigen library
+if( DEFINED EIGEN_ROOT )
     include_directories(${EIGEN_ROOT})
-endif(ADJOINT_FLUID_APPLICATION MATCHES ON)
+endif(DEFINED EIGEN_ROOT)
 
 ##add definitions needed
 
 ## generate variables with the sources
 set( KRATOS_TRILINOS_APPLICATION_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application_variables.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/trilinos_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_space_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_convergence_criterias_to_python.cpp
