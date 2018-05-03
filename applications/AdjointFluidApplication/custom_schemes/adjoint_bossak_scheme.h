@@ -23,7 +23,6 @@
 #include "includes/model_part.h"
 #include "includes/process_info.h"
 #include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"
@@ -696,20 +695,17 @@ private:
     {
         double total_energy = 0.0;
         double matrix_energy = 0.0;
-        double v_x, v_y, v_z, p;
 
-        #pragma omp parallel private(v_x, v_y, v_z, p) reduction(+:total_energy)
+        #pragma omp parallel reduction(+:total_energy)
         {
             ModelPart::NodeIterator nodes_begin;
             ModelPart::NodeIterator nodes_end;
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
             for (auto it = nodes_begin; it != nodes_end; ++it)
             {
-                v_x = it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1_X, 0);
-                v_y = it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1_Y, 0);
-                v_z = it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1_Z, 0);
-                p = it->FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1, 0);
-                total_energy += (v_x*v_x+v_y*v_y+v_z*v_z+p*p);
+                const array_1d<double,3>& v = it->FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1, 0);
+                double p = it->FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1, 0);
+                total_energy += inner_prod(v,v) + p*p;
             }
         }
 
@@ -735,9 +731,7 @@ private:
                 it->GetValuesVector(adjoint_values_vector, 0);
 
                 noalias(temp) = prod(vms_steady_term_primal_gradient, adjoint_values_vector);
-
-                for (unsigned int i = 0; i < temp.size(); i++)
-                    matrix_energy += temp[i]*adjoint_values_vector[i];
+                matrix_energy += inner_prod(temp, adjoint_values_vector);
             }
         }        
 
