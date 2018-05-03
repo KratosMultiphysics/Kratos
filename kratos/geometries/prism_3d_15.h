@@ -707,7 +707,7 @@ public:
         Matrix ShapeFunctionsGradientInIntegrationPoint =
             shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-        vector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 15 );
+        DenseVector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 15 );
         /*vector<double>*/
         ShapeFunctionsValuesInIntegrationPoint =
             row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex );
