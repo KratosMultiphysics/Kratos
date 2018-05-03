@@ -17,7 +17,6 @@
 /* System includes */
 
 /* External includes */
-#include "boost/timer.hpp"
 
 /* Project includes */
 #include "includes/define.h"
@@ -658,7 +657,6 @@ private:
     /**
      * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
      * @details A member variable should be used as a flag to make sure this function is called only once per step.
-     * @todo Boost dependencies should be replaced by std equivalent
      */
     void InitializeSolutionStep() override
     {
@@ -674,31 +672,26 @@ private:
 
 
         // Loop to reform the dofset
-        boost::timer system_construction_time;
+        Timer::Start("Construction time");
         if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
                 mReformDofSetAtEachStep == true)
         {
-            boost::timer setup_dofs_time;
             //setting up the list of the DOFs to be solved
+            Timer::Start("Setup DOFs time");
             pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
+            Timer::Stop("Setup DOFs time");
 
             //shaping correctly the system
-            boost::timer setup_system_time;
+            Timer::Start("Setup system time");
             pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                KRATOS_INFO("setup_system_time") << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
+            Timer::Stop("Setup system time");
 
             //setting up the Vectors involved to the correct size
-            boost::timer system_matrix_resize_time;
+            Timer::Start("Setup system matrix resize time");
             pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                KRATOS_INFO("system_matrix_resize_time") << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
+            Timer::Stop("Setup system matrix resize time");
         }
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            KRATOS_INFO("Construction time") << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
-
+        Timer::Stop("Construction time");
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
