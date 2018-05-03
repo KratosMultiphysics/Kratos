@@ -350,20 +350,18 @@ private:
                             rCurrentProcessInfo);
 
         Vector adjoint_values_vector;
-        Vector temp;
-
         pElement->GetValuesVector(adjoint_values_vector, 1);
 
-        noalias(temp) = prod(vms_steady_term_primal_gradient, adjoint_values_vector);
-        double adjoint_energy = inner_prod(temp, adjoint_values_vector);
+        Vector temp_1 = prod(vms_steady_term_primal_gradient, adjoint_values_vector);
+        double adjoint_energy = inner_prod(temp_1, adjoint_values_vector);
         
         MatrixType numerical_diffusion_matrix;
         InitializeMatrix<TDim>(numerical_diffusion_matrix);
 
         AddNumericalDiffusionTerm<TDim>(numerical_diffusion_matrix, dn_dx, volume);
 
-        noalias(temp) = prod(numerical_diffusion_matrix, adjoint_values_vector);
-        double diffusion_energy = inner_prod(temp,adjoint_values_vector);
+        Vector temp_2 = prod(numerical_diffusion_matrix, adjoint_values_vector);
+        double diffusion_energy = inner_prod(temp_2,adjoint_values_vector);
 
         double numerical_diffusion = 0.0;
 
