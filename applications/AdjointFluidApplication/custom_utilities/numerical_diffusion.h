@@ -370,8 +370,6 @@ private:
         if (adjoint_energy > 0.0 and diffusion_energy > 0.0)
             numerical_diffusion = adjoint_energy/diffusion_energy;
 
-        // std::cout<<pElement->Id()<<", diffu:"<<diffusion_energy<<", adoint:"<<adjoint_energy<<", num:"<<numerical_diffusion<<std::endl;
-
         return numerical_diffusion;
     }    
 
