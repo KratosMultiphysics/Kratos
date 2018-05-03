@@ -444,7 +444,7 @@ void KratosDEMApplication::Register() {
 #ifdef KRATOS_BUILD_TYPE
 #define ____CONVERT_INNER_VALUE_TO_STRING(S) ____CONVERT_TO_STRING(S)
 #define ____CONVERT_TO_STRING(S) #S
-    KRATOS_INFO("DEM") << "( compiled in mode \""
+    KRATOS_INFO("") << "( compiled in mode \""
               << ____CONVERT_INNER_VALUE_TO_STRING(KRATOS_BUILD_TYPE) << "\" )";
 #undef ____CONVERT_INNER_VALUE_TO_STRING
 #undef ____CONVERT_TO_STRING
@@ -838,6 +838,6 @@ void KratosDEMApplication::Register() {
     Serializer::Register("QuaternionIntegrationScheme", QuaternionIntegrationScheme());
     Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());
 
-    KRATOS_INFO("DEM") << " done." << std::endl;
+    KRATOS_INFO("") << " done." << std::endl;
 }
 }  // namespace Kratos.
