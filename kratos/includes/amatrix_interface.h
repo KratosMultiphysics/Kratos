@@ -66,6 +66,9 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     explicit Matrix(std::size_t TheSize1, std::size_t TheSize2)
         : base_type(TheSize1, TheSize2) {}
 
+    explicit Matrix(std::size_t TheSize)
+        : base_type(TheSize) {}
+
     Matrix(Matrix const& Other) : base_type(Other) {}
 
     Matrix(Matrix&& Other) : base_type(Other) {}
@@ -74,8 +77,8 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     Matrix(AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other)
         : base_type(Other) {}
 
-    template <typename TOtherMatrixType>
-    explicit Matrix(TOtherMatrixType const& Other) : base_type(Other) {}
+    // template <typename TOtherMatrixType>
+    // explicit Matrix(TOtherMatrixType const& Other) : base_type(Other) {}
 
     explicit Matrix(std::initializer_list<TDataType> InitialValues)
         : base_type(InitialValues) {}
