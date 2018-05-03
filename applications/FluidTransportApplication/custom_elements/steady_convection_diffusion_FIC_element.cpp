@@ -133,7 +133,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetDofList(DofsVectorT
     {
         KRATOS_TRY
 
-        const GeometryType& Geom = this->GetGeometry();
+        GeometryType& rGeom = this->GetGeometry();
         
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
@@ -143,7 +143,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetDofList(DofsVectorT
 
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rElementalDofList[i] = Geom[i].pGetDof(rUnknownVar);
+            rElementalDofList[i] = rGeom[i].pGetDof(rUnknownVar);
         }
 
 
@@ -211,7 +211,7 @@ void SteadyConvectionDiffusionFICElement<TDim, TNumNodes>::EquationIdVector(Equa
 {
     KRATOS_TRY
 
-    const GeometryType& Geom = this->GetGeometry();
+    GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = TNumNodes;
   
     ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
@@ -222,35 +222,13 @@ void SteadyConvectionDiffusionFICElement<TDim, TNumNodes>::EquationIdVector(Equa
 
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        rResult[i] = Geom[i].GetDof(rUnknownVar).EquationId();
+        rResult[i] = rGeom[i].GetDof(rUnknownVar).EquationId();
     }
 
     KRATOS_CATCH("")
 }
 
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
-{
-    const GeometryType& Geom = this->GetGeometry();
-    const unsigned int element_size = TNumNodes;
-
-    ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-    const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-
-    if ( rValues.size() != element_size )
-        rValues.resize( element_size, false );
-
-    for ( unsigned int i = 0; i < TNumNodes; i++ )
-    {
-        rValues[i] = Geom[i].FastGetSolutionStepValue( rUnknownVar, Step );
-    }
-}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )

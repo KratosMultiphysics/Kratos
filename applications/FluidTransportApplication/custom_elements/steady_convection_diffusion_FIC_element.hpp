@@ -24,8 +24,7 @@
 #include "includes/convection_diffusion_settings.h"
 
 // Application includes
-//#include "custom_elements/U_Pw_element.hpp"  <-- Modificar per fer un element basic
-//#include "custom_utilities/element_utilities.hpp"
+// TODO: Create base element
 #include "fluid_transport_application_variables.h"
 
 namespace Kratos
@@ -46,7 +45,6 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    //using UPwElement<TDim,TNumNodes>::mThisIntegrationMethod;
 
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -88,28 +86,10 @@ public:
     
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo ) override;
     
-    //void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
     
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
-            
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    // void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-    
-    // void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-    
-    // void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-    
-    // void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-    
-    // void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-    
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -148,14 +128,6 @@ protected:
         BoundedMatrix<double,TNumNodes,TNumNodes> DifMatrixAuxTwo;
         BoundedMatrix<double,TNumNodes,TNumNodes> FICMatrixAuxThree;
 
-        ///Constitutive Law parameters
-        //Vector StrainVector;
-        //Vector StressVector;
-        //Matrix ConstitutiveMatrix;
-        //Vector Np;
-        //Matrix GradNpT;
-        //Matrix F;
-        //double detF;
 
     };
     
@@ -202,7 +174,7 @@ protected:
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight);
 
     
-    //void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -217,12 +189,12 @@ private:
     
     friend class Serializer;
     
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }

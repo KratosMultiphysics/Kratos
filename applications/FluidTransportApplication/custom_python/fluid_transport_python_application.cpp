@@ -16,7 +16,7 @@
 
 #if defined(KRATOS_PYTHON)
 // System includes
-#include <pybin11/pybind11.h>
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define.h"
