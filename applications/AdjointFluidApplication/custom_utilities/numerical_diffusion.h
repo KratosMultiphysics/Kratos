@@ -20,7 +20,6 @@
 #include "includes/element.h"
 #include "includes/process_info.h"
 #include "includes/model_part.h"
-#include "includes/ublas_interface.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
 
@@ -239,8 +238,7 @@ private:
         double volume;
         GeometryUtils::CalculateGeometryData(pElement->GetGeometry(),dn_dx,n,volume);
 
-        std::vector<array_1d<double, TDim>> r_nodal_velocity_vectors;
-        r_nodal_velocity_vectors.resize(TNumNodes);
+        BoundedVector<array_1d<double, TDim>, TNumNodes> r_nodal_velocity_vectors;
 
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
             r_nodal_velocity_vectors[iNode] = pElement->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
@@ -358,27 +356,18 @@ private:
         Vector adjoint_values_vector;
         Vector temp;
 
-        adjoint_values_vector.resize(TNumNodes*(TDim+1));
-        temp.resize(TNumNodes*(TDim+1));
-
         pElement->GetValuesVector(adjoint_values_vector, 1);
 
         noalias(temp) = prod(vms_steady_term_primal_gradient, adjoint_values_vector);
+        double adjoint_energy = inner_prod(temp, adjoint_values_vector);
         
-        double adjoint_energy = 0.0;
-        for (IndexType i = 0; i < temp.size(); i++)
-            adjoint_energy += temp[i]*adjoint_values_vector[i];
-        
-
         MatrixType numerical_diffusion_matrix;
         InitializeMatrix<TDim>(numerical_diffusion_matrix);
 
         AddNumericalDiffusionTerm<TDim>(numerical_diffusion_matrix, dn_dx, volume);
 
-        double diffusion_energy = 0.0;
         noalias(temp) = prod(numerical_diffusion_matrix, adjoint_values_vector);
-        for (IndexType i = 0; i < temp.size(); i++)
-            diffusion_energy += temp[i]*adjoint_values_vector[i];
+        double diffusion_energy = inner_prod(temp,adjoint_values_vector);
 
         double numerical_diffusion = 0.0;
 
