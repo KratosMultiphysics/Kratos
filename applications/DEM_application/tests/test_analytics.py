@@ -145,15 +145,12 @@ class TestAnalytics(KratosUnittest.TestCase):
     def test_Analytics_1(self):
         AnalyticsTestSolution().Run()
 
-    classmethod
+    @classmethod
     def test_Analytics_2(self):
         GhostsTestSolution().Run()
 
     def tearDown(self):
         file_to_remove = os.path.join("analytics_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-
-        file_to_remove = os.path.join("ghost_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
 
         os.chdir(this_working_dir_backup)
