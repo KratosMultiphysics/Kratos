@@ -109,25 +109,6 @@ public:
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
-    struct dof_iterator_hash
-    {
-        size_t operator()(const NodeType::DofType::Pointer& it) const
-        {
-            std::size_t seed = 0;
-            HashCombine(seed, it->Id());
-            HashCombine(seed, (it->GetVariable()).Key());
-            return seed;
-        }
-    };
-
-    struct dof_iterator_equal
-    {
-        size_t operator()(const NodeType::DofType::Pointer& it1, const NodeType::DofType::Pointer& it2) const
-        {
-            return (((it1->Id() == it2->Id() && (it1->GetVariable()).Key())==(it2->GetVariable()).Key()));
-        }
-    };
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -516,14 +497,14 @@ public:
 
 //        typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
 //         typedef std::unordered_set < NodeType::DofType::Pointer,
-//             dof_iterator_hash,
-//             dof_iterator_equal,
+//             DofPointerHasher,
+//             DofPointerComparor,
 //             allocator_type     >  set_type;
 
 #ifdef USE_GOOGLE_HASH
-        typedef google::dense_hash_set < NodeType::DofType::Pointer, dof_iterator_hash>  set_type;
+        typedef google::dense_hash_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
 #else
-        typedef std::unordered_set < NodeType::DofType::Pointer, dof_iterator_hash>  set_type;
+        typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
 #endif
 //
 
