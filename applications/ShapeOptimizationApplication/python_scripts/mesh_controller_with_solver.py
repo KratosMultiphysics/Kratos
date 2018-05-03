@@ -22,12 +22,12 @@ from mesh_controller_base import MeshController
 from mesh_moving_analysis import MeshMovingAnalysis
 
 # # ==============================================================================
-class MeshControllerUsingALESolver(MeshController) :
+class MeshControllerWithSolver(MeshController) :
     # --------------------------------------------------------------------------
     def __init__(self, MeshSolverSettings, OptimizationModelPart):
         default_settings = Parameters("""
         {
-            "apply_ale_mesh_solver" : true,
+            "apply_mesh_solver" : true,
             "problem_data" : {
                 "echo_level" : 0,
                 "time_step" : 1.1,
@@ -37,7 +37,7 @@ class MeshControllerUsingALESolver(MeshController) :
             },
             "solver_settings" : {
                 "solver_type" : "mesh_solver_structural_similarity",
-                "mesh_motion_linear_solver_settings" : {
+                "linear_solver_settings" : {
                     "solver_type" : "AMGCL",
                     "smoother_type":"ilu0",
                     "krylov_type": "gmres",
