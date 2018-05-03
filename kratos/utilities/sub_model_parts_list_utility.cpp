@@ -38,14 +38,14 @@ SubModelPartsListUtility::~SubModelPartsListUtility() {};
 /***********************************************************************************/
 
 void SubModelPartsListUtility::ComputeSubModelPartsList(
-    IntIntMapType& rNodesColors,
-    IntIntMapType& rCondColors,
-    IntIntMapType& rElemColors,
+    IndexIntMapType& rNodesColors,
+    IndexIntMapType& rCondColors,
+    IndexIntMapType& rElemColors,
     IntStringMapType& rColors
     )
 {
     // Initialize and create the auxiliary maps
-    std::unordered_map<int,std::set<int>> aux_nodes_colors, aux_cond_colors, aux_elem_colors;
+    std::unordered_map<IndexType,std::set<int>> aux_nodes_colors, aux_cond_colors, aux_elem_colors;
 
     // We compute the list of submodelparts and subsubmodelparts
     const std::vector<std::string>& model_part_names = GetRecursiveSubModelPartNames(mrModelPart);
