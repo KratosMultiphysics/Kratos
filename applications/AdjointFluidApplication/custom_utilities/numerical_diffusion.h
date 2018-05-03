@@ -74,11 +74,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
-    NumericalDiffusion()
-    {
-    }
-
     /// Destructor.
     ~NumericalDiffusion()
     {
