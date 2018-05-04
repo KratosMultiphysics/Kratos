@@ -283,7 +283,7 @@ protected:
 
     void EvaluateInPoint(array_1d< double, 3 > & rResult, const Variable< array_1d< double, 3 > >& rVariable, const array_1d< double, TNumNodes >& rShapeFunc);
 
-    virtual void AddIntegrationPointRHSContribution(VectorType& F, const array_1d<double,TNumNodes>& rShapeFunc, const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight);
+    virtual void AddIntegrationPointRHSContribution(VectorType& F, const array_1d<double,TNumNodes>& rShapeFunc, const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight);
 
     ///@}
     ///@name Protected Inquiry
