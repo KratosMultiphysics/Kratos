@@ -65,38 +65,45 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
       .def("Initialize", &EigenfrequencyResponseFunctionUtility::Initialize)
       .def("CalculateValue", &EigenfrequencyResponseFunctionUtility::CalculateValue)
       .def("CalculateGradient", &EigenfrequencyResponseFunctionUtility::CalculateGradient);
+
     /// Processes
-    class_<ReplaceElementsAndConditionsForAdjointProblemProcess , bases<Process>, boost::noncopyable >("ReplaceElementsAndConditionsForAdjointProblemProcess",
-            init<ModelPart&, Parameters>());
+    class_<ReplaceElementsAndConditionsForAdjointProblemProcess , Process>
+      (m, "ReplaceElementsAndConditionsForAdjointProblemProcess")
+      .def(init<ModelPart&, Parameters>());
 
     //Response Functions
-    class_<AdjointStructuralResponseFunction, boost::noncopyable>
-      ("AdjointStructuralResponseFunction", init<ModelPart&, Parameters&>())
+    class_<AdjointStructuralResponseFunction, AdjointStructuralResponseFunction::Pointer>
+      (m, "AdjointStructuralResponseFunction")
+      .def(init<ModelPart&, Parameters&>())
       .def("Initialize", &AdjointStructuralResponseFunction::Initialize)
       .def("FinalizeSolutionStep", &AdjointStructuralResponseFunction::FinalizeSolutionStep)
       .def("CalculateValue", &AdjointStructuralResponseFunction::CalculateValue);
 
-    class_<AdjointLocalStressResponseFunction, bases<AdjointStructuralResponseFunction>, boost::noncopyable>
-      ("AdjointLocalStressResponseFunction", init<ModelPart&, Parameters&>());
+    class_<AdjointLocalStressResponseFunction, AdjointLocalStressResponseFunction::Pointer, AdjointStructuralResponseFunction>
+      (m, "AdjointLocalStressResponseFunction")
+      .def(init<ModelPart&, Parameters&>());
 
-    class_<AdjointNodalDisplacementResponseFunction, bases<AdjointStructuralResponseFunction>, boost::noncopyable>
-      ("AdjointNodalDisplacementResponseFunction", init<ModelPart&, Parameters&>());
+    class_<AdjointNodalDisplacementResponseFunction, AdjointNodalDisplacementResponseFunction::Pointer, AdjointStructuralResponseFunction>
+      (m, "AdjointNodalDisplacementResponseFunction")
+      .def(init<ModelPart&, Parameters&>());
 
-    class_<AdjointStrainEnergyResponseFunction, bases<AdjointStructuralResponseFunction>, boost::noncopyable>
-      ("AdjointStrainEnergyResponseFunction", init<ModelPart&, Parameters&>());
+    class_<AdjointStrainEnergyResponseFunction, AdjointStrainEnergyResponseFunction::Pointer, AdjointStructuralResponseFunction>
+      (m, "AdjointStrainEnergyResponseFunction")
+      .def(init<ModelPart&, Parameters&>());
 
     //For global finite differences
-    class_<FiniteDifferencesUtilities, boost::noncopyable>("FiniteDifferencesUtilities", init< >())
-        .def("SetDesignVariable", &FiniteDifferencesUtilities::SetDesignVariable)
-        .def("GetDesignVariable", &FiniteDifferencesUtilities::GetDesignVariable)
-        .def("SetDerivedObject", &FiniteDifferencesUtilities::SetDerivedObject)
-        .def("GetDerivedObject", &FiniteDifferencesUtilities::GetDerivedObject)
-        .def("DisturbElementDesignVariable", &FiniteDifferencesUtilities::DisturbElementDesignVariable)
-        .def("UndisturbElementDesignVariable", &FiniteDifferencesUtilities::UndisturbElementDesignVariable)
-        .def("GetStressResultantBeam", &FiniteDifferencesUtilities::GetStressResultantBeam)
-        .def("GetStressResultantShell", &FiniteDifferencesUtilities::GetStressResultantShell)
-        .def("GetNodalDisplacement", &FiniteDifferencesUtilities::GetNodalDisplacement)
-        .def("GetStrainEnergy", &FiniteDifferencesUtilities::GetStrainEnergy);
+    class_<FiniteDifferencesUtilities, FiniteDifferencesUtilities::Pointer>(m, "FiniteDifferencesUtilities")
+      .def(init< >())
+      .def("SetDesignVariable", &FiniteDifferencesUtilities::SetDesignVariable)
+      .def("GetDesignVariable", &FiniteDifferencesUtilities::GetDesignVariable)
+      .def("SetDerivedObject", &FiniteDifferencesUtilities::SetDerivedObject)
+      .def("GetDerivedObject", &FiniteDifferencesUtilities::GetDerivedObject)
+      .def("DisturbElementDesignVariable", &FiniteDifferencesUtilities::DisturbElementDesignVariable)
+      .def("UndisturbElementDesignVariable", &FiniteDifferencesUtilities::UndisturbElementDesignVariable)
+      .def("GetStressResultantBeam", &FiniteDifferencesUtilities::GetStressResultantBeam)
+      .def("GetStressResultantShell", &FiniteDifferencesUtilities::GetStressResultantShell)
+      .def("GetNodalDisplacement", &FiniteDifferencesUtilities::GetNodalDisplacement)
+      .def("GetStrainEnergy", &FiniteDifferencesUtilities::GetStrainEnergy);
 }
 
 }  // namespace Python.

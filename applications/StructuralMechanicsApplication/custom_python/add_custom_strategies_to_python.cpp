@@ -87,7 +87,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom scheme types
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
-    typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
+    typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;    
+    typedef AdjointStructuralScheme< SparseSpaceType, LocalSpaceType > AdjointStructuralSchemeType;
 
 
     // Custom convergence criterion types
@@ -157,9 +158,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     class_< ExplicitCentralDifferencesSchemeType,typename ExplicitCentralDifferencesSchemeType::Pointer, BaseSchemeType >(m,"ExplicitCentralDifferencesScheme")
     .def(init< const double, const double, const double>() );
 
-    class_<AdjointStructuralScheme<SparseSpaceType, LocalSpaceType>, bases<BaseSchemeType>, boost::noncopyable>(
-            "AdjointStructuralScheme", init<Parameters&, AdjointStructuralResponseFunction::Pointer>())
-            ;
+    class_<AdjointStructuralSchemeType, typename AdjointStructuralSchemeType::Pointer, BaseSchemeType>(m, "AdjointStructuralScheme")
+        .def(init<Parameters&, AdjointStructuralResponseFunction::Pointer>());
 
 
     //********************************************************************
