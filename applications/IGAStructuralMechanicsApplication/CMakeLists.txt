@@ -18,7 +18,7 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
 
 	## UTILITIES
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/NurbsShapeFunctionModeler.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/NurbsShapeFunctionModeler.cpp
 
 	##ELEMENTS
 	# Adding the meshless base element
