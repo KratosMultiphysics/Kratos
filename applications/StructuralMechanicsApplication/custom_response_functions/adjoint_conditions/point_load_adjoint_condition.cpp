@@ -191,7 +191,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        KRATOS_ERROR << "There is no scalar design varibale availible!" << std::endl; 
+        KRATOS_ERROR << "There is no scalar design variable availible!" << std::endl; 
 
         KRATOS_CATCH( "" )
     }
