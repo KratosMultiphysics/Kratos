@@ -533,7 +533,7 @@ public:
         // Calculate added numerical diffusion stabilization term
         #ifdef EIGEN_ROOT
             mNumericalDiffusion.CalculateNumericalDiffusion(
-                pCurrentElement,
+                *pCurrentElement,
                 mLeftHandSide[thread_id],
                 rCurrentProcessInfo
             );
