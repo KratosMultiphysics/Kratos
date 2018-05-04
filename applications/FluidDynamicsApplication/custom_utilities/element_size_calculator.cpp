@@ -258,7 +258,7 @@ double ElementSizeCalculator<2,3>::ProjectedElementSize(const Geometry<Node<3> >
     array_1d<double,3> Edge(3,0.0);
     for(unsigned int i = 0; i < NumNodes; ++i)
     {
-        double lu = 0.0;
+        double lu;
         unsigned int j = (i+1) % NumNodes;
         Edge = rGeometry[j] - rGeometry[i];
         lu = rVelocity[0] * Edge[0];
@@ -302,7 +302,7 @@ double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >
     {
         for(unsigned int j = i+1; j < NumNodes; ++j)
         {
-            double lu = 0.0;
+            double lu;
             Edge = rGeometry[j] - rGeometry[i];
             lu = rVelocity[0] * Edge[0];
             for (unsigned int d = 1; d < 3; ++d)
