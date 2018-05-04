@@ -23,7 +23,6 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "includes/define.h"
 #include "adjoint_structural_response_function.h"
 
 
@@ -356,10 +355,6 @@ private:
     std::string mTracedDofLabel;
     PointTypePointer  mpTracedNode;
     Element::Pointer mpNeighboringElement;
-
-
-    //std::string m_traced_displacement_type;
-    //std::string m_traced_direction;
 
     ///@}
 ///@name Private Operators

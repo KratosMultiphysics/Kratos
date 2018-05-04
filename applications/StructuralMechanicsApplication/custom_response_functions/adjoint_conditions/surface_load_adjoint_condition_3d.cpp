@@ -16,10 +16,7 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "surface_load_adjoint_condition_3d.h"
-#include "utilities/math_utils.h"
-#include "utilities/integration_utilities.h"
 #include "includes/checks.h"
 
 namespace Kratos

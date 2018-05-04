@@ -17,10 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
 #include "custom_conditions/surface_load_condition_3d.h"
-#include "includes/ublas_interface.h"
 
 namespace Kratos
 {

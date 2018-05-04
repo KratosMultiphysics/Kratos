@@ -15,10 +15,8 @@
 #include "custom_response_functions/response_utilities/response_data.h"
 #include "includes/checks.h"
 
-//#include "geometries/triangle_3d_3.h"
-
-#include <string>
-#include <iomanip>
+//#include <string>
+//#include <iomanip>
 
 //----------------------------------------
 // preprocessors for the integration

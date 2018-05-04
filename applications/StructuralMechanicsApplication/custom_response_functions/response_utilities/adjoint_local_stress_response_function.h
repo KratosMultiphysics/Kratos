@@ -23,7 +23,6 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "includes/define.h"
 #include "adjoint_structural_response_function.h"
 #include "response_data.h"
 
@@ -207,17 +206,6 @@ public:
 
         if(rAdjointElem.Id() == mIdOfTracedElement)
         {
-            //------------------------------
-            /*FiniteDifferencesUtilities::Pointer FD_calculate_gradient(new FiniteDifferencesUtilities());
-            FD_calculate_gradient->SetDesignVariable("test_IY");
-
-            mpTracedElement->SetValue(FINITE_DIFFERENCE_INFORMATION, FD_calculate_gradient);
-
-            FiniteDifferencesUtilities::Pointer FD_calculate_gradient_2 = mpTracedElement->GetValue(FINITE_DIFFERENCE_INFORMATION);
-
-            std::cout << "Test finite difference stuff = " << FD_calculate_gradient_2->GetDesignVariable() << std::endl;*/
-            //------------------------------
-
             Matrix stress_displ_deriv;
             if(mStressTreatment == mean || mStressTreatment == GP)
                 mpTracedElement->Calculate(STRESS_DISP_DERIV_ON_GP, stress_displ_deriv, rProcessInfo);
