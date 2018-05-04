@@ -80,10 +80,10 @@ class VertexMorphingMethod:
         else:
             self.model_part_controller.ImportOptimizationModelPart()
 
-        algorithm = algorithm_factory.CreateAlgorithm(self.optimization_settings,
-                                                      self.model_part_controller,
-                                                      self.analyzer,
-                                                      self.communicator)
+        algorithm = algorithm_factory.CreateOptimizationAlgorithm(self.optimization_settings,
+                                                                  self.model_part_controller,
+                                                                  self.analyzer,
+                                                                  self.communicator)
 
         algorithm.InitializeOptimizationLoop()
         algorithm.RunOptimizationLoop()
