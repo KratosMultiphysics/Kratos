@@ -369,6 +369,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GenerateCut", &CuttingUtility::GenerateCut)
     .def("UpdateCutData", &CuttingUtility ::UpdateCutData)
     .def("AddSkinConditions", &CuttingUtility ::AddSkinConditions)
+    .def("AddVariablesToCutModelPart", &CuttingUtility::AddVariablesToCutModelPart )
     .def("FindSmallestEdge", &CuttingUtility ::FindSmallestEdge)
     ;
 

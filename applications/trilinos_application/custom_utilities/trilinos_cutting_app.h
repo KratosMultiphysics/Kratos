@@ -175,13 +175,13 @@ public:
     {
         ModelPart& this_model_part = mr_model_part;
         ModelPart& new_model_part = mr_new_model_part;
-        
+
         if (mMPICommSetup_is_defined==false)
 		{
 			SetMPICommunicatorProcess(new_model_part).Execute();
 			mMPICommSetup_is_defined=true;
 		}
-        
+
         if (mrComm.MyPID() == 0)
         {
 	  std::cout <<"Adding Skin Conditions to the new model part, added in layer:"<<std::endl;
@@ -249,7 +249,7 @@ public:
                     int node_position = this_model_part.Nodes().find(geom[i].Id()) - it_begin_node_old; //probably there-s a better way to do this, i only need the position in the array, (not the ID)
                     used_nodes[node_position]=true; //we will have to clone this node into the new model part, no matter if owned or not.
                     int ierr = aux_non_overlapping_graph->ReplaceGlobalValues( 1 , &aux_ids, &this_partition_index,0); // saving that this processor owns this node
-                    if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln 183", "");
+                    KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
                 }
             }
         }
@@ -257,13 +257,13 @@ public:
 
         int ierr = -1;
         ierr = aux_non_overlapping_graph->GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
-        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure --> ln 249", "");
+        KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
         //now in our local graph we have also the nodes that are required by other processors
 
 
         double* local_non_ov = new double  [nlocal_nodes]; //a human readeable copy of the FEvector
         ierr = aux_non_overlapping_graph->ExtractCopy(local_non_ov,nlocal_nodes);
-        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure", "");
+        KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
 
 
         int n_owned_nonzeros = 0;
@@ -301,10 +301,11 @@ public:
         if (number_of_old_conditions < 0) number_of_old_conditions = 0;
 
 
-        //adding original variables plus the 2 new ones that we need
-        new_model_part.GetNodalSolutionStepVariablesList() = this_model_part.GetNodalSolutionStepVariablesList();
-        new_model_part.AddNodalSolutionStepVariable(FATHER_NODES);
-        new_model_part.AddNodalSolutionStepVariable(WEIGHT_FATHER_NODES);
+        if (!new_model_part.GetNodalSolutionStepVariablesList().Has(FATHER_NODES) ||
+            !new_model_part.GetNodalSolutionStepVariablesList().Has(WEIGHT_FATHER_NODES) )
+            KRATOS_ERROR << "The cut model part was not initialized. "
+                            "Please call AddVariablesToCutModelPart before AddSkinConditions."
+                         << std::endl;
 
 
         //info from the original model part
@@ -331,13 +332,13 @@ public:
                 ++node_id;
                 double node_id_double=double(node_id);
                 ierr = IDs_non_overlapping_graph->ReplaceMyValue ( index  ,  0 ,  node_id_double ); //saving the ID
-                if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln 183", "");
+                KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
             }
         }
 
         ierr = -1;
         ierr = IDs_non_overlapping_graph->GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
-        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure --> ln 249", "");
+        KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
 
         //KRATOS_WATCH('line333')
 
@@ -398,7 +399,7 @@ public:
         new_model_part.Nodes().Sort();
 
         new_model_part.Nodes().Unique();
-		
+
         //KRATOS_WATCH('line404')
 
         //NOW WE MUST COPY THE CONDITIONS
@@ -428,17 +429,30 @@ public:
                 new_model_part.Conditions().push_back(p_condition); //and done! added a new triangloe to the new model part
             }
         }
-		
+
         Clear();
         //KRATOS_WATCH(new_model_part)
 		ParallelFillCommunicator(new_model_part).Execute(); //changed from PrintDebugInfo to Execute
         //ParallelFillCommunicator(new_model_part).PrintDebugInfo(); //changed from PrintDebugInfo to Execute
-        
+
         if (mrComm.MyPID() == 0) std::cout << "copyng conditions and recalculation plan have been completed" << std::endl;
         KRATOS_CATCH("")
     }
 
 
+    /// Initialize the solution step data container for the cut model part.
+    /** Please call this function before either GenerateCut or AddSkinCondition.
+     *  @param rModelPart the reference (problem) model part.
+     *  @param rNewModelPart the new model part, where cut data will be stored.
+     */
+    void AddVariablesToCutModelPart(
+        const ModelPart& rModelPart,
+        ModelPart& rNewModelPart) const
+    {
+        rNewModelPart.GetNodalSolutionStepVariablesList() = rModelPart.GetNodalSolutionStepVariablesList();
+        rNewModelPart.AddNodalSolutionStepVariable(FATHER_NODES);
+        rNewModelPart.AddNodalSolutionStepVariable(WEIGHT_FATHER_NODES);
+    }
 
 
     ///************************************************************************************************
@@ -458,19 +472,25 @@ public:
     void GenerateCut(ModelPart& mr_model_part, ModelPart& mr_new_model_part, const array_1d<double, 3 > & versor, const array_1d<double, 3 > & Xp, int plane_number, double tolerance_factor)
     {
         KRATOS_TRY
-        
+
         if (mMPICommSetup_is_defined==false)
 		{
 			SetMPICommunicatorProcess(mr_new_model_part).Execute();
 			mMPICommSetup_is_defined=true;
 		}
-        
+
         if (mrComm.MyPID() == 0)
         {
 	  std::cout <<"Generating Cutting plane with the following data:"<<std::endl;
             KRATOS_WATCH(versor);
             KRATOS_WATCH(Xp);
         }
+
+        if (!mr_new_model_part.GetNodalSolutionStepVariablesList().Has(FATHER_NODES) ||
+            !mr_new_model_part.GetNodalSolutionStepVariablesList().Has(WEIGHT_FATHER_NODES) )
+            KRATOS_ERROR << "The cut model part was not initialized. "
+                            "Please call AddVariablesToCutModelPart before GenerateCut."
+                         << std::endl;
 
         ModelPart& this_model_part = mr_model_part;
         //ModelPart& new_model_part = mr_new_model_part;
@@ -592,7 +612,7 @@ public:
                 aux_ids[i] = geom[i].Id() - 1;
 
             int ierr = mp_non_overlapping_graph->InsertGlobalIndices(geom.size(), aux_ids, geom.size(), aux_ids);
-            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln174", "");
+            KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
         }
         for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
         {
@@ -601,7 +621,7 @@ public:
                 aux_ids[i] = geom[i].Id() - 1;
 
             int ierr = mp_non_overlapping_graph->InsertGlobalIndices(geom.size(), aux_ids, geom.size(), aux_ids);
-            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln 183", "");
+            KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
         }
         mp_non_overlapping_graph->GlobalAssemble();
 
@@ -949,13 +969,10 @@ public:
             GlobalRow = p_edge_ids->GRID(Row);
             int num_id_entries = -1;
             int ierr = p_edge_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, num_id_entries, id_values, Indices);
-            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln420", "");
+            KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
 
             ierr = p_partition_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, NumEntries, partition_values, Indices);
-            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln423", "");
-
-            //ierr = used_nodes_matrix->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, NumEntries, used_nodes_matrix_row, Indices);
-            //if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln423", "");
+            KRATOS_ERROR_IF(ierr < 0) << "epetra failure" << std::endl;
 
             if (NumEntries != num_id_entries) KRATOS_THROW_ERROR(std::logic_error, "we should have the same number of new_ids and of partition_values", "");
             for (Col = 0; Col < NumEntries; ++Col)
@@ -1018,10 +1035,6 @@ public:
         double weight;
         vector< array_1d<double, 3 > > Coordinate_New_Node;
         Coordinate_New_Node.resize(father_node_ids.size());
-
-        new_model_part.GetNodalSolutionStepVariablesList() = this_model_part.GetNodalSolutionStepVariablesList();
-        new_model_part.AddNodalSolutionStepVariable(FATHER_NODES);
-        new_model_part.AddNodalSolutionStepVariable(WEIGHT_FATHER_NODES);
 
         PointerVector< Node < 3 > > new_nodes;
 
@@ -1131,7 +1144,7 @@ public:
         double control;
         unsigned int temp_int;
 
-        boost::numeric::ublas::matrix<int> new_conectivity;
+        DenseMatrix<int> new_conectivity;
 
         int total_existing_elements = -1; //warning, they're conditions, not elements!
         int local_existing_elements = new_model_part.Conditions().size();
@@ -1483,6 +1496,6 @@ protected:
 
 } // namespace Kratos.
 
-#endif // KRATOS_TRILINOS_LOCAL_CUTTING_APP  defined 
+#endif // KRATOS_TRILINOS_LOCAL_CUTTING_APP  defined
 
 

@@ -75,7 +75,7 @@ int ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& r
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::AddIntegrationPointRHSContribution(VectorType& F,
                              const array_1d<double, TNumNodes>& rShapeFunc,
-                             const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                             const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                              const double Weight)
 {
 
