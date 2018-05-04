@@ -6,7 +6,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
 #from KratosMultiphysics.PFEMApplication import PfemUtils
-from KratosMultiphysics.StructuralApplication import *
+#from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.MeshingApplication import *
 # Check that KratosMultiphysics was imported in the main script
 #CheckForPreviousImport()
