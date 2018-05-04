@@ -46,9 +46,6 @@ if(TRILINOS_USE_AMGCL MATCHES ON)
 
 endif(TRILINOS_USE_AMGCL MATCHES ON)
 
-if( DEFINED EIGEN_ROOT )
-    include_directories(${EIGEN_ROOT})
-endif(DEFINED EIGEN_ROOT)
 
 ##add definitions needed
 
