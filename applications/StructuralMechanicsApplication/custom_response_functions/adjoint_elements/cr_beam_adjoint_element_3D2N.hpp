@@ -97,7 +97,7 @@ namespace Kratos
                          std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo) override;
 
-        void GetValuesVector(Vector& rValues, int Step = 0);
+        void GetValuesVector(Vector& rValues, int Step = 0) override;
 
         int Check(const ProcessInfo& rCurrentProcessInfo) override;
 

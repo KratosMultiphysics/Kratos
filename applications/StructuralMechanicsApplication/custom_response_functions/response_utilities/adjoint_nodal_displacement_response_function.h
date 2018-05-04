@@ -313,7 +313,7 @@ protected:
                                       const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo)
+                                      ProcessInfo& rProcessInfo) override
     {
         KRATOS_TRY;
 
