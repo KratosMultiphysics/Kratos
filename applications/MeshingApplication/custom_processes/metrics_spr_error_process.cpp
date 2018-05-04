@@ -228,7 +228,7 @@ template<SizeType TDim>
 void SPRMetricProcess<TDim>::CalculatePatch(
     NodeItType itNode,
     NodeItType itPatchNode,
-    IndexType NeighbourSize,
+    SizeType NeighbourSize,
     Vector& rSigmaRecovered)
 {
     // Determine if contact BC has to be regarded
@@ -259,7 +259,7 @@ template<SizeType TDim>
 void SPRMetricProcess<TDim>::CalculatePatchStandard(
     NodeItType itNode,
     NodeItType itPatchNode,
-    IndexType NeighbourSize,
+    SizeType NeighbourSize,
     Vector& rSigmaRecovered
     )
 {
@@ -332,7 +332,7 @@ template<SizeType TDim>
 void SPRMetricProcess<TDim>::CalculatePatchContact(
     NodeItType itNode,
     NodeItType itPatchNode,
-    IndexType NeighbourSize,
+    SizeType NeighbourSize,
     Vector& rSigmaRecovered)
 {
 

@@ -56,7 +56,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-//// This class is can be used to compute the metrics of the model part with a superconvergent patch recovery approach
+/**
+ * @class SPRMetricProcess
+ * @ingroup MeshingApplication
+ * @brief This class is can be used to compute the metrics of the model part with a superconvergent patch recovery approach
+ * @tparam TDim The dimension to be computed
+ * @author Anna Rehr
+ */
 template<SizeType TDim>
 class SPRMetricProcess
     : public Process
@@ -77,8 +83,8 @@ public:
     
     /**
      * This is the default constructor
-     * @param rThisModelPart: The model part to be computed
-     * @param ThisParameters: The input parameters
+     * @param rThisModelPart The model part to be computed
+     * @param ThisParameters The input parameters
      */
     
     SPRMetricProcess(
@@ -129,13 +135,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SPRMetricProcess";
     }
 
     /// Print object"s data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
     
@@ -190,9 +196,9 @@ private:
     double mPenaltyNormal;                   // The normal penalty
     double mPenaltyTangent;                  // The tangent penalty
     int mEchoLevel;                          // The echo level 
-    unsigned int mSigmaSize;                 // The size of the stress vector (Voigt Notation)
+    SizeType mSigmaSize;                 // The size of the stress vector (Voigt Notation)
     bool mSetElementNumber;                  // Determines if a target number of elements for the new mesh is set
-    unsigned int mElementNumber;             // The target number of elements for the new mesh
+    SizeType mElementNumber;             // The target number of elements for the new mesh
     double mTargetError;                     // The overall target error for the new mesh
     bool mAverageNodalH;                     // Determines if the nodal h is averaged from the surrounding elements or if the lowest value is taken
     
@@ -215,29 +221,28 @@ private:
     void CalculatePatch(
         NodeItType itNode,
         NodeItType itPatchNode,
-        unsigned int NeighbourSize,
+        SizeType NeighbourSize,
         Vector& rSigmaRecovered);
 
     /** Calculates the recovered stress at a node in the case of a standard patch without contact BC
-    * @param itNode: the node for which the recovered stress should be calculated
-    * @param itPatchNode: the center node of the patch
+    * @param itNode the node for which the recovered stress should be calculated
+    * @param itPatchNode the center node of the patch
     */
     void CalculatePatchStandard(
         NodeItType itNode,
         NodeItType itPatchNode,
-        unsigned int NeighbourSize,
+        SizeType NeighbourSize,
         Vector& rSigmaRecovered);
 
     /**
      * It calculates the recovered stress at a node where contact BCs are regarded
-     * @param itNode: the node for which the recovered stress should be calculated
-     * @param itPatchNode: the center node of the patch
+     * @param itNode the node for which the recovered stress should be calculated
+     * @param itPatchNode the center node of the patch
      */
-
     void CalculatePatchContact(
         NodeItType itNode,
         NodeItType itPatchNode,
-        unsigned int NeighbourSize,
+        SizeType NeighbourSize,
         Vector& rSigmaRecovered);
 
     /**
