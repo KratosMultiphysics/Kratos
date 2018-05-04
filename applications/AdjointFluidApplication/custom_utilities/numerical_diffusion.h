@@ -96,11 +96,11 @@ public:
 
         std::string method_name = DiffusionParameters["method"].GetString();
         
-        if (method_name.compare("singular_value_pressure_coupled")==0)
+        if (method_name=="singular_value_pressure_coupled")
             mNumericalDiffusionMethod = NumericalDiffusionMethod::singularValuePressureCoupled;
-        else if (method_name.compare("singular_value_pressure_decoupled")==0)
+        else if (method_name=="singular_value_pressure_decoupled")
             mNumericalDiffusionMethod = NumericalDiffusionMethod::singularValuePressureDecoupled;
-        else if (method_name.compare("eigen_value_full_element_matrix")==0)
+        else if (method_name=="eigen_value_full_element_matrix")
             mNumericalDiffusionMethod = NumericalDiffusionMethod::eigenValueFullMatrix;
         else
             KRATOS_ERROR<<"numerical diffusion method only supports singular_value_pressure_coupled or singular_value_pressure_decoupled or eigen_value_full_element_matrix"<<DiffusionParameters.PrettyPrintJsonString();
@@ -127,13 +127,13 @@ public:
             switch (mNumericalDiffusionMethod)
             {
                 case NumericalDiffusionMethod::singularValuePressureCoupled:
-                    numerical_diffusion = CalculateNumericalDiffusionSVMethodPressureCoupled<2>(rCurrentElement, rCurrentProcessInfo);
+                    CalculateNumericalDiffusionSVMethodPressureCoupled<2>(rCurrentElement, rCurrentProcessInfo, numerical_diffusion);
                     break;
                 case NumericalDiffusionMethod::singularValuePressureDecoupled:
-                    numerical_diffusion = CalculateNumericalDiffusionSVMethodPressureDecoupled<2>(rCurrentElement, rCurrentProcessInfo);
+                    CalculateNumericalDiffusionSVMethodPressureDecoupled<2>(rCurrentElement, rCurrentProcessInfo, numerical_diffusion);
                     break;
                 case NumericalDiffusionMethod::eigenValueFullMatrix:
-                    numerical_diffusion = CalculateNumericalDiffusionEigenFullMatrix<2>(rCurrentElement, rCurrentProcessInfo);
+                    CalculateNumericalDiffusionEigenFullMatrix<2>(rCurrentElement, rCurrentProcessInfo, numerical_diffusion);
                     break;                    
             }
 
@@ -154,13 +154,13 @@ public:
             switch (mNumericalDiffusionMethod)
             {
                 case NumericalDiffusionMethod::singularValuePressureCoupled:
-                    numerical_diffusion = CalculateNumericalDiffusionSVMethodPressureCoupled<3>(rCurrentElement, rCurrentProcessInfo);
+                    CalculateNumericalDiffusionSVMethodPressureCoupled<3>(rCurrentElement, rCurrentProcessInfo, numerical_diffusion);
                     break;
                 case NumericalDiffusionMethod::singularValuePressureDecoupled:
-                    numerical_diffusion = CalculateNumericalDiffusionSVMethodPressureDecoupled<3>(rCurrentElement, rCurrentProcessInfo);
+                    CalculateNumericalDiffusionSVMethodPressureDecoupled<3>(rCurrentElement, rCurrentProcessInfo, numerical_diffusion);
                     break;
                 case NumericalDiffusionMethod::eigenValueFullMatrix:
-                    numerical_diffusion = CalculateNumericalDiffusionEigenFullMatrix<3>(rCurrentElement, rCurrentProcessInfo);
+                    CalculateNumericalDiffusionEigenFullMatrix<3>(rCurrentElement, rCurrentProcessInfo, numerical_diffusion);
                     break;                                        
             }
 
@@ -280,7 +280,7 @@ private:
     }
 
     template<unsigned int TDim>
-    double CalculateNumericalDiffusionSVMethodPressureCoupled(Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+    void CalculateNumericalDiffusionSVMethodPressureCoupled(Element& rElement, const ProcessInfo& rCurrentProcessInfo, double& rNumericalDiffusion)
     {
 
         Eigen::Matrix<double, TDim+1, TDim+1>  characteristic_matrix = 
@@ -301,14 +301,11 @@ private:
 
         const auto& S = svd.singularValues();
 
-        double numerical_viscosity;
-        numerical_viscosity = S[0];
-
-        return numerical_viscosity;
+        rNumericalDiffusion = S[0];
     }
 
     template<unsigned int TDim>
-    double CalculateNumericalDiffusionSVMethodPressureDecoupled(Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+    void CalculateNumericalDiffusionSVMethodPressureDecoupled(Element& rElement, const ProcessInfo& rCurrentProcessInfo, double& rNumericalDiffusion)
     {
         Eigen::Matrix<double, TDim, TDim>  characteristic_matrix = 
                 CalculateSVMethodCharacteristicMatrix<TDim, TDim>(rElement);
@@ -319,15 +316,15 @@ private:
 
         const auto& S = svd.singularValues();
 
-        double numerical_viscosity;
-        numerical_viscosity = S[0];
-        
-        return numerical_viscosity;    
+        rNumericalDiffusion = S[0];
+       
     }
 
     template<unsigned int TDim>
-    double CalculateNumericalDiffusionEigenFullMatrix(Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+    void CalculateNumericalDiffusionEigenFullMatrix(Element& rElement, const ProcessInfo& rCurrentProcessInfo, double& rNumericalDiffusion )
     {
+        KRATOS_TRY;
+
         constexpr unsigned int TNumNodes = TDim + 1;
 
         BoundedMatrix<double, TNumNodes, TDim> dn_dx;
@@ -346,23 +343,25 @@ private:
         Vector adjoint_values_vector;
         rElement.GetValuesVector(adjoint_values_vector, 1);
 
-        BoundedVector<double, (TDim+1)*TDim> temp_1 = prod(vms_steady_term_primal_gradient, adjoint_values_vector);
-        double adjoint_energy = inner_prod(temp_1, adjoint_values_vector);
+        BoundedVector<double, (TDim+1)*TDim> const temp_1 = prod(vms_steady_term_primal_gradient, adjoint_values_vector);
+        double const adjoint_energy = inner_prod(temp_1, adjoint_values_vector);
         
         MatrixType numerical_diffusion_matrix;
         InitializeMatrix<TDim>(numerical_diffusion_matrix);
 
         AddNumericalDiffusionTerm<TDim>(numerical_diffusion_matrix, dn_dx, volume);
 
-        BoundedVector<double, (TDim+1)*TDim> temp_2 = prod(numerical_diffusion_matrix, adjoint_values_vector);
-        double diffusion_energy = inner_prod(temp_2,adjoint_values_vector);
+        BoundedVector<double, (TDim+1)*TDim> const temp_2 = prod(numerical_diffusion_matrix, adjoint_values_vector);
+        double const diffusion_energy = inner_prod(temp_2,adjoint_values_vector);
 
-        double numerical_diffusion = 0.0;
+        rNumericalDiffusion = 0.0;
 
-        if (adjoint_energy > 0.0 and diffusion_energy > 0.0)
-            numerical_diffusion = adjoint_energy/diffusion_energy;
+        KRATOS_DEBUG_ERROR_IF(diffusion_energy <= 0.0)<<" --- Diffusion energy cannot be negative or zero."<<std::endl;
 
-        return numerical_diffusion;
+        if (adjoint_energy > 0.0)
+            rNumericalDiffusion = adjoint_energy/diffusion_energy;
+
+        KRATOS_CATCH("");
     }    
 
     template<IndexType TDim>
