@@ -644,12 +644,12 @@ public:
     // If reactions are to be calculated, we check if all the dofs have reactions defined
     // This is tobe done only in debug mode
 
-    #ifdef KRATOS_DEBUG        
+    #ifdef KRATOS_DEBUG
 
     if(BaseType::GetCalculateReactionsFlag())
     {
         for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-        { 
+        {
                 KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
                     << "Node : "<<dof_iterator->Id()<< std::endl
                     << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
@@ -802,7 +802,7 @@ public:
 
 			const int i = (dof_iterator)->EquationId();
 			(dof_iterator)->GetSolutionStepReactionValue() = -b[i];
-			
+
         }
 
         //KRATOS_WATCH(__LINE__)
@@ -896,18 +896,12 @@ public:
      */
     void Clear() override
     {
-        this->mDofSet = DofsArrayType();
-
-        this->mpLinearSystemSolver->Clear();
-
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 0) << "Clear Function called" << std::endl;
-
 #ifdef _OPENMP
         for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
             omp_destroy_lock(&mlock_array[i]);
         mlock_array.resize(0);
 #endif
-
+        BaseType::Clear();
     }
 
     /**
