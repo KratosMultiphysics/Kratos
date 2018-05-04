@@ -102,23 +102,23 @@ void AddConstitutiveLawsToPython()
 	class_< ConvDiffConstitutiveLaw3D, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ConvDiffConstitutiveLaw3D",
 		init<>())
-		; 
+		;
 
 	class_< ConvDiffAnisotropic3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ConvDiffAnisotropic3DLaw",
 		init<>())
 		;
-	
+
 	class_< ConvDiffPlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ConvDiffPlaneStress2DLaw",
 		init<>())
-		; 
+		;
 
 	class_< ConvDiffAnisotropic2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ConvDiffAnisotropic2DLaw",
 		init<>())
 		;
-	
+
 
 	class_< LinearElasticThickShellLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"LinearElasticThickShellLaw",
@@ -149,7 +149,7 @@ void AddConstitutiveLawsToPython()
 		"ScalarDamageInterface2DLaw",
 		init<>())
 		;
-	
+
 	class_< ScalarDamageInterface3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ScalarDamageInterface3DLaw",
 		init<>())

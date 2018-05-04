@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 #if !defined(KRATOS_BUILDER_AND_SOLVER )
 #define  KRATOS_BUILDER_AND_SOLVER
@@ -139,16 +139,16 @@ public:
 
       std::vector<TSystemVectorType> *mpRHS_Element_Components;
       const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Element_Variables;
-      
+
       //conditions
       std::vector<TSystemMatrixType> *mpLHS_Condition_Components;
       const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Condition_Variables;
 
       std::vector<TSystemVectorType> *mpRHS_Condition_Components;
       const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Condition_Variables;
-      
+
     public:
-      
+
       void Initialize()
       {
 	mpLHS_Element_Components = NULL;
@@ -505,16 +505,12 @@ public:
      */
     virtual void Clear()
     {
-        this->mDofSet.clear(); // = DofsArrayType();
+        this->mDofSet = DofsArrayType();
+        if (this->mpReactionsVector != nullptr) TSparseSpace::Clear(this->mpReactionsVector);
+        if (this->mpLinearSystemSolver != nullptr) this->mpLinearSystemSolver->Clear();
 
-        TSparseSpace::Clear(this->mpReactionsVector);
-        // 			this->mReactionsVector = TSystemVectorType();
-
-        if (this->GetEchoLevel() > 0)
-        {
-
-            std::cout << "BuilderAndSolver Clear Function called" << std::endl;
-        }
+        KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0)
+            << "Clear Function called" << std::endl;
     }
 
     /**
