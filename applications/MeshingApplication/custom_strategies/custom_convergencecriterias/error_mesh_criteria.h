@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
+//                   Anna Rehr
 //
 
 #if !defined(KRATOS_ERROR_MESH_CRITERIA_H)
@@ -49,11 +50,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
     
-    #if !defined(REMESHING_UTILITIES)
-    #define REMESHING_UTILITIES
-        enum RemeshingUtilities {MMG = 0};
-    #endif
-    
 ///@}
 ///@name  Functions
 ///@{
@@ -62,7 +58,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Custom convergence criteria for the mortar condition 
+/**
+ * @class ErrorMeshCriteria
+ * @ingroup MeshingApplication
+ * @brief Custom convergence criteria for the mortar condition
+ * @tparam TSparseSpace The sparse space considered
+ * @tparam TDenseSpace The dense space considered
+ * @author Vicente Mataix Ferrandiz
+ * @author Anna Rehr
  */
 template<class TSparseSpace, class TDenseSpace>
 class ErrorMeshCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
@@ -94,6 +97,12 @@ public:
     typedef std::size_t                                             SizeType;
     
     typedef ProcessFactoryUtility::Pointer                 ProcessesListType;
+
+    ///@}
+    ///@name Enum's
+    ///@{
+
+    enum class RemeshingUtilities {MMG = 0};
 
     ///@}
     ///@name Life Cycle
@@ -149,7 +158,7 @@ public:
         mRemeshingUtilities = ConvertRemeshUtil(mThisParameters["remeshing_utility"].GetString());
         
 #if !defined(INCLUDE_MMG)
-        KRATOS_ERROR_IF(mRemeshingUtilities == MMG) << "YOU CANNOT USE MMG LIBRARY. CHECK YOUR COMPILATION" << std::endl;
+        KRATOS_ERROR_IF(mRemeshingUtilities == RemeshingUtilities::MMG) << "YOU CANNOT USE MMG LIBRARY. CHECK YOUR COMPILATION" << std::endl;
 #endif
     }
 
@@ -186,146 +195,50 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) override
+        ) override
     {
-        /*
-        // We recompute the NODAL_H
-        mFindNodalH.Execute();
-                
-        // We initialize the check
-        bool converged_error = true;
-        
-        // We initialize the total error
-        double total_error_pow2 = 0.0;
-        double current_sol_pow2 = 0.0;
-        
-        // Iterate in the nodes
-        NodesArrayType& nodes_array = rModelPart.Nodes();
-        const int num_nodes = nodes_array.end() - nodes_array.begin();
-        
-//         #pragma omp parallel for // FIXME: Parallel not working
-        for(int i = 0; i < num_nodes; i++) 
-        {
-            auto it_node = nodes_array.begin() + i;
-            
-            double main_dof_nodal_error = 0.0;           
-            double other_dof_nodal_error = 0.0;        
-            
-            Node<3>::DofsContainerType& NodeDofs = (it_node)->GetDofs();
-
-            SizeType dof_id;
-//             TDataType DofValue;
-            
-            for (typename Node<3>::DofsContainerType::const_iterator itDof = NodeDofs.begin(); itDof != NodeDofs.end(); itDof++)
-            {
-                if (itDof->IsFree())
-                {
-                    dof_id = itDof->EquationId();
-//                     DofValue = itDof->GetSolutionStepValue(0);
-                    
-                    KeyType CurrVar = itDof->GetVariable().Key();
-                    if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z) || (CurrVar == VELOCITY_X) || (CurrVar == VELOCITY_Y) || (CurrVar == VELOCITY_Z))
-                    {
-                        main_dof_nodal_error += b[dof_id] * b[dof_id];
-                    }
-                    else
-                    {
-                        other_dof_nodal_error += b[dof_id] * b[dof_id];
-                    }
-                }
-//                 else
-//                 {
-// //                     const double Reaction = itDof->GetSolutionStepReactionValue();
-// // //                     #pragma omp atomic
-// //                     current_sol_pow2 += Reaction * Reaction;
-//                     
-//                     dof_id = itDof->EquationId();
-//             
-// //                     #pragma omp atomic
-//                     current_sol_pow2 += b[dof_id] * b[dof_id];
-//                 }
-            }
-        
-            const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
-            
-            const double nodal_error = nodal_h * nodal_h * std::sqrt(main_dof_nodal_error) + nodal_h * std::sqrt(other_dof_nodal_error);
-            it_node->SetValue(NODAL_ERROR, nodal_error);
-            
-//             #pragma omp atomic
-            total_error_pow2 += (nodal_error * nodal_error);
-        }
-        
-        // Setting the average nodal error
-        rModelPart.GetProcessInfo()[AVERAGE_NODAL_ERROR] = mErrorTolerance * std::sqrt((current_sol_pow2 + total_error_pow2)/num_nodes);
-        
-//         // Debug
-//         KRATOS_WATCH(current_sol_pow2)
-//         KRATOS_WATCH(total_error_pow2)
-        
-        // Final check
-        const double mesh_error = mConstantError * std::sqrt(total_error_pow2);
-//         const double mesh_error = std::sqrt(total_error_pow2/(current_sol_pow2 + total_error_pow2));*/
-        
         // Computing metric
         // We initialize the check
         bool converged_error = true;
         double estimated_error = 0;
-        if (mDimension == 2)
-        {
+        if (mDimension == 2) {
             MetricFastInit<2> MetricInit = MetricFastInit<2>(mThisModelPart);
             MetricInit.Execute();           
             SPRMetricProcess<2> ComputeMetric = SPRMetricProcess<2>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
             ComputeMetric.Execute();
             estimated_error = mThisModelPart.GetProcessInfo()[ERROR_ESTIMATE];
-        }
-        else
-        {
+        } else {
             MetricFastInit<3> MetricInit = MetricFastInit<3>(mThisModelPart);
             MetricInit.Execute();
             SPRMetricProcess<3> ComputeMetric = SPRMetricProcess<3>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
             ComputeMetric.Execute();
             estimated_error = mThisModelPart.GetProcessInfo()[ERROR_ESTIMATE];
         }
-        if (estimated_error > 0.21)
-        {
+        if (estimated_error > 0.21) {
             converged_error = false;
         }
     
-        if (converged_error == true)
-        {
-            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-            {
-                std::cout << "The error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << "0.12" << ". No remeshing required" << std::endl;
-            }
-        }
-        else
-        {
-            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-            {
-                std::cout << "The error due to the mesh size: " << estimated_error << " is bigger than the tolerance prescribed: " << "0.12" << ". Remeshing required" << std::endl;
-                std::cout << "AVERAGE_NODAL_ERROR: " << rModelPart.GetProcessInfo()[AVERAGE_NODAL_ERROR] << std::endl;
-            }
+        if (converged_error == true) {
+            KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) << "The error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << "0.12" << ". No remeshing required" << std::endl;
+        } else {
+            KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
+            << "The error due to the mesh size: " << estimated_error << " is bigger than the tolerance prescribed: " << "0.12" << ". Remeshing required" << std::endl
+            << "AVERAGE_NODAL_ERROR: " << rModelPart.GetProcessInfo()[AVERAGE_NODAL_ERROR] << std::endl;
             
             // Remeshing
-            if (mRemeshingUtilities == MMG)
-            {
-                #ifdef INCLUDE_MMG
-                    if (mDimension == 2)
-                    {
-                        MmgProcess<2> MmgRemesh = MmgProcess<2>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
-                        MmgRemesh.Execute();
-                    }
-                    else
-                    {
-                        MmgProcess<3> MmgRemesh = MmgProcess<3>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
-                        MmgRemesh.Execute();
-                    }
-                #else 
-                    KRATOS_ERROR << "Please compile with MMG to use this utility" << std::endl;
-                #endif
-            }
-            else
-            {
+            if (mRemeshingUtilities == RemeshingUtilities::MMG) {
+            #ifdef INCLUDE_MMG
+                if (mDimension == 2) {
+                    MmgProcess<2> MmgRemesh = MmgProcess<2>(mThisModelPart, mThisParameters["remeshing_parameters"]);
+                    MmgRemesh.Execute();
+                } else {
+                    MmgProcess<3> MmgRemesh = MmgProcess<3>(mThisModelPart, mThisParameters["remeshing_parameters"]);
+                    MmgRemesh.Execute();
+                }
+            #else
+                KRATOS_ERROR << "Please compile with MMG to use this utility" << std::endl;
+            #endif
+            } else {
                 KRATOS_ERROR << "Not an alternative utility" << std::endl;
             }
             
@@ -388,20 +301,16 @@ protected:
     ///@{
 
     /**
-     * This converts the remehing utility string to an enum
+     * @brief This converts the remehing utility string to an enum
      * @param str: The string that you want to comvert in the equivalent enum
      * @return RemeshingUtilities: The equivalent enum (this requires less memmory than a std::string)
      */
-        
     RemeshingUtilities ConvertRemeshUtil(const std::string& str)
     {
-        if(str == "MMG") 
-        {
-            return MMG;
-        }
-        else
-        {
-            return MMG;
+        if(str == "MMG") {
+            return RemeshingUtilities::MMG;
+        } else {
+            return RemeshingUtilities::MMG;
         }
     }
     
