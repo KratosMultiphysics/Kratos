@@ -208,9 +208,33 @@ ModelPart& SubModelPartsListUtility::GetRecursiveSubModelPart(
 /***********************************************************************************/
 /***********************************************************************************/
 
+std::unordered_map<int,std::vector<ModelPart::Pointer>> SubModelPartsListUtility::GetModelPartColorsPointers(
+    ModelPart& rThisModelPart,
+    IntStringMapType& rColors
+    )
+{
+    // Initialize output
+    std::unordered_map<int,std::vector<ModelPart::Pointer>> fast_colors;
+    
+    for (auto color : rColors)
+    {
+        for (auto name : color.second)
+        {
+            // ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(rThisModelPart, name);
+            // auto p_sub_model_part = Kratos::make_shared<ModelPart>(sub_model_part);
+            // fast_colors[color.first].push_back(p_sub_model_part);
+        }
+    }
+
+    return fast_colors;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SubModelPartsListUtility::IntersectColors(
     IntStringMapType& rColors,
-    PairIntMapType rIntersections
+    PairIntMapType& rIntersections
     )
 {
     // Check the alphabetic order of the names again
@@ -241,13 +265,12 @@ void SubModelPartsListUtility::IntersectColors(
                                       std::back_inserter(intersection_names));
 
                 // Null intersection: Main Model Part
-                if (intersection_names.size()==0)
+                if (intersection_names.size() == 0)
                 {
                     rIntersections[intersection_key] = 0;
                 }
 
                 // Find the intersection color
-                int color_id = 0;
                 bool intersection_found = false;
                 for (auto color : rColors)
                 {
@@ -256,15 +279,13 @@ void SubModelPartsListUtility::IntersectColors(
                         rIntersections[intersection_key] = color.first;
                         intersection_found = true;
                     }
-                    else
-                        color_id = color.first;
                 }
 
                 // Store the new intersection
                 if (!intersection_found)
                 {
-                    rIntersections[intersection_key] = ++color_id;
-                    aux_colors[intersection_names] = color_id;
+                    rIntersections[intersection_key] = 10;
+                    aux_colors[intersection_names] = 10;
                     new_color = true;
                 }
             }
