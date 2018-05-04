@@ -421,7 +421,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
             const int number_of_nodes = GetGeometry().PointsNumber();
             const int dimension = this->GetGeometry().WorkingSpaceDimension();
             const int local_size = number_of_nodes * dimension * 2;
-            unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+            const unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
  
             rOutput.resize(dimension * number_of_nodes, local_size);
 
@@ -857,7 +857,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
     {
         const int number_of_nodes = GetGeometry().PointsNumber();
         const int dimension = this->GetGeometry().WorkingSpaceDimension();
-        unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+        const unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
         const SizeType num_gps = GetNumberOfGPs();
         rOutput.resize(dimension * number_of_nodes, num_gps);

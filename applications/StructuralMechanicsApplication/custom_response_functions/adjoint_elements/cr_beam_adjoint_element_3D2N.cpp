@@ -222,7 +222,7 @@ namespace Kratos
             const int number_of_nodes = GetGeometry().PointsNumber();
             const int dimension = this->GetGeometry().WorkingSpaceDimension();
             const int local_size = number_of_nodes * dimension * 2;
-            unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+            const unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
             rOutput.resize(dimension * number_of_nodes, local_size);
 
@@ -585,7 +585,7 @@ namespace Kratos
         {
             const int number_of_nodes = GetGeometry().PointsNumber();
             const int dimension = this->GetGeometry().WorkingSpaceDimension();
-            unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+            const unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
             // Compute stress on GP before disturbance
             this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
