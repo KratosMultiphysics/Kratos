@@ -73,27 +73,27 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ErrorMeshCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >       BaseType;
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >        BaseType;
 
-    typedef TSparseSpace                                    SparseSpaceType;
+    typedef TSparseSpace                                     SparseSpaceType;
 
-    typedef typename BaseType::TDataType                          TDataType;
+    typedef typename BaseType::TDataType                           TDataType;
 
-    typedef typename BaseType::DofsArrayType                  DofsArrayType;
+    typedef typename BaseType::DofsArrayType                   DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType          TSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixType           TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType          TSystemVectorType;
+    typedef typename BaseType::TSystemVectorType           TSystemVectorType;
     
-    typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
+    typedef ModelPart::ConditionsContainerType           ConditionsArrayType;
     
-    typedef ModelPart::NodesContainerType                    NodesArrayType;
+    typedef ModelPart::NodesContainerType                     NodesArrayType;
     
-    typedef std::size_t                                             KeyType;
+    typedef std::size_t                                              KeyType;
     
-    typedef std::size_t                                            SizeType;
+    typedef std::size_t                                             SizeType;
     
-    typedef boost::shared_ptr<ProcessFactoryUtility>      ProcessesListType;
+    typedef ProcessFactoryUtility::Pointer                 ProcessesListType;
 
     ///@}
     ///@name Life Cycle
@@ -149,10 +149,7 @@ public:
         mRemeshingUtilities = ConvertRemeshUtil(mThisParameters["remeshing_utility"].GetString());
         
 #if !defined(INCLUDE_MMG)
-    if (mRemeshingUtilities == MMG)
-    {
-        KRATOS_ERROR << "YOU CANNOT USE MMG LIBRARY. CHECK YOUR COMPILATION" << std::endl;
-    }
+        KRATOS_ERROR_IF(mRemeshingUtilities == MMG) << "YOU CANNOT USE MMG LIBRARY. CHECK YOUR COMPILATION" << std::endl;
 #endif
     }
 

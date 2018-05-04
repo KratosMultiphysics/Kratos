@@ -8,6 +8,7 @@
 //                       license: MeshingApplication/license.txt
 //
 //  Main authors:    Anna Rehr
+//  Co-author   :    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_SPR_ERROR_METRICS_PROCESS)
@@ -40,6 +41,8 @@ namespace Kratos
     typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
     typedef NodesArrayType::iterator                                              NodeItType;
     typedef ElementsArrayType::iterator                                        ElementItType;
+    typedef std::size_t                                                            IndexType;
+    typedef std::size_t                                                             SizeType;
     
 ///@}
 ///@name  Enum's
@@ -54,7 +57,7 @@ namespace Kratos
 ///@{
 
 //// This class is can be used to compute the metrics of the model part with a superconvergent patch recovery approach
-template<unsigned int TDim> 
+template<SizeType TDim>
 class SPRMetricProcess
     : public Process
 {
