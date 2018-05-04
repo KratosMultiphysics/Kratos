@@ -45,7 +45,9 @@ KratosMappingApplication::KratosMappingApplication() :
     KratosApplication("MappingApplication"),
     mInterfaceObject(0.0, 0.0, 0.0),
     mInterfaceNode(),
-    mInterfaceGeometryObject()
+    mInterfaceGeometryObject(),
+    mInterfaceMeshlessPoint(),
+    mInterfaceElement()
 {}
 
 void KratosMappingApplication::Register()

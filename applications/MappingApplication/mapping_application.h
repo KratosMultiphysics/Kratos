@@ -32,6 +32,8 @@
 #include "custom_utilities/interface_object.h"
 #include "custom_utilities/interface_node.h"
 #include "custom_utilities/interface_geometry_object.h"
+#include "custom_utilities/interface_meshless_point.h"
+#include "custom_utilities/interface_element.h"
 
 
 namespace Kratos
@@ -193,6 +195,8 @@ private:
     const InterfaceObject           mInterfaceObject;
     const InterfaceNode             mInterfaceNode;
     const InterfaceGeometryObject   mInterfaceGeometryObject;
+    const InterfaceGeometryObject   mInterfaceMeshlessPoint;
+    const InterfaceGeometryObject   mInterfaceElement;
 
     ///@}
     ///@name Private Operators
