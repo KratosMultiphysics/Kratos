@@ -79,7 +79,7 @@ namespace Kratos
 		  double Area;
 		  array_1d<double, NumNodes> N;
 		  array_1d<double, NumNodes> dist_vec;
-		  boost::numeric::ublas::bounded_matrix<double, NumNodes, TDim> DN_DX;
+		  BoundedMatrix<double, NumNodes, TDim> DN_DX;
 
 		  for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
 		  {

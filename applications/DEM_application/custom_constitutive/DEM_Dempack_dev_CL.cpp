@@ -259,7 +259,7 @@ namespace Kratos {
             int i_neighbour_count,
             bool& sliding,
             int search_control,
-            vector<int>& search_control_vector,
+            DenseVector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
@@ -393,7 +393,7 @@ namespace Kratos {
             int i_neighbour_count,
             bool& sliding,
             int search_control,
-            vector<int>& search_control_vector,
+            DenseVector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
