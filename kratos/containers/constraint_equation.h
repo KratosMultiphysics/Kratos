@@ -100,15 +100,16 @@ class MasterSlaveRelation
     };
 
   public:
-    typedef std::unordered_set<MasterDataPointerType, MasterHasher, MasterComparator>::iterator iterator;  
-    ConstraintEquation(DofType const &rSlaveDof) : mId(rSlaveDof.Id()), mKey(rSlaveDof.GetVariable().Key())
+
+    // TODO: formulate a empty constructor and methods to add master and slave independently.
+    MasterSlaveRelation(DofType const &rSlaveDof) : mId(rSlaveDof.Id()), mKey(rSlaveDof.GetVariable().Key())
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
     }
 
     // This is only for serializer. This is not meant to be used anywhere else
-    ConstraintEquation(std::size_t Id, std::size_t Key) : mId(Id), mKey(Key)
+    MasterSlaveRelation(std::size_t Id, std::size_t Key) : mId(Id), mKey(Key)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
