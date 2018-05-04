@@ -71,6 +71,12 @@ int ShapeOptimizationCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 }
 
 // ------------------------------------------------------------------------------
+std::string ShapeOptimizationCondition::Info() const // added by M.Fusseder
+{
+  return "ShapeOptimizationCondition";
+}
+
+// ------------------------------------------------------------------------------
 void ShapeOptimizationCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )

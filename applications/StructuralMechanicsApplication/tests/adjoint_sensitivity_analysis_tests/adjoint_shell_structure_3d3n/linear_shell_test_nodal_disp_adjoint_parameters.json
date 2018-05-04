@@ -1,0 +1,101 @@
+{
+    "test_settings" : {
+        "execute_solve" : true
+    },
+    "problem_data"             : {
+        "problem_name"    : "rectangular_plate",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_step"       : 1.0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 1
+    },
+        "solver_settings"                  : {
+        "solver_type"                  : "adjoint_structural_solver",
+        "scheme_settings" : {
+            "scheme_type"              : "structural"
+        },
+        "response_function_settings" : {
+            "response_type"     : "adjoint_nodal_displacement",
+            "use_kratos"        : true,
+            "gradient_mode"     : "semi_analytic",
+            "sensitivity_model_part_name" :"Parts_AREAS",
+            "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "element_sensitivity_variables"  : ["THICKNESS"],
+            "condition_sensitivity_variables"  : [],
+            "step_size"         : 1.0e-6,
+            "traced_node"       : 5,
+            "traced_dof"        : "DISPLACEMENT_Z"
+        },
+        "echo_level"                   : 0,
+        "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC"],
+        "computing_model_part_name" : "computing_domain",
+        "rotation_dofs"                      : true,
+        "linear_solver_settings"       : {
+            "solver_type"         : "Super_LU"
+        },
+        "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename"   : "./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/rectangular_plate"
+        },
+        "material_import_settings" :{
+            "materials_filename" : "./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/StructuralMaterials.json"
+        }
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_DIR_BC",
+            "variable_name"   : "ADJOINT_DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "list_other_processes" :[{
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_primal_input_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+	        "model_part_name" : "Structure",
+            "file_settings" : {
+                "file_access_mode" : "read_only"
+            },
+            "nodal_results_settings" : {
+                "list_of_variables": ["DISPLACEMENT", "ROTATION", "POINT_LOAD"]
+            }
+        }
+     },
+     {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"  : ["ADJOINT_DISPLACEMENT_Z", "SHAPE_SENSITIVITY_Y"],
+            "input_file_name"  : "adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_nodal_disp_results.json",
+            "model_part_name"  : "Structure",
+            "sub_model_part_name"  : "test_model_part",
+            "tolerance"            : 1e-6,
+            "time_frequency"   : -2.0
+        }
+    }],
+    "loads_process_list"       : [],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}

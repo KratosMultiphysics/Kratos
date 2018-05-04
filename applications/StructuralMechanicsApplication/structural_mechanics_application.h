@@ -38,6 +38,11 @@
 #include "custom_elements/cr_beam_element_2D2N.hpp"
 #include "custom_elements/cr_beam_element_linear_2D2N.hpp"
 
+/* Adding the adjoint elements */
+#include "custom_response_functions/adjoint_elements/shell_thin_adjoint_element_3D3N.hpp"
+#include "custom_response_functions/adjoint_elements/shell_thin_adjoint_element_3D4N.hpp"
+#include "custom_response_functions/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
+
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/membrane_element.hpp"
@@ -72,6 +77,10 @@
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
 #include "custom_conditions/point_moment_condition_3d.h"
+
+/* Adding the adjoint conditions */
+#include "custom_response_functions/adjoint_conditions/point_load_adjoint_condition.h"
+#include "custom_response_functions/adjoint_conditions/surface_load_adjoint_condition_3d.h"
 
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/truss_constitutive_law.h"
@@ -255,22 +264,22 @@ private:
     /* ELEMENTS */
 
     // Adding the truss element
-    const TrussElement3D2N mTrussElement3D2N; 
+    const TrussElement3D2N mTrussElement3D2N;
     const TrussElementLinear3D2N mTrussLinearElement3D2N;
     const CableElement3D2N mCableElement3D2N;
 
-    // Adding the beam element 
+    // Adding the beam element
     const CrBeamElement3D2N mCrBeamElement3D2N;
     const CrBeamElementLinear3D2N mCrLinearBeamElement3D2N;
     const CrBeamElement2D2N mCrBeamElement2D2N;
     const CrBeamElementLinear2D2N mCrLinearBeamElement2D2N;
 
-
-    // Adding the shells elements 
+    // Adding the shells elements
     const IsotropicShellElement mIsotropicShellElement3D3N;
     const ShellThickElement3D4N mShellThickElement3D4N;
     const ShellThickElement3D4N mShellThickCorotationalElement3D4N;
     const ShellThinElement3D4N   mShellThinCorotationalElement3D4N;
+    const ShellThinElement3D4N   mShellThinElement3D4N;
     const ShellThinElement3D3N mShellThinElement3D3N;
     const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
 	const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
@@ -312,7 +321,7 @@ private:
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D6N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D8N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D9N;
-    
+
     // Total lagrangian
     const TotalLagrangian mTotalLagrangian2D3N;
     const TotalLagrangian mTotalLagrangian2D4N;
@@ -326,13 +335,13 @@ private:
     const TotalLagrangian mTotalLagrangian3D15N;
     const TotalLagrangian mTotalLagrangian3D20N;
     const TotalLagrangian mTotalLagrangian3D27N;
-    
+
     const AxisymTotalLagrangian mAxisymTotalLagrangian2D3N;
     const AxisymTotalLagrangian mAxisymTotalLagrangian2D4N;
     const AxisymTotalLagrangian mAxisymTotalLagrangian2D6N;
     const AxisymTotalLagrangian mAxisymTotalLagrangian2D8N;
     const AxisymTotalLagrangian mAxisymTotalLagrangian2D9N;
-    
+
     // Updated lagrangian
     const UpdatedLagrangian mUpdatedLagrangian2D3N;
     const UpdatedLagrangian mUpdatedLagrangian2D4N;
@@ -346,15 +355,20 @@ private:
     const UpdatedLagrangian mUpdatedLagrangian3D15N;
     const UpdatedLagrangian mUpdatedLagrangian3D20N;
     const UpdatedLagrangian mUpdatedLagrangian3D27N;
-    
+
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D3N;
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D4N;
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D6N;
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D8N;
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D9N;
-    
+
     // Adding the spring damper element
     const SpringDamperElement3D2N mSpringDamperElement3D2N;
+
+    // Adding adjoint elements
+    const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
+    const ShellThinAdjointElement3D4N   mShellThinAdjointElement3D4N;
+    const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
 
     /* CONDITIONS*/
     // Point load
@@ -362,13 +376,13 @@ private:
     const PointLoadCondition mPointLoadCondition3D1N;
     const PointContactCondition mPointContactCondition2D1N;
     const PointContactCondition mPointContactCondition3D1N;
-    
+
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
-    
+
     // Line load
     const LineLoadCondition2D mLineLoadCondition2D2N;
     const LineLoadCondition2D mLineLoadCondition2D3N;
-    
+
     const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D2N;
     const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D3N;
 
@@ -378,10 +392,16 @@ private:
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D6N;
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D8N;
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D9N;
-    
+
     // Point moment
     const PointMomentCondition3D mPointMomentCondition3D1N;
-    
+
+    // Adjoint Conditions
+    const PointLoadAdjointCondition mPointLoadAdjointCondition2D1N;
+    const PointLoadAdjointCondition mPointLoadAdjointCondition3D1N;
+    const SurfaceLoadAdjointCondition3D mSurfaceLoadAdjointCondition3D3N;
+    const SurfaceLoadAdjointCondition3D mSurfaceLoadAdjointCondition3D4N;
+
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
     const TrussConstitutiveLaw mTrussConstitutiveLaw;
@@ -452,6 +472,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED  defined
 
 

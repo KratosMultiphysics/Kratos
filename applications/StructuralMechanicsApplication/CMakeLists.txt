@@ -66,6 +66,11 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D3N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/prestress_membrane_element.cpp
 
+  # Adding elements for adjoint sensitivity analysis
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/shell_thin_adjoint_element_3D3N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/shell_thin_adjoint_element_3D4N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/cr_beam_adjoint_element_3D2N.cpp
+
   # Solid elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement.cpp
@@ -94,6 +99,11 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_condition_3d.cpp
+
+  # Adding conditions for adjoint sensitivity analysis
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_conditions/point_load_adjoint_condition.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_conditions/surface_load_adjoint_condition_3d.cpp
+
 )
 
 ## generate variables with the testing sources

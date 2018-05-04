@@ -1168,7 +1168,7 @@ Vector CrBeamElement3D2N::UpdateIncrementDeformation() {
 
   KRATOS_TRY
   Vector actual_deformation = ZeroVector(msElementSize);
-  this->GetValuesVector(actual_deformation, 0);
+  CrBeamElement3D2N::GetValuesVector(actual_deformation, 0); // Changed by M.Fusseder
 
   Vector increment_deformation =
       actual_deformation - this->mTotalNodalDeformation;
@@ -1689,6 +1689,11 @@ int CrBeamElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
   return 0;
 
   KRATOS_CATCH("")
+}
+
+std::string CrBeamElement3D2N::Info() const // added by M.Fusseder
+{
+  return "CrBeamElement3D2N";
 }
 
 void CrBeamElement3D2N::save(Serializer &rSerializer) const {

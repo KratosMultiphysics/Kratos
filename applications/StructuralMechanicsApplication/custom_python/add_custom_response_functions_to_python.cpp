@@ -19,11 +19,19 @@
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 //Utilities
+#include "custom_response_functions/custom_utilities/finite_differences_utilities.h" //M.Fusseder TODO: maybe remove this (used only for controlling results)
+
+#include "custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.h"
 
 //Response Functions
 #include "custom_response_functions/response_utilities/strain_energy_response_function_utility.h"
 #include "custom_response_functions/response_utilities/mass_response_function_utility.h"
 #include "custom_response_functions/response_utilities/eigenfrequency_response_function_utility.h"
+
+#include "custom_response_functions/response_utilities/adjoint_structural_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_strain_energy_response_function.h"
 
 
 namespace Kratos
@@ -57,6 +65,38 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
       .def("Initialize", &EigenfrequencyResponseFunctionUtility::Initialize)
       .def("CalculateValue", &EigenfrequencyResponseFunctionUtility::CalculateValue)
       .def("CalculateGradient", &EigenfrequencyResponseFunctionUtility::CalculateGradient);
+    /// Processes
+    class_<ReplaceElementsAndConditionsForAdjointProblemProcess , bases<Process>, boost::noncopyable >("ReplaceElementsAndConditionsForAdjointProblemProcess",
+            init<ModelPart&, Parameters>());
+
+    //Response Functions
+    class_<AdjointStructuralResponseFunction, boost::noncopyable>
+      ("AdjointStructuralResponseFunction", init<ModelPart&, Parameters&>())
+      .def("Initialize", &AdjointStructuralResponseFunction::Initialize)
+      .def("FinalizeSolutionStep", &AdjointStructuralResponseFunction::FinalizeSolutionStep)
+      .def("CalculateValue", &AdjointStructuralResponseFunction::CalculateValue);
+
+    class_<AdjointLocalStressResponseFunction, bases<AdjointStructuralResponseFunction>, boost::noncopyable>
+      ("AdjointLocalStressResponseFunction", init<ModelPart&, Parameters&>());
+
+    class_<AdjointNodalDisplacementResponseFunction, bases<AdjointStructuralResponseFunction>, boost::noncopyable>
+      ("AdjointNodalDisplacementResponseFunction", init<ModelPart&, Parameters&>());
+
+    class_<AdjointStrainEnergyResponseFunction, bases<AdjointStructuralResponseFunction>, boost::noncopyable>
+      ("AdjointStrainEnergyResponseFunction", init<ModelPart&, Parameters&>());
+
+    //For global finite differences
+    class_<FiniteDifferencesUtilities, boost::noncopyable>("FiniteDifferencesUtilities", init< >())
+        .def("SetDesignVariable", &FiniteDifferencesUtilities::SetDesignVariable)
+        .def("GetDesignVariable", &FiniteDifferencesUtilities::GetDesignVariable)
+        .def("SetDerivedObject", &FiniteDifferencesUtilities::SetDerivedObject)
+        .def("GetDerivedObject", &FiniteDifferencesUtilities::GetDerivedObject)
+        .def("DisturbElementDesignVariable", &FiniteDifferencesUtilities::DisturbElementDesignVariable)
+        .def("UndisturbElementDesignVariable", &FiniteDifferencesUtilities::UndisturbElementDesignVariable)
+        .def("GetStressResultantBeam", &FiniteDifferencesUtilities::GetStressResultantBeam)
+        .def("GetStressResultantShell", &FiniteDifferencesUtilities::GetStressResultantShell)
+        .def("GetNodalDisplacement", &FiniteDifferencesUtilities::GetNodalDisplacement)
+        .def("GetStrainEnergy", &FiniteDifferencesUtilities::GetStrainEnergy);
 }
 
 }  // namespace Python.

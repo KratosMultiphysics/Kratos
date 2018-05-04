@@ -33,7 +33,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
 }
 
-}  // namespace Python.  
+}  // namespace Python.
 
 } // Namespace Kratos
 
