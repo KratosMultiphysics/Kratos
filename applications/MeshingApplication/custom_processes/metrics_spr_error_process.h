@@ -120,7 +120,7 @@ public:
     ///@{
     
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "SPRMetricProcess";
     }
