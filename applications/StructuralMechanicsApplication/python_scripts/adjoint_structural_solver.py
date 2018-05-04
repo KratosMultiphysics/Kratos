@@ -69,15 +69,13 @@ class AdjointStructuralSolver(structural_mechanics_solver.MechanicalSolver):
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
 
     def AddDofs(self):
-        for node in self.main_model_part.Nodes:
-            # adding dofs
-            node.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X)
-            node.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y)
-            node.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z)
-            if self.settings["rotation_dofs"].GetBool():
-                node.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X)
-                node.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y)
-                node.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z)
+        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z, self.main_model_part)
+        if self.settings["rotation_dofs"].GetBool():
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z, self.main_model_part)
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "DOF's ADDED.")
 
     def Initialize(self):
