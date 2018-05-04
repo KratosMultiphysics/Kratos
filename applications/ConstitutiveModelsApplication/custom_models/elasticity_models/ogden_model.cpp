@@ -103,7 +103,9 @@ namespace Kratos
     this->CalculateAndAddStressTensor(Variables,StressMatrix);
     rValues.StressMatrix = StressMatrix; //store total stress as StressMatrix
 
-
+    //Set constitutive matrix to zero before adding
+    rConstitutiveMatrix.clear();
+        
     //Calculate Constitutive Matrix
     this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);
 

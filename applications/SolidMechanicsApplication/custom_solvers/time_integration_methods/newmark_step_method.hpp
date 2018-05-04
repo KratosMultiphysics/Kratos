@@ -108,19 +108,19 @@ namespace Kratos
     ///@{
 
     // has step variable
-    virtual bool HasStepVariable() override
+    bool HasStepVariable() override
     {
       return true;
     }
     
     // set step variable (step variable)
-    virtual void SetStepVariable(const TVariableType& rStepVariable) override
+    void SetStepVariable(const TVariableType& rStepVariable) override
     {
       mpStepVariable = &rStepVariable;
     }
     
-    // predict
-    virtual void Predict(NodeType& rNode) override
+    // assign
+    void Assign(NodeType& rNode) override
     {
      KRATOS_TRY
        
@@ -139,14 +139,20 @@ namespace Kratos
        }
 
      }
-     else{
 
-       this->PredictStepVariable(rNode);
-       this->PredictFirstDerivative(rNode);
-       this->PredictSecondDerivative(rNode);
-       this->PredictVariable(rNode);
-     }
+     KRATOS_CATCH( "" )
+    }
 
+    // predict
+    void Predict(NodeType& rNode) override
+    {
+     KRATOS_TRY
+       
+     this->PredictStepVariable(rNode);
+     this->PredictFirstDerivative(rNode);
+     this->PredictSecondDerivative(rNode);
+     this->PredictVariable(rNode);
+     
      // const TValueType& CurrentVariable           = rNode.FastGetSolutionStepValue(*this->mpVariable,     0);
      // const TValueType& CurrentStepVariable       = rNode.FastGetSolutionStepValue(*this->mpStepVariable, 0);
      // const TValueType& CurrentFirstDerivative    = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 0);
@@ -156,11 +162,9 @@ namespace Kratos
 	
      KRATOS_CATCH( "" )
     }
-
-
     
     // update
-     virtual void Update(NodeType& rNode) override
+    void Update(NodeType& rNode) override
     {
      KRATOS_TRY
 
@@ -179,7 +183,27 @@ namespace Kratos
      KRATOS_CATCH( "" )
     }
 
-     
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * @return 0 all ok
+     */
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override
+    {
+      KRATOS_TRY
+
+      // Perform base integration method checks
+      int ErrorCode = 0;
+      ErrorCode = BaseType::Check(rCurrentProcessInfo);
+
+
+      if( this->mpStepVariable != nullptr )
+        KRATOS_ERROR << " time integration method Variable not set " <<std::endl;
+
+      return ErrorCode;
+      
+      KRATOS_CATCH("")
+    }
+    
     ///@}
     ///@name Access
     ///@{
@@ -194,7 +218,7 @@ namespace Kratos
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "NewmarkStepMethod";
@@ -202,13 +226,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "NewmarkStepMethod";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "NewmarkStepMethod Data";     
     }
@@ -241,7 +265,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual void PredictVariable(NodeType& rNode) override
+    void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -254,7 +278,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
     
-    virtual void PredictFirstDerivative(NodeType& rNode) override
+    void PredictFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -267,7 +291,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void PredictSecondDerivative(NodeType& rNode) override
+    void PredictSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -311,7 +335,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
     
-    virtual void UpdateVariable(NodeType& rNode) override
+    void UpdateVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -324,7 +348,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    virtual void UpdateFirstDerivative(NodeType& rNode) override
+    void UpdateFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -338,7 +362,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void UpdateSecondDerivative(NodeType& rNode) override
+    void UpdateSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -392,13 +416,13 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
       // rSerializer.save("StepVariable", mpStepVariable);
     };
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
       // rSerializer.load("StepVariable", mpStepVariable);

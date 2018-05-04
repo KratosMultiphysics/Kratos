@@ -90,14 +90,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Strategy Type
     class_< MPMStrategyType2D,typename MPMStrategyType2D::Pointer, BaseSolvingStrategyType >(m,"MPM2D")
-    .def(init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int>() )
+    .def(init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool>() )
     .def( "SearchElement", &MPMStrategyType2D::SearchElement)
     .def( "MP16ShapeFunctions", &MPMStrategyType2D::MP16ShapeFunctions)
     .def( "MP33ShapeFunctions", &MPMStrategyType2D::MP33ShapeFunctions)
     ;
 
     class_< MPMStrategyType3D,typename MPMStrategyType3D::Pointer, BaseSolvingStrategyType >(m,"MPM3D")
-    .def(init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int>() )
+    .def(init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool>() )
     .def( "SearchElement", &MPMStrategyType3D::SearchElement)
     .def( "MP16ShapeFunctions", &MPMStrategyType3D::MP16ShapeFunctions)
     .def( "MP33ShapeFunctions", &MPMStrategyType3D::MP33ShapeFunctions)

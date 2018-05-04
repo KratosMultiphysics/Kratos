@@ -87,7 +87,7 @@ public:
         // The divided part length from second node of edge respect to the edge length
         array_1d<double, n_edges> edge_division_j = ZeroVector(n_edges); // The 0 is for no split
 
-        bounded_matrix<double, 8, 3 > aux_coordinates; //8 is the max number of nodes and aux_nodes
+        BoundedMatrix<double, 8, 3 > aux_coordinates; //8 is the max number of nodes and aux_nodes
         for (unsigned int i = 0; i < 4; i++)
             for (unsigned int j = 0; j < 3; j++)
                 aux_coordinates(i, j) = rPoints(i, j);
@@ -97,7 +97,7 @@ public:
 
         int split_edge[] = {0, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1};
         int new_node_id = 4;
-        bounded_matrix<double, 4, 4 > length = ZeroMatrix(4, 4);
+        BoundedMatrix<double, 4, 4 > length = ZeroMatrix(4, 4);
 
         int n_negative_distance_nodes = 0;
         int n_positive_distance_nodes = 0;
@@ -392,7 +392,7 @@ public:
 private:
 
     //compute 1 gauss point per subtetra
-    static double ComputeSubTetraVolumeAndCenter(const bounded_matrix<double, 3, 8 > & aux_coordinates,
+    static double ComputeSubTetraVolumeAndCenter(const BoundedMatrix<double, 3, 8 > & aux_coordinates,
                                                  array_1d<double, 3 > & center_position,
                                                  const int i0, const int i1, const int i2, const int i3)
     {
@@ -422,7 +422,7 @@ private:
 
 
     //compute 4 gauss point per subtetra
-    static double ComputeSubTetraVolumeAndGaussPoints(const bounded_matrix<double, 3, 8 > & aux_coordinates,
+    static double ComputeSubTetraVolumeAndGaussPoints(const BoundedMatrix<double, 3, 8 > & aux_coordinates,
                                                       Vector& volumes,
                                                       std::vector< array_1d<double, 3 > >& center_position,
                                                       const int i0, const int i1, const int i2, const int i3)

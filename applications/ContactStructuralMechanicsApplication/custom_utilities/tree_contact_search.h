@@ -91,6 +91,9 @@ public:
     typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;
 
+    /// The definition of zero tolerance
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+
     /// Pointer definition of TreeContactSearch
     KRATOS_CLASS_POINTER_DEFINITION( TreeContactSearch );
       
