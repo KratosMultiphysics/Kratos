@@ -11,6 +11,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         # create test model part
         dim=3
         self.model_part = KratosMultiphysics.ModelPart("test")
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim) 
         self._add_variables(self.model_part)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)

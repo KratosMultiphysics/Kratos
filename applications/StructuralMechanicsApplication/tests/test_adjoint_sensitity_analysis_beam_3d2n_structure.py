@@ -39,11 +39,11 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         adjoint_analysis.Run()
 
         # Check sensitivities for the parameter I22
-        reference_values = [-87622.77104412294, 38125.18069794169, 625.0023331716436]
+        reference_values = [-87622.77099397512, 38125.18144970003, 625.0029074349038]
         sensitivities_to_check = []
         element_list = [1,6,10]
         for element_id in element_list:
-            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.I22_SENSITIVITY))
+            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(I22_SENSITIVITY))
 
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
@@ -62,7 +62,7 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         sensitivities_to_check = []
         element_list = [1,6,10]
         for element_id in element_list:
-            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.I22_SENSITIVITY))
+            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(I22_SENSITIVITY))
 
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
@@ -77,11 +77,11 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         adjoint_analysis.Run()
 
         # Check sensitivities for the parameter I22
-        reference_values = [-9082.055918611857, -7564.375188032661, -124.0062271683192]
+        reference_values = [-9082.055913430777, -7564.375188032661, -124.00616062621255]
         sensitivities_to_check = []
         element_list = [1,6,10]
         for element_id in element_list:
-            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.I22_SENSITIVITY))
+            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(I22_SENSITIVITY))
 
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)

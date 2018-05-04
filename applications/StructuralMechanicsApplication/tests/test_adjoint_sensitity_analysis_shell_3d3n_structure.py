@@ -44,7 +44,7 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         sensitivities_to_check = []
         element_list = [1,2,8]
         for element_id in element_list:
-            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.THICKNESS_SENSITIVITY))
+            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(THICKNESS_SENSITIVITY))
 
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
@@ -62,7 +62,7 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         sensitivities_to_check = []
         element_list = [1,2,8]
         for element_id in element_list:
-            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.THICKNESS_SENSITIVITY))
+            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(THICKNESS_SENSITIVITY))
 
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
@@ -80,7 +80,7 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         sensitivities_to_check = []
         element_list = [1,2,8]
         for element_id in element_list:
-            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.THICKNESS_SENSITIVITY))
+            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(THICKNESS_SENSITIVITY))
 
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
