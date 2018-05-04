@@ -17,6 +17,9 @@ void KratosAdjointFluidApplication::Register()
   // Register elements
   KRATOS_REGISTER_ELEMENT( "VMSAdjointElement2D", mVMSAdjointElement2D );
   KRATOS_REGISTER_ELEMENT( "VMSAdjointElement3D", mVMSAdjointElement3D );
+
+  KRATOS_REGISTER_VARIABLE(NUMERICAL_DIFFUSION)
+  KRATOS_REGISTER_VARIABLE(VMS_STEADY_TERM_PRIMAL_GRADIENT_MATRIX)
       
   // Register variables
   // Moved to Kratos Core for trilinos_application

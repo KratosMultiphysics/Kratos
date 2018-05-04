@@ -4,6 +4,14 @@ message("**** configuring KratosAdjointFluidApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
+if( NOT DEFINED EIGEN_ROOT )
+	message( "--- AdjointFluidApplication is built without added numerical diffusion for stabilization. Provide EIGEN_ROOT path to enable it." )
+else (NOT DEFINED EIGEN_ROOT)
+    message( "--- AdjointFluidApplication is built with added numerical diffusion for stabilization." )
+    include_directories( ${EIGEN_ROOT} )
+    add_definitions( -DEIGEN_ROOT )
+endif(NOT DEFINED EIGEN_ROOT)
+
 ## generate variables with the sources
 set( KRATOS_ADJOINT_FLUID_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/adjoint_fluid_application.cpp

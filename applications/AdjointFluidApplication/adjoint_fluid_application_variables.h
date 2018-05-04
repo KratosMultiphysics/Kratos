@@ -17,6 +17,10 @@
 
 namespace Kratos
 {
+
+    KRATOS_DEFINE_VARIABLE(double, NUMERICAL_DIFFUSION )
+    KRATOS_DEFINE_VARIABLE( Matrix, VMS_STEADY_TERM_PRIMAL_GRADIENT_MATRIX)
+
 // Define variables
 // Moved to Kratos Core for trilinos_application
 //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_FLUID_VECTOR_1 )

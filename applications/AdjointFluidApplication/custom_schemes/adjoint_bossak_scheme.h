@@ -23,11 +23,15 @@
 #include "includes/model_part.h"
 #include "includes/process_info.h"
 #include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"
 #include "solving_strategies/response_functions/response_function.h"
+#include "adjoint_fluid_application_variables.h"
+
+#ifdef EIGEN_ROOT
+    #include "custom_utilities/numerical_diffusion.h"
+#endif
 
 namespace Kratos
 {
@@ -72,10 +76,15 @@ public:
         Parameters default_params(R"(
         {
             "scheme_type": "bossak",
-            "alpha_bossak": -0.3
+            "alpha_bossak": -0.3,
+            "numerical_diffusion":{}
         })");
 
         rParameters.ValidateAndAssignDefaults(default_params);
+
+        #ifdef EIGEN_ROOT
+            mNumericalDiffusion.SetNumericalDiffusionParameters(rParameters["numerical_diffusion"]);
+        #endif
 
         mAlphaBossak = rParameters["alpha_bossak"].GetDouble();
         mGammaNewmark = 0.5 - mAlphaBossak;
@@ -521,6 +530,16 @@ public:
         pCurrentElement->GetValuesVector(mAdjointValuesVector[thread_id]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValuesVector[thread_id]);
 
+        // Calculate added numerical diffusion stabilization term
+        #ifdef EIGEN_ROOT
+            mNumericalDiffusion.CalculateNumericalDiffusion(
+                *pCurrentElement,
+                mLeftHandSide[thread_id],
+                rCurrentProcessInfo
+            );
+            noalias(rLHS_Contribution) -= mLeftHandSide[thread_id];        
+        #endif
+
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
@@ -646,6 +665,9 @@ private:
     std::vector<LocalSystemMatrixType> mFirstDerivsLHS;
     std::vector<LocalSystemMatrixType> mSecondDerivsLHS;
 
+    #ifdef EIGEN_ROOT
+        NumericalDiffusion mNumericalDiffusion;
+    #endif
     ///@}
     ///@name Private Operators
     ///@{
