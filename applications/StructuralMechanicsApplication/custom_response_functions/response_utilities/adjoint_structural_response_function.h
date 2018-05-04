@@ -13,19 +13,11 @@
 #define ADJOINT_STRUCTURAL_RESPONSE_FUNCTION_H
 
 // System includes
-#include <vector>
-#include <string>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/condition.h"
-#include "includes/process_info.h"
 #include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
 #include "utilities/openmp_utils.h"
 
 
@@ -618,154 +610,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /// Calculate and add the sensitivity from the current adjoint and primal solutions.
-    /*
-     * This function updates the accumulated sensitivities for a single time step.
-     * The accumulated sensitivity is defined as:
-     *
-     * \f[
-     * d_{\mathbf{s}}\bar{J} = \Sigma_{n=1}^N
-     *   (\partial_{\mathbf{s}}J^n + \lambda^{nT}\partial_{\mathbf{s}}\mathbf{r}^n)
-     *    \Delta t
-     * \f]
-     *
-     * with \f$\mathbf{r}^n\f$ the residual of the governing partial differential
-     * equation for the current step. This function should be called once for
-     * each design variable per time step.
-     */
-   /* template <typename TDataType>
-    void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable)
-    {
-        KRATOS_TRY
-
-        ModelPart& r_model_part = this->GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        double delta_time = -r_process_info[DELTA_TIME];
-        const int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<Vector> sensitivity_vector(num_threads);
-        std::vector<Vector> response_gradient(num_threads);
-        std::vector<Vector> adjoint_vector(num_threads);
-        std::vector<Matrix> sensitivity_matrix(num_threads);
-
-        Communicator& r_comm = r_model_part.GetCommunicator();
-        if (r_comm.TotalProcesses() > 1)
-        {
-            // here we make sure we only add the old sensitivity once
-            // when we assemble.
-#pragma omp parallel
-            {
-                ModelPart::NodeIterator nodes_begin;
-                ModelPart::NodeIterator nodes_end;
-                OpenMPUtils::PartitionedIterators(r_model_part.Nodes(), nodes_begin, nodes_end);
-                for (auto it = nodes_begin; it != nodes_end; ++it)
-                    if (it->FastGetSolutionStepValue(PARTITION_INDEX) != r_comm.MyPID())
-                        it->FastGetSolutionStepValue(rSensitivityVariable) =
-                            rSensitivityVariable.Zero();
-            }
-        }
-        // Assemble element contributions.
-#pragma omp parallel
-        {
-            ModelPart::ElementIterator elements_begin;
-            ModelPart::ElementIterator elements_end;
-            OpenMPUtils::PartitionedIterators(r_model_part.Elements(),
-                                              elements_begin, elements_end);
-            int k = OpenMPUtils::ThisThread();
-
-            for (auto it = elements_begin; it != elements_end; ++it)
-            {
-                Element::GeometryType& r_geom = it->GetGeometry();
-                bool update_sensitivities = false;
-                for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
-                    if (r_geom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
-                    {
-                        update_sensitivities = true;
-                        break;
-                    }
-
-                if (update_sensitivities == false) // true for most elements
-                    continue;
-
-                // This is multiplied with the adjoint to compute sensitivity
-                // contributions from the element.
-                it->CalculateSensitivityMatrix(
-                    rSensitivityVariable, sensitivity_matrix[k], r_process_info);
-
-                // This is the sensitivity contribution coming from the response
-                // function with primal variables treated as constant.
-                this->CalculateSensitivityGradient(
-                    *it, rSensitivityVariable, sensitivity_matrix[k],
-                    response_gradient[k], r_process_info);
-
-                // Get the element adjoint vector.
-                it->GetValuesVector(adjoint_vector[k]);
-
-                if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                    sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
-
-                // Calculated the total sensitivity contribution for the element.
-                noalias(sensitivity_vector[k]) =
-                    delta_time * (prod(sensitivity_matrix[k], adjoint_vector[k]) +
-                                  response_gradient[k]);
-
-                this->AssembleNodalSensitivityContribution(
-                    rSensitivityVariable, sensitivity_vector[k], r_geom);
-            }
-        }*/
-//         // Assemble condition contributions.
-// #pragma omp parallel
-//         {
-//             ModelPart::ConditionIterator conditions_begin;
-//             ModelPart::ConditionIterator conditions_end;
-//             OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),
-//                                               conditions_begin, conditions_end);
-//             int k = OpenMPUtils::ThisThread();
-
-//             for (auto it = conditions_begin; it != conditions_end; ++it)
-//             {
-//                 Condition::GeometryType& r_geom = it->GetGeometry();
-//                 bool update_sensitivities = false;
-//                 for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
-//                     if (r_geom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
-//                     {
-//                         update_sensitivities = true;
-//                         break;
-//                     }
-
-//                 if (update_sensitivities == false)
-//                     continue;
-
-//                 // This is multiplied with the adjoint to compute sensitivity
-//                 // contributions from the condition.
-//                 it->CalculateSensitivityMatrix(
-//                     rSensitivityVariable, sensitivity_matrix[k], r_process_info);
-
-//                 // This is the sensitivity contribution coming from the response
-//                 // function with primal variables treated as constant.
-//                 this->CalculateSensitivityGradient(
-//                     *it, rSensitivityVariable, sensitivity_matrix[k],
-//                     response_gradient[k], r_process_info);
-
-//                 // Get the element adjoint vector.
-//                 it->GetValuesVector(adjoint_vector[k]);
-
-//                 if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-//                     sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
-
-//                 // Calculated the total sensitivity contribution for the condition.
-//                 noalias(sensitivity_vector[k]) =
-//                     delta_time * (prod(sensitivity_matrix[k], adjoint_vector[k]) +
-//                                   response_gradient[k]);
-
-//                 this->AssembleNodalSensitivityContribution(
-//                     rSensitivityVariable, sensitivity_vector[k], r_geom);
-//             }
-//         }
-
- //       r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
-
-   //     KRATOS_CATCH("")
-    //}
     template <typename TDataType>
     void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable)
     {
@@ -793,7 +637,7 @@ protected:
                 for (auto it = nodes_begin; it != nodes_end; ++it)
                     if (it->FastGetSolutionStepValue(PARTITION_INDEX) != r_comm.MyPID())
                         it->FastGetSolutionStepValue(rSensitivityVariable) =
-                            rSensitivityVariable.Zero();//------------------------------->What is here done??
+                            rSensitivityVariable.Zero();
             }
         }
         // Assemble element contributions.
