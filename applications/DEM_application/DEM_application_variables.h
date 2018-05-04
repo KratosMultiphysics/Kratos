@@ -110,6 +110,8 @@ namespace Kratos
   KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, vector<int>, PARTICLE_CONTACT_FAILURE_ID)
   // *************** Continuum only END ***************
 
+  KRATOS_DEFINE_VARIABLE(Vector, COORDINATES)
+
   KRATOS_DEFINE_VARIABLE(std::vector<Condition*>, WALL_POINT_CONDITION_POINTERS)
   typedef std::vector<array_1d<double, 3> > std_vector_of_arrays_3d;
   KRATOS_DEFINE_VARIABLE(std_vector_of_arrays_3d, WALL_POINT_CONDITION_ELASTIC_FORCES)
