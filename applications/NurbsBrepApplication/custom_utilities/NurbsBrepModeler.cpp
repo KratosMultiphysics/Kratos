@@ -492,7 +492,7 @@ namespace Kratos
 				Node<3>::Pointer node = Kratos::make_shared<Node<3>>(0,0,0,0); // ::Pointer(new Node<3>(0));
 				Node<3>::Pointer node_on_geometry = Node<3>::Pointer(new Node<3>(0,0,0,0));
 				
-				WeakPointerVector<Condition> point_conditions;// = (*element).GetValue(WALL_POINT_CONDITION_POINTERS);
+				std::vector<Condition*> point_conditions;// = (*element).GetValue(WALL_POINT_CONDITION_POINTERS);
 				//if (point_conditions.size() > 0)
 				//{
 				//	Condition closestElement = point_conditions[0];
@@ -565,7 +565,7 @@ namespace Kratos
 						cond->SetValue(FACE_BREP_ID, node_on_geometry->GetValue(FACE_BREP_ID));
 						cond->SetValue(SHAPE_FUNCTION_VALUES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTIONS));
 						cond->SetValue(EXTERNAL_FORCES_VECTOR, external_force_vector);
-						point_conditions.push_back(cond);
+						point_conditions.push_back(&*cond);
 						element->SetValue(WALL_POINT_CONDITION_POINTERS, point_conditions);
 					}
 				}

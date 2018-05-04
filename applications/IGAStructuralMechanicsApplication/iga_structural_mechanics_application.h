@@ -63,6 +63,8 @@ namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
+	//IGA-DEM
+	KRATOS_DEFINE_VARIABLE(Vector, COORDINATES)
 
 	//Variables definition
 	//KRATOS_DEFINE_VARIABLE(double, INTEGRATION_WEIGHT)

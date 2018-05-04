@@ -155,6 +155,58 @@ namespace Kratos
 			ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
 		}
 	}
+	/***********************************************************************************/
+	/***********************************************************************************/
+	void MeshlessForceInterfaceCondition::GetValueOnIntegrationPoints(
+		const Variable<Vector>& rVariable,
+		std::vector<Vector>& rValues,
+		const ProcessInfo& rCurrentProcessInfo
+	)
+	{
+		const unsigned int size = GetGeometry().IntegrationPoints().size();
+
+		if (rValues.size() != 1)
+			rValues.resize(1);
+
+		if (rVariable == COORDINATES) {
+			const int& number_of_nodes = GetGeometry().size();
+			Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
+			Vector condition_coords = ZeroVector(3);
+			for (SizeType i = 0; i < number_of_nodes; i++)
+			{
+				const NodeType & iNode = GetGeometry()[i];
+				const array_1d<double, 3>& coords = iNode.Coordinates();
+
+				condition_coords[0] += N[i] * coords[0];
+				condition_coords[1] += N[i] * coords[1];
+				condition_coords[2] += N[i] * coords[2];
+			}
+			rValues[0] = condition_coords;
+		}
+		else {
+			CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+		}
+	}
+	//************************************************************************************
+	//************************************************************************************
+	void MeshlessForceInterfaceCondition::GetValuesVector(Vector& values, int Step)
+	{
+		if (values.size() != 3)
+			values.resize(3, false);
+
+		const int& number_of_nodes = GetGeometry().size();
+		Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
+
+		for (SizeType i = 0; i < number_of_nodes; i++)
+		{
+			const NodeType & iNode = GetGeometry()[i];
+			const array_1d<double, 3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
+
+			values[0] += N[i] * disp[0];
+			values[1] += N[i] * disp[1];
+			values[2] += N[i] * disp[2];
+		}
+	}
 
 	//************************************************************************************
 	//************************************************************************************
@@ -176,5 +228,7 @@ namespace Kratos
 			values[2] += N[i] * vel[2];
 		}
 	}
+
+	
 
 } // Namespace Kratos

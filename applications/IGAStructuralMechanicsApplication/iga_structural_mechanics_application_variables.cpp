@@ -2,7 +2,11 @@
 
 namespace Kratos
 {
-	//
+	// IGA-DEM
+	KRATOS_CREATE_VARIABLE(Vector, COORDINATES)
+
+
+
 	//KRATOS_CREATE_VARIABLE(double, INTEGRATION_WEIGHT)
 	//Values of Shapefunctions N
 	KRATOS_CREATE_VARIABLE(Vector, SHAPE_FUNCTION_VALUES)

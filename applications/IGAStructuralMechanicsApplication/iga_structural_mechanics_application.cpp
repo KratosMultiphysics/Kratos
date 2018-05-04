@@ -68,7 +68,8 @@ void KratosIGAStructuralMechanicsApplication::Register() {
 	std::cout << "                        \\/         \\/ STRUCTURAL MECHANICS" << std::endl;
  	std::cout << "     Initializing KratosIGAStructuralMechanicsApplication... " << std::endl;
 
-
+	//IGA-DEM
+	KRATOS_REGISTER_VARIABLE(COORDINATES)
 	//KRATOS_REGISTER_VARIABLE( INTEGRATION_WEIGHT)
 
 	KRATOS_REGISTER_VARIABLE( SHAPE_FUNCTION_VALUES)

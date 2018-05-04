@@ -50,6 +50,8 @@ namespace Python
 	AddCustomUtilitiesToPython(m);
 	//AddConstitutiveLawsToPython(m);
 
+	//IGA-DEM
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COORDINATES)
 	//registering variables in python
 
 	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_WEIGHT)
