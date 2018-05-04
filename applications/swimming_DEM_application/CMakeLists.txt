@@ -99,7 +99,7 @@ install(TARGETS KratosSwimmingDEMApplication DESTINATION libs )
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosSwimmingDEMApplication PROPERTIES SUFFIX .pyd)
-    set_target_properties(KratosSwimmingDEMApplication PROPERTIES COMPILE_DEFINITIONS "SWIMMING_DEM_APPLICATION=EXPORT,API")
+    set_target_properties(KratosSwimmingDEMCore PROPERTIES COMPILE_DEFINITIONS "SWIMMING_DEM_APPLICATION=EXPORT,API")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so
