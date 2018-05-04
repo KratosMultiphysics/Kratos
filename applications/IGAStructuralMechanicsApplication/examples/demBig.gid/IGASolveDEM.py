@@ -160,6 +160,17 @@ end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
 spheres_mp = dem_analysis.spheres_model_part
 
+mapper_params = Parameters("""
+{
+    "mapper_type" : "iga_dem",
+    "interface_submodel_part_origin": "STRUCTURAL_ANALYSIS_2",
+    "search_radius": 1.0,
+    "search_iterations": 1
+}
+""")
+
+mapper = KratosMapping.MapperFactory.CreateMapper(iga_model_part, spheres_mp, mapper_params)
+
 # solving the problem (time integration)
 while dem_analysis.time < dem_analysis.final_time:
 
@@ -174,8 +185,10 @@ while dem_analysis.time < dem_analysis.final_time:
     iga_model_part.ProcessInfo[TIME_STEPS] = step
     iga_model_part.CloneTimeStep(time)
 
-    condition_model_part = ModelPart("ConditionModelPart")
-    NurbsBrepProcess.modeler.GetInterfaceConditions(dem_analysis.spheres_model_part, iga_model_part, NurbsBrepProcess.model_part_integration_domain)
+    # condition_model_part = ModelPart("ConditionModelPart")
+    # NurbsBrepProcess.modeler.GetInterfaceConditions(dem_analysis.spheres_model_part, iga_model_part, NurbsBrepProcess.model_part_integration_domain)
+
+    mapper.UpdateInterface()
 
     dem_analysis.RunSingleTemporalLoop()
     for process in list_of_processes:
