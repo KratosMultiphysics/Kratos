@@ -221,7 +221,7 @@ double ElementSizeCalculator<3,4>::AverageElementSize(const Geometry<Node<3> >& 
     double z30 = rGeometry[3].Z() - rGeometry[0].Z();
 
     double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
-    
+
     return pow(detJ/6.0,1./3.);
 }
 
@@ -245,20 +245,20 @@ double ElementSizeCalculator<3,8>::AverageElementSize(const Geometry<Node<3> >& 
     return pow(detJ,1./3.);
 }
 
-// Triangle2D3 version. 
+// Triangle2D3 version.
 template<>
 double ElementSizeCalculator<2,3>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
                                                         const array_1d<double,3>& rVelocity) {
-    
+
     double Hvel = 0.0;
 
     const unsigned int NumNodes = 3;
 
     // Loop over edges looking for maximum 'projected' length
     array_1d<double,3> Edge(3,0.0);
-    double lu = 0.0;
     for(unsigned int i = 0; i < NumNodes; ++i)
     {
+        double lu = 0.0;
         unsigned int j = (i+1) % NumNodes;
         Edge = rGeometry[j] - rGeometry[i];
         lu = rVelocity[0] * Edge[0];
@@ -277,32 +277,32 @@ double ElementSizeCalculator<2,3>::ProjectedElementSize(const Geometry<Node<3> >
     return Hvel;
 }
 
-// Quadrilateral2D4 version. 
+// Quadrilateral2D4 version.
 template<>
 double ElementSizeCalculator<2,4>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
                                                         const array_1d<double,3>& rVelocity) {
-    
+
     double Hvel = ElementSizeCalculator<2,3>::ProjectedElementSize(rGeometry,rVelocity);
 
     return Hvel;
 }
 
-// Tetrahedra3D4 version. 
+// Tetrahedra3D4 version.
 template<>
 double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
                                                         const array_1d<double,3>& rVelocity) {
-    
+
     double Hvel = 0.0;
 
     const unsigned int NumNodes = 4;
 
     // Loop over edges looking for maximum 'projected' length
     array_1d<double,3> Edge(3,0.0);
-    double lu = 0.0;
     for(unsigned int i = 0; i < NumNodes; ++i)
     {
         for(unsigned int j = i+1; j < NumNodes; ++j)
         {
+            double lu = 0.0;
             Edge = rGeometry[j] - rGeometry[i];
             lu = rVelocity[0] * Edge[0];
             for (unsigned int d = 1; d < 3; ++d)
@@ -321,11 +321,11 @@ double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >
     return Hvel;
 }
 
-// Hexahedra3D8 version. 
+// Hexahedra3D8 version.
 template<>
 double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
                                                         const array_1d<double,3>& rVelocity) {
-    
+
     double Hvel = 0.0;
 
     // Logic: define a box given by hexahedra edges 10,30,40 (which I'm assuming to be orthogonal)
@@ -413,7 +413,7 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >
     return Hvel;
 }
 
-// Triangle2D3 version. 
+// Triangle2D3 version.
 template<std::size_t TDim, std::size_t TNumNodes>
 double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,3,2>& rDN_DX) {
 
