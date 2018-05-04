@@ -155,8 +155,8 @@ template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::Initialize()
 {
     mpMapperLocalSystems->clear();
-    if(mpInterfacePreprocessor) mpInterfacePreprocessor->Initialize();
-    if(mpMappingOperationUtility) mpMappingOperationUtility->Initialize();
+    // if(mpInterfacePreprocessor) mpInterfacePreprocessor->Initialize();
+    // if(mpMappingOperationUtility) mpMappingOperationUtility->Initialize();
 }
 
 /***********************************************************************************/
@@ -193,7 +193,7 @@ template<>
 void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
 {
     // KRATOS_WATCH("Without MPI")
-    mpMappingOperationUtility = CreateMappingOperationUtility(mpMapperLocalSystems);
+    mpMappingOperationUtility = CreateMappingOperationUtility();
 }
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
@@ -201,7 +201,7 @@ template<>
 void Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
 {
     // KRATOS_WATCH("With MPI")
-    mpMappingOperationUtility = CreateMappingOperationUtility(mpMapperLocalSystems);
+    mpMappingOperationUtility = CreateMappingOperationUtility();
 }
 #endif
 

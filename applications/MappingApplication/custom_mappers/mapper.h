@@ -95,6 +95,12 @@ public:
     using MapperLocalSystemPointer = std::unique_ptr<MapperLocalSystem>;
     using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<std::vector<MapperLocalSystemPointer>>;
 
+    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
+    typedef typename TSparseSpace::VectorType TSystemVectorType;
+
+    using TSystemMatrixTypeUniquePointerType = std::unique_ptr<TSystemMatrixType>;
+    using TSystemVectorTypeUniquePointerType = std::unique_ptr<TSystemVectorType>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -207,10 +213,8 @@ protected:
 
     bool mInverseMapperIsInitialized = false;
 
-    // InterfaceCommunicatorPointerType mpInterfaceCommunicator;
     MappingOperationUtilityPointerType mpMappingOperationUtility;
     InterfacePreprocessorPointerType mpInterfacePreprocessor;
-    // ModelPartPointerType mpInterfaceModelPart;
     MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
 
     Mapper::Pointer mpInverseMapper;
@@ -331,6 +335,27 @@ protected:
         }
     }
 
+    TSystemMatrixType& GetMdo()
+    {
+        TSystemMatrixType& rMdo = *mpMdo;
+
+        return rMdo;
+    }
+
+    TSystemVectorType& GetQo()
+    {
+        TSystemVectorType& rQo = *mpQo;
+
+        return rQo;
+    }
+
+    TSystemVectorType& GetQd()
+    {
+        TSystemVectorType& rQd = *mpQd;
+
+        return rQd;
+    }
+
     /**
      * This function can be overridden by derived Mappers if they need some
      * Mapper-specific settings. After initializing/validating the mapper-specific
@@ -347,10 +372,9 @@ protected:
     //     return Kratos::make_shared<InterfaceCommunicator>(rModelPartOrigin, pInterfaceModelPart);
     // }
 
-    virtual MappingOperationUtilityPointerType CreateMappingOperationUtility(
-        MapperLocalSystemPointerVectorPointer pMapperLocalSystems) const
+    virtual MappingOperationUtilityPointerType CreateMappingOperationUtility() const
     {   // here we could return the MatrixFree variant in the future
-        return Kratos::make_shared<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>(pMapperLocalSystems);
+        return Kratos::make_shared<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>();
     }
 
 // #ifdef KRATOS_USING_MPI // mpi-parallel compilation
@@ -444,6 +468,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    TSystemMatrixTypeUniquePointerType mpMdo;
+    TSystemVectorTypeUniquePointerType mpQo;
+    TSystemVectorTypeUniquePointerType mpQd;
 
     ///@}
     ///@name Private Operators

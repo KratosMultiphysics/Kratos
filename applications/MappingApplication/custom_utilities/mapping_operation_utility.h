@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "mapper_local_system.h"
 
 
@@ -66,15 +67,17 @@ class MappingOperationUtility
     using IndexType = std::size_t;
 
     using MapperLocalSystemPointer = std::unique_ptr<MapperLocalSystem>;
-    using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<std::vector<MapperLocalSystemPointer>>;
+    using MapperLocalSystemPointerVector = Kratos::shared_ptr<std::vector<MapperLocalSystemPointer>>;
+
+    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
+    typedef typename TSparseSpace::VectorType TSystemVectorType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MappingOperationUtility(MapperLocalSystemPointerVectorPointer pMapperLocalSystems)
-        : mpMapperLocalSystems(pMapperLocalSystems)
+    MappingOperationUtility()
     {
 
     }
@@ -92,24 +95,29 @@ class MappingOperationUtility
     ///@name Operations
     ///@{
 
-    virtual void UpdateInterface()
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
+    virtual void ResizeAndInitializeVectors(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination) = 0;
 
+    // The "Build" function
+    virtual void BuildMappingMatrix(MapperLocalSystemPointerVector& rMapperLocalSystems,
+                                    TSystemMatrixType& rMdo) = 0;
+
+
+    virtual void UpdateInterface() = 0;
+
+    // The "Solve" function
     virtual void ExecuteMapping(const Variable<double>& rOriginVariable,
                                 const Variable<double>& rDestinationVariable,
-                                Kratos::Flags MappingOptions)
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
+                                Kratos::Flags MappingOptions) = 0;
 
+    // The "Solve" function
     virtual void ExecuteMapping(const Variable<array_1d<double, 3>>& rOriginVariable,
                                 const Variable<array_1d<double, 3>>& rDestinationVariable,
-                                Kratos::Flags MappingOptions)
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
+                                Kratos::Flags MappingOptions) = 0;
 
 
     ///@}
@@ -154,8 +162,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
 
 
     ///@}

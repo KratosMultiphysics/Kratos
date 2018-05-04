@@ -29,10 +29,9 @@ namespace Kratos
 
     template<>
     MatrixBasedMappingOperationUtility<MapperDefinitions::MPISparseSpaceType,
-        MapperDefinitions::DenseSpaceType>::MatrixBasedMappingOperationUtility(
-        MapperLocalSystemPointerVectorPointerType pMapperLocalSystems)
+        MapperDefinitions::DenseSpaceType>::MatrixBasedMappingOperationUtility()
         : MappingOperationUtility<MapperDefinitions::MPISparseSpaceType,
-          MapperDefinitions::DenseSpaceType>(pMapperLocalSystems)
+          MapperDefinitions::DenseSpaceType>()
     {
 
         KRATOS_WATCH("MPI-Constructor")

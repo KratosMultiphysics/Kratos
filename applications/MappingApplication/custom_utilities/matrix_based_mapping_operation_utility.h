@@ -64,7 +64,10 @@ class MatrixBasedMappingOperationUtility
 
     using BaseType = MappingOperationUtility<TSparseSpace, TDenseSpace>;
     using MapperLocalSystemPointerType = typename BaseType::MapperLocalSystemPointer;
-    using MapperLocalSystemPointerVectorPointerType = typename BaseType::MapperLocalSystemPointerVectorPointer;
+    using MapperLocalSystemPointerVector = typename BaseType::MapperLocalSystemPointerVector;
+
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
 
 
@@ -73,7 +76,7 @@ class MatrixBasedMappingOperationUtility
     ///@{
 
     /// Default constructor.
-    MatrixBasedMappingOperationUtility(MapperLocalSystemPointerVectorPointerType pMapperLocalSystems);
+    MatrixBasedMappingOperationUtility();
 
     /// Destructor.
     virtual ~MatrixBasedMappingOperationUtility() {}
@@ -87,6 +90,30 @@ class MatrixBasedMappingOperationUtility
     ///@}
     ///@name Operations
     ///@{
+
+    void ResizeAndInitializeVectors(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination) override { }
+
+    // The "Build" function
+    void BuildMappingMatrix(MapperLocalSystemPointerVector& rMapperLocalSystems,
+                                    TSystemMatrixType& rMdo) override { }
+
+
+    void UpdateInterface() override { }
+
+    // The "Solve" function
+    void ExecuteMapping(const Variable<double>& rOriginVariable,
+                                const Variable<double>& rDestinationVariable,
+                                Kratos::Flags MappingOptions) override { }
+
+    // The "Solve" function
+    void ExecuteMapping(const Variable<array_1d<double, 3>>& rOriginVariable,
+                                const Variable<array_1d<double, 3>>& rDestinationVariable,
+                                Kratos::Flags MappingOptions) override { }
 
 
     ///@}
