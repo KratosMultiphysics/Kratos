@@ -32,6 +32,7 @@
 #include "includes/constitutive_law.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
+#include "includes/deprecated_variables.h"
 
 #include "includes/condition.h"   //#include "costum_conditions/nuova_condizione.h nel caso non sia gia stata definita
 #include "includes/ublas_interface.h"
@@ -141,7 +142,7 @@ KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(PARTICLE_MECHANICS_APPLICA
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(PARTICLE_MECHANICS_APPLICATION, NODAL_MOMENTUM )
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(PARTICLE_MECHANICS_APPLICATION, NODAL_INERTIA )
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(PARTICLE_MECHANICS_APPLICATION, NODAL_INTERNAL_FORCE )
-KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, double, IS_STRUCTURE)
+
 
 ///@}
 ///@name Type Definitions
