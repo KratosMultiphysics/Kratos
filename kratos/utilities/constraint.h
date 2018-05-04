@@ -31,12 +31,12 @@ namespace Kratos
 /** \brief Constraint
 	* A class that implements the interface for different constraints to be applied on a system.
     */
-class Constraint :  public IndexedObject, public Flags
+class MasterSlaveConstraint :  public IndexedObject, public Flags
 {
 
   public:
     /// Pointer definition of DataValueContainer
-    KRATOS_CLASS_POINTER_DEFINITION(Constraint);
+    KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveConstraint);
 
     typedef Dof<double> DofType;
     typedef Node<3> NodeType;
@@ -52,11 +52,11 @@ class Constraint :  public IndexedObject, public Flags
     /**
 	    Creates a MultipointConstraint object
 	*/
-    MultipointConstraint() : Flags()
+    MasterSlaveConstraint() : Flags()
     {
     }
     /// Destructor.
-    virtual ~MultipointConstraint(){};        
+    virtual ~MasterSlaveConstraint(){};        
 
 
     ///@}
@@ -97,16 +97,16 @@ class Constraint :  public IndexedObject, public Flags
      * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
      * matrix and the right hand side
-     * @param rLeftHandSideMatrix the elemental left hand side matrix
-     * @param rRightHandSideVector the elemental right hand side
+     * @param rTransformationMatrix the elemental left hand side matrix
+     * @param rConstant the elemental right hand side
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLocalSystem(MatrixType& rTransformationMatrix,
                                       ConstantType& rConstant,
                                       ProcessInfo& rCurrentProcessInfo)
     {
-      if (rLeftHandSideMatrix.size1() != 0)
-    	  rLeftHandSideMatrix.resize(0, 0, false);
+      if (rTransformationMatrix.size1() != 0)
+    	  rTransformationMatrix.resize(0, 0, false);
 
 	  rConstant = 0.00;
     }
