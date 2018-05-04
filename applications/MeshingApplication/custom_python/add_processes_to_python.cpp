@@ -23,7 +23,7 @@
 #include "custom_processes/metric_fast_init_process.h"
 #include "custom_processes/metrics_levelset_process.h"
 #include "custom_processes/metrics_hessian_process.h"
-#include "custom_processes/metrics_error_process.h"
+#include "custom_processes/metrics_spr_error_process.h"
 // #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 // #include "custom_processes/set_h_map_process.h"
@@ -122,18 +122,18 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(init<ModelPart&, ComponentType&, Parameters>())
         .def("Execute",&ComputeHessianSolMetricProcess<3, ComponentType>::Execute)
         ;
-        
-        // ERROR
-        class_<ComputeErrorSolMetricProcess<2>,  Process >(m, "ComputeErrorSolMetricProcess2D")
+
+        //SPR_ERROR
+        class_<SPRMetricProcess<2>, Process >(m, "SPRMetricProcess2D")
         .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
-        .def("Execute",&ComputeErrorSolMetricProcess<2>::Execute)
+        .def("Execute",&SPRMetricProcess<2>::Execute)
         ;
-   
-        class_<ComputeErrorSolMetricProcess<3>,  Process >(m, "ComputeErrorSolMetricProcess3D")
+
+        class_<SPRMetricProcess<3>, Process >(m, "SPRMetricProcess3D")
         .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
-        .def("Execute",&ComputeErrorSolMetricProcess<3>::Execute)
+        .def("Execute",&SPRMetricProcess<3>::Execute)
         ;
         
         /* MMG PROCESS */
