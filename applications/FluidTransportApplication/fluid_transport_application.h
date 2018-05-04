@@ -29,7 +29,7 @@
 #include "custom_elements/steady_convection_diffusion_FIC_element.hpp"
 
 
-namespace Kratos 
+namespace Kratos
 {
 
 ///@name Kratos Globals
@@ -54,7 +54,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosFluidTransportApplication : public KratosApplication 
+class KratosFluidTransportApplication : public KratosApplication
 {
 
 public:

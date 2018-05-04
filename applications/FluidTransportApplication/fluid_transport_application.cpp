@@ -28,7 +28,7 @@
 // Application includes
 #include "fluid_transport_application.h"
 
-namespace Kratos 
+namespace Kratos
 {
 
 KratosFluidTransportApplication::KratosFluidTransportApplication():
@@ -39,7 +39,7 @@ KratosFluidTransportApplication::KratosFluidTransportApplication():
     mSteadyConvectionDiffusionFICElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8))))
     {}
 
-void KratosFluidTransportApplication::Register() 
+void KratosFluidTransportApplication::Register()
 {
  	// calling base class register to register Kratos components
  	KratosApplication::Register();

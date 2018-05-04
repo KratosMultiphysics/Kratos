@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author1 Fullname
-//                   Author2 Fullname 
+//                   Author2 Fullname
 //
 
 
@@ -39,7 +39,7 @@ PYBIND11_MODULE(KratosFluidTransportApplication, m)
 	KratosFluidTransportApplication::Pointer,
     KratosApplication>(m, "KratosFluidTransportApplication")
 	.def(init<>());
-	
+
 	//registering variables in python
 }
 

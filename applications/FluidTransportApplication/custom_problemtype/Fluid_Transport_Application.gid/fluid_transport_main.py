@@ -12,7 +12,7 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication as KratosSolvers 
+import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.FluidTransportApplication as KratosFluidTransport
@@ -120,40 +120,40 @@ solver.Initialize()
 # ExecuteBeforeSolutionLoop
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
-    
+
 ## Set results when they are written in a single file
 gid_output.ExecuteBeforeSolutionLoop()
 
 ## Temporal loop ---------------------------------------------------------------------------------------------
 
 while( (time+tol) <= end_time ):
-    
+
     # Update temporal variables
     delta_time = main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
     time = time + delta_time
     main_model_part.CloneTimeStep(time)
-    
+
     # Update imposed conditions
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
 
     gid_output.ExecuteInitializeSolutionStep()
-    
+
     # Solve step
     solver.Solve()
-    
+
     gid_output.ExecuteFinalizeSolutionStep()
-    
+
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
-    
+
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
-    
+
     # Write GiD results
     if gid_output.IsOutputStep():
         gid_output.PrintOutput()
-    
+
     for process in list_of_processes:
         process.ExecuteAfterOutputStep()
 
@@ -164,7 +164,7 @@ gid_output.ExecuteFinalize()
 
 for process in list_of_processes:
     process.ExecuteFinalize()
-    
+
 # Finalizing strategy
 if parallel_type == "OpenMP":
     solver.Clear()

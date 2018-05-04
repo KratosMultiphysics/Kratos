@@ -38,13 +38,13 @@ template< unsigned int TDim, unsigned int TNumNodes >
 int SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     const GeometryType& Geom = this->GetGeometry();
 
     // Base class checks for positive area and Id > 0
     int ierr = Element::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
-    
+
     if(Geom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
@@ -112,7 +112,7 @@ int SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::Check( const ProcessInf
                 KRATOS_ERROR << "Node with non-zero Z coordinate found. Id: " << Geom[i].Id() << std::endl;
         }
     }
-    
+
     return ierr;
 
     KRATOS_CATCH( "" );
@@ -134,7 +134,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetDofList(DofsVectorT
         KRATOS_TRY
 
         GeometryType& rGeom = this->GetGeometry();
-        
+
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
@@ -158,19 +158,19 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateLocalSystem( 
     KRATOS_TRY
 
     const unsigned int element_size = TNumNodes;
-    
+
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != element_size )
         rLeftHandSideMatrix.resize( element_size, element_size, false );
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( element_size, element_size );
-    
+
     //Resetting the RHS
     if ( rRightHandSideVector.size() != element_size )
         rRightHandSideVector.resize( element_size, false );
     noalias( rRightHandSideVector ) = ZeroVector( element_size );
-    
+
     this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-        
+
     KRATOS_CATCH( "" )
 }
 //----------------------------------------------------------------------------------------
@@ -179,9 +179,9 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-    
+
     KRATOS_THROW_ERROR(std::logic_error,"SteadyConvectionDiffusionFICElement::CalculateLeftHandSide not implemented","");
-    
+
     KRATOS_CATCH("");
 }
 
@@ -191,16 +191,16 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     const unsigned int element_size = TNumNodes;
-        
+
     //Resetting the RHS
     if ( rRightHandSideVector.size() != element_size )
         rRightHandSideVector.resize( element_size, false );
     noalias( rRightHandSideVector ) = ZeroVector( element_size );
-    
+
     this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -213,7 +213,7 @@ void SteadyConvectionDiffusionFICElement<TDim, TNumNodes>::EquationIdVector(Equa
 
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = TNumNodes;
-  
+
     ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
@@ -232,28 +232,28 @@ void SteadyConvectionDiffusionFICElement<TDim, TNumNodes>::EquationIdVector(Equa
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
-{    
+{
     KRATOS_TRY
-    
-    //Previous definitions 
+
+    //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
     GeometryData::IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
-    
+
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( ThisIntegrationMethod );
     GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
     Vector detJContainer(NumGPoints);
     Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,ThisIntegrationMethod);
-    
+
     //Element variables
-    ElementVariables Variables; 
+    ElementVariables Variables;
     this->InitializeElementVariables(Variables,Geom,Prop,CurrentProcessInfo);
 
     noalias(Variables.VelInter) = ZeroVector(TDim);
-        
+
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -275,15 +275,15 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
-        
+
         //Contributions to the left hand side
         this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
-        
+
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
 
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -291,28 +291,28 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
-{    
+{
     KRATOS_TRY
-    
-    //Previous definitions 
+
+    //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
     GeometryData::IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
-    
+
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( ThisIntegrationMethod );
     GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
     Vector detJContainer(NumGPoints);
     Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,ThisIntegrationMethod);
-    
+
     //Element variables
-    ElementVariables Variables; 
+    ElementVariables Variables;
     this->InitializeElementVariables(Variables,Geom,Prop,CurrentProcessInfo);
 
     noalias(Variables.VelInter) = ZeroVector(TDim);
-        
+
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -334,12 +334,12 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRHS( VectorTy
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
-        
+
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
 
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -348,14 +348,14 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRHS( VectorTy
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVariables(ElementVariables& rVariables,
                                                                                   const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo)
-{   
+{
     KRATOS_TRY
-    
+
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
     const GeometryType& Geom = this->GetGeometry();
 
-    //Properties variables    
+    //Properties variables
     const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
     double FluidDensity = Prop[rDensityVar];
 
@@ -381,7 +381,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVaria
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         rVariables.NodalPhi[i] = Geom[i].FastGetSolutionStepValue(rUnknownVar);
-                
+
         rVariables.NodalVel[i]=ZeroVector(3);
         const Variable<array_1d<double, 3 > >& rVelocityVar = my_settings->GetVelocityVariable();
 		const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
@@ -392,7 +392,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVaria
         const Variable<double>& rVolumeSourceVar = my_settings->GetVolumeSourceVariable();
         rVariables.NodalQSource[i] = Geom[i].FastGetSolutionStepValue(rVolumeSourceVar);
     }
-        
+
     KRATOS_CATCH( "" )
 }
 
@@ -404,7 +404,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(Eleme
 
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
-    //Properties variables    
+    //Properties variables
     const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
     double conductivity = Prop[rDiffusionVar];
 
@@ -423,7 +423,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(Eleme
     {
         rVariables.lv = pow( (6.0*Domain/Globals::Pi) , (1.0/3.0) );
     }
-    
+
     double Hu;
     if (NormVel > 1.0e-6)
     {
@@ -462,15 +462,16 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(Eleme
 // Triangle2D3 version. TODO: The rest of geometries will be in a utility
 template< unsigned int TDim, unsigned int TNumNodes >
 double SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
-                                                        const array_1d<double,3>& rVelocity)                                                    
+                                                        const array_1d<double,3>& rVelocity)
 {
     double Hu = 0.0;
 
     // Loop over edges looking for maximum 'projected' length
     array_1d<double,3> Edge(3,0.0);
-    double lu = 0.0;
+
     for(unsigned int i = 0; i < TNumNodes; ++i)
     {
+        double lu = 0.0;
         unsigned int j = (i+1) % TNumNodes;
         Edge = rGeometry[j] - rGeometry[i];
         lu = rVelocity[0] * Edge[0];
@@ -494,7 +495,7 @@ double SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::ProjectedElementSize
 // TODO: AverageElementSize will be in a utility
 // Triangle2D3 version.
 template< >
-double SteadyConvectionDiffusionFICElement<2,3>::AverageElementSize(const Geometry<Node<3> >& rGeometry) 
+double SteadyConvectionDiffusionFICElement<2,3>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
 {
 
     double x10 = rGeometry[1].X() - rGeometry[0].X();
@@ -572,17 +573,17 @@ double SteadyConvectionDiffusionFICElement<3,8>::AverageElementSize(const Geomet
 
 //TODO: This will be moved to an utility
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InterpolateVariableWithComponents(array_1d<double,TDim>& rVector,const Matrix& Ncontainer, 
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InterpolateVariableWithComponents(array_1d<double,TDim>& rVector,const Matrix& Ncontainer,
                                         const array_1d<array_1d<double,TDim>, TNumNodes>& VariableWithComponents,const unsigned int& GPoint)
-{            
+{
     noalias(rVector) = ZeroVector(TDim);
-       
+
     for(unsigned int i=0; i<TNumNodes; i++)
     {
 
         rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[i][0];
         rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[i][1];
-        
+
         if(TDim>2)
         {
             rVector[2] += Ncontainer(GPoint,i)*VariableWithComponents[i][2];
@@ -613,7 +614,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddAdvecti
     noalias(rVariables.AdvMatrixAux) = rVariables.rho_dot_c*outer_prod(rVariables.N,rVariables.VelInter);
 
     noalias(rLeftHandSideMatrix) += prod(rVariables.AdvMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
-    
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -653,7 +654,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHS(Vec
     this->CalculateAndAddRHSAdvection(rRightHandSideVector, rVariables);
 
     this->CalculateAndAddRHSDiffusive(rRightHandSideVector, rVariables);
-    
+
     this->CalculateAndAddRHSFIC(rRightHandSideVector, rVariables);
 
     //+f

@@ -27,9 +27,9 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
             self.process = KratosFluidTransport.ApplyDoubleTableProcess(model_part, params)
 
     def ExecuteInitialize(self):
-        
+
         self.process.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
-        
+
         self.process.ExecuteInitializeSolutionStep()

@@ -35,7 +35,7 @@ class SteadyConvectionDiffusionFICElement : public Element
 {
 
 public:
-    
+
     KRATOS_CLASS_POINTER_DEFINITION( SteadyConvectionDiffusionFICElement );
 
     typedef std::size_t IndexType;
@@ -46,15 +46,15 @@ public:
     typedef Vector VectorType;
     typedef Matrix MatrixType;
 
-    
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
     SteadyConvectionDiffusionFICElement(IndexType NewId = 0) : Element( NewId ) {}
-    
+
     /// Constructor using an array of nodes
     SteadyConvectionDiffusionFICElement(IndexType NewId, const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
-    
+
     /// Constructor using Geometry
     SteadyConvectionDiffusionFICElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {}
 
@@ -65,11 +65,11 @@ public:
     virtual ~SteadyConvectionDiffusionFICElement() {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
-    
+
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
-        
+
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -79,21 +79,21 @@ public:
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     void GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
-    
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
-    
+
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo ) override;
-    
+
     void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
-    
+
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-        
+
     struct ElementVariables
     {
         ///Properties variables
@@ -106,12 +106,12 @@ protected:
         BoundedMatrix<double,TDim,TDim> DifMatrixK;
 
         ///ProcessInfo variables
-    
+
         ///Nodal variables
         array_1d<double,TNumNodes> NodalPhi;
         array_1d<double,TNumNodes> NodalQSource;
         array_1d<array_1d<double,3>, TNumNodes> NodalVel;
-        
+
         ///Variables computed at each GP
         double IntegrationCoefficient;
         double QSource;
@@ -130,11 +130,11 @@ protected:
 
 
     };
-    
+
     /// Member Variables
-    
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------       
-    
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 
     void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
@@ -146,12 +146,12 @@ protected:
 
     double AverageElementSize(const Geometry<Node<3> >& rGeometry);
 
-    void InterpolateVariableWithComponents(array_1d<double,TDim>& rVector,const Matrix& Ncontainer, 
+    void InterpolateVariableWithComponents(array_1d<double,TDim>& rVector,const Matrix& Ncontainer,
                                         const array_1d<array_1d<double,TDim>, TNumNodes>& VariableWithComponents,const unsigned int& GPoint);
 
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
-    
+
     void CalculateAndAddAdvectionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddDiffusiveMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
@@ -159,9 +159,9 @@ protected:
     void CalculateAndAddFICMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
 
-    
+
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-    
+
     void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddRHSDiffusive(VectorType& rRightHandSideVector, ElementVariables& rVariables);
@@ -169,11 +169,11 @@ protected:
     void CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddSourceForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-        
+
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight);
 
-    
+
     void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 
 
@@ -184,11 +184,11 @@ private:
     /// Member Variables
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
     /// Serialization
-    
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
