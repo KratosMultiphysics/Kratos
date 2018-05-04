@@ -43,6 +43,7 @@ using namespace pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
+    typedef Kratos::shared_ptr<ProcessFactoryUtility> ProcessesListType;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
@@ -54,7 +55,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom scheme types
 
     // Custom convergence criterion types
+#ifdef INCLUDE_MMG
     typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
+#endif
     
     // Custom builder and solvers types
     
@@ -70,10 +73,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
 
-    // Displacement Convergence Criterion
+    // Error mesh Convergence Criterion
+#ifdef INCLUDE_MMG
     class_< ErrorMeshCriteriaType, typename ErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ErrorMeshCriteria") 
-            .def(init<ModelPart&, Parameters>())
-            ;
+        .def(init<ModelPart&, Parameters>())
+        .def(init<ModelPart&, Parameters, ProcessesListType>())
+        ;
+#endif
             
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
