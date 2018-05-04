@@ -81,7 +81,7 @@ namespace Kratos
         typedef size_t IndexType;
 
     public:
-        
+
         RveMacroscaleData()
 			: mStrainVector(0)
 			, mMean_Temp(0.0)
@@ -90,7 +90,7 @@ namespace Kratos
 			, mHasTemperatureChecked(false)
         {
         }
-        
+
         virtual ~RveMacroscaleData()
         {
         }
@@ -102,7 +102,7 @@ namespace Kratos
 					 const RveGeometryDescriptor& geomdes)
 		{
 			mStrainVector = param_macro.GetStrainVector();
-			
+
 			/**
 			we can get also other stuff like:
 			TEMPERATURE on nodes (geom[i].FastGet,....) and interpolate them with (params.GetShapeFunc...)
@@ -160,7 +160,7 @@ namespace Kratos
 			// END MOD STEFANO
 
 		}
-	
+
         inline const VectorType& StrainVector()const{return mStrainVector;}
 		inline VectorType&       StrainVector()     {return mStrainVector;}
 
@@ -176,7 +176,7 @@ namespace Kratos
         {
             std::stringstream ss;
             ss << "RVE Macroscale Data:" << std::endl;
-            
+
             ss << "StrainVector: [" << mStrainVector.size() << "] (";
             for(size_t i = 0; i < mStrainVector.size(); i++) {
                 ss << mStrainVector(i);
@@ -184,13 +184,13 @@ namespace Kratos
                     ss << ",";
             }
             ss << ")" << std::endl;
-            
+
             ss << std::endl;
             return ss.str();
         }
 
     protected:
-    
+
         VectorType mStrainVector;
 		VectorType mStrainVectorOld;
 
