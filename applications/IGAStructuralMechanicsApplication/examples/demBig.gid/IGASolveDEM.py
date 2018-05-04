@@ -30,9 +30,10 @@ from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.IGAStructuralMechanicsApplication import *
 from KratosMultiphysics.NurbsBrepApplication import *
+import KratosMultiphysics.MappingApplication as KratosMapping
 
 from KratosMultiphysics import DEMApplication
-import main_script 
+import main_script
 
 from KratosExternalSolversApplication import *
 
@@ -116,7 +117,7 @@ if(echo_level>4):
     for process in list_of_processes:
         print(process)
 
-##TODO: decide which is the correct place to initialize the processes 
+##TODO: decide which is the correct place to initialize the processes
 for process in list_of_processes:
     process.ExecuteInitialize()
 #### processes settings end ####
@@ -126,7 +127,7 @@ for process in list_of_processes:
 #### START SOLUTION ####
 
 #TODO: think if there is a better way to do this
-computing_model_part = iga_solver.GetComputeModelPart()
+iga_computing_model_part = iga_solver.GetComputeModelPart()
 
 
 #### output settings start ####
@@ -157,16 +158,16 @@ step = 0
 time = ProjectParameters["problem_data"]["start_time"].GetDouble()
 end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
-print(dem_analysis.spheres_model_part)
+spheres_mp = dem_analysis.spheres_model_part
 
 # solving the problem (time integration)
 while dem_analysis.time < dem_analysis.final_time:
 
     #TODO: this must be done by a solving_info utility in the iga_solver
     # store previous time step
-    #~ computing_model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = delta_time
+    #~ iga_computing_model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = delta_time
     # set new time step ( it can change when solve is called )
-    #~ delta_time = computing_model_part.ProcessInfo[DELTA_TIME]
+    #~ delta_time = iga_computing_model_part.ProcessInfo[DELTA_TIME]
 
     time = time + delta_time
     step = step + 1
