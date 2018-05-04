@@ -669,7 +669,6 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
     const int dimension = this->GetGeometry().WorkingSpaceDimension();
     const SizeType num_dofs = GetNumberOfDofs();
     const SizeType num_gps = GetNumberOfGPs();
-    //const int num_dofs = num_nodes * dimension * 2;
     ProcessInfo copy_process_info = rCurrentProcessInfo;
     Vector initial_state_variables;
     Vector stress_derivatives_vector;
@@ -687,7 +686,6 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
     primal_solution_variable_list.push_back(ROTATION_Y);       
     primal_solution_variable_list.push_back(ROTATION_Z);       
     
-    // Concept A: Analytic apporoch ###################################################
     KRATOS_ERROR_IF(rCurrentProcessInfo.Has(NL_ITERATION_NUMBER)) 
         << "Stress displacement derivative computation is currently only for linear cases availible!" << std::endl;
 	
@@ -724,57 +722,6 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
             this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_state_variables[index + j];
     }
 
-    // Concept B: derive by finite differnces #####################################################################################
-    /*
-    Vector stress_vector_undist;
-    Vector stress_vector_dist;
-    ProcessInfo copy_process_info = rCurrentProcessInfo;
-    double initial_value_of_state_variable = 0.0;
-    const int num_nodes = this->GetGeometry().PointsNumber();
-    // Get disturbance measure
-    double dist_measure = this->GetValue(DISTURBANCE_MEASURE); 	
-
-    this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
-
-    const SizeType num_dofs = GetNumberOfDofs();
-    const SizeType num_gps = GetNumberOfGPs();
-    rOutput.resize(num_dofs, num_gps);
-    rOutput.clear();
-        
-     // Built vector of variables containing the DOF-variables of the primal problem 
-    std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list; 
-    primal_solution_variable_list.push_back(DISPLACEMENT_X);       
-    primal_solution_variable_list.push_back(DISPLACEMENT_Y);       
-    primal_solution_variable_list.push_back(DISPLACEMENT_Z);       
-    primal_solution_variable_list.push_back(ROTATION_X);       
-    primal_solution_variable_list.push_back(ROTATION_Y);       
-    primal_solution_variable_list.push_back(ROTATION_Z);  
-
-    int index = 0;
-    for (int i = 0; i < num_nodes; i++) 
-    {	
-        for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
-        {
-            initial_value_of_state_variable = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
-                
-            this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable + dist_measure;
-                
-            this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
-            
-            for(unsigned int k = 0; k < num_gps; k++)
-            {
-                stress_vector_dist[k] -= stress_vector_undist[k];
-                stress_vector_dist[k] /= dist_measure;
-                rOutput(index,k) = stress_vector_dist[k];
-            }
-
-            this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable;
-
-            stress_vector_dist.clear();
-            index++;
-        }
-    }
-    */
     KRATOS_CATCH("")
 }   
 
