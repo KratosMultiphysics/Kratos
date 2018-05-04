@@ -248,7 +248,7 @@ public:
 	  //Condense
 	  const unsigned int local_size = (Dim + 1) * NumberOfNodes;
 	 // LocalSystemMatrixType aux_LHS;
-      boost::numeric::ublas::bounded_matrix <double, 16,16> aux_LHS;
+      BoundedMatrix <double, 16,16> aux_LHS;
 	  //LocalSystemVectorType aux_RHS;
 	  array_1d<double,16>  aux_RHS;
 	  //aux_LHS.resize(local_size,local_size,false);

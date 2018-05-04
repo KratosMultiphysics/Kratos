@@ -390,11 +390,11 @@ protected:
             }
 
         // Create the colored graph for communication.
-        matrix<int> domains_colored_graph;
+        DenseMatrix<int> domains_colored_graph;
         int max_color_found = -1;
         if (my_rank == root_id)
         {
-            matrix<int> domains_graph = scalar_matrix<int>(num_processors, num_processors, 0);
+            DenseMatrix<int> domains_graph = scalar_matrix<int>(num_processors, num_processors, 0);
             for (unsigned index1 = 0; index1 < num_processors; ++index1)
                 for (unsigned index2 : receive_neighbours[index1])
                 {
