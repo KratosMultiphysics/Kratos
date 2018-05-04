@@ -20,8 +20,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/element.h"
-#include "includes/condition.h"
 #include "includes/communicator.h"
 #include "includes/model_part.h"
 #include "includes/process_info.h"
@@ -80,7 +78,7 @@ public:
 
         Parameters default_params(R"(
         {
-            "scheme_type": "structural"
+            "scheme_type": "adjoint_structural"
         })");
 
         rParameters.ValidateAndAssignDefaults(default_params);
