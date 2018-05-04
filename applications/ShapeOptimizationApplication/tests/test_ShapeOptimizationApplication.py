@@ -9,7 +9,7 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 from KratosMultiphysics import ShapeOptimizationApplication
 from KratosMultiphysics import StructuralMechanicsApplication
-from KratosMultiphysics import ALEApplication
+from KratosMultiphysics import MeshMovingApplication
 from KratosMultiphysics import ExternalSolversApplication
 
 # Import Kratos "wrapper" for unittests
