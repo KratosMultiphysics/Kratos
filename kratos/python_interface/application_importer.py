@@ -20,7 +20,7 @@ def ImportApplication(application, application_name, application_folder, caller)
         # print main_caller
         raise RuntimeError(msg)
     elif application_name not in Globals.RequestedApplications:  # This check is possibly redundant, as Python won't import the same module twice
-        Logger.Print("Importing    " + application_name, label="")
+        Logger.PrintInfo("", "Importing    " + application_name)
         # Add application to dictionary of registered applications
         Globals.RequestedApplications[application_name] = application
         # Add python scrips folder to path
