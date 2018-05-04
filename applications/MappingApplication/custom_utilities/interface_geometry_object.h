@@ -116,77 +116,77 @@ public:
         return mpGeometry;
     }
 
-    bool EvaluateResult(const array_1d<double, 3>& rGlobalCoords,
-                        double& rMinDistance, const double Distance,
-                        std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
-    {
-        // Distance is the distance to the center and not the projection distance, therefore it is unused
-        bool is_closer = false;
-        bool is_inside = false;
-        double projection_distance = std::numeric_limits<double>::max();
-        array_1d<double, 3> projection_local_coords;
+    // bool EvaluateResult(const InterfaceObject::Pointer rObject,
+    //                     double& rMinDistance, const double Distance,
+    //                     std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
+    // {
+    //     // Distance is the distance to the center and not the projection distance, therefore it is unused
+    //     bool is_closer = false;
+    //     bool is_inside = false;
+    //     double projection_distance = std::numeric_limits<double>::max();
+    //     array_1d<double, 3> projection_local_coords;
 
-        if (mGeometryFamily == GeometryData::Kratos_Linear
-                && mNumPoints == 2)   // I am a linear line condition
-        {
-            is_inside = MapperUtilities::ProjectPointToLine(mpGeometry, rGlobalCoords,
-                        projection_local_coords,
-                        projection_distance);
-        }
-        else if (mGeometryFamily == GeometryData::Kratos_Triangle
-                 && mNumPoints == 3)   // I am a linear triangular condition
-        {
-            is_inside = MapperUtilities::ProjectPointToTriangle(mpGeometry, rGlobalCoords,
-                        projection_local_coords,
-                        projection_distance);
-        }
-        else if (mGeometryFamily == GeometryData::Kratos_Quadrilateral
-                 && mNumPoints == 4)   // I am a linear quadrilateral condition
-        {
-            is_inside = MapperUtilities::ProjectPointToQuadrilateral(mpGeometry, rGlobalCoords,
-                        projection_local_coords,
-                        projection_distance);
-        }
-        else if (mGeometryFamily == GeometryData::Kratos_Tetrahedra ||
-                 mGeometryFamily == GeometryData::Kratos_Prism ||
-                 mGeometryFamily == GeometryData::Kratos_Hexahedra)   // Volume Mapping
-        {
-            is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpGeometry, rGlobalCoords,
-                        projection_local_coords,
-                        projection_distance);
-        }
-        else
-        {
-            if (mEchoLevel >= 2) {
-                std::cout << "MAPPER WARNING, Unsupported geometry, "
-                          << "using an approximation (Nearest Node)"
-                          << " | InterfaceGeometryObject, Center: [ "
-                          << this->X() << " | "
-                          << this->Y() << " | "
-                          << this->Z() << " ], "
-                          << "(KratosGeometryFamily \"" << mGeometryFamily
-                          << "\", num points: " << mNumPoints << std::endl;
-            }
-            return false;
-        }
+    //     if (mGeometryFamily == GeometryData::Kratos_Linear
+    //             && mNumPoints == 2)   // I am a linear line condition
+    //     {
+    //         is_inside = MapperUtilities::ProjectPointToLine(mpGeometry, rGlobalCoords,
+    //                     projection_local_coords,
+    //                     projection_distance);
+    //     }
+    //     else if (mGeometryFamily == GeometryData::Kratos_Triangle
+    //              && mNumPoints == 3)   // I am a linear triangular condition
+    //     {
+    //         is_inside = MapperUtilities::ProjectPointToTriangle(mpGeometry, rGlobalCoords,
+    //                     projection_local_coords,
+    //                     projection_distance);
+    //     }
+    //     else if (mGeometryFamily == GeometryData::Kratos_Quadrilateral
+    //              && mNumPoints == 4)   // I am a linear quadrilateral condition
+    //     {
+    //         is_inside = MapperUtilities::ProjectPointToQuadrilateral(mpGeometry, rGlobalCoords,
+    //                     projection_local_coords,
+    //                     projection_distance);
+    //     }
+    //     else if (mGeometryFamily == GeometryData::Kratos_Tetrahedra ||
+    //              mGeometryFamily == GeometryData::Kratos_Prism ||
+    //              mGeometryFamily == GeometryData::Kratos_Hexahedra)   // Volume Mapping
+    //     {
+    //         is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpGeometry, rGlobalCoords,
+    //                     projection_local_coords,
+    //                     projection_distance);
+    //     }
+    //     else
+    //     {
+    //         if (mEchoLevel >= 2) {
+    //             std::cout << "MAPPER WARNING, Unsupported geometry, "
+    //                       << "using an approximation (Nearest Node)"
+    //                       << " | InterfaceGeometryObject, Center: [ "
+    //                       << this->X() << " | "
+    //                       << this->Y() << " | "
+    //                       << this->Z() << " ], "
+    //                       << "(KratosGeometryFamily \"" << mGeometryFamily
+    //                       << "\", num points: " << mNumPoints << std::endl;
+    //         }
+    //         return false;
+    //     }
 
-        if (is_inside)
-        {
-            projection_distance = fabs(projection_distance);
+    //     if (is_inside)
+    //     {
+    //         projection_distance = fabs(projection_distance);
 
-            if (projection_distance < rMinDistance)
-            {
-                rMinDistance = projection_distance;
-                rShapeFunctionValues.resize(mNumPoints);
-                for (int i = 0; i < mNumPoints; ++i)
-                {
-                    rShapeFunctionValues[i] = mpGeometry->ShapeFunctionValue(i, projection_local_coords);
-                }
-                is_closer = true;
-            }
-        }
-        return is_closer;
-    }
+    //         if (projection_distance < rMinDistance)
+    //         {
+    //             rMinDistance = projection_distance;
+    //             rShapeFunctionValues.resize(mNumPoints);
+    //             for (int i = 0; i < mNumPoints; ++i)
+    //             {
+    //                 rShapeFunctionValues[i] = mpGeometry->ShapeFunctionValue(i, projection_local_coords);
+    //             }
+    //             is_closer = true;
+    //         }
+    //     }
+    //     return is_closer;
+    // }
 
     bool ComputeApproximation(const array_1d<double, 3>& rGlobalCoords, double& rMinDistance,
                               std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins

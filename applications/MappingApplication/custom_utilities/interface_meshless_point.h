@@ -13,8 +13,8 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_INTERFACE_NODE_INCLUDED_H_INCLUDED )
-#define  KRATOS_INTERFACE_NODE_INCLUDED_H_INCLUDED
+#if !defined(KRATOS_INTERFACE_MESHLESS_POINT_INCLUDED_H_INCLUDED )
+#define  KRATOS_INTERFACE_MESHLESS_POINT_INCLUDED_H_INCLUDED
 
 // System includes
 
@@ -53,32 +53,32 @@ namespace Kratos
 * point of which neighbor have to be found
 * Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
-class InterfaceNode : public InterfaceObject
+class InterfaceMeshlessPoint : public InterfaceObject
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of InterfaceNode
-    KRATOS_CLASS_POINTER_DEFINITION(InterfaceNode);
+    /// Pointer definition of InterfaceMeshlessPoint
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceMeshlessPoint);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // A default constructor necessary for serialization
-    InterfaceNode() : InterfaceObject()
+    InterfaceMeshlessPoint() : InterfaceObject()
     {
     }
 
-    InterfaceNode(Node<3>& rNode, const int EchoLevel) : mpNode(&rNode)
+    InterfaceMeshlessPoint(Element& rElement, const int EchoLevel) : mpElement(&rElement)
     {
         SetCoordinates();
         mEchoLevel = EchoLevel;
     }
 
     /// Destructor.
-    virtual ~InterfaceNode() { }
+    virtual ~InterfaceMeshlessPoint() { }
 
 
     ///@}
@@ -90,33 +90,34 @@ public:
     ///@name Operations
     ///@{
 
-    Node<3>* pGetBaseNode() override
+    Element* pGetBaseElement() override
     {
-        return mpNode;
+        return mpElement;
     }
 
-    // bool EvaluateResult(const InterfaceObject::Pointer rObject,
-    //                     double& rMinDistance, const double Distance,
-    //                     std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
-    // {
-    //     bool is_closer = false;
+    bool EvaluateResult(const InterfaceObject::Pointer rObject,
+                        double& rMinDistance, const double Distance,
+                        std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
+    {
+        (mpElement->GetValue(CONTACT_ELEMENTS)).push_back(rObject->pGetBaseElement());
 
-    //     if (Distance < rMinDistance)
-    //     {
-    //         rMinDistance = Distance;
-    //         is_closer = true;
-    //     }
+        return false;
+    }
 
-    //     return is_closer;
-    // }
+    bool ComputeApproximation(const array_1d<double, 3>& rGlobalCoords, double& rMinDistance,
+                                      std::vector<double>& rShapeFunctionValues) override
+    {
+        // do nothing
+        return false;
+    }
 
     // Functions used for Debugging
     void PrintNeighbors(const int CommRank) override
     {
-        array_1d<double, 3> neighbor_coordinates = mpNode->GetValue(NEIGHBOR_COORDINATES);
-        double neighbor_comm_rank = mpNode->GetValue(NEIGHBOR_RANK);
+        array_1d<double, 3> neighbor_coordinates = mpElement->GetValue(NEIGHBOR_COORDINATES);
+        double neighbor_comm_rank = mpElement->GetValue(NEIGHBOR_RANK);
 
-        PrintMatchInfo("InterfaceNode", CommRank,
+        PrintMatchInfo("InterfaceMeshlessPoint", CommRank,
                        neighbor_comm_rank, neighbor_coordinates);
     }
 
@@ -130,8 +131,8 @@ public:
         neighbor_coordinates[0] = this->X();
         neighbor_coordinates[1] = this->Y();
         neighbor_coordinates[2] = this->Z();
-        mpNode->SetValue(NEIGHBOR_COORDINATES, neighbor_coordinates);
-        mpNode->SetValue(NEIGHBOR_RANK, CommRank);
+        mpElement->SetValue(NEIGHBOR_COORDINATES, neighbor_coordinates);
+        mpElement->SetValue(NEIGHBOR_RANK, CommRank);
     }
 
     ///@}
@@ -152,14 +153,14 @@ public:
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "InterfaceNode" ;
+        buffer << "InterfaceMeshlessPoint" ;
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "InterfaceNode";
+        rOStream << "InterfaceMeshlessPoint";
     }
 
     /// Print object's data.
@@ -219,7 +220,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    Node<3>* mpNode;
+    Element* mpElement;
 
     ///@}
     ///@name Serialization
@@ -249,7 +250,32 @@ private:
 
     void SetCoordinates() override
     {
-        this->Coordinates() = mpNode->Coordinates();
+        // std::cout << *mpElement << std::endl;
+        // std::cout << SHAPE_FUNCTION_VALUES << std::endl;
+        const auto& r_geom = mpElement->GetGeometry();
+
+        // std::cout << r_geom << std::endl;
+
+        KRATOS_ERROR_IF_NOT(mpElement->Has(INTEGRATION_WEIGHT)) << "No INTEGRATION_WEIGHT available!"
+            << std::endl;
+        KRATOS_ERROR_IF_NOT(mpElement->Has(SHAPE_FUNCTION_VALUES)) << "No SHAPE_FUNCTION_VALUES available!"
+            << std::endl;
+
+        const auto& r_shape_function_values = mpElement->GetValue(SHAPE_FUNCTION_VALUES);
+
+        array_1d<double,3> coords;
+
+        for (int i=0;i<3;++i)
+            coords[i] = 0.0;
+
+        for (std::size_t i=0; i<r_geom.PointsNumber(); ++i)
+        {
+            coords[0] += r_geom[i].X() * r_shape_function_values[i];
+            coords[1] += r_geom[i].Y() * r_shape_function_values[i];
+            coords[2] += r_geom[i].Z() * r_shape_function_values[i];
+        }
+
+        noalias(this->Coordinates()) = coords;
     }
 
 
@@ -268,15 +294,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    InterfaceNode& operator=(InterfaceNode const& rOther);
+    InterfaceMeshlessPoint& operator=(InterfaceMeshlessPoint const& rOther);
 
     //   /// Copy constructor.
-    //   InterfaceNode(InterfaceNode const& rOther){}
+    //   InterfaceMeshlessPoint(InterfaceMeshlessPoint const& rOther){}
 
 
     ///@}
 
-}; // Class InterfaceNode
+}; // Class InterfaceMeshlessPoint
 
 ///@}
 
@@ -291,14 +317,14 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  InterfaceNode& rThis)
+                                  InterfaceMeshlessPoint& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const InterfaceNode& rThis)
+                                  const InterfaceMeshlessPoint& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -312,4 +338,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTERFACE_NODE_INCLUDED_H_INCLUDED  defined
+#endif // KRATOS_INTERFACE_MESHLESS_POINT_INCLUDED_H_INCLUDED  defined

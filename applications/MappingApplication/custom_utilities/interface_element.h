@@ -13,8 +13,8 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_INTERFACE_NODE_INCLUDED_H_INCLUDED )
-#define  KRATOS_INTERFACE_NODE_INCLUDED_H_INCLUDED
+#if !defined(KRATOS_INTERFACE_ELEMENT_INCLUDED_H_INCLUDED )
+#define  KRATOS_INTERFACE_ELEMENT_INCLUDED_H_INCLUDED
 
 // System includes
 
@@ -53,32 +53,32 @@ namespace Kratos
 * point of which neighbor have to be found
 * Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
-class InterfaceNode : public InterfaceObject
+class InterfaceElement : public InterfaceObject
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of InterfaceNode
-    KRATOS_CLASS_POINTER_DEFINITION(InterfaceNode);
+    /// Pointer definition of InterfaceElement
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceElement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // A default constructor necessary for serialization
-    InterfaceNode() : InterfaceObject()
+    InterfaceElement() : InterfaceObject()
     {
     }
 
-    InterfaceNode(Node<3>& rNode, const int EchoLevel) : mpNode(&rNode)
+    InterfaceElement(Element& rElement, const int EchoLevel) : mpElement(&rElement)
     {
         SetCoordinates();
         mEchoLevel = EchoLevel;
     }
 
     /// Destructor.
-    virtual ~InterfaceNode() { }
+    virtual ~InterfaceElement() { }
 
 
     ///@}
@@ -90,33 +90,31 @@ public:
     ///@name Operations
     ///@{
 
-    Node<3>* pGetBaseNode() override
+    Element* pGetBaseElement() override
     {
-        return mpNode;
+        return mpElement;
     }
 
-    // bool EvaluateResult(const InterfaceObject::Pointer rObject,
-    //                     double& rMinDistance, const double Distance,
-    //                     std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
-    // {
-    //     bool is_closer = false;
+    bool EvaluateResult(const InterfaceObject::Pointer rObject,
+                        double& rMinDistance, const double Distance,
+                        std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
+    {
+        KRATOS_ERROR << "This is not implemented!" << std::endl;
+    }
 
-    //     if (Distance < rMinDistance)
-    //     {
-    //         rMinDistance = Distance;
-    //         is_closer = true;
-    //     }
-
-    //     return is_closer;
-    // }
+    bool ComputeApproximation(const array_1d<double, 3>& rGlobalCoords, double& rMinDistance,
+                                      std::vector<double>& rShapeFunctionValues) override
+    {
+        KRATOS_ERROR << "This is not implemented!" << std::endl;
+    }
 
     // Functions used for Debugging
     void PrintNeighbors(const int CommRank) override
     {
-        array_1d<double, 3> neighbor_coordinates = mpNode->GetValue(NEIGHBOR_COORDINATES);
-        double neighbor_comm_rank = mpNode->GetValue(NEIGHBOR_RANK);
+        array_1d<double, 3> neighbor_coordinates = mpElement->GetValue(NEIGHBOR_COORDINATES);
+        double neighbor_comm_rank = mpElement->GetValue(NEIGHBOR_RANK);
 
-        PrintMatchInfo("InterfaceNode", CommRank,
+        PrintMatchInfo("InterfaceElement", CommRank,
                        neighbor_comm_rank, neighbor_coordinates);
     }
 
@@ -130,8 +128,8 @@ public:
         neighbor_coordinates[0] = this->X();
         neighbor_coordinates[1] = this->Y();
         neighbor_coordinates[2] = this->Z();
-        mpNode->SetValue(NEIGHBOR_COORDINATES, neighbor_coordinates);
-        mpNode->SetValue(NEIGHBOR_RANK, CommRank);
+        mpElement->SetValue(NEIGHBOR_COORDINATES, neighbor_coordinates);
+        mpElement->SetValue(NEIGHBOR_RANK, CommRank);
     }
 
     ///@}
@@ -152,14 +150,14 @@ public:
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "InterfaceNode" ;
+        buffer << "InterfaceElement" ;
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "InterfaceNode";
+        rOStream << "InterfaceElement";
     }
 
     /// Print object's data.
@@ -219,7 +217,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    Node<3>* mpNode;
+    Element* mpElement;
 
     ///@}
     ///@name Serialization
@@ -249,7 +247,11 @@ private:
 
     void SetCoordinates() override
     {
-        this->Coordinates() = mpNode->Coordinates();
+        const auto& r_geom = mpElement->GetGeometry();
+
+        const auto& r_node = r_geom[0];
+
+        noalias(this->Coordinates()) = r_node.Coordinates();
     }
 
 
@@ -268,15 +270,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    InterfaceNode& operator=(InterfaceNode const& rOther);
+    InterfaceElement& operator=(InterfaceElement const& rOther);
 
     //   /// Copy constructor.
-    //   InterfaceNode(InterfaceNode const& rOther){}
+    //   InterfaceElement(InterfaceElement const& rOther){}
 
 
     ///@}
 
-}; // Class InterfaceNode
+}; // Class InterfaceElement
 
 ///@}
 
@@ -291,14 +293,14 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  InterfaceNode& rThis)
+                                  InterfaceElement& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const InterfaceNode& rThis)
+                                  const InterfaceElement& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -312,4 +314,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTERFACE_NODE_INCLUDED_H_INCLUDED  defined
+#endif // KRATOS_INTERFACE_ELEMENT_INCLUDED_H_INCLUDED  defined
