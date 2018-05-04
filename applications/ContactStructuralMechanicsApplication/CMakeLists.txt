@@ -8,7 +8,6 @@ include(pybind11Tools)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/ContactStructuralMechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
 
 ## generate variables with the sources
 set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
