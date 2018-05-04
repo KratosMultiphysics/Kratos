@@ -45,7 +45,7 @@
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
-#include "/home/elaf/Kratos/applications/ULFapplication/ULF_application_variables.h"
+#include "ULF_application_variables.h"
 #include "includes/variables.h"
 // #include "ULF_application_variables.h"
 #include "includes/cfd_variables.h"
@@ -1612,45 +1612,46 @@ protected:
 		  rRightHandSideVector[3*ii] 	-= coef*gamma*(m[0]-x12[0]);
  		  rRightHandSideVector[3*ii+1]	-= coef*gamma*(m[1]-x12[1]);
  		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_X) = -coef*gamma*(m[0] - x12[0]);
- 		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y) = -coef*gamma*(m[1] - x12[1]);		  	  
+	  	  
+//  		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y) = -coef*gamma*(m[1] - x12[1]);
 		  
-
-//                   //start of adding dissipative force: where v_clx here is the x_velocity at the contact line; and v_cly is the y_velocity at the contact line
-//                   double v_clx = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_X);
-//                   double v_cly = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_Y);
+		  //start of adding dissipative force: where v_clx here is the x_velocity at the contact line; and v_cly is the y_velocity at the contact line
+                  double v_clx = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_X);
+                  double v_cly = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_Y);
 //          
-//                   double mu, rho;
-//                   mu  = this->GetGeometry()[ii].FastGetSolutionStepValue(VISCOSITY);
-//                   rho = this->GetGeometry()[ii].FastGetSolutionStepValue(DENSITY);
+                  double mu, rho;
+                  mu  = this->GetGeometry()[ii].FastGetSolutionStepValue(VISCOSITY);
+                  rho = this->GetGeometry()[ii].FastGetSolutionStepValue(DENSITY);
 //                   mu *= rho;
-//                 
-//                   //capillary
-//                   double cap_x   =  mu * abs(v_clx) / gamma;
-//                   double cap_y   =  mu * abs(v_cly) / gamma;
-//                   // using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
-//                   rRightHandSideVector[3*ii]	        -= zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_x,0.702)); 
-//                   rRightHandSideVector[3*ii+1]	        -= zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_y,0.702)); 
+                
+                  //capillary
+		  double v_clx_abs = fabs (v_clx);
+		  double v_cly_abs = fabs (v_cly) ;
+		  
+                  double cap_x   =  mu *  v_clx_abs / gamma;
+                  double cap_y   =  mu *  v_cly_abs / gamma;
+                  // using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
+                  rRightHandSideVector[3*ii]	        -= zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_x,0.702)); 
+                  rRightHandSideVector[3*ii+1]	        -= zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_y,0.702)); 
 //                 
 //                   // using Bracke's model : gamma 2.24 ca ^(0.54)
-//                   rRightHandSideVector[3*ii]	        -= zeta_dissapative_BM*gamma* 2.24 * pow(cap_x,0.54); 
-//                   rRightHandSideVector[3*ii+1]	        -= zeta_dissapative_BM*gamma* 2.24 * pow(cap_y,0.54); 
+                  rRightHandSideVector[3*ii]	        -= zeta_dissapative_BM*gamma* 2.24 * pow(cap_x,0.54); 
+                  rRightHandSideVector[3*ii+1]	        -= zeta_dissapative_BM*gamma* 2.24 * pow(cap_y,0.54); 
 //                 
 //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
-//                   double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y));
-//                   if (cap > 0.01)
-//                   {
-//                     rRightHandSideVector[3*ii]	        -= zeta_dissapative_SM*gamma* 2.24 * pow(cap_x,0.54); 
-//                     rRightHandSideVector[3*ii+1]        -= zeta_dissapative_SM*gamma* 2.24 * pow(cap_y,0.54);  
-//                   }
-//                   else
-//                   {
-//                     rRightHandSideVector[3*ii]	        -= zeta_dissapative_SM*gamma* 4.47 * pow(cap_x,0.42); 
-//                     rRightHandSideVector[3*ii+1]        -= zeta_dissapative_SM*gamma* 4.47 * pow(cap_y,0.42);  
-//                   }
-//                   // end of adding disppative force
-	    
-  	  
-		  
+                  double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y));
+                  if (cap > 0.01)
+                  {
+                    rRightHandSideVector[3*ii]	        -= zeta_dissapative_SM*gamma* 2.24 * pow(cap_x,0.54); 
+                    rRightHandSideVector[3*ii+1]        -= zeta_dissapative_SM*gamma* 2.24 * pow(cap_y,0.54);  
+                  }
+                  else
+                  {
+                    rRightHandSideVector[3*ii]	        -= zeta_dissapative_SM*gamma* 4.47 * pow(cap_x,0.42); 
+                    rRightHandSideVector[3*ii+1]        -= zeta_dissapative_SM*gamma* 4.47 * pow(cap_y,0.42);  
+                  }
+                  // end of adding disppative force
+                  
 	      }
 	      else
 	      {

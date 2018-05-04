@@ -4,12 +4,27 @@ from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
+variables_dictionary = {"PRESSURE" : PRESSURE,
+                        "VELOCITY" : VELOCITY,
+                        "REACTION" : REACTION,
+                        "DISTANCE" : DISTANCE,
+			 "AUX_VEL" : AUX_VEL,                        
+                        "DISPLACEMENT" : DISPLACEMENT,
+                        "IS_INTERFACE" : IS_INTERFACE,
+                        "IS_STRUCTURE" : IS_STRUCTURE,
+                        "VISCOUS_STRESSX": VISCOUS_STRESSX,
+                        "VISCOUS_STRESSY": VISCOUS_STRESSY,
+                        "IS_WATER": IS_WATER,
+                        "DENSITY": DENSITY,
+                        "VISCOSITY": VISCOSITY}
+
 
 def AddVariables(model_part, config=None):
-    model_part.AddNodalSolutionStepVariable(VELOCITY)
+    model_part.AddNodalSolutio.hnStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
     model_part.AddNodalSolutionStepVariable(PRESSURE)
@@ -25,7 +40,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(DIVPROJ)
     model_part.AddNodalSolutionStepVariable(REACTION)
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE)
-    model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE)
+    model_.hpart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE)
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
     model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
@@ -59,6 +74,11 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(NORMAL_TRIPLE_POINT)
     model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_GRADIENT)
     model_part.AddNodalSolutionStepVariable(PHASE_FRACTION_GRADIENT)
+    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_JM)
+    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_BM)
+    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_SM)
+    model_part.AddNodalSolutionStepVariable(SOLID_AIR_SURFTENS_COEFF)
+    model_part.AddNodalSolutionStepVariable(SOLID_LIQIUD_SURFTENS_COEFF)
 
 
 
@@ -75,7 +95,7 @@ def AddDofs(model_part, config=None):
 
 
 class STMonolithicSolver:
-    def __init__(self, model_part, domain_size, eul_model_part, gamma, contact_angle):
+    def __init__(self, model_part, domain_size, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, gamma_sl, gamma_sv):
         self.model_part = model_part
         self.domain_size = domain_size
         # eul_model_part can be 0 (meaning that the model part is lagrangian) or 1 (eulerian)
@@ -107,6 +127,12 @@ class STMonolithicSolver:
         self.max_iter = 30
         self.contact_angle = contact_angle
         self.gamma = gamma
+        self.zeta_dissapative_JM = zeta_dissapative_JM
+        self.zeta_dissapative_BM = zeta_dissapative_BM
+        self.zeta_dissapative_SM = zeta_dissapative_SM
+        self.gamma_sl = gamma_sl
+        self.gamma_sv = gamma_sv
+        
 
         # default settings
         self.echo_level = 0
@@ -210,6 +236,13 @@ class STMonolithicSolver:
 
         self.model_part.ProcessInfo.SetValue(CONTACT_ANGLE_STATIC, self.contact_angle)
         self.model_part.ProcessInfo.SetValue(SURFACE_TENSION_COEF, self.gamma)
+        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_JM, self.zeta_dissapative_JM)
+        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_BM, self.zeta_dissapative_BM)
+        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_SM, self.zeta_dissapative_SM)
+        self.model_part.ProcessInfo.SetValue(SOLID_LIQIUD_SURFTENS_COEFF, self.gamma_sl)
+        self.model_part.ProcessInfo.SetValue(SOLID_AIR_SURFTENS_COEFF, self.gamma_sv)
+        
+
 
         if(self.eul_model_part == 0):
 	    #marking the fluid
@@ -252,7 +285,7 @@ class STMonolithicSolver:
 
         if(self.eul_model_part == 0):
             (self.fluid_neigh_finder).Execute();
-            #(self.fluid_neigh_finder).Execute();
+            (self.fluid_neigh_finder).Execute();
             self.Remesh();
 
 
@@ -331,20 +364,26 @@ class STMonolithicSolver:
         ################### For sessile drop examples
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
-                if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):
+                if ((node.GetSolutionStepValue(CONTACT_ANGLE) < theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) > theta_rec)):
+                    #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                    #node.Free(IS_STRUCTURE)
+                    node.Free(TRIPLE_POINT)
                     node.Free(VELOCITY_X)
+                    #node.Fix(VELOCITY_Y)
                 else:
-                    node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                    node.Fix(VELOCITY_X)
-            if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0 and node.GetSolutionStepValue(TRIPLE_POINT) == 0.0):
-                    node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
                     node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                    node.Fix(VELOCITY_X)
                     node.Fix(VELOCITY_Y)
+                    #node.Fix(VELOCITY_X)
+            #if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0 and node.GetSolutionStepValue(TRIPLE_POINT) == 0.0):
+                    #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                    #node.Fix(VELOCITY_X)
+                    #node.Fix(VELOCITY_Y)
 
 
-def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR 3D!
-    fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle)
+def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, gamma_sl, gamma_sv): #FOR 3D!
+    fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, gamma_sl, gamma_sv)
 
     if(hasattr(config, "alpha")):
         fluid_solver.alpha = config.alpha

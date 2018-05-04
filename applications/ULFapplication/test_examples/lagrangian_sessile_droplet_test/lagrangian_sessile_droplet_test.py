@@ -127,7 +127,7 @@ FSI=problem_settings.FSI
 
 eul_model_part = 0
 gamma = 0.072 		#surface tension coefficient [N m-1]
-contact_angle = 65.0 	#contact angle [deg]
+contact_angle = 90.0 	#contact angle [deg]
 lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle)
 reform_dofs_at_each_step = False
 pDiagPrecond = DiagonalPreconditioner()
@@ -140,17 +140,17 @@ print("lagrangian solver created")
 lagrangian_model_part.SetBufferSize(3)
 
 for node in lagrangian_model_part.Nodes:
-  node.SetSolutionStepValue(DENSITY,0, 1000.0)
-  node.SetSolutionStepValue(VISCOSITY,0, 8.90 * 1e-4)
-  node.SetSolutionStepValue(BODY_FORCE_X, 0, 0.0)
-  node.SetSolutionStepValue(BODY_FORCE_Y, 0, -9.81)
-  node.SetSolutionStepValue(PRESSURE,0, 0.0)
-  node.SetSolutionStepValue(IS_FLUID,0, 1.0)
-  if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0 and node.GetSolutionStepValue(IS_STRUCTURE) == 0.0):
+    node.SetSolutionStepValue(DENSITY,0, 1000.0)
+    node.SetSolutionStepValue(VISCOSITY,0, 8.90 * 1e-4)
+    node.SetSolutionStepValue(BODY_FORCE_X, 0, 0.0)
+    node.SetSolutionStepValue(BODY_FORCE_Y, 0, -9.81)
+    node.SetSolutionStepValue(PRESSURE,0, 0.0)
+    node.SetSolutionStepValue(IS_FLUID,0, 1.0)
+if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0 and node.GetSolutionStepValue(IS_STRUCTURE) == 0.0):
     node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
     node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
     node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
-  if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
+if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
     node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
     node.Fix(VELOCITY_Y)
     node.Free(VELOCITY_X)
@@ -181,7 +181,7 @@ while(time <= final_time):
 
     if(step >= 3):
 
-      for node in lagrangian_model_part.Nodes:
+    for node in lagrangian_model_part.Nodes:
         if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0 and node.GetSolutionStepValue(IS_STRUCTURE) == 0.0):
             node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
             node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
@@ -195,7 +195,7 @@ while(time <= final_time):
             else:
                 node.Free(VELOCITY_X)
 
-      lag_solver.Solve()
+    lag_solver.Solve()
 ##################################################
 ##################################################
 
@@ -217,7 +217,7 @@ while(time <= final_time):
         #gid_io.WriteNodalResults(IS_INTERFACE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(IS_STRUCTURE,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(FLAG_VARIABLE,lagrangian_model_part.Nodes,time,0)
-        #gid_io.WriteNodalResults(FORCE,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(FORCE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(NORMAL,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(PRESSURE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(TRIPLE_POINT,lagrangian_model_part.Nodes,time,0)
