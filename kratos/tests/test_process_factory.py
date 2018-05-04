@@ -1,8 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -16,7 +14,7 @@ class TestProcessFactory(KratosUnittest.TestCase):
 
     def test_process_factory(self):
         dummy_class = DummyClass()
-        process_factory = ContactStructuralMechanicsApplication.ProcessFactoryUtility(dummy_class)
+        process_factory = KratosMultiphysics.ProcessFactoryUtility(dummy_class)
         #dummy_class.DummyMethod()
         process_factory.ExecuteMethod("DummyMethod")
         self.assertTrue(dummy_class.this_assert)
@@ -25,7 +23,7 @@ class TestProcessFactory(KratosUnittest.TestCase):
         dummy_class1 = DummyClass()
         dummy_class2 = DummyClass()
         dummy_list = [dummy_class1, dummy_class2]
-        process_factory = ContactStructuralMechanicsApplication.ProcessFactoryUtility(dummy_list)
+        process_factory = KratosMultiphysics.ProcessFactoryUtility(dummy_list)
         #dummy_class.DummyMethod()
         process_factory.ExecuteMethod("DummyMethod")
         self.assertTrue(dummy_class1.this_assert)
