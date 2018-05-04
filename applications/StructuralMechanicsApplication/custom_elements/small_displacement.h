@@ -171,7 +171,7 @@ protected:
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
         const unsigned int PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
         
      /**

@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_3D2N_H_INCLUDED )
+#if !defined(KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_3D2N_H_INCLUDED)
 #define  KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_3D2N_H_INCLUDED
 
 // System includes
@@ -42,7 +42,7 @@ namespace Kratos
  * This works for line geometries in 3D :: it must be extended to 2D and large displacements
  */
 
-class SmallDisplacementBeamElement3D2N
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SmallDisplacementBeamElement3D2N
     :public Element
 {
 public:
@@ -63,9 +63,6 @@ protected:
      */
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
-
 
     struct SectionProperties
     {

@@ -52,9 +52,9 @@ public:
     typedef ModelPart::NodesContainerType NodesArrayType;
     typedef ModelPart::ElementsContainerType ElementsArrayType;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    typedef boost::numeric::ublas::vector<Matrix> Matrix_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector> Vector_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
+    typedef vector<Matrix> Matrix_Order_Tensor;
+    typedef vector<Vector> Vector_Order_Tensor;
+    typedef vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
     typedef Node < 3 > PointType;
     typedef Node < 3 > ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;

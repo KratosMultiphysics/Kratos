@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
+
 RveWeakTShearCondition3D::RveWeakTShearCondition3D(IndexType NewId, GeometryType::Pointer pGeometry)
 	: MyBase(NewId, pGeometry)
 {
@@ -76,7 +76,7 @@ RveWeakTShearCondition3D::RveWeakTShearCondition3D(IndexType NewId, GeometryType
 	: MyBase(NewId, pGeometry, pProperties)
 {
 }
-	
+
 RveWeakTShearCondition3D::RveWeakTShearCondition3D(const RveWeakTShearCondition3D& rOther)
 	: MyBase(rOther)
 {
@@ -101,13 +101,13 @@ void RveWeakTShearCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMat
 
 	if(rLeftHandSideMatrix.size1() != num_dofs || rLeftHandSideMatrix.size2() != num_dofs) rLeftHandSideMatrix.resize(num_dofs, num_dofs,false);
 	noalias(rLeftHandSideMatrix) = ZeroMatrix(num_dofs, num_dofs);
-	
+
 	if(rRightHandSideVector.size() != num_dofs) rRightHandSideVector.resize(num_dofs, false);
 	noalias( rRightHandSideVector ) = ZeroVector(num_dofs);
 
 	double l1 = mLagrangianNode->FastGetSolutionStepValue(RVE_SHELL_WRC_LAGRANGIAN_DOF_X);
 	double l2 = mLagrangianNode->FastGetSolutionStepValue(RVE_SHELL_WRC_LAGRANGIAN_DOF_Y);
-	
+
 	double x1 = geom[0].X0(); double y1 = geom[0].Y0();
 	double x2 = geom[1].X0(); double y2 = geom[1].Y0();
 	double x3 = geom[2].X0(); double y3 = geom[2].Y0();
@@ -226,7 +226,7 @@ int RveWeakTShearCondition3D::Check(const ProcessInfo& rCurrentProcessInfo)
 	KRATOS_TRY
 
 	GeometryType & geom = this->GetGeometry();
-	
+
 	//verify that the variables are correctly initialized
 	if(ROTATION.Key() == 0)
 		KRATOS_THROW_ERROR(std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered","");
@@ -235,12 +235,12 @@ int RveWeakTShearCondition3D::Check(const ProcessInfo& rCurrentProcessInfo)
 	for(unsigned int i = 0; i < 2; i++)
 	{
 		NodeType & iNode = geom[i];
-		
+
 		if(iNode.SolutionStepsDataHas(DISPLACEMENT) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing variable DISPLACEMENT on node ", iNode.Id());
 		if(iNode.SolutionStepsDataHas(ROTATION) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing variable ROTATION on node ", iNode.Id());
-			
+
 		if(iNode.HasDofFor(DISPLACEMENT_Z) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", iNode.Id());
 		if(iNode.HasDofFor(ROTATION_X) == false || iNode.HasDofFor(ROTATION_Y) == false)

@@ -185,7 +185,7 @@ public:
     {
         const unsigned int number_of_points = TDim+1;
 
-        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim > DN_DX;
+        BoundedMatrix<double, TDim+1, TDim > DN_DX;
         array_1d<double, TDim+1 > N;
 
         if (rLeftHandSideMatrix.size1() != number_of_points)
@@ -198,12 +198,6 @@ public:
         double Area;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
         
-        double h = 0.0;
-        if(TDim == 2)
-            h = sqrt(2.0*Area);
-        else
-            h = pow(6.0*Area, 0.333333333);
-        
         //get distances at the nodes
         array_1d<double, TDim+1 > distances;
         for(unsigned int i=0; i<number_of_points; i++)
@@ -212,13 +206,15 @@ public:
 //			if (distances[i] >= 0.0 && distances[i] < 1e-30) distances[i] = 1e-30;
         }
 
+       const double dgauss = inner_prod(N,distances);
+
         const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
     
         if(step == 1) //solve a poisson problem with a positive/negative heat source depending on the sign of the existing distance function
         {
             //compute distance on gauss point
-            const double dgauss = inner_prod(N,distances);
-            
+
+            this->SetValue(DISTANCE,dgauss); //saving the distance, to see if it changed sign between iterations
             //compute LHS
             noalias(rLeftHandSideMatrix) = Area*prod(DN_DX,trans(DN_DX));
             
@@ -249,8 +245,8 @@ public:
                 for(unsigned int i=0; i<TDim+1; i++)
                     if(GetGeometry()[i].Is(BOUNDARY))
                     {
-                        rRightHandSideVector[i] += source*normDn*Area*(TDim-1); //TODO: check this! it should be TDim*(TDim-1)*N[i] with N[i] on the face and then equal to 1/TDim
-                        
+                        rRightHandSideVector[i] += 0.01*source*normDn*Area*(TDim-1); //TODO: check this! it should be TDim*(TDim-1)*N[i] with N[i] on the face and then equal to 1/TDim
+                        // using the area as weighting factor is excessive. Reduced it to get a closer to constant gradient between the regions close and far away from the interface
                     }
                 
             }   
@@ -259,6 +255,10 @@ public:
         }
         else //solve an optimization problem with the goal of achievieng a gradient of one for the distance function
         {
+            //for debuggin purposes:
+            if( dgauss * (this->GetValue(DISTANCE)) < 0.0 )
+                std::cout << "Element " << this->Id() << " changed sign while redistancing!!" << std::endl;
+
             //compute the gradient of the distance
             const array_1d<double,TDim> grad = prod(trans(DN_DX),distances);
             double grad_norm = norm_2(grad);
@@ -280,19 +280,8 @@ public:
             //unfortunately the numerical experiments tell that this in too unstable to be used unless a very 
             //good initial approximation is used
 //            noalias(rLeftHandSideMatrix) = (Area*(grad_norm - 1.0))*rod(DN_DX,trans(DN_DX) ); //RISKY!!
-            noalias(rLeftHandSideMatrix) = Area*std::max(grad_norm,1e-2/h)*prod( DN_DX,trans(DN_DX) );
+            noalias(rLeftHandSideMatrix) = Area*std::max(grad_norm,0.1)*prod( DN_DX,trans(DN_DX) );
         }
-        
-        
-        //apply by penalizaton a constrain to force mantaining the distance to zero over the cut DistanceCalculationElementSimplex
-        unsigned int positives = 0, negatives=0;
-        for(unsigned int i=0; i<number_of_points; i++)
-        {
-            if(distances[i] >= 0) positives++;
-            else negatives++;
-        }
-       
-        
     }
 
 

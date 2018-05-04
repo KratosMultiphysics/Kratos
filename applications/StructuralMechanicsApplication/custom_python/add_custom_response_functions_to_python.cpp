@@ -3,19 +3,19 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:        BSD License
+//	                license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Armin Geiser
 //
 
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/stl.h>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 //Utilities
@@ -24,16 +24,14 @@
 #include "custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.h"
 
 //Response Functions
+#include "custom_response_functions/response_utilities/strain_energy_response_function_utility.h"
+#include "custom_response_functions/response_utilities/mass_response_function_utility.h"
+#include "custom_response_functions/response_utilities/eigenfrequency_response_function_utility.h"
+
 #include "custom_response_functions/response_utilities/adjoint_structural_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_strain_energy_response_function.h"
-
-#include "custom_response_functions/response_utilities/response_function.h"
-#include "custom_response_functions/response_utilities/strain_energy_response_function.h"
-#include "custom_response_functions/response_utilities/mass_response_function.h"
-#include "custom_response_functions/response_utilities/eigenfrequency_response_function.h"
-#include "custom_response_functions/response_utilities/eigenfrequency_response_function_lin_scal.h"
 
 
 namespace Kratos
@@ -41,10 +39,32 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomResponseFunctionsToPython()
-{
-    using namespace boost::python;
+using namespace pybind11;
 
+void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
+{
+
+    // Response Functions
+    class_<StrainEnergyResponseFunctionUtility, StrainEnergyResponseFunctionUtility::Pointer >
+      (m, "StrainEnergyResponseFunctionUtility")
+      .def(init<ModelPart&, Parameters>())
+      .def("Initialize", &StrainEnergyResponseFunctionUtility::Initialize)
+      .def("CalculateValue", &StrainEnergyResponseFunctionUtility::CalculateValue)
+      .def("CalculateGradient", &StrainEnergyResponseFunctionUtility::CalculateGradient);
+
+    class_<MassResponseFunctionUtility, MassResponseFunctionUtility::Pointer >
+      (m, "MassResponseFunctionUtility")
+      .def(init<ModelPart&, Parameters>())
+      .def("Initialize", &MassResponseFunctionUtility::Initialize)
+      .def("CalculateValue", &MassResponseFunctionUtility::CalculateValue)
+      .def("CalculateGradient", &MassResponseFunctionUtility::CalculateGradient);
+
+    class_<EigenfrequencyResponseFunctionUtility, EigenfrequencyResponseFunctionUtility::Pointer >
+      (m, "EigenfrequencyResponseFunctionUtility")
+      .def(init<ModelPart&, Parameters>())
+      .def("Initialize", &EigenfrequencyResponseFunctionUtility::Initialize)
+      .def("CalculateValue", &EigenfrequencyResponseFunctionUtility::CalculateValue)
+      .def("CalculateGradient", &EigenfrequencyResponseFunctionUtility::CalculateGradient);
     /// Processes
     class_<ReplaceElementsAndConditionsForAdjointProblemProcess , bases<Process>, boost::noncopyable >("ReplaceElementsAndConditionsForAdjointProblemProcess",
             init<ModelPart&, Parameters>());
@@ -64,24 +84,6 @@ void  AddCustomResponseFunctionsToPython()
 
     class_<AdjointStrainEnergyResponseFunction, bases<AdjointStructuralResponseFunction>, boost::noncopyable>
       ("AdjointStrainEnergyResponseFunction", init<ModelPart&, Parameters&>());
-
-    class_<ResponseFunction, boost::noncopyable >
-      ("ResponseFunction", no_init)
-      .def("Initialize", &ResponseFunction::Initialize)
-      .def("CalculateValue", &ResponseFunction::CalculateValue)
-      .def("CalculateGradient", &ResponseFunction::CalculateGradient);
-
-    class_<StrainEnergyResponseFunction, bases<ResponseFunction>, boost::noncopyable >
-      ("StrainEnergyResponseFunction", init<ModelPart&, Parameters>());
-
-    class_<MassResponseFunction, bases<ResponseFunction>, boost::noncopyable >
-      ("MassResponseFunction", init<ModelPart&, Parameters>());
-
-    class_<EigenfrequencyResponseFunction, bases<ResponseFunction>, boost::noncopyable >
-      ("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>());
-
-    class_<EigenfrequencyResponseFunctionLinScal, bases<ResponseFunction>, boost::noncopyable >
-      ("EigenfrequencyResponseFunctionLinScal", init<ModelPart&, Parameters&>());
 
     //For global finite differences
     class_<FiniteDifferencesUtilities, boost::noncopyable>("FiniteDifferencesUtilities", init< >())

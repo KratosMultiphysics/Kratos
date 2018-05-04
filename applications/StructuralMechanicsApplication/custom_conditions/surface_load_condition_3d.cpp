@@ -100,8 +100,8 @@ namespace Kratos
         KRATOS_TRY
 
         Matrix Kij(3, 3);
-        bounded_matrix<double, 3, 3 > Cross_ge;
-        bounded_matrix<double, 3, 3 > Cross_gn;
+        BoundedMatrix<double, 3, 3 > Cross_ge;
+        BoundedMatrix<double, 3, 3 > Cross_gn;
         double coeff;
         const unsigned int number_of_nodes = GetGeometry().size();
 
@@ -134,7 +134,7 @@ namespace Kratos
     //***********************************************************************************
 
     void SurfaceLoadCondition3D::MakeCrossMatrix(
-        bounded_matrix<double, 3, 3 > & M,
+        BoundedMatrix<double, 3, 3 > & M,
         const array_1d<double, 3 > & U)
     {
         M(0, 0) = 0.0;

@@ -236,8 +236,8 @@ class Algorithm(object):
         self.output_time = int(self.output_time / self.Dt_DEM) * self.Dt_DEM
 
         # vestigial variables
-        self.pp.CFD_DEM.print_steps_per_plot_step = 1
-        self.pp.CFD_DEM.PostCationConcentration = False
+        Add("print_steps_per_plot_step").SetInt(1)
+        Add("PostCationConcentration").SetBool(False)
         self.pp.viscosity_modification_type = 0.0
         self.domain_size = 3
         self.pp.type_of_inlet = 'VelocityImposed' # 'VelocityImposed' or 'ForceImposed'
@@ -358,7 +358,7 @@ class Algorithm(object):
         n_balls = 1
         fluid_volume = 10
         # the variable n_particles_in_depth is only relevant in 2D problems
-        self.pp.CFD_DEM.n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume))
+        self.pp.CFD_DEM.AddEmptyValue("n_particles_in_depth").SetInt(int(math.sqrt(n_balls / fluid_volume)))
         # creating a physical calculations module to analyse the DEM model_part
 
         dem_physics_calculator = SphericElementGlobalPhysicsCalculator(
@@ -484,9 +484,9 @@ class Algorithm(object):
         self.SetUpResultsDatabase()
 
         # ANALYTICS BEGIN
-        self.pp.CFD_DEM.perform_analytics_option = False
+        self.pp.CFD_DEM.AddEmptyValue("perform_analytics_option").SetBool(False)
 
-        if self.pp.CFD_DEM.perform_analytics_option:
+        if self.pp.CFD_DEM["perform_analytics_option"].GetBool():
             import analytics
             variables_to_measure = [PRESSURE]
             steps_between_measurements = 100

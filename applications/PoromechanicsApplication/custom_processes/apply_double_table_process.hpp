@@ -32,18 +32,18 @@ public:
     ///------------------------------------------------------------------------------------
     
     /// Destructor
-    virtual ~ApplyDoubleTableProcess() {}
+    ~ApplyDoubleTableProcess() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Execute method is used to execute the ApplyDoubleTableProcess algorithms.
-    void Execute()
+    void Execute() override
     {
     }
     
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
         KRATOS_TRY;
                 
@@ -73,7 +73,7 @@ public:
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
         
@@ -101,19 +101,19 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "ApplyDoubleTableProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ApplyDoubleTableProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

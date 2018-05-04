@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SOLID_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_SOLID_ELEMENT_H_INCLUDED)
 #define  KRATOS_SOLID_ELEMENT_H_INCLUDED
 
 // System includes
@@ -72,8 +72,6 @@ protected:
 
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
 
     /**
      * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
@@ -86,6 +84,7 @@ protected:
         //variables including all integration points
         const GeometryType::ShapeFunctionsGradientsType* pDN_De;
         const Matrix* pNcontainer;
+        const ProcessInfo* pProcessInfo;
 
       public:
 
@@ -104,7 +103,7 @@ protected:
         Vector  StressVector;
         Vector  N;
         Matrix  B;
-        Matrix  H;    //Wildcard ( Displacement Gradient, F(0 to n+1), B-bar ...) 
+        Matrix  H;    //Wildcard ( Displacement Gradient, F(0 to n+1), B-bar, Velocity Gradient...) 
         Matrix  F;    //Incremental Deformation Gradient (n to n+1)
         Matrix  F0;   //Historical Deformation Gradient  (0 to n)
         Matrix  DN_DX;
@@ -129,6 +128,12 @@ protected:
             pNcontainer=&rNcontainer;
         };
 
+        void SetProcessInfo(const ProcessInfo& rProcessInfo)
+        {
+            pProcessInfo=&rProcessInfo;
+        };
+
+
 
         /**
          * returns the value of a specified pointer variable
@@ -143,6 +148,11 @@ protected:
             return *pNcontainer;
         };
 
+        const ProcessInfo& GetProcessInfo()
+        {
+            return *pProcessInfo;
+        };
+      
         void Initialize( const unsigned int& voigt_size, 
 			 const unsigned int& dimension, 
 			 const unsigned int& number_of_nodes )
@@ -209,18 +219,7 @@ protected:
       //for calculation local system with compacted LHS and RHS 
       MatrixType *mpLeftHandSideMatrix;
       VectorType *mpRightHandSideVector;
-
-      //for calculation local system with LHS and RHS components 
-      std::vector<MatrixType> *mpLeftHandSideMatrices;
-      std::vector<VectorType> *mpRightHandSideVectors;
-
-      //LHS variable components 
-      const std::vector< Variable< MatrixType > > *mpLeftHandSideVariables;
-
-      //RHS variable components 
-      const std::vector< Variable< VectorType > > *mpRightHandSideVariables;
-
-    
+   
     public:
 
       //calculation flags
@@ -230,25 +229,17 @@ protected:
        * sets the value of a specified pointer variable
        */
       void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix ) { mpLeftHandSideMatrix = &rLeftHandSideMatrix; };
-      void SetLeftHandSideMatrices( std::vector<MatrixType>& rLeftHandSideMatrices ) { mpLeftHandSideMatrices = &rLeftHandSideMatrices; };
-      void SetLeftHandSideVariables(const std::vector< Variable< MatrixType > >& rLeftHandSideVariables ) { mpLeftHandSideVariables = &rLeftHandSideVariables; }; 
 
       void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
-      void SetRightHandSideVectors( std::vector<VectorType>& rRightHandSideVectors ) { mpRightHandSideVectors = &rRightHandSideVectors; };
-      void SetRightHandSideVariables(const std::vector< Variable< VectorType > >& rRightHandSideVariables ) { mpRightHandSideVariables = &rRightHandSideVariables; }; 
 
  
       /**
        * returns the value of a specified pointer variable
        */
       MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
-      std::vector<MatrixType>& GetLeftHandSideMatrices() { return *mpLeftHandSideMatrices; };
-      const std::vector< Variable< MatrixType > >& GetLeftHandSideVariables() { return *mpLeftHandSideVariables; }; 
 
       VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
-      std::vector<VectorType>& GetRightHandSideVectors() { return *mpRightHandSideVectors; };
-      const std::vector< Variable< VectorType > >& GetRightHandSideVariables() { return *mpRightHandSideVariables; }; 
-
+ 
     };
 
 
@@ -443,20 +434,6 @@ public:
 			      VectorType& rRightHandSideVector, 
 			      ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * this function provides a more general interface to the element.
-     * it is designed so that rLHSvariables and rRHSvariables are passed TO the element
-     * thus telling what is the desired output
-     * @param rLeftHandSideMatrices: container with the output left hand side matrices
-     * @param rLHSVariables: paramter describing the expected LHSs
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
-     */
-    void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
-			      const std::vector< Variable< MatrixType > >& rLHSVariables,
-			      std::vector< VectorType >& rRightHandSideVectors,
-			      const std::vector< Variable< VectorType > >& rRHSVariables,
-			      ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -467,16 +444,6 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector, 
 				ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * this function provides a more general interface to the element.
-     * it is designed so that rRHSvariables are passed TO the element
-     * thus telling what is the desired output
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
-     */
-    void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-				const std::vector< Variable< VectorType > >& rRHSVariables,
-				ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -760,7 +727,12 @@ protected:
                                      const int & rPointNumber);
 
 
+    /**
+     * Get element size from the dofs
+     */    
+    virtual unsigned int GetDofsSize();
 
+    
     /**
      * Initialize System Matrices
      */

@@ -15,7 +15,6 @@
 // // ------------------------------------------------------------------------------
 // // External includes
 // // ------------------------------------------------------------------------------
-// #include <boost/python.hpp>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -41,22 +40,25 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomUtilitiesToPython()
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, Parameters>())
+    class_<MapperVertexMorphing >(m, "MapperVertexMorphing")
+        .def(init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
         ;
-    class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, Parameters>())
+    class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
+        .def(init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
         ;
-    class_<MapperVertexMorphingImprovedIntegration, bases<Process> >("MapperVertexMorphingImprovedIntegration", init<ModelPart&, Parameters>())
+    class_<MapperVertexMorphingImprovedIntegration >(m, "MapperVertexMorphingImprovedIntegration")
+        .def(init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
         ;
@@ -64,14 +66,16 @@ void  AddCustomUtilitiesToPython()
     // ================================================================
     // For a possible damping of nodal variables
     // ================================================================
-    class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters>())
+    class_<DampingUtilities >(m, "DampingUtilities")
+        .def(init<ModelPart&, pybind11::dict, Parameters>())
         .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
         ;
 
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters>())
+    class_<OptimizationUtilities >(m, "OptimizationUtilities")
+        .def(init<ModelPart&, Parameters>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
@@ -91,7 +95,8 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     // For pre- and post-processing of geometry data
     // ========================================================================
-    class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&>())
+    class_<GeometryUtilities >(m, "GeometryUtilities")
+        .def(init<ModelPart&>())
         .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
         .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
         .def("ExtractSurfaceNodes", &GeometryUtilities::ExtractSurfaceNodes)
@@ -100,7 +105,8 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     // For mesh handling
     // ========================================================================
-    class_<MeshControllerUtilities, bases<Process> >("MeshControllerUtilities", init<ModelPart&>())
+    class_<MeshControllerUtilities >(m, "MeshControllerUtilities")
+        .def(init<ModelPart&>())
         .def("UpdateMeshAccordingInputVariable", &MeshControllerUtilities::UpdateMeshAccordingInputVariable)
         .def("LogMeshChangeAccordingInputVariable", &MeshControllerUtilities::LogMeshChangeAccordingInputVariable)
         .def("SetMeshToReferenceMesh", &MeshControllerUtilities::SetMeshToReferenceMesh)
@@ -111,11 +117,13 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     // For input / output
     // ========================================================================
-    class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, std::string, std::string, Parameters>())
+    class_<UniversalFileIO >(m, "UniversalFileIO")
+        .def(init<ModelPart&, std::string, std::string, Parameters>())
         .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
         .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
         ;
-    class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, std::string, std::string, Parameters>())
+    class_<VTKFileIO >(m, "VTKFileIO")
+        .def(init<ModelPart&, std::string, std::string, Parameters>())
         .def("InitializeLogging", &VTKFileIO::InitializeLogging)
         .def("LogNodalResults", &VTKFileIO::LogNodalResults)
         ;

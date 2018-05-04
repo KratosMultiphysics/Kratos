@@ -179,9 +179,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-				     ConditionVariables& rVariables,
-				     double& rIntegrationWeight) override;
+    void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
+                                    ConditionVariables& rVariables,
+                                    double& rIntegrationWeight) override;
 
 
 

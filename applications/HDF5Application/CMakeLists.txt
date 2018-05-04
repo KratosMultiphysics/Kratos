@@ -15,6 +15,7 @@ set( KRATOS_HDF5_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_data_value_container_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_variables_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_data_io.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_element_solution_step_data_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_bossak_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_points_data.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_connectivities_data.cpp
@@ -33,6 +34,7 @@ set( KRATOS_HDF5_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_connectivities_data.cpp  
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_model_part_io.cpp  
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_nodal_solution_step_data_io.cpp  
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_element_solution_step_data_io.cpp  
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_non_historical_nodal_value_io.cpp  
 )
 
@@ -91,8 +93,8 @@ include_directories(${HDF5_INCLUDE_DIRS})
 add_definitions(${HDF5_DEFINITIONS})
 
 # define library Kratos which defines the basic python interface
-add_library(KratosHDF5Application SHARED ${KRATOS_HDF5_APPLICATION_SOURCES})
-target_link_libraries(KratosHDF5Application KratosCore ${HDF5_C_LIBRARIES} ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS})
+pybind11_add_module(KratosHDF5Application MODULE THIN_LTO ${KRATOS_HDF5_APPLICATION_SOURCES})
+target_link_libraries(KratosHDF5Application PRIVATE KratosCore ${HDF5_C_LIBRARIES} ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS})
 set_target_properties(KratosHDF5Application PROPERTIES PREFIX "")
 install(TARGETS KratosHDF5Application DESTINATION libs)
 

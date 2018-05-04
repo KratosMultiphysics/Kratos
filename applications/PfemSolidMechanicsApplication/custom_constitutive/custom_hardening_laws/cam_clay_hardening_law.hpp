@@ -82,7 +82,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual double& CalculateHardening(double &rHardening, const double &rAlpha, const double rTemperature = 0);
+    double& CalculateHardening(double &rHardening, const double &rAlpha, const double rTemperature = 0) override;
 	
 /*    double& CalculateIsotropicHardening(double &rIsotropicHardening, const double &rAlpha, double rTemperature = 0);
 
@@ -191,9 +191,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry

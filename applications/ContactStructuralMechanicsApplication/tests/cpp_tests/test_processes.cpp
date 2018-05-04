@@ -33,14 +33,14 @@ namespace Kratos
         * Checks the correct work of the AALM  dynamic penalty process
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(AALMProcess1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(AALMProcess1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(3);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             this_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
-            this_model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS);
+            this_model_part.AddNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
             
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;

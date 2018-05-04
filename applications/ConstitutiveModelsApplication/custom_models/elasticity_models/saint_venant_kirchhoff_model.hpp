@@ -154,8 +154,8 @@ namespace Kratos
 	const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
 
 	//Variables.Strain.InverseMatrix used as an auxiliar matrix (contravariant push forward)
-	noalias( Variables.Strain.InverseMatrix ) = prod( trans(rTotalDeformationMatrix), rStressMatrix );
-	noalias( rStressMatrix )  = prod( Variables.Strain.InverseMatrix, rTotalDeformationMatrix );
+	noalias( Variables.Strain.InverseMatrix ) = prod( rTotalDeformationMatrix, rStressMatrix );
+	noalias( rStressMatrix )  = prod( Variables.Strain.InverseMatrix, trans(rTotalDeformationMatrix) );
 	
       }
       
@@ -176,8 +176,14 @@ namespace Kratos
       rConstitutiveMatrix = ConstitutiveModelUtilities::ConstitutiveTensorToMatrix(ConstitutiveTensor,rConstitutiveMatrix);
 
       // if StressMeasure_Kirchhoff, a push forward of the ConstitutiveMatrix must be done, but it is avoided
-      // it is computationally expensive but not relevant for the convergence of the method
-	            
+      // it is computationally expensive but relevant for the convergence of the method      
+      const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
+      
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+        const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
+        ConstitutiveModelUtilities::PushForwardConstitutiveMatrix(rConstitutiveMatrix, rTotalDeformationMatrix);
+      }
+      
       KRATOS_CATCH(" ")
     }
 
@@ -185,7 +191,7 @@ namespace Kratos
     virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_TRY
-     
+          
       HyperElasticDataType Variables;
       this->CalculateStrainData(rValues,Variables);
 
@@ -198,8 +204,10 @@ namespace Kratos
       // VectorType StressVector;
       // this->CalculateAndAddStressTensor(Variables,ConstitutiveTensor,StrainVector,StressVector);
       // rStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
-
+      
       this->CalculateAndAddStressTensor(Variables,rStressMatrix);
+      
+      rConstitutiveMatrix = ConstitutiveModelUtilities::ConstitutiveTensorToMatrix(ConstitutiveTensor,rConstitutiveMatrix);
       
       const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
       
@@ -208,12 +216,14 @@ namespace Kratos
 	const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
 	
 	//Variables.Strain.InverseMatrix used as an auxiliar matrix (contravariant push forward)
-	noalias( Variables.Strain.InverseMatrix ) = prod( trans(rTotalDeformationMatrix), rStressMatrix );
-	noalias( rStressMatrix )  = prod( Variables.Strain.InverseMatrix, rTotalDeformationMatrix );
-	
+	noalias( Variables.Strain.InverseMatrix ) = prod( rTotalDeformationMatrix, rStressMatrix );
+	noalias( rStressMatrix )  = prod( Variables.Strain.InverseMatrix, trans(rTotalDeformationMatrix) );
+
+        // if StressMeasure_Kirchhoff, a push forward of the ConstitutiveMatrix must be done, but it is avoided
+        // it is computationally expensive but relevant for the convergence of the method
+        ConstitutiveModelUtilities::PushForwardConstitutiveMatrix(rConstitutiveMatrix, rTotalDeformationMatrix);
       }     
 
-      rConstitutiveMatrix = ConstitutiveModelUtilities::ConstitutiveTensorToMatrix(ConstitutiveTensor,rConstitutiveMatrix);
 
       KRATOS_CATCH(" ")
     }

@@ -13,8 +13,7 @@
         "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","ROTATION_Rotation_Auto1","PointMoment3D_Moment_on_points_Auto1"],
         "input_file_settings"  : {
             "name" : "thin_triangular_shell_drilling"
-        },
-        "dofs"                 : ["ROTATION"]
+        }
     },
     "solver_settings"          : {
         "solver_type" : "solid_mechanics_static_solver",
@@ -36,7 +35,8 @@
                 "residual_relative_tolerance" : 1e-6,
                 "residual_absolute_tolerance" : 1e-9,
                 "max_iteration"               : 30
-            }
+            },
+	    "dofs" : ["ROTATION"]
         }
     },
     "constraints_process_list" : [{
@@ -72,7 +72,7 @@
         "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "Parameters"    : {
             "model_part_name" : "PointMoment3D_Moment_on_points_Auto1",
-            "variable_name"   : "POINT_MOMENT",
+            "variable_name"   : "MOMENT_LOAD",
             "modulus"         : "40906000*t",
             "direction"       : [0.0,0.0,1.0],
             "interval"        : [0.0,"End"]

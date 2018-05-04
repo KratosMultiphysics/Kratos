@@ -120,12 +120,9 @@ with open(response_log_filename, 'r') as csvfile:
 os.chdir(original_directory)
 
 # Cleaning
-try:
-    kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
-    kratos_utilities.DeleteDirectoryIfExisting(output_directory)
-    kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
-    kratos_utilities.DeleteFileIfExisting(optimization_model_part_name+".time")
-except:
-    pass
+kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
+kratos_utilities.DeleteDirectoryIfExisting(output_directory)
+kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
+kratos_utilities.DeleteFileIfExisting(optimization_model_part_name+".time")
 
 # =======================================================================================================

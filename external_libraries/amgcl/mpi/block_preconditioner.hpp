@@ -76,8 +76,8 @@ class block_preconditioner {
             ptrdiff_t loc_end = domain[comm.rank + 1];
 
             // Split the matrix into local and remote parts.
-            boost::shared_ptr<build_matrix> Aloc = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> Arem = boost::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> Aloc = std::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> Arem = std::make_shared<build_matrix>();
 
             Aloc->set_size(n, n, true);
             Arem->set_size(n, 0, true);
@@ -121,13 +121,13 @@ class block_preconditioner {
                 }
             }
 
-            C = boost::make_shared< comm_pattern<backend_type> >(comm, n, Arem->nnz, Arem->col, bprm);
+            C = std::make_shared< comm_pattern<backend_type> >(comm, n, Arem->nnz, Arem->col, bprm);
             Arem->ncols = C->renumber(Arem->nnz, Arem->col);
 
-            P = boost::make_shared<Precond>(Aloc, prm, bprm);
+            P = std::make_shared<Precond>(Aloc, prm, bprm);
 
             this->Arem = backend_type::copy_matrix(Arem, bprm);
-            this->A = boost::make_shared<matrix>(*C, P->system_matrix(), *this->Arem);
+            this->A = std::make_shared<matrix>(*C, P->system_matrix(), *this->Arem);
         }
 
         const matrix& system_matrix() const {
@@ -147,10 +147,10 @@ class block_preconditioner {
             P->apply(rhs, x);
         }
     private:
-        boost::shared_ptr< comm_pattern<backend_type> > C;
-        boost::shared_ptr<bmatrix>  Arem;
-        boost::shared_ptr<matrix> A;
-        boost::shared_ptr<Precond> P;
+        std::shared_ptr< comm_pattern<backend_type> > C;
+        std::shared_ptr<bmatrix>  Arem;
+        std::shared_ptr<matrix> A;
+        std::shared_ptr<Precond> P;
 };
 
 } // namespace mpi

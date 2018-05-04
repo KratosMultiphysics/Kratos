@@ -19,14 +19,6 @@
 #include <algorithm>
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
-
-// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
@@ -519,7 +511,7 @@ private:
         for(auto& node_i : mrDesignSurface.Nodes())
         {
             array_3d& coord = node_i.Coordinates();
-            sumOfAllCoordinates += coord[0] + coord[1] + coord[2];
+            sumOfAllCoordinates += std::abs(coord[0]) + std::abs(coord[1]) + std::abs(coord[2]);
         }
 
         if (mControlSum == sumOfAllCoordinates)

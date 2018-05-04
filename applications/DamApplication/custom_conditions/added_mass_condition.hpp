@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        			KratosDamApplication $
 //   Last Modified by:    $Author:    	  Lorenzo Gracia $
 //   Date:                $Date:           	    May 2017 $
@@ -31,7 +31,7 @@ class AddedMassCondition : public Condition
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION( AddedMassCondition );
-   
+
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
     typedef Node <3> NodeType;
@@ -39,17 +39,17 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
     AddedMassCondition() : Condition() {}
-    
+
     // Constructor 1
     AddedMassCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : Condition(NewId, pGeometry) {}
-    
+
     // Constructor 2
-    AddedMassCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : Condition(NewId, pGeometry, pProperties) 
+    AddedMassCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : Condition(NewId, pGeometry, pProperties)
     {
         mThisIntegrationMethod = this->GetGeometry().GetDefaultIntegrationMethod();
     }
@@ -59,36 +59,36 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const;
- 
-    void GetDofList(DofsVectorType& rConditionDofList,ProcessInfo& rCurrentProcessInfo );
+    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
+
+    void GetDofList(DofsVectorType& rConditionDofList,ProcessInfo& rCurrentProcessInfo ) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo );
-    
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo );
-    
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo );
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo );
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo ) override;
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
+
+    void EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo ) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:   
-        
+protected:
+
     // Member Variables
-    
+
     GeometryData::IntegrationMethod mThisIntegrationMethod;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo );
-    
+
     virtual void CalculateLHS( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo );
 
     virtual void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo );
-    
+
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& weight);
 
     void GetAccelerationVector( Vector& rValues, int Step );
@@ -96,23 +96,23 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     // Serialization
-    
+
     friend class Serializer;
-    
-    virtual void save(Serializer& rSerializer) const
+
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
-    
+
 }; // class AddedMassCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_ADDED_MASS_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_ADDED_MASS_CONDITION_H_INCLUDED defined

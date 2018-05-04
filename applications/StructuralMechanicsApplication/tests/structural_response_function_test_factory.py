@@ -1,5 +1,6 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
+import os
 
 # Import Kratos core and apps
 import KratosMultiphysics
@@ -8,6 +9,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import structural_response_function_factory
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 # This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
@@ -34,7 +38,6 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
 
             self.problem_name = parameters["problem_data"]["problem_name"].GetString()
             model_part = KratosMultiphysics.ModelPart(self.problem_name)
-
 
             self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model_part)
 
@@ -76,7 +79,7 @@ class TestAdjointStrainEnergyResponseFunction(StructuralResponseFunctionTestFact
         self.assertAlmostEqual(self.gradient[nodeId][2], -8.400456838458809e-09)
 
 class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
-    path = "response_function_tests"
+    path = GetFilePath("response_function_tests")
     file_name = "mass_response"
 
     def test_execution(self):
@@ -87,7 +90,7 @@ class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertNotEqual(self.gradient[1][0], 0.0)
 
 class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
-    path = "response_function_tests"
+    path = GetFilePath("response_function_tests")
     file_name = "strain_energy_response"
 
     def test_execution(self):
