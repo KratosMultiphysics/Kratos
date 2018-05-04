@@ -72,10 +72,10 @@ public:
             mConditionSensitivityVariables[i] = condition_sensitivity_variables[i].GetString();
 
         // Set gradient mode
-        std::string gradient_mode = rParameters["gradient_mode"].GetString();
+        const std::string gradient_mode = rParameters["gradient_mode"].GetString();
 
         // Mode 1: semi-analytic sensitivities
-        if (gradient_mode.compare("semi_analytic") == 0)
+        if (gradient_mode== "semi_analytic")
         {
             mGradientMode = 1;
             double delta = rParameters["step_size"].GetDouble();
@@ -425,20 +425,17 @@ public:
         KRATOS_CATCH("");
     }
 
-    // virtual void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
-    //                                                const Matrix& rAdjointMatrix,
-    //                                                Vector& rResponseGradient,
-    //                                                ProcessInfo& rProcessInfo)
-    // {
-    //     KRATOS_TRY;
-
-    //     if (rResponseGradient.size() != rAdjointMatrix.size1())
-    //         rResponseGradient.resize(rAdjointMatrix.size1(), false);
-
-    //     rResponseGradient.clear();
-
-    //     KRATOS_CATCH("");
-    // }
+    virtual void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+                                                   const Matrix& rAdjointMatrix,
+                                                   Vector& rResponseGradient,
+                                                   ProcessInfo& rProcessInfo)
+    {
+        KRATOS_TRY;
+        if (rResponseGradient.size() != rAdjointMatrix.size1())
+            rResponseGradient.resize(rAdjointMatrix.size1(), false);
+        rResponseGradient.clear();
+        KRATOS_CATCH("");
+    }
 
     /// Calculate the local gradient w.r.t. second derivatives of primal solution.
     /**
@@ -463,20 +460,17 @@ public:
         KRATOS_CATCH("");
     }
 
-    // virtual void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
-    //                                                 const Matrix& rAdjointMatrix,
-    //                                                 Vector& rResponseGradient,
-    //                                                 ProcessInfo& rProcessInfo)
-    // {
-    //     KRATOS_TRY;
-
-    //     if (rResponseGradient.size() != rAdjointMatrix.size1())
-    //         rResponseGradient.resize(rAdjointMatrix.size1(), false);
-
-    //     rResponseGradient.clear();
-
-    //     KRATOS_CATCH("");
-    // }
+    virtual void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
+                                                    const Matrix& rAdjointMatrix,
+                                                    Vector& rResponseGradient,
+                                                    ProcessInfo& rProcessInfo)
+    {
+        KRATOS_TRY;
+        if (rResponseGradient.size() != rAdjointMatrix.size1())
+            rResponseGradient.resize(rAdjointMatrix.size1(), false);
+        rResponseGradient.clear();
+        KRATOS_CATCH("");
+    }
 
     virtual void UpdateSensitivities()
     {
