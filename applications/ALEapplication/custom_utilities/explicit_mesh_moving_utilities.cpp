@@ -5,10 +5,10 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
+//					 Kratos default license: kratos/license.txt
 //
 
 // System includes
@@ -40,6 +40,13 @@ namespace Kratos
 
     void ExplicitMeshMovingUtilities::FillVirtualModelPart(ModelPart& rOriginModelPart){
 
+        // Check that the origin model part has nodes and elements to be copied
+        KRATOS_ERROR_IF(rOriginModelPart.NumberOfNodes() == 0) << "Origin model part has no nodes.";
+        KRATOS_ERROR_IF(rOriginModelPart.NumberOfElements() == 0) << "Origin model part has no elements.";
+
+        // Set the buffer size in the virtual model part
+        mrModelPart.SetBufferSize(rOriginModelPart.GetBufferSize());
+
         // Copy the origin model part nodes
         auto &r_nodes_array = rOriginModelPart.NodesArray(); 
         for(auto node : r_nodes_array){
@@ -60,19 +67,24 @@ namespace Kratos
             auto p_elem = elem.Create(elem.Id(), nodes_array, elem.pGetProperties());
             mrModelPart.AddElement(p_elem);
         }
+
+        // Check that the nodes and elements have been correctly copied
+        KRATOS_ERROR_IF(rOriginModelPart.NumberOfNodes() != mrModelPart.NumberOfNodes()) 
+            << "Origin and virtual model part have different number of nodes.";
+        KRATOS_ERROR_IF(rOriginModelPart.NumberOfElements() != mrModelPart.NumberOfElements()) 
+            << "Origin and virtual model part have different number of elements.";
     }
 
     void ExplicitMeshMovingUtilities::ComputeExplicitMeshMovement(const double DeltaTime){
 
         const int time_order = 1;
         auto &r_nodes = mrModelPart.Nodes();
-        ModelPart::Pointer p_model_part = Kratos::make_shared<ModelPart>(mrModelPart);
         VectorResultNodesContainerType search_results;
-        VectorDistanceType search_distance_results;
+        DistanceVectorContainerType search_distance_results;
 
         SearchStructureNodes(search_results, search_distance_results);
         ComputeMeshDisplacement(search_results, search_distance_results);
-        MoveMeshUtilities::CalculateMeshVelocities(p_model_part,time_order,DeltaTime);
+        MoveMeshUtilities::CalculateMeshVelocities(mrModelPart, time_order, DeltaTime);
         MoveMeshUtilities::MoveMesh(r_nodes);
     }
 
@@ -83,11 +95,21 @@ namespace Kratos
     }
 
     template <unsigned int TDim>
-    void ExplicitMeshMovingUtilities::ProjectVirtualValues(ModelPart& rOriginModelPart){
+    void ExplicitMeshMovingUtilities::ProjectVirtualValues(
+        ModelPart& rOriginModelPart,
+        unsigned int BufferSize){
+
+        // Check that the virtual model part has elements
+        KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "Virtual model part has no elements."; 
 
         // Set the binbased fast point locator utility
         BinBasedFastPointLocator<TDim> bin_based_point_locator(mrModelPart);
+        const unsigned int max_number_of_results = 1;
         bin_based_point_locator.UpdateSearchDatabase();
+
+        // Set the search results candidates container (the virtual model part elements)
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType results = mrModelPart.ElementsArray();
+        typename BinBasedFastPointLocator<TDim>::ResultIteratorType results_begin = results.begin();
 
         // Search the origin model part nodes in the virtual mesh elements and 
         // interpolate the values in the virtual element to the origin model part node
@@ -96,21 +118,34 @@ namespace Kratos
             // Find the origin model part node in the virtual mesh
             array_1d<double, TDim + 1> aux_N;
             Element::Pointer p_elem;
-            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin;
-            const unsigned int max_number_of_results = 1;
-            bin_based_point_locator.FindPointOnMesh(node, aux_N, p_elem, result_begin,max_number_of_results);
+            bool is_found = false;
+            is_found = bin_based_point_locator.FindPointOnMesh(*node, aux_N, p_elem, results_begin, max_number_of_results);
 
-            // Interpolate the origin model part node value
-            auto &r_geom = p_elem->GetGeometry();
-            node->GetSolutionStepValue(PRESSURE, 1) = 0.0;
-            node->GetSolutionStepValue(PRESSURE, 2) = 0.0;
-            node->GetSolutionStepValue(VELOCITY, 1) = ZeroVector(3);
-            node->GetSolutionStepValue(VELOCITY, 2) = ZeroVector(3);
-            for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node){
-                node->GetSolutionStepValue(PRESSURE, 1) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(PRESSURE, 1);
-                node->GetSolutionStepValue(PRESSURE, 2) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(PRESSURE, 2);
-                node->GetSolutionStepValue(VELOCITY, 1) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(VELOCITY, 1);
-                node->GetSolutionStepValue(VELOCITY, 2) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(VELOCITY, 2);
+            // Check if the node is found
+            if (is_found){
+                KRATOS_WATCH(is_found)
+                // Initialize historical data
+                // The current step values are also set as a prediction
+                KRATOS_WATCH(*p_elem)
+                auto &r_geom = p_elem->GetGeometry();
+                node->GetSolutionStepValue(MESH_VELOCITY) = ZeroVector(3);
+                KRATOS_WATCH("1")
+                for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                    node->GetSolutionStepValue(PRESSURE, i_step) = 0.0;
+                    node->GetSolutionStepValue(VELOCITY, i_step) = ZeroVector(3);
+                }
+                KRATOS_WATCH("2")
+
+                // Interpolate the origin model part node value
+                for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node){
+                    KRATOS_WATCH(r_geom[i_node].GetSolutionStepValue(MESH_VELOCITY))
+                    node->GetSolutionStepValue(MESH_VELOCITY) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(MESH_VELOCITY);
+                    for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                        node->GetSolutionStepValue(PRESSURE, i_step) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(PRESSURE, i_step);
+                        node->GetSolutionStepValue(VELOCITY, i_step) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(VELOCITY, i_step);
+                    }
+                }
+                KRATOS_WATCH("3")
             }
         }
     }
@@ -119,66 +154,65 @@ namespace Kratos
 
     void ExplicitMeshMovingUtilities::SearchStructureNodes(
         VectorResultNodesContainerType &rSearchResults,
-        VectorDistanceType &rSearchDistanceResults) {
+        DistanceVectorContainerType &rSearchDistanceResults) {
 
-        auto &r_nodes = mrModelPart.Nodes();
+        auto &r_nodes = mrModelPart.NodesArray();
+        const unsigned int n_nodes = r_nodes.size();
         auto &r_structure_nodes = mrStructureModelPart.NodesArray();
         const unsigned int max_number_of_nodes = r_structure_nodes.size(); 
 
+        rSearchResults.resize(n_nodes);
+        rSearchDistanceResults.resize(n_nodes);
+
         NodeBinsType bins(r_structure_nodes.begin(), r_structure_nodes.end()); 
 
-        #pragma omp parallel
-        {
-            std::size_t n_results = 0;
-            DistanceType local_results_distances(max_number_of_nodes);
-            ResultNodesContainerType local_results(max_number_of_nodes);
-            
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
-            {
-                ResultNodesContainerType::iterator it_results = local_results.begin();
-                DistanceType::iterator it_results_distances = local_results_distances.begin();
-                
-                n_results = bins.SearchObjectsInRadius(r_nodes(i), mSearchRadius, it_results, it_results_distances, max_number_of_nodes);
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(n_nodes); i++){
 
-                rSearchResults[i].insert(rSearchResults[i].begin(), local_results.begin(), local_results.begin() + n_results);
-                rSearchDistanceResults[i].insert(rSearchDistanceResults[i].begin(), local_results_distances.begin(), local_results_distances.begin() + n_results);
-            }
+            std::size_t n_results = 0;
+            ResultNodesContainerType i_node_results(max_number_of_nodes);
+            DistanceVectorType i_node_distance_results(max_number_of_nodes);
+
+            auto it_results = i_node_results.begin();
+            auto it_results_distances = i_node_distance_results.begin();
+            
+            auto it_node = r_nodes.begin() + i;
+            n_results = bins.SearchObjectsInRadius(*it_node, mSearchRadius, it_results, it_results_distances, max_number_of_nodes);
+
+            rSearchResults[i] = i_node_results;
+            rSearchDistanceResults[i] = i_node_distance_results;
         }
     }
 
     void ExplicitMeshMovingUtilities::ComputeMeshDisplacement(
         const VectorResultNodesContainerType &rSearchResults,
-        const VectorDistanceType &rSearchDistanceResults){
+        const DistanceVectorContainerType &rSearchDistanceResults){
 
-        auto &r_nodes = mrModelPart.Nodes();
-        auto &r_structure_nodes = mrStructureModelPart.Nodes();
-        
-        #pragma omp for
-        for(int i_fl = 0; i_fl < static_cast<int>(r_nodes.size()); ++i_fl){
+        #pragma omp parallel for
+        for(int i_fl = 0; i_fl < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_fl){
             // Get auxiliar current fluid node info.
-            auto &r_node = r_nodes[i_fl];
-            const auto i_str_nodes = rSearchResults[i_fl];
-            const auto i_str_dists = rSearchDistanceResults[i_fl];
-            const std::size_t n_str_nodes = i_str_nodes.size();
+            auto it_node = mrModelPart.NodesBegin() + i_fl;
+            const auto i_fl_str_nodes = rSearchResults[i_fl];
+            const auto i_fl_str_dists = rSearchDistanceResults[i_fl];
+            const std::size_t n_str_nodes = i_fl_str_nodes.size();
 
             // Compute the average MESH_DISPLACEMENT
             double total_weight = 0.0;
-            auto &r_mesh_disp = r_node.FastGetSolutionStepValue(MESH_DISPLACEMENT);
+            auto &r_mesh_disp = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
             r_mesh_disp = ZeroVector(3);
 
             for(unsigned int i_str = 0; i_str < n_str_nodes; ++i_str){
                 // Compute the structure point weight according to the kernel function
-                const double normalised_distance = i_str_dists[i_str] / mSearchRadius;
+                const double normalised_distance = i_fl_str_dists[i_str] / mSearchRadius;
                 const double weight = this->ComputeKernelValue(normalised_distance);
 
                 // Accumulate the current structure pt. DISPLACEMENT values
-                const auto &r_str_disp = r_structure_nodes[i_str].FastGetSolutionStepValue(DISPLACEMENT);
-                if (!r_node.IsFixed(MESH_DISPLACEMENT_X))
+                const auto &r_str_disp = (mrStructureModelPart.NodesBegin() + i_str)->FastGetSolutionStepValue(DISPLACEMENT);
+                if (!it_node->IsFixed(MESH_DISPLACEMENT_X))
                     r_mesh_disp[0] += weight * r_str_disp[0];
-                if (!r_node.IsFixed(MESH_DISPLACEMENT_Y))
+                if (!it_node->IsFixed(MESH_DISPLACEMENT_Y))
                     r_mesh_disp[1] += weight * r_str_disp[1];
-                if (!r_node.IsFixed(MESH_DISPLACEMENT_Z))
+                if (!it_node->IsFixed(MESH_DISPLACEMENT_Z))
                     r_mesh_disp[2] += weight * r_str_disp[2];
 
                 // Accumulate the current structure pt. weight to compute the average
@@ -205,4 +239,6 @@ namespace Kratos
         return rOStream;
     }
 
+    template void ExplicitMeshMovingUtilities::ProjectVirtualValues<2>(ModelPart &rOriginModelPart, unsigned int BufferSize);
+    template void ExplicitMeshMovingUtilities::ProjectVirtualValues<3>(ModelPart &rOriginModelPart, unsigned int BufferSize);
 }

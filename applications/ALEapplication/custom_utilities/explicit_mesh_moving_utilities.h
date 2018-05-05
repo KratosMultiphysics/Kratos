@@ -63,9 +63,9 @@ namespace Kratos
 
     typedef Element::GeometryType::PointsArrayType                             PointsArrayType;
     typedef BinsObjectDynamic<NodeConfigure>                                      NodeBinsType;
-    typedef SpatialSearch::DistanceType                                           DistanceType;
+    typedef std::vector<double>                                             DistanceVectorType;
     typedef SpatialSearch::ResultNodesContainerType                   ResultNodesContainerType;
-    typedef SpatialSearch::VectorDistanceType                               VectorDistanceType;
+    typedef std::vector<std::vector<double>>                       DistanceVectorContainerType;
     typedef SpatialSearch::VectorResultNodesContainerType       VectorResultNodesContainerType;
 
     /// Pointer definition of ExplicitMeshMovingUtilities
@@ -117,7 +117,7 @@ namespace Kratos
     * @param rOriginModelPart model part to where the values are projected
     */
     template <unsigned int TDim>
-    void ProjectVirtualValues(ModelPart& rOriginModelPart);
+    void ProjectVirtualValues(ModelPart &rOriginModelPart, unsigned int BufferSize = 3);
 
     ///@}
     ///@name Access
@@ -180,7 +180,7 @@ private:
     */
     void SearchStructureNodes(
         VectorResultNodesContainerType &rSearchResults,
-        VectorDistanceType &rSearchDistanceResults);
+        DistanceVectorContainerType &rSearchDistanceResults);
 
     /**
     * Computes the MESH_DISPLACEMENT value for each fluid node. This operation is explicitly computed 
@@ -192,7 +192,7 @@ private:
     */
     void ComputeMeshDisplacement(
         const VectorResultNodesContainerType &rSearchResults,
-        const VectorDistanceType &rSearchDistanceResults);
+        const DistanceVectorContainerType &rSearchDistanceResults);
 
     /**
     * Computes the kernel function value for a given normalised distance value
