@@ -34,6 +34,9 @@ typedef BaseType::VectorType VectorType;
 void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
                             VectorType &rDetJ0, GeometryType &rGeometry);
 
+void CalculateMeshVelocities(ModelPart &rMeshModelPart,
+                             const int TimeOrder, const double DeltaTime);
+
 void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart,
                              const int TimeOrder, const double DeltaTime);
 
