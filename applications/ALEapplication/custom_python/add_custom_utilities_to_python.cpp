@@ -50,6 +50,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     class_<ExplicitMeshMovingUtilities>(m,"ExplicitMeshMovingUtilities")
         .def(init<ModelPart&, ModelPart&, const double>())
         .def("ComputeExplicitMeshMovement",&ExplicitMeshMovingUtilities::ComputeExplicitMeshMovement)
+        .def("FillVirtualModelPart",&ExplicitMeshMovingUtilities::FillVirtualModelPart)
+        .def("ProjectVirtualValues2D",&ExplicitMeshMovingUtilities::ProjectVirtualValues<2>)
+        .def("ProjectVirtualValues3D",&ExplicitMeshMovingUtilities::ProjectVirtualValues<3>)
         .def("UndoMeshMovement",&ExplicitMeshMovingUtilities::UndoMeshMovement);
 
 }
