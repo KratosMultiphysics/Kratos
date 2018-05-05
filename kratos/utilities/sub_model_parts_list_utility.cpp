@@ -215,7 +215,7 @@ std::unordered_map<int,std::vector<ModelPart::Pointer>> SubModelPartsListUtility
 {
     // Initialize output
     std::unordered_map<int,std::vector<ModelPart::Pointer>> fast_colors;
-    
+
     for (auto color : rColors)
     {
         for (auto name : color.second)
@@ -245,6 +245,7 @@ void SubModelPartsListUtility::IntersectColors(
 
     // Auxiliary variables
     bool new_color = false;
+    int last_color = rColors.size();
     std::unordered_map<std::vector<std::string>, int, KeyHasherRange<std::vector<std::string>>, KeyComparorRange<std::vector<std::string>>> aux_colors;
 
     // Generate the intersections map
@@ -253,7 +254,11 @@ void SubModelPartsListUtility::IntersectColors(
         for (SizeType j = i; j < rColors.size(); j++)
         {
             std::pair<int,int> intersection_key = {i,j};
-            if (i == j)
+            if (i==0)
+            {
+                rIntersections[intersection_key] = 0;
+            }
+            else if (i == j)
             {
                 rIntersections[intersection_key] = i;
             }
@@ -269,24 +274,29 @@ void SubModelPartsListUtility::IntersectColors(
                 {
                     rIntersections[intersection_key] = 0;
                 }
-
-                // Find the intersection color
-                bool intersection_found = false;
-                for (auto color : rColors)
+                else
                 {
-                    if (color.second == intersection_names)
+                    // Find the intersection color
+                    bool intersection_found = false;
+                    for (auto color : rColors)
                     {
-                        rIntersections[intersection_key] = color.first;
-                        intersection_found = true;
+                        if (color.second == intersection_names)
+                        {
+                            rIntersections[intersection_key] = color.first;
+                            intersection_found = true;
+                        }
                     }
-                }
 
-                // Store the new intersection
-                if (!intersection_found)
-                {
-                    rIntersections[intersection_key] = 10;
-                    aux_colors[intersection_names] = 10;
-                    new_color = true;
+                    // It should never happen, just in case
+                    if (!intersection_found)
+                    {
+                        if (aux_colors.count(intersection_names) == 0)
+                        {
+                            aux_colors[intersection_names] = last_color++;
+                            new_color = true;
+                        }
+                        rIntersections[intersection_key] = aux_colors[intersection_names];
+                    }
                 }
             }
         }
@@ -303,5 +313,3 @@ void SubModelPartsListUtility::IntersectColors(
 }
 
 }  // namespace Kratos.
-
-

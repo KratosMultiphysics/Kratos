@@ -346,23 +346,22 @@ namespace Kratos
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Compute the intersections
-            PairIntMapType intersections; 
+            PairIntMapType intersections;
             SubModelPartsListUtility::IntersectColors(colors, intersections);
             int key;
             // The intersection gives the main model part
-            key = intersections[{nodes_colors[p_node_1->Id()], nodes_colors[p_node_3->Id()]}];
+            key = intersections[std::minmax(nodes_colors[p_node_1->Id()], nodes_colors[p_node_3->Id()])];
             KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_2->Id()]);
             KRATOS_CHECK_EQUAL(key, 0);
 
             // The intersection is a sub model part
-            key = intersections[{nodes_colors[p_node_4->Id()], nodes_colors[p_node_6->Id()]}];
+            key = intersections[std::minmax(nodes_colors[p_node_4->Id()], nodes_colors[p_node_6->Id()])];
             KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_5->Id()]);
 
             // The input is included in the intersection
-            key = intersections[{nodes_colors[p_node_1->Id()], nodes_colors[p_node_4->Id()]}];
+            key = intersections[std::minmax(nodes_colors[p_node_1->Id()], nodes_colors[p_node_4->Id()])];
             KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_1->Id()]);
         }
 
     } // namespace Testing
 }  // namespace Kratos.
-

@@ -71,30 +71,7 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
     // Compute the sub model part maps
     SubModelPartsListUtility colors_utility(mrModelPart);
     colors_utility.ComputeSubModelPartsList(mNodesColorMap, mCondColorMap, mElemColorMap, mColors);
-    for (auto color : mColors)
-    {
-        KRATOS_WATCH(color.first)
-        for (auto name : color.second)
-        {
-            KRATOS_WATCH(name)
-        }
-    }
     SubModelPartsListUtility::IntersectColors(mColors, mIntersections);
-    for (auto color : mColors)
-    {
-        KRATOS_WATCH(color.first)
-        for (auto name : color.second)
-        {
-            KRATOS_WATCH(name)
-        }
-    }
-    KRATOS_WATCH(mIntersections.size())
-    for (auto intersection : mIntersections)
-    {
-        KRATOS_WATCH(intersection.first.first)
-        KRATOS_WATCH(intersection.first.second)
-        KRATOS_WATCH(intersection.second)
-    }
 }
 
 
@@ -332,7 +309,7 @@ void UniformRefineUtility<TDim>::CreateNodeInEdge(
         // Add the node to the sub model parts
         const int key0 = mNodesColorMap[rEdge(0)->Id()];
         const int key1 = mNodesColorMap[rEdge(1)->Id()];
-        const int key = mIntersections[{key0, key1}];
+        const int key = mIntersections[std::minmax(key0, key1)];
         if (key != 0)  // NOTE: key==0 is the main model part
         {
             for (std::string sub_name : mColors[key])
@@ -412,9 +389,9 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
         int key1 = mNodesColorMap[rFace(1)->Id()];
         int key2 = mNodesColorMap[rFace(2)->Id()];
         int key3 = mNodesColorMap[rFace(3)->Id()];
-        key0 = mIntersections[{key0, key1}];
-        key1 = mIntersections[{key2, key3}];
-        key0 = mIntersections[{key0, key1}];
+        key0 = mIntersections[std::minmax(key0, key1)];
+        key1 = mIntersections[std::minmax(key2, key3)];
+        key0 = mIntersections[std::minmax(key0, key1)];
         if (key0 != 0)  // NOTE: key==0 is the main model part
         {
             for (std::string sub_name : mColors[key0])
