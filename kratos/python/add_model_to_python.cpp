@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include "includes/kernel.h"
 #include "containers/model.h"
 #include "python/add_model_to_python.h"
 
@@ -30,8 +31,11 @@ using namespace pybind11;
 
 void  AddModelToPython(pybind11::module& m)
 {
-    class_<Model, Model::Pointer >(m,"Model")
-    .def(init<>())
+    m.def("GetModel", &Kernel::GetModel, return_value_policy::reference_internal);
+    
+    class_<Model/*, Model::Pointer*/ >(m,"Model")
+//     .def(init([]() { return Kernel::GetModel(); }), )
+//     .def(init<>())
     .def("AddModelPart", &Model::AddModelPart)
     .def("GetModelPart", &Model::GetModelPart, return_value_policy::reference_internal)
     .def("HasModelPart", &Model::HasModelPart)
