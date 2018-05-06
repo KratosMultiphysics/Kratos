@@ -32,7 +32,7 @@ namespace Kratos
             /// Initialization constructor.
             GenericConstitutiveLawIntegrator()
             {
-                mpYieldSurface = YieldSurfaceType().Clone();
+                //mpYieldSurface = YieldSurfaceType().Clone();
             }
 
             /// Copy constructor
@@ -61,7 +61,7 @@ namespace Kratos
             // ***************************************************************************
             // ***************************************************************************
 
-            void IntegrateStressVector() // While Loop
+            static void IntegrateStressVector() // While Loop plasticity
             {
 
             }
@@ -69,7 +69,7 @@ namespace Kratos
 
         protected:
 
-            typename YieldSurfaceType::Pointer mpYieldSurface;
+            //typename YieldSurfaceType::Pointer mpYieldSurface;
 
 
     };

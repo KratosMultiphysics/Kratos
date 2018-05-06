@@ -58,7 +58,7 @@ namespace Kratos
             // ***************************************************************************
             // ***************************************************************************
 
-            void CalculatePlasticPotentialDerivative(const Vector& StressVector, const Vector& Deviator,const double& J2, Vector& rg)
+            static void CalculatePlasticPotentialDerivative(const Vector& StressVector, const Vector& Deviator,const double& J2, Vector& rg)
             {
 
             }

@@ -34,7 +34,7 @@ namespace Kratos
             /// Initialization constructor.
             GenericYieldSurface()
             {
-                mpPlasticPotential = PlasticPotentialType().Clone();
+                //mpPlasticPotential = PlasticPotentialType().Clone();
             }
 
             /// Copy constructor
@@ -69,25 +69,25 @@ namespace Kratos
                 // Implement for each yield surf
             }
 
-            void CalculateI1Invariant(const Vector& StressVector, double& rI1)
+           static void CalculateI1Invariant(const Vector& StressVector, double& rI1)
             {
                 rI1 = StressVector[0] + StressVector[1] + StressVector[2];
             }
 
-            void CalculateI2Invariant(const Vector& StressVector, double& rI2)
+            static void CalculateI2Invariant(const Vector& StressVector, double& rI2)
             {
                 rI2 = (StressVector[0] + StressVector[2])*StressVector[1] + StressVector[0]*StressVector[2] +
                     - StressVector[3]*StressVector[3] - StressVector[4]*StressVector[4] - StressVector[5]*StressVector[5];
             }
 
-            void CalculateI3Invariant(const Vector& StressVector, double& rI3)
+            static void CalculateI3Invariant(const Vector& StressVector, double& rI3)
             {
                 rI3 = (StressVector[1]*StressVector[2] - StressVector[4]*StressVector[4])*StressVector[0] -
                     StressVector[1]*StressVector[5]*StressVector[5] - StressVector[2]*StressVector[3]*StressVector[3] +
                     2.0*StressVector[3]*StressVector[4]*StressVector[5];
             }
 
-            void CalculateJ2Invariant(const Vector& StressVector, const double& I1, Vector& rDeviator, double& rJ2)
+            static void CalculateJ2Invariant(const Vector& StressVector, const double& I1, Vector& rDeviator, double& rJ2)
             {
                 rDeviator = StressVector;
                 double Pmean = I1 / 3.0;
@@ -101,7 +101,7 @@ namespace Kratos
             }
 
             // Computes dG/dS
-            void CalculatePlasticPotentialDerivative(const Vector& StressVector,const Vector& Deviator,const double& J2, Vector& rg)
+            static void CalculatePlasticPotentialDerivative(const Vector& StressVector,const Vector& Deviator,const double& J2, Vector& rg)
             {
                 //mPlasticPotential->CalculatePlasticPotentialDerivative(StressVector,Deviator,J2,rg);
                 PlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector,Deviator,J2,rg);
