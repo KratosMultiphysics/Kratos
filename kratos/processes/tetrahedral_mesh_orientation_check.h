@@ -168,7 +168,7 @@ public:
 
         //to do so begin by putting all of the conditions in a map
 
-        typedef std::unordered_map<vector<int>, Condition::Pointer, KeyHasherRange<vector<int>>, KeyComparorRange<vector<int>> > hashmap;
+        typedef std::unordered_map<DenseVector<int>, Condition::Pointer, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
         hashmap faces_map;
 
         for (ModelPart::ConditionIterator itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); itCond++)
@@ -176,7 +176,7 @@ public:
             itCond->Set(VISITED,false); //mark
 
             Geometry< Node<3> >& geom = itCond->GetGeometry();
-            vector<int> ids(geom.size());
+            DenseVector<int> ids(geom.size());
 
             for(unsigned int i=0; i<ids.size(); i++)
             {
@@ -188,7 +188,7 @@ public:
             std::sort(ids.begin(), ids.end());
 
             //insert a pointer to the condition identified by the hash value ids
-            //faces_map.insert( std::make_pair<vector<int>, Condition::Pointer >(ids, *itCond.base()) );
+            //faces_map.insert( std::make_pair<DenseVector<int>, Condition::Pointer >(ids, *itCond.base()) );
             faces_map.insert( hashmap::value_type(ids, *itCond.base()) );
             //faces_map[ids] = *itCond.base();
         }
@@ -204,7 +204,7 @@ public:
             if (GeoType == GeometryData::Kratos_Tetrahedra3D4  || GeoType == GeometryData::Kratos_Triangle2D3)
             {
                 //allocate a work array long enough to contain the Ids of a face
-                vector<int> aux( rGeom.size() - 1);
+                DenseVector<int> aux( rGeom.size() - 1);
 
                 //loop over the faces
                 for(unsigned int outer_node_index=0; outer_node_index< rGeom.size(); outer_node_index++)
@@ -253,7 +253,7 @@ public:
                         
                         
 
-                        //do a dotproduct with the vector that goes from
+                        //do a dotproduct with the DenseVector that goes from
                         //"outer_node_index" to any of the nodes in aux;
                         array_1d<double,3> lvec = rGeom[outer_node_index]-rGeom[localindex_node_on_face];
 

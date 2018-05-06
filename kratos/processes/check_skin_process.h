@@ -104,10 +104,10 @@ public:
         if(mrModelPart.Conditions().size() == 0 && mrModelPart.Elements().size() != 0)
             KRATOS_THROW_ERROR(std::invalid_argument, "the number of conditions is zero and the number of elements is not, hence the skin can not envelope the domain","")
 
-        typedef std::unordered_map<vector<unsigned int>, unsigned int, KeyHasherRange<vector<unsigned int>>, KeyComparorRange<vector<unsigned int>> > hashmap;
+        typedef std::unordered_map<DenseVector<unsigned int>, unsigned int, KeyHasherRange<DenseVector<unsigned int>>, KeyComparorRange<DenseVector<unsigned int>> > hashmap;
         hashmap edge_map;
 
-        vector<unsigned int> ids(2);
+        DenseVector<unsigned int> ids(2);
 
         //add 1 to the counter for every edge find in the model part
         for (ModelPart::ConditionIterator itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); itCond++)
