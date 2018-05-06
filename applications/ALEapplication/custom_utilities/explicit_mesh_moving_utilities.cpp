@@ -104,48 +104,38 @@ namespace Kratos
 
         // Set the binbased fast point locator utility
         BinBasedFastPointLocator<TDim> bin_based_point_locator(mrModelPart);
-        const unsigned int max_number_of_results = 1;
         bin_based_point_locator.UpdateSearchDatabase();
-
-        // Set the search results candidates container (the virtual model part elements)
-        typename BinBasedFastPointLocator<TDim>::ResultContainerType results = mrModelPart.ElementsArray();
-        typename BinBasedFastPointLocator<TDim>::ResultIteratorType results_begin = results.begin();
 
         // Search the origin model part nodes in the virtual mesh elements and 
         // interpolate the values in the virtual element to the origin model part node
         auto &r_nodes_array = rOriginModelPart.NodesArray(); 
-        for(auto node : r_nodes_array){
+        for(auto it_node : r_nodes_array){
             // Find the origin model part node in the virtual mesh
-            array_1d<double, TDim + 1> aux_N;
+            Vector aux_N;
             Element::Pointer p_elem;
-            bool is_found = false;
-            is_found = bin_based_point_locator.FindPointOnMesh(*node, aux_N, p_elem, results_begin, max_number_of_results);
+            const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(it_node->Coordinates(), aux_N, p_elem);
 
             // Check if the node is found
             if (is_found){
-                KRATOS_WATCH(is_found)
                 // Initialize historical data
                 // The current step values are also set as a prediction
-                KRATOS_WATCH(*p_elem)
                 auto &r_geom = p_elem->GetGeometry();
-                node->GetSolutionStepValue(MESH_VELOCITY) = ZeroVector(3);
-                KRATOS_WATCH("1")
+                it_node->GetSolutionStepValue(MESH_VELOCITY) = ZeroVector(3);
                 for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
-                    node->GetSolutionStepValue(PRESSURE, i_step) = 0.0;
-                    node->GetSolutionStepValue(VELOCITY, i_step) = ZeroVector(3);
+                    it_node->GetSolutionStepValue(PRESSURE, i_step) = 0.0;
+                    it_node->GetSolutionStepValue(VELOCITY, i_step) = ZeroVector(3);
                 }
-                KRATOS_WATCH("2")
 
                 // Interpolate the origin model part node value
                 for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node){
-                    KRATOS_WATCH(r_geom[i_node].GetSolutionStepValue(MESH_VELOCITY))
-                    node->GetSolutionStepValue(MESH_VELOCITY) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(MESH_VELOCITY);
+                    it_node->GetSolutionStepValue(MESH_VELOCITY) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(MESH_VELOCITY);
                     for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
-                        node->GetSolutionStepValue(PRESSURE, i_step) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(PRESSURE, i_step);
-                        node->GetSolutionStepValue(VELOCITY, i_step) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(VELOCITY, i_step);
+                        it_node->GetSolutionStepValue(PRESSURE, i_step) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(PRESSURE, i_step);
+                        it_node->GetSolutionStepValue(VELOCITY, i_step) += aux_N(i_node) * r_geom[i_node].GetSolutionStepValue(VELOCITY, i_step);
                     }
                 }
-                KRATOS_WATCH("3")
+            } else {
+                KRATOS_WARNING("ExplicitMeshMovingUtility") << "Origin model part node " << it_node->Id() << " has not been found in any virtual model part element.";
             }
         }
     }
