@@ -157,7 +157,7 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
         # Perform the FM-ALE operations
         if (self._is_fm_ale_step()):
             self._do_fm_ale_operations()
-        else:
+        elif (self.fm_ale_step_frequency != 0):
             self.fm_ale_step += 1
 
         # Fluid solver solve call
@@ -173,10 +173,11 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
 
 
     def _is_fm_ale_step(self):
-        if (self.fm_ale_step == self.fm_ale_step_frequency):
-            return True
-        else: 
-            return False
+        if (self.fm_ale_step_frequency != 0):
+            if (self.fm_ale_step == self.fm_ale_step_frequency):
+                return True
+            else: 
+                return False
 
     def _do_fm_ale_operations(self):
         # Fill the virtual model part variable values: VELOCITY (n,nn), PRESSURE (n,nn)
