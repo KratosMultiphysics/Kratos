@@ -263,7 +263,7 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            boost::numeric::ublas::vector<int> TempNeighboursIds; //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
+            DenseVector<int> TempNeighboursIds; //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
             std::vector<array_1d<double, 3> > TempNeighbourElasticContactForces;
             std::vector<SphericParticle*> TempNeighbourElements;
 
@@ -413,7 +413,7 @@ namespace Kratos {
         KRATOS_TRY
         //CONTACT MODEL PART
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-        vector<unsigned int> contact_element_partition;
+        DenseVector<unsigned int> contact_element_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
 
         #pragma omp parallel for
@@ -433,7 +433,7 @@ namespace Kratos {
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
         ProcessInfo& r_process_info = (*mpContact_model_part).GetProcessInfo();
 
-        vector<unsigned int> contact_element_partition;
+        DenseVector<unsigned int> contact_element_partition;
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
         #pragma omp parallel for
@@ -453,7 +453,7 @@ namespace Kratos {
 
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
 
-        vector<unsigned int> contact_element_partition;
+        DenseVector<unsigned int> contact_element_partition;
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
 
@@ -775,7 +775,7 @@ namespace Kratos {
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
         ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
         Vector rhs_cond;
-        vector<unsigned int> condition_partition;
+        DenseVector<unsigned int> condition_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
 
         #pragma omp parallel for private (rhs_cond)

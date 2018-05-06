@@ -11,10 +11,9 @@ import SourceTerm
 import StabilizationMatrix
 
 
-dim = params["dim"]   
+dim = params["dim"]                         # Define Dimension in params.py  
 BlockSize = dim+2 					        # Dimension of the vector of Unknowns
 do_simplifications = False
-dim_to_compute = "3D"                       # Spatial dimensions to compute. Options:  "2D","3D","Both"
 mode = "c"                                  # Output mode to a c++ file
 
 
@@ -200,22 +199,29 @@ res_e_out = OutputMatrix_CollectingFactors(res_e, "res_e", mode)
 
 ## Reading Template File
 print("\nReading compressible_navier_stokes_cpp_template.cpp\n")
-templatefile = open("compressible_navier_stokes_cpp_template.cpp")
-outstring=templatefile.read()
-
-if(dim == 2):
+if(dim==2):
+        templatefile = open("compressible_navier_stokes_cpp_template2D.cpp")
+        outstring=templatefile.read()
         outstring = outstring.replace("//substitute_lhs_2D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_2D", rhs_out)
         outstring = outstring.replace("//substitute_res_m_2D", res_m_out)
         outstring = outstring.replace("//substitute_res_e_2D", res_e_out)
+        ## Write the modified template
+        print("\nWriting compressible_navier_stokes2D.cpp\n")
+        out = open("compressible_navier_stokes2D.cpp",'w')
+        out.write(outstring)
+        out.close()
 elif(dim == 3):
+        templatefile = open("compressible_navier_stokes_cpp_template3D.cpp")
+        outstring=templatefile.read()
         outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
         outstring = outstring.replace("//substitute_res_m_3D", res_m_out)
         outstring = outstring.replace("//substitute_res_e_3D", res_e_out)
 
-## Write the modified template
-print("\nWriting compressible_navier_stokes.cpp\n")
-out = open("compressible_navier_stokes.cpp",'w')
-out.write(outstring)
-out.close()
+        ## Write the modified template
+        print("\nWriting compressible_navier_stokes3D.cpp\n")
+        out = open("compressible_navier_stokes3D.cpp",'w')
+        out.write(outstring)
+        out.close()
+print("\nCompressible Navier Stokes Element Generated\n")

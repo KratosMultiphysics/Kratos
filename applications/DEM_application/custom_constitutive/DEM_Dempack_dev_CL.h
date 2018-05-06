@@ -62,7 +62,7 @@ namespace Kratos {
                 int i_neighbour_count,
                 bool& sliding,
                 int search_control,
-                vector<int>& search_control_vector,
+                DenseVector<int>& search_control_vector,
                 const ProcessInfo& r_process_info) override;
 
         void CalculateNormalForces(double LocalElasticContactForce[3],
@@ -86,7 +86,7 @@ namespace Kratos {
                                                     SphericContinuumParticle* element2);
 
 
-        
+
         void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                       SphericContinuumParticle* neighbor,
                                                       double equiv_young,
