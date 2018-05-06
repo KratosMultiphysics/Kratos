@@ -533,8 +533,8 @@ class ALMContactProcess(python_process.PythonProcess):
 
         mortar_mapping.Execute()
 
-        # Transfering the AUGMENTED_NORMAL_CONTACT_PRESSURE to LAGRANGE_MULTIPLIER_CONTACT_PRESSURE
-        KM.VariableUtils().CopyScalarVar(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, interface_model_part.Nodes)
+        # Transfering the AUGMENTED_NORMAL_CONTACT_PRESSURE to CONTACT_PRESSURE
+        KM.VariableUtils().SaveScalarNonHistVar(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, KM.CONTACT_PRESSURE, interface_model_part.Nodes)
 
         self._reset_search()
 
