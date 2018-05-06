@@ -73,11 +73,16 @@ namespace Kratos
 
       /// Destructor.
       virtual ~Model(){};
+      
+      Model & operator=(const Model&) = delete;
+      Model(const Model&) = delete;
 
 
       ///@}
       ///@name Operators
       ///@{
+      ModelPart& CreateModelPart( const std::string ModelPartName );
+      
       void AddModelPart(ModelPart::Pointer pModelPart); //TODO: change this conveniently
 
       ModelPart& GetModelPart(const std::string& rFullModelPartName);
@@ -165,8 +170,7 @@ namespace Kratos
       ///@}
       ///@name Member Variables
       ///@{
-      std::unordered_map< std::string, ModelPart* > mflat_map; //TODO: deprecate this
-      std::unordered_map< std::string, ModelPart* > mRootModelPartMap;
+      std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap;
 
 
       ///@}
@@ -177,7 +181,8 @@ namespace Kratos
       ///@}
       ///@name Private Operations
       ///@{
-
+      ModelPart* RecursiveSearchByName(const std::string& ModelPartName, ModelPart* pModelPart);
+      
       void GetSubPartsList(const std::string& rFullModelPartName,
                            std::vector<std::string>& rSubPartsList);
 
