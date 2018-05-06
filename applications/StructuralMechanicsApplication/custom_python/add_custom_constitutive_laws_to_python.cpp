@@ -37,6 +37,12 @@
 #include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
+// A Cornejo
+#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
+#include "custom_constitutive/yield_surfaces/generic_yield_surface.hpp"
+#include "custom_constitutive/plastic_potentials/generic_plastic_potential.hpp"
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator.hpp"
+
 namespace Kratos
 {
 namespace Python
@@ -111,6 +117,12 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     class_< LinearIsotropicDamage3D, typename LinearIsotropicDamage3D::Pointer,  ConstitutiveLaw  >
     (m,"LinearIsotropicDamage3DLaw").def( init<>())
     ;
+	
+	// A.Cornejo
+	//class_< GenericSmallStrainIsotropicPlasticity3D<class YieldSurfaceType, class ConstLawIntegratorType>,
+	//typename GenericSmallStrainIsotropicPlasticity3D<class YieldSurfaceType, class ConstLawIntegratorType>::Pointer,  ConstitutiveLaw  >
+ //   (m,"GenericSmallStrainIsotropicPlasticity3DLaw").def( init<>())
+ //   ;
 }
 
 }  // namespace Python.

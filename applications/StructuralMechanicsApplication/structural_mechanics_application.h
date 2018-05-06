@@ -91,6 +91,9 @@
 #include "custom_constitutive/linear_j2_plasticity_3d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
+// Acornejo
+//#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
+
 /* UTILITIES */
 // Cross sections
 // #include "custom_utilities/shell_cross_section.hpp"
@@ -401,6 +404,8 @@ private:
     const LinearJ2Plasticity3D mLinearJ2Plasticity3D;
     const LinearJ2PlasticityPlaneStrain2D mLinearJ2PlasticityPlaneStrain2D;
     const LinearIsotropicDamage3D mLinearIsotropicDamage3D;
+	
+	//const GenericSmallStrainIsotropicPlasticity3D<class YieldSurfaceType,class ConstLawIntegratorType> mGenericSmallStrainIsotropicPlasticity3D;
 
     ///@}
     ///@name Private Operators
