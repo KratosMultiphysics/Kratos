@@ -210,10 +210,7 @@ void RigidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
         DEM_MULTIPLY_BY_SCALAR_3(rnormal, norm_n_inv);
     }
     else{
-        //hard coded !!! TODO: discuss this
-        rnormal[0]=0.00;
-        rnormal[1]=0.00;
-        rnormal[2]=1.00;
+        KRATOS_ERROR << "Calculating normal direction for line or point is not possible" << std::endl;
     }
 }
 
