@@ -117,20 +117,20 @@ public:
 	}
 
       if(TDim==2){
-        boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
-        boost::numeric::ublas::bounded_matrix<double, 16, 3 > N;
+        BoundedMatrix<double, 16, 3 > pos;
+        BoundedMatrix<double, 16, 3 > N;
 
         CreateParticles2D(rEulerianModelPart,rLagrangianModelPart,pos,N,max_seed_distance,min_edge_size);
 
         }
       else
       {
-// 	boost::numeric::ublas::bounded_matrix<double, 56, 3 > pos;
-//         boost::numeric::ublas::bounded_matrix<double, 56, 4 > N;
+// 	BoundedMatrix<double, 56, 3 > pos;
+//         BoundedMatrix<double, 56, 4 > N;
 //         CreateParticles3D(rEulerianModelPart,rLagrangianModelPart,pos,N,max_seed_distance,min_edge_size);
 
-	boost::numeric::ublas::bounded_matrix<double, 10, 3 > pos;
-        boost::numeric::ublas::bounded_matrix<double, 10, 4 > N;
+	BoundedMatrix<double, 10, 3 > pos;
+        BoundedMatrix<double, 10, 4 > N;
         FewCreateParticles3D(rEulerianModelPart,rLagrangianModelPart,pos,N,max_seed_distance,min_edge_size);
       }
 
@@ -562,8 +562,8 @@ private:
 
   void CreateParticles3D(ModelPart& rEulerianModelPart,
 			 ModelPart& rLagrangianModelPart,
-			 boost::numeric::ublas::bounded_matrix<double, 56, 3 > pos,
-			 boost::numeric::ublas::bounded_matrix<double, 56, 4 > N,
+			 BoundedMatrix<double, 56, 3 > pos,
+			 BoundedMatrix<double, 56, 4 > N,
 			 const double max_seed_distance,
 			 const double min_edge_size)
   {
@@ -611,8 +611,8 @@ private:
 
    void FewCreateParticles3D(ModelPart& rEulerianModelPart,
 			 ModelPart& rLagrangianModelPart,
-			 boost::numeric::ublas::bounded_matrix<double, 10, 3 > pos,
-			 boost::numeric::ublas::bounded_matrix<double, 10, 4 > N,
+			 BoundedMatrix<double, 10, 3 > pos,
+			 BoundedMatrix<double, 10, 4 > N,
 			 const double max_seed_distance,
 			 const double min_edge_size)
   {
@@ -660,8 +660,8 @@ private:
 
    void CreateParticles2D(ModelPart& rEulerianModelPart,
 			 ModelPart& rLagrangianModelPart,
-			 boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos,
-			 boost::numeric::ublas::bounded_matrix<double, 16, 3 > N,
+			 BoundedMatrix<double, 16, 3 > pos,
+			 BoundedMatrix<double, 16, 3 > N,
 			 const double max_seed_distance,
 			 const double min_edge_size)
   {
@@ -720,8 +720,8 @@ private:
 
 
 
-        boost::numeric::ublas::bounded_matrix<double, 16, 3 > coord;
-        boost::numeric::ublas::bounded_matrix<double, 16, 3 > NN;
+        BoundedMatrix<double, 16, 3 > coord;
+        BoundedMatrix<double, 16, 3 > NN;
 //         #pragma omp parallel for firstprivate(NN,coord)
         for (int ne = 0; ne < nelements; ne++)
         {
@@ -922,8 +922,8 @@ bool operator()(const TRefrenceType  ptr_a, const TRefrenceType ptr_b)
 
 
 
-        boost::numeric::ublas::bounded_matrix<double, 56, 3 > coord;
-        boost::numeric::ublas::bounded_matrix<double, 56, 4 > NN;
+        BoundedMatrix<double, 56, 3 > coord;
+        BoundedMatrix<double, 56, 4 > NN;
 //         #pragma omp parallel for firstprivate(NN,coord)
         for (int ne = 0; ne < nelements; ne++)
         {
@@ -988,8 +988,8 @@ bool operator()(const TRefrenceType  ptr_a, const TRefrenceType ptr_b)
 
 
 
-        boost::numeric::ublas::bounded_matrix<double, 10, 3 > coord;
-        boost::numeric::ublas::bounded_matrix<double, 10, 4 > NN;
+        BoundedMatrix<double, 10, 3 > coord;
+        BoundedMatrix<double, 10, 4 > NN;
 //         #pragma omp parallel for firstprivate(NN,coord)
         for (int ne = 0; ne < nelements; ne++)
         {
@@ -1051,8 +1051,8 @@ bool operator()(const TRefrenceType  ptr_a, const TRefrenceType ptr_b)
 //
 //
 //
-//         boost::numeric::ublas::bounded_matrix<double, 56, 3 > coord;
-//         boost::numeric::ublas::bounded_matrix<double, 56, 4 > NN;
+//         BoundedMatrix<double, 56, 3 > coord;
+//         BoundedMatrix<double, 56, 4 > NN;
 // //         #pragma omp parallel for firstprivate(NN,coord)
 //         for (int ne = 0; ne < nelements; ne++)
 //         {
@@ -1153,7 +1153,7 @@ bool operator()(const TRefrenceType  ptr_a, const TRefrenceType ptr_b)
 //
 //     }
 
-    void ComputeGaussPointPositions2D(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 16, 3 > & pos, boost::numeric::ublas::bounded_matrix<double, 16, 3 > & N)
+    void ComputeGaussPointPositions2D(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 16, 3 > & pos, BoundedMatrix<double, 16, 3 > & N)
     {
         //lower diagonal terms
         double ypos = 1.0 / 5.0;
@@ -1184,7 +1184,7 @@ bool operator()(const TRefrenceType  ptr_a, const TRefrenceType ptr_b)
 
     }
 
-    void ComputeGaussPointPositions3D(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 56, 3 > & pos, boost::numeric::ublas::bounded_matrix<double, 56, 4 > & N)
+    void ComputeGaussPointPositions3D(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 56, 3 > & pos, BoundedMatrix<double, 56, 4 > & N)
     {
      int pos_counter = 0;
      const double one_seventh = 1.0/6.5;
@@ -1225,7 +1225,7 @@ bool operator()(const TRefrenceType  ptr_a, const TRefrenceType ptr_b)
       }
     }
 
-    void FewComputeGaussPointPositions3D(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 10, 3 > & pos, boost::numeric::ublas::bounded_matrix<double, 10, 4 > & N)
+    void FewComputeGaussPointPositions3D(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 10, 3 > & pos, BoundedMatrix<double, 10, 4 > & N)
     {
      int pos_counter = 0;
      const double one_third = 1.0/2.5;
@@ -1267,7 +1267,7 @@ bool operator()(const TRefrenceType  ptr_a, const TRefrenceType ptr_b)
     }
 
 
-   void RandomPariclePosition(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 16, 3 > & coord, boost::numeric::ublas::bounded_matrix<double, 16, 3 > & N_shape)
+   void RandomPariclePosition(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 16, 3 > & coord, BoundedMatrix<double, 16, 3 > & N_shape)
     {
       for(int ii=0;ii<16;ii++){
       double xi =  rand()* ( 1.0 / ( RAND_MAX + 1.0 ) );

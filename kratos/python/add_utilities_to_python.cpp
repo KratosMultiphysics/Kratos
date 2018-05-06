@@ -65,7 +65,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-    
+
     // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
     class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >(m,"PythonGenericFunctionUtility")
     .def(init<const std::string&>() )
@@ -96,7 +96,7 @@ void AddUtilitiesToPython(pybind11::module& m)
 
     InputGetConditionNumber ThisGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
     DirectGetConditionNumber ThisDirectGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
-    
+
     class_<ConditionNumberUtility>(m,"ConditionNumberUtility")
     .def(init<>())
     .def(init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
@@ -374,6 +374,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GenerateCut", &CuttingUtility::GenerateCut)
     .def("UpdateCutData", &CuttingUtility ::UpdateCutData)
     .def("AddSkinConditions", &CuttingUtility ::AddSkinConditions)
+    .def("AddVariablesToCutModelPart", &CuttingUtility::AddVariablesToCutModelPart )
     .def("FindSmallestEdge", &CuttingUtility ::FindSmallestEdge)
     ;
 
@@ -383,13 +384,13 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
     .def("IsInInterval", &IntervalUtility ::IsInInterval)
     ;
-    
+
     // Adding table from table stream to python
     class_<TableStreamUtility, typename TableStreamUtility::Pointer>(m,"TableStreamUtility")
     .def(init<>())
     .def(init< bool >())
     ;
-    
+
     // Exact integration (for testing)
     class_<ExactMortarIntegrationUtility<2,2>>(m,"ExactMortarIntegrationUtility2D2N")
     .def(init<>())
@@ -403,7 +404,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
     ;
-    
+
     class_<ExactMortarIntegrationUtility<3,4>>(m,"ExactMortarIntegrationUtility3D4N")
     .def(init<>())
     .def(init<const unsigned int>())

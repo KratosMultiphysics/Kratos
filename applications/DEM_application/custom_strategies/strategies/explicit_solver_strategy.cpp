@@ -832,7 +832,7 @@ namespace Kratos {
 
         Vector rhs_cond;
         Vector rhs_cond_elas;
-        vector<unsigned int> condition_partition;
+        DenseVector<unsigned int> condition_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
         unsigned int index;
 
@@ -1243,7 +1243,7 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            boost::numeric::ublas::vector<int> mTempNeighboursIds;
+            DenseVector<int> mTempNeighboursIds;
             std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
             std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
 
@@ -1540,7 +1540,7 @@ namespace Kratos {
         ProcessInfo& r_process_info = (*mpDem_model_part).GetProcessInfo();
         ElementsArrayType& pElements = (*mpDem_model_part).GetCommunicator().LocalMesh().Elements();
 
-        vector<unsigned int> element_partition;
+        DenseVector<unsigned int> element_partition;
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), element_partition);
 

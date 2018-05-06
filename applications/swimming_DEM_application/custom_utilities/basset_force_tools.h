@@ -77,13 +77,13 @@ double mTimeWindow;
 ///@}
 ///@name Member r_variables
 ///@{
-vector<unsigned int> mElementsPartition;
+DenseVector<unsigned int> mElementsPartition;
 
 ///@}
 ///@name Un accessible methods
 ///@{
 
-vector<unsigned int>& GetElementPartition()
+DenseVector<unsigned int>& GetElementPartition()
 {
     return mElementsPartition;
 }

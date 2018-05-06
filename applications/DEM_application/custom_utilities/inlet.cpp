@@ -184,7 +184,7 @@ namespace Kratos {
 
     void DEM_Inlet::DettachElements(ModelPart& r_modelpart, unsigned int& max_Id) {
 
-        vector<unsigned int> ElementPartition;
+        DenseVector<unsigned int> ElementPartition;
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
         typedef ElementsArrayType::iterator ElementIterator;
         // This vector collects the ids of the particles that have been dettached
@@ -293,21 +293,21 @@ namespace Kratos {
 
     void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
     {
-            vector<unsigned int> ElementPartition;
+            DenseVector<unsigned int> ElementPartition;
             OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
             typedef ElementsArrayType::iterator ElementIterator;
             #pragma omp parallel
             {
             #pragma omp for
             for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
-                ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;                                        
+                ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;
 
                 SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*elem_it);
                 Node<3>& node = spheric_particle.GetGeometry()[0];
 
                 const array_1d<double,3> inlet_velocity = (*(spheric_particle.mpInlet))[VELOCITY];
-                const double inlet_velocity_magnitude = DEM_MODULUS_3(inlet_velocity);    
-                const array_1d<double, 3> unitary_inlet_velocity =  inlet_velocity/inlet_velocity_magnitude;  
+                const double inlet_velocity_magnitude = DEM_MODULUS_3(inlet_velocity);
+                const array_1d<double, 3> unitary_inlet_velocity =  inlet_velocity/inlet_velocity_magnitude;
 
                 const array_1d<double,3>& initial_coordinates = node.GetInitialPosition();
                 const array_1d<double,3>& coordinates = node.Coordinates();
@@ -323,8 +323,8 @@ namespace Kratos {
                     node.Set(DEMFlags::CUMULATIVE_ZONE, false);
                     spheric_particle.Set(DEMFlags::CUMULATIVE_ZONE, false);
                 }
-            }       
-            }                         
+            }
+            }
     }
 
     void DEM_Inlet::RemoveInjectionConditions(Element& element)
@@ -358,7 +358,7 @@ namespace Kratos {
 
     void DEM_Inlet::DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id) {
 
-        vector<unsigned int> ElementPartition;
+        DenseVector<unsigned int> ElementPartition;
         typedef ElementsArrayType::iterator ElementIterator;
         std::vector<int> ids_to_remove;
 
@@ -431,16 +431,16 @@ namespace Kratos {
 
 
 
-    void DEM_Inlet::InitializeStep(ModelPart& r_modelpart) {   
+    void DEM_Inlet::InitializeStep(ModelPart& r_modelpart) {
 
-        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {            
+        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
             ModelPart& mp = *smp_it;
             const bool dense_inlet = mp[DENSE_INLET];
             if (dense_inlet){CheckDistanceAndSetFlag(r_modelpart);}
         }
     }
 
-    void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {                    
+    void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {
         InitializeStep(r_modelpart);
         unsigned int& max_Id=creator.mMaxNodeId;
         const double current_time = r_modelpart.GetProcessInfo()[TIME];
