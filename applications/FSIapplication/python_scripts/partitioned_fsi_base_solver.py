@@ -12,13 +12,13 @@ import KratosMultiphysics
 # Check that applications were imported in the main script
 KratosMultiphysics.CheckRegisteredApplications(
     "FSIApplication",
-    "ALEApplication",
+    "MeshMovingApplication",
     "FluidDynamicsApplication",
     "StructuralMechanicsApplication")
 
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
-import KratosMultiphysics.ALEApplication as KratosALE
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 

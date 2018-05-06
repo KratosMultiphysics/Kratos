@@ -31,7 +31,7 @@ class KratosFSIApplication : public KratosApplication {
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of KratosALEApplication
+    /// Pointer definition of KratosMeshMovingApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosFSIApplication);
 
     ///@}

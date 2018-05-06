@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import os
 from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
+from KratosMultiphysics.TrilinosApplication import *
 CheckForPreviousImport()
 
 import gid_output_process
@@ -59,6 +60,9 @@ class GiDOutputProcessMPI(gid_output_process.GiDOutputProcess):
 
         # Generate the cuts and store them in self.cut_model_part
         if self.skin_output or self.num_planes > 0:
+            self.cut_model_part = ModelPart("CutPart")
+            self.epetra_comm = CreateCommunicator()
+            self.cut_manager = TrilinosCuttingApplication(self.epetra_comm)
             self._initialize_cut_output(plane_output_configuration)
 
         # Retrieve gidpost flags and setup GiD output tool
