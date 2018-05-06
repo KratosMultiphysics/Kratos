@@ -135,7 +135,7 @@ namespace Kratos
                     }
                 }
             } else {
-                KRATOS_WARNING("ExplicitMeshMovingUtility") << "Origin model part node " << it_node->Id() << " has not been found in any virtual model part element.";
+                KRATOS_WARNING("ExplicitMeshMovingUtility") << "Origin model part node " << it_node->Id() << " has not been found in any virtual model part element." << std::endl;
             }
         }
     }
