@@ -306,6 +306,12 @@ KRATOS_CREATE_VARIABLE(double, PR_ART_VISC)
 KRATOS_CREATE_VARIABLE(double, LATENT_HEAT)
 KRATOS_CREATE_VARIABLE(double, AMBIENT_TEMPERATURE)
 
+
+//for ULF (surface_tension) application:
+KRATOS_CREATE_VARIABLE(double, TRIPLE_POINT)
+KRATOS_CREATE_VARIABLE(double, CONTACT_ANGLE)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SOLID_FRACTION_GRADIENT)
+
 //vectors
 
 //for General kratos application:
@@ -1012,6 +1018,12 @@ void KratosApplication::RegisterVariables() {
 
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
+    
+    //--------------- ULF Application (surface_tension) -------------------//
+    KRATOS_REGISTER_VARIABLE(TRIPLE_POINT)
+    KRATOS_REGISTER_VARIABLE(CONTACT_ANGLE)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SOLID_FRACTION_GRADIENT)
+
 
     //Register objects with general definition
     Serializer::Register("Node", Node<3>());

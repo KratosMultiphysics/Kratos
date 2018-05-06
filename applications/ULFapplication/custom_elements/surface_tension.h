@@ -1355,8 +1355,8 @@ protected:
         double zeta_dissapative_JM = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_JM];
         double zeta_dissapative_BM = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_BM];
         double zeta_dissapative_SM = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_SM];
-	double gamma_sl = rCurrentProcessInfo[SOLID_LIQIUD_SURFTENS_COEFF];
-	double gamma_sv = rCurrentProcessInfo[SOLID_AIR_SURFTENS_COEFF];
+// 	double gamma_sl = rCurrentProcessInfo[SOLID_LIQIUD_SURFTENS_COEFF];
+// 	double gamma_sv = rCurrentProcessInfo[SOLID_AIR_SURFTENS_COEFF];
 	
 	double dt = rCurrentProcessInfo[DELTA_TIME];
 	
