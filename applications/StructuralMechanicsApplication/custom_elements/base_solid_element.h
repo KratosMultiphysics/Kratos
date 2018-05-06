@@ -121,6 +121,10 @@ public:
     ///@name Type Definitions
     ///@{
     
+    /// Integers definitions
+    typedef std::size_t  SizeType;
+    typedef std::size_t IndexType;
+
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_POINTER_DEFINITION( BaseSolidElement );
 
