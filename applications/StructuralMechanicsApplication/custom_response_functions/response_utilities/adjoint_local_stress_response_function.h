@@ -92,6 +92,10 @@ public:
 
     double CalculateValue(ModelPart& rModelPart) override;
 
+    void CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
+                                Vector& rResponseGradient,
+                                ProcessInfo& rProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -109,10 +113,6 @@ public:
     ///@{
 
     ///@}
-
-    void CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
-                                   Vector& rResponseGradient,
-                                   ProcessInfo& rProcessInfo) override;
 
 protected:
     ///@name Protected static Member Variables
