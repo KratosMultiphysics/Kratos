@@ -612,9 +612,9 @@ void AddModelPartToPython(pybind11::module& m)
         
         ;
 
-	class_<ModelPart/*, ModelPart::Pointer*/, DataValueContainer, Flags >(m,"ModelPartInterface") //NOTE: name changed to ModelPartInterface to allow using a function as constructor, and to call the function ModelPart()
-// 		.def(init<std::string const&>())
-// 		.def(init<>())
+        //NOTE: name changed to ModelPartInterface to allow using a function as constructor, and to call the function ModelPart()
+	class_<ModelPart, ModelPart::Pointer, DataValueContainer, Flags >(m,"ModelPartInterface") 
+// 		.def(init<std::string const&>()) //this constructor is deliberately removed
 		.def_property("Name", GetModelPartName, SetModelPartName)
 		//  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
 		.def_property("ProcessInfo", pointer_to_get_process_info, pointer_to_set_process_info)
