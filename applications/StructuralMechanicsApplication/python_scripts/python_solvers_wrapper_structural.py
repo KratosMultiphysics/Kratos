@@ -37,7 +37,7 @@ def CreateSolver(main_model_part, custom_settings):
             solver_module_name = "structural_mechanics_harmonic_analysis_solver"
 
         elif (solver_type == "adjoint_structural_solver"):
-            solver_module_name = "adjoint_structural_solver"
+            solver_module_name = "structural_mechanics_adjoint_static_solver"
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
