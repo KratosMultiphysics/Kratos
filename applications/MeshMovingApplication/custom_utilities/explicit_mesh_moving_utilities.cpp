@@ -46,10 +46,21 @@ namespace Kratos
         // Set the buffer size in the virtual model part
         mrModelPart.SetBufferSize(rOriginModelPart.GetBufferSize());
 
-        // Copy the origin model part nodes
+        // Copy the origin model part nodes and fixity
         auto &r_nodes_array = rOriginModelPart.NodesArray(); 
-        for(auto node : r_nodes_array){
-            auto p_node = mrModelPart.CreateNewNode(node->Id(),*node, 0);
+        for(auto it_node : r_nodes_array){
+            // Create a copy of the origin model part node
+            auto p_node = mrModelPart.CreateNewNode(it_node->Id(),*it_node, 0);
+            // Check fixity
+            if (it_node->IsFixed(MESH_DISPLACEMENT_X)){
+                p_node->Fix(MESH_DISPLACEMENT_X);
+            } 
+            if (it_node->IsFixed(MESH_DISPLACEMENT_Y)){
+                p_node->Fix(MESH_DISPLACEMENT_Y);
+            }
+            if (it_node->IsFixed(MESH_DISPLACEMENT_Z)){
+                p_node->Fix(MESH_DISPLACEMENT_Z);
+            }
         }
 
         // Copy the origin model part elements
@@ -191,6 +202,7 @@ namespace Kratos
             r_mesh_disp = ZeroVector(3);
 
             for(unsigned int i_str = 0; i_str < n_str_nodes; ++i_str){
+
                 // Compute the structure point weight according to the kernel function
                 const double normalised_distance = i_fl_str_dists[i_str] / mSearchRadius;
                 const double weight = this->ComputeKernelValue(normalised_distance);
@@ -214,7 +226,7 @@ namespace Kratos
 
     inline double ExplicitMeshMovingUtilities::ComputeKernelValue(const double NormalisedDistance){
         // Epachenikov (parabolic) kernel function
-        return (3.0/4.0)*(1.0-std::pow(NormalisedDistance,2));
+        return (std::abs(NormalisedDistance) <= 1.0) ? (3.0/4.0)*(1.0-std::pow(NormalisedDistance,2)) : 0.0;
     }
 
     /* External functions *****************************************************/
