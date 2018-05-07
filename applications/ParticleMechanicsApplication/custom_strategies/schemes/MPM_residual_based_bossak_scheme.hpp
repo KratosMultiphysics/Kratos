@@ -23,6 +23,7 @@
 #include "includes/element.h"
 //#include "solid_mechanics_application.h"
 #include "particle_mechanics_application.h"
+#include "custom_utilities/mpm_boundary_rotation_utility.h"
 namespace Kratos
 {
 /**@name Kratos Globals */
@@ -130,8 +131,8 @@ public:
      * Constructor.
      * The bossak method
      */
-    MPMResidualBasedBossakScheme(ModelPart& grid_model_part, double rAlpham=0,double rDynamic=1)
-        :Scheme<TSparseSpace,TDenseSpace>(),mr_grid_model_part(grid_model_part)
+    MPMResidualBasedBossakScheme(ModelPart& grid_model_part, unsigned int DomainSize, double rAlpham=0,double rDynamic=1)
+        :Scheme<TSparseSpace,TDenseSpace>(), mr_grid_model_part(grid_model_part), mRotationTool(DomainSize,IS_STRUCTURE)
     {
         //For pure Newmark Scheme
         mAlpha.f= 0;
@@ -144,6 +145,7 @@ public:
 
         //std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= "<<mAlpha.m<<" beta= "<<mNewmark.beta<<" gamma= "<<mNewmark.gamma<<"]"<<std::endl;
 
+        mDomainSize = DomainSize;
 
         //Allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
@@ -154,20 +156,20 @@ public:
         mVector.v.resize(NumThreads);
         mVector.a.resize(NumThreads);
         mVector.ap.resize(NumThreads);
-
-
     }
 
 
     /** Copy Constructor.
      */
-    MPMResidualBasedBossakScheme(MPMResidualBasedBossakScheme& rOther)
+     MPMResidualBasedBossakScheme(MPMResidualBasedBossakScheme& rOther)
         :BaseType(rOther)
         ,mAlpha(rOther.mAlpha)
         ,mNewmark(rOther.mNewmark)
         ,mMatrix(rOther.mMatrix)
         ,mVector(rOther.mVector)
         ,mr_grid_model_part(rOther.mr_grid_model_part)
+        ,mDomainSize(rOther.mDomainSize)
+        ,mRotationTool(rOther.mDomainSize,IS_STRUCTURE)
     {
     }
 
@@ -214,6 +216,10 @@ public:
     {
         KRATOS_TRY
 
+        // Rotate displacement to the local coordinate system since Dx is in the local coordinate system
+        // Do not confuse with the name RotateVelocities, what the function really do is to RotateDisplacements
+        mRotationTool.RotateVelocities(r_model_part);
+        
         //std::cout << " Update " << std::endl;
         //update of displacement (by DOF)
         for (typename DofsArrayType::iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof)
@@ -224,6 +230,10 @@ public:
             }
         }
 
+        // Rotate the displacement back to the original coordinate system to calculate the velocity and acceleration
+        // Do not confuse with the name RecoverVelocities, what the function really do is to RecoverDisplacements
+        mRotationTool.RecoverVelocities(r_model_part);
+        
 		#pragma omp parallel for
 		for(int iter = 0; iter < static_cast<int>(r_model_part.Nodes().size()); ++iter)
 		{
@@ -269,7 +279,7 @@ public:
             array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
             //array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);
             const array_1d<double, 3 > & PreviousAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
-
+            
             if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
             {
                 CurrentDisplacement[0] = 0.0;
@@ -896,6 +906,11 @@ public:
             AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
         }
+
+        // If there is a slip condition, apply it on a rotated system of coordinates
+        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+        
         //if ((rCurrentElement) ->Id() == 365)
         //{
 
@@ -944,6 +959,10 @@ public:
             AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
         }
 
+        // If there is a slip condition, apply it on a rotated system of coordinates
+        mRotationTool.RotateRHS(RHS_Contribution,rCurrentElement->GetGeometry());
+        mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
+        
         KRATOS_CATCH( "" )
 
     }
@@ -995,6 +1014,10 @@ public:
 
         //AssembleTimeSpaceLHS_Condition(rCurrentCondition, LHS_Contribution,DampMatrix, MassMatrix,CurrentProcessInfo);
 
+        // Rotate contributions (to match coordinates for slip conditions)
+        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());        
+        
 
         KRATOS_CATCH( "" )
     }
@@ -1038,6 +1061,10 @@ public:
 
         }
 
+        // Rotate contributions (to match coordinates for slip conditions)
+        mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
+        mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());        
+        
         KRATOS_CATCH( "" )
     }
 
@@ -1161,6 +1188,10 @@ protected:
     GeneralVectors      mVector;
 
     ModelPart& mr_grid_model_part;
+
+    unsigned int    mDomainSize;
+
+    MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
 
     /*@} */
     /**@name Protected Operators*/
