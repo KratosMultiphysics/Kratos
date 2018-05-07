@@ -1128,8 +1128,9 @@ protected:
                     const double mu = rData.mu(j_node);
                     const double rho = rData.rho(j_node);
                     // const double d = r_elem_dist(j_node);
-                    const double d = 1e-9;
-                    const double aux_const = mu/(rho*std::abs(d));
+                    const double d = 1e-6;
+                    // const double aux_const = mu/(rho*std::abs(d));
+                    const double aux_const = mu/(std::abs(d));
                     for (unsigned int m = 0; m < TDim; ++m) {
                         const unsigned int row = i_node*BlockSize + m;
                         for (unsigned int n = 0; n < TDim; ++n) {
@@ -1156,8 +1157,9 @@ protected:
                     const double mu = rData.mu[j_node];
                     const double rho = rData.rho[j_node];
                     // const double d = r_elem_dist(j_node);
-                    const double d = 1e-9;
-                    const double aux_const = mu/(rho*std::abs(d));
+                    const double d = 1e-6;
+                    // const double aux_const = mu/(rho*std::abs(d));
+                    const double aux_const = mu/(std::abs(d));
                     for (unsigned int m = 0; m < TDim; ++m) {
                         const unsigned int row = i_node*BlockSize + m;
                         for (unsigned int n = 0; n < TDim; ++n) {
@@ -1203,8 +1205,9 @@ protected:
                     const double mu = rData.mu[j_node];
                     const double rho = rData.rho[j_node];
                     // const double d = r_elem_dist(j_node);
-                    const double d = 1e-9;
-                    const double aux_const = mu/(rho*std::abs(d));
+                    const double d = 1e-6;
+                    // const double aux_const = mu/(rho*std::abs(d));
+                    const double aux_const = mu/(std::abs(d));
                     for (unsigned int m = 0; m < TDim; ++m) {
                         const unsigned int row = i_node*BlockSize + m;
                         for (unsigned int n = 0; n < TDim; ++n) {
@@ -1230,8 +1233,9 @@ protected:
                     const double mu = rData.mu[j_node];
                     const double rho = rData.rho[j_node];
                     // const double d = r_elem_dist(j_node);
-                    const double d = 1e-9;
-                    const double aux_const = mu/(rho*std::abs(d));
+                    const double d = 1e-6;
+                    // const double aux_const = mu/(rho*std::abs(d));
+                    const double aux_const = mu/(std::abs(d));
                     for (unsigned int m = 0; m < TDim; ++m) {
                         const unsigned int row = i_node*BlockSize + m;
                         for (unsigned int n = 0; n < TDim; ++n) {
