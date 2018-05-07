@@ -24,37 +24,30 @@ import communicator_factory
 import algorithm_factory
 
 # ==============================================================================
-def CreateOptimizer(parameters, optimization_mdpa, external_analyzer=EmptyAnalyzer()):
-    optimization_settings = parameters["optimization_settings"]
+def CreateOptimizer(optimization_settings, optimization_mdpa, external_analyzer=EmptyAnalyzer()):
 
-    model_part_controller = model_part_controller_factory.CreateController(optimization_settings, optimization_mdpa)
-
-    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
-
+    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, optimization_mdpa, external_analyzer)
     communicator = communicator_factory.CreateCommunicator(optimization_settings)
 
     if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
-        return VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
+        return VertexMorphingMethod(optimization_settings, optimization_mdpa, analyzer, communicator)
     else:
         raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
 
 # ==============================================================================
 class VertexMorphingMethod:
     # --------------------------------------------------------------------------
-    def __init__(self, optimization_settings, model_part_controller, analyzer, communicator):
+    def __init__(self, optimization_settings, optimization_mdpa, analyzer, communicator):
         self.optimization_settings = optimization_settings
-        self.model_part_controller = model_part_controller
         self.analyzer = analyzer
         self.communicator = communicator
 
-        self.__AddNodalVariablesNeededForOptimization()
+        self.__AddNodalVariablesNeededForOptimization(optimization_mdpa)
+
+        self.model_part_controller = model_part_controller_factory.CreateController(optimization_settings, optimization_mdpa)
 
     # --------------------------------------------------------------------------
-    def __AddNodalVariablesNeededForOptimization(self):
-        optimization_mdpa = self.model_part_controller.GetOptimizationModelPart()
-        optimization_mdpa.AddNodalSolutionStepVariable(NORMAL)
-        optimization_mdpa.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
-
+    def __AddNodalVariablesNeededForOptimization(self, optimization_mdpa):
         number_of_objectives = self.optimization_settings["objectives"].size()
         number_of_constraints = self.optimization_settings["constraints"].size()
 
@@ -76,6 +69,8 @@ class VertexMorphingMethod:
         optimization_mdpa.AddNodalSolutionStepVariable(SHAPE_UPDATE)
         optimization_mdpa.AddNodalSolutionStepVariable(SHAPE_CHANGE)
         optimization_mdpa.AddNodalSolutionStepVariable(MESH_CHANGE)
+        optimization_mdpa.AddNodalSolutionStepVariable(NORMAL)
+        optimization_mdpa.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
 
     # --------------------------------------------------------------------------
     def Optimize(self):
@@ -85,15 +80,12 @@ class VertexMorphingMethod:
         print("> ", Timer().GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
         print("> ==============================================================================================================\n")
 
-        if self.model_part_controller.IsOptimizationModelPartAlreadyImported():
-            print("> Skipping import of optimization model part as already done by another application. ")
-        else:
-            self.model_part_controller.ImportOptimizationModelPart()
+        self.model_part_controller.ImportOptimizationModelPart()
 
         algorithm = algorithm_factory.CreateOptimizationAlgorithm(self.optimization_settings,
-                                                                  self.model_part_controller,
                                                                   self.analyzer,
-                                                                  self.communicator)
+                                                                  self.communicator,
+                                                                  self.model_part_controller)
 
         algorithm.InitializeOptimizationLoop()
         algorithm.RunOptimizationLoop()
