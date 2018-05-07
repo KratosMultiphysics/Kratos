@@ -142,7 +142,7 @@ private:
 
     void CalculateAndAddKg(
         Matrix& K,
-        boost::numeric::ublas::bounded_matrix<double,3,3>& msQ,
+        BoundedMatrix<double,3,3>& msQ,
         const Matrix& DN_De,
         Vector& msStressVector,
         double weight);
@@ -166,7 +166,7 @@ private:
 
 
     void MakeCrossMatrix(
-        boost::numeric::ublas::bounded_matrix<double,3,3>& M,
+        BoundedMatrix<double,3,3>& M,
         array_1d<double,3>& U);
 
     void CrossProduct(
@@ -176,7 +176,7 @@ private:
 
     void SubtractMatrix(
         MatrixType& Destination,
-        boost::numeric::ublas::bounded_matrix<double,3,3>& InputMatrix,
+        BoundedMatrix<double,3,3>& InputMatrix,
         int InitialRow,
         int InitialCol);
 
@@ -185,25 +185,25 @@ private:
         Matrix& ReducedMatrix);
 
     void CalculateQ(
-        boost::numeric::ublas::bounded_matrix<double,3,3>& msQ,
+        BoundedMatrix<double,3,3>& msQ,
         Matrix& msG);
 
     void CalculateB(
         Matrix& msB,
-        boost::numeric::ublas::bounded_matrix<double,3,3>& msQ,
+        BoundedMatrix<double,3,3>& msQ,
         const Matrix& DN_De,
         array_1d<double,3>& ge,
         array_1d<double,3>& gn);
 
     void CalculateJ(
-        boost::numeric::ublas::bounded_matrix<double,2,2>& j,
+        BoundedMatrix<double,2,2>& j,
         array_1d<double,3>& ge,
         array_1d<double,3>& gn,
         array_1d<double,3>& v3);
 
     void CalculateStrain(
         Vector& StrainVector,
-        boost::numeric::ublas::bounded_matrix<double,2,2>& C);
+        BoundedMatrix<double,2,2>& C);
 
     void CalculateAndAdd_BodyForce(
         const Vector& N,
@@ -288,4 +288,4 @@ private:
 
 }	// namespace Kratos.
 
-#endif // KRATOS_MEMBRANE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_MEMBRANE_ELEMENT_H_INCLUDED  defined

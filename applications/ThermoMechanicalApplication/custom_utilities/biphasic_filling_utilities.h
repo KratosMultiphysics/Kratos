@@ -847,7 +847,7 @@ public:
   //      }
   //      int elem_size = ThisModelPart.Elements().size();
   //      array_1d<double, 4 > N;
-  //      boost::numeric::ublas::bounded_matrix <double, 4, 3> DN_DX;
+  //      BoundedMatrix <double, 4, 3> DN_DX;
 		//#pragma omp parallel for private(DN_DX,N) firstprivate(elem_size)
   //      for (int i = 0; i < elem_size; i++)
   //        {
@@ -1277,7 +1277,7 @@ private:
             // Calculate this element's geometric parameters
             double Area;
             array_1d<double, 4> N;
-            boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
+            BoundedMatrix<double, 4, 3> DN_DX;
             GeometryUtils::CalculateGeometryData(iel->GetGeometry(), DN_DX, N, Area);
             //get position of the cut surface
             Vector distances(4);
@@ -1348,7 +1348,7 @@ private:
             // Calculate this element's geometric parameters
             double Area;
             array_1d<double, 4> N;
-            boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
+            BoundedMatrix<double, 4, 3> DN_DX;
             GeometryUtils::CalculateGeometryData(iel->GetGeometry(), DN_DX, N, Area);
             //get position of the cut surface
             Vector distances = ZeroVector(4);
@@ -1422,7 +1422,7 @@ private:
             // Calculate this element's geometric parameters
             double Area;
             array_1d<double, 4> N;
-            boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
+            BoundedMatrix<double, 4, 3> DN_DX;
             GeometryUtils::CalculateGeometryData(iel->GetGeometry(), DN_DX, N, Area);
             //get position of the cut surface
             Vector distances(4);

@@ -50,7 +50,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	ConvDiffAnisotropic3DLaw::ConvDiffAnisotropic3DLaw() 
+	ConvDiffAnisotropic3DLaw::ConvDiffAnisotropic3DLaw()
 		: ConstitutiveLaw()
 		, m_initialized(false)
 		, m_init_gradT()
@@ -329,7 +329,7 @@ namespace Kratos
 		double CONDUCTIVITY_33_11 = props[CONDUCTIVITY_3311];
 		double CONDUCTIVITY_33_22 = props[CONDUCTIVITY_3322];
 		double CONDUCTIVITY_33_33 = props[CONDUCTIVITY_3333];
-		
+
 		SizeType strain_size = strainVector.size();
 
 		Matrix constitutiveMatrix(strain_size, strain_size, false);
@@ -342,14 +342,14 @@ namespace Kratos
 		constitutiveMatrix(2, 0) = CONDUCTIVITY_33_11;
 		constitutiveMatrix(2, 1) = CONDUCTIVITY_33_22;
 		constitutiveMatrix(2, 2) = CONDUCTIVITY_33_33;
-		
+
 		mStressVector.clear();
 		mStressVector = prod(constitutiveMatrix, strainVector - m_init_gradT);
-		
+
 		// mStressVector(0) = conductivity*(strainVector(0) - m_init_gradT(0));
 		// mStressVector(1) = conductivity*(strainVector(1) - m_init_gradT(1));
 		// mStressVector(2) = conductivity*(strainVector(2) - m_init_gradT(2));
-		
+
 		noalias(stressVector) = mStressVector;
 	}
 
@@ -386,7 +386,7 @@ namespace Kratos
 		double CONDUCTIVITY_33_11 = props[CONDUCTIVITY_3311];
 		double CONDUCTIVITY_33_22 = props[CONDUCTIVITY_3322];
 		double CONDUCTIVITY_33_33 = props[CONDUCTIVITY_3333];
-		
+
 		constitutiveMatrix.clear();
 		constitutiveMatrix(0, 0) = CONDUCTIVITY_11_11;
 		constitutiveMatrix(0, 1) = CONDUCTIVITY_11_22;

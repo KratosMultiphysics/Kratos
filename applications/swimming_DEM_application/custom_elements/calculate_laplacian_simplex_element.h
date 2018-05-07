@@ -318,7 +318,7 @@ private:
     ///@name Private Operators
     ///@{
 
-    void AddIntegrationPointRHSContribution(VectorType& F, const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight);
+    void AddIntegrationPointRHSContribution(VectorType& F, const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight);
 
     ///@}
     ///@name Private Operations

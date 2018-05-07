@@ -103,7 +103,7 @@ void DSS_FIC<TDim>::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rC
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< unsigned int TDim >
-void DSS_FIC<TDim>::CalculateStaticTau(double Density,
+void DSS_FIC<TDim>::CalculateStabilizationParameters(double Density,
                                        double KinematicVisc,
                                        const array_1d<double,3> &Velocity,
                                        const ProcessInfo& rProcessInfo,
@@ -476,7 +476,7 @@ void DSS_FIC<TDim>::AddSystemTerms(unsigned int GaussIndex,
     double TauIncompr;
     double TauMomentum;
     array_1d<double,3> TauGrad(3,0.0);
-    this->CalculateStaticTau(Density,Viscosity,ConvVel,rProcessInfo,TauIncompr,TauMomentum,TauGrad);
+    this->CalculateStabilizationParameters(Density,Viscosity,ConvVel,rProcessInfo,TauIncompr,TauMomentum,TauGrad);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,ConvVel,rDN_DX);
@@ -592,7 +592,7 @@ void DSS_FIC<TDim>::AddMassStabilization(unsigned int GaussIndex,
     double TauIncompr;
     double TauMomentum;
     array_1d<double,3> TauGrad(3,0.0);
-    this->CalculateStaticTau(Density,Viscosity,ConvVel,rProcessInfo,TauIncompr,TauMomentum,TauGrad);
+    this->CalculateStabilizationParameters(Density,Viscosity,ConvVel,rProcessInfo,TauIncompr,TauMomentum,TauGrad);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,ConvVel,rDN_DX);

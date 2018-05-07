@@ -111,7 +111,7 @@ protected:
         array_1d<double,TNumNodes*TDim> VolumeAcceleration;
 
         //General elemental variables
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         array_1d<double,TDim> VoigtVector;
 
         //Variables computed at each GP
@@ -125,13 +125,13 @@ protected:
         Matrix F;
         double detF;
         //Auxiliary Variables
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu;
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu;
         array_1d<double,TDim> BodyAcceleration;
         double IntegrationCoefficient;
         double JointWidth;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> DimMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TDim> UDimMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
+        BoundedMatrix<double,TDim,TDim> DimMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TDim> UDimMatrix;
         array_1d<double,TNumNodes*TDim> UVector;
     };
 
@@ -156,7 +156,7 @@ protected:
     void InitializeElementVariables(ElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                     const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
+    void CalculateRotationMatrix(BoundedMatrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
 
     void CalculateJointWidth(double& rJointWidth,const double& NormalRelDisp,const double& MinimumJointWidth,const unsigned int& GPoint);
 

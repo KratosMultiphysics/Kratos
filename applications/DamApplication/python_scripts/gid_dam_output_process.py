@@ -383,6 +383,7 @@ class GiDDamOutputProcess(Process):
         self.cut_model_part = ModelPart("CutPart")
         self.cut_manager = CuttingUtility()
         self.cut_manager.FindSmallestEdge(self.model_part)
+        self.cut_manager.AddVariablesToCutModelPart(self.model_part,self.cut_model_part)
         if self.skin_output:
             self.cut_manager.AddSkinConditions(self.model_part,self.cut_model_part,self.output_surface_index)
             self.output_surface_index += 1

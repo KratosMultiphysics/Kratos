@@ -125,7 +125,7 @@ class DamUpliftConditionLoadProcess : public Process
         //Defining necessary variables
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix;
+        BoundedMatrix<double, 3, 3> RotationMatrix;
 
         // Computing the rotation matrix accoding with the introduced points by the user
         this->CalculateRotationMatrix(RotationMatrix);
@@ -228,7 +228,7 @@ class DamUpliftConditionLoadProcess : public Process
         //Defining necessary variables
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix;
+        BoundedMatrix<double, 3, 3> RotationMatrix;
 
         // Getting the values of table in case that it exist
         if (mTableId != 0)
@@ -331,7 +331,7 @@ class DamUpliftConditionLoadProcess : public Process
         KRATOS_CATCH("");
     }
 
-    void CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3> &rRotationMatrix)
+    void CalculateRotationMatrix(BoundedMatrix<double, 3, 3> &rRotationMatrix)
     {
         KRATOS_TRY;
 

@@ -14,7 +14,7 @@ Import_UmatApplication = False
 Import_MachiningApplication = False
 Import_StringDynamicsApplication = False
 Import_ConvectionDiffusionApplication = False
-Import_ALEApplication = False
+Import_MeshMovingApplication = False
 Import_IncompressibleFluidApplication = False
 Import_StructuralApplication = False
 Import_StructuralMechanicsApplication = False
@@ -59,7 +59,7 @@ print("Import_MachiningApplication: False")
 print("Import_StringDynamicsApplication: False")
 print("Import_ConvectionDiffusionApplication: False")
 print("Import_MeshingApplication: False")
-print("Import_ALEApplication: False")
+print("Import_MeshMovingApplication: False")
 print("Import_IncompressibleFluidApplication: False")
 print("Import_StructuralApplication: False")
 print("Import_StructuralMechanicsApplication: False")
@@ -107,7 +107,7 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_StringDynamicsApplication: " + str(Import_StringDynamicsApplication))
     print("Import_ConvectionDiffusionApplication: " + str(Import_ConvectionDiffusionApplication)
     print("Import_MeshingApplication: " + str(Import_MeshingApplication))
-    print("Import_ALEApplication: " + str(Import_ALEApplication))
+    print("Import_MeshMovingApplication: " + str(Import_MeshMovingApplication))
     print("Import_IncompressibleFluidApplication: " + str(Import_IncompressibleFluidApplication))
     print("Import_StructuralApplication: " + str(Import_StructuralApplication))
     print("Import_StructuralMechanicsApplication: " + str(Import_StructuralMechanicsApplication))
@@ -246,14 +246,14 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.ImportApplication(meshing_application)
         print("KratosMeshingApplication sucessfully imported")
 
-    if(Import_ALEApplication):
-        print("importing KratosALEApplication ...")
-        sys.path.append(applications_path + '/ALEapplication/python_scripts')
-        sys.path.append(applications_path + '/ALEapplication/Linux')
-        from KratosALEApplication import *
-        ale_app = KratosALEApplication()
-        kernel.ImportApplication(ale_app)
-        print("KratosALEApplication Succesfully imported")
+    if(Import_MeshMovingApplication):
+        print("importing KratosMeshMovingApplication ...")
+        sys.path.append(applications_path + '/MeshMovingApplication/python_scripts')
+        sys.path.append(applications_path + '/MeshMovingApplication/Linux')
+        from KratosMeshMovingApplication import *
+        mesh_moving_app = KratosMeshMovingApplication()
+        kernel.ImportApplication(mesh_moving_app)
+        print("KratosMeshMovingApplication Succesfully imported")
 
     if(Import_IncompressibleFluidApplication):
         print("importing KratosIncompressibleFluidApplication ...")
@@ -513,8 +513,8 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(pfem_fluid_dynamics_application)
     if(Import_StringDynamicsApplication):
         kernel.InitializeApplication(string_dynamics_application)
-    if(Import_ALEApplication):
-        kernel.InitializeApplication(ale_app)
+    if(Import_MeshMovingApplication):
+        kernel.InitializeApplication(mesh_moving_app)
     if(Import_IncompressibleFluidApplication):
         kernel.InitializeApplication(incompressible_fluid_application)
     if(Import_StructuralApplication):

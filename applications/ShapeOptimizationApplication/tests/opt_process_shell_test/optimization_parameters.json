@@ -46,7 +46,7 @@
                     }]
             },
             "mesh_motion" : {
-                "apply_ale_mesh_solver" : false
+                "apply_mesh_solver" : false
             }
         },
         "optimization_algorithm" : {
