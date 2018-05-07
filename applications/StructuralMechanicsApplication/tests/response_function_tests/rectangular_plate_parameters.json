@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "rectangular_plate_structure",
-        "model_part_name" : "rectangular_plate",
+        "model_part_name" : "rectangular_plate_structure",
         "domain_size"     : 3,
         "time_step"       : 1.0,
         "start_time"      : 0.0,
@@ -48,7 +48,24 @@
             "interval"        : [0.0,"End"]
         }
     }],
-    "list_other_processes" :[],
+    "list_other_processes" :[{
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_primal_output_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+            "model_part_name" : "rectangular_plate_structure",
+            "file_settings" : {
+                "file_access_mode" : "truncate"
+            },
+            "model_part_output_settings" : {
+                "prefix" : "/ModelData"
+            },
+            "nodal_results_settings" : {
+                "list_of_variables": ["DISPLACEMENT", "ROTATION", "POINT_LOAD"]
+            }
+        }
+    }],
     "loads_process_list"       : [{
         "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics",

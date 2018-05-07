@@ -1399,20 +1399,28 @@ public:
         const double norm_me = norm_frobenius(Me);
 
         // Now we normalize the matrix
-        const GeometryMatrixType normalized_Me = Me/norm_me;
+        if (norm_me >= tolerance) {
+            const GeometryMatrixType normalized_Me = Me/norm_me;
 
-        // We compute the normalized inverse
-        double aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me);
-        if (std::abs(aux_det) >= tolerance) {
-            const GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);
+            // We compute the normalized inverse
+            double aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me);
+            if (std::abs(aux_det) >= tolerance) {
+                const GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);
 
-            noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me);
-            return true;
+                noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me);
+                return true;
+            }
+        #ifdef KRATOS_DEBUG
+            else {
+                KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not be inverted. Determinant: " << aux_det << std::endl;
+                KRATOS_WATCH(normalized_Me);
+            }
+        #endif
         }
     #ifdef KRATOS_DEBUG
         else {
-            KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not bee inverted. Determinant: " << aux_det << std::endl;
-            KRATOS_WATCH(normalized_Me);
+            KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not be inverted. Norm: " << norm_me << std::endl;
+            KRATOS_WATCH(Me);
         }
     #endif
 
