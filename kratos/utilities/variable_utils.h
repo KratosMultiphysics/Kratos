@@ -126,10 +126,8 @@ public:
 
         #pragma omp parallel for
         for(int i_node = 0; i_node < static_cast<int>(n_orig_nodes); ++i_node){
-            std::cout << std::endl;
             auto it_dest_node = rDestinationModelPart.NodesBegin() + i_node;
             const auto it_orig_node = rOriginModelPart.NodesBegin() + i_node;
-
             const auto r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep); 
             it_dest_node->GetSolutionStepValue(rVariable, BuffStep) = r_value;
         }
@@ -161,7 +159,6 @@ public:
         for(int i_elems = 0; i_elems < static_cast<int>(n_orig_elems); ++i_elems){
             auto it_dest_elems = rDestinationModelPart.ElementsBegin() + i_elems;
             const auto it_orig_elems = rOriginModelPart.ElementsBegin() + i_elems;
-
             const auto r_value = it_orig_elems->GetValue(rVariable); 
             it_dest_elems->SetValue(rVariable,r_value);
         }
