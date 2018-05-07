@@ -135,9 +135,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ConvergenceCriteriaType >
             (m, "MortarAndConvergenceCriteria") 
             .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
-            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType>())
-            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType, bool>())
-            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType, bool, ConditionNumberUtilityPointerType>())
+            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer, bool>())
+            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer, bool, ConditionNumberUtilityPointerType>())
             ;
             
     // Weighted residual values update
@@ -145,7 +144,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ConvergenceCriteriaType >
             (m, "MeshTyingMortarConvergenceCriteria") 
             .def(init< >())
-            .def(init<TablePrinterPointerType>())
             ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictionless case)
@@ -153,9 +151,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ConvergenceCriteriaType >
             (m, "ALMFrictionlessMortarConvergenceCriteria") 
             .def(init< >())
-            .def(init<TablePrinterPointerType>())
-            .def(init<TablePrinterPointerType, bool>())
-            .def(init<TablePrinterPointerType, bool, bool>())
+            .def(init<bool>())
+            .def(init<bool, bool>())
             ;
             
     // Dual set strategy for SSNM Convergence Criterion (frictionless components case)
@@ -163,9 +160,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ConvergenceCriteriaType >
             (m, "ALMFrictionlessComponentsMortarConvergenceCriteria")
             .def(init< >())
-            .def(init<TablePrinterPointerType>())
-            .def(init<TablePrinterPointerType, bool>())
-            .def(init<TablePrinterPointerType, bool, bool>())
+            .def(init<bool>())
+            .def(init<bool, bool>())
             ;
             
     // Dual set strategy for SSNM Convergence Criterion (frictional case)
@@ -173,9 +169,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ConvergenceCriteriaType >
             (m, "ALMFrictionalMortarConvergenceCriteria") 
             .def(init< >())
-            .def(init<TablePrinterPointerType>())
-            .def(init<TablePrinterPointerType, bool>())
-            .def(init<TablePrinterPointerType, bool, bool>())
+            .def(init<bool>())
+            .def(init<bool, bool>())
             ;
             
     // Displacement and lagrange multiplier Convergence Criterion
@@ -184,8 +179,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             (m, "DisplacementLagrangeMultiplierContactCriteria") 
             .def(init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
-            .def(init< double, double, double, double, bool, TablePrinterPointerType >())
-            .def(init< double, double, double, double, bool, TablePrinterPointerType, bool >())
+            .def(init< double, double, double, double, bool, bool >())
             ;
             
     // Displacement and lagrange multiplier mixed Convergence Criterion
@@ -194,8 +188,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             (m, "DisplacementLagrangeMultiplierMixedContactCriteria") 
             .def(init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
-            .def(init< double, double, double, double, bool, TablePrinterPointerType >())
-            .def(init< double, double, double, double, bool, TablePrinterPointerType, bool >())
+            .def(init< double, double, double, double, bool, bool >())
             ;
             
     // Displacement and lagrange multiplier residual Convergence Criterion
@@ -204,8 +197,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             (m, "DisplacementLagrangeMultiplierResidualContactCriteria") 
             .def(init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
-            .def(init< double, double, double, double, bool, TablePrinterPointerType >())
-            .def(init< double, double, double, double, bool, TablePrinterPointerType, bool >())
+            .def(init< double, double, double, double, bool, bool >())
             ;
             
     //********************************************************************
