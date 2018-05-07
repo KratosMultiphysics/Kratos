@@ -41,7 +41,14 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(AdjointStructuralResponseFunction);
 
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
+
     typedef Variable<array_1d<double, 3>> VariableWithComponentsType;
+
+    typedef ModelPart::NodesContainerType NodesContainerType;
+
+    typedef ModelPart::ElementsContainerType ElementsContainerType;
+
+    typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -119,58 +126,41 @@ public:
         this->Check();
 
         ModelPart& r_model_part = this->GetModelPart();
+        ModelPart& r_sensitivity_model_part = r_model_part.GetSubModelPart(mSensitivityModelPartName);
 
         // Initialize flags.
-#pragma omp parallel
+        #pragma omp parallel for
+        for (int i = 0; i< static_cast<int> (r_sensitivity_model_part.Nodes().size()); ++i) 
         {
-            ModelPart::NodeIterator nodes_begin;
-            ModelPart::NodeIterator nodes_end;
-            OpenMPUtils::PartitionedIterators(
-                r_model_part.GetSubModelPart(mSensitivityModelPartName).Nodes(),
-                nodes_begin, nodes_end);
-            for (auto it = nodes_begin; it != nodes_end; ++it)
-                it->SetValue(UPDATE_SENSITIVITIES, true);
+            NodesContainerType::iterator it = r_sensitivity_model_part.NodesBegin() + i;
+            it->SetValue(UPDATE_SENSITIVITIES, true);
         }
-#pragma omp parallel
+        #pragma omp parallel for
+        for (int i = 0; i< static_cast<int> (r_sensitivity_model_part.Elements().size()); ++i) 
         {
-            ModelPart::ElementIterator elements_begin;
-            ModelPart::ElementIterator elements_end;
-            OpenMPUtils::PartitionedIterators(
-                r_model_part.GetSubModelPart(mSensitivityModelPartName).Elements(),
-                elements_begin, elements_end);
-            for (auto it = elements_begin; it != elements_end; ++it)
-                it->SetValue(UPDATE_SENSITIVITIES, true);
-
+            ElementsContainerType::iterator it = r_sensitivity_model_part.ElementsBegin() + i;
+            it->SetValue(UPDATE_SENSITIVITIES, true);
         }
-#pragma omp parallel
+        #pragma omp parallel for
+        for (int i = 0; i< static_cast<int> (r_sensitivity_model_part.Conditions().size()); ++i) 
         {
-            ModelPart::ConditionIterator conditions_begin;
-            ModelPart::ConditionIterator conditions_end;
-            OpenMPUtils::PartitionedIterators(
-                r_model_part.GetSubModelPart(mSensitivityModelPartName).Conditions(),
-                conditions_begin, conditions_end);
-            for (auto it = conditions_begin; it != conditions_end; ++it)
-                it->SetValue(UPDATE_SENSITIVITIES, true);
-
+            ConditionsContainerType::iterator it = r_sensitivity_model_part.ConditionsBegin() + i;
+            it->SetValue(UPDATE_SENSITIVITIES, true);
         }
 
     if(mGradientMode == 1)
     {
-#pragma omp parallel
+        #pragma omp parallel for
+        for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i) 
         {
-            ModelPart::ElementIterator elements_begin;
-            ModelPart::ElementIterator elements_end;
-            OpenMPUtils::PartitionedIterators(r_model_part.Elements(), elements_begin, elements_end);
-            for (auto it = elements_begin; it != elements_end; ++it)
-                it->SetValue(DISTURBANCE_MEASURE, mDelta);
+            ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
+            it->SetValue(DISTURBANCE_MEASURE, mDelta);
         }
-#pragma omp parallel
+        #pragma omp parallel for
+        for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i) 
         {
-            ModelPart::ConditionIterator conditions_begin;
-            ModelPart::ConditionIterator conditions_end;
-            OpenMPUtils::PartitionedIterators(r_model_part.Conditions(), conditions_begin, conditions_end);
-            for (auto it = conditions_begin; it != conditions_end; ++it)
-                it->SetValue(DISTURBANCE_MEASURE, mDelta);
+            ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
+            it->SetValue(DISTURBANCE_MEASURE, mDelta);
         }
     }
 
@@ -209,31 +199,24 @@ public:
         ModelPart& r_model_part = this->GetModelPart();
 
         // Reset flags.
-#pragma omp parallel
+        #pragma omp parallel for
+        for (int i = 0; i< static_cast<int> (r_model_part.Nodes().size()); ++i) 
         {
-            ModelPart::NodeIterator nodes_begin;
-            ModelPart::NodeIterator nodes_end;
-            OpenMPUtils::PartitionedIterators(r_model_part.Nodes(), nodes_begin, nodes_end);
-            for (auto it = nodes_begin; it != nodes_end; ++it)
-                it->SetValue(UPDATE_SENSITIVITIES, false);
+            NodesContainerType::iterator it = r_model_part.NodesBegin() + i;
+            it->SetValue(UPDATE_SENSITIVITIES, false);
         }
-#pragma omp parallel
+        #pragma omp parallel for
+        for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i) 
         {
-            ModelPart::ElementIterator elements_begin;
-            ModelPart::ElementIterator elements_end;
-            OpenMPUtils::PartitionedIterators(r_model_part.Elements(), elements_begin, elements_end);
-            for (auto it = elements_begin; it != elements_end; ++it)
-                it->SetValue(UPDATE_SENSITIVITIES, false);
+            ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
+            it->SetValue(UPDATE_SENSITIVITIES, false);
         }
-#pragma omp parallel
+        #pragma omp parallel for
+        for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i) 
         {
-            ModelPart::ConditionIterator conditions_begin;
-            ModelPart::ConditionIterator conditions_end;
-            OpenMPUtils::PartitionedIterators(r_model_part.Conditions(), conditions_begin, conditions_end);
-            for (auto it = conditions_begin; it != conditions_end; ++it)
-                it->SetValue(UPDATE_SENSITIVITIES, false);
+            ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
+            it->SetValue(UPDATE_SENSITIVITIES, false);
         }
-
 
         // Set sensitivity variables to zero.
         for (auto label : mNodalSensitivityVariables)
@@ -243,29 +226,24 @@ public:
                 const Variable<double>& r_variable =
                     KratosComponents<Variable<double>>::Get(label);
 
-#pragma omp parallel
+                #pragma omp parallel for
+                for (int i = 0; i< static_cast<int> (r_model_part.Nodes().size()); ++i) 
                 {
-                    ModelPart::NodeIterator nodes_begin;
-                    ModelPart::NodeIterator nodes_end;
-                    OpenMPUtils::PartitionedIterators(r_model_part.Nodes(),
-                                                      nodes_begin, nodes_end);
-                    for (auto it = nodes_begin; it != nodes_end; ++it)
-                        it->FastGetSolutionStepValue(r_variable) = r_variable.Zero();
+                    NodesContainerType::iterator it = r_model_part.NodesBegin() + i;
+                    it->FastGetSolutionStepValue(r_variable) = r_variable.Zero();
                 }
+                
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(label) == true)
             {
                 const Variable<array_1d<double, 3>>& r_variable =
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(label);
 
-#pragma omp parallel
+                #pragma omp parallel for
+                for (int i = 0; i< static_cast<int> (r_model_part.Nodes().size()); ++i) 
                 {
-                    ModelPart::NodeIterator nodes_begin;
-                    ModelPart::NodeIterator nodes_end;
-                    OpenMPUtils::PartitionedIterators(r_model_part.Nodes(),
-                                                      nodes_begin, nodes_end);
-                    for (auto it = nodes_begin; it != nodes_end; ++it)
-                        it->FastGetSolutionStepValue(r_variable) = r_variable.Zero();
+                    NodesContainerType::iterator it = r_model_part.NodesBegin() + i;
+                    it->FastGetSolutionStepValue(r_variable) = r_variable.Zero();
                 }
             }
             else
@@ -281,15 +259,11 @@ public:
                 const Variable<double>& r_variable =
                     KratosComponents<Variable<double>>::Get(output_variable_label);
 
-#pragma omp parallel
+                #pragma omp parallel for
+                for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i) 
                 {
-                    ModelPart::ElementIterator elements_begin;
-                    ModelPart::ElementIterator elements_end;
-                    OpenMPUtils::PartitionedIterators(r_model_part.Elements(),
-                                                      elements_begin, elements_end);
-                    for (auto it = elements_begin; it != elements_end; ++it)
-                        it->SetValue(r_variable, r_variable.Zero());
-
+                    ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
+                    it->SetValue(r_variable, r_variable.Zero());
                 }
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(output_variable_label) == true)
@@ -297,14 +271,11 @@ public:
                 const Variable<array_1d<double, 3>>& r_variable =
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(output_variable_label);
 
-#pragma omp parallel
+                #pragma omp parallel for
+                for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i) 
                 {
-                    ModelPart::ElementIterator elements_begin;
-                    ModelPart::ElementIterator elements_end;
-                    OpenMPUtils::PartitionedIterators(r_model_part.Elements(),
-                                                      elements_begin, elements_end);
-                    for (auto it = elements_begin; it != elements_end; ++it)
-                        it->SetValue(r_variable, r_variable.Zero());
+                    ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
+                    it->SetValue(r_variable, r_variable.Zero());
                 }
             }
             else
@@ -320,20 +291,13 @@ public:
                 const Variable<double>& r_variable =
                     KratosComponents<Variable<double>>::Get(output_variable_label);
 
-#pragma omp parallel
+                #pragma omp parallel for
+                for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i) 
                 {
-                    ModelPart::ConditionIterator conditions_begin;
-                    ModelPart::ConditionIterator conditions_end;
-                    OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),
-                                                      conditions_begin, conditions_end);
-                    for (auto it = conditions_begin; it != conditions_end; ++it)
-                    {
-                        //loop nodes
-                        const unsigned int NumberOfNodes = it->GetGeometry().size();
-                        for(unsigned int i = 0; i < NumberOfNodes; ++i)
-                            it->GetGeometry()[i].FastGetSolutionStepValue(r_variable) = r_variable.Zero();
-                    }
-
+                    ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
+                    const unsigned int number_of_nodes = it->GetGeometry().size();
+                    for(unsigned int j = 0; j < number_of_nodes; ++j)
+                        it->GetGeometry()[j].FastGetSolutionStepValue(r_variable) = r_variable.Zero();
                 }
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(output_variable_label) == true)
@@ -341,25 +305,18 @@ public:
                 const Variable<array_1d<double, 3>>& r_variable =
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(output_variable_label);
 
-#pragma omp parallel
+                #pragma omp parallel for
+                for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i) 
                 {
-                    ModelPart::ConditionIterator conditions_begin;
-                    ModelPart::ConditionIterator conditions_end;
-                    OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),
-                                                      conditions_begin, conditions_end);
-                    for (auto it = conditions_begin; it != conditions_end; ++it)
-                    {
-                        //loop nodes
-                        const unsigned int NumberOfNodes = it->GetGeometry().size();
-                        for(unsigned int i = 0; i < NumberOfNodes; ++i)
-                            it->GetGeometry()[i].FastGetSolutionStepValue(r_variable) = r_variable.Zero();
-                    }
+                    ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
+                    const unsigned int number_of_nodes = it->GetGeometry().size();
+                    for(unsigned int j = 0; j < number_of_nodes; ++j)
+                        it->GetGeometry()[j].FastGetSolutionStepValue(r_variable) = r_variable.Zero();
                 }
             }
             else
                 KRATOS_ERROR << "Unsupported variable: " << label << "." << std::endl;
         }
-        //TODO: Check if it is a good idea to write the conditional sensitivities to the nodes?!
 
         KRATOS_CATCH("");
     }
@@ -648,7 +605,6 @@ protected:
             //for (auto it = elements_begin; it != elements_end; ++it)
             for (ModelPart::ElementIterator it = r_model_part.ElementsBegin(); it != r_model_part.ElementsEnd(); ++it)
             {
-                //std::cout << ("I compute now sensitivities of element #") << it->Id() << std::endl;
                 Element::GeometryType& r_geom = it->GetGeometry();
                 bool update_sensitivities = false;
                 for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
@@ -685,7 +641,7 @@ protected:
                                     response_gradient[k]);
 
                     this->AssembleNodalSensitivityContribution(
-                        rSensitivityVariable, sensitivity_vector[k], r_geom);  //----> check for correct output
+                        rSensitivityVariable, sensitivity_vector[k], r_geom); 
                 }
             }
         //}
@@ -737,14 +693,8 @@ protected:
                                     /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                         response_gradient[k]);
 
-
-                    /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
-                    {
-                        std::cout << ("SA result conditions = ") << i << sensitivity_vector[i] << std::endl;
-                    }*/
-
                     this->AssembleNodalSensitivityContribution(
-                        rSensitivityVariable, sensitivity_vector[k], r_geom);	//----> check for correct output
+                        rSensitivityVariable, sensitivity_vector[k], r_geom);	
                 }
             }
         //}
@@ -769,8 +719,6 @@ protected:
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-
-        //std::cout << ("I compute now element sensitivities") << std::endl;
     #pragma omp parallel
         {
             ModelPart::ElementIterator elements_begin;
@@ -778,8 +726,6 @@ protected:
             OpenMPUtils::PartitionedIterators(r_model_part.Elements(),
                                               elements_begin, elements_end);
             int k = OpenMPUtils::ThisThread();
-
-            //std::cout << ("Inertia sensitivities:")  << std::endl;
 
             for (auto it = elements_begin; it != elements_end; ++it)
             {
@@ -809,11 +755,8 @@ protected:
                                     /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                     response_gradient[k]);
 
-                        //std::cout << ("element sensitivty = ") << sensitivity_vector[0] << std::endl;
                         this->AssembleElementSensitivityContribution(
-                                  rOutputVariable, sensitivity_vector[k], *it);		//----> check for correct output
-
-                        //std::cout <<  sensitivity_vector[k][0] << std::endl;
+                                  rOutputVariable, sensitivity_vector[k], *it);		
                     }
                 }
             }
@@ -839,7 +782,7 @@ protected:
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-    //         Assemble condition contributions.
+    //  Assemble condition contributions.
 #pragma omp parallel
         {
             ModelPart::ConditionIterator conditions_begin;
@@ -876,14 +819,9 @@ protected:
                                 /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                     response_gradient[k]);
 
-                        /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
-                        {
-                            std::cout << ("SA result = ") << sensitivity_vector[i] << std::endl;
-                        }*/
-
                         Condition::GeometryType& r_geom = it->GetGeometry();
                         this->AssembleConditionSensitivityContribution(
-                                   rOutputVariable, sensitivity_vector[k], r_geom); //----> check for correct output
+                                   rOutputVariable, sensitivity_vector[k], r_geom); 
                     }
                 }
             }
@@ -940,7 +878,7 @@ protected:
      * @param[out]    rResponseGradient  the gradient of the response function.
      * @param[in,out] rProcessInfo       the current process info.
      */
-    virtual void CalculateSensitivityGradient(Element& rAdjointElem, //make const Element?
+    virtual void CalculateSensitivityGradient(Element& rAdjointElem, 
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
@@ -953,7 +891,7 @@ protected:
         KRATOS_CATCH("");
     }
 
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition, //make const Condition?
+    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition, 
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,

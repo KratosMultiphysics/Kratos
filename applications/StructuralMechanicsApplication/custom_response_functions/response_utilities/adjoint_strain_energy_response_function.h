@@ -113,7 +113,8 @@ public:
             ModelPart::ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
             it->Initialize();
         }
-        // TODO: Check if initialization is also necessary for conditions!
+        // Note: Maybe also an initialization of the conditions will also be necessary in the future. For the currently availible 
+        //       adjoint conditions (point and surface load) it is not necessary.
 
         KRATOS_CATCH("");
     }
