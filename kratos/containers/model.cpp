@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/model.h"
+#include "includes/kernel.h"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -27,12 +28,29 @@
 
 namespace Kratos
 {
+      Model::Model()
+      {
+          Model*& pregistered_model = Kernel::GetModel();
+          if(pregistered_model != nullptr)
+              KRATOS_ERROR << "trying to create a new Model, however one is already existing" << std::endl;
+          pregistered_model = &(*this);
+      };
+
+      /// Destructor.
+      Model::~Model()
+      {
+        Model*& pregistered_model = Kernel::GetModel();    
+        pregistered_model = nullptr;
+      };
     
     ModelPart& Model::CreateModelPart( const std::string ModelPartName ) 
     {
         KRATOS_TRY
         
-        std::cout << "within CreateModelPart address of Model is " <<  &(*this) << std::endl;
+        if(Kernel::GetModel() == nullptr)
+              KRATOS_ERROR << "trying to create a new ModelPart however a Model has not yet been registered in the kernel. Please ensure that the Model is allocated before calling the model part constructor. This is achieved by simply adding something like       model = Model(). note however that this function can be called just once" << std::endl;
+        
+//         std::cout << "within CreateModelPart address of Model is " <<  &(*this) << std::endl;
         
         auto search = mRootModelPartMap.find(ModelPartName);
         if( search == mRootModelPartMap.end())

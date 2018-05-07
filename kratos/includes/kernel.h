@@ -127,7 +127,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static std::unordered_set<std::string>& GetApplicationsList();
     
-    static Model& GetModel();
+//     static Model& GetModel();
+    static Model*& GetModel();
 
     ///@}
    protected:
