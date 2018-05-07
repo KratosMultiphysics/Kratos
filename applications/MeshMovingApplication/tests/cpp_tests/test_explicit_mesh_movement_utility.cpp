@@ -39,7 +39,7 @@ namespace Testing {
 
         Parameters mesher_parameters(R"(
         {
-            "number_of_divisions": 2,
+            "number_of_divisions": 3,
             "element_name": "Element2D3N"
         })");
 
@@ -51,11 +51,34 @@ namespace Testing {
         origin_model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT);
         StructuredMeshGeneratorProcess(geometry, origin_model_part, mesher_parameters).Execute();
 
+        // Fix the boundary mesh displacement
+        const double max_x = 1.0;
+        const double min_x = 0.0;
+        const double max_y = 1.0;
+        const double min_y = 0.0;
+        const double coord_tol = 1e-3;
+        for (auto it_node : origin_model_part.NodesArray()){
+            if ((std::abs(it_node->X() - min_x) < coord_tol) || (std::abs(it_node->X() - max_x) < coord_tol)){
+                it_node->Fix(MESH_DISPLACEMENT_X);
+            }
+            if ((std::abs(it_node->Y() - min_y) < coord_tol) || (std::abs(it_node->Y() - max_y) < coord_tol)){
+                it_node->Fix(MESH_DISPLACEMENT_Y);
+            }
+        }
+
         // Create a fake time loop to fill the buffer
         const double n_steps = 3;
         const double delta_time = 0.1;
         for (unsigned int i_step = 0; i_step < n_steps; ++i_step){
             origin_model_part.CloneTimeStep(i_step * delta_time);
+            double p_val = i_step * delta_time;
+            array_1d<double,3> v_val = ZeroVector(3);
+            for (auto it_node : origin_model_part.NodesArray()){
+                it_node->GetSolutionStepValue(PRESSURE) = p_val;
+                v_val(0) = i_step * delta_time * it_node->X();
+                v_val(1) = i_step * delta_time * it_node->Y();
+                it_node->GetSolutionStepValue(VELOCITY) = v_val;
+            }
         }
 
         // Set the virtual model part
@@ -71,18 +94,18 @@ namespace Testing {
         str_model_part.SetBufferSize(3);
         str_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);
-        auto p_str_point_1 = str_model_part.CreateNewNode(1, 0.6, 0.2, 0.0);
-        auto p_str_point_2 = str_model_part.CreateNewNode(2, 0.6, 0.4, 0.0);
-        auto p_str_point_3 = str_model_part.CreateNewNode(3, 0.8, 0.4, 0.0);
-        auto p_str_point_4 = str_model_part.CreateNewNode(4, 0.8, 0.2, 0.0);
-        auto p_elem = str_model_part.CreateNewElement("Element2D4N", 1, {1,2,3,4}, p_prop);
+        auto p_str_point_1 = str_model_part.CreateNewNode(100, 0.6, 0.2, 0.0);
+        auto p_str_point_2 = str_model_part.CreateNewNode(200, 0.6, 0.4, 0.0);
+        auto p_str_point_3 = str_model_part.CreateNewNode(300, 0.8, 0.4, 0.0);
+        auto p_str_point_4 = str_model_part.CreateNewNode(400, 0.8, 0.2, 0.0);
+        auto p_elem = str_model_part.CreateNewElement("Element2D4N", 1, {100,200,300,400}, p_prop);
 
         // Set the structure mesh movement
         array_1d<double,3> str_mov = ZeroVector(3);
-        str_mov(0) = -0.4;
-        str_mov(1) = 0.4;
         for (auto it_str_node : str_model_part.NodesArray()){
-            it_str_node->FastGetSolutionStepValue(DISPLACEMENT);
+            str_mov(0) = -(it_str_node->X()) * 0.1;
+            str_mov(1) = (it_str_node->Y()) * 0.2;
+            it_str_node->FastGetSolutionStepValue(DISPLACEMENT) = str_mov;
         }
 
         // Set the explicit mesh moving utility
@@ -104,6 +127,38 @@ namespace Testing {
         const unsigned int buffer_size = 3;
         p_mesh_moving->ComputeExplicitMeshMovement(delta_time);
         p_mesh_moving->ProjectVirtualValues<2>(origin_model_part, buffer_size);
+
+        GidIO<> gid_io_origin("/home/rzorrilla/Desktop/test_expl_mesh_mov_origin_model_part", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        gid_io_origin.InitializeMesh(0.0);
+        gid_io_origin.WriteMesh(origin_model_part.GetMesh());
+        gid_io_origin.FinalizeMesh();
+        gid_io_origin.InitializeResults(0, origin_model_part.GetMesh());
+        gid_io_origin.WriteNodalResults(VELOCITY, origin_model_part.Nodes(), 0, 0);
+        gid_io_origin.WriteNodalResults(PRESSURE, origin_model_part.Nodes(), 0, 0);
+        gid_io_origin.WriteNodalResults(MESH_VELOCITY, origin_model_part.Nodes(), 0, 0);
+        gid_io_origin.WriteNodalResults(MESH_DISPLACEMENT, origin_model_part.Nodes(), 0, 0);
+        gid_io_origin.FinalizeResults();
+
+        GidIO<> gid_io_virtual("/home/rzorrilla/Desktop/test_expl_mesh_mov_virtual_model_part", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        gid_io_virtual.InitializeMesh(0.0);
+        gid_io_virtual.WriteMesh(virtual_model_part.GetMesh());
+        gid_io_virtual.FinalizeMesh();
+        gid_io_virtual.InitializeResults(0, virtual_model_part.GetMesh());
+        gid_io_virtual.WriteNodalResults(VELOCITY, virtual_model_part.Nodes(), 0, 0);
+        gid_io_virtual.WriteNodalResults(PRESSURE, virtual_model_part.Nodes(), 0, 0);
+        gid_io_virtual.WriteNodalResults(MESH_VELOCITY, virtual_model_part.Nodes(), 0, 0);
+        gid_io_virtual.WriteNodalResults(MESH_DISPLACEMENT, virtual_model_part.Nodes(), 0, 0);
+        gid_io_virtual.FinalizeResults();
+
+        GidIO<> gid_io_str("/home/rzorrilla/Desktop/test_expl_mesh_mov_str_model_part", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        gid_io_str.InitializeMesh(0.0);
+        gid_io_str.WriteMesh(str_model_part.GetMesh());
+        gid_io_str.FinalizeMesh();
+        gid_io_str.InitializeResults(0, str_model_part.GetMesh());
+        gid_io_str.WriteNodalResults(DISPLACEMENT, str_model_part.Nodes(), 0, 0);
+        gid_io_str.FinalizeResults();
+
+        p_mesh_moving->UndoMeshMovement();
     }
 }
 }  // namespace Kratos.
