@@ -18,9 +18,10 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Additional imports
 from algorithm_base import OptimizationAlgorithm
-import mapper_factory
-import data_logger_factory
+from custom_math import NormInf3D, DotProduct
+from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList
 from custom_timer import Timer
+import mapper_factory
 
 # ==============================================================================
 class AlgorithmTrustRegion( OptimizationAlgorithm ) :
@@ -62,78 +63,96 @@ class AlgorithmTrustRegion( OptimizationAlgorithm ) :
             # Analyze shape
             self.communicator.initializeCommunication()
 
-            for id in self.objective_ids:
+            for id, idx in self.objective_ids:
                 self.communicator.requestValueOf(id)
                 self.communicator.requestGradientOf(id)
 
-            for id in self.equality_constraint_ids:
+            for id, idx in self.equality_constraint_ids:
                 self.communicator.requestValueOf(id)
                 self.communicator.requestGradientOf(id)
 
-            for id in self.inequality_constraint_ids:
+            for id, idx in self.inequality_constraint_ids:
                 self.communicator.requestValueOf(id)
                 self.communicator.requestGradientOf(id)
 
             self.analyzer.AnalyzeDesignAndReportToCommunicator( self.design_surface, self.optimizationIteration, self.communicator )
 
-            # Get response from communicator and store values as list and gradients on nodes and as list of lists (matrix)
+            # Store values and gradients from analysis
             obj_values = []
-            obj_gradients = [[]]
-            for id in self.objective_ids:
-                obj_value = self.communicator.getStandardizedValue(id)
+            for id, idx in self.objective_ids:
+                obj_values.append(self.communicator.getStandardizedValue(id))
                 obj_gradients_dict = self.communicator.getStandardizedGradient(id)
 
-                nodal_variable = KratosGlobals.GetVariable("OBJECTIVE_SENSITIVITY")
-                self.__StoreGradientDataOnNodalVariable(obj_gradients_dict,nodal_variable)
-
-                mapped_nodal_variable = KratosGlobals.GetVariable("MAPPED_OBJECTIVE_SENSITIVITY")
-                self.Mapper.MapToDesignSpace(nodal_variable, mapped_nodal_variable)
-                self.Mapper.MapToGeometrySpace(mapped_nodal_variable, mapped_nodal_variable)
-
-                obj_gradients_list = self.__ReadNodalVariableToList(mapped_nodal_variable)
-
-                obj_values.append(obj_value)
-                obj_gradients.append(obj_gradients_list)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                nodal_variable = KratosGlobals.GetVariable("DF"+str(idx+1)+"DX")
+                WriteDictionaryDataOnNodalVariable(obj_gradients_dict, self.optimization_model_part, nodal_variable)
 
             eq_values = []
-            eq_gradients = [[]]
-            for id in self.equality_constraint_ids:
+            for id, idx in self.equality_constraint_ids:
                 eq_values.append(self.communicator.getStandardizedValue(id))
                 eq_gradients_dict = self.communicator.getStandardizedGradient(id)
-                eq_gradients_list = self.__ReadNodalVariableToList(eq_gradients_dict)
-                eq_gradients.append(eq_gradients_list)
+
+                nodal_variable = KratosGlobals.GetVariable("DC"+str(idx+1)+"DX")
+                WriteDictionaryDataOnNodalVariable(obj_gradients_dict, self.optimization_model_part, nodal_variable)
 
             ineq_values = []
-            ineq_gradients = [[]]
-            for id in self.inequality_constraint_ids:
+            for id, idx in self.inequality_constraint_ids:
                 ineq_values.append(self.communicator.getStandardizedValue(id))
                 ineq_gradients_dict = self.communicator.getStandardizedGradient(id)
-                ineq_gradients_list = self.__ReadNodalVariableToList(ineq_gradients_dict)
-                ineq_gradients.append(ineq_gradients_list)
+
+                nodal_variable = KratosGlobals.GetVariable("DC"+str(idx)+"DX")
+                WriteDictionaryDataOnNodalVariable(obj_gradients_dict, self.optimization_model_part, nodal_variable)
 
             # Reset possible shape modifications during analysis
             self.model_part_controller.SetMeshToReferenceMesh()
             self.model_part_controller.SetDeformationVariablesToZero()
 
-            # Convert to length direction format
-            dir_obj,l_eq,dir_eq,l_ineq,dir_ineq = self.__ConvertToLengthDirectionFormat(obj_gradients,eq_values,eq_gradients,ineq_values,ineq_gradients)
+            # Convert anylsis results to length direction format considering mapping and damping
+            dir_obj = []
+            for id, idx in self.objective_ids:
+                nodal_variable = KratosGlobals.GetVariable("DF"+str(idx+1)+"DX")
+                nodal_variable_mapped = KratosGlobals.GetVariable("DF"+str(idx+1)+"DX_MAPPED")
+
+                self.__PerformMapping(nodal_variable, nodal_variable_mapped)
+
+                obj_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
+                obj_gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
+
+                dir_obj_i = self.__ConvertToLengthDirectionFormat(obj_gradient, obj_gradient_mapped)
+                dir_obj.append(dir_obj_i)
+
+            len_eq = []
+            dir_eq = []
+            for id, idx in self.equality_constraint_ids:
+                nodal_variable = KratosGlobals.GetVariable("DC"+str(idx+1)+"DX")
+                nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(idx+1)+"DX_MAPPED")
+
+                self.__PerformMapping(nodal_variable, nodal_variable_mapped)
+
+                eq_value = self.communicator.getStandardizedValue(id)
+                eq_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
+                eq_gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
+
+                dir_eq_i, len_eq_i = self.__ConvertToLengthDirectionFormat(eq_gradient, eq_gradient_mapped, eq_value)
+
+                dir_eq.append(dir_eq_i)
+                len_eq.append(len_eq_i)
+
+            len_ineq = []
+            dir_ineq = []
+            for id, idx in self.inequality_constraint_ids:
+                nodal_variable = KratosGlobals.GetVariable("DC"+str(idx+1)+"DX")
+                nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(idx+1)+"DX_MAPPED")
+
+                self.__PerformMapping(nodal_variable, nodal_variable_mapped)
+
+                ineq_value = self.communicator.getStandardizedValue(id)
+                ineq_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
+                ineq_gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
+
+                dir_ineq_i, len_ineq_i = self.__ConvertToLengthDirectionFormat(ineq_gradient, ineq_gradient_mapped, ineq_value)
+
+                dir_ineq.append(dir_ineq_i)
+                len_ineq.append(len_ineq_i)
 
 
 
@@ -150,71 +169,34 @@ class AlgorithmTrustRegion( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __DetermineResponseIds(self, optimization_settings):
         objective_ids = []
-        for itr in range(optimization_settings["objectives"].size()):
-            objective_ids.append(optimization_settings["objectives"][itr]["identifier"].GetString())
+        for idx in range(optimization_settings["objectives"].size()):
+            objective_ids.append([optimization_settings["objectives"][idx]["identifier"].GetString(), idx])
 
         equality_constraint_ids = []
         inequality_constraint_ids = []
-        for itr in range(optimization_settings["constraints"].size()):
-            if(optimization_settings["constraints"][itr]["type"].GetString()=="="):
-                equality_constraint_ids.append(optimization_settings["constraints"][itr]["identifier"].GetString())
+        for idx in range(optimization_settings["constraints"].size()):
+            if(optimization_settings["constraints"][idx]["type"].GetString()=="="):
+                equality_constraint_ids.append([optimization_settings["constraints"][idx]["identifier"].GetString(),idx])
             else:
-                inequality_constraint_ids.append(optimization_settings["constraints"][itr]["identifier"].GetString())
+                inequality_constraint_ids.append([optimization_settings["constraints"][idx]["identifier"].GetString(), idx])
 
         return objective_ids, equality_constraint_ids, inequality_constraint_ids
 
     # --------------------------------------------------------------------------
-    def __StoreGradientDataOnNodalVariable(self, gradient_dict, nodal_variable):
-        for nodeId, tmp_gradient in gradient_dict.items():
-            self.optimization_model_part.Nodes[nodeId].SetSolutionStepValue(nodal_variable,0,tmp_gradient)
+    def __PerformMapping(self,nodal_variable, nodal_variable_mapped):
+        self.Mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
+        self.Mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
 
     # --------------------------------------------------------------------------
-    def __ReadNodalVariableToList(self, nodal_variable):
-        variable_values_list = []
-        for node in self.design_surface.Nodes:
-            tmp_values = node.GetSolutionStepValue(nodal_variable)
-            variable_values_list.append(tmp_values[0])
-            variable_values_list.append(tmp_values[1])
-            variable_values_list.append(tmp_values[2])
-        return variable_values_list
-
-    # --------------------------------------------------------------------------
-    def __ConvertToLengthDirectionFormat(self, obj_gradients, eq_values, eq_gradients, ineq_values, ineq_gradients):
-
-        lInequality = [0 for _ in inequality]
-        eInequality = [0 for _ in inequality]
-        lEquality = [0 for _ in equality]
-        eEquality = [0 for _ in equality]
-
-        dir_obj = self.__ValueFormatToLengthFormat(obj_gradients)
-
-        for i in range(self.ni):
-            lInequality[i],eInequality[i] = self.__ValueFormatToLengthFormat(inequality[i],gradInequality[i])
-        for i in range(self.ne):
-            lEquality[i],eEquality[i] = self.__ValueFormatToLengthFormat(equality[i],gradEquality[i])
-
-        return dir_obj,lInequality,eInequality,lEquality,eEquality
-
-    # --------------------------------------------------------------------------
-    def __ValueFormatToLengthFormat(self, gradient, value=None):
-        gradientOriginal = deepcopy(gradient)
-        if self.dampingIsSpecified:
-            if self.dampOnlyAfterMapping:
-                print("CAREFUL: DAMP ONLY ONCE")
-            else:
-                gradient = self.__DampVector(gradient)
-                print("damp also before mapping")
-        gradient = self.__MapVector(gradient)
-        if self.dampingIsSpecified:
-            gradient = self.__DampVector(gradient)
-        ninf = norminf3d(gradient)
-        eDir = [-gradient[i]/ninf for i in range(len(gradient))]
-        gradL = sum(a*b for a,b in zip(gradientOriginal,eDir)) # dot product
-        l = -value/gradL
+    def __ConvertToLengthDirectionFormat(self, gradient, modified_gradient, value=None):
+        norm_inf = NormInf3D(modified_gradient)
+        direction = [-modified_gradient[itr]/norm_inf for itr in range(len(modified_gradient))]
 
         if value == None:
-            return eDir
+            return direction
         else:
-            return eDir,l
+            grad_dot_dir = DotProduct(gradient, direction)
+            length = -value/grad_dot_dir
+            return direction, length
 
 # ==============================================================================
