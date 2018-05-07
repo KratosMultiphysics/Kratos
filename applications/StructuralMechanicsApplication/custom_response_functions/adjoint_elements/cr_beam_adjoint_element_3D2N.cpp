@@ -37,8 +37,8 @@ namespace Kratos
         PropertiesType::Pointer pProperties) const
     {
         const GeometryType& rGeom = this->GetGeometry();
-        return BaseType::Pointer(new CrBeamAdjointElement3D2N(
-            NewId, rGeom.Create(rThisNodes), pProperties));
+        return Kratos::make_shared<CrBeamAdjointElement3D2N>(
+            NewId, rGeom.Create(rThisNodes), pProperties);
     }
 
     Element::Pointer CrBeamAdjointElement3D2N::Create(IndexType NewId,
@@ -136,7 +136,7 @@ namespace Kratos
             double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
             double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
             double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-            double L = sqrt(dx*dx + dy*dy + dz*dz);
+            double L = std::sqrt(dx*dx + dy*dy + dz*dz);
             return L;
         }
         else
@@ -362,7 +362,7 @@ namespace Kratos
         }
         else if(rVariable == STRESS_DESIGN_DERIVATIVE_ON_GP)
         {
-            std::string design_varible_name = this->GetValue( DESIGN_VARIABLE_NAME );
+            const std::string design_varible_name = this->GetValue( DESIGN_VARIABLE_NAME );
 
             if (KratosComponents<Variable<double>>::Has(design_varible_name) == true)
             {

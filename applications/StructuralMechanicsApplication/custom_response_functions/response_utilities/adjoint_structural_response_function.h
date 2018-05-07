@@ -433,7 +433,7 @@ public:
     {
         KRATOS_TRY;
 
-        for (auto label : mNodalSensitivityVariables)
+        for (const auto& label : mNodalSensitivityVariables)
         {
             if (KratosComponents<Variable<double>>::Has(label) == true)
             {

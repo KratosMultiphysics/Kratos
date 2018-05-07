@@ -13,10 +13,6 @@
 #if !defined(KRATOS_CR_BEAM_ADJOINT_ELEMENT_3D2N_H_INCLUDED )
 #define  KRATOS_CR_BEAM_ADJOINT_ELEMENT_3D2N_H_INCLUDED
 
-
-//#include "includes/element.h"
-//#include "includes/define.h"
-//#include "includes/variables.h"
 #include "includes/serializer.h"
 #include "custom_elements/cr_beam_element_linear_3D2N.hpp"
 
