@@ -443,14 +443,8 @@ class Solution(object):
 
             self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
             
-            #Phantom                
             self.MakeAnalyticsMeasurements()
-            
-            '''
-            if self.analytic_data_counter.Tick():
-                self.ProcessAnalyticData()
-            ''' 
-            
+ 
             self.BeforePrintingOperations(self.time)
 
             #### GiD IO ##########################################
