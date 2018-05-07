@@ -4,12 +4,12 @@
 namespace Kratos {
 
     void RungeKuttaScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-//         if(verbose) std::cout << "\nAssigning RungeKuttaScheme to properties " << pProp->Id() << std::endl;
+//         if(verbose) KRATOS_INFO("DEM") << "Assigning RungeKuttaScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
-    
+
     void RungeKuttaScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-//         if(verbose) std::cout << "\nAssigning RungeKuttaScheme to properties " << pProp->Id() << std::endl;
+//         if(verbose) KRATOS_INFO("DEM") << "Assigning RungeKuttaScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
@@ -50,7 +50,7 @@ namespace Kratos {
         angular_momentum_aux[0] = 0.0;
         angular_momentum_aux[1] = 0.0;
         angular_momentum_aux[2] = 0.0;
-        
+
         if (Fix_Ang_vel[0] == true || Fix_Ang_vel[1] == true || Fix_Ang_vel[2] == true) {
             double LocalTensor[3][3];
             GeometryFunctions::ConstructLocalTensor(moment_of_inertia, LocalTensor);
@@ -67,12 +67,12 @@ namespace Kratos {
                     angular_momentum[j] = angular_momentum_aux[j];
                 }
             }
-            
+
             CalculateAngularVelocityRK(Orientation, moment_of_inertia, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
             UpdateRotationalVariables(StepFlag, i, moment_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
         }
     }
-    
+
     void RungeKuttaScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
                 Node < 3 >& i,
@@ -88,19 +88,19 @@ namespace Kratos {
 
         array_1d<double, 3 >& angular_momentum       = i.FastGetSolutionStepValue(ANGULAR_MOMENTUM);
         array_1d<double, 3 >& local_angular_velocity = i.FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY);
-        
+
         array_1d<double, 3 > angular_momentum_aux;
         angular_momentum_aux[0] = 0.0;
         angular_momentum_aux[1] = 0.0;
         angular_momentum_aux[2] = 0.0;
-        
+
         if (Fix_Ang_vel[0] == true || Fix_Ang_vel[1] == true || Fix_Ang_vel[2] == true) {
             double LocalTensor[3][3], GlobalTensor[3][3];
             GeometryFunctions::ConstructLocalTensor(moments_of_inertia, LocalTensor);
             GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensor, GlobalTensor);
             GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensor, angular_velocity, angular_momentum_aux);
         }
-        
+
         if (StepFlag != 1)
         {
             for (int j = 0; j < 3; j++) {
@@ -111,7 +111,7 @@ namespace Kratos {
                     angular_momentum[j] = angular_momentum_aux[j];
                 }
             }
-            
+
             CalculateAngularVelocityRK(Orientation, moments_of_inertia, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
             UpdateRotationalVariables(StepFlag, i, moments_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
             GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
@@ -134,9 +134,9 @@ namespace Kratos {
                 delta_rotation[k] = angular_velocity[k] * delta_t;
                 rotated_angle[k] += delta_rotation[k];
         }
-        
+
         array_1d<double, 3 > angular_velocity_aux;
-        
+
         double LocalTensorInv[3][3];
         GeometryFunctions::ConstructInvLocalTensor(moment_of_inertia, LocalTensorInv);
         GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
@@ -147,7 +147,7 @@ namespace Kratos {
             }
         }
     }
-    
+
     void RungeKuttaScheme::UpdateRotationalVariables(
                 int StepFlag,
                 Node < 3 >& i,
@@ -164,9 +164,9 @@ namespace Kratos {
                 delta_rotation[k] = angular_velocity[k] * delta_t;
                 rotated_angle[k] += delta_rotation[k];
         }
-        
+
         array_1d<double, 3 > angular_velocity_aux;
-        
+
         double LocalTensorInv[3][3];
         GeometryFunctions::ConstructInvLocalTensor(moments_of_inertia, LocalTensorInv);
         GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
@@ -177,15 +177,15 @@ namespace Kratos {
             }
         }
     }
-       
+
     void RungeKuttaScheme::UpdateAngularVelocity(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
                 const array_1d<double, 3>& angular_momentum,
                 array_1d<double, 3>& angular_velocity) {
-        
+
         double GlobalTensorInv[3][3];
-        
+
         GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensorInv, GlobalTensorInv);
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, angular_velocity);
     }
@@ -222,11 +222,11 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-            
+
         double LocalTensorInv[3][3];
-            
+
         GeometryFunctions::ConstructInvLocalTensor(moment_of_inertia, LocalTensorInv);
-            
+
         array_1d<double, 3 > angular_velocity1 = angular_velocity;
         array_1d<double, 3 > angular_velocity2, angular_velocity3, angular_velocity4;
 
@@ -240,7 +240,7 @@ namespace Kratos {
             }
         }
     }
-    
+
     void RungeKuttaScheme::CalculateAngularVelocityRK(
                 const Quaternion<double  >& Orientation,
                 const array_1d<double, 3 >& moments_of_inertia,
@@ -248,11 +248,11 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-            
+
         double LocalTensorInv[3][3];
-            
+
         GeometryFunctions::ConstructInvLocalTensor(moments_of_inertia, LocalTensorInv);
-            
+
         array_1d<double, 3 > angular_velocity1 = angular_velocity;
         array_1d<double, 3 > angular_velocity2, angular_velocity3, angular_velocity4;
 
@@ -266,7 +266,7 @@ namespace Kratos {
             }
         }
     }
-    
+
     void RungeKuttaScheme::QuaternionCalculateMidAngularVelocities(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
@@ -274,14 +274,14 @@ namespace Kratos {
                 const double dt,
                 const array_1d<double, 3>& InitialAngularVel,
                 array_1d<double, 3>& FinalAngularVel) {
-        
+
         array_1d<double, 3 > aux = InitialAngularVel;
         DEM_MULTIPLY_BY_SCALAR_3(aux, dt);
         array_1d<double, 3 > TempDeltaRotation = aux;
 
         Quaternion<double> TempOrientation;
         double GlobalTensorInv[3][3];
-            
+
         GeometryFunctions::UpdateOrientation(Orientation, TempOrientation, TempDeltaRotation);
         GeometryFunctions::QuaternionTensorLocal2Global(TempOrientation, LocalTensorInv, GlobalTensorInv);
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, FinalAngularVel);

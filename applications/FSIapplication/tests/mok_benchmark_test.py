@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.FSIApplication import *
 try:
-    from KratosMultiphysics.ALEApplication import *
+    from KratosMultiphysics.MeshMovingApplication import *
     from KratosMultiphysics.FluidDynamicsApplication import *
     from KratosMultiphysics.ExternalSolversApplication import *
     from KratosMultiphysics.StructuralMechanicsApplication import *

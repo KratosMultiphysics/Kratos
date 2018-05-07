@@ -85,6 +85,11 @@ void DistanceModificationProcess::ExecuteInitialize() {
     KRATOS_CATCH("");
 }
 
+void DistanceModificationProcess::ExecuteBeforeSolutionLoop() {
+    this->ExecuteInitializeSolutionStep();
+    this->ExecuteFinalizeSolutionStep();
+}
+
 void DistanceModificationProcess::ExecuteInitializeSolutionStep() {
 
     if(!mIsModified){

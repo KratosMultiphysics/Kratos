@@ -507,6 +507,85 @@ protected:
 		}
 	}
 
+	//to be used when there is only velocity (no additional pressure or other var block)
+	template<unsigned int TDim>
+	void RotateAuxPure(TLocalMatrixType& rLocalMatrix,
+			TLocalVectorType& rLocalVector,
+			GeometryType& rGeometry) const
+	{
+		const unsigned int LocalSize = rLocalVector.size();
+
+		unsigned int Index = 0;
+		int rotations_needed = 0;
+		const unsigned int NumBlocks = LocalSize / mBlockSize;
+		DenseVector<bool> NeedRotation( NumBlocks, false);
+
+		std::vector< BoundedMatrix<double,TDim,TDim> > rRot(NumBlocks);
+		for(unsigned int j = 0; j < NumBlocks; ++j)
+		{
+			if( this->IsSlip(rGeometry[j]) )
+			{
+				NeedRotation[j] = true;
+				rotations_needed++;
+
+				LocalRotationOperatorPure(rRot[j],rGeometry[j]);
+			}
+
+			Index += mBlockSize;
+		}
+
+		if(rotations_needed > 0)
+		{
+			BoundedMatrix<double,TDim,TDim> mat_block, tmp;
+			array_1d<double,TDim> aux, aux1;
+
+			for(unsigned int i=0; i<NumBlocks; i++)
+			{
+				if(NeedRotation[i] == true)
+				{
+					for(unsigned int j=0; j<NumBlocks; j++)
+					{
+						if(NeedRotation[j] == true)
+						{
+							ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+							noalias(tmp) = prod(mat_block,trans(rRot[j]));
+							noalias(mat_block) = prod(rRot[i],tmp);
+							WriteBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+						}
+						else
+						{
+							ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+							noalias(tmp) = prod(rRot[i],mat_block);
+							WriteBlockMatrix<TDim>(tmp, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+						}
+					}
+
+					for(unsigned int k=0; k<TDim; k++)
+					aux[k] = rLocalVector[i*mBlockSize+k];
+
+					noalias(aux1) = prod(rRot[i],aux);
+
+					for(unsigned int k=0; k<TDim; k++)
+					rLocalVector[i*mBlockSize+k] = aux1[k];
+
+				}
+				else
+				{
+					for(unsigned int j=0; j<NumBlocks; j++)
+					{
+						if(NeedRotation[j] == true)
+						{
+							ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+							noalias(tmp) = prod(mat_block,trans(rRot[j]));
+							WriteBlockMatrix<TDim>(tmp, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+						}
+					}
+				}
+
+			}
+		}
+	}
+
 	template<unsigned int TBlockSize, unsigned int TSkip = 0>
 	void LocalRotationOperator2D(
 		BoundedMatrix<double,TBlockSize,TBlockSize>& rRot,
@@ -645,6 +724,23 @@ protected:
 		return rNode.FastGetSolutionStepValue(mrFlagVariable) != mZero;
 	}
 
+	/// Normalize a vector.
+	/**
+	 * @param rThis the vector
+	 * @return Original norm of the input vector
+	 */
+	template< class TVectorType >
+	double Normalize(TVectorType& rThis) const
+	{
+		double Norm = 0;
+		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+		Norm += (*iComponent)*(*iComponent);
+		Norm = sqrt(Norm);
+		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+		*iComponent /= Norm;
+		return Norm;
+	}
+
 	///@}
 	///@name Protected  Access
 	///@{
@@ -696,23 +792,6 @@ private:
 	///@}
 	///@name Private Operations
 	///@{
-
-	/// Normalize a vector.
-	/**
-	 * @param rThis the vector
-	 * @return Original norm of the input vector
-	 */
-	template< class TVectorType >
-	double Normalize(TVectorType& rThis) const
-	{
-		double Norm = 0;
-		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
-		Norm += (*iComponent)*(*iComponent);
-		Norm = sqrt(Norm);
-		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
-		*iComponent /= Norm;
-		return Norm;
-	}
 
 //     /// Compute a rotation matrix to transform values from the cartesian base to one oriented with the node's normal
 //     /**
@@ -857,86 +936,7 @@ private:
 			}
 		}
 	}
-
-	//to be used when there is only velocity (no additional pressure or other var block)
-	template<unsigned int TDim>
-	void RotateAuxPure(TLocalMatrixType& rLocalMatrix,
-			TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-		const unsigned int LocalSize = rLocalVector.size();
-
-		unsigned int Index = 0;
-		int rotations_needed = 0;
-		const unsigned int NumBlocks = LocalSize / mBlockSize;
-		DenseVector<bool> NeedRotation( NumBlocks, false);
-
-		std::vector< BoundedMatrix<double,TDim,TDim> > rRot(NumBlocks);
-		for(unsigned int j = 0; j < NumBlocks; ++j)
-		{
-			if( this->IsSlip(rGeometry[j]) )
-			{
-				NeedRotation[j] = true;
-				rotations_needed++;
-
-				LocalRotationOperatorPure(rRot[j],rGeometry[j]);
-			}
-
-			Index += mBlockSize;
-		}
-
-		if(rotations_needed > 0)
-		{
-			BoundedMatrix<double,TDim,TDim> mat_block, tmp;
-			array_1d<double,TDim> aux, aux1;
-
-			for(unsigned int i=0; i<NumBlocks; i++)
-			{
-				if(NeedRotation[i] == true)
-				{
-					for(unsigned int j=0; j<NumBlocks; j++)
-					{
-						if(NeedRotation[j] == true)
-						{
-							ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
-							noalias(tmp) = prod(mat_block,trans(rRot[j]));
-							noalias(mat_block) = prod(rRot[i],tmp);
-							WriteBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
-						}
-						else
-						{
-							ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
-							noalias(tmp) = prod(rRot[i],mat_block);
-							WriteBlockMatrix<TDim>(tmp, rLocalMatrix, i*mBlockSize, j*mBlockSize);
-						}
-					}
-
-					for(unsigned int k=0; k<TDim; k++)
-					aux[k] = rLocalVector[i*mBlockSize+k];
-
-					noalias(aux1) = prod(rRot[i],aux);
-
-					for(unsigned int k=0; k<TDim; k++)
-					rLocalVector[i*mBlockSize+k] = aux1[k];
-
-				}
-				else
-				{
-					for(unsigned int j=0; j<NumBlocks; j++)
-					{
-						if(NeedRotation[j] == true)
-						{
-							ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
-							noalias(tmp) = prod(mat_block,trans(rRot[j]));
-							WriteBlockMatrix<TDim>(tmp, rLocalMatrix, i*mBlockSize, j*mBlockSize);
-						}
-					}
-				}
-
-			}
-		}
-	}
-
+	
 	///@}
 	///@name Private  Access
 	///@{
