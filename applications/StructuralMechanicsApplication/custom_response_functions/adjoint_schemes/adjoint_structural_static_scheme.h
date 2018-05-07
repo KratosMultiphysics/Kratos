@@ -9,8 +9,8 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder 
 //   
 
-#if !defined(KRATOS_ADJOINT_STRUCTURAL_SCHEME)
-#define KRATOS_ADJOINT_STRUCTURAL_SCHEME
+#if !defined(KRATOS_ADJOINT_STRUCTURAL_STATIC_SCHEME)
+#define KRATOS_ADJOINT_STRUCTURAL_STATIC_SCHEME
 
 // System includes
 #include <vector>
@@ -24,7 +24,6 @@
 #include "includes/model_part.h"
 #include "includes/process_info.h"
 #include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"
@@ -46,13 +45,13 @@ namespace Kratos
  *
  */
 template <class TSparseSpace, class TDenseSpace>
-class AdjointStructuralScheme : public Scheme<TSparseSpace, TDenseSpace>
+class AdjointStructuralStaticScheme : public Scheme<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointStructuralScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointStructuralStaticScheme);
 
     typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
 
@@ -71,7 +70,7 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointStructuralScheme(Parameters& rParameters, AdjointStructuralResponseFunction::Pointer pResponseFunction)
+    AdjointStructuralStaticScheme(Parameters& rParameters, AdjointStructuralResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         KRATOS_TRY;
@@ -89,7 +88,7 @@ public:
     }
 
     /// Destructor.
-    ~AdjointStructuralScheme() override
+    ~AdjointStructuralStaticScheme() override
     {
     }
 
@@ -131,16 +130,12 @@ public:
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
         // initialize the variables to zero.
-#pragma omp parallel
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rModelPart.Nodes().size()); ++k) 
         {
-            ModelPart::NodeIterator nodes_begin;
-            ModelPart::NodeIterator nodes_end;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
-            for (auto it = nodes_begin; it != nodes_end; ++it)
-            {
-                noalias(it->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT)) = ADJOINT_DISPLACEMENT.Zero();
-                noalias(it->FastGetSolutionStepValue(ADJOINT_ROTATION)) = ADJOINT_ROTATION.Zero();
-            }
+            ModelPart::NodesContainerType::iterator it_node = rModelPart.NodesBegin()+ k;
+            noalias(it_node->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT)) = ADJOINT_DISPLACEMENT.Zero();
+            noalias(it_node->FastGetSolutionStepValue(ADJOINT_ROTATION)) = ADJOINT_ROTATION.Zero();
         }
 
         mpResponseFunction->InitializeSolutionStep();
@@ -417,4 +412,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_ADJOINT_STRUCTURAL_SCHEME defined */
+#endif /* KRATOS_ADJOINT_STRUCTURAL_STATIC_SCHEME defined */
