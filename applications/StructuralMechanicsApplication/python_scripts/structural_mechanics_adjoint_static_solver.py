@@ -152,4 +152,4 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
                                                               move_mesh_flag)
 
     def _create_solution_scheme(self):
-        return StructuralMechanicsApplication.AdjointStructuralScheme(self.scheme_settings, self.response_function)
+        return StructuralMechanicsApplication.AdjointStructuralStaticScheme(self.scheme_settings, self.response_function)
