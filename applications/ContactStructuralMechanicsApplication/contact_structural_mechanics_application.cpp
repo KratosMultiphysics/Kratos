@@ -118,6 +118,9 @@ void KratosContactStructuralMechanicsApplication::Register()
     /* For mesh tying mortar condition */
     KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                        // The variable name for the mesh tying
 
+    /* Logging variables (transition before using table logger from  Core) */
+    KRATOS_REGISTER_VARIABLE(COMMON_LOGGER)                                           // This variable will be used in order to make the logger interoperable (this is transition variable)
+
     // CONDITIONS
     // Mesh tying mortar condition
     KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NTriangleScalar", mMeshTyingMortarCondition2D2NTriangleScalar );

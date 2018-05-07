@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
+#include "utilities/table_stream_utility.h"
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
@@ -35,6 +35,7 @@ namespace Kratos
 
     typedef array_1d<double,3> Vector3;
     typedef Geometry<Node<3>> GeometryType;
+    typedef TableStreamUtility::Pointer TablePrinterPointerType;
 
 ///@}
 ///@name  Enum's
@@ -75,6 +76,9 @@ KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, do
 
 /* For mesh tying mortar condition */
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, std::string, TYING_VARIABLE )                               // The variable name for the mesh tying
+
+/* Logging variables (transition before using table logger from  Core) */
+KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, TablePrinterPointerType, COMMON_LOGGER)                 // This variable will be used in order to make the logger interoperable (this is transition variable)
 }
 
 #endif	/* KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */

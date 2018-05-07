@@ -20,6 +20,7 @@ namespace Kratos
 {
 typedef array_1d<double,3> Vector3;
 typedef Geometry<Node<3>> GeometryType;
+typedef TableStreamUtility::Pointer TablePrinterPointerType;
 
 // VARIABLES
 /* Mortar method general variables */
@@ -50,4 +51,7 @@ KRATOS_CREATE_VARIABLE( double, MAX_GAP_FACTOR )                                
 
 /* For mesh tying mortar condition */
 KRATOS_CREATE_VARIABLE( std::string, TYING_VARIABLE )                                // The variable name for the mesh tying
+
+/* Logging variables (transition before using table logger from  Core) */
+KRATOS_CREATE_VARIABLE(TablePrinterPointerType, COMMON_LOGGER)                       // This variable will be used in order to make the logger interoperable (this is transition variable)
 }
