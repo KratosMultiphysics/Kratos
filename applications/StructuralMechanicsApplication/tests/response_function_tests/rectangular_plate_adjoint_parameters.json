@@ -10,7 +10,10 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "static",
+        "solver_type"                        : "adjoint",
+        "scheme_settings" : {
+            "scheme_type"              : "adjoint_structural"
+        },
         "echo_level"                         : 0,
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
@@ -29,7 +32,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC","PointLoad3D_NODES"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC"],
         "linear_solver_settings"       : {
             "solver_type"         : "Super_LU"
         },
@@ -50,22 +53,19 @@
     }],
     "list_other_processes" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_primal_output_process",
+        "python_module" : "single_mesh_primal_input_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
-            "model_part_name" : "rectangular_plate_structure",
+	        "model_part_name" : "rectangular_plate_structure",
             "file_settings" : {
-                "file_access_mode" : "truncate"
-            },
-            "model_part_output_settings" : {
-                "prefix" : "/ModelData"
+                "file_access_mode" : "read_only"
             },
             "nodal_results_settings" : {
                 "list_of_variables": ["DISPLACEMENT", "ROTATION", "POINT_LOAD"]
             }
         }
-    }],
+     }],
     "loads_process_list"       : [{
         "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics",
@@ -96,7 +96,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION", "POINT_LOAD"],
+            "nodal_results"       : ["DISPLACEMENT", "SHAPE_SENSITIVITY"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
