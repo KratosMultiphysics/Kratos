@@ -70,23 +70,14 @@ class InterParticleImpactDataOfAllParticlesSingleTimeStep  // It holds the histo
                            pybind11::list& normal_relative_vel,
                            pybind11::list& tangential_relative_vel)
     {
-
-        //ids.clear();
-        //neighbour_ids.clear();
-        //normal_relative_vel.clear();
-        //tangential_relative_vel.clear();
-
-        //std::copy( mId1.begin(), mId1.end(), pybind11::back_inserter( ids ) );
-        //std::copy( mId2.begin(), mId2.end(), pybind11::back_inserter( neighbour_ids ) );
-        //std::copy( mRelVelNormal.begin(), mRelVelNormal.end(), pybind11::back_inserter( normal_relative_vel ) );
-        //std::copy( mRelVelTangential.begin(), mRelVelTangential.end(), pybind11::back_inserter( tangential_relative_vel ) );
-
+        ids.attr("clear")();
+        neighbour_ids.attr("clear")();
+        normal_relative_vel.attr("clear")();
+        tangential_relative_vel.attr("clear")();
 
         for (int i = 0; i < mNImpacts; ++i){
+            //std::copy( mId1.begin(), mId1.end(), pybind11::back_inserter( ids ) );
             //ids.push_back(mId1[i]);
-            //neighbour_ids.push_back(mId2[i]);
-            //normal_relative_vel.push_back(mRelVelNormal[i]);
-            //tangential_relative_vel.push_back(mRelVelTangential[i]);
 
             ids.append(mId1[i]);
             neighbour_ids.append(mId2[i]);
@@ -135,10 +126,10 @@ class InterParticleImpactDataOfAllTimeStepsSingleParticle // It holds the histor
                                pybind11::list& normal_relative_vel,
                                pybind11::list& tangential_relative_vel)
         {
-            //times.clear();
-            //neighbour_ids.clear();
-            //normal_relative_vel.clear();
-            //tangential_relative_vel.clear();
+            times.attr("clear")();
+            neighbour_ids.attr("clear")();
+            normal_relative_vel.attr("clear")();
+            tangential_relative_vel.attr("clear")();
 
             for (int i = 0; i < mNImpacts; ++i){
                 times.append(mTimes[i]);
@@ -227,10 +218,10 @@ class FaceParticleImpactDataOfAllParticlesSingleTimeStep  // It holds the histor
                            pybind11::list& normal_relative_vel,
                            pybind11::list& tangential_relative_vel)
     {
-        //ids.clear();
-        //neighbour_ids.clear();
-        //normal_relative_vel.clear();
-        //tangential_relative_vel.clear();
+        ids.attr("clear")();
+        neighbour_ids.attr("clear")();
+        normal_relative_vel.attr("clear")();
+        tangential_relative_vel.attr("clear")();
 
         for (int i = 0; i < mNImpacts; ++i){
             ids.append(mId1[i]);
@@ -277,10 +268,10 @@ class FaceParticleImpactDataOfAllTimeStepsSingleParticle // It holds the histori
                                pybind11::list& normal_relative_vel,
                                pybind11::list& tangential_relative_vel)
         {
-            //times.clear();
-            //neighbour_ids.clear();
-            //normal_relative_vel.clear();
-            //tangential_relative_vel.clear();
+            times.attr("clear")();
+            neighbour_ids.attr("clear")();
+            normal_relative_vel.attr("clear")();
+            tangential_relative_vel.attr("clear")();
 
             for (int i = 0; i < mNImpacts; ++i){
                 times.append(mTimes[i]);

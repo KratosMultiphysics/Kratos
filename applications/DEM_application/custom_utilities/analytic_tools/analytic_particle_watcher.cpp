@@ -174,10 +174,10 @@ void AnalyticParticleWatcher::GetAllParticlesData(ModelPart& analytic_model_part
                                                   pybind11::list normal_relative_vel,
                                                   pybind11::list tangential_relative_vel)
 {
-    //times.clear();
-    //neighbour_ids.clear();
-    //normal_relative_vel.clear();
-    //tangential_relative_vel.clear();
+    times.attr("clear")();
+    neighbour_ids.attr("clear")();
+    normal_relative_vel.attr("clear")();
+    tangential_relative_vel.attr("clear")();
 
     for (ElementsIteratorType i_elem = analytic_model_part.ElementsBegin(); i_elem != analytic_model_part.ElementsEnd(); ++i_elem){
         pybind11::list times_i;
@@ -207,10 +207,10 @@ void AnalyticParticleWatcher::GetTimeStepsData(pybind11::list ids,
                                                pybind11::list normal_relative_vel,
                                                pybind11::list tangential_relative_vel)
 {
-    //ids.clear();
-    //neighbour_ids.clear();
-    //normal_relative_vel.clear();
-    //tangential_relative_vel.clear();
+    ids.attr("clear")();
+    neighbour_ids.attr("clear")();
+    normal_relative_vel.attr("clear")();
+    tangential_relative_vel.attr("clear")();
 
     const int n_time_steps = mInterParticleImpactDataOfAllParticles.size();
 
@@ -222,8 +222,6 @@ void AnalyticParticleWatcher::GetTimeStepsData(pybind11::list ids,
     for (int i = 0; i < n_time_steps; ++i){
         mInterParticleImpactDataOfAllParticles[i].FillUpPythonLists(ids_i, neighbour_ids_i, normal_relative_vel_i, tangential_relative_vel_i);
 
-
-        //ids.append(ids_i.append());
         ids.append(ids_i[i]);
         neighbour_ids.append(neighbour_ids_i[i]);
         normal_relative_vel.append(normal_relative_vel_i[i]);
