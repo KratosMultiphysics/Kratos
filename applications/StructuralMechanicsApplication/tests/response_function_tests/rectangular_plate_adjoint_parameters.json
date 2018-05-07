@@ -97,7 +97,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT", "SHAPE_SENSITIVITY"],
-            "gauss_point_results" : []
+            "gauss_point_results" : ["SHELL_MOMENT","SHELL_MOMENT_GLOBAL"]
         },
         "point_data_configuration"  : []
     },

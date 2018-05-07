@@ -97,7 +97,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION", "POINT_LOAD"],
-            "gauss_point_results" : []
+            "gauss_point_results" : ["SHELL_MOMENT","SHELL_MOMENT_GLOBAL"]
         },
         "point_data_configuration"  : []
     },
