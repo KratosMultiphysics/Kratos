@@ -12,7 +12,6 @@
 // ------------------------------------------------------------------------------
 // System includes
 // ------------------------------------------------------------------------------
-#include <string>
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -22,7 +21,6 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "adjoint_local_stress_response_function.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
