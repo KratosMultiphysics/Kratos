@@ -9,7 +9,7 @@
                 "primal_settings"        : "primal_parameters.json",
                 "gradient_mode"          : "semi_analytic",
                 "step_size"              : 1e-8,
-                "traced_eigenfrequency"  : [1,2],
+                "traced_eigenfrequencies"  : [1,2],
                 "weighting_method"       : "linear_scaling",
                 "weighting_factors"      : [1.0, 1.0],
                 "consider_discretization": false
@@ -42,10 +42,10 @@
                 "matrix_free_filtering"      : true
             },
             "mesh_motion" : {
-                "apply_ale_mesh_solver" : true,
+                "apply_mesh_solver" : true,
                 "solver_settings" : {
                     "solver_type": "mesh_solver_structural_similarity",
-                    "ale_linear_solver_settings"  : {
+                    "linear_solver_settings"  : {
                         "solver_type" : "Super_LU",
                         "scaling"     : false,
                         "verbosity"   : 0

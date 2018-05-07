@@ -331,5 +331,34 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(int_id, 2);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesTriangleLineBoundaryIntersection, KratosCoreFastSuite)
+    {
+        // Set the triangle to be intersected
+        Point::Pointer p_point_1 = Kratos::make_shared<Point>(0.302838, 0.210816, 0.5);
+        Point::Pointer p_point_2 = Kratos::make_shared<Point>(0.325, 0.196891, 0.5);
+        Point::Pointer p_point_3 = Kratos::make_shared<Point>(0.31342, 0.204924, 0.475141);
+        Triangle3D3<Point> triang_geom(p_point_1, p_point_2, p_point_3);
+
+        // Set the points that define the intersection line
+        const Point line_pt_1(0.3,0.2,0.5);
+        const Point line_pt_2(0.4,0.2,0.5);
+
+        // Initialize the intersection point
+        Point int_pt(0.0,0.0,0.0);
+
+        // Call the intersection utility
+        const int int_id = IntersectionUtilities::ComputeTriangleLineIntersection<Triangle3D3<Point>>(
+            triang_geom, 
+            line_pt_1.Coordinates(), 
+            line_pt_2.Coordinates(), 
+            int_pt.Coordinates());
+
+        // The triangle and edge are set such that the intersection occurs close to the triangle boundary
+        KRATOS_CHECK_EQUAL(int_id, 1);
+        KRATOS_CHECK_NEAR(int_pt[0], 0.320052, 1e-6);
+        KRATOS_CHECK_NEAR(int_pt[1], 0.2, 1e-6);
+        KRATOS_CHECK_NEAR(int_pt[2], 0.5, 1e-6);
+    }
+
 }  // namespace Testing.
 }  // namespace Kratos.

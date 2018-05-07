@@ -378,7 +378,7 @@ void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, P
     double IntegrationCoefficient;
     const double& Porosity = Prop[POROSITY];
     const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
-    boost::numeric::ublas::bounded_matrix<double,TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
+    BoundedMatrix<double,TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
     
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )

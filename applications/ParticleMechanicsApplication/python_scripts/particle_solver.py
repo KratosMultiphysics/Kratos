@@ -32,8 +32,8 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE)
     #model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
     model_part.AddNodalSolutionStepVariable(POINT_LOAD)
-    model_part.AddNodalSolutionStepVariable(LINE_LOAD)
-    model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
+    #model_part.AddNodalSolutionStepVariable(LINE_LOAD)
+    #model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
     model_part.AddNodalSolutionStepVariable(PRESSURE)
     #model_part.AddNodalSolutionStepVariable(POINT_TORQUE)
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
@@ -51,6 +51,11 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(AUX_T_ACC)
     model_part.AddNodalSolutionStepVariable(DENSITY)
     model_part.AddNodalSolutionStepVariable(NODAL_LUMPED_MASS)
+    
+    # add for slope with slips
+    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
+    model_part.AddNodalSolutionStepVariable(NORMAL)
+    
 
     if config is not None:
         if hasattr(config, "RotationDofs"):

@@ -61,7 +61,7 @@ bool& LinearPlaneStrain::GetValue(const Variable<bool>& rThisVariable, bool& rVa
     // This Constitutive Law has been checked with Stenberg Stabilization
     if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE)
         rValue = true;
-    
+
     return rValue;
 }
 
@@ -141,7 +141,7 @@ void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, Vector& 
     const Matrix& F = rValues.GetDeformationGradientF();
 
     // for shells/membranes in case the DeformationGradient is of size 3x3
-    bounded_matrix<double, 2, 2> F2x2;
+    BoundedMatrix<double, 2, 2> F2x2;
     for (unsigned int i = 0; i<2; ++i)
         for (unsigned int j = 0; j<2; ++j)
             F2x2(i, j) = F(i, j);
