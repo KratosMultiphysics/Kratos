@@ -1407,8 +1407,8 @@ protected:
 	    ii = node_indx[0];
 	    jj = node_indx[1];
 	
-// 	    if(flag_trip > 0 && (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
-            if(flag_trip > 0 && (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15)
+	    if(flag_trip > 0 && (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
+//             if(flag_trip > 0 && (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15)
 	    {
 		  ii = node_indx[1];
 		  jj = node_indx[0];	    
@@ -1776,14 +1776,14 @@ protected:
 	
 	    if(flag_trip == 1)
 	    {
-// 	      if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
-              if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15)
+	      if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
+//               if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15)
 	      {
 		  ii = node_indx[1];
 		  jj = node_indx[0];
 	      }
-// 	      if ((this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
-              if ((this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15 )
+	      if ((this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
+//               if ((this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15 )
 	      {
 		  ii = node_indx[2];
 		  kk = node_indx[0];
@@ -1791,15 +1791,15 @@ protected:
 	    }
 	    if(flag_trip > 1)
 	    {
-// 	      if ((this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
-              if ((this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))  < 1e-15 )
+	      if ((this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
+//               if ((this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))  < 1e-15 )
 	      {
 		  ii = node_indx[1];
 		  jj = node_indx[2];
 		  kk = node_indx[0];
 	      }
-// 	      if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
-              if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15 )
+	      if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
+//               if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15 )
 	      {
 		  jj = node_indx[2];
 		  kk = node_indx[1];
@@ -1812,11 +1812,11 @@ protected:
 	  jj = node_indx[1];
 	  kk = node_indx[2];
 	  ll = node_indx[3];
-// 	  if(flag_trip == 0.0) //four nodes at interface
-          if(flag_trip < 1e-15)
+	  if(flag_trip == 0.0) //four nodes at interface
+//           if(flag_trip < 1e-15)
 	  {
-// 	    if(flag_struct == 0.0) //four nodes that are free surface
-            if(flag_struct < 1e-15)
+	    if(flag_struct == 0.0) //four nodes that are free surface
+//             if(flag_struct < 1e-15)
 	    {
 	      for(int i = 0; i < 4; i++)
 	      {
@@ -2255,8 +2255,8 @@ protected:
 	double coef_j = 0.333333333333; // 0.333333333333 | (1/num_neighs_j) | 1.0/(num_neighs_j-1)
 	double coef_k = 0.333333333333; // 0.333333333333 | (1/num_neighs_k) | 1.0/(num_neighs_k-1)
 	
-//      if(flag_trip == 0)
-        if(flag_trip < 1e-15)
+        if(flag_trip == 0)
+//         if(flag_trip < 1e-15)
 	{
 	  rRightHandSideVector[4*ii]   -= coef_i*gamma*curv1*An1[0]*area_tr;
 	  rRightHandSideVector[4*ii+1] -= coef_i*gamma*curv1*An1[1]*area_tr;

@@ -1,6 +1,6 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Main author: rrossi $
+//   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2009-01-22 17:13:57 $
 //   Revision:            $Revision: 1.5 $
 //
@@ -24,10 +24,6 @@
 
 #include <boost/timer.hpp>
 
-#include <pybind11/pybind11.h>
-#include "includes/define.h"
-#include "includes/define_python.h"
-
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -35,14 +31,7 @@
 #include "meshing_application.h"
 #include "processes/node_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
-#include "includes/kratos_application.h"
-#include "includes/deprecated_variables.h"
 
-#include "trigen_pfem_refine.h"
-
-// #include "/home/elaf/Kratos/applications/ULFapplication/ULF_application_variables.h"
-
-// #include "ULF_application_variables.h"
 
 
 namespace Kratos
@@ -105,7 +94,7 @@ public:
     //mpNodeEraseProcess(NULL){} //dimension = number of nodes
 
     /// Destructor.
-    virtual ~TriGenDropletModeler() = default;
+    virtual ~TriGenDropletModeler() {}
 
 
     ///@}
@@ -137,33 +126,20 @@ public:
             KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_BOUNDARY---- variable!!!!!! ERROR","");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FLUID)==false )
             KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
-	// 20140206 ajarauta
-	 if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_WATER)==false )
-            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_WATER---- variable!!!!!! ERROR","");
-        if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_INTERFACE)==false )
-            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_INTERFACE---- variable!!!!!! ERROR","");
-	// 20140206 end of change
-        
 
         KRATOS_WATCH("Trigen Droplet Refining Mesher")
         boost::timer auxiliary;
 
 
-
-
-        ////////////////////////////////////////////////////////////
-
-
-        int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
-        
+//clearing elements
+	
+	int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
+	
+	
         ThisModelPart.Elements().clear();
-
-        // bucket types
-        //typedef Bucket<3, PointType, ModelPart::NodesContainerType, PointPointerType, PointIterator, DistanceIterator > BucketType;
-        //typedef Bins< 3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > StaticBins;
-        // bucket types
-        
-        int id = (ThisModelPart.Nodes().end() - 1)->Id() + 1;
+	
+	//20150909 ajarauta
+	int id = (ThisModelPart.Nodes().end() - 1)->Id() + 1;
 	for(ModelPart::ConditionsContainerType::iterator ic = ThisModelPart.ConditionsBegin() ;
 	    ic != ThisModelPart.ConditionsEnd() ; ic++)
 	    {
@@ -173,16 +149,19 @@ public:
 		    //Original:
 		    unsigned int n_flag=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);			
 		    n_flag+=ic->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE);
-
+		    //Enhanced for any segment at the boundary
+// 		    int n_flag=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_BOUNDARY);			
+// 		    n_flag+=ic->GetGeometry()[1].FastGetSolutionStepValue(IS_BOUNDARY);
 		    unsigned int n_trip=ic->GetGeometry()[0].FastGetSolutionStepValue(TRIPLE_POINT);			
 		    n_trip+=ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT);
 		    //Only for IS_STRUCTURE segments
 		    unsigned int n_struct=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);			
 		    n_struct+=ic->GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
 		    unsigned int n_sum = n_flag + n_trip;
-
+								
+		    //THIS REFINES THE NODES OF INTERNAL ELEMENTS OF THE SURFACE WHERE THE INBLOW IS: FLAG_VAR=1
 		    if (n_flag==ic->GetGeometry().size() || n_struct==ic->GetGeometry().size() || n_sum==ic->GetGeometry().size())
-
+// 		    if (n_struct==ic->GetGeometry().size())
 		    {
 			double x0=ic->GetGeometry()[0].X();
 			double y0=ic->GetGeometry()[0].Y();
@@ -190,7 +169,56 @@ public:
 			double y1=ic->GetGeometry()[1].Y();
 			double edge01=sqrt((x0-x1)*(x0-x1)+(y0-y1)*(y0-y1));
 			
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+			//ajarauta: position correction of the middle node -> CHECK WHAT HAPPENS FOR TRIPLE POINT!!
+			// NORMAL is set to 0 in triple_point in the monolithic_embedded_solver right now...
+			/*
+			double n0x, n0y, n0norm, n0xunit,n0yunit,n1x,n1y,n1norm,n1xunit,n1yunit, x01, y01, xM, yM;
+			double v01norm, scprod, costh, delt_dist, ndx, ndy, ndx_d, ndy_d, ndxnorm;
+			double curv0 = ic->GetGeometry()[0].FastGetSolutionStepValue(CURVATURE);
+			double curv1 = ic->GetGeometry()[1].FastGetSolutionStepValue(CURVATURE);
+			double mean_curv = 0.5*(curv0 + curv1);
+			double is_flat = 0.0;
+			double xp = 0.0;
+			double yp = 0.0;
+			double n_struct = 0.0;
+			n_struct += ic->GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);			
+			n_struct += ic->GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
+			if (mean_curv == 0.0 || n_struct > 1.0)
+			    is_flat = 1.0;
+			if (mean_curv != 0.0 && n_struct > 1.0) //avoid cases when alpha shape deletes an element with two IS_STRUCTURE nodes
+			{
+			    n0x = ic->GetGeometry()[0].FastGetSolutionStepValue(NORMAL_X);
+			    n0y = ic->GetGeometry()[0].FastGetSolutionStepValue(NORMAL_Y);
+			    n0norm = sqrt(n0x*n0x + n0y*n0y);
+			    n0xunit = n0x/n0norm;
+			    n0yunit = n0y/n0norm;
+			    n1x = ic->GetGeometry()[1].FastGetSolutionStepValue(NORMAL_X);
+			    n1y = ic->GetGeometry()[1].FastGetSolutionStepValue(NORMAL_Y);
+			    n1norm = sqrt(n1x*n1x + n1y*n1y);
+			    n1xunit = n1x/n1norm;
+			    n1yunit = n1y/n1norm;
+			    x01 = x1-x0;
+			    y01 = y1-y0;
+			    v01norm = sqrt(x01*x01 + y01*y01);
+			    scprod = (-n1yunit)*x01 + n1xunit*y01;
+			    if (scprod < 0.0)
+				costh = scprod/v01norm;
+			    else
+				costh = -scprod/v01norm;
+			    delt_dist = (1.0 + costh)/mean_curv;
+			    ndx = 0.5*(n0xunit+n1xunit);
+			    ndy = 0.5*(n0yunit+n1yunit);
+			    ndxnorm = sqrt(ndx*ndx+ndy*ndy);
+			    ndx_d = ndx*delt_dist/ndxnorm;
+			    ndy_d = ndy*delt_dist/ndxnorm;
+			    xM = 0.5*(x0+x1);
+			    yM = 0.5*(y0+y1);
+			    xp = xM + ndx_d;
+			    yp = yM + ndy_d;
+			}
+			*/
+			
+			//////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// IMPORTANT!!
 			// The following step only makes sense if NODAL_LENGTH is the initial value and is taken as a reference
 			// for remeshing. If it is calculated every time step, it will never fulfill the condition 
@@ -240,6 +268,14 @@ public:
 	
         ThisModelPart.Conditions().clear();
 
+        ////////////////////////////////////////////////////////////
+
+
+        
+        // bucket types
+        //typedef Bucket<3, PointType, ModelPart::NodesContainerType, PointPointerType, PointIterator, DistanceIterator > BucketType;
+        //typedef Bins< 3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > StaticBins;
+        // bucket types
 
         //typedef Tree< StaticBins > Bin; 			     //Binstree;
         unsigned int bucket_size = 20;
@@ -257,7 +293,7 @@ public:
         {
             PointVector list_of_nodes;
             list_of_nodes.reserve(ThisModelPart.Nodes().size());
-            for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; ++i_node)
+            for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
             {
                 (list_of_nodes).push_back(*(i_node.base()));
             }
@@ -306,34 +342,6 @@ public:
 //                                    iii->Id() = i+1;
             }
         }
-        
-        
-        
-        in_mid.segmentlist = (int *) malloc(in_mid.numberofpoints * 2 * sizeof(int));
-        int count_inter=0;
-        for(ModelPart::ElementsContainerType::const_iterator im = ThisModelPart.ElementsBegin(); im!=ThisModelPart.ElementsEnd(); ++im)
-	{
-	  if (im->GetValue(IS_WATER_ELEMENT) != 0.0)
-	  {
-	    for(unsigned i = 0; i < 3; i++)
-	    {
-	      if (im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE) != 0.0)
-	      {
-		int pos = 2*(im->GetGeometry()[i].Id()-1) + 1;
-		in_mid.segmentlist[count_inter] = pos;
-		//KRATOS_WATCH(im->GetGeometry()[i])
-		//KRATOS_WATCH(in_mid.segmentlist[count_inter])
-		count_inter++;
-	      }
-	    }
-	  }
-	}
-	
-	//clearing elements
-
-        ThisModelPart.Elements().clear();
-        ThisModelPart.Conditions().clear();
-	
         //in_mid.numberoftriangles = ThisModelPart.Elements().size();
         //in_mid.trianglelist = (int*) malloc(in_mid.numberoftriangles * 3 * sizeof(int));
 
@@ -357,8 +365,8 @@ public:
 
         //freeing memory
 
-//         clean_triangulateio(in_mid);
-//         clean_triangulateio(vorout_mid);
+        clean_triangulateio(in_mid);
+        clean_triangulateio(vorout_mid);
         KRATOS_WATCH("ln367");
         //NOW WE SHALL PERFORM ADAPTIVE REMESHING, i.e. insert and remove nodes based upon mesh quality
         // and prescribed sizes
@@ -391,7 +399,7 @@ public:
         KRATOS_WATCH(el_number);
         int counter = 0;
         //here I will assign a huge number of NODAL_H to the free surface nodes, so that there no nodes will be added
-        for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; ++i_node)
+        for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
         {
             if (i_node->FastGetSolutionStepValue(IS_FREE_SURFACE)!=0)
             {
@@ -399,6 +407,7 @@ public:
                 double& val=i_node->FastGetSolutionStepValue(NODAL_H);
                 val*=2.0;
                 //i_node->FastGetSolutionStepValue(NODAL_H,1)=val;
+                //KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             }
         }
 
@@ -427,7 +436,7 @@ public:
 
         }
         //now I set back the nodal_h
-        for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; ++i_node)
+        for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
         {
             if (i_node->FastGetSolutionStepValue(IS_FREE_SURFACE)!=0)
             {
@@ -437,7 +446,7 @@ public:
         }
 
 
-//         clean_triangulateio(out_mid);
+        clean_triangulateio(out_mid);
         KRATOS_WATCH("ln420");
         //here we generate a new mesh adding/removing nodes, by initializing "q"-quality mesh and "a"-area constraint switches
         //
@@ -487,7 +496,6 @@ public:
         {
             for(int i = n_points_before_refinement; i<out2.numberofpoints; i++)
             {
-                double z = 0.0;
                 int id=i+1;
                 int base = i*2;
                 double& x= out2.pointlist[base];
@@ -526,7 +534,7 @@ public:
 
         //int number_of_preserved_elems=0;
 
-        /////int point_base;
+        int point_base;
         //WHAT ARE THOSE????
 // 			Node<3> work_point(0,0.0,0.0,0.0);
         unsigned int MaximumNumberOfResults = list_of_new_nodes.size();
@@ -543,8 +551,6 @@ public:
 
             for(int el = 0; el< in2.numberoftriangles; el++)
             {
-                int point_base;
-                
                 int base = el * 3;
                 //coordinates
                 point_base = (in2.trianglelist[base] - 1)*2;
@@ -583,9 +589,9 @@ public:
                 );
 
                 //check if inside and eventually interpolate
-                for( auto it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
+                for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
                 {
-                    bool is_inside(false);
+                    bool is_inside = false;
                     is_inside = CalculatePosition(x1[0], x1[1],
                                                   x2[0], x2[1],
                                                   x3[0], x3[1],
@@ -604,12 +610,12 @@ public:
         ThisModelPart.Elements().clear();
 
         //set the coordinates to the original value
-        for(auto & list_of_new_node : list_of_new_nodes)
+        for( PointVector::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); it++)
         {
-            const array_1d<double,3>& disp = list_of_new_node->FastGetSolutionStepValue(DISPLACEMENT);
-            list_of_new_node->X0() = list_of_new_node->X() - disp[0];
-            list_of_new_node->Y0() = list_of_new_node->Y() - disp[1];
-            list_of_new_node->Z0() = 0.0;
+            const array_1d<double,3>& disp = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
+            (*it)->X0() = (*it)->X() - disp[0];
+            (*it)->Y0() = (*it)->Y() - disp[1];
+            (*it)->Z0() = 0.0;
         }
         //cleaning unnecessary data
         //in2.deinitialize();
@@ -652,7 +658,7 @@ public:
         //filling the neighbour list
         ModelPart::ElementsContainerType::const_iterator el_begin = ThisModelPart.ElementsBegin();
         for(ModelPart::ElementsContainerType::const_iterator iii = ThisModelPart.ElementsBegin();
-                iii != ThisModelPart.ElementsEnd(); ++iii)
+                iii != ThisModelPart.ElementsEnd(); iii++)
         {
             //Geometry< Node<3> >& geom = iii->GetGeometry();
             int base = ( iii->Id() - 1 )*3;
@@ -673,12 +679,12 @@ public:
 
         KRATOS_WATCH("ln749");
 
-//         clean_triangulateio(in2);
-//         KRATOS_WATCH("ln752");
-//         clean_triangulateio(out2);
-//         KRATOS_WATCH("ln754");
-//         clean_triangulateio(vorout2);
-//         KRATOS_WATCH("Finished remeshing with Trigen_Droplet_Refine")
+        clean_triangulateio(in2);
+        KRATOS_WATCH("ln752");
+        clean_triangulateio(out2);
+        KRATOS_WATCH("ln754");
+        clean_triangulateio(vorout2);
+        KRATOS_WATCH("Finished remeshing with Trigen_Droplet_Refine")
 
         KRATOS_CATCH("")
     }
@@ -763,8 +769,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    BoundedMatrix<double,2,2> mJ; //local jacobian
-    BoundedMatrix<double,2,2> mJinv; //inverse jacobian
+    boost::numeric::ublas::bounded_matrix<double,2,2> mJ; //local jacobian
+    boost::numeric::ublas::bounded_matrix<double,2,2> mJinv; //inverse jacobian
     array_1d<double,2> mC; //center pos
     array_1d<double,2> mRhs; //center pos
     //NodeEraseProcess* mpNodeEraseProcess;
@@ -785,15 +791,12 @@ private:
         DistanceVector res_distances(max_results);
         Node<3> work_point(0,0.0,0.0,0.0);
 
-        /////unsigned int n_points_in_radius;
+        unsigned int n_points_in_radius;
         //radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
-        /////double radius;
+        double radius;
 
-        for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in != ThisModelPart.NodesEnd(); ++in)
+        for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in != ThisModelPart.NodesEnd(); in++)
         {
-            unsigned int n_points_in_radius;
-            double radius;
-            
             radius=h_factor*in->FastGetSolutionStepValue(NODAL_H);
 
             work_point[0]=in->X();
@@ -807,7 +810,7 @@ private:
                 {
                     //look if we are already erasing any of the other nodes
                     double erased_nodes = 0;
-                    for(auto i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+                    for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
                         erased_nodes += in->Is(TO_ERASE);
 
                     if( erased_nodes < 1) //we cancel the node if no other nodes are being erased
@@ -820,7 +823,7 @@ private:
                     //with IS_BOUNDARY=1 which are closer than 0.2*nodal_h from our we remove the node we are considering
                     unsigned int k = 0;
                     unsigned int counter = 0;
-                    for(auto i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+                    for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
                     {
                         if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY,1)==1.0 && res_distances[k] < 0.2*radius && res_distances[k] > 0.0 )
                         {
@@ -835,16 +838,6 @@ private:
             }
 
         }
-        
-        //20140210 ajarauta
-        //not erase INTERFACE node
-        for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
-	    in != ThisModelPart.NodesEnd(); ++in)
-	    {
-	      if((in)->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
-		in->Set(TO_ERASE,false);
-            }
-        //
 
 
         node_erase.Execute();
@@ -866,12 +859,10 @@ private:
 
         //int number_of_preserved_elems=0;
         int number_of_preserved_elems=0;
-        /////int point_base;
+        int point_base;
         //loop for passing alpha shape
         for(unsigned int el = 0; el< el_number; el++)
         {
-            int point_base;
-            
             int base = el * 3;
 
             //coordinates
@@ -898,7 +889,6 @@ private:
             number_of_structure_nodes += int( temp[1].FastGetSolutionStepValue(IS_STRUCTURE) );
             number_of_structure_nodes += int( temp[2].FastGetSolutionStepValue(IS_STRUCTURE) );
 
-            
             //check the number of nodes of boundary
             int nfs = int( temp[0].FastGetSolutionStepValue(IS_FREE_SURFACE) );
             nfs += int( temp[1].FastGetSolutionStepValue(IS_FREE_SURFACE) );
@@ -915,7 +905,7 @@ private:
             nboundary += int( temp[2].FastGetSolutionStepValue(IS_BOUNDARY) );
             //first check that we are working with fluid elements, otherwise throw an error
             //if (nfluid!=3)
-            //	KRATOS_THROW_ERROR(std::logic_error,"THATS NOT FLUID or NOT TRIANGLE!!!!!! ERROR","");
+            //	KRATOS_ERROR(std::logic_error,"THATS NOT FLUID or NOT TRIANGLE!!!!!! ERROR","");
             //otherwise perform alpha shape check
 
 
@@ -925,7 +915,7 @@ private:
                 if (nfs != 0 || nfluid != 3)  //in this case it is close to the surface so i should use alpha shape
                 {
 
-                    if( AlphaShape(my_alpha,temp) && number_of_structure_nodes!=3) //if alpha shape says to preserve
+                    if( (AlphaShape(my_alpha,temp) && number_of_structure_nodes!=3)) //if alpha shape says to preserve
                     {
 // 							if(nboundary==3 && number_of_structure_nodes > 1 && nfs > 0) //if it is = 3 pressure problems -> do not add it
 // 							{
@@ -937,6 +927,11 @@ private:
                         number_of_preserved_elems += 1;
 // 							}
                     }
+//                     if (nfs == 2) //elements at boundary should ALWAYS be preserved in surface tension problems!!
+// 		    {
+// 			preserved_list1[el] = true;
+// 			number_of_preserved_elems += 1;
+// 		    }
                 }
                 else //internal triangle --- should be ALWAYS preserved
                 {
@@ -970,7 +965,7 @@ private:
     {
 
         //reset the boundary flag
-        for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); ++in)
+        for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
         {
             in->FastGetSolutionStepValue(IS_BOUNDARY) = 0;
         }
@@ -980,7 +975,7 @@ private:
         ThisModelPart.Elements().Unique();
 
         //now the boundary faces
-        for(ModelPart::ElementsContainerType::iterator iii = ThisModelPart.ElementsBegin();	iii != ThisModelPart.ElementsEnd(); ++iii)
+        for(ModelPart::ElementsContainerType::iterator iii = ThisModelPart.ElementsBegin();	iii != ThisModelPart.ElementsEnd(); iii++)
         {
             int base = ( iii->Id() - 1 )*3;
 
@@ -1186,7 +1181,7 @@ private:
     {
         double area = CalculateVol(x0,y0,x1,y1,x2,y2);
 
-        if(area < 0.000000000001)
+        if(area < 0.000000000000001)
         {
             KRATOS_THROW_ERROR(std::logic_error,"element with zero area found","");
         }
@@ -1239,19 +1234,20 @@ private:
 
             }
         }
-        
-         //20150916 ajarauta
+        //20150916 ajarauta
         pnode->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) = 0.0;
 	pnode->FastGetSolutionStepValue(TRIPLE_POINT) = 0.0;
+	/*
+	if (pnode->FastGetSolutionStepValue(IS_BOUNDARY) == 0.0)
+	{
+	    pnode->FastGetSolutionStepValue(TRIPLE_POINT) = 0.0;
+	    pnode->FastGetSolutionStepValue(FORCE_X) = 0.0;
+	    pnode->FastGetSolutionStepValue(FORCE_Y) = 0.0;
+	}
+	*/
         
         if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
             KRATOS_THROW_ERROR(std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR","");
-
-       
-    
-        int num_nodes_int = 0;
-    
-
 
         //if ( pnode->FastGetSolutionStepValue(BULK_MODULUS)==0.0)
         //		KRATOS_ERROR(std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR","");
@@ -1265,11 +1261,10 @@ private:
         pnode->FastGetSolutionStepValue(IS_BOUNDARY)=0.0;
         pnode->FastGetSolutionStepValue(IS_STRUCTURE)=0.0;
         pnode->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
-//         pnode->GetValue(ERASE_FLAG)=0.0;
+        pnode->Set(TO_ERASE,false);
         pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
         pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
     }
-
 
     void initialize_triangulateio( triangulateio& tr )
     {
@@ -1298,24 +1293,24 @@ private:
         tr.numberofedges              = 0;
     };
 
-//     void clean_triangulateio( triangulateio& tr )
-//     {
-//         if(tr.pointlist != NULL) free(tr.pointlist );
-//         if(tr.pointattributelist != NULL) free(tr.pointattributelist );
-//         if(tr.pointmarkerlist != NULL) free(tr.pointmarkerlist   );
-//         if(tr.trianglelist != NULL) free(tr.trianglelist  );
-//         if(tr.triangleattributelist != NULL) free(tr.triangleattributelist );
-//         if(tr.trianglearealist != NULL) free(tr.trianglearealist );
-//         if(tr.neighborlist != NULL) free(tr.neighborlist   );
-//         if(tr.segmentlist != NULL) free(tr.segmentlist    );
-//         if(tr.segmentmarkerlist != NULL) free(tr.segmentmarkerlist   );
-//         if(tr.holelist != NULL) free(tr.holelist      );
-//         if(tr.regionlist != NULL) free(tr.regionlist  );
-//         if(tr.edgelist != NULL) free(tr.edgelist   );
-//         if(tr.edgemarkerlist != NULL) free(tr.edgemarkerlist   );
-//         if(tr.normlist != NULL) free(tr.normlist  );
-//     };
-//     
+    void clean_triangulateio( triangulateio& tr )
+    {
+        if(tr.pointlist != NULL) free(tr.pointlist );
+        if(tr.pointattributelist != NULL) free(tr.pointattributelist );
+        if(tr.pointmarkerlist != NULL) free(tr.pointmarkerlist   );
+        if(tr.trianglelist != NULL) free(tr.trianglelist  );
+        if(tr.triangleattributelist != NULL) free(tr.triangleattributelist );
+        if(tr.trianglearealist != NULL) free(tr.trianglearealist );
+        if(tr.neighborlist != NULL) free(tr.neighborlist   );
+        if(tr.segmentlist != NULL) free(tr.segmentlist    );
+        if(tr.segmentmarkerlist != NULL) free(tr.segmentmarkerlist   );
+        if(tr.holelist != NULL) free(tr.holelist      );
+        if(tr.regionlist != NULL) free(tr.regionlist  );
+        if(tr.edgelist != NULL) free(tr.edgelist   );
+        if(tr.edgemarkerlist != NULL) free(tr.edgemarkerlist   );
+        if(tr.normlist != NULL) free(tr.normlist  );
+    };
+    
     void InterpolateOnEdge( Geometry<Node<3> >& geom, int point1, int point2, unsigned int step_data_size, Node<3>::Pointer pnode)
     {
 	unsigned int buffer_size = pnode->GetBufferSize();
@@ -1330,7 +1325,7 @@ private:
 	    {
 		KRATOS_WATCH(point1)
 		KRATOS_WATCH(point2)
-// 		KRATOS_ERROR(std::logic_error,"THE EDGE POINTS ARE INVALID ", "");
+		KRATOS_THROW_ERROR(std::logic_error,"THE EDGE POINTS ARE INVALID ", "");
 	    }
 											
 	    double* node0_data = geom[point1].SolutionStepData().Data(step);
@@ -1357,7 +1352,7 @@ private:
 	pnode->FastGetSolutionStepValue(CONTACT_ANGLE)=0.0;
 	pnode->FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT_X)=0.0;
 			
-// 	pnode->GetValue(ERASE_FLAG)=0.0;
+	pnode->Set(TO_ERASE,false);
 
 	if (pnode->FastGetSolutionStepValue(IS_INTERFACE)>0.9)
 	    pnode->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
@@ -1381,7 +1376,8 @@ private:
 	    pnode->FastGetSolutionStepValue(IS_STRUCTURE)=0.0;	
 	
       };
-
+    
+    
     ///@}
     ///@name Private Operations
     ///@{
@@ -1407,7 +1403,7 @@ private:
 
     ///@}
 
-}; // Class TriGenDropletModeler
+}; // Class TriGenPFEMModeler
 
 ///@}
 
@@ -1421,6 +1417,10 @@ private:
 
 
 /// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  TriGenPFEMModeler& rThis);
+
+/// output stream function
 inline std::istream& operator >> (std::istream& rIStream,
                                   TriGenDropletModeler& rThis);
 
@@ -1439,4 +1439,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIGEN_DROPLET_MODELER_H_INCLUDED  defined 
+#endif // KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED  defined 
+
+
+

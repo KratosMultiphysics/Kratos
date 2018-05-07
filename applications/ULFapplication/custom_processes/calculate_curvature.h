@@ -133,7 +133,7 @@ namespace Kratos
 		WeakPointerVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		x0 = im->X();
 		y0 = im->Y();
-		neighnum = 0;
+		neighnum = 0;lagrangian-sessile_droplet
 
 		for (unsigned int i = 0; i < neighb.size(); i++)
 		{
@@ -278,7 +278,7 @@ namespace Kratos
     }      
     
     void CalculateCurvature3D(ModelPart& ThisModelPart)
-    {
+    {lagrangian-sessile_droplet
 	KRATOS_TRY
 	
 	double pi = 3.14159265;
@@ -290,7 +290,7 @@ namespace Kratos
 	      {
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// For node i, you find all its neighbor conditions. This is a set of triangles (faces)
-		// around node i. All the nodes surrounding node i are its 1-ring neighborhood.
+		// around node i. All the nolagrangian-sessile_dropletdes surrounding node i are its 1-ring neighborhood.
 		// For every face, the two adjacent nodes are nodes j and k -> A_voronoi is obtained in 
 		// every triangle and added to the total area.
 		//////////////////////////////////////////////////////////////////////////////////////////
@@ -407,7 +407,7 @@ namespace Kratos
 		  K_xi[0] = (0.5/A_mixed)*K_xi[0];
 		  K_xi[1] = (0.5/A_mixed)*K_xi[1];
 		  K_xi[2] = (0.5/A_mixed)*K_xi[2];
-		}
+		}lagrangian-sessile_droplet
 // 		KRATOS_WATCH(A_mixed)
 // 		double normKxi = Norm3D(K_xi);
 		array_1d<double,3> K_xi_norm = ZeroVector(3);
@@ -792,7 +792,7 @@ namespace Kratos
     double Norm2D(const array_1d<double,2>& a)
     {
       return sqrt(a[0]*a[0] + a[1]*a[1]);
-    }
+    }lagrangian-sessile_droplet
     
     double Norm3D(const array_1d<double,3>& a)
     {
@@ -1002,28 +1002,6 @@ namespace Kratos
 		       BoundedMatrix<double, 2, 2>& LHSmat, array_1d<double,2>& RHSvec, const int& option)
     {
       double weight = 1.0/num_neighbs;
-      /*
-      LHSmat(0,0) += weight*alfa*alfa*alfa*alfa;
-      LHSmat(1,0) += weight*alfa*alfa*alfa*beta;
-      LHSmat(2,0) += weight*alfa*alfa*beta*beta;
-      LHSmat(0,1) += 2.0*weight*alfa*alfa*alfa*beta;
-      LHSmat(1,1) += 2.0*weight*alfa*alfa*beta*beta;
-      LHSmat(2,1) += 2.0*weight*alfa*beta*beta*beta;
-      LHSmat(0,2) += weight*alfa*alfa*beta*beta;
-      LHSmat(1,2) += weight*alfa*beta*beta*beta;
-      LHSmat(2,2) += weight*beta*beta*beta*beta;
-      RHSvec[0] += weight*kappaN_ij*alfa*alfa;
-      RHSvec[1] += weight*kappaN_ij*alfa*beta;
-      RHSvec[2] += weight*kappaN_ij*beta*beta;
-      */
-      /*
-      LHSmat(0,0) += weight*(alfa*alfa - 2.0*alfa*beta)*(alfa*alfa - 2.0*alfa*beta);
-      LHSmat(0,1) += weight*(alfa*alfa - 2.0*alfa*beta)*beta*beta;
-      LHSmat(1,0) += weight*(alfa*alfa - 2.0*alfa*beta)*beta*beta;
-      LHSmat(1,1) += weight*beta*beta*beta*beta;
-      RHSvec[0] += weight*(kappaN_ij - 4.0*kappa_H*alfa*beta)*(alfa*alfa - 2.0*alfa*beta);
-      RHSvec[1] += weight*(kappaN_ij - 4.0*kappa_H*alfa*beta)*beta*beta;
-      */
       if(option == 1)
       {
 	//OPTION 1.1 - Meyer is right
@@ -1045,16 +1023,7 @@ namespace Kratos
 	RHSvec[1] += weight*(kappaN_ij - 2.0*kappa_H*beta*beta)*alfa*beta;      
       }
     }
-    /*
-    void AddTermsToEq(double& kappaN_ij, double& kappa_H, double& alfa, double& beta, int& num_neighbs,
-		      double& term_1, double& term_2, double& term_3, double& term_4, double& term_5, double& term_6)
-    {
-      double weight = 1.0/num_neighbs;
-      M += weight*(alfa*alfa - beta*beta);
-      N += weight*2.0*alfa*beta;
-      L += weight*(kappaN_ij - 2.0*beta*beta*kappa_H);
-    }
-    */
+  
     void AddTermsToEq2(double& kappaN_ij, double& kappa_H, double& alfa, double& beta, int& num_neighbs,
 		      array_1d<double,6>& terms_vec, array_1d<double,10>& terms_vec_der)
     {
