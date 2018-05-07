@@ -256,7 +256,7 @@ protected:
         ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
         // Predetermine all necessary eigenvalues and prefactors for gradient calculation
-        const unsigned int num_of_traced_eigenfrequencies = mTracedEigenfrequencyIds.size();
+        const std::size_t num_of_traced_eigenfrequencies = mTracedEigenfrequencyIds.size();
         Vector traced_eigenvalues(num_of_traced_eigenfrequencies,0.0);
         Vector gradient_prefactors(num_of_traced_eigenfrequencies,0.0);
         for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
@@ -275,8 +275,8 @@ protected:
             elem_i.CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
             elem_i.CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
 
-            const unsigned int num_dofs_element = mass_matrix_org.size1();
-            const unsigned int domain_size = CurrentProcessInfo.GetValue(DOMAIN_SIZE);
+            const std::size_t num_dofs_element = mass_matrix_org.size1();
+            const std::size_t domain_size = CurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
             Matrix aux_matrix = Matrix(num_dofs_element,num_dofs_element);
             Vector aux_vector = Vector(num_dofs_element);
@@ -332,14 +332,14 @@ protected:
     {
         rEigenvectorOfElement.resize(size_of_eigenvector,false);
 
-        const unsigned int num_nodes = traced_element.GetGeometry().size();
-        const unsigned int num_node_dofs = size_of_eigenvector/num_nodes;
+        const std::size_t num_nodes = traced_element.GetGeometry().size();
+        const std::size_t num_node_dofs = size_of_eigenvector/num_nodes;
 
         for (std::size_t node_index=0; node_index<num_nodes; node_index++)
         {
             Matrix& rNodeEigenvectors = traced_element.GetGeometry()[node_index].GetValue(EIGENVECTOR_MATRIX);
 
-            for (int dof_index = 0; dof_index < num_node_dofs; dof_index++)
+            for (std::size_t dof_index = 0; dof_index < num_node_dofs; dof_index++)
                 rEigenvectorOfElement(dof_index+num_node_dofs*node_index) = rNodeEigenvectors((eigenfrequency_id-1),dof_index);
         }
     }
