@@ -23,7 +23,8 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "adjoint_local_stress_response_function.h"
+#include "adjoint_structural_response_function.h"
+#include "response_data.h"
 
 // ==============================================================================
 
@@ -64,8 +65,6 @@ public:
 
     typedef AdjointStructuralResponseFunction BaseType;
     typedef array_1d<double, 3> array_3d;
-
-
 
     /// Pointer definition of AdjointLocalStressResponseFunction
     KRATOS_CLASS_POINTER_DEFINITION(AdjointLocalStressResponseFunction);
@@ -115,7 +114,6 @@ public:
                                    Vector& rResponseGradient,
                                    ProcessInfo& rProcessInfo) override;
 
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -156,8 +154,6 @@ protected:
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rResponseGradient,
                                       ProcessInfo& rProcessInfo) override;
-
-    
 
     ///@}
     ///@name Protected  Access

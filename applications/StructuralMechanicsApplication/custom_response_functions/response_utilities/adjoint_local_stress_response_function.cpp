@@ -12,6 +12,7 @@
 // ------------------------------------------------------------------------------
 // System includes
 // ------------------------------------------------------------------------------
+#include <string>
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -20,16 +21,13 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "adjoint_structural_response_function.h"
-#include "response_data.h"
-
-
-// ==============================================================================
+#include "adjoint_local_stress_response_function.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
     /// Default constructor.
-    AdjointLocalStressResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
+    AdjointLocalStressResponseFunction::AdjointLocalStressResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
     : AdjointStructuralResponseFunction(rModelPart, rParameters)
     {
         ModelPart& r_model_part = this->GetModelPart();
@@ -59,19 +57,9 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~AdjointLocalStressResponseFunction()
-    {
-    }
+    AdjointLocalStressResponseFunction::~AdjointLocalStressResponseFunction(){}
 
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    void Initialize() override
+    void AdjointLocalStressResponseFunction::Initialize()
     {
         KRATOS_TRY;
 
@@ -81,7 +69,7 @@ namespace Kratos
     }
 
     // ==============================================================================
-    double CalculateValue(ModelPart& rModelPart) override
+    double AdjointLocalStressResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -127,28 +115,10 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
     // ==============================================================================
-    void CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
+    void AdjointLocalStressResponseFunction::CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
                                    Vector& rResponseGradient,
-                                   ProcessInfo& rProcessInfo) override
+                                   ProcessInfo& rProcessInfo) 
     {
         if (rResponseGradient.size() != rAdjointMatrix.size1())
             rResponseGradient.resize(rAdjointMatrix.size1(), false);
@@ -202,29 +172,12 @@ namespace Kratos
         }
     }
 
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
     // ==============================================================================
-    void CalculateSensitivityGradient(Element& rAdjointElem,
+    void AdjointLocalStressResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
                                       const Variable<double>& rVariable,
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) override
+                                      ProcessInfo& rProcessInfo) 
     {
           KRATOS_TRY
 
@@ -290,11 +243,11 @@ protected:
     }
 
     // ==============================================================================
-    void CalculateSensitivityGradient(Condition& rAdjointCondition,
+    void AdjointLocalStressResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
                                      const Variable<double>& rVariable,
                                      const Matrix& rDerivativesMatrix,
                                      Vector& rResponseGradient,
-                                     ProcessInfo& rProcessInfo) override
+                                     ProcessInfo& rProcessInfo) 
     {
         KRATOS_TRY;
 
@@ -306,11 +259,11 @@ protected:
     }
 
     // ==============================================================================
-    void CalculateSensitivityGradient(Element& rAdjointElem,
+    void AdjointLocalStressResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
                                       const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) override
+                                      ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
@@ -375,11 +328,11 @@ protected:
     }
 
     // ==============================================================================
-    void CalculateSensitivityGradient(Condition& rAdjointCondition,
+    void AdjointLocalStressResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
                                       const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) override
+                                      ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
