@@ -22,16 +22,9 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
 #include "spatial_containers/spatial_containers.h"
-#include "utilities/timer.h"
-#include "processes/node_erase_process.h"
-#include "utilities/binbased_fast_point_locator.h"
-#include "utilities/normal_calculation_utils.h"
+#include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 #include "filter_function.h"
@@ -124,7 +117,7 @@ public:
     // --------------------------------------------------------------------------
     void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
-        boost::timer mapping_time;
+        BuiltinTimer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
 
         RecreateSearchTreeIfGeometryHasChanged();
@@ -132,13 +125,13 @@ public:
         MapVariableComponentwiseToDesignSpace( rNodalVariable );
         AssignResultingDesignVectorsToNodalVariable( rNodalVariableInDesignSpace );
 
-        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+        std::cout << "> Time needed for mapping: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
     void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
     {
-        boost::timer mapping_time;
+        BuiltinTimer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
 
         RecreateSearchTreeIfGeometryHasChanged();
@@ -146,7 +139,7 @@ public:
         MapVariableComponentwiseToGeometrySpace( rNodalVariable );
         AssignResultingGeometryVectorsToNodalVariable( rNodalVariableInGeometrySpace );
 
-        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+        std::cout << "> Time needed for mapping: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -279,10 +272,10 @@ private:
     // --------------------------------------------------------------------------
     void CreateSearchTreeWithAllNodesOnDesignSurface()
     {
-        boost::timer timer;
+        BuiltinTimer timer;
         std::cout << "> Creating search tree to perform mapping..." << std::endl;
         mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
-        std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;
+        std::cout << "> Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
