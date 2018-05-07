@@ -68,7 +68,7 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
             "move_mesh_flag": false,
             "reorder": false,
             "fm_ale_settings": {
-                "fm_ale_step_frequency": 0,
+                "fm_ale_step_frequency": 1,
                 "search_radius" : 1.0
             }
         }""")
