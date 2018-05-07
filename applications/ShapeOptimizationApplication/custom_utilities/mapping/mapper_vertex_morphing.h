@@ -104,10 +104,6 @@ public:
           mMaxNumberOfNeighbors( mapper_settings["max_nodes_in_filter_radius"].GetInt() ),
           mConsistentBackwardMapping (mapper_settings["consistent_mapping_to_geometry_space"].GetBool() )
     {
-        CreateListOfNodesOfDesignSurface();
-        CreateFilterFunction();
-        InitializeMappingVariables();
-        AssignMappingIds();
     }
 
     /// Destructor.
@@ -125,12 +121,21 @@ public:
     ///@{
 
     // --------------------------------------------------------------------------
+    void InitializeMapping()
+    {
+        CreateListOfNodesOfDesignSurface();
+        CreateFilterFunction();
+        InitializeMappingVariables();
+        AssignMappingIds();
+    }
+
+    // --------------------------------------------------------------------------
     void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
 
-        RecomputeMappingMatrixIfGeometryHasChanged();
+        ComputeMappingMatrixIfNecessary();
         PrepareVectorsForMappingToDesignSpace( rNodalVariable );
         if (mConsistentBackwardMapping)
             MultiplyVectorsWithConsistentBackwardMappingMatrix();
@@ -147,7 +152,7 @@ public:
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
 
-        RecomputeMappingMatrixIfGeometryHasChanged();
+        ComputeMappingMatrixIfNecessary();
         PrepareVectorsForMappingToGeometrySpace( rNodalVariable );
         MultiplyVectorsWithMappingMatrix();
         AssignResultingGeometryVectorsToNodalVariable( rNodalVariableInGeometrySpace );
@@ -265,7 +270,7 @@ private:
     SparseMatrixType mMappingMatrix;
     Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;
     Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
-    double mControlSum = 0.0;
+    double mControlSum = -1.0;
 
     ///@}
     ///@name Private Operators
@@ -400,9 +405,9 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void RecomputeMappingMatrixIfGeometryHasChanged()
+    void ComputeMappingMatrixIfNecessary()
     {
-        if(HasGeometryChanged())
+        if(IsFirstMappingOperation() || HasGeometryChanged())
         {
             InitializeComputationOfMappingMatrix();
             ComputeMappingMatrix();
@@ -514,13 +519,30 @@ private:
             sumOfAllCoordinates += std::abs(coord[0]) + std::abs(coord[1]) + std::abs(coord[2]);
         }
 
-        if (mControlSum == sumOfAllCoordinates)
+        if(mControlSum == sumOfAllCoordinates)
             return false;
         else
         {
             mControlSum = sumOfAllCoordinates;
             return true;
         }
+    }
+
+    // --------------------------------------------------------------------------
+    bool IsFirstMappingOperation()
+    {
+        if(mControlSum == -1.0)
+        {
+            mControlSum = 0.0;
+            for(auto& node_i : mrDesignSurface.Nodes())
+            {
+                array_3d& coord = node_i.Coordinates();
+                mControlSum += std::abs(coord[0]) + std::abs(coord[1]) + std::abs(coord[2]);
+            }
+            return true;
+        }
+        else
+             return false;
     }
 
     // --------------------------------------------------------------------------

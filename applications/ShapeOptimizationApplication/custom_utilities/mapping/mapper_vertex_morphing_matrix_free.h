@@ -99,11 +99,6 @@ public:
           mFilterRadius( MapperSettings["filter_radius"].GetDouble() ),
           mMaxNumberOfNeighbors( MapperSettings["max_nodes_in_filter_radius"].GetInt() )
     {
-        CreateListOfNodesOfDesignSurface();
-        CreateSearchTreeWithAllNodesOnDesignSurface();
-        CreateFilterFunction();
-        InitializeMappingVariables();
-        AssignMappingIds();
     }
 
     /// Destructor.
@@ -122,12 +117,21 @@ public:
     ///@{
 
     // --------------------------------------------------------------------------
+    void InitializeMapping()
+    {
+        CreateListOfNodesOfDesignSurface();
+        CreateFilterFunction();
+        InitializeMappingVariables();
+        AssignMappingIds();
+    }
+
+    // --------------------------------------------------------------------------
     void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
 
-        RecreateSearchTreeIfGeometryHasChanged();
+        CreateSearchTreeIfNecessary();
         ClearVectorsForMappingToDesignSpace();
         MapVariableComponentwiseToDesignSpace( rNodalVariable );
         AssignResultingDesignVectorsToNodalVariable( rNodalVariableInDesignSpace );
@@ -141,7 +145,7 @@ public:
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
 
-        RecreateSearchTreeIfGeometryHasChanged();
+        CreateSearchTreeIfNecessary();
         ClearVectorsForMappingToGeometrySpace();
         MapVariableComponentwiseToGeometrySpace( rNodalVariable );
         AssignResultingGeometryVectorsToNodalVariable( rNodalVariableInGeometrySpace );
@@ -277,15 +281,6 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void CreateSearchTreeWithAllNodesOnDesignSurface()
-    {
-        boost::timer timer;
-        std::cout << "> Creating search tree to perform mapping..." << std::endl;
-        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
-        std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
     void CreateFilterFunction()
     {
         mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
@@ -311,13 +306,22 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void RecreateSearchTreeIfGeometryHasChanged()
+    void CreateSearchTreeIfNecessary()
     {
-        if(HasGeometryChanged())
+        if(IsFirstMappingOperation() || HasGeometryChanged())
         {
             mpSearchTree.reset();
             CreateSearchTreeWithAllNodesOnDesignSurface();
         }
+    }
+
+    // --------------------------------------------------------------------------
+    void CreateSearchTreeWithAllNodesOnDesignSurface()
+    {
+        boost::timer timer;
+        std::cout << "> Creating search tree to perform mapping..." << std::endl;
+        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
+        std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -488,12 +492,7 @@ private:
             sumOfAllCoordinates += std::abs(coord[0]) + std::abs(coord[1]) + std::abs(coord[2]);
         }
 
-        if(IsFirstMappingOperation())
-        {
-            mControlSum = sumOfAllCoordinates;
-            return false;
-        }
-        else if (mControlSum == sumOfAllCoordinates)
+        if(mControlSum == sumOfAllCoordinates)
             return false;
         else
         {
@@ -505,8 +504,16 @@ private:
     // --------------------------------------------------------------------------
     bool IsFirstMappingOperation()
     {
-        if(mControlSum == 0.0)
+        if(mControlSum == -1.0)
+        {
+            mControlSum = 0.0;
+            for(auto& node_i : mrDesignSurface.Nodes())
+            {
+                array_3d& coord = node_i.Coordinates();
+                mControlSum += std::abs(coord[0]) + std::abs(coord[1]) + std::abs(coord[2]);
+            }
             return true;
+        }
         else
              return false;
     }
