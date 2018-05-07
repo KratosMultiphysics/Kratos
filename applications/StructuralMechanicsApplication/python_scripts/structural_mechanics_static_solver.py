@@ -104,6 +104,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
     def _create_mechanical_solution_strategy(self):
+        KratosMultiphysics.Logger.PrintInfo("hi spakos")
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
             mechanical_solution_strategy = self._create_linear_strategy()
