@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:   
-//                    
+//  Main authors:
+//
 //
 
 
@@ -615,7 +615,7 @@ protected:
 		// Get the normal evaluated at the node
 		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
 
-		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1];
+		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1] + rNormal[2]*rNormal[2];
 		aux = sqrt(aux);
 		rRot(TSkip,TSkip  ) = rNormal[0]/aux;
 		rRot(TSkip,TSkip+1) = rNormal[1]/aux;
@@ -936,7 +936,7 @@ private:
 			}
 		}
 	}
-	
+
 	///@}
 	///@name Private  Access
 	///@{
