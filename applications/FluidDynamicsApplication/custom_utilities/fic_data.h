@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_SYMBOLIC_FIC_DATA_H)
-#define KRATOS_SYMBOLIC_FIC_DATA_H
+#if !defined(KRATOS_FIC_DATA_H)
+#define KRATOS_FIC_DATA_H
 
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
@@ -61,7 +61,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 {
     // Base class Initialize manages constitutive law parameters
     FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>::Initialize(rElement,rProcessInfo);
-    
+
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
     const Properties& r_properties = rElement.GetProperties();
     this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
@@ -76,7 +76,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
-    
+
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);

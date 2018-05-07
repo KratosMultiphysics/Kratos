@@ -258,10 +258,9 @@ double ElementSizeCalculator<2,3>::ProjectedElementSize(const Geometry<Node<3> >
     array_1d<double,3> Edge(3,0.0);
     for(unsigned int i = 0; i < NumNodes; ++i)
     {
-        double lu;
         unsigned int j = (i+1) % NumNodes;
         Edge = rGeometry[j] - rGeometry[i];
-        lu = rVelocity[0] * Edge[0];
+        double lu = rVelocity[0] * Edge[0];
         for (unsigned int d = 1; d < 2; ++d)
             lu += rVelocity[d] * Edge[d];
         lu = fabs(lu);
@@ -302,9 +301,8 @@ double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >
     {
         for(unsigned int j = i+1; j < NumNodes; ++j)
         {
-            double lu;
             Edge = rGeometry[j] - rGeometry[i];
-            lu = rVelocity[0] * Edge[0];
+            double lu = rVelocity[0] * Edge[0];
             for (unsigned int d = 1; d < 3; ++d)
                 lu += rVelocity[d] * Edge[d];
             lu = fabs(lu);
@@ -354,22 +352,10 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >
         Q(i,2) = v40[i];
     }
 
-    Matrix QInv = ZeroMatrix(3,3);
-
     // Invert Matrix Q
-    typedef permutation_matrix<std::size_t> pmatrix;
-    // create a working copy of the input matrix
-    Matrix A(Q);
-    // create a permutation matrix for the LU-factorization
-    pmatrix pm(A.size1());
-    // perform LU-factorization
-    int res = lu_factorize(A,pm);
-    if( res != 0 )
-        return false;
-    // create identity matrix of "inverse"
-    QInv.assign(identity_matrix<double>(A.size1()));
-    // backsubstitute to get the inverse
-    lu_substitute(A, pm, QInv);
+    Matrix QInv;
+    double det;
+    MathUtils<double>::InvertMatrix(Q,QInv,det);
 
     array_1d<double,3> Uq(3,0.0);
     for (unsigned int i = 0; i < 3; i++)

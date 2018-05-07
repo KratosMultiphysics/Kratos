@@ -48,6 +48,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/// A detailed description of the formulation can be found in:
+/// A FIC-based stabilized finite element formulation for turbulent flows, 2017
+/// https://www.sciencedirect.com/science/article/pii/S004578251630799X
+
 template< class TElementData >
 class FIC : public FluidElement<TElementData>
 {
