@@ -8,7 +8,7 @@ KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-import KratosMultiphysics.ALEApplication as KratosALE
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
 # Import base class file
 import navier_stokes_embedded_solver
@@ -91,7 +91,7 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
         if (self.fm_ale_step_frequency != 0):
             self.fm_ale_step = 1
             self.virtual_model_part = KratosMultiphysics.ModelPart("VirtualModelPart")
-            self.mesh_moving_util = KratosALE.ExplicitMeshMovingUtilities(
+            self.mesh_moving_util = KratosMeshMoving.ExplicitMeshMovingUtilities(
                 self.virtual_model_part, self.structure_model_part, self.settings["fm_ale_settings"]["search_radius"].GetDouble())
 
         if self._IsPrintingRank():

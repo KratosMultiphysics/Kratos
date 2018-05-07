@@ -16,7 +16,6 @@
 // External includes
 
 // Application includes
-#include "ale_application.h"
 #include "move_mesh_utilities.h"
 #include "explicit_mesh_moving_utilities.h"
 
