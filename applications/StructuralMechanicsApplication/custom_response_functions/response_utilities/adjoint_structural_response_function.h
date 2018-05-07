@@ -19,6 +19,8 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
+#include "includes/kratos_parameters.h"
+#include "structural_mechanics_application_variables.h"
 
 
 // Application includes
@@ -433,7 +435,7 @@ public:
     {
         KRATOS_TRY;
 
-        for (auto label : mNodalSensitivityVariables)
+        for (const auto& label : mNodalSensitivityVariables)
         {
             if (KratosComponents<Variable<double>>::Has(label) == true)
             {

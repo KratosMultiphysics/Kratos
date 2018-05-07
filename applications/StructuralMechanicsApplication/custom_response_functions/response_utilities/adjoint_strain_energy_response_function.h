@@ -75,19 +75,11 @@ public:
     ///@{
 
     /// Default constructor.
-    AdjointStrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
-    : AdjointStructuralResponseFunction(model_part, responseSettings)
-    {
-
-        // Initialize member variables to NULL
-        mCurrentResponseValue = 0.0;
-
-    }
+    AdjointStrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings);
 
     /// Destructor.
-    virtual ~AdjointStrainEnergyResponseFunction()
-    {
-    }
+    ~AdjointStrainEnergyResponseFunction();
+   
 
     ///@}
     ///@name Operators
@@ -97,61 +89,11 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() override
-    {
-        KRATOS_TRY;
+    void Initialize() override;
 
-        BaseType::Initialize();
+    double CalculateValue(ModelPart& rModelPart) override;
 
-        // It is necessary to initialize the elements since no adjoint problem is solved for this response type.
-        // For this response type the elements are only created!
-        ModelPart& r_model_part = this->GetModelPart();
-
-        #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(r_model_part.Elements().size()); i++)
-        {
-            ModelPart::ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
-            it->Initialize();
-        }
-        // Note: Maybe also an initialization of the conditions will also be necessary in the future. For the currently availible 
-        //       adjoint conditions (point and surface load) it is not necessary.
-
-        KRATOS_CATCH("");
-    }
-
-    // ==============================================================================
-    double CalculateValue(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY;
-
-        ModelPart& r_model_part = rModelPart; 
-        ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
-        mCurrentResponseValue = 0.0;
-
-        // Check if there are at the time of calling adjoint or primal elements
-        KRATOS_ERROR_IF( r_current_process_info[IS_ADJOINT] )
-             << "Calculate value for strain energy response is not availible when using adjoint elements" << std::endl;
-            
-        // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
-        for (auto& elem_i : r_model_part.Elements())
-        {
-            Matrix LHS;
-            Vector RHS;
-            Vector disp;
-
-            // Get state solution relevant for energy calculation
-            elem_i.GetValuesVector(disp,0);
-
-            elem_i.CalculateLocalSystem(LHS, RHS, r_current_process_info);
-
-            // Compute strain energy
-            mCurrentResponseValue += 0.5 * inner_prod(disp, prod(LHS,disp));
-         }
-
-        return mCurrentResponseValue;
-
-        KRATOS_CATCH("");
-    }
+    void UpdateSensitivities() override;
 
     ///@}
     ///@name Access
@@ -166,40 +108,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "AdjointStrainEnergyResponseFunction";
-    }
+    virtual std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream &rOStream) const
-    {
-        rOStream << "AdjointStrainEnergyResponseFunction";
-    }
+    virtual void PrintInfo(std::ostream &rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream &rOStream) const
-    {
-    }
+    virtual void PrintData(std::ostream &rOStream) const;
 
     ///@}
     ///@name Friends
     ///@{
 
     ///@}
-
-
-
-    // =============================================================================
-    void UpdateSensitivities() override
-    {
-        KRATOS_TRY;
-
-        BaseType::UpdateSensitivities();
-
-        KRATOS_CATCH("");
-    }
-
 
 protected:
     ///@name Protected static Member Variables
@@ -217,91 +138,32 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // ==============================================================================
+    
     void CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo) override
-    {
-          KRATOS_TRY
+                                              ProcessInfo& rProcessInfo) override;
 
-          if (rResponseGradient.size() != rDerivativesMatrix.size1())
-              rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-        rResponseGradient.clear();
-
-        // There will be a mistake, if body forces are considered. Because the elements are responsible for the body forces!
-
-          KRATOS_CATCH("")
-    }
-
-    // ==============================================================================
+  
     void CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo) override
-    {
-          KRATOS_TRY
+                                              ProcessInfo& rProcessInfo) override;
 
-        if (rResponseGradient.size() != rDerivativesMatrix.size1())
-              rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-        rResponseGradient.clear();
-
-        // There will be a mistake, if body forces are considered. Because the elements are responsible for the body forces!
-
-        KRATOS_CATCH("")
-    }
-
-    // ==============================================================================
+    
     void CalculateSensitivityGradient(Condition& rAdjointCondition,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo) override
-    {
-        KRATOS_TRY;
+                                              ProcessInfo& rProcessInfo) override;
 
-        Vector adjoint_variables;
-
-        rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
-
-        KRATOS_ERROR_IF(adjoint_variables.size() != rDerivativesMatrix.size2())
-            << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
-
-        if (rResponseGradient.size() != rDerivativesMatrix.size2())
-            rResponseGradient.resize(adjoint_variables.size(), false);
-
-        noalias(rResponseGradient) = prod(rDerivativesMatrix, adjoint_variables);
-
-        KRATOS_CATCH("");
-    }
-
-    // ==============================================================================
     void CalculateSensitivityGradient(Condition& rAdjointCondition,
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo) override
-    {
-        KRATOS_TRY;
-
-        Vector adjoint_variables;
-
-        rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
-
-        KRATOS_ERROR_IF(adjoint_variables.size() != rDerivativesMatrix.size2())
-             << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
-
-        if (rResponseGradient.size() != rDerivativesMatrix.size2())
-            rResponseGradient.resize(adjoint_variables.size(), false);
-
-        noalias(rResponseGradient) = prod(rDerivativesMatrix, adjoint_variables);
-
-        KRATOS_CATCH("");
-    }
-
-    // ==============================================================================
+                                              ProcessInfo& rProcessInfo) override;
 
     ///@}
     ///@name Protected  Access
