@@ -116,21 +116,24 @@ class GhostsTestSolution(main_script.Solution):
         self.face_watcher.MakeMeasurements(self.GetAnalyticFacesModelParts())
 
         times = []
-        neighbour_ids = []
-        normal_relative_vel = []
-        tangential_relative_vel = []
-        my_id = []
-        masses = []
         n_particles = []
+        masses = []
+        total_number_of_crossing_particles = 0
 
         self.face_watcher.GetTotalFlux(times, n_particles, masses)
-
-        '''print("IN PYTHON, TIME====")
-        print(times)
-        print("IN PYTHON, N_PARTICLES====")
-        print(n_particles)
-        print("IN PYTHON, MASS====")
-        print(masses)'''
+        
+        for n_part in n_particles:
+            total_number_of_crossing_particles = total_number_of_crossing_particles + n_part
+              
+        self.CheckTotalNumberOfCrossingParticles(total_number_of_crossing_particles, times)
+        
+    def CheckTotalNumberOfCrossingParticles(self, total_number_of_crossing_particles, times):
+        
+        for time in times:
+            current_time = time
+        
+        if current_time > 0.145 and total_number_of_crossing_particles is not -4:
+            raise ValueError('The total value of crossing particles was not the expected!')    
 
     def Finalize(self):
         super(GhostsTestSolution, self).Finalize()
