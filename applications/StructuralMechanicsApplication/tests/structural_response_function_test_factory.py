@@ -52,9 +52,12 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
     def _calculate_response_and_gradient(self):
         # Within this location context:
         with controlledExecutionScope(self.path):
-            self.value = self.response_function.CalculateValue()
+            self.response_function.InitializeSolutionStep()
+            self.response_function.CalculateValue()
+            self.value = self.response_function.GetValue()
             self.response_function.CalculateGradient()
             self.gradient = self.response_function.GetShapeGradient()
+            self.response_function.FinalizeSolutionStep()
 
     def tearDown(self):
         # Within this location context:
