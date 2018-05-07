@@ -91,10 +91,6 @@ void  HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateMaterialResponsePK2(
     }
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-        if (rValues.IsSetDeformationGradientF() == true) {
-            CalculateGreenLagrangianStrain(rValues, strain_vector);
-        }
-
         if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
             noalias(stress_vector) = prod(constitutive_matrix, strain_vector);

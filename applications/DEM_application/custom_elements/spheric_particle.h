@@ -53,7 +53,7 @@ Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, Proper
 /// Destructor.
 virtual ~SphericParticle();
 
-SphericParticle& operator=(const SphericParticle& rOther);  
+SphericParticle& operator=(const SphericParticle& rOther);
 
 class ParticleDataBuffer
 {
@@ -140,7 +140,7 @@ virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_proc
 virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override;
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override;
 virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info ) override;
-virtual void ComputeNewNeighboursHistoricalData(boost::numeric::ublas::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces);
+virtual void ComputeNewNeighboursHistoricalData(DenseVector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces);
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
 virtual void SymmetrizeStressTensor();
@@ -294,7 +294,7 @@ virtual void ComputeBallToRigidFaceContactForce(ParticleDataBuffer & data_buffer
                                                 array_1d<double, 3>& rContactForce,
                                                 double& RollingResistance,
                                                 array_1d<double, 3>& rigid_element_force,
-                                                ProcessInfo& r_process_info,                                                
+                                                ProcessInfo& r_process_info,
                                                 int search_control) ;
 
 virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override;
@@ -348,7 +348,7 @@ virtual void ComputeMoments(double normalLocalContactForce,
                             SphericParticle* neighbour_iterator,
                             double indentation,
                             bool wall=false) final;
-                      
+
 virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt) final;
 
 virtual double GetInitialDeltaWithFEM(int index);
@@ -375,7 +375,7 @@ virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                                    double LocalCoordSystem[3][3],
                                    double LocalContactForce[3],
                                    double LocalElasticContactForce[3],
-                                   double LocalElasticExtraContactForce[3],                    
+                                   double LocalElasticExtraContactForce[3],
                                    double GlobalContactForce[3],
                                    double GlobalElasticContactForce[3],
                                    double GlobalElasticExtraContactForce[3],
@@ -404,10 +404,10 @@ virtual void AddUpMomentsAndProject(double LocalCoordSystem[3][3],
                                     double ViscoLocalRotationalMoment[3]) final;
 
 virtual void ComputeWear(double LocalRelVel[3],
-                         double mTimeStep, 
-                         bool sliding, 
+                         double mTimeStep,
+                         bool sliding,
                          double inverse_of_volume,
-                         double LocalElasticContactForce, 
+                         double LocalElasticContactForce,
                          DEMWall* cast_neighbour);
 
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
@@ -463,7 +463,7 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mSearchRadius", mSearchRadius);
     rSerializer.load("mRealMass",mRealMass);
     rSerializer.load("mClusterId",mClusterId);
-    rSerializer.load("mBoundDeltaDispSq",mBoundDeltaDispSq); 
+    rSerializer.load("mBoundDeltaDispSq",mBoundDeltaDispSq);
     int aux_int=0;
     rSerializer.load("HasStressTensor", aux_int);
     if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);

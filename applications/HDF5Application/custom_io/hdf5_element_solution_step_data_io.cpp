@@ -14,14 +14,12 @@ namespace
 template <class TVariableType, class TFileDataType>
 void SetDataBuffer(TVariableType const& rVariable,
                    std::vector<ElementType*> const& rElements,
-                   Vector<TFileDataType>& rData
-                   );
+                   Vector<TFileDataType>& rData);
 
 template <class TVariableType, class TFileDataType>
 void SetElementSolutionStepData(TVariableType const& rVariable,
-                              Vector<TFileDataType> const& rData,
-                              std::vector<ElementType*>& rElements
-                              );
+                                Vector<TFileDataType> const& rData,
+                                std::vector<ElementType*>& rElements);
 
 template <typename TVariable>
 class WriteVariableFunctor
@@ -47,8 +45,8 @@ public:
                     std::vector<ElementType*>& rElements,
                     File& rFile,
                     std::string const& rPrefix,
-                    unsigned StartIndex,
-                    unsigned BlockSize)
+                    std::size_t StartIndex,
+                    std::size_t BlockSize)
     {
         Vector<typename TVariable::Type> data;
         rFile.ReadDataSet(rPrefix + "/ElementResults/" + rVariable.Name(), data,
@@ -57,19 +55,18 @@ public:
     }
 };
 
-std::vector<ElementType*> GetElementReferences(ElementsContainerType const& rElements )
+std::vector<ElementType*> GetElementReferences(ElementsContainerType const& rElements)
 {
-    std::vector<ElementType*> rElementReferences;
-    rElementReferences.resize(rElements.size());
+    std::vector<ElementType*> element_pointers(rElements.size());
 
     #pragma omp parallel for
-        for (int i = 0; i < rElements.size(); ++i)
-        {
-            auto it = rElements.begin() + i;
-            rElementReferences[i] = (&(*it));
-        }
-    
-    return rElementReferences;
+    for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
+    {
+        auto it = rElements.begin() + i;
+        element_pointers[i] = (&(*it));
+    }
+
+    return element_pointers;
 }
 } // unnamed namespace
 
@@ -88,8 +85,12 @@ ElementSolutionStepDataIO::ElementSolutionStepDataIO(Parameters Settings, File::
 
     mPrefix = Settings["prefix"].GetString();
 
-    mVariableNames.resize(Settings["list_of_variables"].size());
-    for (unsigned i = 0; i < mVariableNames.size(); ++i)
+    const std::size_t num_variables = Settings["list_of_variables"].size();
+
+    if (mVariableNames.size() != num_variables)
+        mVariableNames.resize(num_variables);
+
+    for (std::size_t i = 0; i < num_variables; ++i)
         mVariableNames[i] = Settings["list_of_variables"].GetArrayItem(i).GetString();
 
     KRATOS_CATCH("");
@@ -126,7 +127,7 @@ void ElementSolutionStepDataIO::ReadElementResults(ElementsContainerType& rEleme
         return;
 
     std::vector<ElementType*> local_elements = GetElementReferences(rElements);
-    unsigned start_index, block_size;
+    std::size_t start_index, block_size;
     std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, mPrefix + "/ElementResults");
 
     // Read local data for each variable.
@@ -150,20 +151,20 @@ void SetDataBuffer(TVariableType const& rVariable,
 {
     KRATOS_TRY;
 
-    rData.resize(rElements.size(), false);
+    if (rData.size() != rElements.size())
+        rData.resize(rElements.size(), false);
 
-#pragma omp parallel for
-    for (int i = 0; i < rElements.size(); ++i)
-            rData[i] = rElements[i]->GetValue(rVariable);
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
+        rData[i] = rElements[i]->GetValue(rVariable);
 
     KRATOS_CATCH("");
 }
 
 template <class TVariableType, class TFileDataType>
 void SetElementSolutionStepData(TVariableType const& rVariable,
-                              Vector<TFileDataType> const& rData,
-                              std::vector<ElementType*>& rElements
-                              )
+                                Vector<TFileDataType> const& rData,
+                                std::vector<ElementType*>& rElements)
 {
     KRATOS_TRY;
 
@@ -171,8 +172,8 @@ void SetElementSolutionStepData(TVariableType const& rVariable,
         << "File data block size (" << rData.size()
         << ") is not equal to number of nodes (" << rElements.size() << ")." << std::endl;
 
-#pragma omp parallel for
-    for (int i = 0; i < rElements.size(); ++i)
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
         rElements[i]->SetValue(rVariable, rData[i]);
 
     KRATOS_CATCH("");

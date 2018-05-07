@@ -168,7 +168,7 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateMassMat
     // Get the element's geometric parameters
     double Area;
     array_1d<double, TNumNodes> N;
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+    BoundedMatrix<double, TNumNodes, TDim> DN_DX;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
     if (rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == 1){ // Add 'classical' mass matrix (lumped)
@@ -194,7 +194,7 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateMassMat
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::AddIntegrationPointRHSContribution(VectorType& F,
                              const array_1d<double, TNumNodes>& rShapeFunc,
-                             const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                             const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                              const double Weight)
 {
     for (unsigned int iNodeB = 0; iNodeB < TNumNodes; ++iNodeB){
@@ -218,7 +218,7 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::AddIntegrationPo
             else {
                 const array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
                 for (unsigned int di = 0; di < TDim; ++di){
-                    div += rShapeDeriv(iNodeA, di) * NodalComponent[di];                    
+                    div += rShapeDeriv(iNodeA, di) * NodalComponent[di];
                 }
             }
         }
