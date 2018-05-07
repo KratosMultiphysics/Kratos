@@ -128,12 +128,12 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
             KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedFMALEMonolithicSolver", "Fluid solver variables added correctly.")
 
 
-    def ImportModelPart(self):
-        super(NavierStokesEmbeddedFMALEMonolithicSolver, self).ImportModelPart()
+    def Initialize(self):
+        super(NavierStokesEmbeddedFMALEMonolithicSolver, self).Initialize()
 
         ## Set the virtual model part geometry
         if (self.fm_ale_step_frequency != 0):
-            self.mesh_moving_util.FillVirtualModelPart(self.main_model_part)
+            self.mesh_moving_util.FillVirtualModelPart(self.main_model_part)     
 
 
     def InitializeSolutionStep(self):
