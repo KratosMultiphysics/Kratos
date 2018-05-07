@@ -67,6 +67,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".post.bin")
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".time")
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".h5")
+            kratos_utils.DeleteFileIfExisting(self.problem_name + "-1.0000.h5")
             kratos_utils.DeleteFileIfExisting("response_function_tests.post.lst")
 
 class TestAdjointStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
