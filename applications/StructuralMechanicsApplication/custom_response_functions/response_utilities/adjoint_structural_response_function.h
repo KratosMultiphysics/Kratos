@@ -19,6 +19,8 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
+#include "includes/kratos_parameters.h"
+#include "structural_mechanics_application_variables.h"
 
 
 // Application includes
