@@ -160,7 +160,7 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateMassMatrix(Matr
     // Get the element's geometric parameters
     double Area;
     array_1d<double, TNumNodes> N;
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+    BoundedMatrix<double, TNumNodes, TDim> DN_DX;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
     // Add 'classical' mass matrix (lumped)
@@ -191,7 +191,7 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateRHS(VectorType&
     // Get the element's geometric parameters
     double Area;
     array_1d<double, TNumNodes> N;
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+    BoundedMatrix<double, TNumNodes, TDim> DN_DX;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
     MatrixType NContainer;
@@ -239,7 +239,7 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::EvaluateInPoint(array_1d
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::AddIntegrationPointRHSContribution(VectorType& F,
                              const array_1d<double, TNumNodes>& rShapeFunc,
-                             const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                             const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                              const double Weight)
 {
     double Coef = Weight;

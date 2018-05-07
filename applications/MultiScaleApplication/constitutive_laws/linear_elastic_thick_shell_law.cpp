@@ -52,7 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	LinearElasticThickShellLaw::LinearElasticThickShellLaw() 
+	LinearElasticThickShellLaw::LinearElasticThickShellLaw()
 		: ConstitutiveLaw()
 		, mDensity(0.0)
 		, m_initial_strain(8,0.0)
@@ -109,7 +109,7 @@ namespace Kratos
 	}
 
 	int& LinearElasticThickShellLaw::GetValue(
-		const Variable<int>& rThisVariable, 
+		const Variable<int>& rThisVariable,
 		int& rValue)
 	{
 		rValue = 0;
@@ -117,7 +117,7 @@ namespace Kratos
 	}
 
 	double& LinearElasticThickShellLaw::GetValue(
-		const Variable<double>& rThisVariable, 
+		const Variable<double>& rThisVariable,
 		double& rValue)
 	{
 		rValue = 0.0;
@@ -127,7 +127,7 @@ namespace Kratos
 	}
 
 	Vector& LinearElasticThickShellLaw::GetValue(
-		const Variable<Vector>& rThisVariable, 
+		const Variable<Vector>& rThisVariable,
 		Vector& rValue)
 	{
 		if(rThisVariable == INITIAL_STRAIN) {
@@ -139,21 +139,21 @@ namespace Kratos
 	}
 
 	Matrix& LinearElasticThickShellLaw::GetValue(
-		const Variable<Matrix>& rThisVariable, 
+		const Variable<Matrix>& rThisVariable,
 		Matrix& rValue)
 	{
 		return rValue;
 	}
 
 	array_1d<double, 3 > & LinearElasticThickShellLaw::GetValue(
-		const Variable<array_1d<double, 3 > >& rVariable, 
+		const Variable<array_1d<double, 3 > >& rVariable,
 		array_1d<double, 3 > & rValue)
 	{
 		return rValue;
 	}
 
 	array_1d<double, 6 > & LinearElasticThickShellLaw::GetValue(
-		const Variable<array_1d<double, 6 > >& rVariable, 
+		const Variable<array_1d<double, 6 > >& rVariable,
 		array_1d<double, 6 > & rValue)
 	{
 		return rValue;
@@ -175,7 +175,7 @@ namespace Kratos
 
 	void LinearElasticThickShellLaw::SetValue(
 		const Variable<Vector >& rVariable,
-		const Vector& rValue, 
+		const Vector& rValue,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(rVariable == INITIAL_STRAIN) {
@@ -186,7 +186,7 @@ namespace Kratos
 
 	void LinearElasticThickShellLaw::SetValue(
 		const Variable<Matrix >& rVariable,
-		const Matrix& rValue, 
+		const Matrix& rValue,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
@@ -293,27 +293,27 @@ namespace Kratos
 		const Vector& strain_vector       = rValues.GetStrainVector();
 		Vector&       stress_vector       = rValues.GetStressVector();
 		Matrix&       constitutive_matrix  = rValues.GetConstitutiveMatrix();
-		
+
 		if(stress_vector.size() != 8)
 			stress_vector.resize(8, false);
-		
+
 		if(constitutive_matrix.size1() != 8 || constitutive_matrix.size2() != 8)
 			constitutive_matrix.resize(8,8,false);
-		
+
 		constitutive_matrix.clear();
-		
+
 		double E  = props[YOUNG_MODULUS];
 		double nu = props[POISSON_RATIO];
 		double H  = props[THICKNESS];
 		double K  = 5.0/6.0;
-		
+
 		double c1 = E / (1.0 - nu*nu);
 		double c2 = c1 * nu;
 		double G  = E/(2.0*(nu+1.0));
-		
+
 		double I   = H*H*H/12.0;
 		double GKH = G*K*H;
-		
+
 		constitutive_matrix(0,0) = c1*H;
 		constitutive_matrix(0,1) = c2*H;
 		constitutive_matrix(1,0) = constitutive_matrix(0,1);
@@ -326,7 +326,7 @@ namespace Kratos
 		constitutive_matrix(5,5) = G*I;
 		constitutive_matrix(6,6) = GKH;
 		constitutive_matrix(7,7) = GKH;
-		
+
 		stress_vector(0) = c1*H*(strain_vector(0)-m_initial_strain(0)) + c2*H*(strain_vector(1)-m_initial_strain(1));
 		stress_vector(1) = c2*H*(strain_vector(0)-m_initial_strain(0)) + c1*H*(strain_vector(1)-m_initial_strain(1));
 		stress_vector(2) = G*H*(strain_vector(2)-m_initial_strain(2));
@@ -392,7 +392,7 @@ namespace Kratos
 
 		if( !rMaterialProperties.Has(POISSON_RATIO) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: POISSON_RATIO", "");
-		
+
 		if( !rMaterialProperties.Has(THICKNESS) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: THICKNESS", "");
 

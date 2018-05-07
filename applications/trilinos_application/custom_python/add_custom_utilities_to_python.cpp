@@ -72,6 +72,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("FindSmallestEdge", &TrilinosCuttingApplication::FindSmallestEdge )
     .def("GenerateCut", &TrilinosCuttingApplication::GenerateCut )
     .def("AddSkinConditions", &TrilinosCuttingApplication::AddSkinConditions )
+    .def("AddVariablesToCutModelPart", &TrilinosCuttingApplication::AddVariablesToCutModelPart )
     .def("UpdateCutData", &TrilinosCuttingApplication::UpdateCutData )
     ;
 

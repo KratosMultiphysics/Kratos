@@ -217,7 +217,7 @@ namespace Kratos {
                                                     int time_steps,
                                                     bool& sliding,
                                                     int search_control,
-                                                    vector<int>& search_control_vector,
+                                                    DenseVector<int>& search_control_vector,
                                                     double &equiv_visco_damp_coeff_normal,
                                                     double &equiv_visco_damp_coeff_tangential,
                                                     double LocalRelVel[3],
