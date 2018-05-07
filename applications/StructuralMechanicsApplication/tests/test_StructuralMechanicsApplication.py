@@ -173,6 +173,8 @@ from restart_tests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D
 
 ##### RESPONSE_FUNCTION #####
 from structural_response_function_test_factory import TestAdjointStrainEnergyResponseFunction as TTestAdjointStrainEnergyResponseFunction
+from structural_response_function_test_factory import TestAdjointDisplacementResponseFunction as TTestAdjointDisplacementResponseFunction
+from structural_response_function_test_factory import TestAdjointStressResponseFunction as TTestAdjointStressResponseFunction
 from structural_response_function_test_factory import TestMassResponseFunction as TTestMassResponseFunction
 from structural_response_function_test_factory import TestStrainEnergyResponseFunction as TTestStrainEnergyResponseFunction
 
@@ -318,8 +320,14 @@ def AssembleTestSuites():
         print("HDF5Application is not compiled, some adjoint tests are skipped!")
 
     nightSuite.addTest(TTestMassResponseFunction('test_execution'))
-    nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
+    nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
+    try:
+        import KratosMultiphysics.HDF5Application as tmp
+        nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
+        nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
+    except ImportError:
+        print("HDF5Application is not compiled, some adjoint response tests are skipped!")
 
     nightSuite.addTests(smallSuite)
 
