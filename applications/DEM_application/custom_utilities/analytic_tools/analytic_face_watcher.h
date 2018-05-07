@@ -81,24 +81,25 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         return mTime;
     }
 
-    void FillUpPythonLists(std::list<int>& ids,
-                           std::list<int>& neighbour_ids,
-                           std::list<double>& masses,
-                           std::list<double>& normal_relative_vel,
-                           std::list<double>& tangential_relative_vel)
+    void FillUpPythonLists(pybind11::list& ids,
+                           pybind11::list& neighbour_ids,
+                           pybind11::list& masses,
+                           pybind11::list& normal_relative_vel,
+                           pybind11::list& tangential_relative_vel)
     {
-        ids.clear();
-        neighbour_ids.clear();
-        masses.clear();
-        normal_relative_vel.clear();
-        tangential_relative_vel.clear();
+        ids.attr("clear")();
+        neighbour_ids.attr("clear")();
+        masses.attr("clear")();
+        normal_relative_vel.attr("clear")();
+        tangential_relative_vel.attr("clear")();
 
         for (int i = 0; i < mNCrossings; ++i){
-            ids.push_back(mId1[i]);
-            neighbour_ids.push_back(mId2[i]);
-            masses.push_back(mMasses[i]);
-            normal_relative_vel.push_back(mRelVelNormal[i]);
-            tangential_relative_vel.push_back(mRelVelTangential[i]);
+            //ids.push_back(mId1[i]);
+            ids.append(mId1[i]);
+            neighbour_ids.append(mId2[i]);
+            masses.append(mMasses[i]);
+            normal_relative_vel.append(mRelVelNormal[i]);
+            tangential_relative_vel.append(mRelVelTangential[i]);
         }
     }
 
@@ -145,24 +146,26 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
         return mMass;
     }
 
-    void FillUpPythonLists(std::list<double>& times,
-                           std::list<int>& neighbour_ids,
-                           std::list<double>& masses,
-                           std::list<double>& normal_relative_vel,
-                           std::list<double>& tangential_relative_vel)
+    void FillUpPythonLists(pybind11::list& times,
+                           pybind11::list& neighbour_ids,
+                           pybind11::list& masses,
+                           pybind11::list& normal_relative_vel,
+                           pybind11::list& tangential_relative_vel)
     {
-        times.clear();
-        neighbour_ids.clear();
-        masses.clear();
-        normal_relative_vel.clear();
-        tangential_relative_vel.clear();
+
+        times.attr("clear")();
+        neighbour_ids.attr("clear")();
+        masses.attr("clear")();
+        normal_relative_vel.attr("clear")();
+        tangential_relative_vel.attr("clear")();
 
         for (int i = 0; i < mNCrossings; ++i){
-            times.push_back(mTimes[i]);
-            neighbour_ids.push_back(mId2[i]);
-            masses.push_back(mMasses[i]);
-            normal_relative_vel.push_back(mRelVelNormal[i]);
-            tangential_relative_vel.push_back(mRelVelTangential[i]);
+            //times.push_back(mTimes[i]);
+            times.append(mTimes[i]);
+            neighbour_ids.append(mId2[i]);
+            masses.append(mMasses[i]);
+            normal_relative_vel.append(mRelVelNormal[i]);
+            tangential_relative_vel.append(mRelVelTangential[i]);
         }
     }
 
@@ -182,26 +185,28 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
 void ClearData();
 
 void GetFaceData(int id,
-                 std::list<double> times,
-                 std::list<int> neighbour_ids,
-                 std::list<double> masses,
-                 std::list<double> normal_relative_vel,
-                 std::list<double> tangential_relative_vel);
+                 pybind11::list times,
+                 pybind11::list neighbour_ids,
+                 pybind11::list masses,
+                 pybind11::list normal_relative_vel,
+                 pybind11::list tangential_relative_vel);
 
 void GetAllFacesData(ModelPart& analytic_model_part,
-                     std::list<double>& times,
-                     std::list<int>& neighbour_ids,
-                     std::list<double>& masses,
-                     std::list<double>& normal_relative_vel,
-                     std::list<double>& tangential_relative_vel);
+                     pybind11::list& times,
+                     pybind11::list& neighbour_ids,
+                     pybind11::list& masses,
+                     pybind11::list& normal_relative_vel,
+                     pybind11::list& tangential_relative_vel);
 
-void GetTimeStepsData(std::list<int>& ids,
-                      std::list<int>& neighbour_ids,
-                      std::list<double>& masses,
-                      std::list<double>& normal_relative_vel,
-                      std::list<double>& tangential_relative_vel);
+void GetTimeStepsData(pybind11::list& ids,
+                      pybind11::list& neighbour_ids,
+                      pybind11::list& masses,
+                      pybind11::list& normal_relative_vel,
+                      pybind11::list& tangential_relative_vel);
 
-void GetTotalFlux(pybind11::list &times, pybind11::list &n_particles, pybind11::list &mass);
+void GetTotalFlux(pybind11::list &times,
+                  pybind11::list &n_particles,
+                  pybind11::list &mass);
 
 virtual void MakeMeasurements(ModelPart& analytic_model_part);
 

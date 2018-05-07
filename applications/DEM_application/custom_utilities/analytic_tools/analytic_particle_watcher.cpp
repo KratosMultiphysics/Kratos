@@ -169,10 +169,10 @@ void AnalyticParticleWatcher::GetParticleData(int id,
 }
 
 void AnalyticParticleWatcher::GetAllParticlesData(ModelPart& analytic_model_part,
-                                                  pybind11::list times,
-                                                  pybind11::list neighbour_ids,
-                                                  pybind11::list normal_relative_vel,
-                                                  pybind11::list tangential_relative_vel)
+                                                  pybind11::list& times,
+                                                  pybind11::list& neighbour_ids,
+                                                  pybind11::list& normal_relative_vel,
+                                                  pybind11::list& tangential_relative_vel)
 {
     times.attr("clear")();
     neighbour_ids.attr("clear")();
@@ -193,19 +193,15 @@ void AnalyticParticleWatcher::GetAllParticlesData(ModelPart& analytic_model_part
         neighbour_ids.append(neighbour_ids_i[id]);
         normal_relative_vel.append(normal_relative_vel_i[id]);
         tangential_relative_vel.append(tangential_relative_vel_i[id]);
-
         //times.append(times.end(), times_i.begin(), times_i.end());
-        //neighbour_ids.append(neighbour_ids.end(), neighbour_ids_i.begin(), neighbour_ids_i.end());
-        //normal_relative_vel.append(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
-        //tangential_relative_vel.append(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
     }
 
 }
 
-void AnalyticParticleWatcher::GetTimeStepsData(pybind11::list ids,
-                                               pybind11::list neighbour_ids,
-                                               pybind11::list normal_relative_vel,
-                                               pybind11::list tangential_relative_vel)
+void AnalyticParticleWatcher::GetTimeStepsData(pybind11::list& ids,
+                                               pybind11::list& neighbour_ids,
+                                               pybind11::list& normal_relative_vel,
+                                               pybind11::list& tangential_relative_vel)
 {
     ids.attr("clear")();
     neighbour_ids.attr("clear")();

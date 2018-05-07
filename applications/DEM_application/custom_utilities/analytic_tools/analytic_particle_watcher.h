@@ -316,15 +316,15 @@ void GetParticleData(int id,
                      pybind11::list tangential_relative_vel);
 
 void GetAllParticlesData(ModelPart& analytic_model_part,
-                         pybind11::list times,
-                         pybind11::list neighbour_ids,
-                         pybind11::list normal_relative_vel,
-                         pybind11::list tangential_relative_vel);
+                         pybind11::list& times,
+                         pybind11::list& neighbour_ids,
+                         pybind11::list& normal_relative_vel,
+                         pybind11::list& tangential_relative_vel);
 
-void GetTimeStepsData(pybind11::list ids,
-                      pybind11::list neighbour_ids,
-                      pybind11::list normal_relative_vel,
-                      pybind11::list tangential_relative_vel);
+void GetTimeStepsData(pybind11::list& ids,
+                      pybind11::list& neighbour_ids,
+                      pybind11::list& normal_relative_vel,
+                      pybind11::list& tangential_relative_vel);
 
 virtual void MakeMeasurements(ModelPart &analytic_model_part);
 
