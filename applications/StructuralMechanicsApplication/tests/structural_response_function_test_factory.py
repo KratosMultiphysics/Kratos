@@ -101,8 +101,7 @@ class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        #TODO fix response value calculation
-        #self.assertAlmostEqual(self.value, 0.00016968010594636793)
+        self.assertAlmostEqual(self.value, 0.21798768581799344)
 
         nodeId = 50
         self.assertAlmostEqual(self.gradient[nodeId][0], -0.4522249114784208, 12)

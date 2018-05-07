@@ -97,6 +97,7 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
         Logger.PrintInfo("> Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
 
     def FinalizeSolutionStep(self):
+        # TODO we should not use the output of the primal analysis to output sensitivities
         self.primal_analysis.FinalizeTimeStep()
 
     def Finalize(self):
@@ -250,6 +251,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
         self.primal_analysis.FinalizeTimeStep()
         print("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
+        self.adjoint_analysis.InitializeTimeStep()
+
     def CalculateValue(self):
         startTime = timer.time()
         value = self.response_function_utility.CalculateValue(self.primal_analysis.GetModelPart())
@@ -260,9 +263,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
     def CalculateGradient(self):
         print("\n> Starting adjoint analysis for response:", self.identifier)
         startTime = timer.time()
-        self.adjoint_analysis.InitializeTimeStep()
         self.adjoint_analysis.SolveTimeStep()
-        self.adjoint_analysis.FinalizeTimeStep()
         print("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
     def GetValue(self):
@@ -275,10 +276,14 @@ class AdjointResponseFunction(ResponseFunctionBase):
         return gradient
         # TODO reset DISPLACEMENT, ROTATION ADJOINT_DISPLACEMENT and ADJOINT_ROTATION
 
+    def FinalizeSolutionStep(self):
+        self.adjoint_analysis.FinalizeTimeStep()
+
     def Finalize(self):
         self.primal_analysis.Finalize()
         self.adjoint_analysis.Finalize()
 
+# ==============================================================================
 class AdjointStrainEnergyResponse(ResponseFunctionBase):
     def __init__(self, identifier, project_parameters, model_part = None):
         self.identifier = identifier
