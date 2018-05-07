@@ -13,9 +13,9 @@
         "echo_level"      : 1
     },
         "solver_settings"                  : {
-        "solver_type"                  : "adjoint_structural_solver",
+        "solver_type"                  : "adjoint",
         "scheme_settings" : {
-            "scheme_type"              : "structural"
+            "scheme_type"              : "adjoint_structural"
         },
         "response_function_settings" : {
             "response_type"     : "adjoint_local_stress",

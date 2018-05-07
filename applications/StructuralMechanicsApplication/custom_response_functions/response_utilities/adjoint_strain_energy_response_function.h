@@ -23,7 +23,6 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "includes/define.h"
 #include "adjoint_structural_response_function.h"
 
 // ==============================================================================
@@ -107,15 +106,15 @@ public:
         // It is necessary to initialize the elements since no adjoint problem is solved for this response type.
         // For this response type the elements are only created!
         ModelPart& r_model_part = this->GetModelPart();
-    #pragma omp parallel
+
+        #pragma omp parallel for
+        for(int i=0; i< static_cast<int>(r_model_part.Elements().size()); i++)
         {
-            ModelPart::ElementIterator elements_begin;
-            ModelPart::ElementIterator elements_end;
-            OpenMPUtils::PartitionedIterators(r_model_part.Elements(), elements_begin, elements_end);
-            for (auto it = elements_begin; it != elements_end; ++it)
-                it->Initialize();
+            ModelPart::ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
+            it->Initialize();
         }
-        // TODO: Check if initialization is also necessary for conditions!
+        // Note: Maybe also an initialization of the conditions will also be necessary in the future. For the currently availible 
+        //       adjoint conditions (point and surface load) it is not necessary.
 
         KRATOS_CATCH("");
     }

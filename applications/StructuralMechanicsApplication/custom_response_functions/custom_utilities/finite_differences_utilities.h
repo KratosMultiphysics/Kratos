@@ -16,30 +16,16 @@
 // ------------------------------------------------------------------------------
 // System includes
 // ------------------------------------------------------------------------------
-#include <iostream>
-#include <string>
-#include <algorithm>
 
 // ------------------------------------------------------------------------------
 // External includes
 // ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/io.hpp>
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "includes/define.h"
-#include "processes/process.h"
-#include "includes/kratos_flags.h"
-
-#include "includes/element.h"
-#include "includes/condition.h"
-#include "includes/process_info.h"
 #include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
 #include "structural_mechanics_application_variables.h"
-
 // ==============================================================================
 
 namespace Kratos

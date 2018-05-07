@@ -15,10 +15,8 @@
 #include "custom_response_functions/response_utilities/response_data.h"
 #include "includes/checks.h"
 
-//#include "geometries/triangle_3d_3.h"
-
-#include <string>
-#include <iomanip>
+//#include <string>
+//#include <iomanip>
 
 //----------------------------------------
 // preprocessors for the integration
@@ -42,75 +40,8 @@
 #endif // OPT_USES_INTERIOR_GAUSS_POINTS
 #endif // OPT_1_POINT_INTEGRATION
 
-//#define OPT_AVARAGE_RESULTS
-
 namespace Kratos
 {
-
-/*namespace Utilities
-{
-inline void InterpToStandardGaussPoints(double& v1, double& v2, double& v3)
-{
-    double vg1 = v1;
-    double vg2 = v2;
-    double vg3 = v3;
-#ifdef OPT_AVARAGE_RESULTS
-    v1 = (vg1+vg2+vg3)/3.0;
-    v2 = (vg1+vg2+vg3)/3.0;
-    v3 = (vg1+vg2+vg3)/3.0;
-#else
-    v1 = (2.0*vg1)/3.0 - vg2/3.0       + (2.0*vg3)/3.0;
-    v2 = (2.0*vg1)/3.0 + (2.0*vg2)/3.0 - vg3/3.0;
-    v3 = (2.0*vg2)/3.0 - vg1/3.0       + (2.0*vg3)/3.0;
-#endif // OPT_AVARAGE_RESULTS
-}
-
-inline void InterpToStandardGaussPoints(std::vector< double >& v)
-{
-    if(v.size() != 3) return;
-    InterpToStandardGaussPoints(v[0], v[1], v[2]);
-}
-
-inline void InterpToStandardGaussPoints(std::vector< array_1d<double,3> >& v)
-{
-    if(v.size() != 3) return;
-    for(size_t i = 0; i < 3; i++)
-        InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
-}
-
-inline void InterpToStandardGaussPoints(std::vector< array_1d<double,6> >& v)
-{
-    if(v.size() != 3) return;
-    for(size_t i = 0; i < 6; i++)
-        InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
-}
-
-inline void InterpToStandardGaussPoints(std::vector< Vector >& v)
-{
-    if(v.size() != 3) return;
-    size_t ncomp = v[0].size();
-    for(int i = 1; i < 3; i++)
-        if(v[i].size() != ncomp)
-            return;
-    for(size_t i = 0; i < ncomp; i++)
-        InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
-}
-
-inline void InterpToStandardGaussPoints(std::vector< Matrix >& v)
-{
-    if(v.size() != 3) return;
-    size_t nrows = v[0].size1();
-    size_t ncols = v[0].size2();
-    for(int i = 1; i < 3; i++)
-        if(v[i].size1() != nrows || v[i].size2() != ncols)
-            return;
-    for(size_t i = 0; i < nrows; i++)
-        for(size_t j = 0; j < ncols; j++)
-            InterpToStandardGaussPoints(v[0](i,j), v[1](i,j), v[2](i,j));
-}
-
-}*/
-
 
 // =====================================================================================
 //
@@ -669,7 +600,6 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
     const int dimension = this->GetGeometry().WorkingSpaceDimension();
     const SizeType num_dofs = GetNumberOfDofs();
     const SizeType num_gps = GetNumberOfGPs();
-    //const int num_dofs = num_nodes * dimension * 2;
     ProcessInfo copy_process_info = rCurrentProcessInfo;
     Vector initial_state_variables;
     Vector stress_derivatives_vector;
@@ -687,7 +617,6 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
     primal_solution_variable_list.push_back(ROTATION_Y);       
     primal_solution_variable_list.push_back(ROTATION_Z);       
     
-    // Concept A: Analytic apporoch ###################################################
     KRATOS_ERROR_IF(rCurrentProcessInfo.Has(NL_ITERATION_NUMBER)) 
         << "Stress displacement derivative computation is currently only for linear cases availible!" << std::endl;
 	
@@ -724,57 +653,6 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
             this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_state_variables[index + j];
     }
 
-    // Concept B: derive by finite differnces #####################################################################################
-    /*
-    Vector stress_vector_undist;
-    Vector stress_vector_dist;
-    ProcessInfo copy_process_info = rCurrentProcessInfo;
-    double initial_value_of_state_variable = 0.0;
-    const int num_nodes = this->GetGeometry().PointsNumber();
-    // Get disturbance measure
-    double dist_measure = this->GetValue(DISTURBANCE_MEASURE); 	
-
-    this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
-
-    const SizeType num_dofs = GetNumberOfDofs();
-    const SizeType num_gps = GetNumberOfGPs();
-    rOutput.resize(num_dofs, num_gps);
-    rOutput.clear();
-        
-     // Built vector of variables containing the DOF-variables of the primal problem 
-    std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list; 
-    primal_solution_variable_list.push_back(DISPLACEMENT_X);       
-    primal_solution_variable_list.push_back(DISPLACEMENT_Y);       
-    primal_solution_variable_list.push_back(DISPLACEMENT_Z);       
-    primal_solution_variable_list.push_back(ROTATION_X);       
-    primal_solution_variable_list.push_back(ROTATION_Y);       
-    primal_solution_variable_list.push_back(ROTATION_Z);  
-
-    int index = 0;
-    for (int i = 0; i < num_nodes; i++) 
-    {	
-        for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
-        {
-            initial_value_of_state_variable = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
-                
-            this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable + dist_measure;
-                
-            this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
-            
-            for(unsigned int k = 0; k < num_gps; k++)
-            {
-                stress_vector_dist[k] -= stress_vector_undist[k];
-                stress_vector_dist[k] /= dist_measure;
-                rOutput(index,k) = stress_vector_dist[k];
-            }
-
-            this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable;
-
-            stress_vector_dist.clear();
-            index++;
-        }
-    }
-    */
     KRATOS_CATCH("")
 }   
 

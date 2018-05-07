@@ -68,7 +68,7 @@ The primal problem can be defind by the regular input files which are needed for
 
 #### Definition of the Adjoint Problem
 In order to define the adjoint problem an additional *.json-file for the adjoint project parameters is necessary. This input file is in principle very similar to the respective file of the primal analysis. In comparsion to a regular file for a linear static analysis three points have to be modified:
-- ```solver_settings``` by using the ```adjoint_structural_solver``` as ```solver_type``` and by the definition of the ```response_function_settings```
+- ```solver_settings``` by using the ```adjoint``` as ```solver_type``` and by the definition of the ```response_function_settings```
 - The input process of the HDF5Application has to be added to the ```list_other_processes``` in order to read the primal solution
 - When defining *Dirichlet* conditions in the ```constraints_process_list``` the ```variable_name``` has to be modified to ```ADJOINT_DISPLACEMENT``` respective ```ADJOINT_ROTATION```
 
@@ -76,9 +76,9 @@ For example the ```solver_settings``` can be look like this (Hints for the ```re
 
 ```python
     "solver_settings"                  : {
-        "solver_type"                  : "adjoint_structural_solver",
+        "solver_type"                  : "adjoint",
         "scheme_settings" : {
-            "scheme_type"              : "structural"
+            "scheme_type"              : "adjoint_structural"
             },
         "response_function_settings" : {
                 "response_type"     : "adjoint_nodal_displacement",

@@ -19,7 +19,7 @@
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 //Utilities
-#include "custom_response_functions/custom_utilities/finite_differences_utilities.h" //M.Fusseder TODO: maybe remove this (used only for controlling results)
+#include "custom_response_functions/custom_utilities/finite_differences_utilities.h" //TODO: maybe remove this (used only for controlling results)
 
 #include "custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.h"
 
