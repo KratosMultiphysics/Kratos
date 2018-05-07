@@ -27,7 +27,7 @@ def NormInf3D(_X):
 # ------------------------------------------------------------------------------
 def DotProduct(_X,_Y):
     if len(_X) != len(_Y):
-        raise ValueError("\nDot product to be computed but _X and _Y do not have the same dimension!")
+        raise RuntimeError("Dot product to be computed but _X and _Y do not have the same dimension!")
     return sum([_X[i]*_Y[i] for i in range(len(_X))])
 
 # ==============================================================================
