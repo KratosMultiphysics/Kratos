@@ -850,8 +850,10 @@ namespace Kratos {
                 it->CalculateRightHandSide(rhs_cond, r_process_info);
                 DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
                 p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
-                array_1d<double, 3> Normal_to_Element;
-                p_wall->CalculateNormal(Normal_to_Element);
+                array_1d<double, 3> Normal_to_Element = ZeroVector(3);
+
+                if (geom.size()>2) p_wall->CalculateNormal(Normal_to_Element);
+
                 const unsigned int& dim = geom.WorkingSpaceDimension();
 
                 for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition
