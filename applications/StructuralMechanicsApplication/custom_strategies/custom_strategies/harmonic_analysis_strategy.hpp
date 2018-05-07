@@ -104,7 +104,6 @@ public:
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
 
         mInitializeWasPerformed = false;
-        mSolutionStepIsInitialized = false;
 
         mpForceVector = SparseSpaceType::CreateEmptyVectorPointer();
         mpModalMatrix = DenseSpaceType::CreateEmptyMatrixPointer();
@@ -487,58 +486,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    /// Initialization to be performed before every solve.
-    void InitializeSolutionStep() override
-    {
-        KRATOS_TRY
-
-        auto& r_model_part = BaseType::GetModelPart();
-        const auto rank = r_model_part.GetCommunicator().MyPID();
-
-        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
-            << "Entering InitializeSolutionStep" << std::endl;
-
-        if (mSolutionStepIsInitialized == false)
-        {
-            BuilderAndSolverPointerType& p_builder_and_solver = this->pGetBuilderAndSolver();
-            SchemePointerType& p_scheme = this->pGetScheme();
-            auto& r_force_vector = *mpForceVector;
-
-            // // initialize dummy vectors
-            auto pA = SparseSpaceType::CreateEmptyMatrixPointer();
-            auto pDx = SparseSpaceType::CreateEmptyVectorPointer();
-            auto& rA = *pA;
-            auto& rDx = *pDx;
-
-            SparseSpaceType::Resize(rA,SparseSpaceType::Size(r_force_vector),SparseSpaceType::Size(r_force_vector));
-            SparseSpaceType::SetToZero(rA);
-            SparseSpaceType::Resize(rDx,SparseSpaceType::Size(r_force_vector));
-            SparseSpaceType::Set(rDx,0.0);
-
-            // initial operations ... things that are constant over the solution step
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,r_force_vector);
-
-            // initial operations ... things that are constant over the solution step
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(),rA,rDx,r_force_vector);
-
-            mSolutionStepIsInitialized = true;
-        }
-
-        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
-            << "Exiting InitializeSolutionStep" << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
-     * @details A member variable should be used as a flag to make sure this function is called only once per step.
-     */
-    void FinalizeSolutionStep() override
-    {
-        mSolutionStepIsInitialized = false;
-    }
-
     /// Check whether initial input is valid.
     int Check() override
     {
@@ -624,8 +571,6 @@ private:
     BuilderAndSolverPointerType mpBuilderAndSolver;
 
     bool mInitializeWasPerformed;
-
-    bool mSolutionStepIsInitialized;
 
     SparseVectorPointerType mpForceVector;
 
