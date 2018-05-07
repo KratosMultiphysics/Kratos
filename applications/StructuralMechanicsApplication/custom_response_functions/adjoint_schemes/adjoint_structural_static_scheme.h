@@ -20,9 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/communicator.h"
 #include "includes/model_part.h"
-#include "includes/process_info.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
