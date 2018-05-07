@@ -32,10 +32,12 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        //TODO: flat map should disappear in the future!!
+        std::cout << "within CreateModelPart address of Model is " <<  &(*this) << std::endl;
+        
         auto search = mRootModelPartMap.find(ModelPartName);
         if( search == mRootModelPartMap.end())
         {
+            std::cout << ModelPartName << std::endl;
             mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(new ModelPart(ModelPartName));
             return *(mRootModelPartMap[ModelPartName].get());
         }
@@ -87,7 +89,7 @@ namespace Kratos
 //         //TODO: flat map should disappear in the future!!
 //         auto search = mflat_map.find(pModelPart->Name());
 //         if( search == mflat_map.end())
-//         {
+//         {ModelPartName
 //             mflat_map[pModelPart->Name()] = pModelPart;
 // 
 //             //walk the submodelparts
@@ -111,12 +113,17 @@ namespace Kratos
     ModelPart& Model::GetModelPart(const std::string& rFullModelPartName)
     {
         KRATOS_TRY
+        
+        std::cout << "within GetModelPart address of Model is " <<  &(*this) << std::endl;
 
         KRATOS_ERROR_IF( rFullModelPartName.empty() ) << "Attempting to find a "
             << "ModelPart with empty name (\"\")!" << std::endl;
             
         std::vector< std::string > subparts_list;
         GetSubPartsList(rFullModelPartName, subparts_list);
+        
+        KRATOS_WATCH(subparts_list.size())
+        KRATOS_WATCH(subparts_list[0])
         
         if(subparts_list.size() == 1) //it is a root model part
         {
@@ -135,7 +142,10 @@ namespace Kratos
                 }
                 
                 //if we are here we did not find it
-                KRATOS_ERROR << "model part with name " << subparts_list[0] << " is not found either as root or as submodelpart of any level" << std::endl;
+//                 KRATOS_ERROR << "model part with name " << subparts_list[0] << " is not found either as root or as submodelpart of any level" << std::endl;
+                KRATOS_ERROR << "The ModelPart named : \"" << subparts_list[0]
+                     << "\" was not found as root-ModelPart. The total input string was \""
+                     << rFullModelPartName << "\"" << std::endl;
             }
         }
         else //it is a submodelpart with the full name provided
@@ -147,6 +157,11 @@ namespace Kratos
                 ModelPart* p_model_part = (search->second).get();
                 for(unsigned int i=1; i<subparts_list.size(); ++i)
                 {
+                    KRATOS_ERROR_IF_NOT(p_model_part->HasSubModelPart(subparts_list[i]))
+                        << "The ModelPart named : \"" << subparts_list[i]
+                        << "\" was not found as SubModelPart of : \""
+                        << subparts_list[i-1] << "\". The total input string was \""
+                        << rFullModelPartName << "\"" << std::endl;
                     p_model_part = &p_model_part->GetSubModelPart(subparts_list[i]);
                 }
                 return *p_model_part;
