@@ -210,6 +210,18 @@ class MassResponseFunction(ResponseFunctionBase):
 
 # ==============================================================================
 class AdjointResponseFunction(ResponseFunctionBase):
+    """Linear static adjoint response function.
+    - runs the primal analysis (writes the primal results to an .h5 file)
+    - reads the primal results from the .h5 file into the adjoint model part
+    - uses primal results to calculate value
+    - uses primal results to calculate gradient by running the adjoint analysis
+
+    Attributes
+    ----------
+    primal_analysis : Primal analysis object of the response function
+    adjoint_analysis : Adjoint analysis object of the response function
+    response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
+    """
     def __init__(self, identifier, project_parameters, model_part = None):
         self.identifier = identifier
 
@@ -285,6 +297,21 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
 # ==============================================================================
 class AdjointStrainEnergyResponse(ResponseFunctionBase):
+    """Linear static adjoint response function.
+    - runs the primal analysis (writes the primal results to an .h5 file)
+    - reads the primal results from the .h5 file into the adjoint model part
+    - uses primal results to calculate value
+    - uses primal results to calculate gradient
+
+    Note: because of the special property of the adjoint strain energy response,
+    no adjoint solution is necessary. except from that it works the same as
+    'AdjointResponseFunction'.
+
+    Attributes
+    ----------
+    primal_analysis : Primal analysis object of the response function
+    response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
+    """
     def __init__(self, identifier, project_parameters, model_part = None):
         self.identifier = identifier
         self.response_function_utility = StructuralMechanicsApplication.AdjointStrainEnergyResponseFunction( model_part, project_parameters )
