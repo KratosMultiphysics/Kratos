@@ -45,10 +45,7 @@ namespace Kratos
             GeometryType::Pointer pGeom,
             PropertiesType::Pointer pProperties) const
     {
-        KRATOS_TRY
-        return Element::Pointer(
-                new CrBeamAdjointElement3D2N(NewId, pGeom, pProperties));
-        KRATOS_CATCH("")
+        return Kratos::make_shared<CrBeamAdjointElement3D2N>(NewId, pGeom, pProperties);
     }
 
     CrBeamAdjointElement3D2N::~CrBeamAdjointElement3D2N() {}

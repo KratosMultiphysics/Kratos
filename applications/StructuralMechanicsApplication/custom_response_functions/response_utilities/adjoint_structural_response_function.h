@@ -221,7 +221,7 @@ public:
         }
 
         // Set sensitivity variables to zero.
-        for (auto label : mNodalSensitivityVariables)
+        for (const auto& label : mNodalSensitivityVariables)
         {
             if (KratosComponents<Variable<double>>::Has(label) == true)
             {
@@ -253,9 +253,9 @@ public:
         }
 
         // Set sensitivity variables to zero.
-        for (auto label : mElementSensitivityVariables)
+        for (const auto& label : mElementSensitivityVariables)
         {
-            std::string output_variable_label = label + "_SENSITIVITY";
+            const std::string output_variable_label = label + "_SENSITIVITY";
             if (KratosComponents<Variable<double>>::Has(output_variable_label) == true)
             {
                 const Variable<double>& r_variable =
@@ -285,9 +285,9 @@ public:
         }
 
         // Set sensitivity variables to zero.
-        for (auto label : mConditionSensitivityVariables)
+        for (const auto& label : mConditionSensitivityVariables)
         {
-            std::string output_variable_label = label + "_SENSITIVITY";
+            const std::string output_variable_label = label + "_SENSITIVITY";
             if (KratosComponents<Variable<double>>::Has(output_variable_label) == true)
             {
                 const Variable<double>& r_variable =
@@ -454,10 +454,10 @@ public:
         }
 
         // Elemental sensitivity variables e.g. 2nd moment of inertia---------------------------------
-        for (auto label : mElementSensitivityVariables)
+        for (const auto& label : mElementSensitivityVariables)
         {
             //create label for output variable
-            std::string output_label = label + "_SENSITIVITY";
+            const std::string output_label = label + "_SENSITIVITY";
 
             if (KratosComponents<Variable<double>>::Has(label) == true)
             {
@@ -497,10 +497,10 @@ public:
                 KRATOS_ERROR << "Unsupported element variable: " << label << "." << std::endl;
         }
 
-        for (auto label : mConditionSensitivityVariables)
+        for (const auto& label : mConditionSensitivityVariables)
         {
             //create label for output variable
-            std::string output_label = label + "_SENSITIVITY";
+            const std::string output_label = label + "_SENSITIVITY";
 
             if (KratosComponents<Variable<double>>::Has(label) == true)
             {
