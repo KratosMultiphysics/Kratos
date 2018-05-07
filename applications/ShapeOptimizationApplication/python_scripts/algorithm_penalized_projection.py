@@ -120,8 +120,8 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
         gradientOfObjectiveFunction = self.Communicator.getStandardizedGradient( self.onlyObjectiveId )
         gradientOfConstraintFunction = self.Communicator.getStandardizedGradient( self.onlyConstraintId )
-        self.__storeGradientOnNodalVariable( gradientOfObjectiveFunction, OBJECTIVE_SENSITIVITY )
-        self.__storeGradientOnNodalVariable( gradientOfConstraintFunction, CONSTRAINT_SENSITIVITY )
+        self.__storeGradientOnNodalVariable( gradientOfObjectiveFunction, DF1DX )
+        self.__storeGradientOnNodalVariable( gradientOfConstraintFunction, DC1DX )
 
     # --------------------------------------------------------------------------
     def __storeGradientOnNodalVariable( self, gradient, variable_name ):
@@ -136,13 +136,13 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __projectSensitivitiesOnSurfaceNormals( self ):
         self.GeometryUtilities.ComputeUnitSurfaceNormals()
-        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
-        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( CONSTRAINT_SENSITIVITY )
+        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( DF1DX )
+        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( DC1DX )
 
     # --------------------------------------------------------------------------
     def __dampSensitivities( self ):
-        self.DampingUtilities.DampNodalVariable( OBJECTIVE_SENSITIVITY )
-        self.DampingUtilities.DampNodalVariable( CONSTRAINT_SENSITIVITY )
+        self.DampingUtilities.DampNodalVariable( DF1DX )
+        self.DampingUtilities.DampNodalVariable( DC1DX )
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate( self ):
@@ -158,8 +158,8 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace( self ):
-        self.Mapper.MapToDesignSpace( OBJECTIVE_SENSITIVITY, MAPPED_OBJECTIVE_SENSITIVITY )
-        self.Mapper.MapToDesignSpace( CONSTRAINT_SENSITIVITY, MAPPED_CONSTRAINT_SENSITIVITY )
+        self.Mapper.MapToDesignSpace( DF1DX, DF1DX_MAPPED )
+        self.Mapper.MapToDesignSpace( DC1DX, DC1DX_MAPPED )
 
     # --------------------------------------------------------------------------
     def __isConstraintActive( self, constraintValue ):

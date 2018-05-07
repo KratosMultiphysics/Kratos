@@ -116,7 +116,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
         gradientOfObjectiveFunction = self.Communicator.getStandardizedGradient ( self.onlyObjectiveId )
         for nodeId, tmp_gradient in gradientOfObjectiveFunction.items():
-            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,tmp_gradient)
+            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(DF1DX,0,tmp_gradient)
 
     # --------------------------------------------------------------------------
     def __RevertPossibleShapeModificationsDuringAnalysis( self ):
@@ -126,11 +126,11 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __projectSensitivitiesOnSurfaceNormals( self ):
         self.GeometryUtilities.ComputeUnitSurfaceNormals()
-        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
+        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( DF1DX )
 
     # --------------------------------------------------------------------------
     def __dampSensitivities( self ):
-        self.DampingUtilities.DampNodalVariable( OBJECTIVE_SENSITIVITY )
+        self.DampingUtilities.DampNodalVariable( DF1DX )
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate( self ):
@@ -141,7 +141,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace( self ):
-        self.Mapper.MapToDesignSpace( OBJECTIVE_SENSITIVITY, MAPPED_OBJECTIVE_SENSITIVITY )
+        self.Mapper.MapToDesignSpace( DF1DX, DF1DX_MAPPED )
 
     # --------------------------------------------------------------------------
     def __mapDesignUpdateToGeometrySpace( self ):

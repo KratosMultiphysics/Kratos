@@ -54,12 +54,22 @@ class VertexMorphingMethod:
         optimization_mdpa = self.model_part_controller.GetOptimizationModelPart()
         optimization_mdpa.AddNodalSolutionStepVariable(NORMAL)
         optimization_mdpa.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
-        optimization_mdpa.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
-        optimization_mdpa.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
-        optimization_mdpa.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
-        optimization_mdpa.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY)
-        optimization_mdpa.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
-        optimization_mdpa.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY)
+
+        number_of_objectives = self.optimization_settings["objectives"].size()
+        number_of_constraints = self.optimization_settings["constraints"].size()
+
+        for itr in range(1,number_of_objectives+1):
+            nodal_variable = KratosGlobals.GetVariable("DF"+str(itr)+"DX")
+            optimization_mdpa.AddNodalSolutionStepVariable(nodal_variable)
+            nodal_variable = KratosGlobals.GetVariable("DF"+str(itr)+"DX_MAPPED")
+            optimization_mdpa.AddNodalSolutionStepVariable(nodal_variable)
+
+        for itr in range(1,number_of_constraints+1):
+            nodal_variable = KratosGlobals.GetVariable("DC"+str(itr)+"DX")
+            optimization_mdpa.AddNodalSolutionStepVariable(nodal_variable)
+            nodal_variable = KratosGlobals.GetVariable("DC"+str(itr)+"DX_MAPPED")
+            optimization_mdpa.AddNodalSolutionStepVariable(nodal_variable)
+
         optimization_mdpa.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
         optimization_mdpa.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)
         optimization_mdpa.AddNodalSolutionStepVariable(SEARCH_DIRECTION)

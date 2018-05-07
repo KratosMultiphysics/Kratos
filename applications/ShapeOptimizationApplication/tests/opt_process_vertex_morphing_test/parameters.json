@@ -41,11 +41,7 @@
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
             "design_output_mode"      : "WriteDesignSurface",
-            "nodal_results"           : [ "OBJECTIVE_SENSITIVITY",
-                                          "MAPPED_OBJECTIVE_SENSITIVITY",
-                                          "CONTROL_POINT_UPDATE",
-                                          "CONTROL_POINT_CHANGE",
-                                          "SHAPE_UPDATE",
+            "nodal_results"           : [ "SHAPE_UPDATE",
                                           "SHAPE_CHANGE" ],
             "output_format" : {
                 "name"              : "gid",
