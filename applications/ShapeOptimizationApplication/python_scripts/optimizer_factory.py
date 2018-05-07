@@ -29,7 +29,7 @@ def CreateOptimizer(parameters, optimization_mdpa, external_analyzer=EmptyAnalyz
 
     model_part_controller = model_part_controller_factory.CreateController(optimization_settings, optimization_mdpa)
 
-    analyzer = analyzer_factory.CreateAnalyzer(parameters, model_part_controller, external_analyzer)
+    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
 
     communicator = communicator_factory.CreateCommunicator(optimization_settings)
 

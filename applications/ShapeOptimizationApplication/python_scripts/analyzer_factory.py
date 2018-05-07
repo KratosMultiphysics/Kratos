@@ -12,18 +12,18 @@
 from __future__ import print_function, absolute_import, division
 
 # ==============================================================================
-def CreateAnalyzer(project_parameters, model_part_controller, external_analyzer):
-    return Analyzer(project_parameters, model_part_controller, external_analyzer)
+def CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer):
+    return Analyzer(optimization_settings, model_part_controller, external_analyzer)
 
 # ==============================================================================
 class Analyzer:
     # --------------------------------------------------------------------------
-    def __init__(self, project_parameters, model_part_controller, external_analyzer):
+    def __init__(self, optimization_settings, model_part_controller, external_analyzer):
         self.external_analyzer = external_analyzer
 
-        if self.__IsInternalAnalyzerRequired(project_parameters["optimization_settings"]):
+        if self.__IsInternalAnalyzerRequired(optimization_settings):
             from analyzer_internal import KratosInternalAnalyzer
-            self.internal_analyzer = KratosInternalAnalyzer(project_parameters, model_part_controller.GetOptimizationModelPart())
+            self.internal_analyzer = KratosInternalAnalyzer(optimization_settings, model_part_controller.GetOptimizationModelPart())
         else:
             from analyzer_empty import EmptyAnalyzer
             self.internal_analyzer = EmptyAnalyzer()
