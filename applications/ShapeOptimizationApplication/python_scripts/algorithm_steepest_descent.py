@@ -21,20 +21,31 @@ from algorithm_base import OptimizationAlgorithm
 import mapper_factory
 import data_logger_factory
 from custom_timer import Timer
+from custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
 # ==============================================================================
 class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self, OptimizationSettings, Analyzer, Communicator, ModelPartController):
-        self.OptimizationSettings = OptimizationSettings
+        default_algorithm_settings = Parameters("""
+        {
+            "name"               : "steepest_descent",
+            "max_iterations"     : 100,
+            "relative_tolerance" : 1e-3,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : true,
+                "step_size"                  : 1.0
+            }
+        }""")
+        self.algorithm_settings =  OptimizationSettings["optimization_algorithm"]
+        self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
+
         self.Analyzer = Analyzer
         self.Communicator = Communicator
         self.ModelPartController = ModelPartController
 
-        self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
-        self.projectionOnNormalsIsSpecified = OptimizationSettings["optimization_algorithm"]["project_gradients_on_surface_normals"].GetBool()
-        self.onlyObjectiveId = OptimizationSettings["objectives"][0]["identifier"].GetString()
-        self.dampingIsSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
+        self.objectives, self.equality_constraints, self.inequality_constraints = Communicator.GetInfoAboutResponses()
 
         self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
         self.DesignSurface = ModelPartController.GetDesignSurface()
@@ -44,12 +55,26 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
         self.GeometryUtilities = GeometryUtilities(self.DesignSurface)
         self.OptimizationUtilities = OptimizationUtilities(self.DesignSurface, OptimizationSettings)
-        if self.dampingIsSpecified:
+
+        self.isDampingSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
+        if self.isDampingSpecified:
             damping_regions = self.ModelPartController.GetDampingRegions()
-            self.DampingUtilities = DampingUtilities(self.DesignSurface, damping_regions, self.OptimizationSettings)
+            self.DampingUtilities = DampingUtilities(self.DesignSurface, damping_regions, OptimizationSettings)
+
+    # --------------------------------------------------------------------------
+    def CheckApplicability(self):
+        if len(self.objectives) > 1:
+            raise RuntimeError("Steepest descent algorithm only supports one objective function!")
+        if len(self.equality_constraints)+len(self.inequality_constraints) > 0:
+            raise RuntimeError("Steepest descent algorithm does not allow for any constraints!")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
+        self.only_obj = self.objectives[0]
+
+        self.maxIterations = self.algorithm_settings["max_iterations"].GetInt() + 1
+        self.relativeTolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
+
         self.ModelPartController.InitializeMeshController()
         self.Mapper.InitializeMapping()
         self.Analyzer.InitializeBeforeOptimizationLoop()
@@ -71,15 +96,12 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             self.__analyzeShape()
 
-            if self.projectionOnNormalsIsSpecified:
-                self.__projectSensitivitiesOnSurfaceNormals()
-
-            if self.dampingIsSpecified:
+            if self.isDampingSpecified:
                 self.__dampSensitivities()
 
             self.__computeShapeUpdate()
 
-            if self.dampingIsSpecified:
+            if self.isDampingSpecified:
                 self.__dampShapeUpdate()
 
             self.__logCurrentOptimizationStep()
@@ -105,29 +127,24 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __analyzeShape(self):
         self.Communicator.initializeCommunication()
-        self.Communicator.requestValueOf(self.onlyObjectiveId)
-        self.Communicator.requestGradientOf(self.onlyObjectiveId)
+        self.Communicator.requestValueOf(self.only_obj["identifier"].GetString())
+        self.Communicator.requestGradientOf(self.only_obj["identifier"].GetString())
 
         self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimizationIteration, self.Communicator)
 
-        self.__storeResultOfSensitivityAnalysisOnNodes()
-        self.__RevertPossibleShapeModificationsDuringAnalysis()
+        objGradientDict = self.Communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
+        WriteDictionaryDataOnNodalVariable(objGradientDict, self.OptimizationModelPart, DF1DX)
+
+        if self.only_obj["project_gradient_on_surface_normals"].GetBool():
+            self.GeometryUtilities.ComputeUnitSurfaceNormals()
+            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+
+        self.__ResetPossibleShapeModificationsDuringAnalysis()
 
     # --------------------------------------------------------------------------
-    def __storeResultOfSensitivityAnalysisOnNodes(self):
-        gradientOfObjectiveFunction = self.Communicator.getStandardizedGradient (self.onlyObjectiveId)
-        for nodeId, tmp_gradient in gradientOfObjectiveFunction.items():
-            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(DF1DX,0,tmp_gradient)
-
-    # --------------------------------------------------------------------------
-    def __RevertPossibleShapeModificationsDuringAnalysis(self):
+    def __ResetPossibleShapeModificationsDuringAnalysis(self):
         self.ModelPartController.SetMeshToReferenceMesh()
         self.ModelPartController.SetDeformationVariablesToZero()
-
-    # --------------------------------------------------------------------------
-    def __projectSensitivitiesOnSurfaceNormals(self):
-        self.GeometryUtilities.ComputeUnitSurfaceNormals()
-        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 
     # --------------------------------------------------------------------------
     def __dampSensitivities(self):
@@ -169,9 +186,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             relativeChangeOfObjectiveValue = self.DataLogger.GetValue("RELATIVE_CHANGE_OF_OBJECTIVE_VALUE")
 
             # Check for relative tolerance
-            relativeTolerance = self.OptimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
-            if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
-                print("\n> Optimization problem converged within a relative objective tolerance of ",relativeTolerance,"%.")
+            if abs(relativeChangeOfObjectiveValue) < self.relativeTolerance:
+                print("\n> Optimization problem converged within a relative objective tolerance of ",self.relativeTolerance,"%.")
                 return True
 
     # --------------------------------------------------------------------------

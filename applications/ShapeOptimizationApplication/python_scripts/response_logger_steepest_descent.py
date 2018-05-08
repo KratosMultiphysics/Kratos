@@ -31,7 +31,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
 
-        self.onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()
+        self.objectives, self.equality_constraints, self.inequality_constraints = communicator.GetInfoAboutResponses()
 
         self.completeResponseLogFileName = self.__CreateCompleteResponseLogFilename( optimizationSettings )
 
@@ -52,6 +52,8 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
+        self.only_obj = self.objectives[0]
+
         with open(self.completeResponseLogFileName, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
@@ -101,7 +103,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def __AddObjectiveValueToHistory( self ):
-        objectiveValue = self.communicator.getValue ( self.onlyObjective )
+        objectiveValue = self.communicator.getValue ( self.only_obj["identifier"].GetString() )
         self.objectiveHistory[self.currentIteration] = objectiveValue
 
     # --------------------------------------------------------------------------
@@ -150,7 +152,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
             row.append(str("{:>20f}".format(objectiveValue)))
             row.append(str("{:>12f}".format(absoluteChangeOfObjectiveValue)))
             row.append(str("{:>12f}".format(relativeChangeOfObjectiveValue)))
-            row.append(str("{:>13f}".format(self.optimizationSettings["line_search"]["step_size"].GetDouble())))
+            row.append(str("{:>13f}".format(self.optimizationSettings["optimization_algorithm"]["line_search"]["step_size"].GetDouble())))
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)
 

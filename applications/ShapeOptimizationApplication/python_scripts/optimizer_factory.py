@@ -87,6 +87,7 @@ class VertexMorphingMethod:
                                                                   self.communicator,
                                                                   self.model_part_controller)
 
+        algorithm.CheckApplicability()
         algorithm.InitializeOptimizationLoop()
         algorithm.RunOptimizationLoop()
         algorithm.FinalizeOptimizationLoop()

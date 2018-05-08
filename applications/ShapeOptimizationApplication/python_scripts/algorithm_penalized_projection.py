@@ -21,22 +21,33 @@ from algorithm_base import OptimizationAlgorithm
 import mapper_factory
 import data_logger_factory
 from custom_timer import Timer
+from custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
 # ==============================================================================
 class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
     # --------------------------------------------------------------------------
     def __init__(self, OptimizationSettings, Analyzer, Communicator, ModelPartController):
-        self.OptimizationSettings = OptimizationSettings
+        default_algorithm_settings = Parameters("""
+        {
+            "name"                    : "penalized_projection",
+            "correction_scaling"      : 1.0,
+            "use_adaptive_correction" : true,
+            "max_iterations"          : 100,
+            "relative_tolerance"      : 1e-3,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : true,
+                "step_size"                  : 1.0
+            }
+        }""")
+        self.algorithm_settings =  OptimizationSettings["optimization_algorithm"]
+        self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
+
         self.Analyzer = Analyzer
         self.Communicator = Communicator
         self.ModelPartController = ModelPartController
 
-        self.onlyObjectiveId = OptimizationSettings["objectives"][0]["identifier"].GetString()
-        self.onlyConstraintId = OptimizationSettings["constraints"][0]["identifier"].GetString()
-        self.typeOfOnlyConstraint = OptimizationSettings["constraints"][0]["type"].GetString()
-        self.projectionOnNormalsIsSpecified = OptimizationSettings["optimization_algorithm"]["project_gradients_on_surface_normals"].GetBool()
-        self.dampingIsSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
-        self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
+        self.objectives, self.equality_constraints, self.inequality_constraints = Communicator.GetInfoAboutResponses()
 
         self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
         self.DesignSurface = ModelPartController.GetDesignSurface()
@@ -46,12 +57,28 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
 
         self.GeometryUtilities = GeometryUtilities(self.DesignSurface)
         self.OptimizationUtilities = OptimizationUtilities(self.DesignSurface, OptimizationSettings)
-        if self.dampingIsSpecified:
+
+        self.isDampingSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
+        if self.isDampingSpecified:
             damping_regions = self.ModelPartController.GetDampingRegions()
-            self.DampingUtilities = DampingUtilities(self.DesignSurface, damping_regions, self.OptimizationSettings)
+            self.DampingUtilities = DampingUtilities(self.DesignSurface, damping_regions, OptimizationSettings)
 
     # --------------------------------------------------------------------------
+    def CheckApplicability(self):
+        if len(self.objectives) > 1:
+            raise RuntimeError("Penalized projection algorithm only supports one objective function!")
+        if len(self.equality_constraints)+len(self.inequality_constraints) == 0:
+            raise RuntimeError("Penalized projection algorithm requires definition of a constraint!")
+        if len(self.equality_constraints)+len(self.inequality_constraints) > 1:
+            raise RuntimeError("Penalized projection algorithm only supports one constraint!")
+    # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
+        self.only_obj = self.objectives[0]
+        self.only_con = self.equality_constraints[0] if len(self.equality_constraints)>0 else self.inequality_constraints[0]
+
+        self.maxIterations = self.algorithm_settings["max_iterations"].GetInt() + 1
+        self.relativeTolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
+
         self.ModelPartController.InitializeMeshController()
         self.Mapper.InitializeMapping()
         self.Analyzer.InitializeBeforeOptimizationLoop()
@@ -73,16 +100,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
 
             self.__analyzeShape()
 
-            if self.projectionOnNormalsIsSpecified:
-                self.__projectSensitivitiesOnSurfaceNormals()
-
-            if self.dampingIsSpecified:
-                self.__dampSensitivities()
-
             self.__computeShapeUpdate()
-
-            if self.dampingIsSpecified:
-                self.__dampShapeUpdate()
 
             self.__logCurrentOptimizationStep()
 
@@ -107,48 +125,42 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
     # --------------------------------------------------------------------------
     def __analyzeShape(self):
         self.Communicator.initializeCommunication()
-        self.Communicator.requestValueOf(self.onlyObjectiveId)
-        self.Communicator.requestValueOf(self.onlyConstraintId)
-        self.Communicator.requestGradientOf(self.onlyObjectiveId)
-        self.Communicator.requestGradientOf(self.onlyConstraintId)
+        self.Communicator.requestValueOf(self.only_obj["identifier"].GetString())
+        self.Communicator.requestGradientOf(self.only_obj["identifier"].GetString())
+        self.Communicator.requestValueOf(self.only_con["identifier"].GetString())
+        self.Communicator.requestGradientOf(self.only_con["identifier"].GetString())
 
         self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimizationIteration, self.Communicator)
 
-        self.__storeResultOfSensitivityAnalysisOnNodes()
-        self.__RevertPossibleShapeModificationsDuringAnalysis()
+        objGradientDict = self.Communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
+        conGradientDict = self.Communicator.getStandardizedGradient(self.only_con["identifier"].GetString())
+
+        WriteDictionaryDataOnNodalVariable(objGradientDict, self.OptimizationModelPart, DF1DX)
+        WriteDictionaryDataOnNodalVariable(conGradientDict, self.OptimizationModelPart, DC1DX)
+
+        if self.only_obj["project_gradient_on_surface_normals"].GetBool():
+            self.GeometryUtilities.ComputeUnitSurfaceNormals()
+            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+
+        if self.only_con["project_gradient_on_surface_normals"].GetBool():
+            self.GeometryUtilities.ComputeUnitSurfaceNormals()
+            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
+
+        if self.isDampingSpecified:
+            self.DampingUtilities.DampNodalVariable(DF1DX)
+            self.DampingUtilities.DampNodalVariable(DC1DX)
+
+        self.__ResetPossibleShapeModificationsDuringAnalysis()
 
     # --------------------------------------------------------------------------
-    def __storeResultOfSensitivityAnalysisOnNodes(self):
-        gradientOfObjectiveFunction = self.Communicator.getStandardizedGradient(self.onlyObjectiveId)
-        gradientOfConstraintFunction = self.Communicator.getStandardizedGradient(self.onlyConstraintId)
-        self.__storeGradientOnNodalVariable(gradientOfObjectiveFunction, DF1DX)
-        self.__storeGradientOnNodalVariable(gradientOfConstraintFunction, DC1DX)
-
-    # --------------------------------------------------------------------------
-    def __storeGradientOnNodalVariable(self, gradient, variable_name):
-        for nodeId, tmp_gradient in gradient.items():
-            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(variable_name,0,tmp_gradient)
-
-    # --------------------------------------------------------------------------
-    def __RevertPossibleShapeModificationsDuringAnalysis(self):
+    def __ResetPossibleShapeModificationsDuringAnalysis(self):
         self.ModelPartController.SetMeshToReferenceMesh()
         self.ModelPartController.SetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
-    def __projectSensitivitiesOnSurfaceNormals(self):
-        self.GeometryUtilities.ComputeUnitSurfaceNormals()
-        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
-        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
-
-    # --------------------------------------------------------------------------
-    def __dampSensitivities(self):
-        self.DampingUtilities.DampNodalVariable(DF1DX)
-        self.DampingUtilities.DampNodalVariable(DC1DX)
-
-    # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.__mapSensitivitiesToDesignSpace()
-        constraint_value = self.Communicator.getStandardizedValue(self.onlyConstraintId)
+        constraint_value = self.Communicator.getStandardizedValue(self.only_con["identifier"].GetString())
         if self.__isConstraintActive(constraint_value):
             self.OptimizationUtilities.ComputeProjectedSearchDirection()
             self.OptimizationUtilities.CorrectProjectedSearchDirection(constraint_value)
@@ -157,6 +169,9 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
         self.OptimizationUtilities.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
 
+        if self.isDampingSpecified:
+            self.DampingUtilities.DampNodalVariable(SHAPE_UPDATE)
+
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):
         self.Mapper.MapToDesignSpace(DF1DX, DF1DX_MAPPED)
@@ -164,7 +179,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
 
     # --------------------------------------------------------------------------
     def __isConstraintActive(self, constraintValue):
-        if self.typeOfOnlyConstraint == "=":
+        if self.only_con["type"].GetString() == "=":
             return True
         elif constraintValue > 0:
             return True
@@ -174,10 +189,6 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
     # --------------------------------------------------------------------------
     def __mapDesignUpdateToGeometrySpace(self):
         self.Mapper.MapToGeometrySpace(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
-
-    # --------------------------------------------------------------------------
-    def __dampShapeUpdate(self):
-        self.DampingUtilities.DampNodalVariable(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
@@ -196,9 +207,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
             relativeChangeOfObjectiveValue = self.DataLogger.GetValue("RELATIVE_CHANGE_OF_OBJECTIVE_VALUE")
 
             # Check for relative tolerance
-            relativeTolerance = self.OptimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
-            if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
-                print("\n> Optimization problem converged within a relative objective tolerance of ",relativeTolerance,"%.")
+            if abs(relativeChangeOfObjectiveValue) < self.relativeTolerance:
+                print("\n> Optimization problem converged within a relative objective tolerance of ",self.relativeTolerance,"%.")
                 return True
 
     # --------------------------------------------------------------------------
