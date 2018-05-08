@@ -85,7 +85,7 @@ set_target_properties(KratosSwimmingDEMCore PROPERTIES COMPILE_DEFINITIONS "SWIM
 
 ## python module
 pybind11_add_module(KratosSwimmingDEMApplication MODULE ${KRATOS_SWIMMING_DEM_APPLICATION_PYTHON_INTERFACE_SOURCES})
-target_link_libraries(KratosSwimmingDEMApplication PRIVATE KratosSwimmingDEMCore)
+target_link_libraries(KratosSwimmingDEMApplication PUBLIC KratosSwimmingDEMCore)
 set_target_properties(KratosSwimmingDEMApplication PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)
@@ -100,7 +100,6 @@ install(TARGETS KratosSwimmingDEMApplication DESTINATION libs )
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosSwimmingDEMApplication PROPERTIES SUFFIX .pyd)
-    set_target_properties(KratosSwimmingDEMApplication PROPERTIES COMPILE_DEFINITIONS "SWIMMING_DEM_APPLICATION=EXPORT,API")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so
