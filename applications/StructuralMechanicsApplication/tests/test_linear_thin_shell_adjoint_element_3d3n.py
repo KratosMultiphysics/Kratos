@@ -4,6 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import random
+import math
 
 class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
     def setUp(self):
@@ -13,8 +14,8 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim) 
         self._add_variables(self.model_part)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
-        self.model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
+        self.model_part.CreateNewNode(2, 3.0, 0.0, 0.0)
+        self.model_part.CreateNewNode(3, 0.0, 4.0, 0.0)
         self._apply_material_properties(self.model_part,dim)
         prop = self.model_part.GetProperties()[0]
         self.model_part.CreateNewElement("ShellThinElement3D3N", 1, [1, 2, 3], prop)
@@ -157,6 +158,22 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
             v[i] = 0.0
         return v
 
+    def _shape_disturbance_correction_factor(self):
+        dx = self.model_part.Nodes[1].X - self.model_part.Nodes[2].X
+        dy = self.model_part.Nodes[1].Y - self.model_part.Nodes[2].Y
+        dz = self.model_part.Nodes[1].Z - self.model_part.Nodes[2].Z
+        l = math.sqrt(dx*dx + dy*dy + dz*dz)
+        dx = self.model_part.Nodes[1].X - self.model_part.Nodes[3].X
+        dy = self.model_part.Nodes[1].Y - self.model_part.Nodes[3].Y
+        dz = self.model_part.Nodes[1].Z - self.model_part.Nodes[3].Z
+        l += math.sqrt(dx*dx + dy*dy + dz*dz)
+        dx = self.model_part.Nodes[2].X - self.model_part.Nodes[3].X
+        dy = self.model_part.Nodes[2].Y - self.model_part.Nodes[3].Y
+        dz = self.model_part.Nodes[2].Z - self.model_part.Nodes[3].Z
+        l += math.sqrt(dx*dx + dy*dy + dz*dz)
+        l = l/3
+        return l    
+
     def _assert_matrix_almost_equal(self, matrix1, matrix2, prec=4):
         self.assertEqual(matrix1.Size1(), matrix2.Size1())
         self.assertEqual(matrix1.Size2(), matrix2.Size2())
@@ -164,7 +181,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
             for j in range(matrix1.Size2()):
                 self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
 
-    def CalculateSensitivityMatrix_Shape(self):
+    def test_CalculateSensitivityMatrix_Shape(self):
         # unperturbed residual
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
         RHSUndisturbed = self._zero_vector(18)
@@ -173,25 +190,28 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
 
         # pseudo-load by finite difference approximation
         h = 0.000001
+        corr_factor = self._shape_disturbance_correction_factor()
+        alpha = corr_factor * h
+    
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(9,18)
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
         RHSDisturbed = self._zero_vector(18)
 
-        self._create_shape_disturbed_elements(self.model_part,h)
+        self._create_shape_disturbed_elements(self.model_part,alpha)
         row_index = 0
         for element in self.model_part_1.Elements:
             element.CalculateLocalSystem(dummy_LHS, RHSDisturbed, self.model_part_1.ProcessInfo)
             for j in range(18):
-                FDPseudoLoadMatrix[row_index,j] = (RHSDisturbed[j] - RHSUndisturbed[j]) / h
+                FDPseudoLoadMatrix[row_index,j] = (RHSDisturbed[j] - RHSUndisturbed[j]) / alpha
             row_index = row_index + 1
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(9,18)
         self.adjoint_shell_element.SetValue(StructuralMechanicsApplication.DISTURBANCE_MEASURE, h)
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY,PseudoLoadMatrix,self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 7)
+        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
-    def test_CalculateSensitivityMatrix_Property(self):
+    def CalculateSensitivityMatrix_Property(self):
         # unperturbed residual
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
         RHSUndisturbed = self._zero_vector(18)

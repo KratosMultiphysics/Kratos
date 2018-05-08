@@ -4,6 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import random
+import math
 
 class TestCrBeamAdjointElement(KratosUnittest.TestCase):
 
@@ -14,7 +15,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim) 
         self._add_variables(self.model_part)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        self.model_part.CreateNewNode(2, 1.0, 0.1, 0.3)
         self._apply_material_properties(self.model_part,dim)
         prop = self.model_part.GetProperties()[0]
         self.model_part.CreateNewElement("CrLinearBeamElement3D2N", 1, [1, 2], prop)
@@ -130,13 +131,20 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
             v[i] = 0.0
         return v
 
+    def _shape_disturbance_correction_factor(self):
+        dx = self.model_part.Nodes[1].X - self.model_part.Nodes[2].X
+        dy = self.model_part.Nodes[1].Y - self.model_part.Nodes[2].Y
+        dz = self.model_part.Nodes[1].Z - self.model_part.Nodes[2].Z
+        l = math.sqrt(dx*dx + dy*dy + dz*dz)
+        return l
+
     def _assert_matrix_almost_equal(self, matrix1, matrix2, prec=7):
         self.assertEqual(matrix1.Size1(), matrix2.Size1())
         self.assertEqual(matrix1.Size2(), matrix2.Size2())
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
                 self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
-
+         
     def test_CalculateSensitivityMatrix_Shape(self):
         # unperturbed residual
         LHSUndisturbed = KratosMultiphysics.Matrix(12,12)
@@ -150,25 +158,28 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
 
         # pseudo-load by finite difference approximation
         h = 0.00001
+        corr_factor = self._shape_disturbance_correction_factor()
+        alpha = corr_factor * h
+
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(6,12)
         LHSDisturbed = KratosMultiphysics.Matrix(12,12)
         RHSDisturbed = KratosMultiphysics.Matrix(12,12)
 
-        self._create_shape_disturbed_elements(self.model_part,h)
+        self._create_shape_disturbed_elements(self.model_part,alpha)
 
         row_index = 0
         for element in self.model_part_1.Elements:
             element.CalculateLocalSystem(LHSDisturbed,dummy_RHS,self.model_part_1.ProcessInfo)
             RHSDisturbed = LHSDisturbed * PrimalDisplacement
             for j in range(12):
-                FDPseudoLoadMatrix[row_index,j] = -(RHSDisturbed[j] - RHSUndisturbed[j]) / h
+                FDPseudoLoadMatrix[row_index,j] = -(RHSDisturbed[j] - RHSUndisturbed[j]) / alpha
             row_index = row_index + 1
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(6,12)
         self.adjoint_beam_element.SetValue(StructuralMechanicsApplication.DISTURBANCE_MEASURE, h)
         self.adjoint_beam_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY,PseudoLoadMatrix,self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix)
+        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 7)
 
     def test_CalculateSensitivityMatrix_Property(self):
         # unperturbed residual
@@ -202,7 +213,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         PseudoLoadMatrix = KratosMultiphysics.Matrix(1,12)
         self.adjoint_beam_element.SetValue(StructuralMechanicsApplication.DISTURBANCE_MEASURE, h)
         self.adjoint_beam_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.I22, PseudoLoadMatrix, self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix)
+        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 7)
 
 if __name__ == '__main__':
     KratosUnittest.main()
