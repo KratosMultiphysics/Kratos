@@ -627,7 +627,7 @@ protected:
 		rT1(0) = 1.0;
 		rT1(1) = 0.0;
 		rT1(2) = 0.0;
-		double dot = rRot(0,0);//this->Dot(rN,rT1);
+		double dot = rRot(TSkip,TSkip);//this->Dot(rN,rT1);
 
 		// It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
 		// If this is the case, repeat the procedure using (0,1,0)
@@ -637,13 +637,13 @@ protected:
 			rT1(1) = 1.0;
 			rT1(2) = 0.0;
 
-			dot = rRot(0,1); //this->Dot(rN,rT1);
+			dot = rRot(TSkip,TSkip+1); //this->Dot(rN,rT1);
 		}
 
 		// calculate projection and normalize
-		rT1[0] -= dot*rRot(0,0);
-		rT1[1] -= dot*rRot(0,1);
-		rT1[2] -= dot*rRot(0,2);
+		rT1[0] -= dot*rRot(TSkip,TSkip);
+		rT1[1] -= dot*rRot(TSkip,TSkip+1);
+		rT1[2] -= dot*rRot(TSkip,TSkip+2);
 		this->Normalize(rT1);
 		rRot(TSkip+1,TSkip  ) = rT1[0];
 		rRot(TSkip+1,TSkip+1) = rT1[1];
