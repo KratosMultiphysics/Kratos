@@ -192,7 +192,7 @@ template<unsigned int TDim>
 void MmgProcess<TDim>::InitializeMeshData()
 {                
     // First we compute the colors
-    std::unordered_map<int,int> nodes_colors, cond_colors, elem_colors;
+    std::unordered_map<IndexType,int> nodes_colors, cond_colors, elem_colors;
     SubModelPartsListUtility sub_model_parts_list(mrThisModelPart);
     sub_model_parts_list.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, mColors);
     
