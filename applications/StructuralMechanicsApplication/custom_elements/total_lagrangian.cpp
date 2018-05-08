@@ -32,19 +32,25 @@ class LargeDisplacementKinematics
     public:
     explicit LargeDisplacementKinematics(Element::GeometryType const& rGeom) : mrGeom(rGeom) {}
 
-    void DeformationGradient(std::size_t IntegrationPoint, Matrix& rF)
+    const Matrix& DeformationGradient(std::size_t IntegrationPoint)
     {
+        KRATOS_TRY;
         if (IntegrationPoint != mCurrentIntegrationPoint)
             Recalculate(IntegrationPoint);
-        GeometryUtils::DeformationGradient(mJ, mInvJ0, rF);
+        GeometryUtils::DeformationGradient(mJ, mInvJ0, mF);
+        return mF;
+        KRATOS_CATCH("");
     }
 
-    void ShapeFunctionsGradients(std::size_t IntegrationPoint, Matrix& rDN_DX0)
+    const Matrix& ShapeFunctionsGradients(std::size_t IntegrationPoint)
     {
+        KRATOS_TRY;
         if (IntegrationPoint != mCurrentIntegrationPoint)
             Recalculate(IntegrationPoint);
         Matrix const& rDN_De = mrGeom.ShapeFunctionsLocalGradients()[IntegrationPoint];
-        GeometryUtils::ShapeFunctionsGradients(rDN_De, mInvJ0, rDN_DX0);
+        GeometryUtils::ShapeFunctionsGradients(rDN_De, mInvJ0, mDN_DX0);
+        return mDN_DX0;
+        KRATOS_CATCH("");
     }
 
     double DetJ0(std::size_t IntegrationPoint)
@@ -71,6 +77,8 @@ private:
     Matrix mJ;
     Matrix mInvJ0;
     double mDetJ0;
+    Matrix mF;
+    Matrix mDN_DX0;
     std::size_t mCurrentIntegrationPoint = -1;
 };
 
@@ -543,7 +551,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
         const std::size_t mat_dim = nnodes * ws_dim;
         rOutput.resize(mat_dim, mat_dim);
         rOutput.clear();
-        Matrix F, strain_tensor_deriv, DN_DX0, B, B_deriv;
+        Matrix strain_tensor_deriv, B, B_deriv;
         const auto strain_size = GetStrainSize();
         B.resize(strain_size, ws_dim * nnodes);
         Vector strain_vector_deriv(strain_size);
@@ -555,10 +563,10 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
         KinematicShapeDerivatives kinematic_derivatives(r_geom);
         for (std::size_t g = 0; g < r_geom.IntegrationPointsNumber(); ++g)
         {
-            large_disp_kinematics.DeformationGradient(g, F);
-            large_disp_kinematics.ShapeFunctionsGradients(g, DN_DX0);
-            CalculateB(B, F, DN_DX0);
-            CalculateStress(F, g, stress_vector, rCurrentProcessInfo);
+            const Matrix& rF = large_disp_kinematics.DeformationGradient(g);
+            const Matrix& rDN_DX0 = large_disp_kinematics.ShapeFunctionsGradients(g);
+            CalculateB(B, rF, rDN_DX0);
+            CalculateStress(rF, g, stress_vector, rCurrentProcessInfo);
             double weight = GetIntegrationWeight(
                 r_geom.IntegrationPoints(), g, large_disp_kinematics.DetJ0(g));
             noalias(N) = row(GetGeometry().ShapeFunctionsValues(), g);
@@ -569,13 +577,13 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
                 const auto& deriv = s.CurrentValue();
                 const Matrix& rF_deriv =
                     kinematic_derivatives.GetDeformationGradientDerivative(g, deriv);
-                CalculateGreenLagrangeStrainSensitivity(F, rF_deriv, strain_tensor_deriv);
+                CalculateGreenLagrangeStrainSensitivity(rF, rF_deriv, strain_tensor_deriv);
                 noalias(strain_vector_deriv) =
                     MathUtils<double>::StrainTensorToVector(strain_tensor_deriv);
                 CalculateStress(strain_vector_deriv, g, stress_vector_deriv, rCurrentProcessInfo);
                 const Matrix& rDN_DX0_deriv =
                     kinematic_derivatives.GetShapeFunctionsGradientsDerivative(g, deriv);
-                CalculateBSensitivity(DN_DX0, F, rDN_DX0_deriv, rF_deriv, B_deriv);
+                CalculateBSensitivity(rDN_DX0, rF, rDN_DX0_deriv, rF_deriv, B_deriv);
                 const double weight_deriv = GetIntegrationWeight(
                     r_geom.IntegrationPoints(), g,
                     kinematic_derivatives.GetDetJ0Derivative(g, deriv));
