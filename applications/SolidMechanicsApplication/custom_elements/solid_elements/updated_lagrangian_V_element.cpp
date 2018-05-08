@@ -484,7 +484,6 @@ void UpdatedLagrangianVElement::CalculateDeformationMatrix(Matrix& rB,
 }
 
 
-
 //************************************************************************************
 //************************************************************************************
 
@@ -523,6 +522,22 @@ int UpdatedLagrangianVElement::Check( const ProcessInfo& rCurrentProcessInfo )
     int ErrorCode = 0;
     ErrorCode = LargeDisplacementVElement::Check(rCurrentProcessInfo);
 
+    // Check compatibility with the constitutive law
+    ConstitutiveLaw::Features LawFeatures;
+    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
+
+    bool correct_strain_measure = false;
+    for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
+    {
+      if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient
+         || LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Velocity_Gradient)
+	correct_strain_measure = true;
+    }
+
+    if( correct_strain_measure == false )
+      KRATOS_ERROR <<  "Large Displacement element with no Deformation Gradient/Velocity Gradient strain measure" << std::endl;
+
+    
     return ErrorCode;
 
     KRATOS_CATCH( "" );

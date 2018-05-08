@@ -412,6 +412,18 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
     
+    void PredictFromFirstDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+
+      this->PredictVariable(rNode);
+      this->PredictFirstDerivative(rNode);
+      this->PredictSecondDerivative(rNode);
+
+      KRATOS_CATCH( "" )
+    }
+
+
     void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY

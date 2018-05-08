@@ -174,7 +174,7 @@ void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocal
 
     // operation performed: add Km to the rLefsHandSideMatrix
     this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+   
     // operation performed: add Kg to the rLefsHandSideMatrix
     this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
@@ -296,14 +296,14 @@ void LargeDisplacementVElement::CalculateVelocityGradient(Matrix& rH,
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    rH = identity_matrix<double> ( dimension );
+    rH = zero_matrix<double> ( dimension );
 
     if( dimension == 2 )
     {
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-          array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+            array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
           
             rH ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
             rH ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
@@ -335,7 +335,7 @@ void LargeDisplacementVElement::CalculateVelocityGradient(Matrix& rH,
     {
       KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
     }
-
+    
     KRATOS_CATCH( "" )
 }
 
