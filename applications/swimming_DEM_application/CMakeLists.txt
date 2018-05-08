@@ -81,6 +81,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_PYTHON_INTERFACE_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosSwimmingDEMCore SHARED ${KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES})
 target_link_libraries(KratosSwimmingDEMCore KratosDEMCore KratosFluidDynamicsCore KratosCore)
+set_target_properties(KratosSwimmingDEMCore PROPERTIES COMPILE_DEFINITIONS "SWIMMING_DEM_APPLICATION=EXPORT,API")
 
 ## python module
 pybind11_add_module(KratosSwimmingDEMApplication MODULE ${KRATOS_SWIMMING_DEM_APPLICATION_PYTHON_INTERFACE_SOURCES})
