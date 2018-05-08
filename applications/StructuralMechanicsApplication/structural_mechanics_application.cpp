@@ -172,9 +172,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
 
       // Adding adjoint conditions
       mPointLoadAdjointCondition2D1N(  0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
-      mPointLoadAdjointCondition3D1N(  0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
-      mSurfaceLoadAdjointCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-      mSurfaceLoadAdjointCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ) {}
+      mPointLoadAdjointCondition3D1N(  0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ) {}
 
 void KratosStructuralMechanicsApplication::Register() {
     // calling base class register to register Kratos components
@@ -490,9 +488,6 @@ void KratosStructuralMechanicsApplication::Register() {
     // Adjoint conditions
     KRATOS_REGISTER_CONDITION( "PointLoadAdjointCondition2D1N", mPointLoadAdjointCondition2D1N )
     KRATOS_REGISTER_CONDITION( "PointLoadAdjointCondition3D1N", mPointLoadAdjointCondition3D1N )
-    KRATOS_REGISTER_CONDITION( "SurfaceLoadAdjointCondition3D3N", mSurfaceLoadAdjointCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "SurfaceLoadAdjointCondition3D4N", mSurfaceLoadAdjointCondition3D4N )
-
 
     // For MPC implementations
     KRATOS_REGISTER_VARIABLE(MPC_DATA_CONTAINER)
