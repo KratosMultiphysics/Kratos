@@ -258,7 +258,6 @@ public:
 
         //Initializing the non linear iteration for the current element
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-        //KRATOS_WATCH(LHS_Contribution);
         //basic operations for the element considered
         (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
@@ -303,14 +302,13 @@ public:
 	    inv_D = 1.0 / LHS_Contribution(enriched_size-1,enriched_size-1);
 	  else
 	  {
-	    KRATOS_WATCH((rCurrentElement)->Id());
-	    KRATOS_WATCH(((rCurrentElement)->GetGeometry())[0]);
-	    KRATOS_WATCH(((rCurrentElement)->GetGeometry())[1]);
-	    KRATOS_WATCH(((rCurrentElement)->GetGeometry())[2]);
-	    KRATOS_WATCH(((rCurrentElement)->GetGeometry())[3]);
-	    KRATOS_WATCH(LHS_Contribution);
-	    KRATOS_THROW_ERROR(std::logic_error,"!!!!ENRICHED ELEMENT MUST HAVE NON-ZERO DIAGONAL MEMBER!!!!","");
-
+          KRATOS_ERROR << "!!!!ENRICHED ELEMENT MUST HAVE NON-ZERO DIAGONAL MEMBER!!!!" << std::endl
+                       << "Id: " << rCurrentElement->Id() << " Nodes:" << std::endl
+                       << (rCurrentElement)->GetGeometry()[0] << std::endl
+                       << (rCurrentElement)->GetGeometry()[1] << std::endl
+                       << (rCurrentElement)->GetGeometry()[2] << std::endl
+                       << (rCurrentElement)->GetGeometry()[3] << std::endl
+                       << "LHS contribution: " << LHS_Contribution << std::endl;
 	  }
 
 	  double inv_D_f_2 = RHS_Contribution[enriched_size-1] * inv_D;
