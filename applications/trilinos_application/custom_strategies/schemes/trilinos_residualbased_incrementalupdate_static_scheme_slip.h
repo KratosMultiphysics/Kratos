@@ -22,8 +22,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 //#include "includes/variables.h"
-#include "solving_strategies/schemes/scheme.h"
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "includes/deprecated_variables.h"
 
@@ -64,7 +63,7 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace //= DenseSpace<double>
          >
-class TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip : public TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>
+class TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip : public ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>
 {
 
 public:
@@ -73,7 +72,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip);
 
-    typedef TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
+    typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -96,7 +95,7 @@ public:
       */
     TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(unsigned int DomainSize,
                                                            unsigned int BlockSize):
-        TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
+        ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
         mRotationTool(DomainSize,BlockSize,IS_STRUCTURE,0.0)
     {}
 
