@@ -136,8 +136,8 @@ Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
     // ValidateParameters(MapperSettings);
     // mEchoLevel = MapperSettings["echo_level"].GetInt();
 
-    // mpInterfacePreprocessor = std::make_unique<InterfacePreprocessor>(mrModelPartDestination,
-    //                                                                   mpMapperLocalSystems);
+    mpInterfacePreprocessor = std::make_unique<InterfacePreprocessor>(mrModelPartDestination,
+                                                                      mpMapperLocalSystems);
     // GenerateInterfaceModelPart();
 
 
@@ -155,7 +155,7 @@ template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::Initialize()
 {
     mpMapperLocalSystems->clear();
-    // if(mpInterfacePreprocessor) mpInterfacePreprocessor->Initialize();
+    // if(mpInterfacePreprocessor) mpInterfacePreprocessor->GenerateInterfaceModelPart();
     // if(mpMappingOperationUtility) mpMappingOperationUtility->Initialize();
 }
 

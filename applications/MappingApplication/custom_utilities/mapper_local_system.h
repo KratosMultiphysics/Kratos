@@ -25,6 +25,9 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
+
 #include "mapper_interface_info.h"
 
 
@@ -71,6 +74,9 @@ public:
     using OriginIdVector       = std::vector<int>;
     using DestinationIdVector  = std::vector<int>;
 
+    using NodeType = Node<3>;
+    using GeometryType = Geometry<NodeType>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -91,16 +97,26 @@ public:
     ///@name Operations
     ///@{
 
-    virtual MapperLocalSystemUniquePointer Create() = 0;
+    virtual MapperLocalSystemUniquePointer Create(const NodeType& rNode) const;
+
+    virtual MapperLocalSystemUniquePointer Create(const GeometryType& rGeometry) const;
+
 
     virtual void CalculateAll(MappingWeightsVector& rMappingWeights,
                               OriginIdVector&       rOriginIds,
                               DestinationIdVector&  rDestinationIds) = 0;
 
+
+    // This specifies if Nodes should be used for the construction
+    // => this is the case if the Geometry on the destination is not important
+    virtual bool UseNodesAsBasis() const = 0;
+
+
     void AddInterfaceInfo(MapperInterfaceInfoPointer pInterfaceInfo)
     {
         mInterfaceInfos.push_back(pInterfaceInfo);
     }
+
 
     virtual void Clear()
     {

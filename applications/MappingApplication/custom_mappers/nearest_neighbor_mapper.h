@@ -176,17 +176,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    Parameters GetInterfaceParameters() override
-    {
-        Parameters mapper_interface_parameters = Parameters( R"(
-        {
-            "mapper_condition_name" : "NearestNeighborCondition",
-            "use_nodes"             : true
-        }  )" );
-
-        return mapper_interface_parameters;
-    }
-
     // MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() override
     // {
 

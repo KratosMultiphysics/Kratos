@@ -67,6 +67,8 @@ public:
     /// Pointer definition of NearestElementMapper
     KRATOS_CLASS_POINTER_DEFINITION(NearestElementMapper);
 
+    using NodeType = MapperLocalSystem::NodeType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -167,21 +169,7 @@ public:
     ///@}
 
 protected:
-    class NearestElementLocalSystem : public MapperLocalSystem
-    {
-        std::unique_ptr<MapperLocalSystem> Create() override
-        {
-            return std::make_unique<NearestElementLocalSystem>();
-        }
 
-        void CalculateAll(MappingWeightsVector& rMappingWeights,
-                          OriginIdVector&       rOriginIds,
-                          DestinationIdVector&  rDestinationIds) override
-        {
-
-        }
-
-    };
     ///@name Protected static Member Variables
     ///@{
 
@@ -199,17 +187,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    Parameters GetInterfaceParameters() override
-    {
-        Parameters mapper_interface_parameters = Parameters( R"(
-        {
-            "mapper_condition_name" : "NearestElementCondition",
-            "use_nodes"             : true
-        }  )" );
-
-        return mapper_interface_parameters;
-    }
 
     // MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() override
     // {

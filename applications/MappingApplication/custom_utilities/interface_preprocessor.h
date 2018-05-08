@@ -25,6 +25,8 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 
+#include "mapper_local_system.h"
+
 
 namespace Kratos
 {
@@ -63,13 +65,17 @@ class InterfacePreprocessor
     KRATOS_CLASS_POINTER_DEFINITION(InterfacePreprocessor);
 
     using ModelPartPointerType = ModelPart::Pointer;
+    using MapperLocalSystemPointer = std::unique_ptr<MapperLocalSystem>;
+    using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
+    using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    InterfacePreprocessor(ModelPart& rModelPartDestination, ModelPartPointerType pInterfaceModelPart);
+    InterfacePreprocessor(ModelPart& rModelPartDestination,
+                          MapperLocalSystemPointerVectorPointer pMapperLocalSystems);
 
     /// Destructor.
     virtual ~InterfacePreprocessor() {}
@@ -84,7 +90,7 @@ class InterfacePreprocessor
     ///@name Operations
     ///@{
 
-    void GenerateInterfaceModelPart(Parameters InterfaceParameters);
+    void GenerateInterfaceModelPart(MapperLocalSystemPointer pLocalSystem);
 
 
     ///@}
@@ -168,16 +174,7 @@ private:
     ///@{
 
     ModelPart& mrModelPartDestination;
-    ModelPartPointerType mpInterfaceModelPart;
-
-    Parameters mDefaultParameters = Parameters( R"(
-    {
-        "mapper_condition_name" : "",
-        "use_nodes"             : true
-    }  )" );
-    // Use "use_nodes" if the geometry on the destination is not needed
-
-
+    MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
 
     ///@}
     ///@name Private Operators
@@ -188,14 +185,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CheckAndValidateParameters(Parameters InterfaceParameters);
+    void CreateMapperLocalSystemsFromNodes(const MapperLocalSystemPointer rLocalSystem);
 
-    void CreateMapperConditions(Parameters InterfaceParameters);
-
-    void CreateMapperConditionsFromNodes(Parameters InterfaceParameters);
-
-    void CreateMapperConditionsFromGeometries(Parameters InterfaceParameters);
-
+    void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystemPointer rLocalSystem);
 
     ///@}
     ///@name Private  Access

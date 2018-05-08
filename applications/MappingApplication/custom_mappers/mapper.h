@@ -394,12 +394,6 @@ protected:
         mInverseMapperIsInitialized = true;
     }
 
-    /**
-    This function return information abt how the interface has to be constructed.
-    This information is specific to every mapper!
-    */
-    virtual Parameters GetInterfaceParameters() = 0;
-
 
     // virtual MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() = 0;
 
