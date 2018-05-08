@@ -49,11 +49,11 @@
 //schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
-#include "custom_strategies/schemes/trilinos_residualbased_lagrangian_monolithic_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
 #include "custom_strategies/schemes/trilinos_residual_based_bossak_displacement_scheme.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
+#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_lagrangian_monolithic_scheme.h"
 #include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme.h"
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/schemes/trilinos_residualbased_predictorcorrector_velocity_bdf_scheme.h"
@@ -148,8 +148,8 @@ void  AddSchemes(pybind11::module& m)
            );
 
     class_ <
-        TrilinosResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename TrilinosResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
+        ResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+        typename ResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >
            (
                m,"TrilinosResidualBasedLagrangianMonolithicScheme").def(init<int >()
