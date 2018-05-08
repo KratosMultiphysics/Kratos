@@ -105,10 +105,67 @@ namespace Kratos
             void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
             {
                 // Integrate Stress plasticity 
+                const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+                int VoigtSize = this->GetVoigtSize();
+                Vector& IntegratedStressVector = rValues.GetStressVector();
+                Matrix& tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after inegration
 
+                // Elastic Matrix
+                Matrix C;
+                this->CalculateElasticMatrix(C, rMaterialProperties);
+
+                double Kp = 0.0, Capap = 0.0;
+                Vector PlasticStrain = ZeroVector(this->GetVoigtSize())
+
+                Kp            = this->GetThreshold();
+                Capap         = this->GetPlasticDissipation();
+                PlasticStrain = this->GetPlasticStrain();
+
+                // S0 = C:(E-Ep)
+                Vector PredictiveStressVector = prod(C, rValues.GetStrainVector()-PlasticStrain);
+
+                // Initialize Plastic Parameters
+                double UniaxialStress = 0.0, PlasticDenominator = 0.0;
+                Vector Fflux = ZeroVector(VoigtSize), Gflux = ZeroVector(VoigtSize); // DF/DS & DG/DS
+                Vector PlasticStrainIncrement = ZeroVector(VoigtSize)
+
+                ConstLawIntegratorType::CalculatePlasticParameters(PredictiveStressVector, UniaxialStress, Kp,
+                    PlasticDenominator, Fflux, Gflux, Capap, PlasticStrainIncrement, C);
+
+                double F = UniaxialStress - Kp;
+
+                if (F <= abs(1.0e-8 * Kp)) // Elastic case
+                {
+                    IntegratedStressVector = PredictiveStressVector;
+                    tangent_tensor = C;
+                    this->SetNonConvPlasticDissipation(Capap);
+                    this->SetNonConvPlasticStrain(PlasticStrain);
+                    this->SetNonConvThreshold(Kp);
+                }
+                else // Plastic case
+                {
+                    // while loop backward euler
+                    /* Inside IntegrateStressVector the PredictiveStressVector
+                    is updated to verify the yield criterion */
+
+                    ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, UniaxialStress, Kp,
+                        PlasticDenominator, Fflux, Gflux, Capap, PlasticStrainIncrement, C, PlasticStrain)
+
+                    this->SetNonConvPlasticDissipation(Capap);
+                    this->SetNonConvPlasticStrain(PlasticStrain);
+                    this->SetNonConvThreshold(Kp);
+
+                    this->CalculateTangentTensor(C);
+                    tangent_tensor = C;
+                }
+
+
+            } // End CalculateMaterialResponseCauchy
+
+            void CalculateTangentTensor(Matrix& C) // todo
+            {
 
             }
-
 
             void CalculateElasticMatrix(Matrix &rElasticityTensor,
                 const Properties &rMaterialProperties)

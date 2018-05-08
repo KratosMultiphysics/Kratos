@@ -119,10 +119,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ;
 	
 	// A.Cornejo
-	//class_< GenericSmallStrainIsotropicPlasticity3D<class YieldSurfaceType, class ConstLawIntegratorType>,
-	//typename GenericSmallStrainIsotropicPlasticity3D<class YieldSurfaceType, class ConstLawIntegratorType>::Pointer,  ConstitutiveLaw  >
- //   (m,"GenericSmallStrainIsotropicPlasticity3DLaw").def( init<>())
- //   ;
+// 	class_< GenericSmallStrainIsotropicPlasticity3D<class YieldSurfaceType, class ConstLawIntegratorType>,
+// 	typename GenericSmallStrainIsotropicPlasticity3D<class YieldSurfaceType, class ConstLawIntegratorType>::Pointer,  ConstitutiveLaw  >
+//    (m,"GenericSmallStrainIsotropicPlasticity3DLaw").def( init<>())
+//    ;
 }
 
 }  // namespace Python.
