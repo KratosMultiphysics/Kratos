@@ -438,13 +438,7 @@ public:
         KRATOS_CATCH("")
     }
 
-
-    void Clean() override
-    {
-        this->mpDofUpdater->Clear();
-    }
-
-
+    /// Free memory allocated by this object.
     void Clear() override
     {
         this->mpDofUpdater->Clear();
