@@ -49,9 +49,9 @@
 //schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
-#include "custom_strategies/schemes/trilinos_residual_based_bossak_displacement_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
+#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
+#include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
 
 // FluidDynamicsApplication schemes
@@ -165,8 +165,8 @@ void  AddSchemes(pybind11::module& m)
            );
 
     class_ <
-        TrilinosResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename TrilinosResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
+        ResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+        typename ResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >
            (
                m,"TrilinosResidualBasedBossakDisplacementScheme").def(init<double >()
