@@ -237,12 +237,6 @@ private:
                          Vector& rStrain,
                          ProcessInfo const& rCurrentProcessInfo);
 
-    void CalculateShapeSensitivity(ShapeParameter Deriv,
-                                   Matrix& rDN_DX0_Deriv,
-                                   Matrix& rF_Deriv,
-                                   double& rDetJ0_Deriv,
-                                   std::size_t IntegrationPointIndex);
-
     void CalculateBSensitivity(Matrix const& rDN_DX,
                                Matrix const& rF,
                                Matrix const& rDN_DX_Deriv,
