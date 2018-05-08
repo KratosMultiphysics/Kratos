@@ -380,6 +380,11 @@ namespace Kratos
 
     rStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
 
+    // Rate to stress value
+    rStressMatrix *= rValues.GetProcessInfo()[DELTA_TIME];
+    
+    // Total stress stored in the HistoryVector
+    this->AddHistoricalStress(rValues, rStressMatrix);
     
     KRATOS_CATCH(" ")
   }
