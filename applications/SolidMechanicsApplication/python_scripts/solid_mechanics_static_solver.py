@@ -10,9 +10,9 @@ KratosMultiphysics.CheckForPreviousImport()
 import solid_mechanics_implicit_dynamic_solver as BaseSolver
 
 def CreateSolver(custom_settings):
-    return StaticMechanicalSolver(custom_settings)
+    return StaticMonolithicSolver(custom_settings)
 
-class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
+class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
     """The solid mechanics static solver.
 
     This class creates the mechanical solvers for static analysis.
@@ -40,18 +40,17 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
             time_integration_settings["integration_method"].SetString("Static") # Override defaults in the base class.
 
         # Construct the base solver.
-        # Calling base class of ImplicitMechanicalSolver it is ok.
-        super(BaseSolver.ImplicitMechanicalSolver, self).__init__(custom_settings)
+        # Calling base class of ImplicitMonolithicSolver it is ok.
+        super(BaseSolver.ImplicitMonolithicSolver, self).__init__(custom_settings)
 
-        print("::[Static_Scheme]:: "+self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")
+        print("::[Static_Scheme]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
 
     #### Solver internal methods ####
 
     def _create_solution_scheme (self):
-
         # set solution scheme
         import schemes_factory
-        Schemes = schemes_factory.SolutionScheme(self.time_integration_settings,self.settings["dofs"])
+        Schemes = schemes_factory.SolutionScheme(self.settings["time_integration_settings"],self.settings["dofs"])
         mechanical_scheme = Schemes.GetSolutionScheme()
 
         # set integration method dictionary for components
@@ -63,10 +62,10 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         return mechanical_scheme
 
     def _create_mechanical_solver(self):
-        if(self.solving_strategy_settings["line_search"].GetBool() == True):
+        if(self.settings["solving_strategy_settings"]["line_search"].GetBool() == True):
             mechanical_solver = self._create_line_search_strategy()
         else:
-            if(self.time_integration_settings["solution_type"].GetString() == "Quasi-static"):
+            if(self.settings["time_integration_settings"]["analysis_type"].GetString() == "Non-linear"):
                 mechanical_solver = self._create_newton_raphson_strategy()
             else:
                 mechanical_solver = self._create_linear_strategy()
@@ -79,17 +78,7 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         builder_and_solver = self._get_builder_and_solver()
 
         options = KratosMultiphysics.Flags()
-        options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
-        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.settings["solving_strategy_settings"]["compute_reactions"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
 
         return KratosSolid.LinearStrategy(self.model_part, mechanical_scheme, builder_and_solver, options)
-
-        #linear_solver = self._get_linear_solver()
-        #return KratosMultiphysics.ResidualBasedLinearStrategy(self.model_part,
-        #                                                      mechanical_scheme,
-        #                                                      linear_solver,
-        #                                                      builder_and_solver,
-        #                                                      self.solving_strategy_settings["compute_reactions"].GetBool(),
-        #                                                      self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool(),
-        #                                                      False,
-        #                                                      self.solving_strategy_settings["move_mesh_flag"].GetBool())

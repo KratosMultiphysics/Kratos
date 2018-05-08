@@ -6,13 +6,13 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-import solid_mechanics_solver as BaseSolver
+import solid_mechanics_monolithic_solver as BaseSolver
 
 def CreateSolver(custom_settings):
     return EigenSolver(custom_settings)
 
 
-class EigenSolver(BaseSolver.MechanicalSolver):
+class EigenSolver(BaseSolver.MonolithicSolver):
     """The solid mechanics eigen solver.
 
     This class creates the mechanical solvers for eigenvalue analysis.
@@ -54,7 +54,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         # Construct the base solver.
         super(EigenSolver, self).__init__(custom_settings)
 
-        print("::[Eigen_Scheme]:: "+self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")
+        print("::[Eigen_Scheme]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
 
     #### Private functions ####
 
@@ -64,10 +64,10 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         The scheme determines the left- and right-hand side matrices in the
         generalized eigenvalue problem.
         """
-        if self.time_integration_settings["solution_type"].GetString() == "Dynamic":
+        if self.settings["time_integration_settings"]["solution_type"].GetString() == "Dynamic":
             solution_scheme = KratosSolid.EigensolverScheme()
         else:
-            raise Exception("Unsupported solution_type: " + self.time_integration_settings["solution_type"])
+            raise Exception("Unsupported solution_type: " + self.settings["time_integration_settings"]["solution_type"])
         return solution_scheme
 
     def _create_linear_solver(self):
@@ -95,7 +95,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         builder_and_solver = self._get_builder_and_solver() # The eigensolver is created here.
 
         options = KratosMultiphysics.Flags()
-        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
 
         return KratosSolid.EigensolverStrategy(self.model_part, eigen_scheme, builder_and_solver, options, self.compute_modal_contribution)
 

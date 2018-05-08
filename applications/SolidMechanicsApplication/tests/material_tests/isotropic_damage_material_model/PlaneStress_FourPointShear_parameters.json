@@ -13,8 +13,10 @@
 		"integration_method" : "Static"
             },
 	    "solving_strategy_settings" : {
-		"convergence_criterion" : "And_criterion",
-		"max_iteration"         : 15		
+		"max_iteration"         : 15
+	    },
+	    "convergence_criterion_settings" : {
+		"convergence_criterion" : "And_criterion"		
 	    },
             "linear_solver_settings"    : {
 		"solver_type" : "SuperLUSolver",

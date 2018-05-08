@@ -35,8 +35,9 @@
 #include "custom_solvers/solution_builders_and_solvers/explicit_hamilton_builder_and_solver.hpp"
 
 // Convergence criteria
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_solvers/convergence_criteria/displacement_convergence_criterion.hpp"
+#include "custom_solvers/convergence_criteria/residual_criterion.hpp"
+#include "custom_solvers/convergence_criteria/variable_criterion.hpp"
+#include "custom_solvers/convergence_criteria/composite_criterion.hpp"
 
 // Solution schemes
 #include "custom_solvers/solution_schemes/static_scheme.hpp"
@@ -78,17 +79,14 @@ typedef LinearSolver<SparseSpaceType, LocalSpaceType>                           
 typedef SolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>                   SolutionStrategyType;
 typedef SolutionBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>   SolutionBuilderAndSolverType;
 typedef SolutionScheme<SparseSpaceType, LocalSpaceType>                                         SolutionSchemeType;
-typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType>                               ConvergenceCriteriaType;
+typedef ConvergenceCriterion<SparseSpaceType, LocalSpaceType>                             ConvergenceCriterionType;
 typedef SolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>                   SolutionStrategyType;
 
 typedef SolutionStrategyType::Pointer                                                      SolutionStrategyPointer;
 typedef std::vector<SolutionStrategyType::Pointer>                                     SolutionStrategiesContainer;
 
-void Push_Back_Solution_Strategies( SolutionStrategiesContainer& ThisSolutionStrategyContainer,
-                                    SolutionStrategyPointer ThisSolutionStrategy )
-{
-  ThisSolutionStrategyContainer.push_back( ThisSolutionStrategy );
-}
+typedef typename ConvergenceCriterionType::Pointer                                 ConvergenceCriterionPointerType;
+typedef std::vector<ConvergenceCriterionPointerType>                                  ConvergenceCriteriaContainer;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -117,7 +115,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef DynamicScheme<SparseSpaceType, LocalSpaceType>                                          DynamicSchemeType;
 
   // Custom convergence criterion types
-  typedef DisplacementConvergenceCriterion<SparseSpaceType,  LocalSpaceType>   DisplacementConvergenceCriterionType;
+  typedef ResidualCriterion<SparseSpaceType, LocalSpaceType>                                  ResidualCriterionType;
+  typedef VariableCriterion<SparseSpaceType, LocalSpaceType>                                  VariableCriterionType;
+  typedef CompositeCriterion<SparseSpaceType, LocalSpaceType>                                CompositeCriterionType;
 
   // Time integration methods for vectors
   typedef array_1d<double, 3>                                                                      VectorType;
@@ -201,6 +201,17 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef EmcStepRotationMethod<VariableComponentType, double>            EmcStepRotationMethodComponentType;
 
 
+  //***************************SOLVER FLAGS******************************
+
+  // Convergence Criteria Local Flags
+  class_<CriterionLocalFlags>(m,"CriterionLocalFlags")
+      .def(init<>())
+      .def_readonly_static("INITIALIZED", &CriterionLocalFlags::INITIALIZED)
+      .def_readonly_static("INCREMENTAL", &CriterionLocalFlags::INCREMENTAL)
+      .def_readonly_static("CONVERGED", &CriterionLocalFlags::CONVERGED)
+      .def_readonly_static("AND", &CriterionLocalFlags::AND)
+      .def_readonly_static("OR", &CriterionLocalFlags::OR)
+      ;
   
   //***************************SOLVER FLAGS******************************
 
@@ -219,12 +230,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 
   //*************************STRATEGY CLASSES***************************
-
-  // Solid Mechanics Solution Strategies Container
-  class_<SolutionStrategiesContainer>(m,"SolutionStragetiesContainer")
-      .def(init<>())
-      .def("PushBack", Push_Back_Solution_Strategies)
-      ;
 
   // Solid Mechanics Base Solution Strategy
   class_<SolutionStrategyType, typename SolutionStrategyType::Pointer, Flags>(m,"SolutionStrategy")
@@ -258,16 +263,16 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   // Solid Mechanics Newton Raphson Strategy
   class_<NewtonRaphsonStrategyType, typename NewtonRaphsonStrategyType::Pointer, LinearStrategyType>(m,"NewtonRaphsonStrategy")
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int>())
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
       .def("SetMaxIterationNumber", &NewtonRaphsonStrategyType::SetMaxIterationNumber)
       .def("GetMaxIterationNumber", &NewtonRaphsonStrategyType::GetMaxIterationNumber)
       ;
 
   // Solid Mechanics Newton Raphson Line Search Strategy
   class_<LineSearchStrategyType, typename LineSearchStrategyType::Pointer, NewtonRaphsonStrategyType>(m,"LineSearchStrategy")
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int>())
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
       ;
 
   // Solid Mechanics Explicit Strategy
@@ -380,14 +385,30 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   //*******************CONVERGENCE CRITERIA CLASSES*********************
 
-  // Displacement Convergence Criterion
-  class_<DisplacementConvergenceCriterionType, typename DisplacementConvergenceCriterionType::Pointer, ConvergenceCriteriaType>
-      (m,"DisplacementConvergenceCriterion")
-      .def( init<double, double>())
-      .def("SetEchoLevel", &DisplacementConvergenceCriterionType::SetEchoLevel)
+  // Convergence Criterion base type
+  class_<ConvergenceCriterionType, typename ConvergenceCriterionType::Pointer, Flags>(m,"ConvergenceCriterion")
+      .def(init<>())
+      .def("PreCriteria", &ConvergenceCriterionType::PreCriteria)
+      .def("PostCriteria", &ConvergenceCriterionType::PostCriteria)
+      .def("InitializeSolutionStep", &ConvergenceCriterionType::InitializeSolutionStep)
+      .def("FinalizeSolutionStep", &ConvergenceCriterionType::FinalizeSolutionStep)
+      .def("Check", &ConvergenceCriterionType::Check)
+      .def("SetEchoLevel", &ConvergenceCriterionType::SetEchoLevel)
       ;
 
+  class_<ResidualCriterionType, typename ResidualCriterionType::Pointer, ConvergenceCriterionType>(m,"ResidualCriterion")
+      .def(init< double, double>())
+      ;
 
+  class_<VariableCriterionType, typename VariableCriterionType::Pointer, ConvergenceCriterionType>(m,"VariableCriterion")
+      .def(init< double, double>())
+      ;
+
+  class_<CompositeCriterionType, typename CompositeCriterionType::Pointer, ConvergenceCriterionType >(m,"CompositeCriterion")
+      .def(init<ConvergenceCriterionPointerType, ConvergenceCriterionPointerType>())
+      .def(init<ConvergenceCriteriaContainer&>())
+      ;
+  
   //*******************TIME INTEGRATION METHODS*************************
 
   //Time integraton methods for vector variables

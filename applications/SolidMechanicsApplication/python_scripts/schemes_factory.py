@@ -36,6 +36,21 @@ class SolutionScheme:
         if( len(self.dofs) == 0 or (len(self.dofs) == 1 and self.dofs[0] =="ROTATION") ):
             self.dofs.append('DISPLACEMENT')
 
+    def GetVariables(self):
+
+        self._set_variables_and_dofs()
+
+        nodal_variables = self.nodal_variables + self.dof_variables + self.dof_reactions + self.dof_derivatives
+
+        return nodal_variables
+    
+    def GetDofsAndReactions(self):
+
+        if not hasattr(self, '_dof_variables'):
+            self._set_variables_and_dofs()
+
+        return self.dof_variables, self.dof_reactions
+            
     def GetSolutionScheme(self):
 
         integration_methods = []
@@ -211,7 +226,7 @@ class SolutionScheme:
         # Add displacement variables
         if self._check_input_dof("DISPLACEMENT"):
             self.dof_variables = self.dof_variables + ['DISPLACEMENT']
-            self.dof_reactions = self.dof_reactions + ['REACTION']
+            self.dof_reactions = self.dof_reactions + ['DISPLACEMENT_REACTION']
 
             # Add dynamic variables
             self.dof_derivatives = self.dof_derivatives + ['VELOCITY','ACCELERATION']
@@ -219,7 +234,7 @@ class SolutionScheme:
         if self._check_input_dof("VELOCITY"):
             # Add specific variables for the problem (velocity dofs)
             self.dof_variables = self.dof_variables + ['VELOCITY']
-            self.dof_reactions = self.dof_reactions + ['NOT_DEFINED']
+            self.dof_reactions = self.dof_reactions + ['VELOCITY_REACTION']
 
             # Add dynamic variables
             self.dof_derivatives = self.dof_derivatives + ['DISPLACEMENT','ACCELERATION']
@@ -229,7 +244,7 @@ class SolutionScheme:
         if self._check_input_dof("ROTATION"):
             # Add specific variables for the problem (rotation dofs)
             self.dof_variables = self.dof_variables + ['ROTATION']
-            self.dof_reactions = self.dof_reactions + ['TORQUE']
+            self.dof_reactions = self.dof_reactions + ['ROTATION_REACTION']
 
             self.dof_derivatives = self.dof_derivatives + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
             # Add large rotation variables
@@ -270,7 +285,8 @@ class SolutionScheme:
                 return True
 
         #temporary default
-        if(variable == 'DISPLACEMENT' and len(dofs) == 0 ):
+        if(variable == 'DISPLACEMENT' and len(self.dofs) == 0 ):
             return True
 
         return False
+ 
