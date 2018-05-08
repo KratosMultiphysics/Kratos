@@ -632,7 +632,8 @@ public:
 			
             }
             
-            //std::cout << " ============ " <<  NormVel << " ============ " << std::cout;
+            // std::cout << " ============ " <<  NormVel << " ============ " << std::cout;
+            // std::cout << " ============ " <<  NormAcc << " ============ " << std::cout;
 
             //  std::cout << "Node Count = " << nodes_counter << std::endl;
             
