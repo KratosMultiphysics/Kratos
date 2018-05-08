@@ -124,7 +124,8 @@ public:
             // Leave 3 extra space: One for negative sign, one for zero, one for decimal
             *mOutStream << std::setw(mColumnWidths.at(mIndexColumn)) << Input;
 
-            if (mIndexColumn == GetNumColumns()-1) {
+            if (mIndexColumn == G
+                tNumColumns()-1) {
                 *mOutStream << "|\n";
                 mIndexRow = mIndexRow + 1;
                 mIndexColumn = 0;
@@ -239,7 +240,7 @@ public:
         
         if (mBoldFont == true) {
         #if !defined(_WIN32)
-            *mOutStream << "\e[1m";
+            *mOutStream << "\x1B[1m";
         #endif
         }
 
@@ -263,7 +264,7 @@ public:
 
         if (mBoldFont == true) {
         #if !defined(_WIN32)
-            *mOutStream << "\e[0m";
+            *mOutStream << "\x1B[0m";
         #endif
         }
 
