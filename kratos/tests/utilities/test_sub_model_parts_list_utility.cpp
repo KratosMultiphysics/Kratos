@@ -30,6 +30,7 @@ namespace Kratos
         typedef std::unordered_map<IndexSize,int> IndexIntMapType;
         typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
         typedef std::map<std::pair<int,int>,int> PairIntMapType;
+        typedef std::unordered_map<int,std::vector<ModelPart*>> IntModelPartPtrMapType;
 
         /**
         * Checks the correct work of the sub modelparts list utility
@@ -303,6 +304,56 @@ namespace Kratos
                     auto it_first_elem = r_first_sub_model_part.Elements().begin() + i;
                     auto it_found_second_elem = r_second_sub_model_part.Elements().find(it_first_elem->Id());
                     KRATOS_CHECK_NOT_EQUAL(it_found_second_elem, r_second_sub_model_part.ElementsEnd());
+                }
+            }
+        }
+
+
+        /**
+        * Checks the correct work of the modelparts colors
+        */
+
+        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityPointers, KratosSubModelPartsListUtilityFastSuite)
+        {
+            // Creating the reference model part and the relative submodelparts
+            ModelPart model_part("ModelPart");
+            ModelPart::Pointer p_sub_modelpart_1 = model_part.CreateSubModelPart("First");
+            ModelPart::Pointer p_sub_modelpart_2 = model_part.CreateSubModelPart("Second");
+            ModelPart::Pointer p_sub_modelpart_3 = p_sub_modelpart_2->CreateSubModelPart("Third");
+
+            // Creating the nodes
+            NodeType::Pointer p_node_1 = model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_2 = model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_3 = model_part.CreateNewNode(3, 2.0 , 0.0 , 0.0);
+
+            // Add the nodes to sub model parts
+            p_sub_modelpart_1->AddNode(p_node_1);
+            p_sub_modelpart_2->AddNode(p_node_2);
+            p_sub_modelpart_3->AddNode(p_node_3);
+
+            // Initialize the utility
+            SubModelPartsListUtility colors_utility(model_part);
+
+            // Get the colors
+            IndexIntMapType nodes_colors, cond_colors, elem_colors;
+            IntStringMapType colors;
+            colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
+
+            // Get the pointers
+            IntModelPartPtrMapType colors_pointers = SubModelPartsListUtility::GetModelPartColorsPointers(model_part, colors);
+
+            // Check both colormaps have the same size
+            KRATOS_CHECK_EQUAL(colors.size(), colors_pointers.size());
+
+            for (auto color : colors)
+            {
+                // Check both colors have the same size
+                std::vector<ModelPart*> p_color = colors_pointers[color.first];
+                KRATOS_CHECK_EQUAL(color.second.size(), p_color.size());
+                for (IndexSize i = 0; i < color.second.size(); i++)
+                {
+                    // Check the names
+                    KRATOS_CHECK_EQUAL(color.second[i], p_color[i]->Name());
                 }
             }
         }
