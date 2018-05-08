@@ -108,8 +108,8 @@ public:
     {
         KRATOS_TRY;
 
-        double step_size = mOptimizationSettings["line_search"]["step_size"].GetDouble();
-        bool normalize_search_direction = mOptimizationSettings["line_search"]["normalize_search_direction"].GetBool();
+        double step_size = mOptimizationSettings["optimization_algorithm"]["line_search"]["step_size"].GetDouble();
+        bool normalize_search_direction = mOptimizationSettings["optimization_algorithm"]["line_search"]["normalize_search_direction"].GetBool();
 
 
         // Computation of update of design variable. Normalization is applied if specified.

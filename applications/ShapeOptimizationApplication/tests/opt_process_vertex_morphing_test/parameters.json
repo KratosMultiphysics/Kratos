@@ -3,7 +3,8 @@
         "objectives" : [{
                 "identifier" : "targetDeviation",
                 "type"       : "minimization",
-                "use_kratos" : false
+                "use_kratos" : false,
+                "project_gradient_on_surface_normals" : true
         }],
         "constraints" : [],
         "design_variables" : {
@@ -26,15 +27,14 @@
             }
         },
         "optimization_algorithm" : {
-            "name"                                 : "steepest_descent",
-            "max_iterations"                       : 300,
-            "relative_tolerance"                   : 1e-2,
-            "project_gradients_on_surface_normals" : true
-        },
-        "line_search" : {
-            "line_search_type"           : "manual_stepping",
-            "normalize_search_direction" : false,
-            "step_size"                  : 0.01
+            "name"               : "steepest_descent",
+            "max_iterations"     : 300,
+            "relative_tolerance" : 1e-2,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : false,
+                "step_size"                  : 0.01
+            }
         },
         "output" : {
             "output_directory"        : "Optimization_Results",

@@ -24,28 +24,43 @@ from custom_timer import Timer
 import mapper_factory
 
 # ==============================================================================
-class AlgorithmTrustRegion( OptimizationAlgorithm ) :
+class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
-    def __init__( self, optimization_settings, model_part_controller, analyzer, communicator ):
-        self.model_part_controller = model_part_controller
+    def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
+        default_algorithm_settings = Parameters("""
+        {
+            "name"            : "trust_region",
+            "max_step_length" : 1,
+            "max_iterations"  : 10
+        }""")
+        self.algorithm_settings =  optimization_settings["optimization_algorithm"]
+        self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
+
         self.analyzer = analyzer
         self.communicator = communicator
+        self.model_part_controller = model_part_controller
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.design_surface = model_part_controller.GetDesignSurface()
-        self.algorithm_settings = optimization_settings["optimization_algorithm"]
 
-        self.objective_ids, self.equality_constraint_ids, self.inequality_constraint_ids = self.__DetermineResponseIds( optimization_settings )
+        self.objective_ids, self.equality_constraint_ids, self.inequality_constraint_ids = self._DetermineResponseIds(optimization_settings)
 
-        self.Mapper = mapper_factory.CreateMapper( model_part_controller, optimization_settings )
+        self.mapper = mapper_factory.CreateMapper(self.design_surface, optimization_settings["design_variables"]["filter"])
 
     # --------------------------------------------------------------------------
-    def InitializeOptimizationLoop( self ):
-        self.analyzer.InitializeBeforeOptimizationLoop()
+    def CheckApplicability(self):
+        if len(self.objective_ids) > 1:
+            raise RuntimeError("Trust-region algorithm only supports one objective function!")
+
+    # --------------------------------------------------------------------------
+    def InitializeOptimizationLoop(self):
+        self.model_part_controller.ImportOptimizationModelPart()
         self.model_part_controller.InitializeMeshController()
+        self.mapper.InitializeMapping()
+        self.analyzer.InitializeBeforeOptimizationLoop()
 
     # --------------------------------------------------------------------------
-    def RunOptimizationLoop( self ):
+    def RunOptimizationLoop(self):
         timer = Timer()
         timer.StartTimer()
 
@@ -57,7 +72,7 @@ class AlgorithmTrustRegion( OptimizationAlgorithm ) :
             timer.StartNewLap()
 
             # Initialize new shape
-            self.model_part_controller.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
+            self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
             self.model_part_controller.SetReferenceMeshToMesh()
 
             # Analyze shape
@@ -75,7 +90,7 @@ class AlgorithmTrustRegion( OptimizationAlgorithm ) :
                 self.communicator.requestValueOf(id)
                 self.communicator.requestGradientOf(id)
 
-            self.analyzer.AnalyzeDesignAndReportToCommunicator( self.design_surface, self.optimizationIteration, self.communicator )
+            self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, self.optimizationIteration, self.communicator)
 
             # Store values and gradients from analysis
             obj_values = []
@@ -107,7 +122,7 @@ class AlgorithmTrustRegion( OptimizationAlgorithm ) :
             self.model_part_controller.SetDeformationVariablesToZero()
 
             # Convert anylsis results to length direction format considering mapping and damping
-            dir_obj = []
+            dir_objs = []
             for id, idx in self.objective_ids:
                 nodal_variable = KratosGlobals.GetVariable("DF"+str(idx+1)+"DX")
                 nodal_variable_mapped = KratosGlobals.GetVariable("DF"+str(idx+1)+"DX_MAPPED")
@@ -117,11 +132,11 @@ class AlgorithmTrustRegion( OptimizationAlgorithm ) :
                 obj_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
                 obj_gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
 
-                dir_obj_i = self.__ConvertToLengthDirectionFormat(obj_gradient, obj_gradient_mapped)
-                dir_obj.append(dir_obj_i)
+                dir_obj = self.__ConvertToLengthDirectionFormat(obj_gradient, obj_gradient_mapped)
+                dir_objs.append(dir_obj)
 
-            len_eq = []
-            dir_eq = []
+            len_eqs = []
+            dir_eqs = []
             for id, idx in self.equality_constraint_ids:
                 nodal_variable = KratosGlobals.GetVariable("DC"+str(idx+1)+"DX")
                 nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(idx+1)+"DX_MAPPED")
@@ -132,13 +147,13 @@ class AlgorithmTrustRegion( OptimizationAlgorithm ) :
                 eq_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
                 eq_gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
 
-                dir_eq_i, len_eq_i = self.__ConvertToLengthDirectionFormat(eq_gradient, eq_gradient_mapped, eq_value)
+                dir_eq, len_eq = self.__ConvertToLengthDirectionFormat(eq_gradient, eq_gradient_mapped, eq_value)
 
-                dir_eq.append(dir_eq_i)
-                len_eq.append(len_eq_i)
+                dir_eqs.append(dir_eq)
+                len_eqs.append(len_eq)
 
-            len_ineq = []
-            dir_ineq = []
+            len_ineqs = []
+            dir_ineqs = []
             for id, idx in self.inequality_constraint_ids:
                 nodal_variable = KratosGlobals.GetVariable("DC"+str(idx+1)+"DX")
                 nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(idx+1)+"DX_MAPPED")
@@ -149,11 +164,17 @@ class AlgorithmTrustRegion( OptimizationAlgorithm ) :
                 ineq_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
                 ineq_gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
 
-                dir_ineq_i, len_ineq_i = self.__ConvertToLengthDirectionFormat(ineq_gradient, ineq_gradient_mapped, ineq_value)
+                dir_ineq, len_ineq = self.__ConvertToLengthDirectionFormat(ineq_gradient, ineq_gradient_mapped, ineq_value)
 
-                dir_ineq.append(dir_ineq_i)
-                len_ineq.append(len_ineq_i)
+                dir_ineqs.append(dir_ineq)
+                len_ineqs.append(len_ineq)
 
+            # Determine step length
+            max_step_length = self.algorithm_settings["max_step_length"].GetDouble()
+            step_length = self.__ApplyStepLengthRule(max_step_length, objective_values[0], len_eqs, len_ineqs)
+
+            len_bar_eqs = [l/step_length for l in len_eqs]
+            len_bar_ineqs = [l/step_length for l in len_ineqs]
 
 
 
@@ -163,29 +184,13 @@ class AlgorithmTrustRegion( OptimizationAlgorithm ) :
             print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
     # --------------------------------------------------------------------------
-    def FinalizeOptimizationLoop( self ):
+    def FinalizeOptimizationLoop(self):
         self.analyzer.FinalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
-    def __DetermineResponseIds(self, optimization_settings):
-        objective_ids = []
-        for idx in range(optimization_settings["objectives"].size()):
-            objective_ids.append([optimization_settings["objectives"][idx]["identifier"].GetString(), idx])
-
-        equality_constraint_ids = []
-        inequality_constraint_ids = []
-        for idx in range(optimization_settings["constraints"].size()):
-            if(optimization_settings["constraints"][idx]["type"].GetString()=="="):
-                equality_constraint_ids.append([optimization_settings["constraints"][idx]["identifier"].GetString(),idx])
-            else:
-                inequality_constraint_ids.append([optimization_settings["constraints"][idx]["identifier"].GetString(), idx])
-
-        return objective_ids, equality_constraint_ids, inequality_constraint_ids
-
-    # --------------------------------------------------------------------------
     def __PerformMapping(self,nodal_variable, nodal_variable_mapped):
-        self.Mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
-        self.Mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
+        self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
+        self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
 
     # --------------------------------------------------------------------------
     def __ConvertToLengthDirectionFormat(self, gradient, modified_gradient, value=None):
