@@ -44,6 +44,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class ShapeParameter;
+
 /**
  * @class TotalLagrangian
  * @ingroup StructuralMechanicsApplication
@@ -103,6 +105,10 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     //std::string Info() const;
+
+    void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable,
+                                    Matrix& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -195,6 +201,10 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
    
     /**
      * @brief This method computes the deformation matrix B
@@ -207,9 +217,32 @@ private:
 
     void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+    void CalculateStress(Vector& rStrain,
+                         std::size_t IntegrationPoint,
+                         Vector& rStress,
+                         ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateStress(Matrix const& rF,
+                         std::size_t IntegrationPoint,
+                         Vector& rStress,
+                         ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateStrain(Matrix const& rF,
+                         std::size_t IntegrationPoint,
+                         Vector& rStrain,
+                         ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateShapeSensitivity(ShapeParameter Deriv,
+                                   Matrix& rDN_DX0_Deriv,
+                                   Matrix& rF_Deriv,
+                                   double& rDetJ0_Deriv,
+                                   std::size_t IntegrationPointIndex);
+
+    void CalculateBSensitivity(Matrix const& rDN_DX,
+                               Matrix const& rF,
+                               Matrix const& rDN_DX_Deriv,
+                               Matrix const& rF_Deriv,
+                               Matrix& rB_Deriv);
 
     ///@}
     ///@name Private  Access
