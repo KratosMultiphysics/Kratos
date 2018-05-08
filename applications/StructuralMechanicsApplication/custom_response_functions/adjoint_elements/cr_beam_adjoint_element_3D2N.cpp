@@ -216,10 +216,9 @@ namespace Kratos
         if(rDesignVariable == SHAPE_SENSITIVITY)
         {
             const int number_of_nodes = GetGeometry().PointsNumber();
-            const int dimension = this->GetGeometry().WorkingSpaceDimension();
+            const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
             const int local_size = number_of_nodes * dimension * 2;
-            const unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
-
+            
             rOutput.resize(dimension * number_of_nodes, local_size);
 
             // compute RHS before disturbing
@@ -229,7 +228,7 @@ namespace Kratos
             //TODO: look that this works also for parallel computing
             for(auto& node_i : this->GetGeometry())
             {
-                for(std::size_t coord_dir_i = 0; coord_dir_i < num_coord_dir; coord_dir_i++)
+                for(std::size_t coord_dir_i = 0; coord_dir_i < dimension; coord_dir_i++)
                 {
                     // disturb the design variable
                     node_i.GetInitialPosition()[coord_dir_i] += delta;
@@ -539,8 +538,7 @@ namespace Kratos
         if(rDesignVariable == SHAPE_SENSITIVITY)
         {
             const int number_of_nodes = GetGeometry().PointsNumber();
-            const int dimension = this->GetGeometry().WorkingSpaceDimension();
-            const unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+            const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
             // Compute stress on GP before disturbance
             this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
@@ -553,7 +551,7 @@ namespace Kratos
             //TODO: look that this works also for parallel computing
             for(auto& node_i : this->GetGeometry())
             {
-                for(std::size_t coord_dir_i = 0; coord_dir_i < num_coord_dir; coord_dir_i++)
+                for(std::size_t coord_dir_i = 0; coord_dir_i < dimension; coord_dir_i++)
                 {
                     // Disturb the design variable
                     node_i.GetInitialPosition()[coord_dir_i] += delta;

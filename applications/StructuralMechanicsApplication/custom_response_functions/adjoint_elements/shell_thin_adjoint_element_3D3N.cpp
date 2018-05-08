@@ -350,9 +350,8 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
         if(rDesignVariable == SHAPE_SENSITIVITY) 
         {
             const int number_of_nodes = GetGeometry().PointsNumber();
-            const int dimension = this->GetGeometry().WorkingSpaceDimension();
+            const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
             const int local_size = number_of_nodes * dimension * 2;
-            const unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
  
             rOutput.resize(dimension * number_of_nodes, local_size);
 
@@ -363,7 +362,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
             //TODO: look that this works also for parallel computing
             for(auto& node_i : this->GetGeometry())
             {
-                for(std::size_t coord_dir_i = 0; coord_dir_i < num_coord_dir; coord_dir_i++)
+                for(std::size_t coord_dir_i = 0; coord_dir_i < dimension; coord_dir_i++)
                 {
                     // disturb the design variable
                     node_i.GetInitialPosition()[coord_dir_i] += delta;
@@ -734,9 +733,8 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
     if(rDesignVariable == SHAPE_SENSITIVITY) 
     {
         const int number_of_nodes = GetGeometry().PointsNumber();
-        const int dimension = this->GetGeometry().WorkingSpaceDimension();
-        const unsigned int num_coord_dir = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
-
+        const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+        
         const SizeType num_gps = GetNumberOfGPs();
         rOutput.resize(dimension * number_of_nodes, num_gps);
      
@@ -747,7 +745,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
         //TODO: look that this works also for parallel computing
         for(auto& node_i : this->GetGeometry())
         {
-            for(std::size_t coord_dir_i = 0; coord_dir_i < num_coord_dir; coord_dir_i++)
+            for(std::size_t coord_dir_i = 0; coord_dir_i < dimension; coord_dir_i++)
             {
                 // disturb the design variable
                 node_i.GetInitialPosition()[coord_dir_i] += delta;
