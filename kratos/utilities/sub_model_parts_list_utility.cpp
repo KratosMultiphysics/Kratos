@@ -208,25 +208,23 @@ ModelPart& SubModelPartsListUtility::GetRecursiveSubModelPart(
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::unordered_map<int,std::vector<ModelPart::Pointer>> SubModelPartsListUtility::GetModelPartColorsPointers(
+std::unordered_map<int,std::vector<ModelPart*>> SubModelPartsListUtility::GetModelPartColorsPointers(
     ModelPart& rThisModelPart,
-    IntStringMapType& rColors
+    const IntStringMapType& rColors
     )
 {
     // Initialize output
-    std::unordered_map<int,std::vector<ModelPart::Pointer>> fast_colors;
+    std::unordered_map<int,std::vector<ModelPart*>> colors_ptr;
 
     for (auto color : rColors)
     {
         for (auto name : color.second)
         {
-            // ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(rThisModelPart, name);
-            // auto p_sub_model_part = Kratos::make_shared<ModelPart>(sub_model_part);
-            // fast_colors[color.first].push_back(p_sub_model_part);
+            colors_ptr[color.first].push_back(&SubModelPartsListUtility::GetRecursiveSubModelPart(rThisModelPart, name));
         }
     }
 
-    return fast_colors;
+    return colors_ptr;
 }
 
 /***********************************************************************************/

@@ -160,9 +160,9 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
      * @param rColors The reference colors
      * @return The fast access colors
      */
-    static std::unordered_map<int, std::vector<ModelPart::Pointer>> GetModelPartColorsPointers(
+    static std::unordered_map<int, std::vector<ModelPart*>> GetModelPartColorsPointers(
         ModelPart& ThisModelPart,
-        IntStringMapType& rColors
+        const IntStringMapType& rColors
         );
 
     /**
