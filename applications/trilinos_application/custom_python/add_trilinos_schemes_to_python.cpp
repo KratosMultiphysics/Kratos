@@ -48,8 +48,8 @@
 
 //schemes
 #include "solving_strategies/schemes/scheme.h"
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme_slip.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "custom_strategies/schemes/trilinos_residualbased_lagrangian_monolithic_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
 #include "custom_strategies/schemes/trilinos_residual_based_bossak_displacement_scheme.h"
@@ -107,7 +107,7 @@ void  AddSchemes(pybind11::module& m)
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
     typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
-    typedef TrilinosResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedIncrementalUpdateStaticSchemeType;
+    typedef ResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedIncrementalUpdateStaticSchemeType;
 
 //********************************************************************
     //********************************************************************
@@ -133,16 +133,16 @@ void  AddSchemes(pybind11::module& m)
     ;
 
     class_ <
-        TrilinosResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename TrilinosResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
+        ResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+        typename ResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >
            (m,"TrilinosResidualBasedIncrementalUpdateStaticScheme")
            .def(init< >() );
 
     class_ <
-        TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>  >
+        ResidualBasedIncrementalUpdateStaticSchemeSlip< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+        typename ResidualBasedIncrementalUpdateStaticSchemeSlip< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
+        ResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>  >
            (
                m,"TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip").def(init< unsigned int, unsigned int >()
            );

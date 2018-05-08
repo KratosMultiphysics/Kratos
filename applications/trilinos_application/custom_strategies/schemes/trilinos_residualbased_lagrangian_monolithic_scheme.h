@@ -88,7 +88,7 @@ Detail class definition.
 template<class TSparseSpace,
          class TDenseSpace //= DenseSpace<double>
          >
-class TrilinosResidualBasedLagrangianMonolithicScheme : public TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>
+class TrilinosResidualBasedLagrangianMonolithicScheme : public ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>
 {
 
 public:
@@ -97,7 +97,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosResidualBasedLagrangianMonolithicScheme);
 
-    typedef TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
+    typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -118,7 +118,7 @@ public:
     /** Constructor.
     */
     TrilinosResidualBasedLagrangianMonolithicScheme(int MoveMeshStrategy)
-        : TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>()
+        : ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>()
     {
         mMoveMeshFlag = MoveMeshStrategy;
 

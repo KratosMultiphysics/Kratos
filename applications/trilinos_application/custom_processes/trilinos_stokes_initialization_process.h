@@ -13,7 +13,7 @@
 #include "includes/mpi_communicator.h"
 
 // Application includes
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 //#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_periodic.h"
 #include "custom_utilities/parallel_fill_communicator.h"
@@ -150,7 +150,7 @@ public:
         typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
         // Solution scheme: Linear static scheme
-        SchemePointerType pScheme = SchemePointerType( new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > () );
+        SchemePointerType pScheme = SchemePointerType( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > () );
 
         // Builder and solver
         int guess_row_size;
