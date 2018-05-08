@@ -52,15 +52,17 @@
 #include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
 #include "custom_strategies/schemes/trilinos_residual_based_bossak_displacement_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
-#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
-#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_lagrangian_monolithic_scheme.h"
-#include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme.h"
-#include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
-#include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
-#include "custom_strategies/schemes/trilinos_residualbased_predictorcorrector_velocity_bossak_scheme_dpg_enriched.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
 
+// FluidDynamicsApplication schemes
+#include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/gear_scheme.h"
+
+// Incompressible fluid
+#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
+#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_lagrangian_monolithic_scheme.h"
+#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_dpg_enriched.h"
 
 // AdjointFluidApplication
 #include "../../AdjointFluidApplication/custom_utilities/response_function.h"
@@ -170,25 +172,17 @@ void  AddSchemes(pybind11::module& m)
                m,"TrilinosResidualBasedBossakDisplacementScheme").def(init<double >()
            );
 
-    typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedPredictorCorrectorVelocityBossak_BaseScheme;
+    typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedPredictorCorrectorVelocityBossak;
+
+    typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TurbulentBossakBaseType;
 
     class_ <
-        TrilinosResidualBasedPredictorCorrectorVelocityBossak_BaseScheme,
-        typename TrilinosResidualBasedPredictorCorrectorVelocityBossak_BaseScheme::Pointer,
+        TrilinosResidualBasedPredictorCorrectorVelocityBossak,
+        typename TrilinosResidualBasedPredictorCorrectorVelocityBossak::Pointer,
         TrilinosBaseSchemeType >
-           (
-               m,"TrilinosResidualBasedPredictorCorrectorVelocityBossak_BaseScheme").def(init<double, double >()
-           );
-
-    class_ <
-        TrilinosPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename TrilinosPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosResidualBasedPredictorCorrectorVelocityBossak_BaseScheme >
            (
                m,"TrilinosPredictorCorrectorVelocityBossakScheme").def(init<double, double >()
            );
-
-    typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TurbulentBossakBaseType;
 
     class_ < TurbulentBossakBaseType, typename TurbulentBossakBaseType::Pointer,TrilinosBaseSchemeType >
         (m,"TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent")
@@ -204,9 +198,9 @@ void  AddSchemes(pybind11::module& m)
         .def(init<unsigned int, Variable<double>& >() );
 
     class_ <
-        TrilinosResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename TrilinosResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType> >
+        ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+        typename ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
+        TrilinosBaseSchemeType >
         (m,"TrilinosResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched")
         .def(init<double, double, unsigned int>() );
 
