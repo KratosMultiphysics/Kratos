@@ -222,27 +222,6 @@ private:
 
     void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
 
-    void CalculateStress(Vector& rStrain,
-                         std::size_t IntegrationPoint,
-                         Vector& rStress,
-                         ProcessInfo const& rCurrentProcessInfo);
-
-    void CalculateStress(Matrix const& rF,
-                         std::size_t IntegrationPoint,
-                         Vector& rStress,
-                         ProcessInfo const& rCurrentProcessInfo);
-
-    void CalculateStrain(Matrix const& rF,
-                         std::size_t IntegrationPoint,
-                         Vector& rStrain,
-                         ProcessInfo const& rCurrentProcessInfo);
-
-    void CalculateBSensitivity(Matrix const& rDN_DX,
-                               Matrix const& rF,
-                               Matrix const& rDN_DX_Deriv,
-                               Matrix const& rF_Deriv,
-                               Matrix& rB_Deriv);
-
     std::size_t GetStrainSize() const;
 
     bool IsAxissymmetric() const;
