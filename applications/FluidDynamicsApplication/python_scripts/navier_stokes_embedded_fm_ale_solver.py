@@ -140,11 +140,14 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
         # Compute the BDF coefficients
         (self.bdf_process).Execute()
 
-        # Perform the FM-ALE operations
-        if (self._is_fm_ale_step()):
-            self._do_fm_ale_operations()
-        else:
-            self.fm_ale_step += 1
+        #TODO: REMOVE THIS IF STATEMENT ONCE #1904 IS MERGED
+        step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        if(step + 1 >= self.GetMinimumBufferSize()):
+            # Perform the FM-ALE operations
+            if (self._is_fm_ale_step()):
+                self._do_fm_ale_operations()
+            else:
+                self.fm_ale_step += 1
 
         # Fluid solver step initialization
         (self.solver).InitializeSolutionStep()
@@ -154,14 +157,17 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
         # Compute the BDF coefficients
         (self.bdf_process).Execute()
 
-        # Perform the FM-ALE operations
-        if (self._is_fm_ale_step()):
-            self._do_fm_ale_operations()
-        elif (self.fm_ale_step_frequency != 0):
-            self.fm_ale_step += 1
+        #TODO: REMOVE THIS IF STATEMENT ONCE #1904 IS MERGED
+        step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        if(step + 1 >= self.GetMinimumBufferSize()):
+            # Perform the FM-ALE operations
+            if (self._is_fm_ale_step()):
+                self._do_fm_ale_operations()
+            elif (self.fm_ale_step_frequency != 0):
+                self.fm_ale_step += 1
 
-        # Fluid solver solve call
-        (self.solver).Solve()
+            # Fluid solver solve call
+            (self.solver).Solve()
 
 
     def FinalizeSolutionStep(self):

@@ -50,9 +50,15 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// Utility to compute FILL INFO 
-  /** TODO: FILL INFO
-   * TODO: FILL INFO
+  /// Utility to initialize the historical data in moving boundary problems
+  /** This utility is based on the Fixed Mesh - Arbitrary Lagrangian Eulerian
+   * (FM-ALE) method but solving the mesh problem in an explicit manner. Thus,
+   * a virtual mesh is set. This virtual mesh is moved according to the
+   * structure movement. The virtual mesh movement, is computed in an explicit 
+   * manner as a weighted average. Such weights are computed by means of a 
+   * kernel function. Once the mesh movement (and velocity) have been computed,
+   * the origin mesh historical values (velocity and pressure) are computed as 
+   * an interpolation in the virtualmodel part.
    */
   class KRATOS_API(ALE_APPLICATION) ExplicitMeshMovingUtilities
   {
@@ -101,7 +107,7 @@ namespace Kratos
     void ComputeExplicitMeshMovement(const double DeltaTime);
 
     /**
-    * This method fills the mrModelPart with the nodes and elmens of a given model part
+    * This method fills the mrVirtualModelPart with the nodes and elmens of a given model part
     * It is supposed to be performed once. 
     * @param rOriginModelPart model part from where the nodes and elements are copied
     */
@@ -160,7 +166,7 @@ private:
 
     const double mSearchRadius;
 
-    ModelPart &mrModelPart;
+    ModelPart &mrVirtualModelPart;
     ModelPart &mrStructureModelPart;
 
     ///@}

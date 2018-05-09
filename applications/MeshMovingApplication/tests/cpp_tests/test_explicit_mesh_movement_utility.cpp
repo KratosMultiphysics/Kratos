@@ -58,12 +58,10 @@ namespace Testing {
         const double min_y = 0.0;
         const double coord_tol = 1e-3;
         for (auto it_node : origin_model_part.NodesArray()){
-            if ((std::abs(it_node->X() - min_x) < coord_tol) || (std::abs(it_node->X() - max_x) < coord_tol)){
+            if ((std::abs(it_node->X() - min_x) < coord_tol) || (std::abs(it_node->X() - max_x) < coord_tol))
                 it_node->Fix(MESH_DISPLACEMENT_X);
-            }
-            if ((std::abs(it_node->Y() - min_y) < coord_tol) || (std::abs(it_node->Y() - max_y) < coord_tol)){
+            if ((std::abs(it_node->Y() - min_y) < coord_tol) || (std::abs(it_node->Y() - max_y) < coord_tol))
                 it_node->Fix(MESH_DISPLACEMENT_Y);
-            }
         }
 
         // Create a fake time loop to fill the buffer
@@ -159,6 +157,8 @@ namespace Testing {
         gid_io_str.FinalizeResults();
 
         p_mesh_moving->UndoMeshMovement();
+
+        //TODO: CHECK OBTAINED MESH_VELOCITY, AND HISTORICAL VELOCITY AND PRESSURE
     }
 }
 }  // namespace Kratos.
