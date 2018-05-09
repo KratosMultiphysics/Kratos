@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define_python.h"
 #include "swimming_DEM_application.h"
-#include "swimming_DEM_application_variables.h"
+#include "swimming_dem_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
@@ -83,7 +83,6 @@ PYBIND11_MODULE(KratosSwimmingDEMApplication, m)
 
     //registering variables in python
 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_ERROR)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AVERAGED_FLUID_VELOCITY)
 
 }

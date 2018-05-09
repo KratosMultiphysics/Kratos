@@ -1,14 +1,14 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
-//                   
+//
 //
 
 #ifndef KRATOS_SWIMMING_DEM_APPLICATION_VARIABLES_H
@@ -19,7 +19,6 @@
 
 namespace Kratos {
 
-    KRATOS_DEFINE_APPLICATION_VARIABLE(SWIMMING_DEM_APPLICATION, double, SCALAR_ERROR)
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(SWIMMING_DEM_APPLICATION, AVERAGED_FLUID_VELOCITY)
 }
 
