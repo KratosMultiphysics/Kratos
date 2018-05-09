@@ -45,13 +45,12 @@ class TestPotentialElement2D(KratosUnittest.TestCase):
         return v
 
     def _transpose(self, m):
-        tmp = Matrix(m.Size1(), m.Size2())
-        for i in range(m.Size1()):
-            for j in range(m.Size2()):
+        tmp = Matrix(m.Size2(), m.Size1())
+        for i in range(m.Size2()):
+            for j in range(m.Size1()):
                 tmp[i,j] = m[j,i]
         return tmp
 
-    
     def _assert_vector_almost_equal(self, vector1, vector2, prec=7):
         self.assertEqual(vector1.Size(), vector2.Size())
         for i in range(vector1.Size()):
@@ -87,9 +86,6 @@ class TestPotentialElement2D(KratosUnittest.TestCase):
         dN_dxi_deta = Matrix(2,3)
         self.calculate_shape_functions_derivatives(dN_dxi_deta)
         
-        dN_dxi_deta_trans = Matrix(3,2)
-        self.calculate_shape_functions_derivatives_trans(dN_dxi_deta_trans)
-        
         coordinates = Matrix(3,2)
         self.get_coordinates(coordinates)
         
@@ -99,20 +95,13 @@ class TestPotentialElement2D(KratosUnittest.TestCase):
         J_inv = Matrix(2,2)
         self.calculate_inv_J(J,J_inv)
         
-        J_inv_trans = Matrix(2,2)
-        self.calculate_inv_J_trans(J,J_inv_trans)
-        
         dN_dx_dy = Matrix(2,3)
         dN_dx_dy = J_inv*dN_dxi_deta
         
-        dN_dx_dy_trans = Matrix(3,2)
-        dN_dx_dy_trans = dN_dxi_deta_trans*J_inv_trans
-        
         lhs2 = Matrix(3,3)
-        lhs2 = dN_dx_dy_trans*dN_dx_dy/2
+        lhs2 = self._transpose(dN_dx_dy)*dN_dx_dy/2
         self._assert_matrix_almost_equal(LHS,lhs2)
-        
-        
+                
     def calculate_shape_functions_derivatives(self, dN_dxi_deta):
         dN_dxi_deta[0,0] = -1
         dN_dxi_deta[0,1] =  1
@@ -121,35 +110,17 @@ class TestPotentialElement2D(KratosUnittest.TestCase):
         dN_dxi_deta[1,1] =  0
         dN_dxi_deta[1,2] =  1
     
-    def calculate_shape_functions_derivatives_trans(self, dN_dxi_deta_trans):
-        dN_dxi_deta_trans[0,0] = -1
-        dN_dxi_deta_trans[1,0] =  1
-        dN_dxi_deta_trans[2,0] =  0
-        dN_dxi_deta_trans[0,1] = -1
-        dN_dxi_deta_trans[1,1] =  0
-        dN_dxi_deta_trans[2,1] =  1
-    
-    
     def get_coordinates(self,coordinates):
-        counter = 0
-        for node in self.model_part.Nodes: #for counter, node in enumerate(self.model_part.Nodes)
+        for counter, node in enumerate(self.model_part.Nodes):
             coordinates[counter,0] = node.X 
             coordinates[counter,1] = node.Y
-            counter +=1
-        
+    
     def calculate_inv_J(self,J,J_inv):
         det_J = J[0,0]*J[1,1] - J[0,1]*J[1,0]
         J_inv[0,0] =  J[1,1]/det_J
         J_inv[0,1] = -J[0,1]/det_J
         J_inv[1,0] = -J[1,0]/det_J
         J_inv[1,1] =  J[0,0]/det_J
-    
-    def calculate_inv_J_trans(self,J,J_inv_trans):
-        det_J = J[0,0]*J[1,1] - J[0,1]*J[1,0]
-        J_inv_trans[0,0] =  J[1,1]/det_J
-        J_inv_trans[0,1] = -J[1,0]/det_J
-        J_inv_trans[1,0] = -J[0,1]/det_J
-        J_inv_trans[1,1] =  J[0,0]/det_J
 
 if __name__ == '__main__':
     KratosUnittest.main()
