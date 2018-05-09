@@ -45,14 +45,14 @@ class AnalysisStage(object):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
+
         while self.time < self.end_time:
-            solver.AdvanceInTime(self.time)
+            self.time = self.solver.AdvanceInTime(self.time)
             self.InitializeSolutionStep()
-            solver.Predict()
-            solver.SolveSolutionStep()
+            self.solver.Predict()
+            self.solver.SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
-
 
 
     def Initialize(self):
@@ -60,7 +60,7 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-        solver.ImportModelPart()
+        self.solver.ImportModelPart()
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
 
@@ -68,7 +68,7 @@ class AnalysisStage(object):
         for process in self.list_of_processes:
             process.ExecuteInitialize()
 
-        solver.Initialize()
+        self.solver.Initialize()
 
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
