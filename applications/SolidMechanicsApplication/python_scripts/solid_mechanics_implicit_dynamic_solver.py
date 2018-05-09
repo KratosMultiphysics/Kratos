@@ -20,7 +20,7 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
     Public member variables:
     dynamic_settings -- settings for the implicit dynamic solvers.
 
-    See solid_mechanics_solver.py for more information.
+    See solid_mechanics_monolithic_solver.py for more information.
     """
     def __init__(self, custom_settings):
 
@@ -59,7 +59,7 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
     #### Solver internal methods ####
 
-    def _create_solution_scheme(self):
+    def _set_scheme_parameters(self):
 
         integration_method = self.settings["time_integration_settings"]["integration_method"].GetString()
 
@@ -91,45 +91,6 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
 
-
-        # set solution scheme
-        import schemes_factory
-        Schemes = schemes_factory.SolutionScheme(self.settings["time_integration_settings"],self.settings["dofs"])
-        mechanical_scheme = Schemes.GetSolutionScheme()
-
-        # set integration method dictionary for components
-        self.integration_methods = Schemes.GetComponentIntegrationMethods()
-
-        # set time order
-        self.process_info[KratosSolid.TIME_INTEGRATION_ORDER] = Schemes.GetTimeIntegrationOrder()
-
-        # set integration parameters
-        self._set_time_integration_methods()
-
-        return mechanical_scheme
-
-    def _set_time_integration_methods(self):
-
-        # first: calculate parameters (only once permitted) (set is included)
-        #self.integration_methods['DISPLACEMENT'].CalculateParameters(self.process_info) #calculate
-        # second: for the same method the parameters (already calculated)
-        #self.integration_methods['ROTATION'].SetParameters(self.process_info) #set parameters
-        # third... somehow it must be a integration method for each dof supplied in "dofs"=[]
-
-        # calculate method parameters and set to process info internally
-        main_dof = next(iter(self.integration_methods))
-        self.integration_methods[main_dof].CalculateParameters(self.process_info)
-
-        print(" main dof ",main_dof, " ", self.integration_methods[main_dof])
-
-        # add to integration methods container and set to process_info for processes acces
-        integration_methods_container = KratosSolid.ComponentTimeIntegrationMethods()
-        for dof, method in self.integration_methods.items():
-            method.SetParameters(self.process_info) #set same parameters to all methods from process_info values
-            integration_methods_container.Set(dof,method)
-        integration_methods_container.AddToProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, integration_methods_container, self.process_info)
-
-        #print(integration_methods_container)
 
     def _create_mechanical_solver(self):
         if(self.settings["solving_strategy_settings"]["line_search"].GetBool() == True):

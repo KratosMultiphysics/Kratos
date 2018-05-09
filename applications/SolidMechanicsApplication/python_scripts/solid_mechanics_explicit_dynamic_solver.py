@@ -20,7 +20,7 @@ class ExplicitMonolithicSolver(BaseSolver.MonolithicSolver):
     Public member variables:
     dynamic_settings -- settings for the implicit dynamic solvers.
 
-    See solid_mechanics_solver.py for more information.
+    See solid_mechanics_monolithic_solver.py for more information.
     """
     def __init__(self, custom_settings):
 

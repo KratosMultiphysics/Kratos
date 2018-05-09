@@ -19,7 +19,7 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
 
     Public member variables:
 
-    See solid_mechanics_solver.py for more information.
+    See solid_mechanics_monolithic_solver.py for more information.
     """
     def __init__(self, custom_settings):
 
@@ -47,19 +47,8 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
 
     #### Solver internal methods ####
 
-    def _create_solution_scheme (self):
-        # set solution scheme
-        import schemes_factory
-        Schemes = schemes_factory.SolutionScheme(self.settings["time_integration_settings"],self.settings["dofs"])
-        mechanical_scheme = Schemes.GetSolutionScheme()
-
-        # set integration method dictionary for components
-        self.integration_methods = Schemes.GetComponentIntegrationMethods()
-
-        # set integration parameters
-        self._set_time_integration_methods()
-
-        return mechanical_scheme
+    def _set_scheme_parameters(self):
+        pass
 
     def _create_mechanical_solver(self):
         if(self.settings["solving_strategy_settings"]["line_search"].GetBool() == True):
