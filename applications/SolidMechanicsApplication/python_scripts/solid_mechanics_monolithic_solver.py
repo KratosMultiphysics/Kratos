@@ -65,7 +65,8 @@ class MonolithicSolver(object):
                 "variable_relative_tolerance": 1.0e-4,
                 "variable_absolute_tolerance": 1.0e-9,
                 "residual_relative_tolerance": 1.0e-4,
-                "residual_absolute_tolerance": 1.0e-9
+                "residual_absolute_tolerance": 1.0e-9,
+                "separate_dofs": true
             },
             "linear_solver_settings":{
                 "solver_type": "SuperLUSolver",
@@ -310,7 +311,7 @@ class MonolithicSolver(object):
 
         # Construction of the class convergence_criterion
         import convergence_criteria_factory
-        convergence_criterion = convergence_criteria_factory.ConvergenceCriterion(criterion_parameters)
+        convergence_criterion = convergence_criteria_factory.ConvergenceCriterion(criterion_parameters,self.settings["dofs"])
 
         return convergence_criterion.GetConvergenceCriterion()
 

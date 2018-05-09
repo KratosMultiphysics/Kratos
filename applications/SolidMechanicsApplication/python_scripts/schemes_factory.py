@@ -43,56 +43,90 @@ class SolutionScheme:
         nodal_variables = self.nodal_variables + self.dof_variables + self.dof_reactions + self.dof_derivatives
 
         return nodal_variables
-    
+
     def GetDofsAndReactions(self):
 
         if not hasattr(self, '_dof_variables'):
             self._set_variables_and_dofs()
 
         return self.dof_variables, self.dof_reactions
-            
+
     def GetSolutionScheme(self):
 
-        integration_methods = []
+        vector_integration_methods = []
+        scalar_integration_methods = []
 
         for dof in self.dofs:
 
             ##check if variable type is a vector
             kratos_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof)
-            if( not isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) ):
-                raise Exception("DOF is incorrect. Must be a three-component vector.")
+            if( isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) ):
 
-            integration_method_name   = self._get_integration_method_name(dof)
-            vector_integration_method = getattr(KratosSolid, integration_method_name+'VectorIntegration')
+                integration_method_name   = self._get_integration_method_name(dof)
+                vector_integration_method = getattr(KratosSolid, integration_method_name+'VectorIntegration')
 
-            variable_names = self._get_integration_method_variables(dof)
-            variables = []
-            for variable in variable_names:
-                variables = variables + [KratosMultiphysics.KratosGlobals.GetVariable(variable)]
+                variable_names = self._get_integration_method_variables(dof)
+                variables = []
+                for variable in variable_names:
+                    variables = variables + [KratosMultiphysics.KratosGlobals.GetVariable(variable)]
 
-            integration_method = None
-            if( len(variables) == 4 ):
-                integration_method = vector_integration_method(variables[0],variables[1],variables[2],variables[3])
-            elif( len(variables) == 1 ):
-                integration_method = vector_integration_method(variables[0])
+                integration_method = None
+                if( len(variables) == 4 ):
+                    integration_method = vector_integration_method(variables[0],variables[1],variables[2],variables[3])
+                elif( len(variables) == 1 ):
+                    integration_method = vector_integration_method(variables[0])
+                else:
+                    raise Exception('len(variables) = ' + str(len(variables)))
+
+                if(integration_method_name.find("Step") != -1):
+                    step_variable_name = 'STEP_'+dof
+                    integration_method.SetStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(step_variable_name))
+
+                #print("Integration", integration_method)
+                vector_integration_methods.append(integration_method)
+
+            elif( isinstance(kratos_variable,KratosMultiphysics.DoubleVariable) ):
+
+                integration_method_name   = self._get_integration_method_name(dof)
+                scalar_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
+
+                variable_names = self._get_integration_method_variables(dof)
+                variables = []
+                for variable in variable_names:
+                    variables = variables + [KratosMultiphysics.KratosGlobals.GetVariable(variable)]
+
+                integration_method = None
+                if( len(variables) == 4 ):
+                    integration_method = scalar_integration_method(variables[0],variables[1],variables[2],variables[3])
+                elif( len(variables) == 1 ):
+                    integration_method = scalar_integration_method(variables[0])
+                else:
+                    raise Exception('len(variables) = ' + str(len(variables)))
+
+                if(integration_method_name.find("Step") != -1):
+                    step_variable_name = 'STEP_'+dof
+                    integration_method.SetStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(step_variable_name))
+
+                #print("Integration", integration_method)
+                scalar_integration_methods.append(integration_method)
+
             else:
-                raise Exception('len(variables) = ' + str(len(variables)))
-
-            if(integration_method_name.find("Step") != -1):
-                step_variable_name = 'STEP_'+dof
-                integration_method.SetStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(step_variable_name))
-
-            #print("Integration", integration_method)
-            integration_methods.append(integration_method)
+                raise Exception("DOF is incorrect. Must be a three-component vector or a scalar.")
 
         solution_scheme = None
         if(self.settings["solution_type"].GetString() == "Dynamic"):
-
             if(self.settings["time_integration"].GetString() == "Implicit"):
-                solution_scheme = KratosSolid.DynamicScheme(integration_methods)
-
+                if(len(vector_integration_methods)):
+                    if(len(scalar_integration_methods)):
+                        solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods)
+                    else:
+                        solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods,scalar_integration_methods)
         elif(self.settings["solution_type"].GetString() == "Static" or self.settings["solution_type"].GetString() == "Quasi-static"):
-            solution_scheme = KratosSolid.StaticScheme(integration_methods)
+            if(len(vector_integration_methods)):
+                if(len(scalar_integration_methods)):
+                    solution_scheme = KratosSolid.StaticScheme(vector_integration_methods)
+                else:
+                    solution_scheme = KratosSolid.StaticScheme(vector_integration_methods,scalar_integration_methods)
 
         return solution_scheme
 
@@ -289,4 +323,3 @@ class SolutionScheme:
             return True
 
         return False
- 

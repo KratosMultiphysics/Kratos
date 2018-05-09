@@ -60,23 +60,37 @@ namespace Kratos
     typedef ModelPart::ElementsContainerType                        ElementsContainerType;
     typedef ModelPart::ConditionsContainerType                    ConditionsContainerType;
 
-    typedef typename BaseType::IntegrationType                            IntegrationType;
-    typedef typename BaseType::IntegrationPointerType              IntegrationPointerType;
     typedef typename BaseType::IntegrationMethodsVectorType  IntegrationMethodsVectorType;
+    typedef typename BaseType::IntegrationMethodsScalarType  IntegrationMethodsScalarType;
 
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /// Constructor.
-    StaticScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods, Flags& rOptions)
-        :BaseType(rTimeIntegrationMethods, rOptions)
+    StaticScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods, Flags& rOptions)
+        :BaseType(rTimeVectorIntegrationMethods, rOptions)
     {
     }
 
     /// Constructor.
-    StaticScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods)
-        :BaseType(rTimeIntegrationMethods)
+    StaticScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods)
+        :BaseType(rTimeVectorIntegrationMethods)
+    {
+    }
+    
+    /// Constructor.
+    StaticScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
+                 IntegrationMethodsScalarType& rTimeScalarIntegrationMethods,
+                 Flags& rOptions)
+        :BaseType(rTimeVectorIntegrationMethods, rTimeScalarIntegrationMethods, rOptions)
+    {
+    }
+
+    /// Constructor.
+    StaticScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
+                 IntegrationMethodsScalarType& rTimeScalarIntegrationMethods)
+        :BaseType(rTimeVectorIntegrationMethods, rTimeScalarIntegrationMethods)
     {
     }
     
@@ -111,7 +125,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-	BaseType::Initialize(rModelPart);         
+	BaseType::Initialize(rModelPart);
 
 	KRATOS_CATCH("")
     }
@@ -155,7 +169,7 @@ namespace Kratos
       KRATOS_CATCH( "" );
     }
 
- 
+
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
@@ -194,8 +208,8 @@ namespace Kratos
 	  KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
         }
 
-      if ( this->mTimeIntegrationMethods.size() == 0 ) {
-        KRATOS_ERROR << "Time integration method NOT supplied" << std::endl;
+      if ( this->mTimeVectorIntegrationMethods.size() == 0  && this->mTimeScalarIntegrationMethods.size() == 0 ) {
+        KRATOS_ERROR << "Time integration methods for Vector or Scalar variables NOT supplied" << std::endl;
       }
 
       return ErrorCode;

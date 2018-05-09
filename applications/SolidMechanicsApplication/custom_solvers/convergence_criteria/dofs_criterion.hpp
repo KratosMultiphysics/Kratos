@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_RESIDUAL_CRITERION_H_INCLUDED )
-#define  KRATOS_RESIDUAL_CRITERION_H_INCLUDED
+#if !defined(KRATOS_DOFS_CRITERION_H_INCLUDED )
+#define  KRATOS_DOFS_CRITERION_H_INCLUDED
 
 // System includes
 
@@ -19,10 +19,6 @@
 
 namespace Kratos
 {
-
-///@addtogroup SolidMechanicsApplication
-///@{
-
 ///@name Kratos Globals
 ///@{
 
@@ -42,12 +38,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * @class ResidualCriterion
- * @brief This convergence criteria checks the residual
+
+/** @class DofsCriterion
+ * @brief This convergence criteria checks the variable dofs
  */
+
 template<class TSparseSpace, class TDenseSpace>
-class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpace >
+class DofsCriterion : public ConvergenceCriterion<TSparseSpace,TDenseSpace>
 {
  public:
 
@@ -68,18 +65,16 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
   typedef const VariableVectorType*                VariableVectorPointer;
   typedef const VariableScalarType*                VariableScalarPointer;
 
-  typedef std::vector<VariableComponent<VectorComponentType> > ComponentVariableVector;
-
-  /// Pointer definition of ResidualCriterion
-  KRATOS_CLASS_POINTER_DEFINITION(ResidualCriterion);
+  /// Pointer definition of DofsCriterion
+  KRATOS_CLASS_POINTER_DEFINITION( DofsCriterion );
 
   ///@}
   ///@name Life Cycle
   ///@{
 
   /// Constructor.
-  ResidualCriterion(DataType RatioTolerance,
-                    DataType AbsoluteTolerance)
+  DofsCriterion(DataType RatioTolerance,
+                DataType AbsoluteTolerance)
       : BaseType(), mRatioTolerance(RatioTolerance), mAbsoluteTolerance(AbsoluteTolerance)
   {
     mpScalarVariable = nullptr;
@@ -88,9 +83,9 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
   }
 
   /// Constructor.
-  ResidualCriterion(const VariableScalarType& rScalarVariable,
-                    DataType RatioTolerance,
-                    DataType AbsoluteTolerance)
+  DofsCriterion(const VariableScalarType& rScalarVariable,
+                DataType RatioTolerance,
+                DataType AbsoluteTolerance)
       : BaseType(), mRatioTolerance(RatioTolerance), mAbsoluteTolerance(AbsoluteTolerance)
   {
     mpScalarVariable = &rScalarVariable;
@@ -99,10 +94,10 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
   }
 
   /// Constructor.
-  ResidualCriterion(const VariableVectorType& rVectorVariable,
-                    DataType RatioTolerance,
-                    DataType AbsoluteTolerance)
-      :BaseType(), mRatioTolerance(RatioTolerance), mAbsoluteTolerance(AbsoluteTolerance)
+  DofsCriterion(const VariableVectorType& rVectorVariable,
+                DataType RatioTolerance,
+                DataType AbsoluteTolerance)
+      : BaseType(), mRatioTolerance(RatioTolerance), mAbsoluteTolerance(AbsoluteTolerance)
   {
     mpVectorVariable = &rVectorVariable;
     mpScalarVariable = nullptr;
@@ -110,18 +105,17 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
   }
 
   /// Copy constructor.
-  ResidualCriterion( ResidualCriterion const& rOther )
+  DofsCriterion(DofsCriterion const& rOther)
       :BaseType(rOther)
       ,mRatioTolerance(rOther.mRatioTolerance)
       ,mAbsoluteTolerance(rOther.mAbsoluteTolerance)
-      ,mInitialResidualNorm(rOther.mInitialResidualNorm)
       ,mpScalarVariable(rOther.mpScalarVariable)
       ,mpVectorVariable(rOther.mpVectorVariable)
   {
   }
 
   /// Destructor.
-  ~ResidualCriterion() override {}
+  ~DofsCriterion() override {}
 
 
   ///@}
@@ -133,54 +127,54 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
                     DofsArrayType& rDofSet,
                     const SystemMatrixType& rA,
                     const SystemVectorType& rDx,
-                    const SystemVectorType& rb
-                    ) override
+                    const SystemVectorType& rb) override
   {
-    if (TSparseSpace::Size(rb) != 0) //if we are solving for something
+    if (TSparseSpace::Size(rDx) != 0) //if we are solving for something
     {
+      DataType ratio = 0.00;
+      DataType CorrectionNorm = DataType();
+      DataType ReferenceNorm  = DataType();
 
       std::size_t size = 0;
 
-      if( this->IsNot(LocalFlagType::INITIALIZED) )
-      {
-        size = CalculateResidualNorm(rDofSet,rb,mInitialResidualNorm);
-        this->Set(LocalFlagType::INITIALIZED,true);
+      if( this->Is(LocalFlagType::INCREMENTAL) ){
+        size = CalculateIncrementalNorm(rDofSet,rDx, ReferenceNorm, CorrectionNorm);
       }
-
-      DataType ratio;
-      DataType CurrentResidualNorm;
-      size = CalculateResidualNorm(rDofSet,rb,CurrentResidualNorm);
+      else{
+        size = CalculateReferenceNorm(rDofSet,rDx, ReferenceNorm, CorrectionNorm);
+      }
 
       if( size == 0 )
         KRATOS_ERROR << "Dofs vector has size: " << size << std::endl;
 
-      if(mInitialResidualNorm == 0.00)
+      if(CorrectionNorm != 0)
       {
-        ratio = 0.00;
-      }
-      else
-      {
-        ratio = CurrentResidualNorm/mInitialResidualNorm;
+        ratio = CorrectionNorm/ReferenceNorm;
       }
 
-      const DataType absolute_norm = (CurrentResidualNorm/static_cast<DataType>(size));
+      if( ratio == 0 && int(CorrectionNorm-int(ReferenceNorm))==0 )
+      {
+        ratio = 1.0;
+      }
+
+      const DataType absolute_norm = (CorrectionNorm/static_cast<DataType>(size));
 
       if (rModelPart.GetCommunicator().MyPID() == 0)
       {
-        if (this->GetEchoLevel() >= 1)
+        if(this->GetEchoLevel() >= 1)
         {
-          std::cout << "RESIDUAL (" << GetDofName() << ") :: Ratio = "<< ratio  << "; Norm = " << absolute_norm <<std::endl;
+          std::cout << "VARIABLE (" << GetDofName() << ") :: Ratio = " << ratio << "; Norm = " << absolute_norm << std::endl;
         }
       }
 
       rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
       rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
-      if (ratio <= mRatioTolerance || absolute_norm < mAbsoluteTolerance)
+      if ( ratio <= mRatioTolerance  ||  absolute_norm < mAbsoluteTolerance )
       {
-        if (rModelPart.GetCommunicator().MyPID() == 0)
+        if (rModelPart.GetCommunicator().MyPID() == 0 )
         {
-          if (this->GetEchoLevel() >= 1)
+          if( this->GetEchoLevel() >= 1 )
           {
             std::cout << "Convergence is achieved" << std::endl;
           }
@@ -189,46 +183,49 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
       }
       else
       {
-        return false;
+        if( this->Is(LocalFlagType::INCREMENTAL) && ratio == 1.0  && ReferenceNorm <= mRatioTolerance * 1e-2)
+        {
+          if (rModelPart.GetCommunicator().MyPID() == 0)
+          {
+            if (this->GetEchoLevel() >= 1)
+            {
+              std::cout << "Convergence is achieved : - no movement - " << std::endl;
+            }
+          }
+          return true;
+        }
+        else
+        {
+          return false;
+        }
       }
     }
-    else
+    else //in this case all the dofs are imposed!
     {
       return true;
     }
   }
 
 
-  void InitializeSolutionStep(ModelPart& rModelPart,
-                              DofsArrayType& rDofSet,
-                              const SystemMatrixType& rA,
-                              const SystemVectorType& rDx,
-                              const SystemVectorType& rb) override
-  {
-    this->Set(LocalFlagType::INITIALIZED,false);
-  }
+    ///@}
+    ///@name Operations
+    ///@{
 
+    ///@}
+    ///@name Access
+    ///@{
 
-  ///@}
-  ///@name Operations
-  ///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-  ///@}
-  ///@name Access
-  ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
-  ///@}
-  ///@name Inquiry
-  ///@{
-
-  ///@}
-  ///@name Friends
-  ///@{
-
-  ///@}
+    ///@}
 
  protected:
-
   ///@name Protected static Member Variables
   ///@{
 
@@ -270,8 +267,6 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
 
   DataType mAbsoluteTolerance;
 
-  DataType mInitialResidualNorm;
-
   VariableScalarPointer  mpScalarVariable;
 
   VariableVectorPointer  mpVectorVariable;
@@ -284,12 +279,13 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
   ///@name Private Operations
   ///@{
 
-  std::size_t CalculateResidualNorm(DofsArrayType& rDofSet, const SystemVectorType& rb, DataType& rResidualNorm)
+  std::size_t CalculateReferenceNorm(DofsArrayType& rDofSet, const SystemVectorType& rDx, DataType& rReferenceNorm, DataType& rCorrectionNorm)
   {
     KRATOS_TRY
 
     std::size_t size = 0;
-    rResidualNorm = 0.0;
+    rCorrectionNorm = 0.0;
+    rReferenceNorm  = 0.0;
 
     if( this->Is(CriterionLocalFlags::SUPPLIED_DOF) ){
 
@@ -302,8 +298,10 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
           {
             if(CheckVectorDof(i_dof))
             {
-              temp = rb[i_dof->EquationId()];
-              rResidualNorm +=  temp*temp;
+              temp = rDx[i_dof->EquationId()];
+              rCorrectionNorm +=  temp*temp;
+              temp = i_dof->GetSolutionStepValue();
+              rReferenceNorm += temp*temp;
               ++size;
             }
           }
@@ -319,8 +317,10 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
           {
             if(i_dof->GetVariable() == *mpScalarVariable)
             {
-              temp = rb[i_dof->EquationId()];
-              rResidualNorm += temp*temp;
+              temp = rDx[i_dof->EquationId()];
+              rCorrectionNorm +=  temp*temp;
+              temp = i_dof->GetSolutionStepValue();
+              rReferenceNorm += temp*temp;
               ++size;
             }
           }
@@ -331,12 +331,107 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
         KRATOS_ERROR << " No variable dof supplied to the convergence criterion " << std::endl;
       }
 
-      rResidualNorm = std::sqrt(rResidualNorm);
+      rCorrectionNorm = std::sqrt(rCorrectionNorm);
     }
     else{
-      rResidualNorm = TSparseSpace::TwoNorm(rb);
-      size = TSparseSpace::Size(rb);
+
+      rCorrectionNorm = TSparseSpace::TwoNorm(rDx);
+      size = TSparseSpace::Size(rDx);
+
+      DataType temp;
+
+      for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+      {
+        if(i_dof->IsFree())
+        {
+          temp = i_dof->GetSolutionStepValue();
+          rReferenceNorm += temp*temp;
+        }
+      }
+
     }
+
+    rReferenceNorm = std::sqrt(rReferenceNorm+1e-20); //to avoid 0
+
+    return size;
+
+    KRATOS_CATCH("")
+  }
+
+
+  std::size_t CalculateIncrementalNorm(DofsArrayType& rDofSet, const SystemVectorType& rDx, DataType& rReferenceNorm, DataType& rCorrectionNorm)
+  {
+    KRATOS_TRY
+
+    std::size_t size = 0;
+    rCorrectionNorm = 0.0;
+    rReferenceNorm  = 0.0;
+
+    if( this->Is(CriterionLocalFlags::SUPPLIED_DOF) ){
+
+      if( mpVectorVariable != nullptr ){
+
+        DataType temp;
+
+        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+        {
+          if(i_dof->IsFree())
+          {
+            if(CheckVectorDof(i_dof))
+            {
+              temp = rDx[i_dof->EquationId()];
+              rCorrectionNorm +=  temp*temp;
+              temp = (i_dof->GetSolutionStepValue()-i_dof->GetSolutionStepValue(1));
+              rReferenceNorm += temp*temp;
+              ++size;
+            }
+          }
+        }
+      }
+      else if( mpScalarVariable != nullptr ){
+
+        DataType temp;
+
+        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+        {
+          if(i_dof->IsFree())
+          {
+            if(i_dof->GetVariable() == *mpScalarVariable)
+            {
+              temp = rDx[i_dof->EquationId()];
+              rCorrectionNorm +=  temp*temp;
+              temp = (i_dof->GetSolutionStepValue()-i_dof->GetSolutionStepValue(1));
+              rReferenceNorm += temp*temp;
+              ++size;
+            }
+          }
+        }
+
+      }
+      else{
+        KRATOS_ERROR << " No variable dof supplied to the convergence criterion " << std::endl;
+      }
+    }
+    else{
+
+      DataType temp;
+
+      for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+      {
+        if(i_dof->IsFree())
+        {
+          temp = rDx[i_dof->EquationId()];
+          rCorrectionNorm +=  temp*temp;
+          temp = (i_dof->GetSolutionStepValue()-i_dof->GetSolutionStepValue(1));
+          rReferenceNorm += temp*temp;
+          ++size;
+        }
+      }
+
+    }
+
+    rCorrectionNorm = std::sqrt(rCorrectionNorm);
+    rReferenceNorm  = std::sqrt(rReferenceNorm+1e-20); //to avoid 0
 
     return size;
 
@@ -391,7 +486,7 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
 
   ///@}
 
-}; // Class ResidualCriterion
+}; // Class DofsCriterion
 
 ///@}
 
@@ -409,4 +504,4 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RESIDUAL_CRITERION_H_INCLUDED defined
+#endif // KRATOS_DOFS_CRITERION_H_INCLUDED  defined

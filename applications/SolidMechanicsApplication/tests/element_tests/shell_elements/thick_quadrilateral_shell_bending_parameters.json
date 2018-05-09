@@ -1,4 +1,4 @@
-{ 
+{
     "input_settings" : {
 	"materials_file_name" : "element_tests/shell_elements/thin_shell_materials.json"
     },
@@ -34,11 +34,12 @@
 	    },
 	    "convergence_criterion_settings" : {
                 "convergence_criterion"       : "Residual_criterion",
-                "variable_relative_tolerance" : 0.0001,
-                "variable_absolute_tolerance" : 1e-9,
                 "residual_relative_tolerance" : 1e-6,
                 "residual_absolute_tolerance" : 1e-6
             },
+	    "linear_solver_settings" : {
+		"solver_type": "SkylineLUFactorizationSolver"
+	    },
 	    "dofs" : ["DISPLACEMENT","ROTATION"]
         }
     },

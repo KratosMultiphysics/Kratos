@@ -56,6 +56,7 @@ class CriterionLocalFlags
   KRATOS_DEFINE_LOCAL_FLAG( AND );
   KRATOS_DEFINE_LOCAL_FLAG( OR );
   KRATOS_DEFINE_LOCAL_FLAG( UPDATE_RHS );
+  KRATOS_DEFINE_LOCAL_FLAG( SUPPLIED_DOF );
 };
 
 /** @brief Convergence Criterion base class
@@ -275,7 +276,7 @@ KRATOS_CREATE_LOCAL_FLAG( CriterionLocalFlags, CONVERGED,                 2 );
 KRATOS_CREATE_LOCAL_FLAG( CriterionLocalFlags, AND,                       3 );
 KRATOS_CREATE_LOCAL_FLAG( CriterionLocalFlags, OR,                        4 );
 KRATOS_CREATE_LOCAL_FLAG( CriterionLocalFlags, UPDATE_RHS,                5 );
-
+KRATOS_CREATE_LOCAL_FLAG( CriterionLocalFlags, SUPPLIED_DOF,              6 );
 ///@}
 ///@name Input and output
 ///@{
