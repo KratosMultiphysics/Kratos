@@ -45,7 +45,7 @@
                 "apply_mesh_solver" : true,
                 "solver_settings" : {
                     "solver_type": "mesh_solver_structural_similarity",
-                    "linear_solver_settings"  : {
+                    "mesh_motion_linear_solver_settings"  : {
                         "solver_type" : "Super_LU",
                         "scaling"     : false,
                         "verbosity"   : 0
