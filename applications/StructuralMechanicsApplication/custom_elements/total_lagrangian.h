@@ -222,6 +222,11 @@ private:
 
     void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
 
+    void CalculateStress(Vector& rStrain,
+                         std::size_t IntegrationPoint,
+                         Vector& rStress,
+                         ProcessInfo const& rCurrentProcessInfo);
+
     std::size_t GetStrainSize() const;
 
     bool IsAxisymmetric() const;

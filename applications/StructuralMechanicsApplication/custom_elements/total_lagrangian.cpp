@@ -492,37 +492,37 @@ private:
     }
 };
 
-class ConstitutiveLawVariables
-{
-public:
-    ConstitutiveLawVariables(Element::GeometryType const& rGeom,
-                             Element::PropertiesType const& rProp,
-                             ConstitutiveLaw::StressMeasure StressMeasure)
-        : mrGeom(rGeom), mrProperties(rProp), mStressMeasure(StressMeasure)
-    {
-    }
+// class ConstitutiveLawVariables
+// {
+// public:
+//     ConstitutiveLawVariables(Element::GeometryType const& rGeom,
+//                              Element::PropertiesType const& rProp,
+//                              ConstitutiveLaw::StressMeasure StressMeasure)
+//         : mrGeom(rGeom), mrProperties(rProp), mStressMeasure(StressMeasure)
+//     {
+//     }
 
-    const Vector& Stress(Vector& rStrain,
-                         ConstitutiveLaw& rConstitutiveLaw,
-                         ProcessInfo const& rCurrentProcessInfo)
-    {
-        KRATOS_TRY;
-        ConstitutiveLaw::Parameters cl_params(mrGeom, mrProperties, rCurrentProcessInfo);
-        cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS |
-                                   ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        cl_params.SetStrainVector(rStrain);
-        cl_params.SetStressVector(mStress);
-        rConstitutiveLaw.CalculateMaterialResponse(cl_params, mStressMeasure);
-        return mStress;
-        KRATOS_CATCH("");
-    }
+//     const Vector& Stress(Vector& rStrain,
+//                          ConstitutiveLaw& rConstitutiveLaw,
+//                          ProcessInfo const& rCurrentProcessInfo)
+//     {
+//         KRATOS_TRY;
+//         ConstitutiveLaw::Parameters cl_params(mrGeom, mrProperties, rCurrentProcessInfo);
+//         cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS |
+//                                    ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+//         cl_params.SetStrainVector(rStrain);
+//         cl_params.SetStressVector(mStress);
+//         rConstitutiveLaw.CalculateMaterialResponse(cl_params, mStressMeasure);
+//         return mStress;
+//         KRATOS_CATCH("");
+//     }
 
-private:
-    const Element::GeometryType& mrGeom;
-    const Element::PropertiesType& mrProperties;
-    const ConstitutiveLaw::StressMeasure mStressMeasure;
-    Vector mStress;
-};
+// private:
+//     const Element::GeometryType& mrGeom;
+//     const Element::PropertiesType& mrProperties;
+//     const ConstitutiveLaw::StressMeasure mStressMeasure;
+//     Vector mStress;
+// };
 
 class LargeDisplacementDeformationVariables
 {
@@ -890,6 +890,20 @@ void TotalLagrangian::CalculateAxisymmetricF(Matrix const& rJ,
     KRATOS_CATCH("");
 }
 
+void TotalLagrangian::CalculateStress(Vector& rStrain,
+                                      std::size_t IntegrationPoint,
+                                      Vector& rStress,
+                                      ProcessInfo const& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    ConstitutiveLaw::Parameters cl_params(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS | ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    cl_params.SetStrainVector(rStrain);
+    cl_params.SetStressVector(rStress);
+    mConstitutiveLawVector[IntegrationPoint]->CalculateMaterialResponse(cl_params, GetStressMeasure());
+    KRATOS_CATCH("");
+}
+
 std::size_t TotalLagrangian::GetStrainSize() const
 {
     return GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
@@ -934,17 +948,12 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
         Vector body_force;
         LargeDisplacementDeformationVariables deformation_vars(r_geom, IsAxisymmetric());
         LargeDisplacementSensitivityVariables sensitivity_vars(r_geom);
-        ConstitutiveLawVariables cl_vars(r_geom, GetProperties(),
-                                         ConstitutiveLaw::StressMeasure_PK2);
-        ConstitutiveLawVariables constitutive_sensitivities(
-            r_geom, GetProperties(), ConstitutiveLaw::StressMeasure_PK2);
+        Vector stress_vector, stress_vector_deriv;
         for (std::size_t g = 0; g < r_geom.IntegrationPointsNumber(); ++g)
         {
             const Matrix& rB = deformation_vars.B(g);
-            const Vector& stress_vector =
-                cl_vars.Stress(deformation_vars.StrainVector(g),
-                               *mConstitutiveLawVector[g], rCurrentProcessInfo);
-
+            CalculateStress(deformation_vars.StrainVector(g), g, stress_vector,
+                            rCurrentProcessInfo);
             double weight = GetIntegrationWeight(r_geom.IntegrationPoints(), g,
                                                  deformation_vars.DetJ0(g));
             noalias(N) = row(r_geom.ShapeFunctionsValues(), g);
@@ -953,9 +962,8 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
             for (auto s = ShapeParameter::Sequence(nnodes, ws_dim); s; ++s)
             {
                 const auto& deriv = s.CurrentValue();
-                const Vector& stress_vector_deriv = constitutive_sensitivities.Stress(
-                    sensitivity_vars.StrainVector(g, deriv),
-                    *mConstitutiveLawVector[g], rCurrentProcessInfo);
+                CalculateStress(sensitivity_vars.StrainVector(g, deriv), g,
+                                stress_vector_deriv, rCurrentProcessInfo);
                 const double weight_deriv = GetIntegrationWeight(
                     r_geom.IntegrationPoints(), g, sensitivity_vars.DetJ0(g, deriv));
                 noalias(residual_deriv) = -weight_deriv * prod(trans(rB), stress_vector);
