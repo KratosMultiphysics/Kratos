@@ -98,16 +98,16 @@ class Communicator:
         objectives = []
         for objective_number in range(self.opt_settings["objectives"].size()):
             settings = self.opt_settings["objectives"][objective_number]
-            objectives.append(settings)
+            objectives.append({"number": objective_number, "settings": settings})
 
         equality_constraints = []
         inequality_constraints = []
         for constraint_number in range(self.opt_settings["constraints"].size()):
             settings = self.opt_settings["constraints"][constraint_number]
             if(settings["type"].GetString()=="="):
-                equality_constraints.append(settings)
+                equality_constraints.append({"number": constraint_number, "settings": settings})
             else:
-                inequality_constraints.append(settings)
+                inequality_constraints.append({"number": constraint_number, "settings": settings})
 
         return objectives, equality_constraints, inequality_constraints
 

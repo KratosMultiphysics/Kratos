@@ -103,7 +103,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def __AddObjectiveValueToHistory( self ):
-        objectiveValue = self.communicator.getValue ( self.only_obj["identifier"].GetString() )
+        objectiveValue = self.communicator.getValue ( self.only_obj["settings"]["identifier"].GetString() )
         self.objectiveHistory[self.currentIteration] = objectiveValue
 
     # --------------------------------------------------------------------------

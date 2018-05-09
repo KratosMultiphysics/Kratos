@@ -58,8 +58,8 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
             row.append("{:>20s}".format("f"))
             row.append("{:>12s}".format("df_abs[%]"))
             row.append("{:>12s}".format("df_rel[%]"))
-            row.append("{:>20s}".format("c["+self.only_con["identifier"].GetString()+"]: "+self.only_con["type"].GetString()))
-            row.append("{:>20s}".format("c["+self.only_con["identifier"].GetString()+"]_ref"))
+            row.append("{:>20s}".format("c["+self.only_con["settings"]["identifier"].GetString()+"]: "+self.only_con["settings"]["type"].GetString()))
+            row.append("{:>20s}".format("c["+self.only_con["settings"]["identifier"].GetString()+"]_ref"))
             row.append("{:>13s}".format("c_scaling[-]"))
             row.append("{:>13s}".format("step_size[-]"))
             row.append("{:>25s}".format("time_stamp"))
@@ -109,15 +109,15 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def __AddResponseValuesToHistory( self ):
-        objectiveValue = self.communicator.getValue( self.only_obj["identifier"].GetString() )
-        constraintValue = self.communicator.getValue( self.only_con["identifier"].GetString() )
+        objectiveValue = self.communicator.getValue( self.only_obj["settings"]["identifier"].GetString() )
+        constraintValue = self.communicator.getValue( self.only_con["settings"]["identifier"].GetString() )
 
         self.objectiveHistory[self.currentIteration] = objectiveValue
         self.constraintHistory[self.currentIteration] = constraintValue
 
     # --------------------------------------------------------------------------
     def __DetermineReferenceValuesForOutput( self ):
-        self.constraintOutputReference = self.communicator.getReferenceValue( self.only_con["identifier"].GetString() )
+        self.constraintOutputReference = self.communicator.getReferenceValue( self.only_con["settings"]["identifier"].GetString() )
         self.objectiveOutputReference = self.objectiveHistory[self.initialIteration]
 
         if abs(self.objectiveOutputReference)<1e-12:

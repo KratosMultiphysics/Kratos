@@ -125,24 +125,24 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
     # --------------------------------------------------------------------------
     def __analyzeShape(self):
         self.Communicator.initializeCommunication()
-        self.Communicator.requestValueOf(self.only_obj["identifier"].GetString())
-        self.Communicator.requestGradientOf(self.only_obj["identifier"].GetString())
-        self.Communicator.requestValueOf(self.only_con["identifier"].GetString())
-        self.Communicator.requestGradientOf(self.only_con["identifier"].GetString())
+        self.Communicator.requestValueOf(self.only_obj["settings"]["identifier"].GetString())
+        self.Communicator.requestGradientOf(self.only_obj["settings"]["identifier"].GetString())
+        self.Communicator.requestValueOf(self.only_con["settings"]["identifier"].GetString())
+        self.Communicator.requestGradientOf(self.only_con["settings"]["identifier"].GetString())
 
         self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimizationIteration, self.Communicator)
 
-        objGradientDict = self.Communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
-        conGradientDict = self.Communicator.getStandardizedGradient(self.only_con["identifier"].GetString())
+        objGradientDict = self.Communicator.getStandardizedGradient(self.only_obj["settings"]["identifier"].GetString())
+        conGradientDict = self.Communicator.getStandardizedGradient(self.only_con["settings"]["identifier"].GetString())
 
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.OptimizationModelPart, DF1DX)
         WriteDictionaryDataOnNodalVariable(conGradientDict, self.OptimizationModelPart, DC1DX)
 
-        if self.only_obj["project_gradient_on_surface_normals"].GetBool():
+        if self.only_obj["settings"]["project_gradient_on_surface_normals"].GetBool():
             self.GeometryUtilities.ComputeUnitSurfaceNormals()
             self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 
-        if self.only_con["project_gradient_on_surface_normals"].GetBool():
+        if self.only_con["settings"]["project_gradient_on_surface_normals"].GetBool():
             self.GeometryUtilities.ComputeUnitSurfaceNormals()
             self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
 
@@ -160,7 +160,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.__mapSensitivitiesToDesignSpace()
-        constraint_value = self.Communicator.getStandardizedValue(self.only_con["identifier"].GetString())
+        constraint_value = self.Communicator.getStandardizedValue(self.only_con["settings"]["identifier"].GetString())
         if self.__isConstraintActive(constraint_value):
             self.OptimizationUtilities.ComputeProjectedSearchDirection()
             self.OptimizationUtilities.CorrectProjectedSearchDirection(constraint_value)
@@ -179,7 +179,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
 
     # --------------------------------------------------------------------------
     def __isConstraintActive(self, constraintValue):
-        if self.only_con["type"].GetString() == "=":
+        if self.only_con["settings"]["type"].GetString() == "=":
             return True
         elif constraintValue > 0:
             return True
