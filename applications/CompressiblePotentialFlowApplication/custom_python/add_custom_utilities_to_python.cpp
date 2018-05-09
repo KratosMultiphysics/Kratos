@@ -13,7 +13,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 
 // Project includes
@@ -33,9 +32,9 @@ namespace Python
 {
 
 
-  void  AddCustomUtilitiesToPython()
+  void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
-	using namespace boost::python;
+	using namespace pybind11;
 
 
 // 		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;

@@ -16,7 +16,7 @@
 
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
@@ -31,7 +31,7 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddCustomProcessesToPython();
+  void  AddCustomProcessesToPython(pybind11::module& m);
 
 }  // namespace Python.
 

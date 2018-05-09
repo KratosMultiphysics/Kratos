@@ -13,7 +13,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 
 // Project includes
@@ -31,12 +30,18 @@ namespace Python
 {
 
 
-  void  AddCustomProcessesToPython()
+  void  AddCustomProcessesToPython(pybind11::module& m)
   {
-	using namespace boost::python;
+	using namespace pybind11;
 
-        class_<KuttaConditionProcess, bases<Process>, boost::noncopyable >("KuttaConditionProcess",init<ModelPart&>())
-            .def("Execute",&KuttaConditionProcess::Execute)
+        // class_<KuttaConditionProcess, bases<Process>, boost::noncopyable >("KuttaConditionProcess",init<ModelPart&>())
+        //     .def("Execute",&KuttaConditionProcess::Execute)
+        //     ;
+
+        class_<KuttaConditionProcess, Process >
+        (m, "KuttaConditionProcess")
+        .def(init<ModelPart&>())
+        .def("Execute",&KuttaConditionProcess::Execute)
             ;
 
 

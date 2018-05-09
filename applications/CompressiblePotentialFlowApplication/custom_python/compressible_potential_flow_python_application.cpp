@@ -14,7 +14,7 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 
 // Project includes
@@ -32,21 +32,22 @@ namespace Kratos
 namespace Python
 {
 
-  using namespace boost::python;
+  using namespace pybind11;
 
 
 
-  BOOST_PYTHON_MODULE(KratosCompressiblePotentialFlowApplication)
+  PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication,m)
   {
 
 	  class_<KratosCompressiblePotentialFlowApplication,
 			  KratosCompressiblePotentialFlowApplication::Pointer,
-			  bases<KratosApplication>, boost::noncopyable >("KratosCompressiblePotentialFlowApplication")
+			  KratosApplication >(m,"KratosCompressiblePotentialFlowApplication")
+			  .def(init<>())
 			;
 
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
-        AddCustomProcessesToPython();
+	AddCustomStrategiesToPython(m);
+	AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
 	//registering variables in python
 
 //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
