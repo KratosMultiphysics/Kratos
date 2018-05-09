@@ -1,10 +1,12 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//   Project Name:        KratosStructuralMechanicsApplication $
-//   Created by:          $Author:            A.Cornejo        $
-//   Last modified by:    $Co-Author:                          $
-//   Date:                $Date:                April 2018     $
-//   Revision:            $Revision:                  0.0      $
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
+//  Main authors:    Alejandro Cornejo
 //
 
 #if !defined(KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_H_INCLUDED)
@@ -22,109 +24,243 @@
 
 namespace Kratos
 {
-    template <class  YieldSurfaceType, class PlasticPotentialType>
-    class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegrator
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+/**
+ * @class GenericConstitutiveLawIntegrator
+ * @ingroup StructuralMechanicsApplication
+ * @brief
+ * @details
+ * @author Alejandro Cornejo
+ */
+template <class  YieldSurfaceType, class PlasticPotentialType>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegrator
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Counted pointer of GenericConstitutiveLawIntegrator
+    KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegrator);
+
+    /// Initialization constructor.
+    GenericConstitutiveLawIntegrator()
+    {
+        //mpYieldSurface = YieldSurfaceType().Clone();
+    }
+
+    /// Copy constructor
+    GenericConstitutiveLawIntegrator(GenericConstitutiveLawIntegrator const& rOther)
+    {
+    }
+
+    /// Assignment operator
+    GenericConstitutiveLawIntegrator& operator=(GenericConstitutiveLawIntegrator const& rOther)
+    {
+        return *this;
+    }
+
+    /// Destructor
+    virtual ~GenericConstitutiveLawIntegrator()
+    {
+    }
+
+//     /// Clone
+//     GenericConstitutiveLawIntegrator::Pointer Clone() const
+//     {
+//         GenericConstitutiveLawIntegrator<class YieldSurfaceType>::Pointer p_clone(new GenericConstitutiveLawIntegrator<class YieldSurfaceType>(*this));
+//         return p_clone;
+//     }
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    static void IntegrateStressVector(Vector& PredictiveStressVector, double& UniaxialStress, double& Kp,
+        double& PlasticDenominator, Vector& Fflux, Vector& Gflux, double& Capap, Vector& PlasticStrainIncrement,
+        const Matrix& C, Vector& PlasticStrain)
     {
 
-        public:
-            KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegrator);
+    }
 
-            /// Initialization constructor.
-            GenericConstitutiveLawIntegrator()
-            {
-                //mpYieldSurface = YieldSurfaceType().Clone();
-            }
+    static void CalculatePlasticParameters(Vector& PredictiveStressVector, double& UniaxialStress, double& Kp,
+        double& PlasticDenominator, Vector& Fflux, Vector& Gflux, double& Capap, Vector& PlasticStrainIncrement,
+        const Matrix& C)
+    {
 
-            /// Copy constructor
-            GenericConstitutiveLawIntegrator(GenericConstitutiveLawIntegrator const& rOther)
-            {
-            }
+    }
 
-            /// Assignment operator
-            GenericConstitutiveLawIntegrator& operator=(GenericConstitutiveLawIntegrator const& rOther)
-            {
-                return *this;
-            }
+    // DF/DS
+    static void CalculateFFluxVector(const Vector& StressVector, const Vector& Deviator,
+        const double& J2, Vector& FFluxVector)
+    {
 
-            /// Destructor
-            virtual ~GenericConstitutiveLawIntegrator()
-            {
-            }
+    }
 
-            /// Clone
-            // GenericConstitutiveLawIntegrator::Pointer Clone() const 
-            // {
-            //     GenericConstitutiveLawIntegrator<class YieldSurfaceType>::Pointer p_clone(new GenericConstitutiveLawIntegrator<class YieldSurfaceType>(*this));
-            //     return p_clone;
-            // }
+    // DG/DS
+    static void CalculateGFluxVector(const Vector& StressVector, const Vector& Deviator,
+        const double& J2, Vector& GFluxVector)
+    {
 
-            // ***************************************************************************
-            // ***************************************************************************
+    }
 
-            static void IntegrateStressVector(Vector& PredictiveStressVector, double& UniaxialStress, double& Kp,
-                double& PlasticDenominator, Vector& Fflux, Vector& Gflux, double& Capap, Vector& PlasticStrainIncrement, 
-                const Matrix& C, Vector& PlasticStrain) 
-            {
+    static void CalculateRFactors(const Vector& StressVector, double& r0, double& r1)
+    {
 
-            }
+    }
 
-            static void CalculatePlasticParameters(Vector& PredictiveStressVector, double& UniaxialStress, double& Kp,
-                double& PlasticDenominator, Vector& Fflux, Vector& Gflux, double& Capap, Vector& PlasticStrainIncrement,
-                const Matrix& C)
-            {
+    // Calculates Capap
+    static void CalculatePlasticDissipation(const Vector& StressVector, const double& r0,
+        const double& r1, const Vector& PlasticStrainInc, double& rCapap, Vector& HCapa)
+    {
 
-            }
+    }
 
-            // DF/DS
-            static void CalculateFFluxVector(const Vector& StressVector, const Vector& Deviator,
-                const double& J2, Vector& FFluxVector)
-            {
+    // Calculates Kp
+    static void CalculateEquivalentStressThreshold(const double& Capap, const double& r0,
+        const double& r1, double& rEquivalentStressThreshold, double& rSlope)
+    {
 
-            }
+    }
 
-            // DG/DS
-            static void CalculateGFluxVector(const Vector& StressVector, const Vector& Deviator,
-                const double& J2, Vector& GFluxVector)
-            {
-                
-            }
+    static void CalculateHardeningParameter(const Vector& FluxVector, const double& SlopeThreshold,
+        const Vector& HCapa, double& rHardParameter) // todo which Flux=??????
+    {
 
-            static void CalculateRFactors(const Vector& StressVector, double& r0, double& r1)
-            {
+    }
 
-            }
+    static void CalculatePlasticDenominator(const Vector& FluxVector, const Matrix& C,
+        const double& HardParam, double& PlasticDenominator)
+    {
 
-            // Calculates Capap
-            static void CalculatePlasticDissipation(const Vector& StressVector, const double& r0,
-                const double& r1, const Vector& PlasticStrainInc, double& rCapap, Vector& HCapa)
-            {
+    }
 
-            }
+    ///@}
+    ///@name Access
+    ///@{
 
-            // Calculates Kp
-            static void CalculateEquivalentStressThreshold(const double& Capap, const double& r0,
-                const double& r1, double& rEquivalentStressThreshold, double& rSlope)
-            {
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-            }
+    ///@}
+    ///@name Input and output
+    ///@{
 
-            static void CalculateHardeningParameter(const Vector& FluxVector, const double& SlopeThreshold,
-                const Vector& HCapa, double& rHardParameter) // todo which Flux=??????
-            {
+    ///@}
+    ///@name Friends
+    ///@{
 
-            }
+    ///@}
 
-            static void CalculatePlasticDenominator(const Vector& FluxVector, const Matrix& C,
-                const double& HardParam, double& PlasticDenominator)
-            {
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-            }
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-        protected:
+//     typename YieldSurfaceType::Pointer mpYieldSurface;
 
-            //typename YieldSurfaceType::Pointer mpYieldSurface;
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-    };
-}
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    // Serialization
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const
+    {
+//         rSerializer.save("YieldSurface", mpYieldSurface);
+    }
+
+    void load(Serializer& rSerializer)
+    {
+//         rSerializer.load("YieldSurface", mpYieldSurface);
+    }
+
+    ///@}
+
+}; // Class GenericYieldSurface
+
+///@}
+
+///@name Type Definitions
+///@{
+
+///@}
+///@name Input and output
+///@{
+
+///@}
+
+}// namespace Kratos.
 #endif
