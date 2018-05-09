@@ -86,14 +86,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
         super(FluidDynamicsAnalysis,self).InitializeSolutionStep()
 
-    def FinalizeSolutionStep(self):
-
-        self.solver.FinalizeSolutionStep()
-
-        # shouldn't this go at the end of the iteration???
-        for process in self.list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
-
     def OutputSolutionStep(self):
 
         if self.have_output and self.output.IsOutputStep():
