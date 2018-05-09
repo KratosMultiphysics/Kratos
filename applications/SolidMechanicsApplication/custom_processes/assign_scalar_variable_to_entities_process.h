@@ -69,6 +69,9 @@ public:
         else if(  rParameters["entity_type"].GetString() == "CONDITIONS" ){
           mEntity = CONDITIONS;
         }
+        else if(  rParameters["entity_type"].GetString() == "ELEMENTS" ){
+          mEntity = ELEMENTS;
+        }
         else{
           KRATOS_ERROR <<" Entity type "<< rParameters["entity_type"].GetString() << " is not supported " << std::endl;
         }
@@ -117,7 +120,7 @@ public:
           }
 
         }
-        else if( mEntity == CONDITIONS ){
+        else if( mEntity == CONDITIONS || mEntity == ELEMENTS ){
 
           if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
           {
@@ -213,7 +216,27 @@ public:
           }
 
         }
+        else if( mEntity == ELEMENTS ) {
 
+          if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
+          {
+            AssignValueToElements<>(KratosComponents< Variable<double> >::Get(mvariable_name), mdouble_value);
+          }
+          else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
+          {
+            AssignValueToElements<>(KratosComponents< Variable<int> >::Get(mvariable_name) , mint_value);
+          }
+          else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
+          {
+            AssignValueToElements<>(KratosComponents< Variable<bool> >::Get(mvariable_name), mbool_value);
+          }
+          else
+          {
+            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
+          }
+
+        }
+        
         KRATOS_CATCH("");
 
     }
@@ -410,6 +433,25 @@ private:
             }
         }
     }
+
+    template< class TVarType, class TDataType >
+    void AssignValueToElements(TVarType& rVar, const TDataType value)
+    {
+      const int nelements = mrModelPart.GetMesh().Elements().size();
+
+        if(nelements != 0)
+        {
+            ModelPart::ElementsContainerType::iterator it_begin = mrModelPart.GetMesh().ElementsBegin();
+
+            #pragma omp parallel for
+            for(int i = 0; i<nelements; i++)
+            {
+                ModelPart::ElementsContainerType::iterator it = it_begin + i;
+
+                it->SetValue(rVar, value);
+            }
+        }
+    } 
 
     ///@}
     ///@name Private Operations
