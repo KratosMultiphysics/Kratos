@@ -216,9 +216,9 @@ private:
     IndexType mBufferSize;           /// The buffer size
     NodeType::DofsContainerType mDofs;  /// Storage for the dof of the node
 
-    std::unordered_map<int,int> mNodesColorMap;
-    std::unordered_map<int,int> mCondColorMap;
-    std::unordered_map<int,int> mElemColorMap;
+    std::unordered_map<IndexType,int> mNodesColorMap;
+    std::unordered_map<IndexType,int> mCondColorMap;
+    std::unordered_map<IndexType,int> mElemColorMap;
     std::unordered_map<int,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
 
     NodesInEdgeMapType mNodesMap;              /// Where the father nodes IDs are stored

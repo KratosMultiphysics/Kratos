@@ -211,11 +211,16 @@ private:
      * @param rB The deformation matrix
      * @param rF The deformation gradient
      * @param rDN_DX The gradient derivative of the shape function
-     * @param PointNumber The integration point considered
      */
-    void CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+    void CalculateB(Matrix& rB, Matrix const& rF, const Matrix& rDN_DX);
+
+    void Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+
+    void Calculate3DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
 
     void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
+
+    void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
 
     void CalculateStress(Vector& rStrain,
                          std::size_t IntegrationPoint,
@@ -243,6 +248,10 @@ private:
                                Matrix const& rDN_DX_Deriv,
                                Matrix const& rF_Deriv,
                                Matrix& rB_Deriv);
+
+    std::size_t GetStrainSize() const;
+
+    bool IsAxissymmetric() const;
 
     ///@}
     ///@name Private  Access
