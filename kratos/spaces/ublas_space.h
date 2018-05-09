@@ -132,6 +132,8 @@ public:
     typedef DofUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DofUpdaterType;
     typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
 
+    using ValueType = typename TVectorType::value_type;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -719,7 +721,7 @@ public:
 
     //***********************************************************************
 
-    inline static double GetValue(const VectorType& x, std::size_t I)
+    inline static ValueType GetValue(const VectorType& x, std::size_t I)
     {
         return x[I];
     }
