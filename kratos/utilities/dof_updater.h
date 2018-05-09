@@ -13,15 +13,6 @@
 #if !defined(KRATOS_DOF_UPDATER_H_INCLUDED )
 #define  KRATOS_DOF_UPDATER_H_INCLUDED
 
-
-// System includes
-#include <string>
-#include <iostream>
-
-
-// External includes
-
-
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -91,11 +82,11 @@ public:
 
     /// Initialize the DofUpdater in preparation for a subsequent UpdateDofs call.
     /** Note that the base DofUpdater does not have internal data, so this does nothing.
-     *  @param[in/out] rDofSet The list of degrees of freedom.
+     *  @param[in] rDofSet The list of degrees of freedom.
      *  @param[in] rDx The update vector.
      */
     virtual void Initialize(
-        DofsArrayType& rDofSet,
+        const DofsArrayType& rDofSet,
         const SystemVectorType& rDx)
     {}
 

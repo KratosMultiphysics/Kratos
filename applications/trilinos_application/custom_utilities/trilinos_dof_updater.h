@@ -13,15 +13,6 @@
 #if !defined(KRATOS_TRILINOS_DOF_UPDATER_H_INCLUDED )
 #define  KRATOS_TRILINOS_DOF_UPDATER_H_INCLUDED
 
-
-// System includes
-#include <string>
-#include <iostream>
-
-
-// External includes
-
-
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -93,7 +84,7 @@ public:
     }
 
     /// Initialize the DofUpdater in preparation for a subsequent UpdateDofs call.
-    /** @param[in/out] rDofSet The list of degrees of freedom.
+    /** @param[in] rDofSet The list of degrees of freedom.
      *  @param[in] rDx The update vector.
      *  The DofUpdater needs to be initialized only if the dofset changes.
      *  If the problem does not require creating/destroying nodes or changing the
@@ -105,7 +96,7 @@ public:
      *  and Initialize will be called as part of the next UpdateDofs call.
      */
     void Initialize(
-        DofsArrayType& rDofSet,
+        const DofsArrayType& rDofSet,
         const SystemVectorType& rDx) override
     {
         int system_size = TSparseSpace::Size(rDx);
@@ -114,7 +105,7 @@ public:
 
         // filling the array with the global ids
         unsigned int counter = 0;
-        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+        for(typename DofsArrayType::const_iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
         {
             int id = i_dof->EquationId();
             if( id < system_size )
