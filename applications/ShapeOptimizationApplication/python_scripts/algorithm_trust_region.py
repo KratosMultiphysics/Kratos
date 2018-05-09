@@ -18,7 +18,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Additional imports
 from algorithm_base import OptimizationAlgorithm
-from custom_math import NormInf3D, DotProduct
+from custom_math import NormInf3D, DotProduct, ScalarVectorProduct
 from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList
 from custom_timer import Timer
 import mapper_factory
@@ -31,8 +31,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         {
             "name"                        : "trust_region",
             "max_step_length"             : 1.0,
+            "step_length_tolerance"       : 1e-3,
             "step_length_decrease_factor" : 2.0,
             "step_length_increase_factor" : 1.2,
+            "feasibility_frequency"       : 5,
             "max_iterations"              : 10
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
@@ -59,11 +61,15 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
         self.max_step_length = self.algorithm_settings["max_step_length"].GetDouble()
+        self.step_length_tolerance = self.algorithm_settings["step_length_tolerance"].GetDouble()
         self.step_length_decrease_factor = self.algorithm_settings["step_length_decrease_factor"].GetDouble()
         self.step_length_increase_factor = self.algorithm_settings["step_length_increase_factor"].GetDouble()
+        self.feasibility_frequency = self.algorithm_settings["feasibility_frequency"].GetDouble()
+        self.max_iterations = self.algorithm_settings["max_iterations"].GetInt()
 
-        self.is_enforcing_feasibility = False
-        self.is_termination_phase = False
+        self.algo_is_in_termination_phase = False
+        self.algo_is_in_feasibility_phase = False
+        self.next_iteration_to_enforce_feasibility = 9999
         self.last_itr_with_step_length_update = 0
 
         self.value_history = {}
@@ -97,28 +103,37 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             val_obj, val_eqs, val_ineqs = self.__ProcessAnalysisResults()
 
-            self.value_history["val_obj"].append(val_obj)
-            self.value_history["val_eqs"].append(val_ineqs)
-            self.value_history["val_ineqs"].append(val_ineqs)
+            if self.__CheckConvergence(val_eqs, val_ineqs):
+                break
 
             dir_objs, len_eqs, dir_eqs, len_ineqs, dir_ineqs =  self.__ConvertAnalysisResultsToLengthDirectionFormat()
 
+            step_length = self.__ApplyStepLengthRule(val_obj, len_eqs, len_ineqs)
+
+            len_bar_eqs = ScalarVectorProduct(1/step_length, len_eqs)
+            len_bar_ineqs = ScalarVectorProduct(1/step_length, len_ineqs)
+
+
+
+
+
+
+
+            self.value_history["val_obj"].append(val_obj)
+            self.value_history["val_eqs"].append(val_ineqs)
+            self.value_history["val_ineqs"].append(val_ineqs)
             self.value_history["len_eqs"].append(len_eqs)
             self.value_history["len_ineqs"].append(len_ineqs)
-
-            step_length = self.__ApplyStepLengthRule()
-
             self.value_history["step_length"].append(step_length)
 
-            len_bar_eqs = [l/step_length for l in len_eqs]
-            len_bar_ineqs = [l/step_length for l in len_ineqs]
-
-
-
-
-
-
-
+            print("--------------------------------------------")
+            print("val_obj = ", val_obj)
+            print("val_eqs = ", val_eqs)
+            print("val_ineqs = ", val_ineqs)
+            print("len_eqs = ", len_eqs)
+            print("len_ineqs = ", len_ineqs)
+            print("step_length = ", step_length)
+            print("--------------------------------------------")
 
             print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
             print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
@@ -161,29 +176,30 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     def __ProcessAnalysisResults(self):
         # Process objective results
         obj_value = None
-        for obj in self.objectives:
-            obj_number = obj["number"]
-            obj_id = obj["settings"]["identifier"].GetString()
 
-            obj_value = self.communicator.getStandardizedValue(obj_id)
-            obj_gradients_dict = self.communicator.getStandardizedGradient(obj_id)
+        obj = self.objectives[0]
+        obj_number = obj["number"]
+        obj_id = obj["settings"]["identifier"].GetString()
 
-            nodal_variable = KratosGlobals.GetVariable("DF"+str(obj_number+1)+"DX")
-            WriteDictionaryDataOnNodalVariable(obj_gradients_dict, self.optimization_model_part, nodal_variable)
+        obj_value = self.communicator.getStandardizedValue(obj_id)
+        obj_gradients_dict = self.communicator.getStandardizedGradient(obj_id)
 
-            if obj["settings"]["project_gradient_on_surface_normals"].GetBool():
-                self.__PerformProjectionOnNormals(nodal_variable)
+        nodal_variable = KratosGlobals.GetVariable("DF"+str(obj_number+1)+"DX")
+        WriteDictionaryDataOnNodalVariable(obj_gradients_dict, self.optimization_model_part, nodal_variable)
 
-            nodal_variable_mapped = KratosGlobals.GetVariable("DF"+str(obj_number+1)+"DX_MAPPED")
-            self.__PerformMapping(nodal_variable, nodal_variable_mapped)
+        if obj["settings"]["project_gradient_on_surface_normals"].GetBool():
+            self.__PerformProjectionOnNormals(nodal_variable)
+
+        nodal_variable_mapped = KratosGlobals.GetVariable("DF"+str(obj_number+1)+"DX_MAPPED")
+        self.__PerformMapping(nodal_variable, nodal_variable_mapped)
 
         # Process equality constraint results
-        eq_value = []
+        eq_values = []
         for eq in self.equality_constraints:
             eq_number = eq["number"]
             eq_id = eq["settings"]["identifier"].GetString()
 
-            eq_value.append(self.communicator.getStandardizedValue(eq_id))
+            eq_values.append(self.communicator.getStandardizedValue(eq_id))
             eq_gradients_dict = self.communicator.getStandardizedGradient(eq_id)
 
             nodal_variable = KratosGlobals.GetVariable("DC"+str(eq_number+1)+"DX")
@@ -196,12 +212,12 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             self.__PerformMapping(nodal_variable, nodal_variable_mapped)
 
         # Process inequality constraint results
-        ineq_value = []
+        ineq_values = []
         for ineq in self.inequality_constraints:
             ineq_number = ineq["number"]
             ineq_id = ineq["settings"]["identifier"].GetString()
 
-            ineq_value.append(self.communicator.getStandardizedValue(ineq_id))
+            ineq_values.append(self.communicator.getStandardizedValue(ineq_id))
             ineq_gradients_dict = self.communicator.getStandardizedGradient(ineq_id)
 
             nodal_variable = KratosGlobals.GetVariable("DC"+str(ineq_number+1)+"DX")
@@ -213,7 +229,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(ineq_number+1)+"DX_MAPPED")
             self.__PerformMapping(nodal_variable, nodal_variable_mapped)
 
-        return obj_value, eq_value, ineq_value
+        return obj_value, eq_values, ineq_values
 
     # --------------------------------------------------------------------------
     def __PerformMapping(self, nodal_variable, nodal_variable_mapped):
@@ -224,6 +240,61 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     def __PerformProjectionOnNormals(self, nodal_variable):
         self.GeometryUtilities.ComputeUnitSurfaceNormals()
         self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
+
+    # --------------------------------------------------------------------------
+    def __CheckConvergence(self, val_eqs, val_ineqs):
+
+        # Check termination conditions
+        if self.opt_iteration == self.max_iterations:
+            self.algo_is_in_termination_phase = True
+            print("> Algorithm: Begin enforcing feasibility for termination (max number of optimization iterations reached)!")
+
+        if self.opt_iteration > 1 and self.value_history["step_length"][-1] < self.step_length_tolerance:
+            self.algo_is_in_termination_phase = True
+            print("> Algorithm: Begin enforcing feasibility for termination (step length < tolerance)!")
+
+        # Check feasibility
+        if self.algo_is_in_termination_phase:
+            self.algo_is_in_feasibility_phase = True
+
+        if self.opt_iteration == self.next_iteration_to_enforce_feasibility:
+            self.algo_is_in_feasibility_phase = True
+            self.reduceOscillationFactor = 1
+            print("> Algorithm: Begin enforcing feasibility according specified frequency!")
+
+        feasibility_is_enforced = self.__IsFeasibilityEnforced(val_eqs, val_ineqs)
+
+        if feasibility_is_enforced and self.algo_is_in_feasibility_phase:
+            print("> Algorithm: Feasibility was enforced")
+            self.algo_is_in_feasibility_phase = False
+            self.next_iteration_to_enforce_feasibility = iterCounter + self.feasibility_frequency
+
+        if feasibility_is_enforced and not self.algo_is_in_feasibility_phase:
+            print("> Algorithm: Feasibility is spontaneously enforced.")
+
+        if self.algo_is_in_termination_phase and feasibility_is_enforced:
+            print("> Algorithm: Converged!")
+            return True
+        else:
+            False
+
+    # --------------------------------------------------------------------------
+    def __IsFeasibilityEnforced(self, val_eqs, val_ineqs):
+        # Return false if any equality constraint is violated
+        for itr, eq in enumerate(self.equality_constraints):
+            eq_value = val_eqs[itr]
+            eq_id = eq["settings"]["identifier"].GetString()
+            eq_tolerance = eq["settings"]["tolerance"].GetDouble()
+            eq_reference = self.communicator.getReferenceValue(eq_id)
+            if abs(eq_value) > eq_tolerance*eq_reference:
+                return False
+
+        # Return false if any inequality constraint is violated
+        for val_ineq in val_ineqs:
+            if val_ineq > 0:
+                return False
+
+        return True
 
     # --------------------------------------------------------------------------
     def __ConvertAnalysisResultsToLengthDirectionFormat(self):
@@ -295,12 +366,12 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             return direction, length
 
     # --------------------------------------------------------------------------
-    def __ApplyStepLengthRule(self):
+    def __ApplyStepLengthRule(self, val_obj, len_eqs, len_ineqs):
 
         step_length = self.max_step_length
 
         # dont change step lenght with final feasibility is enforced
-        if self.is_enforcing_feasibility:
+        if self.algo_is_in_feasibility_phase:
             self.last_itr_with_step_length_update = self.opt_iteration
             return step_length
 
@@ -309,29 +380,28 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             return step_length
 
         # Decrease step length if necessary conditions are met
-        if self.__IsStepLengthToBeDecreased():
+        if self.__IsStepLengthToBeDecreased(val_obj, len_eqs, len_ineqs):
             self.last_itr_with_step_length_update = self.opt_iteration
             print("> Algorithm: Decreasing step length!")
             return step_length / self.step_length_decrease_factor
 
         # Increase slowly step length if necessary conditions are met
-        if self.__IsStepLengthToBeIncreased():
+        if self.__IsStepLengthToBeIncreased(val_obj, len_eqs, len_ineqs):
             self.last_itr_with_step_length_update = self.opt_iteration
             print("> Algorithm: Increasing step length")
             return min(self.max_step_length, step_length * self.step_length_increase_factor)
 
         #do nothing
-        self.step_length = step_length
         return step_length
 
     # --------------------------------------------------------------------------
-    def __IsStepLengthToBeDecreased(self):
+    def __IsStepLengthToBeDecreased(self, val_obj, len_eqs, len_ineqs):
 
         # Check if enough values are already computed
         if self.opt_iteration < 3:
             return False
 
-        v2, v1, v0 = self.value_history["val_obj"][-3:]
+        v2, v1, v0 = self.value_history["val_obj"][-2:] + [val_obj]
 
         # Check if objective oscillates
         if (v1 < v2 and v1 < v0) and v0 > (v2-0.1*(v2-v1)):
@@ -346,16 +416,13 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             no_progress_in_obj = False
 
         # No progress in the distance to the feasible domain
-        latest_len_equality = self.value_history["len_eqs"][-1]
-        latest_len_inequality = self.value_history["len_ineqs"][-1]
-
         s_old = self.value_history["step_length"][-2]
 
-        old_len_equality = self.value_history["len_eqs"][-3]
-        old_len_inequality = self.value_history["len_ineqs"][-3]
+        old_len_eqs = self.value_history["len_eqs"][-2]
+        old_len_ineqs = self.value_history["len_ineqs"][-2]
 
-        dist_feasible_domoain = self.__SimpleDistanceToFeasibleDomain(latest_len_equality,latest_len_inequality)
-        dist_feasible_domoain_old = self.__SimpleDistanceToFeasibleDomain(old_len_equality , old_len_inequality)
+        dist_feasible_domoain = self.__SimpleDistanceToFeasibleDomain(len_eqs,len_ineqs)
+        dist_feasible_domoain_old = self.__SimpleDistanceToFeasibleDomain(old_len_eqs , old_len_ineqs)
 
         if dist_feasible_domoain > (dist_feasible_domoain_old - 0.2*s_old):
             no_progress_towards_feasible_domain = True
@@ -373,19 +440,20 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         return max( [max(l,0) for l in len_inequality] + [abs(l) for l in len_equality] + [0] ) # add [0] for case with no constraint
 
     # --------------------------------------------------------------------------
-    def __IsStepLengthToBeIncreased(self):
-        # Progress in objective function is smooth over a few iterations
+    def __IsStepLengthToBeIncreased(self, val_obj, len_eqs, len_ineqs):
+        # Progress of objective function is monotonic over a few iterations
         number_of_smooth_steps = 5
-        if self.opt_iteration < 5:
+        if self.opt_iteration < number_of_smooth_steps:
             return False
         else:
-            val_hist = self.value_history["val_obj"][-number_of_smooth_steps:]
-            oscv = [0 for i in range(number_of_smooth_steps-1)]
+            val_hist = self.value_history["val_obj"][-number_of_smooth_steps+1:] + [val_obj]
 
+            # Check if values are changing monotonically
+            is_oscillating = []
             for i in range(number_of_smooth_steps-2):
-                oscv[i] = (val_hist[i+1]-val_hist[i])*(val_hist[i+2]-val_hist[i+1])<0
+                is_oscillating.append( (val_hist[i+1]-val_hist[i])*(val_hist[i+2]-val_hist[i+1])<0 )
 
-            if sum(oscv)==0: # no oscillation at all
+            if sum(is_oscillating)==0: # no oscillation at all
                 return True
             else:
                 return False

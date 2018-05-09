@@ -30,4 +30,8 @@ def DotProduct(_X,_Y):
         raise RuntimeError("Dot product to be computed but _X and _Y do not have the same dimension!")
     return sum([_X[i]*_Y[i] for i in range(len(_X))])
 
+# ------------------------------------------------------------------------------
+def ScalarVectorProduct(scal, _X):
+    return [x*scal for x in _X]
+
 # ==============================================================================
