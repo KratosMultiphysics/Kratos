@@ -47,8 +47,6 @@ public:
     using DofsArrayType = ModelPart::DofsArrayType;
     using SystemVectorType = typename TSparseSpace::VectorType;
 
-    using UniquePointer = std::unique_ptr<DofUpdater>;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -75,9 +73,9 @@ public:
      *  @return a std::unique_pointer to the new instance.
      *  @see UblasSpace::CreateDofUpdater(), TrilinosSpace::CreateDofUpdater().
      */
-    virtual UniquePointer Create() const
+    virtual DofUpdater::UniquePointer Create() const
     {
-        return UniquePointer(new DofUpdater());
+        return Kratos::make_unique<DofUpdater>();
     }
 
     /// Initialize the DofUpdater in preparation for a subsequent UpdateDofs call.

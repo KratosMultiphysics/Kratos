@@ -97,7 +97,7 @@ public:
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
 
     typedef TrilinosDofUpdater< TrilinosSpace<TMatrixType,TVectorType> > DofUpdaterType;
-    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
+    typedef typename DofUpdater<TrilinosSpace<TMatrixType,TVectorType> >::UniquePointer DofUpdaterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -537,7 +537,7 @@ public:
 
 
         int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), Comm, pp);
-        
+
         if(error_code != 0)
             KRATOS_ERROR << "error thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
 
@@ -577,7 +577,7 @@ public:
         }
 
         paux->GlobalAssemble();
-        
+
         delete [] MyGlobalElements;
         delete pp;
 

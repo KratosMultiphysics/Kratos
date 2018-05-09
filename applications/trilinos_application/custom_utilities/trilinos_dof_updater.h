@@ -47,7 +47,6 @@ public:
     using BaseType = DofUpdater<TSparseSpace>;
     using DofsArrayType = typename BaseType::DofsArrayType;
     using SystemVectorType = typename BaseType::SystemVectorType;
-    using UniquePointer = typename BaseType::UniquePointer;
 
     ///@}
     ///@name Life Cycle
@@ -78,9 +77,9 @@ public:
      *  Note that the pointer is actually a pointer to the base class type.
      *  @see UblasSpace::CreateDofUpdater(), TrilinosSpace::CreateDofUpdater().
      */
-    UniquePointer Create() const override
+    typename BaseType::UniquePointer Create() const override
     {
-        return UniquePointer(new TrilinosDofUpdater());
+        return Kratos::make_unique<TrilinosDofUpdater>();
     }
 
     /// Initialize the DofUpdater in preparation for a subsequent UpdateDofs call.
