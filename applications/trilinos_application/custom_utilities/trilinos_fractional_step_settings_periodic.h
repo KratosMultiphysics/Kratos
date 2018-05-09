@@ -141,34 +141,34 @@ public:
         if ( rStrategyLabel == BaseType::Velocity )
         {
             // Velocity Builder and Solver
-            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBlockBuilderAndSolverPeriodic<TSparseSpace, TDenseSpace, TLinearSolver > (mrComm,RowSizeGuess,pLinearSolver,mrPeriodicVar));
+            BuilderSolverTypePointer pBuildAndSolver = Kratos::make_shared<TrilinosBlockBuilderAndSolverPeriodic<TSparseSpace, TDenseSpace, TLinearSolver > >(mrComm,RowSizeGuess,pLinearSolver,mrPeriodicVar);
 
             SchemePointerType pScheme;
             //initializing fractional velocity solution step
             if (UseSlip)
             {
                 double DomainSize = this->GetDomainSize();
-                SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace > (DomainSize,DomainSize));
+                SchemePointerType Temp = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace > >(DomainSize,DomainSize);
                 pScheme.swap(Temp);
             }
             else
             {
-                SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+                SchemePointerType Temp = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > >();
                 pScheme.swap(Temp);
             }
 
             // Strategy
-            this->mStrategies[BaseType::Velocity] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            this->mStrategies[BaseType::Velocity] = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > >(rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag);
 
         }
         else if ( rStrategyLabel == BaseType::Pressure )
         {
             // Pressure Builder and Solver
-            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBlockBuilderAndSolverPeriodic<TSparseSpace, TDenseSpace, TLinearSolver >(mrComm,RowSizeGuess,pLinearSolver,mrPeriodicVar));
-            SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+            BuilderSolverTypePointer pBuildAndSolver = Kratos::make_shared< TrilinosBlockBuilderAndSolverPeriodic<TSparseSpace, TDenseSpace, TLinearSolver> >(mrComm,RowSizeGuess,pLinearSolver,mrPeriodicVar);
+            SchemePointerType pScheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > >();
 
             // Strategy
-            this->mStrategies[BaseType::Pressure] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            this->mStrategies[BaseType::Pressure] = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > >(rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag);
         }
         else
         {
@@ -200,7 +200,7 @@ public:
 
         if (rTurbulenceModel == BaseType::SpalartAllmaras)
         {
-            this->mpTurbulenceModel = ProcessPointerType( new TrilinosSpalartAllmarasTurbulenceModel<TSparseSpace,TDenseSpace,TLinearSolver>(mrComm,rModelPart,pLinearSolver,DomainSize,Tolerance,MaxIter,ReformDofSet,TimeOrder));
+            this->mpTurbulenceModel = Kratos::make_shared< TrilinosSpalartAllmarasTurbulenceModel<TSparseSpace,TDenseSpace,TLinearSolver> >(mrComm,rModelPart,pLinearSolver,DomainSize,Tolerance,MaxIter,ReformDofSet,TimeOrder);
         }
         else
         {
