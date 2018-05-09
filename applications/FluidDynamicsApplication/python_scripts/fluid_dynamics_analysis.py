@@ -62,22 +62,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
 
-    def RunSolutionLoop(self):
-
-        while self.time < self.end_time:
-            self.time = self.solver.AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self.solver.Predict()
-            self.solver.SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
-
-    def Finalize(self):
-        '''Finalize the simulation and close open files.'''
-
-        for process in self.list_of_processes:
-            process.ExecuteFinalize()
-
     def InitializeSolutionStep(self):
 
         if self.is_printing_rank:
