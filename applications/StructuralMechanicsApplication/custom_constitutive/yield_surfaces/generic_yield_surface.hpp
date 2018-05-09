@@ -1,11 +1,12 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//   Project Name:        KratosStructuralMechanicsApplication $
-//   Created by:          $Author:            A.Cornejo        $
-//   Last modified by:    $Co-Author:                          $
-//   Date:                $Date:                April 2018     $
-//   Revision:            $Revision:                  0.0      $
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
-//
+//  Main authors:    Alejandro Cornejo
 
 #if !defined(KRATOS_GENERIC_YIELD_SURFACE_H_INCLUDED)
 #define  KRATOS_GENERIC_YIELD_SURFACE_H_INCLUDED
@@ -64,7 +65,7 @@ namespace Kratos
             // ***************************************************************************
             // ***************************************************************************
 
-            static void CalculateEquivalentStress(const Vector& StressVector, double& rEqStress)
+            static void CalculateEquivalentStress(const Vector& StressVector, double& rEqStress, const Properties& rMaterialProperties)
             {
                 // Implement for each yield surf
             }
