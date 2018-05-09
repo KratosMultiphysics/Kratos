@@ -149,7 +149,7 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
      * @param SubModelPartName The name of the submodelpart to look for
      * @return The submodelpart relative to the name given
      */
-    static ModelPart& GetRecursiveSubModelPart(
+    static ModelPart::Pointer GetRecursiveSubModelPart(
         ModelPart& ThisModelPart,
         const std::string& SubModelPartName
         );
@@ -160,7 +160,7 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
      * @param rColors The reference colors
      * @return The fast access colors
      */
-    static std::unordered_map<int, std::vector<ModelPart*>> GetModelPartColorsPointers(
+    static std::unordered_map<int, std::vector<ModelPart::Pointer>> GetModelPartColorsPointers(
         ModelPart& ThisModelPart,
         const IntStringMapType& rColors
         );
