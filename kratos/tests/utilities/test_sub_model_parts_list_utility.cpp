@@ -30,7 +30,7 @@ namespace Kratos
         typedef std::unordered_map<IndexSize,int> IndexIntMapType;
         typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
         typedef std::map<std::pair<int,int>,int> PairIntMapType;
-        typedef std::unordered_map<int,std::vector<ModelPart::Pointer>> IntModelPartPtrMapType;
+        typedef std::unordered_map<int,std::vector<ModelPart*>> IntModelPartPtrMapType;
 
         /**
         * Checks the correct work of the sub modelparts list utility
@@ -265,8 +265,8 @@ namespace Kratos
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
-                            ModelPart::Pointer r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(second_model_part, sub_model_part_name);
-                            r_sub_model_part->AddNode(p_node);
+                            ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(second_model_part, sub_model_part_name);
+                            r_sub_model_part.AddNode(p_node);
                         }
                     }
                 }
@@ -278,8 +278,8 @@ namespace Kratos
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
-                            ModelPart::Pointer r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(second_model_part, sub_model_part_name);
-                            r_sub_model_part->AddElement(p_elem);
+                            ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(second_model_part, sub_model_part_name);
+                            r_sub_model_part.AddElement(p_elem);
                         }
                     }
                 }
@@ -290,20 +290,20 @@ namespace Kratos
 
             std::vector<std::string> sub_model_parts_names = SubModelPartsListUtility::GetRecursiveSubModelPartNames(first_model_part);
             for (auto& sub_model_part_name : sub_model_parts_names) {
-                ModelPart::Pointer r_first_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(first_model_part, sub_model_part_name);
-                ModelPart::Pointer r_second_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(second_model_part, sub_model_part_name);
-                KRATOS_CHECK_EQUAL(r_first_sub_model_part->NumberOfNodes(), r_second_sub_model_part->NumberOfNodes());
-                KRATOS_CHECK_EQUAL(r_first_sub_model_part->NumberOfElements(), r_second_sub_model_part->NumberOfElements());
+                ModelPart& r_first_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(first_model_part, sub_model_part_name);
+                ModelPart& r_second_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(second_model_part, sub_model_part_name);
+                KRATOS_CHECK_EQUAL(r_first_sub_model_part.NumberOfNodes(), r_second_sub_model_part.NumberOfNodes());
+                KRATOS_CHECK_EQUAL(r_first_sub_model_part.NumberOfElements(), r_second_sub_model_part.NumberOfElements());
 
-                for (std::size_t i = 0; i < r_first_sub_model_part->NumberOfNodes(); i++) {
-                    auto it_first_node = r_first_sub_model_part->Nodes().begin() + i;
-                    auto it_found_second_node = r_second_sub_model_part->Nodes().find(it_first_node->Id());
-                    KRATOS_CHECK_NOT_EQUAL(it_found_second_node, r_second_sub_model_part->NodesEnd());
+                for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfNodes(); i++) {
+                    auto it_first_node = r_first_sub_model_part.Nodes().begin() + i;
+                    auto it_found_second_node = r_second_sub_model_part.Nodes().find(it_first_node->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_node, r_second_sub_model_part.NodesEnd());
                 }
-                for (std::size_t i = 0; i < r_first_sub_model_part->NumberOfElements(); i++) {
-                    auto it_first_elem = r_first_sub_model_part->Elements().begin() + i;
-                    auto it_found_second_elem = r_second_sub_model_part->Elements().find(it_first_elem->Id());
-                    KRATOS_CHECK_NOT_EQUAL(it_found_second_elem, r_second_sub_model_part->ElementsEnd());
+                for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfElements(); i++) {
+                    auto it_first_elem = r_first_sub_model_part.Elements().begin() + i;
+                    auto it_found_second_elem = r_second_sub_model_part.Elements().find(it_first_elem->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_elem, r_second_sub_model_part.ElementsEnd());
                 }
             }
         }
@@ -348,7 +348,7 @@ namespace Kratos
             for (auto color : colors)
             {
                 // Check both colors have the same size
-                std::vector<ModelPart::Pointer> p_color = colors_pointers[color.first];
+                std::vector<ModelPart*> p_color = colors_pointers[color.first];
                 KRATOS_CHECK_EQUAL(color.second.size(), p_color.size());
                 for (IndexSize i = 0; i < color.second.size(); i++)
                 {

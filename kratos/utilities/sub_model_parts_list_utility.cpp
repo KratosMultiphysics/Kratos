@@ -56,20 +56,20 @@ void SubModelPartsListUtility::ComputeSubModelPartsList(
         rColors[i_sub_model_part].push_back(model_part_names[i_sub_model_part]);
 
         if (color > 0) {
-            ModelPart::Pointer r_sub_model_part = GetRecursiveSubModelPart(mrModelPart, model_part_names[i_sub_model_part]);
+            ModelPart& r_sub_model_part = GetRecursiveSubModelPart(mrModelPart, model_part_names[i_sub_model_part]);
 
             /* Nodes */
-            NodesArrayType& nodes_array = r_sub_model_part->Nodes();
+            NodesArrayType& nodes_array = r_sub_model_part.Nodes();
             for(SizeType i = 0; i < nodes_array.size(); ++i)
                 aux_nodes_colors[(nodes_array.begin() + i)->Id()].insert(color);
 
             /* Conditions */
-            ConditionsArrayType& conditions_array = r_sub_model_part->Conditions();
+            ConditionsArrayType& conditions_array = r_sub_model_part.Conditions();
             for(SizeType i = 0; i < conditions_array.size(); ++i)
                 aux_cond_colors[(conditions_array.begin() + i)->Id()].insert(color);
 
             /* Elements */
-            ElementsArrayType& elements_array = r_sub_model_part->Elements();
+            ElementsArrayType& elements_array = r_sub_model_part.Elements();
             for(SizeType i = 0; i < elements_array.size(); ++i)
                 aux_elem_colors[(elements_array.begin() + i)->Id()].insert(color);
         }
@@ -180,50 +180,47 @@ std::vector<std::string> SubModelPartsListUtility::GetRecursiveSubModelPartNames
 /***********************************************************************************/
 /***********************************************************************************/
 
-ModelPart::Pointer SubModelPartsListUtility::GetRecursiveSubModelPart(
+ModelPart& SubModelPartsListUtility::GetRecursiveSubModelPart(
     ModelPart& ThisModelPart,
     const std::string& SubModelPartName
     )
 {
-    // The pointer to the main model part
-    ModelPart::Pointer p_main_model_part(&ThisModelPart);
-
     // We check if main model_part
     if (ThisModelPart.Name() == SubModelPartName)
-        return p_main_model_part;
+        return ThisModelPart;
 
     // We check a submodelpart
     if (ThisModelPart.HasSubModelPart(SubModelPartName)) // In case we are in a submodelpart
-        return ThisModelPart.pGetSubModelPart(SubModelPartName);
+        return ThisModelPart.GetSubModelPart(SubModelPartName);
     else { // In case we are in a subsubmodelpart
         const std::vector<std::string> sub_model_part_names = ThisModelPart.GetSubModelPartNames();
         for (const auto & sub_model_part_name : sub_model_part_names) {
             ModelPart& r_sub_model_part = ThisModelPart.GetSubModelPart(sub_model_part_name); // We check for sub sub model parts (no more sublevels)
             if (r_sub_model_part.HasSubModelPart(SubModelPartName)) {
-                return r_sub_model_part.pGetSubModelPart(SubModelPartName);
+                return r_sub_model_part.GetSubModelPart(SubModelPartName);
             }
         }
     }
 
-    return p_main_model_part;
+    return ThisModelPart;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::unordered_map<int,std::vector<ModelPart::Pointer>> SubModelPartsListUtility::GetModelPartColorsPointers(
+std::unordered_map<int,std::vector<ModelPart*>> SubModelPartsListUtility::GetModelPartColorsPointers(
     ModelPart& rThisModelPart,
     const IntStringMapType& rColors
     )
 {
     // Initialize output
-    std::unordered_map<int,std::vector<ModelPart::Pointer>> colors_ptr;
+    std::unordered_map<int,std::vector<ModelPart*>> colors_ptr;
 
     for (auto color : rColors)
     {
         for (auto name : color.second)
         {
-            colors_ptr[color.first].push_back(GetRecursiveSubModelPart(rThisModelPart, name));
+            colors_ptr[color.first].push_back(&SubModelPartsListUtility::GetRecursiveSubModelPart(rThisModelPart, name));
         }
     }
 
