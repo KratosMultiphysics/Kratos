@@ -232,6 +232,8 @@ namespace Kratos
             rOutput.clear();
 
         KRATOS_CATCH( "" )
+
+        //const double numerical_limit = std::numeric_limits<double>::epsilon();
     }
 
     //***********************************************************************

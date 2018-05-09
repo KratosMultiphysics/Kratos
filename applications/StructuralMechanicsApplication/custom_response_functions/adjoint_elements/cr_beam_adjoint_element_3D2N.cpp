@@ -615,6 +615,78 @@ namespace Kratos
 
     }
 
+    void CrBeamAdjointElement3D2N::CalculateOnIntegrationPoints(
+			const Variable<array_1d<double, 3 > >& rVariable,
+			std::vector< array_1d<double, 3 > >& rOutput,
+			const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+        
+        const unsigned int &write_points_number =
+        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+        if (rOutput.size() != write_points_number) 
+            rOutput.resize(write_points_number);
+
+        double length = this->CalculateReferenceLength();     
+
+        // rOutput[GP 1,2,3][x,y,z]
+        if (rVariable == PSEUDO_LOAD_1) 
+        {
+            Matrix sensitivity_matrix; 
+            this->CalculateSensitivityMatrix(CROSS_AREA, sensitivity_matrix, rCurrentProcessInfo);   
+            double value_left = sensitivity_matrix(0,0);
+            double function_prefactor = 6 * value_left / length;
+
+            rOutput[0][0] = function_prefactor * 0.75 - function_prefactor * 0.25;
+            rOutput[1][0] = function_prefactor * 0.50 - function_prefactor * 0.50;
+            rOutput[2][0] = function_prefactor * 0.25 - function_prefactor * 0.75;
+
+            rOutput[0][1] = 0.0;
+            rOutput[1][1] = 0.0;
+            rOutput[2][1] = 0.0;
+
+            rOutput[0][2] = 0.0;
+            rOutput[1][2] = 0.0;
+            rOutput[2][2] = 0.0;
+        }
+        else if(rVariable == PSEUDO_LOAD_2) 
+        {
+            const Matrix &Ncontainer = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+            const int number_of_nodes = GetGeometry().PointsNumber();
+            double area_lambda = 0.0;
+            for (int i = 0; i < number_of_nodes; ++i) 
+                area_lambda += Ncontainer(0, i) * this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X) * length;
+
+            double sensitivity_wrt_A = this->GetValue(CROSS_AREA_SENSITIVITY);
+
+            double const_pseudo_load = sensitivity_wrt_A / area_lambda;
+
+            rOutput[0][0] = const_pseudo_load;
+            rOutput[1][0] = const_pseudo_load;
+            rOutput[2][0] = const_pseudo_load;
+
+            rOutput[0][1] = 0.0;
+            rOutput[1][1] = 0.0;
+            rOutput[2][1] = 0.0;
+
+            rOutput[0][2] = 0.0;
+            rOutput[1][2] = 0.0;
+            rOutput[2][2] = 0.0;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+	void CrBeamAdjointElement3D2N::GetValueOnIntegrationPoints(
+			const Variable<array_1d<double, 3 > >& rVariable,
+			std::vector< array_1d<double, 3 > >& rOutput,
+			const ProcessInfo& rCurrentProcessInfo) 
+    {
+        KRATOS_TRY;
+        this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        KRATOS_CATCH("")
+    }
+
     void CrBeamAdjointElement3D2N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                          std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
