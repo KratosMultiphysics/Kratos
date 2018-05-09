@@ -33,11 +33,11 @@ class LargeDisplacementDifferentialVariables
     explicit LargeDisplacementDifferentialVariables(Element::GeometryType const& rGeom) : mrGeom(rGeom) {}
 
     /// Deformation gradient.
-    const Matrix& F(std::size_t IntegrationIndex, bool IsAxissymmetric=false)
+    const Matrix& F(std::size_t IntegrationIndex, bool IsAxisymmetric=false)
     {
         KRATOS_TRY;
         if (IntegrationIndex != mIntegrationIndexF)
-            CalculateF(IntegrationIndex, IsAxissymmetric);
+            CalculateF(IntegrationIndex, IsAxisymmetric);
         return mF;
         KRATOS_CATCH("");
     }
@@ -79,13 +79,13 @@ private:
         KRATOS_CATCH("");
     }
 
-    void CalculateF(std::size_t IntegrationIndex, bool IsAxissymmetric=false)
+    void CalculateF(std::size_t IntegrationIndex, bool IsAxisymmetric=false)
     {
         KRATOS_TRY;
         if (IntegrationIndex != mInternalIntegrationIndex)
             RecalculateInternals(IntegrationIndex);
         GeometryUtils::DeformationGradient(mJ, mInvJ0, mF);
-        if (IsAxissymmetric)
+        if (IsAxisymmetric)
             CalculateAxisymmetricF(IntegrationIndex);
         mIntegrationIndexF = IntegrationIndex;
         KRATOS_CATCH("");
@@ -160,10 +160,10 @@ class LargeDisplacementDifferentialSensitivityVariables
         }
 
         /// Deformation gradient sensitivity.
-        const Matrix& F(std::size_t IntegrationIndex, ShapeParameter Deriv, bool IsAxissymmetric=false)
+        const Matrix& F(std::size_t IntegrationIndex, ShapeParameter Deriv, bool IsAxisymmetric=false)
         {
             KRATOS_TRY;
-            KRATOS_ERROR_IF(IsAxissymmetric)
+            KRATOS_ERROR_IF(IsAxisymmetric)
                 << "Axisymmetic sensitivity not supported yet.\n";
             Synchronize(IntegrationIndex, Deriv);
             return mF_Deriv;
@@ -284,8 +284,8 @@ class LargeDisplacementKinematicVariables
 {
 public:
     LargeDisplacementKinematicVariables(LargeDisplacementDifferentialVariables& rDiffVars,
-                                        bool IsAxissymmetric = false)
-        : mrDiffVars(rDiffVars), mIsAxisymmetric(IsAxissymmetric)
+                                        bool IsAxisymmetric = false)
+        : mrDiffVars(rDiffVars), mIsAxisymmetric(IsAxisymmetric)
     {
     }
 
@@ -523,6 +523,95 @@ private:
     const ConstitutiveLaw::StressMeasure mStressMeasure;
     Vector mStress;
 };
+
+class LargeDisplacementVariables
+{
+public:
+    LargeDisplacementVariables(Element::GeometryType const& rGeom, bool IsAxisymmetric=false)
+        : mDiffVars(rGeom), mKinVars(mDiffVars, IsAxisymmetric), mIsAxisymmetric(IsAxisymmetric)
+    {
+    }
+
+    const Matrix& F(std::size_t IntegrationIndex)
+    {
+        return mDiffVars.F(IntegrationIndex, mIsAxisymmetric);
+    }
+
+    const Matrix& DN_DX0(std::size_t IntegrationIndex)
+    {
+        return mDiffVars.DN_DX0(IntegrationIndex);
+    }
+
+    double DetJ0(std::size_t IntegrationIndex)
+    {
+        return mDiffVars.DetJ0(IntegrationIndex);
+    }
+
+    const Matrix& StrainTensor(std::size_t IntegrationIndex)
+    {
+        return mKinVars.StrainTensor(IntegrationIndex);
+    }
+
+    Vector& StrainVector(std::size_t IntegrationIndex)
+    {
+        return mKinVars.StrainVector(IntegrationIndex);
+    }
+
+    const Matrix& B(std::size_t IntegrationIndex)
+    {
+        return mKinVars.B(IntegrationIndex);
+    }
+
+private:
+    LargeDisplacementDifferentialVariables mDiffVars;
+    LargeDisplacementKinematicVariables mKinVars;
+    const bool mIsAxisymmetric;
+};
+
+class LargeDisplacementSensitivityVariables
+{
+public:
+    LargeDisplacementSensitivityVariables(Element::GeometryType const& rGeom)
+        : mDiffVars(rGeom), mDiffSensitivityVars(rGeom), mKinSensitivityVars(mDiffVars, mDiffSensitivityVars)
+    {
+    }
+
+    double DetJ0(std::size_t IntegrationIndex, ShapeParameter Deriv)
+    {
+        return mDiffSensitivityVars.DetJ0(IntegrationIndex, Deriv);
+    }
+
+    const Matrix& DN_DX0(std::size_t IntegrationIndex, ShapeParameter Deriv)
+    {
+        return mDiffSensitivityVars.DN_DX0(IntegrationIndex, Deriv);
+    }
+
+    const Matrix& F(std::size_t IntegrationIndex, ShapeParameter Deriv, bool IsAxisymmetric = false)
+    {
+        return mDiffSensitivityVars.F(IntegrationIndex, Deriv, IsAxisymmetric);
+    }
+
+    const Matrix& StrainTensor(std::size_t IntegrationIndex, ShapeParameter Deriv)
+    {
+        return mKinSensitivityVars.StrainTensor(IntegrationIndex, Deriv);
+    }
+
+    /* Return mutable vector for compatibility with ConstitutiveLaw. */
+    Vector& StrainVector(std::size_t IntegrationIndex, ShapeParameter Deriv)
+    {
+        return mKinSensitivityVars.StrainVector(IntegrationIndex, Deriv);
+    }
+
+    const Matrix& B(std::size_t IntegrationIndex, ShapeParameter Deriv)
+    {
+        return mKinSensitivityVars.B(IntegrationIndex, Deriv);
+    }
+
+private:
+    LargeDisplacementDifferentialVariables mDiffVars;
+    LargeDisplacementDifferentialSensitivityVariables mDiffSensitivityVars;
+    LargeDisplacementKinematicSensitivityVariables mKinSensitivityVars;
+};
 }
 
 TotalLagrangian::TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -659,7 +748,7 @@ void TotalLagrangian::CalculateKinematicVariables(
     
     Matrix J;
     J = this->GetGeometry().Jacobian(J, PointNumber, rIntegrationMethod);
-    if (IsAxissymmetric())
+    if (IsAxisymmetric())
     {
         CalculateAxisymmetricF(J, rThisKinematicVariables.InvJ0,
                                rThisKinematicVariables.N,
@@ -805,7 +894,7 @@ std::size_t TotalLagrangian::GetStrainSize() const
     return GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 }
 
-bool TotalLagrangian::IsAxissymmetric() const
+bool TotalLagrangian::IsAxisymmetric() const
 {
     return (GetStrainSize() == 4);
 }
@@ -833,8 +922,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
     const auto& r_geom = GetGeometry();
     if (rDesignVariable == SHAPE_SENSITIVITY)
     {
-        KRATOS_ERROR_IF(IsAxissymmetric())
-            << "Axisymmetric is not supported.\n";
+        KRATOS_ERROR_IF(IsAxisymmetric()) << "Axisymmetric is not supported.\n";
         const std::size_t ws_dim = r_geom.WorkingSpaceDimension();
         const std::size_t nnodes = r_geom.PointsNumber();
         const std::size_t mat_dim = nnodes * ws_dim;
@@ -843,23 +931,21 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
         Vector residual_deriv(rOutput.size1());
         Vector N(nnodes);
         Vector body_force;
-        LargeDisplacementDifferentialVariables diff_vars(r_geom);
-        LargeDisplacementDifferentialSensitivityVariables differential_sensitivities(r_geom);
-        LargeDisplacementKinematicVariables kin_vars(diff_vars, IsAxissymmetric());
-        LargeDisplacementKinematicSensitivityVariables kinematic_sensitivities(
-            diff_vars, differential_sensitivities);
+        LargeDisplacementVariables deformation_vars(r_geom, IsAxisymmetric());
+        LargeDisplacementSensitivityVariables sensitivity_vars(r_geom);
         ConstitutiveLawVariables cl_vars(r_geom, GetProperties(),
                                          ConstitutiveLaw::StressMeasure_PK2);
         ConstitutiveLawVariables constitutive_sensitivities(
             r_geom, GetProperties(), ConstitutiveLaw::StressMeasure_PK2);
         for (std::size_t g = 0; g < r_geom.IntegrationPointsNumber(); ++g)
         {
-            const Matrix& rB = kin_vars.B(g);
-            const Vector& stress_vector = cl_vars.Stress(
-                kin_vars.StrainVector(g), *mConstitutiveLawVector[g], rCurrentProcessInfo);
+            const Matrix& rB = deformation_vars.B(g);
+            const Vector& stress_vector =
+                cl_vars.Stress(deformation_vars.StrainVector(g),
+                               *mConstitutiveLawVector[g], rCurrentProcessInfo);
 
             double weight = GetIntegrationWeight(r_geom.IntegrationPoints(), g,
-                                                 diff_vars.DetJ0(g));
+                                                 deformation_vars.DetJ0(g));
             noalias(N) = row(r_geom.ShapeFunctionsValues(), g);
             body_force = GetBodyForce(r_geom.IntegrationPoints(), g);
 
@@ -867,14 +953,13 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
             {
                 const auto& deriv = s.CurrentValue();
                 const Vector& stress_vector_deriv = constitutive_sensitivities.Stress(
-                    kinematic_sensitivities.StrainVector(g, deriv),
+                    sensitivity_vars.StrainVector(g, deriv),
                     *mConstitutiveLawVector[g], rCurrentProcessInfo);
-                const double weight_deriv =
-                    GetIntegrationWeight(r_geom.IntegrationPoints(), g,
-                                         differential_sensitivities.DetJ0(g, deriv));
+                const double weight_deriv = GetIntegrationWeight(
+                    r_geom.IntegrationPoints(), g, sensitivity_vars.DetJ0(g, deriv));
                 noalias(residual_deriv) = -weight_deriv * prod(trans(rB), stress_vector);
                 residual_deriv -=
-                    weight * prod(trans(kinematic_sensitivities.B(g, deriv)), stress_vector);
+                    weight * prod(trans(sensitivity_vars.B(g, deriv)), stress_vector);
                 residual_deriv -= weight * prod(trans(rB), stress_vector_deriv);
                 CalculateAndAddExtForceContribution(
                     N, rCurrentProcessInfo, body_force, residual_deriv, weight_deriv);

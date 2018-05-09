@@ -224,7 +224,7 @@ private:
 
     std::size_t GetStrainSize() const;
 
-    bool IsAxissymmetric() const;
+    bool IsAxisymmetric() const;
 
     ///@}
     ///@name Private  Access
