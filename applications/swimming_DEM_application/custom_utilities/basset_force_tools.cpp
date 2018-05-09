@@ -501,7 +501,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
     // Filling up the particles' individual vectors
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
-        vector<double>& hinsberg_tail_contributions = inode->GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
+        DenseVector<double>& hinsberg_tail_contributions = inode->GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
         hinsberg_tail_contributions.resize(3 * m + 3); //  the extra contribution will contain the oldest integrand that has been discarded from the integrands vector
         for (int i = 0; i < 3 * m + 3; i++){
             hinsberg_tail_contributions[i] = 0.0;
@@ -520,7 +520,7 @@ void BassetForceTools::AppendIntegrands(ModelPart& r_model_part)
     r_process_info[LAST_TIME_APPENDING] = time;
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
-        vector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
+        DenseVector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
         const array_1d<double, 3>& fluid_vel_projected  = inode->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
         const array_1d<double, 3>& particle_vel         = inode->FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3> slip_vel                    = fluid_vel_projected - particle_vel;
@@ -543,7 +543,7 @@ void BassetForceTools::AppendIntegrandsImplicit(ModelPart& r_model_part)
     process_info[LAST_TIME_APPENDING] = r_model_part.GetProcessInfo()[TIME];
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
-        vector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
+        DenseVector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
         const array_1d<double, 3>& fluid_vel_projected  = inode->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
         const array_1d<double, 3>& particle_vel         = inode->FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3> slip_vel                    = fluid_vel_projected - particle_vel;
@@ -595,10 +595,10 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
         for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
             Node<3>& node = iparticle->GetGeometry()[0];
             if (node.IsNot(BLOCKED)){
-                vector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
+                DenseVector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
 
                 if (int(historic_integrands.size()) >= 3 * mNumberOfQuadratureStepsInWindow){
-                    vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
+                    DenseVector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
                     hinsberg_tail_contributions.resize(3 * mNumberOfExponentials + 3); // in case there is an inlet and new particles with empty vectors come about
                     hinsberg_tail_contributions[3 * mNumberOfExponentials]     = historic_integrands[0];
                     hinsberg_tail_contributions[3 * mNumberOfExponentials + 1] = historic_integrands[1];
@@ -611,7 +611,7 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
     for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
         Node<3>& node = iparticle->GetGeometry()[0];
         if (node.IsNot(BLOCKED)){
-            vector<double>& historic_integrands             = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
+            DenseVector<double>& historic_integrands             = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
             const array_1d<double, 3>& fluid_vel_projected  = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
             const array_1d<double, 3>& particle_vel         = node.FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3> slip_vel                    = fluid_vel_projected - particle_vel;

@@ -24,6 +24,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_cross_sections_to_python.h"
+#include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos
 {
@@ -49,6 +50,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
     AddCrossSectionsToPython(m);
+    AddCustomResponseFunctionUtilitiesToPython(m);
 
     //registering variables in python
     // Generalized eigenvalue problem
@@ -126,7 +128,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     //Formfinding
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAMBDA_MAX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_FORMFINDING )
-    
+
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NODAL_STIFFNESS )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NODAL_DAMPING_RATIO )
 
@@ -189,6 +191,9 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,INELASTIC_FLAG)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,INFINITY_YIELD_STRESS)
+
+    // Response function variables
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RESPONSE_VALUE)
 }
 
 

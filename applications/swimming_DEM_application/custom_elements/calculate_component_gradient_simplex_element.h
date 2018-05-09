@@ -129,7 +129,7 @@ public:
      */
     ComputeComponentGradientSimplex(IndexType NewId, const NodesArrayType& ThisNodes) :
         BaseType(NewId, ThisNodes), mCurrentComponent('X')
-    {}	
+    {}
 
     /// Constructor using a geometry object.
     /**
@@ -311,7 +311,7 @@ private:
 
     void AddIntegrationPointRHSContribution(VectorType& F,
                          const array_1d<double,TNumNodes>& rShapeFunc,
-                         const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                         const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                          const double Weight) override;
     ///@}
     ///@name Private Operations

@@ -245,7 +245,7 @@ public:
     typedef std::unordered_map<IndexType, IndexType>                 IntMap;
     
     /// BoundedMatrix
-    typedef bounded_matrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
+    typedef BoundedMatrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
 
     // Type definitions for the tree
     typedef PointMapper                                     PointMapperType;

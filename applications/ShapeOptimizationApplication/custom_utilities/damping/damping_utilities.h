@@ -24,16 +24,9 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
 #include "spatial_containers/spatial_containers.h"
-#include "utilities/timer.h"
-#include "processes/node_erase_process.h"
-#include "utilities/binbased_fast_point_locator.h"
-#include "utilities/normal_calculation_utils.h"
+#include "utilities/builtin_timer.h"
 #include "shape_optimization_application.h"
 #include "damping_function.h"
 
@@ -99,11 +92,11 @@ public:
           mrDampingRegions( subModelPartsForDamping ),
           mDampingSettings( optimizationSettings["design_variables"]["damping"]["damping_regions"] )
     {
-        boost::timer timer;
+        BuiltinTimer timer;
         std::cout << "\n> Creating search tree to perform damping..." << std::endl;
         CreateListOfNodesOfModelPart();
         CreateSearchTreeWithAllNodesOfModelPart();
-        std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;
+        std::cout << "> Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
 
         InitalizeDampingFactorsToHaveNoInfluence();
         SetDampingFactorsForAllDampingRegions();

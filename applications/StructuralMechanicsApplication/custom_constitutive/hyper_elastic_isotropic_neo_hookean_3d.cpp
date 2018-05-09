@@ -72,6 +72,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK1 (Constituti
 
 void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
+    KRATOS_TRY;
     // Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
@@ -79,7 +80,6 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
     
     const Properties& material_properties  = rValues.GetMaterialProperties();
     Vector& strain_vector                  = rValues.GetStrainVector();
-    Vector& stress_vector                  = rValues.GetStressVector();
     
     // The material properties
     const double& young_modulus = material_properties[YOUNG_MODULUS];
@@ -115,8 +115,10 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
+        Vector& stress_vector = rValues.GetStressVector();
         CalculatePK2Stress( inverse_C_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
     }
+    KRATOS_CATCH("");
 }
 
 //************************************************************************************

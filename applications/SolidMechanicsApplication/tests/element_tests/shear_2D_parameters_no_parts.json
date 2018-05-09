@@ -22,19 +22,19 @@
     }
     ],
     "loads_process_list"       : [{
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [1.0,0.0,0.0]
     },{
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [-1.0,0.0,0.0]
     },{
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [0.0,1.0,0.0]
     },{
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [0.0,-1.0,0.0]
     }],

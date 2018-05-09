@@ -36,6 +36,8 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/large_displacement_U_P_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/updated_lagrangian_U_P_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/axisymmetric_updated_lagrangian_U_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/large_displacement_V_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/updated_lagrangian_V_element.cpp
 
 	# Beam elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/beam_element.cpp
@@ -162,10 +164,6 @@ set_target_properties(KratosSolidMechanicsCore PROPERTIES COMPILE_DEFINITIONS "S
 pybind11_add_module(KratosSolidMechanicsApplication MODULE THIN_LTO ${KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosSolidMechanicsApplication PRIVATE KratosSolidMechanicsCore)
 set_target_properties(KratosSolidMechanicsApplication PROPERTIES PREFIX "")
-
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
