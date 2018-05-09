@@ -37,9 +37,6 @@
                 "residual_relative_tolerance" : 1e-6,
                 "residual_absolute_tolerance" : 1e-6
             },
-	    "linear_solver_settings" : {
-		"solver_type": "SkylineLUFactorizationSolver"
-	    },
 	    "dofs" : ["DISPLACEMENT","ROTATION"]
         }
     },
