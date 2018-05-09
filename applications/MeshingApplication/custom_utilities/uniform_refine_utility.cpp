@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "uniform_refine_utility.h"
+#include "utilities/sub_model_parts_list_utility.h"
 
 
 namespace Kratos
@@ -29,8 +30,7 @@ namespace Kratos
 template< unsigned int TDim>
 UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int RefinementLevel) :
     mrModelPart(rModelPart),
-    mFinalRefinementLevel(RefinementLevel),
-    mSubModelPartsColors(mrModelPart)
+    mFinalRefinementLevel(RefinementLevel)
 {
     // Initialize the member variables storing the Id
     mLastNodeId = 0;
@@ -69,8 +69,9 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
     mDofs = mrModelPart.NodesBegin()->GetDofs();
 
     // Compute the sub model part maps
-
-    mSubModelPartsColors.ComputeSubModelPartsList(mNodesColorMap, mCondColorMap, mElemColorMap, mColors);
+    SubModelPartsListUtility colors_utility(mrModelPart);
+    colors_utility.ComputeSubModelPartsList(mNodesColorMap, mCondColorMap, mElemColorMap, mColors);
+    SubModelPartsListUtility::IntersectColors(mColors, mIntersections);
 }
 
 
@@ -308,7 +309,7 @@ void UniformRefineUtility<TDim>::CreateNodeInEdge(
         // Add the node to the sub model parts
         const int key0 = mNodesColorMap[rEdge(0)->Id()];
         const int key1 = mNodesColorMap[rEdge(1)->Id()];
-        const int key = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
+        const int key = mIntersections[std::minmax(key0, key1)];
         if (key != 0)  // NOTE: key==0 is the main model part
         {
             for (std::string sub_name : mColors[key])
@@ -388,9 +389,9 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
         int key1 = mNodesColorMap[rFace(1)->Id()];
         int key2 = mNodesColorMap[rFace(2)->Id()];
         int key3 = mNodesColorMap[rFace(3)->Id()];
-        key0 = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
-        key1 = mSubModelPartsColors.IntersectKeys(key2, key3, mColors);
-        key0 = mSubModelPartsColors.IntersectKeys(key0, key1, mColors);
+        key0 = mIntersections[std::minmax(key0, key1)];
+        key1 = mIntersections[std::minmax(key2, key3)];
+        key0 = mIntersections[std::minmax(key0, key1)];
         if (key0 != 0)  // NOTE: key==0 is the main model part
         {
             for (std::string sub_name : mColors[key0])
