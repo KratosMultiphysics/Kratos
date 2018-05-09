@@ -314,8 +314,8 @@ public:
      */
 
     static inline double CalculateRadius(
-        const Vector N,
-        GeometryType& Geom,
+        const Vector& rN,
+        const GeometryType& Geom,
         const Configuration ThisConfiguration = Current
         )
     {
@@ -327,14 +327,14 @@ public:
             if (ThisConfiguration == Current)
             {
                 const array_1d<double, 3 > CurrentPosition = Geom[iNode].Coordinates();
-                Radius += CurrentPosition[0] * N[iNode];
+                Radius += CurrentPosition[0] * rN[iNode];
             }
             else
             {
                 const array_1d<double, 3 > DeltaDisplacement = Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT) - Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT,1);
                 const array_1d<double, 3 > CurrentPosition = Geom[iNode].Coordinates();
                 const array_1d<double, 3 > ReferencePosition = CurrentPosition - DeltaDisplacement;
-                Radius += ReferencePosition[0] * N[iNode];
+                Radius += ReferencePosition[0] * rN[iNode];
             }
         }
 
