@@ -783,9 +783,9 @@ protected:
         for (int i = 0; i < num_nodes; i++) {
             auto it_node = rModelPart.NodesBegin() + i;
 
-            it_node->GetValue(NODAL_AREA) = 0.0;
-            noalias(it_node->GetValue(ADVPROJ)) = ZeroVector(3);
-            it_node->GetValue(DIVPROJ) = 0.0;
+            it_node->SetValue(NODAL_AREA,0.0);
+            it_node->SetValue(ADVPROJ,ZeroVector(3));
+            it_node->SetValue(DIVPROJ,0.0);
         }
 
         #pragma omp parallel for
