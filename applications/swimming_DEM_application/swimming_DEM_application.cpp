@@ -18,6 +18,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "swimming_DEM_application.h"
+#include "swimming_dem_application_variables.h"
 #include "geometries/point_3d.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/sphere_3d_1.h"
