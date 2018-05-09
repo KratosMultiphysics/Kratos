@@ -524,10 +524,11 @@ private:
     Vector mStress;
 };
 
-class LargeDisplacementVariables
+class LargeDisplacementDeformationVariables
 {
 public:
-    LargeDisplacementVariables(Element::GeometryType const& rGeom, bool IsAxisymmetric=false)
+    LargeDisplacementDeformationVariables(Element::GeometryType const& rGeom,
+                                          bool IsAxisymmetric = false)
         : mDiffVars(rGeom), mKinVars(mDiffVars, IsAxisymmetric), mIsAxisymmetric(IsAxisymmetric)
     {
     }
@@ -931,7 +932,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
         Vector residual_deriv(rOutput.size1());
         Vector N(nnodes);
         Vector body_force;
-        LargeDisplacementVariables deformation_vars(r_geom, IsAxisymmetric());
+        LargeDisplacementDeformationVariables deformation_vars(r_geom, IsAxisymmetric());
         LargeDisplacementSensitivityVariables sensitivity_vars(r_geom);
         ConstitutiveLawVariables cl_vars(r_geom, GetProperties(),
                                          ConstitutiveLaw::StressMeasure_PK2);
