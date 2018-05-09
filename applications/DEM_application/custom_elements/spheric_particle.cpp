@@ -982,6 +982,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
     for (unsigned int i=0; i<list_of_point_condition_pointers.size(); i++) {
         Condition* wall = list_of_point_condition_pointers[i];
+		std::cout << "points are found!" << std::endl;
         /*Node<3>& cond_node = wall->GetGeometry()[0];*/
 
         double RelVel[3]                         = {0.0};
@@ -993,20 +994,25 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 		DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
 //here we should change delta_disp = velocity * time_step
 
+std::cout << "points are found! 2" << std::endl;
 		Vector wall_delta_disp_at_contact_point = ZeroVector(3);
 		//wall->GetValuesVector(wall_delta_disp_at_contact_point);
 		Vector wall_velocity_at_contact_point = ZeroVector(3);
 		wall->GetFirstDerivativesVector(wall_velocity_at_contact_point);
 		wall_delta_disp_at_contact_point = wall_velocity_at_contact_point * data_buffer.mDt;
+		KRATOS_WATCH(wall_delta_disp_at_contact_point)
+		KRATOS_WATCH(wall_velocity_at_contact_point)
         bool sliding = false;
         double ini_delta = 0.0;
 
+		std::cout << "points are found! 3" << std::endl;
         array_1d<double, 3> cond_to_me_vect;
 		std::vector<Vector> coordinates(1);
 		wall->GetValueOnIntegrationPoints(COORDINATES, coordinates, r_process_info);
         noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - coordinates[0];
         double DistPToB = DEM_MODULUS_3(cond_to_me_vect);;
-
+		KRATOS_WATCH(coordinates)
+		std::cout << "points are found! 4" << std::endl;
         double indentation = -(DistPToB - GetInteractionRadius()) - ini_delta;
         double DeltDisp[3] = {0.0};
         double DeltVel [3] = {0.0};
@@ -1015,12 +1021,14 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         DeltVel[1] = velocity[1] - wall_velocity_at_contact_point[1];
         DeltVel[2] = velocity[2] - wall_velocity_at_contact_point[2];
 
+		std::cout << "points are found! 5" << std::endl;
         // For translation movement delta displacement
         const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
         DeltDisp[0] = delta_displ[0] - wall_delta_disp_at_contact_point[0];
         DeltDisp[1] = delta_displ[1] - wall_delta_disp_at_contact_point[1];
         DeltDisp[2] = delta_displ[2] - wall_delta_disp_at_contact_point[2];
 
+		std::cout << "points are found! 6" << std::endl;
 		Node<3>::Pointer other_particle_node = this->GetGeometry()[0].Clone();
 		other_particle_node->GetSolutionStepValue(DELTA_DISPLACEMENT) = wall_delta_disp_at_contact_point;
 		//other_particle_node->GetSolutionStepValue(VELOCITY) = wall_delta_disp_at_contact_point;
@@ -1030,6 +1038,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         data_buffer.mDomainIsPeriodic = false;
         EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOldLocalCoordSystem, velocity, delta_displ);
 
+		std::cout << "points are found! 7" << std::endl;
         if (this->Is(DEMFlags::HAS_ROTATION)) {
             const array_1d<double,3>& delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
 
@@ -1047,17 +1056,23 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             DEM_ADD_SECOND_TO_FIRST(DeltDisp, tangential_displacement_due_to_rotation)
         }
 
+		std::cout << "points are found! 8" << std::endl;
         double LocalDeltDisp[3] = {0.0};
         GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltDisp, LocalDeltDisp);
 
         double OldLocalElasticContactForce[3] = {0.0};
 
-        GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, neighbour_point_faces_elastic_contact_force[i], OldLocalElasticContactForce);
+		std::cout << "points are found! 9" << std::endl;
+		KRATOS_WATCH(data_buffer.mLocalCoordSystem)
+		KRATOS_WATCH(OldLocalElasticContactForce)
+
+        GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, coordinates[0], OldLocalElasticContactForce);
         const double previous_indentation = indentation + LocalDeltDisp[2];
         data_buffer.mLocalRelVel[0] = 0.0;
         data_buffer.mLocalRelVel[1] = 0.0;
         data_buffer.mLocalRelVel[2] = 0.0;
 
+		std::cout << "points are found! 9.1" << std::endl;
         if (indentation > 0.0) {
 
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltVel, data_buffer.mLocalRelVel);
@@ -1075,19 +1090,27 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
                                                                 sliding);
         }
 
+		std::cout << "points are found! 9.9" << std::endl;
         double LocalContactForce[3]  = {0.0};
         double GlobalContactForce[3] = {0.0};
 
+		std::cout << "points are found! 10" << std::endl;
+		double coordsIGAcond[3] = { 0.0 };
+		DEM_COPY_SECOND_TO_FIRST_3(coordsIGAcond,coordinates[0])
         AddUpFEMForcesAndProject(data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
                                 GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, r_elastic_force,
-                                r_contact_force,  neighbour_point_faces_elastic_contact_force[i], neighbour_point_faces_total_contact_force[i]);
+                                r_contact_force, neighbour_point_faces_elastic_contact_force[i], neighbour_point_faces_total_contact_force[i]);
 
+		std::cout << "points are found! 11" << std::endl;
         rigid_element_force[0] -= GlobalContactForce[0];
         rigid_element_force[1] -= GlobalContactForce[1];
         rigid_element_force[2] -= GlobalContactForce[2];
 
+
+		std::cout << "points are found! 12" << std::endl;
 		Vector GlobalContactForceVector(3);
 		DEM_COPY_SECOND_TO_FIRST_3(GlobalContactForceVector, GlobalContactForce)
+		KRATOS_WATCH(GlobalContactForceVector)
 		wall->SetValue(EXTERNAL_FORCES_VECTOR, GlobalContactForceVector);
 
         if (this->Is(DEMFlags::HAS_ROTATION)) {

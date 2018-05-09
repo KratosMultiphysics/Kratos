@@ -63,6 +63,7 @@ class IGAStructuralMechanicsSolver:
 	def AddVariables(self):
 		# Add displacements
 		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
 		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 		print("Added Variables: DISPLACEMENT")
@@ -104,19 +105,17 @@ class IGAStructuralMechanicsSolver:
 	
 		
 	def AddDofs(self):
-		for node in self.model_part.Nodes:
-			# adding dofs
-			node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X);
-			node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y);
-			node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z);
+		KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.model_part)
+		KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.model_part)
+		KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.model_part)
 
-			#node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X);
-			#node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y);
-			#node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z);
+		#node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X);
+		#node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y);
+		#node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z);
 
-			#node.AddDof(KratosMultiphysics.ROTATION_X);
-			#node.AddDof(KratosMultiphysics.ROTATION_Y);
-			#node.AddDof(KratosMultiphysics.ROTATION_Z);
+		#node.AddDof(KratosMultiphysics.ROTATION_X);
+		#node.AddDof(KratosMultiphysics.ROTATION_Y);
+		#node.AddDof(KratosMultiphysics.ROTATION_Z);
 		print("Added DOFs: DISPLACEMENT")
 
 	def Initialize(self):

@@ -129,6 +129,8 @@ for process in list_of_processes:
 #TODO: think if there is a better way to do this
 iga_computing_model_part = iga_solver.GetComputeModelPart()
 
+print(iga_model_part)
+
 
 #### output settings start ####
 
@@ -185,10 +187,10 @@ while dem_analysis.time < dem_analysis.final_time:
     iga_model_part.ProcessInfo[TIME_STEPS] = step
     iga_model_part.CloneTimeStep(time)
 
-    # condition_model_part = ModelPart("ConditionModelPart")
-    # NurbsBrepProcess.modeler.GetInterfaceConditions(dem_analysis.spheres_model_part, iga_model_part, NurbsBrepProcess.model_part_integration_domain)
+    condition_model_part = ModelPart("ConditionModelPart")
+    NurbsBrepProcess.modeler.GetInterfaceConditions(dem_analysis.spheres_model_part, iga_model_part, NurbsBrepProcess.model_part_integration_domain)
 
-    mapper.UpdateInterface()
+    #mapper.UpdateInterface()
 
     dem_analysis.RunSingleTemporalLoop()
     for process in list_of_processes:

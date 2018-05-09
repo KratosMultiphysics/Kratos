@@ -539,6 +539,7 @@ namespace Kratos
 
 			trimming_curve.GetClosestPoint(closest_points[i], percentage, parameter);
 
+
 			Point point3d;
 			EvaluateSurfacePoint(point3d, closest_points[i][0], closest_points[i][1]);
 
@@ -927,13 +928,23 @@ namespace Kratos
 			Vector delta_u = prod(inv_H, gradient);
 			u -= delta_u(0);
 			v -= delta_u(1);
-
+			//std::cout << "u: " << u << ", v: " << v << std::endl;
+			//KRATOS_WATCH(delta_u)
 			EvaluateSurfacePoint(newton_raphson_point, u, v);
 			difference(0) = newton_raphson_point[0] - rPoint[0];
 			difference(1) = newton_raphson_point[1] - rPoint[1];
 			difference(2) = newton_raphson_point[2] - rPoint[2];
 
 			norm_delta_u = norm_2(difference);
+
+			if (u > std::max(m_knot_vector_u[m_knot_vector_u.size() - 1], m_knot_vector_u[0]))
+				u = std::max(m_knot_vector_u[m_knot_vector_u.size() - 1], m_knot_vector_u[0]);
+			if (u < std::min(m_knot_vector_u[m_knot_vector_u.size() - 1], m_knot_vector_u[0]))
+				u = std::min(m_knot_vector_u[m_knot_vector_u.size() - 1], m_knot_vector_u[0]);
+			if (v > std::max(m_knot_vector_v[m_knot_vector_v.size() - 1], m_knot_vector_v[0]))
+				v = std::max(m_knot_vector_v[m_knot_vector_v.size() - 1], m_knot_vector_v[0]);
+			if (v < std::min(m_knot_vector_v[m_knot_vector_v.size() - 1], m_knot_vector_v[0]))
+				v = std::min(m_knot_vector_v[m_knot_vector_v.size() - 1], m_knot_vector_v[0]);
 
 			if (norm_delta_u < rAccuracy)
 				return true;
@@ -1043,7 +1054,6 @@ namespace Kratos
 		for (unsigned int i = 0; i < rNodes.size(); i++)
 		{
 			Point point(rNodes[i]->X(), rNodes[i]->Y(), rNodes[i]->Z());
-
 			double u = 0;
 			double v = 0;
 			bool success = ProjectionNewtonRaphson(point, u, v, rAccuracy, rMaxIterations);
@@ -1091,6 +1101,7 @@ namespace Kratos
 			closest_point[1] = v;
 			closest_points.push_back(closest_point);
 		}
+
 		return closest_points;
 	}
 
@@ -2085,6 +2096,7 @@ namespace Kratos
         int m_n_u = m_knot_vector_u.size() - m_p - 1;
         int control_point_index = vi*m_n_u + ui;
 
+		KRATOS_ERROR_IF(control_point_index > m_control_points_ids.size() - 1) << "There is a bug" << std::endl;
         rSurfacePoint[0] += R(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).X();
         rSurfacePoint[1] += R(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).Y();
         rSurfacePoint[2] += R(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).Z();
@@ -2210,9 +2222,26 @@ namespace Kratos
         // the control point vector is filled up by first going over u, then over v
         int ui = span_u - m_p + b;
         int vi = span_v - m_q + c;
-        int m_n_u = m_knot_vector_u.size() - m_p - 1;
-        int control_point_index = vi*m_n_u + ui;
+        int n_u = m_knot_vector_u.size() - m_p - 1;
+		int control_point_index = vi * n_u + ui;
         // Evaluate basis function
+		//if (control_point_index > m_control_points_ids.size() - 1)
+		//{
+		//	KRATOS_WATCH(_u)
+		//	KRATOS_WATCH(_v)
+		//	KRATOS_WATCH(m_control_points_ids.size())
+		//	KRATOS_WATCH(span_u)
+		//	KRATOS_WATCH(span_v)
+		//	KRATOS_WATCH(m_knot_vector_u)
+		//	KRATOS_WATCH(m_knot_vector_v)
+		//	KRATOS_WATCH(n_u)
+		//	KRATOS_WATCH(m_p)
+		//	KRATOS_WATCH(m_q)
+		//	KRATOS_WATCH(m_control_points_ids)
+		//	KRATOS_WATCH(control_point_index)
+		//	KRATOS_ERROR << "There is a bug" << std::endl;
+		//}
+		
         R(b, c) = N(b)*M(c)*mp_model_part->GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
         sum += R(b, c);
       }
@@ -2273,6 +2302,7 @@ namespace Kratos
         int m_n_u = m_knot_vector_u.size() - m_p - 1;
         int control_point_index = vi*m_n_u + ui;
 
+		KRATOS_ERROR_IF(control_point_index > m_control_points_ids.size() - 1) << "There is a bug" << std::endl;
         // Evaluate basis function
         weight = mp_model_part->GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
 
@@ -2373,6 +2403,7 @@ namespace Kratos
         int m_n_u = m_knot_vector_u.size() - m_p - 1;
         int control_point_index = vi*m_n_u + ui;
 
+		KRATOS_ERROR_IF(control_point_index > m_control_points_ids.size() - 1) << "There is a bug" << std::endl;
         // Evaluate basis function
         weight = mp_model_part->GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
         R(b, c) = N_matrix(0, b)*M_matrix(0, c)*weight;

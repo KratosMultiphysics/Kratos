@@ -177,7 +177,6 @@ namespace Kratos
 			for (unsigned int face_itr = 0; face_itr < m_brep_model_vector[brep_itr].GetFaceVector().size(); face_itr++)
 			{
 				BrepFace& face = m_brep_model_vector[brep_itr].GetFaceVector()[face_itr];
-
 				if (faces)
 				{
 					ModelPart::Pointer model_part_face_id = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()));
@@ -232,7 +231,6 @@ namespace Kratos
 						BrepEdge::Topology master_topology = edge.GetEdgeInformation(0);
 						BrepFace& face_master = GetFace(master_topology.face_id);
 
-
 						std::vector<Node<3>::Pointer> NodeVectorElement = face_master.GetIntegrationNodesTrimmingCurveMaster(
 							points, shapefunction_order, master_topology.trim_index, slave_p_q, accuracy, m_model_tolerance, number_projection_iterations);
 
@@ -249,6 +247,7 @@ namespace Kratos
 				{
 					if (edges)
 					{
+						std::cout << "check edges" << std::endl;
 						ModelPart::Pointer model_part_edge_id = model_part_edges->CreateSubModelPart("EDGE_" + std::to_string(edge.Id()));
 						BrepEdge::Topology edge_topology = edge.GetEdgeInformation(0);
 
@@ -550,6 +549,7 @@ namespace Kratos
 
 					if (distance_radius <= radius)
 					{
+						std::cout << "output here!" << std::endl;
 						Vector node_ids = node_on_geometry->GetValue(CONTROL_POINT_IDS);
 						std::vector<std::size_t> node_ids_int(node_ids.size());
 						for (int i = 0; i < node_ids.size(); i++)

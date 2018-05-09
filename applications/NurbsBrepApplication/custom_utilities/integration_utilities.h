@@ -679,9 +679,57 @@ namespace Kratos
       //    IntegrationPoint(Vector2d(0.31035245103378, 0.05314504984482), 0.08285107561837),
       //    IntegrationPoint(Vector2d(0.05314504984482, 0.63650249912140), 0.08285107561837)
       //  };
+	  else if (number_of_points == 7)
+	  {
+		  gaussian_coords.resize(13, 2);
+		  weights.resize(13);
+
+
+		gaussian_coords( 0, 0) = 0.33333333333333;
+		gaussian_coords( 1, 0) = 0.26034596607904;
+		gaussian_coords( 2, 0) = 0.26034596607904;
+		gaussian_coords( 3, 0) = 0.47930806784192;
+		gaussian_coords( 4, 0) = 0.06513010290222;
+		gaussian_coords( 5, 0) = 0.06513010290222;
+		gaussian_coords( 6, 0) = 0.86973979419557;
+		gaussian_coords( 7, 0) = 0.31286549600487;
+		gaussian_coords( 8, 0) = 0.63844418856981;
+		gaussian_coords( 9, 0) = 0.04869031542532;
+		gaussian_coords(10, 0) = 0.63844418856981;
+		gaussian_coords(11, 0) = 0.31286549600487;
+		gaussian_coords(12, 0) = 0.04869031542532;
+
+		gaussian_coords( 0, 0) = 0.33333333333333;
+		gaussian_coords(1, 0) = 0.26034596607904;
+		gaussian_coords(2, 0) = 0.47930806784192;
+		gaussian_coords(3, 0) = 0.26034596607904;
+		gaussian_coords(4, 0) = 0.06513010290222;
+		gaussian_coords(5, 0) = 0.86973979419557;
+		gaussian_coords(6, 0) = 0.06513010290222;
+		gaussian_coords(7, 0) = 0.63844418856981;
+		gaussian_coords(8, 0) = 0.04869031542532;
+		gaussian_coords(9, 0) = 0.31286549600487;
+		gaussian_coords(10, 0) = 0.31286549600487;
+		gaussian_coords(11, 0) = 0.04869031542532;
+		gaussian_coords(12, 0) = 0.63844418856981;
+
+		weights[0] = -0.14957004446768;
+		weights[1] = 0.17561525743321;
+		weights[2] = 0.17561525743321;
+		weights[3] = 0.17561525743321;
+		weights[4] = 0.05334723560884;
+		weights[5] = 0.05334723560884;
+		weights[6] = 0.05334723560884;
+		weights[7] = 0.07711376089026;
+		weights[8] = 0.07711376089026;
+		weights[9] = 0.07711376089026;
+		weights[10] = 0.07711376089026;
+		weights[11] = 0.07711376089026;
+		weights[12] = 0.07711376089026;
+	  }
       //case 7:
       //  return{
-      //    IntegrationPoint(Vector2d(0.33333333333333, 0.33333333333333), -0.14957004446768),
+      //    IntegrationPoint(Vector2d(0.33333333333333, 0.33333333333333),-0.14957004446768),
       //    IntegrationPoint(Vector2d(0.26034596607904, 0.26034596607904), 0.17561525743321),
       //    IntegrationPoint(Vector2d(0.26034596607904, 0.47930806784192), 0.17561525743321),
       //    IntegrationPoint(Vector2d(0.47930806784192, 0.26034596607904), 0.17561525743321),
