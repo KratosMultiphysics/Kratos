@@ -239,7 +239,7 @@ namespace Kratos
     }
 
     inline double ExplicitMeshMovingUtilities::ComputeKernelValue(const double NormalisedDistance){
-        // Epachenikov (parabolic) kernel function
+        // Epanechnikov (parabolic) kernel function
         return (std::abs(NormalisedDistance) <= 1.0) ? std::abs((3.0/4.0)*(1.0-std::pow(NormalisedDistance,2))) : 0.0;
     }
 
