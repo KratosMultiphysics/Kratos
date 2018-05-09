@@ -218,8 +218,8 @@ private:
     std::unordered_map<IndexType,int> mNodesColorMap;
     std::unordered_map<IndexType,int> mCondColorMap;
     std::unordered_map<IndexType,int> mElemColorMap;
-    std::unordered_map<int,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
-    std::map<std::pair<int,int>,int> mIntersections;           /// Where the colors intersection are stored
+    std::unordered_map<int,std::vector<ModelPart*>> mColorsPointers; /// Where the sub model parts are stored
+    std::map<std::pair<int,int>,int> mIntersections;                 /// Where the colors intersection are stored
 
     NodesInEdgeMapType mNodesMap;              /// Where the father nodes IDs are stored
     NodesInFaceMapType mNodesInFaceMap;        /// Where the father nodes IDs are stored
