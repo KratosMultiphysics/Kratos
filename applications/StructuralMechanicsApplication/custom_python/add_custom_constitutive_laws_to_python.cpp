@@ -39,9 +39,9 @@
 
 // A Cornejo
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
-#include "custom_constitutive/yield_surfaces/generic_yield_surface.hpp"
-#include "custom_constitutive/plastic_potentials/generic_plastic_potential.hpp"
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator.hpp"
+#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator.h"
 
 namespace Kratos
 {
