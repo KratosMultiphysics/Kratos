@@ -6,7 +6,7 @@ from numpy.linalg import inv
 from numpy.linalg import det
 #from sympy import *
 
-class TestCase(KratosUnittest.TestCase):
+class TestPotentialElement2D(KratosUnittest.TestCase):
 
     def setUp(self):
         # create test model part
@@ -132,7 +132,7 @@ class TestCase(KratosUnittest.TestCase):
     
     def get_coordinates(self,coordinates):
         counter = 0
-        for node in self.model_part.Nodes:
+        for node in self.model_part.Nodes: #for counter, node in enumerate(self.model_part.Nodes)
             coordinates[counter,0] = node.X 
             coordinates[counter,1] = node.Y
             counter +=1

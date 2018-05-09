@@ -5,10 +5,9 @@ from KratosMultiphysics.CompressiblePotentialFlowApplication import *
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
-from generalTests import KratosCompressiblePotentialFlowGeneralTests
+# Import the tests or test_classes to create the suits
 
-import test_potential_element_2d
+from test_potential_element_2d import TestPotentialElement2D
 
 
 def AssambleTestSuites():
@@ -30,28 +29,17 @@ def AssambleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    #smallSuite.addTest(KratosCompressiblePotentialFlowGeneralTests('testSmallExample'))
-    smallSuite.addTest(test_potential_element_2d.TestCase('test_CalculateLocalSystem'))
-    smallSuite.addTest(test_potential_element_2d.TestCase('test_CalculateRHS'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPotentialElement2D]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    #nightSuite.addTests(KratosCompressiblePotentialFlowGeneralTests)
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
-    #allSuite.addTests(
-    #    KratosUnittest.TestLoader().loadTestsFromTestCases([
-    #        KratosCompressiblePotentialFlowGeneralTests
-    #    ])
-    #)
+    allSuite.addTests(nightSuite) # already contains the smallSuite
 
     return suites
 
