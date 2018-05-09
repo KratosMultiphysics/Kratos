@@ -57,21 +57,21 @@ public:
     UPwSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPwSmallStrainElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
-    virtual ~UPwSmallStrainFICElement() {}
+    ~UPwSmallStrainFICElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
     
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
         
-    void Initialize();
+    void Initialize() override;
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
     
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -90,14 +90,14 @@ protected:
         Matrix VoigtMatrix;
         
         /// Variables computed at each GP
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim*TNumNodes> StrainGradients;
+        BoundedMatrix<double,TDim,TDim*TNumNodes> StrainGradients;
         array_1d<Vector,TNumNodes> ShapeFunctionsSecondOrderGradients;
         array_1d< array_1d<double,TDim> , TDim > DtStressGradients;
         array_1d< std::vector< array_1d<double,TDim> > , TDim > ConstitutiveTensorGradients;
         ///Auxiliary variables
         array_1d<double,TDim> DimVector;
         Matrix DimVoigtMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim*TNumNodes> DimUMatrix;
+        BoundedMatrix<double,TDim,TDim*TNumNodes> DimUMatrix;
     };
     
     /// Member Variables
@@ -117,9 +117,9 @@ protected:
     void ExtrapolateGPDtStress(const Matrix& DtStressContainer);
     
     
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
 
     void InitializeFICElementVariables(FICElementVariables& rFICVariables, const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
                                         const GeometryType& Geom,const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
@@ -167,12 +167,12 @@ private:
     
     friend class Serializer;
     
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }

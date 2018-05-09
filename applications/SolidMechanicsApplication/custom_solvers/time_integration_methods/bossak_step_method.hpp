@@ -144,7 +144,7 @@ namespace Kratos
     }
     
     // set parameters (do not calculate parameters here, only read them)
-    virtual void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
+    void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
        
@@ -184,7 +184,7 @@ namespace Kratos
 
 
     // set parameters to process info
-    virtual void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo) override
+    void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
        
@@ -222,7 +222,7 @@ namespace Kratos
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "BossakStepMethod";
@@ -230,13 +230,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "BossakStepMethod";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "BossakStepMethod Data";     
     }
@@ -308,13 +308,13 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
       rSerializer.save("BossakAlpha", mAlpha);
     };
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
       rSerializer.load("BossakAlpha", mAlpha);

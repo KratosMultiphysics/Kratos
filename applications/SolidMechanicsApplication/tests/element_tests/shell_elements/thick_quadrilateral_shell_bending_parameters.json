@@ -63,7 +63,7 @@
         "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "Parameters"    : {
             "model_part_name" : "PointMoment3D_Moment_on_points_Auto1",
-            "variable_name"   : "POINT_MOMENT",
+            "variable_name"   : "MOMENT_LOAD",
             "modulus"         : "10226.538*t",
             "direction"       : [0.0,-1.0,0.0],
             "interval"        : [0.0,"End"]

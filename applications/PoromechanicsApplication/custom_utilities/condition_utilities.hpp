@@ -21,7 +21,7 @@ public:
         
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,2,4>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,2,4>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Line_2d_2
         rNu(0,0) = Ncontainer(GPoint,0); rNu(0,2) = Ncontainer(GPoint,1); 
@@ -30,7 +30,7 @@ public:
     
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,3,9>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,3,9>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Triangle_3d_3
         rNu(0,0) = Ncontainer(GPoint,0); rNu(0,3) = Ncontainer(GPoint,1); rNu(0,6) = Ncontainer(GPoint,2);
@@ -40,7 +40,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,3,12>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,3,12>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Quadrilateral_3d_4
         rNu(0,0) = Ncontainer(GPoint,0); rNu(0,3) = Ncontainer(GPoint,1); rNu(0,6) = Ncontainer(GPoint,2); rNu(0,9) = Ncontainer(GPoint,3);
@@ -246,7 +246,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------   
 
-	static inline void AssembleUPMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,4,2>& UPBlockMatrix)
+	static inline void AssembleUPMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,4,2>& UPBlockMatrix)
     {        
         //Line_2d_2
         unsigned int Global_i, Global_j, Local_i;
@@ -268,7 +268,7 @@ public:
     
 //----------------------------------------------------------------------------------------
  
-	static inline void AssembleUPMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,9,3>& UPBlockMatrix)
+	static inline void AssembleUPMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,9,3>& UPBlockMatrix)
     {
         //Triangle_3d_3  
         unsigned int Global_i, Global_j, Local_i;
@@ -291,7 +291,7 @@ public:
     
 //----------------------------------------------------------------------------------------
  
-	static inline void AssembleUPMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,12,4>& UPBlockMatrix)
+	static inline void AssembleUPMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,12,4>& UPBlockMatrix)
     {
         //Quadrilateral_3d_4
         unsigned int Global_i, Global_j, Local_i;
@@ -314,7 +314,7 @@ public:
     
 //----------------------------------------------------------------------------------------
 
-	static inline void AssemblePUMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,2,4>& PUBlockMatrix)
+	static inline void AssemblePUMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,2,4>& PUBlockMatrix)
     {        
         //Line_2d_2
         unsigned int Global_i, Global_j, Local_j;
@@ -336,7 +336,7 @@ public:
 
 //----------------------------------------------------------------------------------------
 
-	static inline void AssemblePUMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,3,9>& PUBlockMatrix)
+	static inline void AssemblePUMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,3,9>& PUBlockMatrix)
     {
         //Triangle_3d_3 
         unsigned int Global_i, Global_j, Local_j;
@@ -359,7 +359,7 @@ public:
     
 //----------------------------------------------------------------------------------------
 
-	static inline void AssemblePUMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,4,12>& PUBlockMatrix)
+	static inline void AssemblePUMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,4,12>& PUBlockMatrix)
     {
         //Quadrilateral_3d_4
         unsigned int Global_i, Global_j, Local_j;

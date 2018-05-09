@@ -81,23 +81,23 @@ public:
     virtual ~KratosSwimmingDEMApplication() {}
 
 
-    virtual void Register();
+    void Register() override;
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosSwimmingDEMApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
@@ -168,6 +168,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SWIMMING_DEM_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_SWIMMING_DEM_APPLICATION_H_INCLUDED  defined
 
 

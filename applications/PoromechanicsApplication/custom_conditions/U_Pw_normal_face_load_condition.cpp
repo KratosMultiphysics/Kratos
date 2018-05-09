@@ -39,7 +39,7 @@ void UPwNormalFaceLoadCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRigh
     NormalFaceLoadVariables Variables;
     this->InitializeConditionVariables(Variables,Geom);
     array_1d<double,TDim> TractionVector;
-    boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     double IntegrationCoefficient;
     array_1d<double,TNumNodes*TDim> UVector;
     

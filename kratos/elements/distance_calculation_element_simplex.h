@@ -185,7 +185,7 @@ public:
     {
         const unsigned int number_of_points = TDim+1;
 
-        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim > DN_DX;
+        BoundedMatrix<double, TDim+1, TDim > DN_DX;
         array_1d<double, TDim+1 > N;
 
         if (rLeftHandSideMatrix.size1() != number_of_points)

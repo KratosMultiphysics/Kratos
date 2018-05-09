@@ -216,7 +216,7 @@ public:
 //      }
     void Initialize(
         ModelPart& r_model_part
-    )
+    ) override
     {
         //Initialize variables
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
@@ -320,7 +320,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -409,13 +409,13 @@ public:
     Performing the update of the solution.
     */
     //***************************************************************************
-    virtual void Update(
+    void Update(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -471,7 +471,7 @@ public:
     /*@{ */
 
 
-    virtual void Clear()
+    void Clear() override
     {
         mpDofImporter.reset();
         mImporterIsInitialized = false;
@@ -516,8 +516,8 @@ protected:
     /**@name Protected Operations*/
     /*@{ */
 
-    virtual void InitializeDofImporter(DofsArrayType& rDofSet,
-                                       TSystemVectorType& Dx)
+    void InitializeDofImporter(DofsArrayType& rDofSet,
+                               TSystemVectorType& Dx) override
     {
         int system_size = TSparseSpace::Size(Dx);
         int number_of_dofs = rDofSet.size();

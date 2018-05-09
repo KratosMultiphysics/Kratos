@@ -660,7 +660,7 @@ namespace Kratos
 					}
 					else
 					{
-						// local_x and y defines where to estimate the value on the interpolated line, 
+						// local_x and y defines where to estimate the value on the interpolated line,
 						// it is 0 at the first point and 1 and the second point
 						double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
 						double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
@@ -765,7 +765,7 @@ namespace Kratos
 					max_tag[0] = ceil(real_tag[0]);
 					max_tag[1] = ceil(real_tag[1]);
 
-					// local_x and y defines where to estimate the value on the interpolated line, 
+					// local_x and y defines where to estimate the value on the interpolated line,
 					// it is 0 at the first point and 1 and the second point
 					double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
 					double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
@@ -895,7 +895,7 @@ namespace Kratos
 					max_tag[0] = ceil(real_tag[0]);
 					max_tag[1] = ceil(real_tag[1]);
 
-					// local_x and y defines where to estimate the value on the interpolated line, 
+					// local_x and y defines where to estimate the value on the interpolated line,
 					// it is 0 at the first point and 1 and the second point
 					double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
 					double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
@@ -998,7 +998,7 @@ namespace Kratos
 					max_tag[0] = ceil(real_tag[0]);
 					max_tag[1] = ceil(real_tag[1]);
 
-					// local_x and y defines where to estimate the value on the interpolated line, 
+					// local_x and y defines where to estimate the value on the interpolated line,
 					// it is 0 at the first point and 1 and the second point
 					double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
 					double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
@@ -1358,7 +1358,7 @@ namespace Kratos
 		}
 		else
 		{
-			// local_x and y defines where to estimate the value on the interpolated line, 
+			// local_x and y defines where to estimate the value on the interpolated line,
 			// it is 0 at the first point and 1 and the second point
 			double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
 			double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
@@ -1589,16 +1589,16 @@ namespace Kratos
 			stress_vector[2] = InterpStressVectorXY[n_damage - 1] + (InterpStressVectorXY[n_damage - 1] - InterpStressVectorXY[n_damage - 2])*(x - x0) / diff;
 
 			// //std::cout << "Is_Elastic = false -> OUT OF BOUND\n";
-			// double x = norm_real_eps; 
+			// double x = norm_real_eps;
 			// Vector x_eps(3, 0.0);
 			// this->ReconstructStrain(x_eps, x, Theta);
-			// double x0 = InterpRadiusVector[n_damage - 1]; 
+			// double x0 = InterpRadiusVector[n_damage - 1];
 			// Vector x0_eps(3, 0.0);
 			// this->ReconstructStrain(x0_eps, x0, Theta);
-			// double x_1 = InterpRadiusVector[n_damage - 2]; 
+			// double x_1 = InterpRadiusVector[n_damage - 2];
 			// Vector x_1_eps(3, 0.0);
 			// this->ReconstructStrain(x_1_eps, x_1, Theta);
-			// 
+			//
 			// //sigma
 			// stress_vector[0] = (x0_eps[0] - x_1_eps[0]) ? InterpStressVectorXX[n_damage - 1] + (InterpStressVectorXX[n_damage - 1] - InterpStressVectorXX[n_damage - 2])*(x_eps[0] - x0_eps[0]) / (x0_eps[0] - x_1_eps[0]) : InterpStressVectorXX[n_damage - 1] + (InterpStressVectorXX[n_damage - 1] - InterpStressVectorXX[n_damage - 2])*(x_eps[0] - x0_eps[0]);
 			// stress_vector[1] = (x0_eps[1] - x_1_eps[1]) ? InterpStressVectorYY[n_damage - 1] + (InterpStressVectorYY[n_damage - 1] - InterpStressVectorYY[n_damage - 2])*(x_eps[1] - x0_eps[1]) / (x0_eps[1] - x_1_eps[1]) : InterpStressVectorYY[n_damage - 1] + (InterpStressVectorYY[n_damage - 1] - InterpStressVectorYY[n_damage - 2])*(x_eps[1] - x0_eps[1]);
@@ -1633,22 +1633,22 @@ namespace Kratos
 						break;
 
 						// //std::cout << "Is_Elastic = false -> INSIDE OF BOUND\n";
-						// double x = norm_real_eps; 
+						// double x = norm_real_eps;
 						// Vector x_eps(3, 0.0);
 						// //std::cout << "norm_real_eps: " << norm_real_eps << std::endl;
 						// this->ReconstructStrain(x_eps, x, Theta);
 						// //std::cout << "x_eps: " << x_eps << std::endl;
-						// double x0 = InterpRadiusVector[jj - 1]; 
+						// double x0 = InterpRadiusVector[jj - 1];
 						// Vector x0_eps(3, 0.0);
 						// this->ReconstructStrain(x0_eps, x0, Theta);
 						// //std::cout << "damages[jj - 1]: " << damages[jj - 1] << std::endl;
 						// //std::cout << "x0_eps: " << x0_eps << std::endl;
-						// double x1 = InterpRadiusVector[jj]; 
+						// double x1 = InterpRadiusVector[jj];
 						// Vector x1_eps(3, 0.0);
 						// this->ReconstructStrain(x1_eps, x1, Theta);
 						// //std::cout << "damages[jj]: " << damages[jj] << std::endl;
 						// //std::cout << "x1_eps: " << x1_eps << std::endl;
-						// 
+						//
 						// stress_vector[0] = (x1_eps[0] - x0_eps[0]) > 1.0e-12 ? InterpStressVectorXX[jj - 1] + (InterpStressVectorXX[jj] - InterpStressVectorXX[jj - 1])*(trial_macro_scale_strain_vector[0] - x0_eps[0]) / (x1_eps[0] - x0_eps[0]) : InterpStressVectorXX[jj - 1] + (InterpStressVectorXX[jj] - InterpStressVectorXX[jj - 1])*(x_eps[0] - x0_eps[0]);
 						// stress_vector[1] = (x1_eps[1] - x0_eps[1]) > 1.0e-12 ? InterpStressVectorYY[jj - 1] + (InterpStressVectorYY[jj] - InterpStressVectorYY[jj - 1])*(trial_macro_scale_strain_vector[1] - x0_eps[1]) / (x1_eps[1] - x0_eps[1]) : InterpStressVectorYY[jj - 1] + (InterpStressVectorYY[jj] - InterpStressVectorYY[jj - 1])*(x_eps[1] - x0_eps[1]);
 						// stress_vector[2] = (x1_eps[2] - x0_eps[2]) > 1.0e-12 ? InterpStressVectorXY[jj - 1] + (InterpStressVectorXY[jj] - InterpStressVectorXY[jj - 1])*(trial_macro_scale_strain_vector[2] - x0_eps[2]) / (x1_eps[2] - x0_eps[2]) : InterpStressVectorXY[jj - 1] + (InterpStressVectorXY[jj] - InterpStressVectorXY[jj - 1])*(x_eps[2] - x0_eps[2]);
@@ -1828,7 +1828,7 @@ namespace Kratos
 		//std::cout << "lch_macro: " << lch_macro << std::endl;
 		//xx
 		Gf = mGf_bar * mult;
-		//mAlpha = lch_ref / lch_macro - 1.0; 
+		//mAlpha = lch_ref / lch_macro - 1.0;
 		mAlpha = (Gf - mG0) / (mGf_bar - mG0) - 1.0;
 		//std::cout << "mAlphaxx: " << mAlphaxx << std::endl;
 		if (mAlpha <= -1.0)
@@ -1913,7 +1913,7 @@ namespace Kratos
 		max_tag[1] = ceil(real_tag[1]);
 		//std::cout << "max_tag: " << max_tag << std::endl;
 
-		// local_x and y defines where to estimate the value on the interpolated line, 
+		// local_x and y defines where to estimate the value on the interpolated line,
 		// it is 0 at the first point and 1 and the second point
 		double local_x = (real_tag[0] - min_tag[0]) / (max_tag[0] - min_tag[0]);
 		double local_y = (real_tag[1] - min_tag[1]) / (max_tag[1] - min_tag[1]);
