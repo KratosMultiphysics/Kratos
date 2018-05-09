@@ -516,7 +516,7 @@ void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints( const Variable<dou
 
         this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
-    else if(rVariable == DAMAGE_VARIABLE || rVariable == STATE_VARIABLE)
+    else //if(rVariable == DAMAGE_VARIABLE || rVariable == STATE_VARIABLE)
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
@@ -542,6 +542,17 @@ void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<arra
 
         this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
+    else
+    {
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+            rValues.resize(mConstitutiveLawVector.size());
+
+        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+        {
+            noalias(rValues[i]) = ZeroVector(3);
+            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
+        }
+    }
 }
 
 //----------------------------------------------------------------------------------------
@@ -556,6 +567,18 @@ void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<Matr
             rValues.resize(mConstitutiveLawVector.size());
 
         this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    }
+    else
+    {
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+            rValues.resize(mConstitutiveLawVector.size());
+
+        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+        {
+            rValues[i].resize(TDim,TDim,false);
+            noalias(rValues[i]) = ZeroMatrix(TDim,TDim);
+            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
+        }
     }
 }
 
