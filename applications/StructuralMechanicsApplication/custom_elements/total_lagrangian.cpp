@@ -183,8 +183,11 @@ class LargeDisplacementDifferentialSensitivityVariables
         {
             KRATOS_TRY;
             if (IntegrationIndex != mCurrentIntegrationIndex)
+            {
                 RecalculateJ0(IntegrationIndex);
-            if (Deriv != mCurrentShapeDerivative)
+                RecalculateSensitivities(IntegrationIndex, Deriv);
+            }
+            else if (Deriv != mCurrentShapeDerivative)
                 RecalculateSensitivities(IntegrationIndex, Deriv);
             KRATOS_CATCH("");
         }
@@ -217,11 +220,9 @@ class LargeDisplacementDifferentialSensitivityVariables
             mF_Deriv.clear();
             for (std::size_t i = 0; i < ws_dim; ++i)
                 for (std::size_t j = 0; j < ws_dim; ++j)
-                {
                     for (std::size_t k = 0; k < mrGeom.PointsNumber(); ++k)
                         mF_Deriv(i, j) +=
                             mrGeom[k].Coordinates()[i] * mDN_DX0_Deriv(k, j);
-                }
             KRATOS_CATCH("");
         }
 };
@@ -438,7 +439,6 @@ private:
     Vector mStrainVectorSensitivity;
     Matrix mBSensitivity;
     std::size_t mCurrentIntegrationIndex = -1;
-    std::size_t mStrainVectorIntegrationIndex = -1;
     ShapeParameter mCurrentShapeDerivative;
 
     void Synchronize(std::size_t IntegrationIndex, ShapeParameter Deriv)
@@ -491,38 +491,6 @@ private:
         KRATOS_CATCH("");
     }
 };
-
-// class ConstitutiveLawVariables
-// {
-// public:
-//     ConstitutiveLawVariables(Element::GeometryType const& rGeom,
-//                              Element::PropertiesType const& rProp,
-//                              ConstitutiveLaw::StressMeasure StressMeasure)
-//         : mrGeom(rGeom), mrProperties(rProp), mStressMeasure(StressMeasure)
-//     {
-//     }
-
-//     const Vector& Stress(Vector& rStrain,
-//                          ConstitutiveLaw& rConstitutiveLaw,
-//                          ProcessInfo const& rCurrentProcessInfo)
-//     {
-//         KRATOS_TRY;
-//         ConstitutiveLaw::Parameters cl_params(mrGeom, mrProperties, rCurrentProcessInfo);
-//         cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS |
-//                                    ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-//         cl_params.SetStrainVector(rStrain);
-//         cl_params.SetStressVector(mStress);
-//         rConstitutiveLaw.CalculateMaterialResponse(cl_params, mStressMeasure);
-//         return mStress;
-//         KRATOS_CATCH("");
-//     }
-
-// private:
-//     const Element::GeometryType& mrGeom;
-//     const Element::PropertiesType& mrProperties;
-//     const ConstitutiveLaw::StressMeasure mStressMeasure;
-//     Vector mStress;
-// };
 
 class LargeDisplacementDeformationVariables
 {
