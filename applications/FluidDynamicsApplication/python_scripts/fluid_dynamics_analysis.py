@@ -7,7 +7,7 @@ try:
 except ImportError:
     pass
 
-from base_analysis_stage import AnalysisStage
+from analysis_stage import AnalysisStage
 
 class FluidDynamicsAnalysis(AnalysisStage):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
@@ -59,10 +59,10 @@ class FluidDynamicsAnalysis(AnalysisStage):
         self._SetUpListOfProcesses()
         self._SetUpAnalysis()
 
-    def RunSolutionLoop(self):
-
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
+
+    def RunSolutionLoop(self):
 
         while self.time < self.end_time:
             self.time = self.solver.AdvanceInTime(self.time)
