@@ -33,6 +33,12 @@ namespace Kratos
 ///@name  Functions
 ///@{
     
+/** 
+ * @class ContactUtilities 
+ * @ingroup ContactStructuralMechanicsApplication
+ * @brief This class includes some utilities used for contact computations
+ * @author Vicente Mataix Ferrandiz
+ */
 class ContactUtilities
 {
 public:
@@ -46,6 +52,7 @@ public:
     typedef Geometry<NodeType>                               GeometryType;
     typedef ModelPart::NodesContainerType                  NodesArrayType;
     typedef ModelPart::ConditionsContainerType        ConditionsArrayType;
+    typedef std::size_t                                         IndexType;
     
     ///@}
     ///@name Life Cycle
@@ -72,7 +79,7 @@ public:
     ///@{
     
     /**
-     * This function scales the points according to a factor (to increase the bounding box)
+     * @brief This function scales the points according to a factor (to increase the bounding box)
      * @param PointToScale The point to scale
      * @param Normal The normal of the point
      * @param LengthSearch The factor considered to "grow" the node
@@ -89,7 +96,7 @@ public:
     }
     
     /**
-     * Calculates the distance between nodes
+     * @brief Calculates the distance between nodes
      * @param PointOrigin The first node
      * @param PointDestiny The second node
      */
@@ -105,9 +112,10 @@ public:
     }
     
     /**
-     * It calculates the center updated in u_n+1 or u_n+1/2
+     * @brief It calculates the center updated in u_n+1 or u_n+1/2
      * @param rThisModelPart The modelpart to update
      * @param DeltaTime The increment of time considered
+     * @param HalfJump If the jumpt is just half dt
      */
     
     static inline void ComputeStepJump(
@@ -124,11 +132,14 @@ public:
         NodesArrayType& nodes_array = rThisModelPart.Nodes();
     
         // We compute the half jump
-        #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
-        {
+        array_1d<double, 3> new_delta_disp;
+        #pragma omp parallel for private(new_delta_disp)
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)  {
             auto it_node = nodes_array.begin() + i;
-            array_1d<double, 3> new_delta_disp = velocity_constant * DeltaTime * (it_node->FastGetSolutionStepValue(VELOCITY) + it_node->FastGetSolutionStepValue(VELOCITY, 1)) + acceleration_constant * std::pow(DeltaTime, 2) * it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+            const array_1d<double, 3>& current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
+            const array_1d<double, 3>& previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+            new_delta_disp = velocity_constant * DeltaTime * (current_velocity + previous_velocity) + acceleration_constant * std::pow(DeltaTime, 2) * previous_acceleration;
             if (it_node->IsFixed(DISPLACEMENT_X)) new_delta_disp[0] = 0.0;
             if (it_node->IsFixed(DISPLACEMENT_Y)) new_delta_disp[1] = 0.0;
             if (it_node->IsFixed(DISPLACEMENT_Z)) new_delta_disp[2] = 0.0;
@@ -137,7 +148,7 @@ public:
     }
     
     /**
-     * It calculates the center updated in u_n+1/2
+     * @brief It calculates the center updated in u_n+1/2
      * @param ThisGeometry The geometry to calculate
      * @return point: The center in u_n+1/2 (Newmark)
      */
@@ -154,13 +165,11 @@ public:
         ThisGeometry.PointLocalCoordinates( local_point, center );
         ThisGeometry.ShapeFunctionsValues( N, local_point );
         
-    #ifdef KRATOS_DEBUG
-        KRATOS_ERROR_IF(ThisGeometry[0].Has(DELTA_COORDINATES) == false) << "WARNING:: Please call ComputeStepJump() first" << std::endl;
-    #endif
+        KRATOS_DEBUG_ERROR_IF(ThisGeometry[0].Has(DELTA_COORDINATES) == false) << "WARNING:: Please call ComputeStepJump() first" << std::endl;
 
         const Vector new_delta_disp_center = prod(trans(GetVariableMatrix(ThisGeometry, DELTA_COORDINATES)), N);
         
-        for (unsigned int i = 0; i < new_delta_disp_center.size(); ++i)
+        for (IndexType i = 0; i < new_delta_disp_center.size(); ++i)
             center[i] += new_delta_disp_center[i];
         
         return center;
@@ -168,10 +177,9 @@ public:
     
          
     /** 
-     * It calculates the matrix of a variable of a geometry 
+     * @brief It calculates the matrix of a variable of a geometry 
      * @param Nodes The geometry to calculate 
      * @param rVarName The name of the variable to calculate 
-     * @param Step The step where calculate 
      * @return var_matrix: The matrix containing the variables of the geometry 
      */ 
      
@@ -185,10 +193,9 @@ public:
         const std::size_t dim = Nodes.WorkingSpaceDimension(); 
         Matrix var_matrix(num_nodes, dim); 
          
-        for (unsigned int i_node = 0; i_node < num_nodes; i_node++) 
-        { 
+        for (IndexType i_node = 0; i_node < num_nodes; i_node++) { 
             const array_1d<double, 3> value = Nodes[i_node].GetValue(rVarName); 
-            for (unsigned int i_dof = 0; i_dof < dim; i_dof++) 
+            for (IndexType i_dof = 0; i_dof < dim; i_dof++) 
                 var_matrix(i_node, i_dof) = value[i_dof]; 
         } 
          

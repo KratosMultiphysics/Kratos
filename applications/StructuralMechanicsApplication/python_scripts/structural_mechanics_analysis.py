@@ -16,6 +16,8 @@ try:
 except ImportError:
     KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
 
+# Other imports
+import sys
 
 class StructuralMechanicsAnalysis(object): # TODO in the future this could derive from a BaseClass in the Core
     """
@@ -23,11 +25,15 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
     It can be imported and used as "black-box"
     """
-    def __init__(self, ProjectParameters, external_model_part=None):
-        if (type(ProjectParameters) != KratosMultiphysics.Parameters):
-            raise Exception("Input is expected to be provided as a Kratos Parameters object")
-        self.ProjectParameters = ProjectParameters
-        self.__CreateSolver(external_model_part)
+    def __init__(self, project_parameters, external_model_part=None):
+        if (type(project_parameters) == str): # a file name is provided
+            with open(project_parameters,'r') as parameter_file:
+                self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
+        elif (type(project_parameters) == KratosMultiphysics.Parameters): # a Parameters object is provided
+            self.ProjectParameters = project_parameters
+        else:
+            raise Exception("Input is expected to be provided as a Kratos Parameters object or a file name")
+        self._CreateSolver(external_model_part)
 
     #### Public functions to run the Analysis ####
     def Run(self):
@@ -41,27 +47,25 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.SolveTimeStep()
             self.FinalizeTimeStep()
 
-    #### Public functions defining the Interface to the CoSimulationApplication ####
     def Initialize(self):
-        self.__ExecuteInitialize()
-        self.__InitializeIO()
-        self.__ExecuteBeforeSolutionLoop()
+        self._ExecuteInitialize()
+        self._ExecuteBeforeSolutionLoop()
 
     def InitializeTimeStep(self):
-        self.__ExecuteInitializeSolutionStep()
+        self._ExecuteInitializeSolutionStep()
 
     def SolveTimeStep(self):
-        self.__SolveSolutionStep()
+        self._SolveSolutionStep()
 
     def FinalizeTimeStep(self):
-        self.__ExecuteFinalizeSolutionStep()
+        self._ExecuteFinalizeSolutionStep()
 
     def Finalize(self):
-        self.__ExecuteFinalize()
+        self._ExecuteFinalize()
 
 
     #### Internal functions ####
-    def __CreateSolver(self, external_model_part=None):
+    def _CreateSolver(self, external_model_part=None):
         """ Create the Solver (and create and import the ModelPart if it is not passed from outside) """
         if external_model_part != None:
             # This is a temporary solution until the importing of the ModelPart
@@ -107,12 +111,13 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
         if not self.using_external_model_part:
             ## Read the model - note that SetBufferSize is done here
-            self.solver.ImportModelPart() # TODO move to global instance
+            self.solver.ReadModelPart() # TODO move to global instance
 
-    def __InitializeIO(self):
+    def _InitializeIO(self):
         """ Initialize GiD  I/O """
         self.output_post  = self.ProjectParameters.Has("output_configuration")
         if (self.output_post == True):
+            self.__CheckForDeprecatedGiDSettings()
             if (self.parallel_type == "OpenMP"):
                 from gid_output_process import GiDOutputProcess as output_process
             elif (self.parallel_type == "MPI"):
@@ -124,15 +129,17 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
             self.gid_output.ExecuteInitialize()
 
-    def __ExecuteInitialize(self):
+    def _ExecuteInitialize(self):
         """ Initializing the Analysis """
 
         ## ModelPart is being prepared to be used by the solver
-        if self.using_external_model_part: # TODO remove the if once importing the ModelPart is removed from the solver
-            self.solver.PrepareModelPartForSolver()
+        self.solver.PrepareModelPartForSolver()
 
         ## Adds the Dofs if they don't exist
         self.solver.AddDofs()
+
+        # Initialize IO
+        self._InitializeIO()
 
         ## Creation of the Kratos model (build sub_model_parts or submeshes)
         self.structure_model = KratosMultiphysics.Model()
@@ -171,7 +178,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         ## Solver initialization
         self.solver.Initialize()
 
-    def __ExecuteBeforeSolutionLoop(self):
+    def _ExecuteBeforeSolutionLoop(self):
         """ Perform Operations before the SolutionLoop """
         if (self.output_post == True):
             self.gid_output.ExecuteBeforeSolutionLoop()
@@ -197,9 +204,9 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
 
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -START- ")
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
 
-    def __ExecuteInitializeSolutionStep(self):
+    def _ExecuteInitializeSolutionStep(self):
         """ Initialize the timestep and advance in time. Called once per timestep """
         self.time += self.delta_time
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
@@ -208,6 +215,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
             KratosMultiphysics.Logger.PrintInfo("TIME: ", self.time)
+        sys.stdout.flush()
 
         for process in self.list_of_processes:
             process.ExecuteInitializeSolutionStep()
@@ -215,21 +223,21 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if (self.output_post == True):
             self.gid_output.ExecuteInitializeSolutionStep()
 
-    def __ExecuteBeforeSolve(self):
+    def _ExecuteBeforeSolve(self):
         """ Function to be called before solving. Can be executed several times per timestep """
         pass
 
-    def __SolveSolutionStep(self):
+    def _SolveSolutionStep(self):
         """ Solving one step. Can be called several times per timestep """
-        self.__ExecuteBeforeSolve()
+        self._ExecuteBeforeSolve()
         self.solver.Solve()
-        self.__ExecuteAfterSolve()
+        self._ExecuteAfterSolve()
 
-    def __ExecuteAfterSolve(self):
+    def _ExecuteAfterSolve(self):
         """ Function to be called after solving. Can be executed several times per timestep """
         pass
 
-    def __ExecuteFinalizeSolutionStep(self):
+    def _ExecuteFinalizeSolutionStep(self):
         """ Finalizing the timestep and printing the output. Called once per timestep """
         for process in self.list_of_processes:
             process.ExecuteFinalizeSolutionStep()
@@ -248,7 +256,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
         self.solver.SaveRestart() # whether a restart-file is written is decided internally
 
-    def __ExecuteFinalize(self):
+    def _ExecuteFinalize(self):
         """ Operations to be performed at the end of the Analysis """
         for process in self.list_of_processes:
             process.ExecuteFinalize()
@@ -257,13 +265,30 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.gid_output.ExecuteFinalize()
 
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -END- ")
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
     def GetModelPart(self):
         return self.main_model_part
 
     def GetSolver(self):
         return self.solver
+
+    def _GetSimulationName(self):
+        return "::[KSM Simulation]:: "
+
+
+    def __CheckForDeprecatedGiDSettings(self):
+        if self.ProjectParameters["output_configuration"].Has("result_file_configuration"):
+            res_file_config = self.ProjectParameters["output_configuration"]["result_file_configuration"]
+            if res_file_config.Has("nodal_results"):
+                nodal_res = res_file_config["nodal_results"]
+                for i in range(nodal_res.size()):
+                    var_name = nodal_res[i].GetString()
+                    if var_name == "TORQUE":
+                        err_msg  = 'Requesting output for "TORQUE" which is not available any more\n'
+                        err_msg += 'It was renamed to "MOMENT_REACTION"'
+                        raise Exception(err_msg)
+
 
 
 if __name__ == "__main__":
@@ -273,9 +298,9 @@ if __name__ == "__main__":
         err_msg =  'Too many input arguments!\n'
         err_msg += 'Use this script in the following way:\n'
         err_msg += '- With default ProjectParameters (read from "ProjectParameters.json"):\n'
-        err_msg += '    "python3 class_structural_mechanics.py"\n'
+        err_msg += '    "python3 structural_mechanics_analysis.py"\n'
         err_msg += '- With custom ProjectParameters:\n'
-        err_msg += '    "python3 class_structural_mechanics.py CustomProjectParameters.json"\n'
+        err_msg += '    "python3 structural_mechanics_analysis.py CustomProjectParameters.json"\n'
         raise Exception(err_msg)
 
     if len(argv) == 2: # ProjectParameters is being passed from outside
@@ -283,7 +308,4 @@ if __name__ == "__main__":
     else: # using default name
         project_parameters_file_name = "ProjectParameters.json"
 
-    with open(project_parameters_file_name,'r') as parameter_file:
-        ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-    StructuralMechanicsAnalysis(ProjectParameters).Run()
+    StructuralMechanicsAnalysis(project_parameters_file_name).Run()

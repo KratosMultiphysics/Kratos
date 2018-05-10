@@ -189,9 +189,9 @@ void DynSS<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
         this->ResolvedConvectiveVelocity(ResolvedConvVel,N);
 
         if (rCurrentProcessInfo[OSS_SWITCH] != 1.0)
-            this->ASGSMomentumResidual(N,rDN_DX,ResolvedConvVel,StaticResidual);
+            this->DASGSMomentumResidual(N,rDN_DX,ResolvedConvVel,StaticResidual);
         else
-            this->OSSMomentumResidual(N,rDN_DX,ResolvedConvVel,StaticResidual);
+            this->DOSSMomentumResidual(N,rDN_DX,ResolvedConvVel,StaticResidual);
 
 
         // Add the time discretization term to obtain the part of the residual that does not change during iteration
@@ -229,7 +229,7 @@ void DynSS<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
             for (unsigned int d = 0; d < TDim; d++)
             {
                 double Vd = CoarseConvVel[d] + U[d];
-                ConvVelNorm *= Vd*Vd;
+                ConvVelNorm += Vd*Vd;
             }
             ConvVelNorm = sqrt(ConvVelNorm);
             InvTau = Density * ( 1.0/Dt + 8.0*Viscosity/(h*h) + 2.0*ConvVelNorm/h );
@@ -501,7 +501,7 @@ void DynSS<TDim>::CalculateTau(double Density,
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< unsigned int TDim >
-void DynSS<TDim>::ASGSMomentumResidual(const ShapeFunctionsType &rN,
+void DynSS<TDim>::DASGSMomentumResidual(const ShapeFunctionsType &rN,
                                        const ShapeFunctionDerivativesType &rDN_DX,
                                        const array_1d<double,3>& rConvVel,
                                        array_1d<double,3> &rMomentumRes)
@@ -541,12 +541,12 @@ void DynSS<TDim>::ASGSMassResidual(double GaussIndex,
 
 
 template< unsigned int TDim >
-void DynSS<TDim>::OSSMomentumResidual(const ShapeFunctionsType &rN,
+void DynSS<TDim>::DOSSMomentumResidual(const ShapeFunctionsType &rN,
                                       const ShapeFunctionDerivativesType &rDN_DX,
                                       const array_1d<double,3>& rConvVel,
                                       array_1d<double,3> &rMomentumRes)
 {
-    this->MomentumProjTerm(rN,rDN_DX,rConvVel,rMomentumRes);
+    this->DynamicMomentumProjTerm(rN,rDN_DX,rConvVel,rMomentumRes);
 
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -581,7 +581,7 @@ void DynSS<TDim>::OSSMassResidual(double GaussIndex,
 
 
 template< unsigned int TDim >
-void DynSS<TDim>::MomentumProjTerm(const ShapeFunctionsType &rN,
+void DynSS<TDim>::DynamicMomentumProjTerm(const ShapeFunctionsType &rN,
                                    const ShapeFunctionDerivativesType &rDN_DX,
                                    const array_1d<double,3> &rConvVel,
                                    array_1d<double,3> &rMomentumRHS)
@@ -927,9 +927,9 @@ void DynSS<TDim>::SubscaleVelocity(unsigned int GaussIndex,
         array_1d<double,3> Residual(3,0.0);
 
         if (rProcessInfo[OSS_SWITCH] != 1.0)
-            this->ASGSMomentumResidual(rN,rDN_DX,ConvVel,Residual);
+            this->DASGSMomentumResidual(rN,rDN_DX,ConvVel,Residual);
         else
-            this->OSSMomentumResidual(rN,rDN_DX,ConvVel,Residual);
+            this->DOSSMomentumResidual(rN,rDN_DX,ConvVel,Residual);
 
         rVelocitySubscale = TauOne*(Residual + (Density/Dt)*mOldSsVel[GaussIndex]);
     }

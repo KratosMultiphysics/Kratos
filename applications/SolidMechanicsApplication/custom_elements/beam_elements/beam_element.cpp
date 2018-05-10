@@ -25,8 +25,6 @@ namespace Kratos
    */
   KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_RHS_VECTOR,                 0 );
   KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_LHS_MATRIX,                 1 );
-  KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-  KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 
   //******************************CONSTRUCTOR*******************************************
@@ -645,12 +643,11 @@ namespace Kratos
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( unsigned int j = 0; j < dimension; j++ )
+       array_1d<double, 3 > & CurrentStepDisplacement = GetGeometry()[i].FastGetSolutionStepValue(STEP_DISPLACEMENT,0);
+       
+       for ( unsigned int j = 0; j < dimension; j++ )
 	  {
-            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+	    rDeltaPosition(i,j) = CurrentStepDisplacement[j];		    
 	  }
 
       }
@@ -727,6 +724,9 @@ namespace Kratos
 	if ( rLocalSystem.CalculationFlags.Is(BeamElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	  {
 	    this->CalculateAndAddLHS( rLocalSystem, Variables, IntegrationWeight );
+
+	    
+	    //std::cout<<"["<<this->Id()<<"] Beam Rotated rLeftHandSideMatrix "<<rLocalSystem.GetLeftHandSideMatrix()<<std::endl;
 	  }
 
 	if ( rLocalSystem.CalculationFlags.Is(BeamElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
@@ -735,6 +735,8 @@ namespace Kratos
 	    VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables.N );
 
 	    this->CalculateAndAddRHS( rLocalSystem , Variables, VolumeForce, IntegrationWeight );
+	    
+	    //std::cout<<"["<<this->Id()<<"] Beam Rotated rRightHandSideVector "<<rLocalSystem.GetRightHandSideVector()<<std::endl;
 	  }
 
       }
@@ -1366,7 +1368,7 @@ namespace Kratos
     }
 
     if( ComputeDynamicTangent == true ){
-
+	
       //create local system components
       LocalSystemComponents LocalSystem;
 

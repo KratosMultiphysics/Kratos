@@ -266,6 +266,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    // Protected interface of FluidElement ////////////////////////////////////
+
     void AddTimeIntegratedSystem(
         TElementData& rData,
         MatrixType& rLHS,
@@ -288,10 +290,6 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
-    void AddMassStabilization(
-        TElementData& rData,
-        MatrixType& rMassMatrix);
-
     // This function integrates the traction over a cut. It is only required to implement embedded formulations
     void AddBoundaryIntegral(
         TElementData& rData,
@@ -299,9 +297,15 @@ protected:
         MatrixType& rLHS,
         VectorType& rRHS) override;
 
+    // Implementation details of QSVMS ////////////////////////////////////////
+
+    void AddMassStabilization(
+        TElementData& rData,
+        MatrixType& rMassMatrix);
+
     void AddViscousTerm(
         const TElementData& rData,
-        boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+        BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
         VectorType& rRHS);
 
     /**
@@ -315,52 +319,48 @@ protected:
         TElementData& rData,
         double ElementSize);
 
-    
-    virtual void CalculateStaticTau(
+    virtual void CalculateTau(
         const TElementData& rData,
-        double Density,
-        double DynamicViscosity,
         const array_1d<double,3> &Velocity,
         double &TauOne,
-        double &TauTwo);    
+        double &TauTwo) const;
 
-    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
+    virtual void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
 
     virtual void MomentumProjTerm(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRHS);
+        const TElementData& rData,
+        const array_1d<double,3>& rConvectionVelocity,
+        array_1d<double,3>& rMomentumRHS) const;
 
     virtual void MassProjTerm(
-        TElementData& rData,
-        double& rMassRHS);
-
+        const TElementData& rData,
+        double& rMassRHS) const;
 
     virtual void SubscaleVelocity(
-        TElementData& rData,
-        const ProcessInfo& rProcessInfo,
-        array_1d<double,3>& rVelocitySubscale);
+        const TElementData& rData,
+        array_1d<double,3>& rVelocitySubscale) const;
 
     virtual void SubscalePressure(
-        TElementData& rData,
-        const ProcessInfo& rProcessInfo,
-        double &rPressureSubscale);
+        const TElementData& rData,
+        double &rPressureSubscale) const;
 
-    virtual void ASGSMomentumResidual(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRes);
+    virtual void AlgebraicMomentumResidual(
+        const TElementData& rData,
+        const array_1d<double,3> &rConvectionVelocity,
+        array_1d<double,3>& rResidual) const;
 
+    virtual void AlgebraicMassResidual(
+        const TElementData& rData,
+        double& rMomentumRes) const;
 
-    virtual void ASGSMassResidual(
-        TElementData& rData,
-        double& rMomentumRes);
+    virtual void OrthogonalMomentumResidual(
+        const TElementData& rData,
+        const array_1d<double,3> &rConvectionVelocity,
+        array_1d<double,3>& rResidual) const;
 
-    virtual void OSSMomentumResidual(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRes);
-
-    virtual void OSSMassResidual(
-        TElementData& rData,
-        double& rMassRes);
+    virtual void OrthogonalMassResidual(
+        const TElementData& rData,
+        double& rMassRes) const;
 
     ///@}
     ///@name Protected  Access

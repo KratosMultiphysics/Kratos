@@ -7,7 +7,7 @@
         "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
-        "echo_level"      : 1
+        "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
@@ -129,7 +129,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","TORQUE"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","REACTION_MOMENT"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []

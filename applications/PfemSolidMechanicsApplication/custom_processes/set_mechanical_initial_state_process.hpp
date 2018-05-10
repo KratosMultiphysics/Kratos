@@ -76,15 +76,13 @@ namespace Kratos
          /*@{ */
 
 
-         virtual void ExecuteFinalizeSolutionStep();
-
 
          void operator()()
          {
             Execute();
          }
 
-         virtual void Execute();
+         void Execute() override;
 
       protected:
 

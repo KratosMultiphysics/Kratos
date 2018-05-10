@@ -1,35 +1,35 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: Guillermo Casas, gcasas@cimne.upc.edu $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.3 $
 //
-// 
+//
 
 
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "swimming_DEM_application.h"
+#include "swimming_dem_application_variables.h"
 #include "geometries/point_3d.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/sphere_3d_1.h"
-//#include "../DEM_application/DEM_application.h"
-#include "../FluidDynamicsApplication/fluid_dynamics_application.h"
 
 namespace Kratos
 {
-        
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY) 
 
-  
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
+
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   KratosApplication("SwimmingDEMApplication"),
   mMonolithicDEMCoupled2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -65,8 +65,10 @@ void KratosSwimmingDEMApplication::Register()
   // calling base class register to register Kratos components
   KratosApplication::Register();
   std::cout << "Initializing KratosSwimmingDEMApplication... " << std::endl;
-                
-  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)   
+
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR)
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
 
   /* Define In Global variables.cpp */
 

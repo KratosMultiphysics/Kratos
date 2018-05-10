@@ -47,15 +47,14 @@ class DamReservoirConstantTemperatureProcess : public Process
         Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed"                                         : false,
                 "Gravity_Direction"                                : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
                 "Water_temp"                                       : 0.0,
-                "Water_temp_Table"                                 : 0,                
+                "Water_temp_Table"                                 : 0,
                 "Water_level"                                      : 0.0,
-                "Water_level_Table"                                : 0,
+                "Water_level_Table"                                : 0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -67,7 +66,6 @@ class DamReservoirConstantTemperatureProcess : public Process
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mIsFixed = rParameters["is_fixed"].GetBool();
         mGravityDirection = rParameters["Gravity_Direction"].GetString();
@@ -95,13 +93,13 @@ class DamReservoirConstantTemperatureProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Execute()
+    void Execute() override
     {
 
         KRATOS_TRY;
 
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         int direction;
 
         if (mGravityDirection == "X")
@@ -113,7 +111,7 @@ class DamReservoirConstantTemperatureProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
             #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
@@ -137,7 +135,7 @@ class DamReservoirConstantTemperatureProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -160,7 +158,7 @@ class DamReservoirConstantTemperatureProcess : public Process
             mWaterLevel = mpTableWater->GetValue(time);
         }
 
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         int direction;
 
         if (mGravityDirection == "X")
@@ -172,7 +170,7 @@ class DamReservoirConstantTemperatureProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
             #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
@@ -193,22 +191,22 @@ class DamReservoirConstantTemperatureProcess : public Process
 
         KRATOS_CATCH("");
     }
-    
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
 
         KRATOS_TRY;
 
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
 
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         if (nnodes != 0)
         {
-            
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
             #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
@@ -222,19 +220,19 @@ class DamReservoirConstantTemperatureProcess : public Process
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamReservoirConstantTemperatureProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamReservoirConstantTemperatureProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 
@@ -244,7 +242,6 @@ class DamReservoirConstantTemperatureProcess : public Process
     /// Member Variables
 
     ModelPart &mrModelPart;
-    std::size_t mMeshId;
     std::string mVariableName;
     std::string mGravityDirection;
     bool mIsFixed;

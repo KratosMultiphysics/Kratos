@@ -69,7 +69,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 
-template< const unsigned int TDim, const unsigned int TNumNodesElem, TensorValue TTensor>
+template< const std::size_t TDim, const std::size_t TNumNodesElem, TensorValue TTensor>
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) MeshTyingMortarCondition
     : public PairedCondition
 {
@@ -101,9 +101,9 @@ public:
 
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
 
-    static constexpr unsigned int NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : TNumNodesElem == 4 ? 3 : 4;
+    static constexpr IndexType NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : TNumNodesElem == 4 ? 3 : 4;
 
-    static constexpr unsigned int MatrixSize = TTensor * (3 * NumNodes);
+    static constexpr IndexType MatrixSize = TTensor * (3 * NumNodes);
 
     typedef MortarKinematicVariables<NumNodes>                                   GeneralVariables;
 
@@ -376,8 +376,8 @@ protected:
     public:
 
         // Auxiliar types
-        typedef bounded_matrix<double, NumNodes, TTensor>  Type1;
-        typedef bounded_matrix<double, NumNodes, NumNodes> Type2;
+        typedef BoundedMatrix<double, NumNodes, TTensor>  Type1;
+        typedef BoundedMatrix<double, NumNodes, NumNodes> Type2;
 
         // The DoF
         Type1 LagrangeMultipliers, u1, u2;
@@ -415,7 +415,7 @@ protected:
             /* DoF */
             if (TTensor == 1)
             {
-                for (unsigned int i_node = 0; i_node < NumNodes; ++i_node)
+                for (IndexType i_node = 0; i_node < NumNodes; ++i_node)
                 {
                     const double value = GeometryInput[i_node].FastGetSolutionStepValue(TEMPERATURE);
                     u2(i_node, 0) = value;
@@ -423,10 +423,10 @@ protected:
             }
             else
             {
-                for (unsigned int i_node = 0; i_node < NumNodes; ++i_node)
+                for (IndexType i_node = 0; i_node < NumNodes; ++i_node)
                 {
                     const array_1d<double, 3>& value = GeometryInput[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-                    for (unsigned int i_dof = 0; i_dof < TTensor; ++i_dof)
+                    for (IndexType i_dof = 0; i_dof < TTensor; ++i_dof)
                     {
                         u2(i_node, i_dof) = value[i_dof];
                     }
@@ -444,7 +444,7 @@ protected:
 
     MortarConditionMatrices mrThisMortarConditionMatrices; // The mortar operators
 
-    unsigned int mIntegrationOrder;                        // The integration order to consider
+    IndexType mIntegrationOrder;                        // The integration order to consider
 
     ///@}
     ///@name Protected Operators
@@ -536,11 +536,14 @@ protected:
     /**************** METHODS TO CALCULATE MORTAR CONDITION MATRICES ****************/
     /********************************************************************************/
 
-    /*
+    /**
      * Calculates the local contibution of the LHS
+     * @param rLocalLHS The local LHS to compute
+     * @param rMortarConditionMatrices The mortar operators to be considered
+     * @param rDofData The class containing all the information needed in order to compute the jacobian
      */
-
-    bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
+    void CalculateLocalLHS(
+        Matrix& rLocalLHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DofData& rDofData
         );
@@ -548,7 +551,8 @@ protected:
     /*
      * Calculates the local contibution of the LHS
      */
-    array_1d<double, MatrixSize> CalculateLocalRHS(
+    void CalculateLocalRHS(
+        Vector& rLocalRHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DofData& rDofData
         );

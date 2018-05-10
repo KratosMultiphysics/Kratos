@@ -51,6 +51,8 @@ class BiphasicFillingUtilities
 {
 public:
 
+	KRATOS_CLASS_POINTER_DEFINITION(BiphasicFillingUtilities);
+
     //**********************************************************************************************
     //**********************************************************************************************
     double CreateAutoExitAssignAirSmagorinsky(ModelPart& ThisModelPart, double y_wall, double C_Smagorinsky)
@@ -354,7 +356,7 @@ public:
 		{
 			double extreme_correction;
 			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume,cutted_area,correction);
-			if(correction>0) 
+			if(correction>0)
 			{
 				extreme_correction=fabs(max_correction);
 				if(wet_volume<=fabs(Net_volume)){
@@ -386,7 +388,7 @@ public:
 					ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume_right,cutted_area,0.0);
 					wet_volume_left=wet_volume;
 					lower_correction=correction;
-				}		
+				}
 			}
 			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume,cutted_area,correction);
 			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume_right,cutted_area,upper_correction);
@@ -426,7 +428,7 @@ public:
 				upper_correction=middle_point;
 				wet_volume_right=wet_volume_middle;
 			}
-			
+
 			//inc_correction=upper_correction-lower_correction;
 
 			iteration++;
@@ -435,7 +437,7 @@ public:
 				//std::cout << "Volume Correction performed: it= "<< iteration <<" Correction =" << correction << " Wet_volume =" << wet_volume << " Net Volume =" << fabs(Net_volume) << std::endl;
 				}
 			}
-		
+
 		//BLOCK TO BE MODIFIED, JUST COMPUTE CORRECTION IF IT SUPPOSED TO DO IT
 		//Now we set the correction to be 0 if it is negative -> if it is positive, the distance of point near 0 positive becomes negotive, so that the front advances
 		if(CorrectNegativeVolume==false && correction<0)
@@ -448,7 +450,7 @@ public:
         #pragma omp parallel for firstprivate(node_size)
         for (int ii = 0; ii < node_size; ii++)
         {
-			ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;  
+			ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
 			it->FastGetSolutionStepValue(DISTANCE) -= correction;
         }
 
@@ -494,7 +496,7 @@ public:
 
         ThisModelPart.GetProcessInfo()[CUTTED_AREA] =cutted_area ;
         ThisModelPart.GetProcessInfo()[WET_VOLUME] = wet_volume;
-        
+
         const double liquidus_temp = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];
 
         //volume loss is just corrected
@@ -512,9 +514,9 @@ public:
 		double dist = it->FastGetSolutionStepValue(DISTANCE);
                 if(dist < 0 && (dist+correction)>0 )
                     it->FastGetSolutionStepValue(TEMPERATURE) = liquidus_temp;
-                    
+
                 dist += correction;
-		  
+
 		}
 	}
 
@@ -583,7 +585,7 @@ public:
 
         KRATOS_CATCH("")
     }
-    
+
 
         //**********************************************************************************************
     //**********************************************************************************************
@@ -598,8 +600,8 @@ public:
 //          double net_input = 0.0;
         int node_size = ThisModelPart.Nodes().size();
         const double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
-        
-        #pragma omp parallel for firstprivate(node_size) 
+
+        #pragma omp parallel for firstprivate(node_size)
         //reduction(+:net_input)
         for (int ii = 0; ii < node_size; ii++)
         {
@@ -610,35 +612,35 @@ public:
                 const array_1d<double, 3>& old_vel = it->FastGetSolutionStepValue(VELOCITY,1);
                 const double current_vel_norm = norm_2(vel);
                 const double old_vel_norm = norm_2(old_vel);
-                
+
                 const double slip_flag = it->FastGetSolutionStepValue(IS_SLIP);
-                
+
                 if(slip_flag > 11.0) //edge or corners -- here we reduce by a factor of 6 the max acceleration
                 {
                     const double acceptable_vel_norm = old_vel_norm + 0.1666667*max_acc_modulus*dt;
-                    
+
                     const double ratio = current_vel_norm/acceptable_vel_norm;
-                    
+
                     //velocity is reduced if too high
                     if(ratio > 1.0) vel /= ratio;
                 }
                 else
-                {        
+                {
                     const double acceptable_vel_norm = old_vel_norm + max_acc_modulus*dt;
-                    
+
                     const double ratio = current_vel_norm/acceptable_vel_norm;
-                    
+
                     //velocity is reduced if too high
                     if(ratio > 1.0) vel /= ratio;
                 }
             }
-            
+
         }
 
         KRATOS_CATCH("")
     }
 
-    
+
     //**********************************************************************************************
     //**********************************************************************************************
     void ComputeNodalVolume(ModelPart& ThisModelPart)
@@ -669,7 +671,7 @@ public:
     //**********************************************************************************************
     //**********************************************************************************************
     int SolidificationDuringFilling(ModelPart& ThisModelPart, double BandWidth)
-	{	
+	{
 	  KRATOS_TRY;
 
         //Check for stop criteria
@@ -714,13 +716,13 @@ public:
 			{
 				ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
 				double& dist = it->FastGetSolutionStepValue(DISTANCE);
-				if (dist >= 0.0) 
-				{ 
+				if (dist >= 0.0)
+				{
 					dist = -1.0;
 
-				
+
 				}
-		 
+
     //        //filling time
     //        double is_visited = it->FastGetSolutionStepValue(IS_VISITED);
     //        if(is_visited == 0.0 && dist<=0.0)
@@ -730,7 +732,7 @@ public:
     //            //double filling_time =  ThisModelPart.GetProcessInfo()[TIME];
     //            //it->FastGetSolutionStepValue(FILLTIME) = filling_time * time_correction_factor;
 				//it->GetValue(FILLTIME) =corrected_time;
-    //        }		 
+    //        }
 			}
 		}
 
@@ -742,7 +744,7 @@ public:
 	{
 	   KRATOS_TRY;
 
-	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();			
+	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
 
 	  #pragma omp parallel for firstprivate(node_size)
 	  for (int ii = 0; ii < node_size; ii++)
@@ -803,9 +805,9 @@ public:
 	//			}
 	//		 }
 	//	   }
-	//  
+	//
 	//  }*/
- //   
+ //
 	//double floor_mp =  min_porosity;// + step_length;
  //	for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
  //     {
@@ -845,7 +847,7 @@ public:
   //      }
   //      int elem_size = ThisModelPart.Elements().size();
   //      array_1d<double, 4 > N;
-  //      boost::numeric::ublas::bounded_matrix <double, 4, 3> DN_DX;
+  //      BoundedMatrix <double, 4, 3> DN_DX;
 		//#pragma omp parallel for private(DN_DX,N) firstprivate(elem_size)
   //      for (int i = 0; i < elem_size; i++)
   //        {
@@ -859,7 +861,7 @@ public:
   //                  {
   //                          geom[k].SetLock();
   //                          geom[k].FastGetSolutionStepValue(NODAL_MASS) += Volume*0.25;
-  //                          geom[k].UnSetLock();             
+  //                          geom[k].UnSetLock();
   //                  }
 		// }
 
@@ -910,27 +912,27 @@ public:
     }
         //**********************************************************************************************
     //**********************************************************************************************
-    /**This function correct temperature in case that temperature at a node is maximum than 
-     * FLUID_TEMPERATURE which is the inlet temperature. It simply replaces the temperature of the  
-     * previous step in this case. 
+    /**This function correct temperature in case that temperature at a node is maximum than
+     * FLUID_TEMPERATURE which is the inlet temperature. It simply replaces the temperature of the
+     * previous step in this case.
      */
     void ApplyTemperatureLimitation(ModelPart& ThisModelPart, const double max_temperature, const double min_temperature)
     {
         KRATOS_TRY;
         int node_size = ThisModelPart.Nodes().size();
 
-        
-        #pragma omp parallel for firstprivate(node_size) 
+
+        #pragma omp parallel for firstprivate(node_size)
         for (int ii = 0; ii < node_size; ii++)
         {
             ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
 			double& current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
-			
+
 			if( current_temp > max_temperature || current_temp < min_temperature )//1.05*fluid_temp
 			{
 				double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);
 				current_temp = old_temp;
-			} 
+			}
         }
 
         KRATOS_CATCH("")
@@ -962,7 +964,7 @@ public:
         KRATOS_CATCH("")
     }
 	//**********************************************************************************************
-	//**********************************************************************************************	
+	//**********************************************************************************************
 	/* THIS FUNCTION COMPUTES THE WET VOLUME */
 	double ComputeWetVolume(ModelPart& ThisModelPart)
 	{
@@ -1078,7 +1080,7 @@ public:
 	{
 		KRATOS_TRY
 		double h_avg = 0.0;
-		unsigned int n_edges = 0; // It will count held 
+		unsigned int n_edges = 0; // It will count held
 		for (ModelPart::ElementsContainerType::iterator it = ThisModelPart.ElementsBegin(); it != ThisModelPart.ElementsEnd(); it++)
 		{
 			Geometry<Node<3> >&geom = it->GetGeometry();
@@ -1117,12 +1119,12 @@ public:
 	}
 
 	//**********************************************************************************************
-	//**********************************************************************************************	
+	//**********************************************************************************************
 private:
 // 	void AssignDecelerateFactor(ModelPart& ThisModelPart)
 // 	{
-// 	   KRATOS_TRY; 
-// 
+// 	   KRATOS_TRY;
+//
 //       //double solidus_temp = ThisModelPart.GetTable(3).Data().front().first;
 //       //double liquidus_temp = ThisModelPart.GetTable(3).Data().back().first;
 // 	  double solidus_temp=ThisModelPart.GetProcessInfo().GetValue(FLUID_TEMPERATURE);
@@ -1133,29 +1135,29 @@ private:
 // 		 // liquidus_temp = solidus_temp;
 // 		 // solidus_temp = temp_t;
 // 	  //}
-// 
-// 
-// 	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();			
-// 
+//
+//
+// 	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
+//
 // 	  #pragma omp parallel for firstprivate(node_size)
 // 	  for (int ii = 0; ii < node_size; ii++)
 // 		{
 // 			double alpha = 0.0;
 // 			ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
-// 
+//
 // 			double dist = it->FastGetSolutionStepValue(DISTANCE);
 // 			if( dist<=0.0)
 // 			{
 // 			  double temperature = it->FastGetSolutionStepValue(TEMPERATURE);
-// 
-// 
+//
+//
 // 			  if(temperature < solidus_temp) alpha = 1.0;
 // 			  else if( temperature >= solidus_temp && temperature < liquidus_temp) alpha = 1.0-(temperature - solidus_temp)/(liquidus_temp - solidus_temp);
-// 
+//
 // 			}
 // 			it->FastGetSolutionStepValue(DP_ALPHA1) = alpha;
 // 		}
-// 
+//
 // 	  KRATOS_CATCH("")
 // 	}
 	//**********************************************************************************************
@@ -1163,16 +1165,16 @@ private:
 // 	void VelocityReduction(ModelPart& ThisModelPart)
 // 	{
 // 	   KRATOS_TRY;
-// 
-// 	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();			
-// 
+//
+// 	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
+//
 // 	  #pragma omp parallel for firstprivate(node_size)
 // 	  for (int ii = 0; ii < node_size; ii++)
 // 	  {
 // 		ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
 // 		//double temperature = it->FastGetSolutionStepValue(TEMPERATURE);
 // 		double alpha = it->FastGetSolutionStepValue(DP_ALPHA1);
-// 
+//
 // 		if(alpha >= 0.9){
 // 			it->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
 // 			it->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
@@ -1189,7 +1191,7 @@ private:
 // 		  Vx *= (1.0-alpha);
 // 		  Vy *= (1.0-alpha);
 // 		  Vz *= (1.0-alpha);
-// 
+//
 // 		  it->Fix(VELOCITY_X);
 // 		  it->Fix(VELOCITY_Y);
 // 		  it->Fix(VELOCITY_Z);
@@ -1205,7 +1207,7 @@ private:
 	   KRATOS_TRY;
 
 	  int is_hot = 0;
-	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();			
+	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
 
       //CAN NOT DO THIS IN PARALLEL! it is just wrong!!!
 	  for (int ii = 0; ii < node_size; ii++)
@@ -1222,7 +1224,7 @@ private:
             }
 		}
 	  }
-      
+
 
 	  ThisModelPart.GetCommunicator().MaxAll(is_hot);
 	  return is_hot;
@@ -1275,7 +1277,7 @@ private:
             // Calculate this element's geometric parameters
             double Area;
             array_1d<double, 4> N;
-            boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
+            BoundedMatrix<double, 4, 3> DN_DX;
             GeometryUtils::CalculateGeometryData(iel->GetGeometry(), DN_DX, N, Area);
             //get position of the cut surface
             Vector distances(4);
@@ -1296,7 +1298,7 @@ private:
             }
             for (unsigned int i = 0; i < 6; i++)
                 gauss_gradients[i].resize(1, 3, false);
-                
+
             array_1d<double,6> edge_areas;
             unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
 
@@ -1314,7 +1316,7 @@ private:
                         ele_wet_volume += volumes[kk];
                 }
                 wetvol += ele_wet_volume;
-                
+
                 for(unsigned int i=0; i<6; i++)
                     cutare += edge_areas[i];
                 //cutare += 1.80140543 * pow(ele_wet_volume,0.666666666667); // equilateral tetrahedraon is considered
@@ -1346,7 +1348,7 @@ private:
             // Calculate this element's geometric parameters
             double Area;
             array_1d<double, 4> N;
-            boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
+            BoundedMatrix<double, 4, 3> DN_DX;
             GeometryUtils::CalculateGeometryData(iel->GetGeometry(), DN_DX, N, Area);
             //get position of the cut surface
             Vector distances = ZeroVector(4);
@@ -1370,7 +1372,7 @@ private:
                 gauss_gradients[i].resize(1, 3, false);
                 gauss_gradients[i] = ZeroMatrix(1,3);
             }
-                
+
             array_1d<double,6> edge_areas;
             unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
 
@@ -1388,7 +1390,7 @@ private:
                         ele_wet_volume += volumes[kk];
                 }
                 wetvol += ele_wet_volume;
-                
+
                 for(unsigned int i=0; i<6; i++)
                     cutare += edge_areas[i];
                 //cutare += 1.80140543 * pow(ele_wet_volume,0.666666666667); // equilateral tetrahedraon is considered
@@ -1420,7 +1422,7 @@ private:
             // Calculate this element's geometric parameters
             double Area;
             array_1d<double, 4> N;
-            boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
+            BoundedMatrix<double, 4, 3> DN_DX;
             GeometryUtils::CalculateGeometryData(iel->GetGeometry(), DN_DX, N, Area);
             //get position of the cut surface
             Vector distances(4);
@@ -1441,7 +1443,7 @@ private:
             }
             for (unsigned int i = 0; i < 6; i++)
                 gauss_gradients[i].resize(1, 3, false);
-                
+
             array_1d<double,6> edge_areas;
             unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
 
@@ -1459,7 +1461,7 @@ private:
                         ele_wet_volume += volumes[kk];
                 }
                 wetvol += ele_wet_volume;
-                
+
                 for(unsigned int i=0; i<6; i++)
                     cutare += edge_areas[i];
                 //cutare += 1.80140543 * pow(ele_wet_volume,0.666666666667); // equilateral tetrahedraon is considered
@@ -1582,6 +1584,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BIPHASIC_FILLING_UTILITIES_INCLUDED  defined 
+#endif // KRATOS_BIPHASIC_FILLING_UTILITIES_INCLUDED  defined
 
 

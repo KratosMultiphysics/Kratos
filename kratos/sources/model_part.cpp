@@ -58,6 +58,7 @@ ModelPart::ModelPart(std::string const& NewName)
     , mpParentModelPart(NULL)
     , mSubModelParts()
 {
+    KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
     mName = NewName;
     MeshType mesh;
     mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
@@ -76,27 +77,11 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize)
     , mpParentModelPart(NULL)
     , mSubModelParts()
 {
+    KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
     mName = NewName;
     MeshType mesh;
     mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-}
-
-// Copy constructor.
-ModelPart::ModelPart(ModelPart const& rOther)
-    : DataValueContainer(rOther)
-    , Flags(rOther)
-    , mName(rOther.mName)
-    , mBufferSize(rOther.mBufferSize)
-    , mpProcessInfo(rOther.mpProcessInfo)
-    , mIndices(rOther.mIndices)
-    , mMeshes(rOther.mMeshes)
-    , mpVariablesList(new VariablesList(*rOther.mpVariablesList))
-    , mpCommunicator(rOther.mpCommunicator)
-    , mpParentModelPart(rOther.mpParentModelPart)
-    , mSubModelParts(rOther.mSubModelParts)
-{
-    KRATOS_WATCH(mMeshes.size())
 }
 
 /// Destructor.
@@ -120,27 +105,6 @@ ModelPart::~ModelPart()
     if (!IsSubModelPart())
       delete mpVariablesList;
 }
-
-
-/// Assignment operator.
-ModelPart & ModelPart::operator=(ModelPart const& rOther)
-{
-    mName = rOther.mName;
-    mBufferSize = rOther.mBufferSize;
-    mpProcessInfo = rOther.mpProcessInfo;
-    mIndices = rOther.mIndices;
-    mMeshes = rOther.mMeshes;
-    // I should not set the parent for a model part while it breaks the hierarchy. Pooyan.
-    //mpParentModelPart = rOther.mpParentModelPart;
-    mSubModelParts = rOther.mSubModelParts;
-
-    //KRATOS_THROW_ERROR(std::logic_error, "This method needs updating and is not working. Pooyan", "")
-
-    *mpVariablesList = *rOther.mpVariablesList;
-
-    return *this;
-}
-
 
 ModelPart::IndexType ModelPart::CreateSolutionStep()
 {

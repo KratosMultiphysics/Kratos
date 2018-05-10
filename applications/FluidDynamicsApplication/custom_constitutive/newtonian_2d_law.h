@@ -28,7 +28,7 @@ namespace Kratos
  * 1) DYNAMIC_VISCOSITY
  */
 
-class Newtonian2DLaw : public FluidConstitutiveLaw
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) Newtonian2DLaw : public FluidConstitutiveLaw
 {
 public:
     /**
@@ -103,7 +103,7 @@ public:
     /**
      * Turn back information as a string.
      */
-    virtual std::string Info() const;
+    std::string Info() const override;
 
 protected:
 

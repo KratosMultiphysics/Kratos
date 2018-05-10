@@ -13,13 +13,17 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         pass
 
     def __base_test_integration(self, input_filename, num_nodes):
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
         self.main_model_part = KratosMultiphysics.ModelPart("Structure")
         self.main_model_part.SetBufferSize(2)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)
+        self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
 
@@ -28,7 +32,7 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.NORMAL_CONTACT_STRESS, ContactStructuralMechanicsApplication.WEIGHTED_GAP, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(ContactStructuralMechanicsApplication.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, ContactStructuralMechanicsApplication.WEIGHTED_GAP, self.main_model_part)
 
         if (self.main_model_part.HasSubModelPart("Contact")):
             interface_model_part = self.main_model_part.GetSubModelPart("Contact")
@@ -56,7 +60,7 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         Preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
 
         interface_parameters = KratosMultiphysics.Parameters("""{"simplify_geometry": false}""")
-        Preprocess.GenerateInterfacePart3D(self.main_model_part, self.contact_model_part, interface_parameters)
+        Preprocess.GenerateInterfacePart3D(self.contact_model_part, interface_parameters)
 
         # We copy the conditions to the ContactSubModelPart
         for cond in self.contact_model_part.Conditions:
@@ -168,6 +172,12 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/quadrilaterals_moving_nodes"
 
         self._moving_nodes_tests(input_filename, 4)
+
+    def test_integration_quad_non_matching(self):
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/quadrilaterals_non_matching"
+
+        list_of_border_cond = []
+        self._double_curvature_tests(input_filename, 4, list_of_border_cond)
 
     def __post_process(self):
         from gid_output_process import GiDOutputProcess

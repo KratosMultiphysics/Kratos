@@ -178,7 +178,8 @@ public:
                             Properties::Pointer pProperties) const override;
 
     /// Set up the element for solution.
-    //* For FluidElement, this initializes the constitutive law using the data in the element's properties.
+    /** For FluidElement, this initializes the constitutive law using the data in the element's properties.
+     */
     void Initialize() override;
 
     /**
@@ -284,6 +285,25 @@ public:
     ///@name Access
     ///@{
 
+    void GetValueOnIntegrationPoints(Variable<array_1d<double, 3>> const& rVariable,
+                                     std::vector<array_1d<double, 3>>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
+                                     std::vector<double>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
+                                     std::vector<array_1d<double, 6>>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
+                                     std::vector<Vector>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
+                                     std::vector<Matrix>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -330,11 +350,38 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual double Interpolate(const typename TElementData::NodalScalarData& rValues,
-                               const typename TElementData::ShapeFunctionsType& rN) const;
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual double GetAtCoordinate(
+        const typename TElementData::NodalScalarData& rValues,
+        const typename TElementData::ShapeFunctionsType& rN) const;
 
-    virtual array_1d<double, 3> Interpolate(const typename TElementData::NodalVectorData& rValues,
-                                            const typename TElementData::ShapeFunctionsType& rN) const;
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual array_1d<double, 3> GetAtCoordinate(
+        const typename TElementData::NodalVectorData& rValues,
+        const typename TElementData::ShapeFunctionsType& rN) const;
+
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual double GetAtCoordinate(
+        const double Value,
+        const typename TElementData::ShapeFunctionsType& rN) const;
 
     virtual void CalculateMaterialResponse(TElementData& rData) const;
 
@@ -352,7 +399,7 @@ protected:
      */
     void ConvectionOperator(Vector& rResult,
                             const array_1d<double,3>& rConvVel,
-                            const ShapeFunctionDerivativesType& DN_DX);
+                            const ShapeFunctionDerivativesType& DN_DX) const;
 
     virtual void AddTimeIntegratedSystem(
         TElementData& rData,
@@ -385,11 +432,6 @@ protected:
     void GetCurrentValuesVector(
         const TElementData& rData,
         array_1d<double,LocalSize>& rValues) const;
-
-    void IntegrationPointVorticity(
-        const ShapeFunctionDerivativesType& rDN_DX,
-        array_1d<double,3> &rVorticity) const;
-
 
     ///@}
     ///@name Protected  Access

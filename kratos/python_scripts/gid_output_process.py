@@ -126,19 +126,21 @@ class GiDOutputProcess(Process):
 
         # Generate the cuts and store them in self.cut_model_part
         if self.skin_output or self.num_planes > 0:
-            self.__initialize_cut_output(plane_output_configuration)
+            self.cut_model_part = ModelPart("CutPart")
+            self.cut_manager = CuttingUtility()
+            self._initialize_cut_output(plane_output_configuration)
 
         # Retrieve gidpost flags and setup GiD output tool
         gidpost_flags = result_file_configuration["gidpost_flags"]
         gidpost_flags.ValidateAndAssignDefaults(self.defaults["result_file_configuration"]["gidpost_flags"])
 
-        self.__initialize_gidio(gidpost_flags,gidpost_flags)
+        self._InitializeGiDIO(gidpost_flags,gidpost_flags)
 
         # Process nodal and gauss point output
-        self.nodal_variables = self.__generate_variable_list_from_input(result_file_configuration["nodal_results"])
-        self.gauss_point_variables = self.__generate_variable_list_from_input(result_file_configuration["gauss_point_results"])
-        self.nodal_nonhistorical_variables = self.__generate_variable_list_from_input(result_file_configuration["nodal_nonhistorical_results"])
-        self.nodal_flags = self.__generate_flags_list_from_input(result_file_configuration["nodal_flags_results"])
+        self.nodal_variables = self._GenerateVariableListFromInput(result_file_configuration["nodal_results"])
+        self.gauss_point_variables = self._GenerateVariableListFromInput(result_file_configuration["gauss_point_results"])
+        self.nodal_nonhistorical_variables = self._GenerateVariableListFromInput(result_file_configuration["nodal_nonhistorical_results"])
+        self.nodal_flags = self._GenerateFlagsListFromInput(result_file_configuration["nodal_flags_results"])
         self.nodal_flags_names =[]
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
@@ -306,7 +308,7 @@ class GiDOutputProcess(Process):
         del self.cut_io
 
 
-    def __initialize_gidio(self,gidpost_flags,param):
+    def _InitializeGiDIO(self,gidpost_flags,param):
         '''Initialize GidIO objects (for volume and cut outputs) and related data.'''
         self.volume_file_name = self.base_file_name
         self.cut_file_name = self.volume_file_name+"_cuts"
@@ -342,12 +344,11 @@ class GiDOutputProcess(Process):
         return value
 
 
-    def __initialize_cut_output(self,plane_output_configuration):
+    def _initialize_cut_output(self,plane_output_configuration):
         '''Set up tools used to produce output in skin and cut planes.'''
 
-        self.cut_model_part = ModelPart("CutPart")
-        self.cut_manager = CuttingUtility()
         self.cut_manager.FindSmallestEdge(self.model_part)
+        self.cut_manager.AddVariablesToCutModelPart(self.model_part,self.cut_model_part)
         if self.skin_output:
             self.cut_manager.AddSkinConditions(self.model_part,self.cut_model_part,self.output_surface_index)
             self.output_surface_index += 1
@@ -454,7 +455,7 @@ class GiDOutputProcess(Process):
                                         self.output_surface_index,
                                         0.01)
 
-    def __generate_variable_list_from_input(self,param):
+    def _GenerateVariableListFromInput(self,param):
         '''Parse a list of variables from input.'''
         # At least verify that the input is a string
         if not param.IsArray():
@@ -463,7 +464,7 @@ class GiDOutputProcess(Process):
         # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
         return [ KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
 
-    def __generate_flags_list_from_input(self,param):
+    def _GenerateFlagsListFromInput(self,param):
         '''Parse a list of variables from input.'''
         # At least verify that the input is a string
         if not param.IsArray():
@@ -504,7 +505,7 @@ class GiDOutputProcess(Process):
         if self.cut_io is not None:
             self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
             for variable in self.nodal_variables:
-                self.cut_io.WriteNodalResults(variable, self.cut_model_part.GetCommunicator().LocalMesh().Nodes, label, 0)      
+                self.cut_io.WriteNodalResults(variable, self.cut_model_part.GetCommunicator().LocalMesh().Nodes, label, 0)
 
     def __write_gp_results(self, label):
 
@@ -651,7 +652,7 @@ class GiDOutputProcess(Process):
                 if(os.path.exists(f)):
                     try:
                         os.remove(f)
-                    except WindowsError:
+                    except OSError:
                         pass
 
     #
@@ -696,5 +697,5 @@ class GiDOutputProcess(Process):
                 if(os.path.exists(f)):
                     try:
                         os.remove(f)
-                    except WindowsError:
+                    except OSError:
                         pass

@@ -33,9 +33,9 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         """
         KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
-            {
+        {
             "materials_filename" : "please specify the file to be opened"
-            }
+        }
         """)
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -76,7 +76,18 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                     "RESIDUAL_VECTOR" : [1.5,0.3,-2.58],
                     "LOCAL_INERTIA_TENSOR" : [[0.27,0.0],[0.0,0.27]]
                 },
-                "Tables" : {}
+                "Tables" : {
+                    "Table1" : {
+                        "input_variable" : "TEMPERATURE",
+                        "output_variable" : "YOUNG_MODULUS",
+                        "data" : [
+                            [0.0,  100.0],
+                            [20.0, 90.0],
+                            [30.0, 85.0],
+                            [35.0, 80.0]
+                        ]
+                    }
+                }
             }
         }
         """

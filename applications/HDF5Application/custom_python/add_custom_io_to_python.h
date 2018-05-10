@@ -17,6 +17,7 @@
 // System includes
 
 // External includes
+#include "pybind11/pybind11.h"
 
 // Project includes
 #include "includes/define.h"
@@ -27,7 +28,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomIOToPython();
+void  AddCustomIOToPython(pybind11::module& m);
 
 }  // namespace Python.
 

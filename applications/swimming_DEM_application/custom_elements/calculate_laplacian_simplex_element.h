@@ -59,7 +59,7 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
-class ComputeLaplacianSimplex : public ComputeMaterialDerivativeSimplex<TDim, TNumNodes>
+class KRATOS_API(SWIMMING_DEM_APPLICATION) ComputeLaplacianSimplex : public ComputeMaterialDerivativeSimplex<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -318,7 +318,7 @@ private:
     ///@name Private Operators
     ///@{
 
-    void AddIntegrationPointRHSContribution(VectorType& F, const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight);
+    void AddIntegrationPointRHSContribution(VectorType& F, const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight);
 
     ///@}
     ///@name Private Operations

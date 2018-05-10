@@ -820,7 +820,7 @@ public:
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb  = *mpb;
 
-        if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
+        if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
         {
             GetBuilderAndSolver()->BuildRHS(GetScheme(),BaseType::GetModelPart(),mb);
         }
@@ -1238,7 +1238,7 @@ private:
         }
 
         // Initialisation of the convergence criteria
-        if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
+        if (mpConvergenceCriteria->IsInitialized() == false)
         {
             pConvergenceCriteria->Initialize(BaseType::GetModelPart());
         }
