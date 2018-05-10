@@ -83,7 +83,7 @@ public:
     /// Counted pointer of GenericConstitutiveLawIntegrator
     KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegrator);
 
-    /// Initialization constructor.
+    /// Initialization constructor
     GenericConstitutiveLawIntegrator()
     {
     }
@@ -127,7 +127,7 @@ public:
     { 
         bool is_converged = false; 
         int iteration = 0, max_iter = 9000; 
-        Vector DSigma = ZeroVector(6), DS = ZeroVector(6); 
+        BoundedVector<double, TVoigtSize> DSigma, DS; 
         double PlasticConsistencyFactorIncrement = 0.0;     // Lambda 
 
         // Backward Euler  
@@ -136,7 +136,6 @@ public:
             PlasticConsistencyFactorIncrement = UniaxialStress * PlasticDenominator; 
             if (PlasticConsistencyFactorIncrement < 0.0) PlasticConsistencyFactorIncrement = 0.0; 
 
-            // todos noalias 
             noalias(PlasticStrainIncrement) = PlasticConsistencyFactorIncrement * Gflux; // check 
             noalias(PlasticStrain) += PlasticStrainIncrement; 
             noalias(DS) = prod(C, PlasticStrainIncrement); 
@@ -169,9 +168,9 @@ public:
         Vector& PlasticStrainIncrement,
         const Matrix& C, 
         const Properties& rMaterialProperties
-        )
+    )
     {
-        Vector Deviator = ZeroVector(6); // TODO -> poner 2d o 3d?
+        BoundedVector<double, TVoigtSize> Deviator = ZeroVector(TVoigtSize); // TODO -> poner 2d o 3d?
         Vector HCapa = ZeroVector(6);
         double J2 = 0.0, r0 = 0.0, r1 = 0.0, Slope = 0.0, HardParam = 0.0;
 
@@ -190,50 +189,149 @@ public:
     }
 
     // DF/DS
-    static void CalculateFFluxVector(const Vector& StressVector, const Vector& Deviator,
-        const double J2, Vector& FFluxVector)
+    static void CalculateFFluxVector(
+        const Vector& StressVector, 
+        const Vector& Deviator,
+        const double J2, 
+        Vector& FFluxVector
+    )
     {
 
     }
 
     // DG/DS
-    static void CalculateGFluxVector(const Vector& StressVector, const Vector& Deviator,
-        const double J2, Vector& GFluxVector)
+    static void CalculateGFluxVector(
+        const Vector& StressVector, 
+        const Vector& Deviator,
+        const double J2, 
+        Vector& GFluxVector
+    )
     {
 
     }
     
     // Calculates the McAully factors 
-    static void CalculateRFactors(const Vector& StressVector, double& r0, double& r1)
+    static void CalculateRFactors(
+        const Vector& StressVector, 
+        double& r0, 
+        double& r1
+    )
     {
+        Vector PrincipalStresses = ZeroVector(3);
+		CalculatePrincipalStresses(PrincipalStresses, StressVector);
 
+		double suma = 0.0, sumb = 0.0, sumc = 0.0;
+		Vector SA = ZeroVector(3) , SB = ZeroVector(3), SC = ZeroVector(3);
+
+		for (int i = 0; i < 3; i++)
+		{
+			SA[i] = abs(PrincipalStresses[i]);
+			SB[i] = 0.5*(PrincipalStresses[i]  + SA[i]);
+			SC[i] = 0.5*(-PrincipalStresses[i] + SA[i]);
+
+			suma += SA[i];
+			sumb += SB[i];
+			sumc += SC[i];
+		}
+		if (suma != 0.0)
+		{
+			r0 = sumb/suma;
+			r1 = sumc/suma;
+		}
+		else
+		{
+			r0 = sumb;
+			r1 = sumc;
+        }
     }
 
-    // Calculates Capap
-    static void CalculatePlasticDissipation(const Vector& StressVector, const double r0,
-        const double r1, const Vector& PlasticStrainInc, double& rCapap, Vector& HCapa)
+    // Calculates Plastic Dissipation
+    static void CalculatePlasticDissipation(
+        const Vector& StressVector, 
+        const double r0,
+        const double r1, 
+        const Vector& PlasticStrainInc, 
+        double& rCapap, 
+        Vector& HCapa
+    )
     {
 
     }
 
     // Calculates the stress threshold 
-    static void CalculateEquivalentStressThreshold(const double Capap, const double r0,
-        const double r1, double& rEquivalentStressThreshold, double& rSlope)
+    static void CalculateEquivalentStressThreshold(
+        const double Capap, 
+        const double r0,
+        const double r1, 
+        double& rEquivalentStressThreshold, 
+        double& rSlope,
+        const Properties& rMaterialProperties
+    )
     {
 
     }
 
-    static void CalculateHardeningParameter(const Vector& FluxVector, const double SlopeThreshold,
-        const Vector& HCapa, double& rHardParameter) // todo which Flux=??????
+    static void CalculateHardeningParameter(
+        const Vector& FluxVector, 
+        const double SlopeThreshold,
+        const Vector& HCapa, 
+        double& rHardParameter
+    ) // todo which Flux=??????
     {
 
     }
 
-    static void CalculatePlasticDenominator(const Vector& FluxVector, const Matrix& C,
-        const double HardParam, double& PlasticDenominator)
+    static void CalculatePlasticDenominator(
+        const Vector& FluxVector, 
+        const Matrix& C,
+        const double HardParam, 
+        double& PlasticDenominator
+    )
     {
 
     }
+
+    static void CalculatePrincipalStresses(
+        Vector& rPrincipalStressVector, 
+        const Vector StressVector
+    )
+	{
+		rPrincipalStressVector.resize(3);
+		double I1, I2, I3, phi, Num, Denom, II1;
+		I1 = YieldSurfaceType::CalculateI1Invariant(StressVector, I1);
+		I2 = YieldSurfaceType::CalculateI2Invariant(StressVector, I2);
+		I3 = YieldSurfaceType::CalculateI3Invariant(StressVector, I3);
+		II1 = I1*I1;
+
+		Num = (2.0*II1 - 9.0*I2)*I1 + 27.0*I3;
+		Denom = (II1 - 3.0*I2);
+
+		if (Denom != 0.0)
+		{
+			phi = Num / (2.0*Denom*sqrt(Denom));
+
+			if (std::abs(phi) > 1.0)
+			{
+				if (phi > 0.0) phi = 1.0;
+				else phi = -1.0;
+			}
+
+			double acosphi = acos(phi);
+			phi = acosphi / 3.0;
+
+			double aux1 = 0.666666666666667*sqrt(II1 - 3.0*I2);
+			double aux2 = I1 / 3.0;
+
+			rPrincipalStressVector[0] = aux2 + aux1*cos(phi);
+			rPrincipalStressVector[1] = aux2 + aux1*cos(phi - 2.09439510239);
+			rPrincipalStressVector[2] = aux2 + aux1*cos(phi - 4.18879020478);
+		}
+		else 
+		{
+			rPrincipalStressVector = ZeroVector(3);
+		}
+    }
+
 
     ///@}
     ///@name Access

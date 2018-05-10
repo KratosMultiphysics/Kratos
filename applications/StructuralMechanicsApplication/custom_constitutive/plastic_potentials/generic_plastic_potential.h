@@ -82,12 +82,6 @@ public:
     /// Destructor
     virtual ~GenericPlasticPotential() {};
 
-//     / Clone
-//     GenericPlasticPotential::Pointer Clone() const
-//     {
-//         GenericPlasticPotential::Pointer p_clone(new GenericPlasticPotential(*this));
-//         return p_clone;
-//     }
 
     ///@}
     ///@name Operators

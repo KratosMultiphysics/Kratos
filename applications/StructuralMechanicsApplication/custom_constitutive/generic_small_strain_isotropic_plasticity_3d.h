@@ -196,13 +196,14 @@ public:
 
     } // End CalculateMaterialResponseCauchy
 
-    void CalculateTangentTensor(Matrix& C) // todo
+    void CalculateTangentTensor(Matrix& C) 
     {
 
     }
 
     void CalculateElasticMatrix(Matrix &rElasticityTensor,
-        const Properties &rMaterialProperties)
+        const Properties &rMaterialProperties
+    )
     {
         const double E = rMaterialProperties[YOUNG_MODULUS];
         const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
