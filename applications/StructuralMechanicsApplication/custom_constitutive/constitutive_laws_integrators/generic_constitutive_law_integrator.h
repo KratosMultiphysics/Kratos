@@ -47,14 +47,39 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
+ * @tparam TYieldSurfaceType
  * @author Alejandro Cornejo
  */
-template <class  YieldSurfaceType, class PlasticPotentialType>
+template <class TYieldSurfaceType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegrator
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    struct PlasticParameters
+    {
+        Vector PredictiveStressVector; /// This bka
+        double UniaxialStress;
+        double Kp;
+        double PlasticDenominator; 
+        Vector Fflux;
+        Vector Gflux;
+        double PlasticDissipation;
+        Vector PlasticStrainIncrement;
+        Vector PlasticStrain;
+
+        void Initialize()
+        {
+            
+        }
+    }
+
+    /// The type of yield surface
+    typedef TYieldSurfaceType YieldSurfaceType;
+
+    /// The type of potential plasticity
+    typedef YieldSurfaceType::TPlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of GenericConstitutiveLawIntegrator
     KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegrator);
@@ -62,7 +87,6 @@ public:
     /// Initialization constructor.
     GenericConstitutiveLawIntegrator()
     {
-        //mpYieldSurface = YieldSurfaceType().Clone();
     }
 
     /// Copy constructor
@@ -81,13 +105,6 @@ public:
     {
     }
 
-//     /// Clone
-//     GenericConstitutiveLawIntegrator::Pointer Clone() const
-//     {
-//         GenericConstitutiveLawIntegrator<class YieldSurfaceType>::Pointer p_clone(new GenericConstitutiveLawIntegrator<class YieldSurfaceType>(*this));
-//         return p_clone;
-//     }
-
     ///@}
     ///@name Operators
     ///@{
@@ -96,16 +113,34 @@ public:
     ///@name Operations
     ///@{
 
-    static void IntegrateStressVector(Vector& PredictiveStressVector, double& UniaxialStress, double& Kp,
-        double& PlasticDenominator, Vector& Fflux, Vector& Gflux, double& Capap, Vector& PlasticStrainIncrement,
-        const Matrix& C, Vector& PlasticStrain)
+    static void IntegrateStressVector(
+        Vector& PredictiveStressVector, 
+        double& UniaxialStress, 
+        double& Kp,
+        double& PlasticDenominator, 
+        Vector& Fflux, 
+        Vector& Gflux, 
+        double& Capap, 
+        Vector& PlasticStrainIncrement,
+        const Matrix& C,
+        Vector& PlasticStrain
+        )
     {
 
     }
 
-    static void CalculatePlasticParameters(Vector& PredictiveStressVector, double& UniaxialStress, double& Threshold,
-        double& PlasticDenominator, Vector& Fflux, Vector& Gflux, double& PlasticDissipation, Vector& PlasticStrainIncrement,
-        const Matrix& C, const Properties& rMaterialProperties)
+    static void CalculatePlasticParameters(
+        Vector& PredictiveStressVector, 
+        double& UniaxialStress, 
+        double& Threshold,
+        double& PlasticDenominator, 
+        Vector& Fflux, 
+        Vector& Gflux, 
+        double& PlasticDissipation, 
+        Vector& PlasticStrainIncrement,
+        const Matrix& C, 
+        const Properties& rMaterialProperties
+        )
     {
         Vector Deviator = ZeroVector(6); // TODO -> poner 2d o 3d?
         Vector HCapa = ZeroVector(6);
@@ -252,12 +287,10 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-//         rSerializer.save("YieldSurface", mpYieldSurface);
     }
 
     void load(Serializer& rSerializer)
     {
-//         rSerializer.load("YieldSurface", mpYieldSurface);
     }
 
     ///@}

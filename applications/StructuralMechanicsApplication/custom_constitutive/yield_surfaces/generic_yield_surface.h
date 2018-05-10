@@ -47,14 +47,18 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
+ * @tparam TPlasticPotentialType 
  * @author Alejandro Cornejo
  */
-template <class PlasticPotentialType>
+template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    /// The type of potential plasticity
+    typedef typename TPlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION( GenericYieldSurface );
@@ -66,31 +70,22 @@ public:
     /// Initialization constructor.
     GenericYieldSurface()
     {
-        //mpPlasticPotential = PlasticPotentialType().Clone();
+        //mpPlasticPotential = TPlasticPotentialType().Clone();
     }
 
     /// Copy constructor
     GenericYieldSurface(GenericYieldSurface const& rOther)
     {
-//         mPlasticPotential = rOther.mPlasticPotential; // WARNING: mPlasticPotential->Not declared!!!
     }
 
     /// Assignment operator
     GenericYieldSurface& operator=(GenericYieldSurface const& rOther)
     {
-//         mPlasticPotential = rOther.mPlasticPotential;
         return *this;
     }
 
     /// Destructor
     virtual ~GenericYieldSurface() {};
-
-//     / Clone
-//     GenericYieldSurface::Pointer Clone() const override
-//     {
-//         GenericYieldSurface<class PlasticPotentialType>::Pointer p_clone(new GenericYieldSurface<class PlasticPotentialType>(*this));
-//         return p_clone;
-//     }
 
     ///@}
     ///@name Operators
@@ -139,8 +134,7 @@ public:
     // Computes dG/dS
     static void CalculatePlasticPotentialDerivative(const Vector& StressVector,const Vector& Deviator,const double& J2, Vector& rg)
     {
-        //mPlasticPotential->CalculatePlasticPotentialDerivative(StressVector,Deviator,J2,rg);
-        PlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector,Deviator,J2,rg);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector,Deviator,J2,rg);
     }
 
     ///@}
@@ -168,8 +162,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    //typename PlasticPotentialType::Pointer mpPlasticPotential;
 
     ///@}
     ///@name Protected Operators
@@ -226,12 +218,10 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-//         rSerializer.save("PlasticPotential", mpPlasticPotential);
     }
 
     void load(Serializer& rSerializer)
     {
-//         rSerializer.load("PlasticPotential", mpPlasticPotential);
     }
 
     ///@}

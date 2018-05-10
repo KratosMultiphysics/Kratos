@@ -174,7 +174,7 @@ public:
 
         const double F = UniaxialStress - Kp;
 
-        if (F <= abs(1.0e-8 * Kp)) { // Elastic case
+        if (F <= std::abs(1.0e-8 * Kp)) { // Elastic case
             IntegratedStressVector = PredictiveStressVector;
             tangent_tensor = C;
             this->SetNonConvPlasticDissipation(Capap);
