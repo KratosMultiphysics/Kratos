@@ -700,30 +700,37 @@ void TotalLagrangian::CalculateAll(
     
     // If strain has to be computed inside of the constitutive law with PK2
     Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
-
-    for ( unsigned int point_number = 0; point_number < integration_points.size(); ++point_number ){
+    //Vector stress_vector;
+    //Matrix D;
+    LargeDisplacementDeformationVariables deformation_vars(GetGeometry(), IsAxisymmetric());
+    for (unsigned int g = 0; g < integration_points.size(); ++g)
+    {
         // Contribution to external forces
-        const Vector body_force = this->GetBodyForce(integration_points, point_number);
+        const Vector body_force = this->GetBodyForce(integration_points, g);
         
         // Compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
+        this->CalculateKinematicVariables(this_kinematic_variables, g, integration_method);
         
         // Compute material reponse
-        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
+        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, g, integration_points, this->GetStressMeasure());
 
         // Calculating weights for integration on the reference configuration
-        double int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
+        double int_to_reference_weight = GetIntegrationWeight(integration_points, g, this_kinematic_variables.detJ0); 
 
         if ( dimension == 2 && this->GetProperties().Has( THICKNESS )) 
             int_to_reference_weight *= this->GetProperties()[THICKNESS];
 
-        if ( CalculateStiffnessMatrixFlag == true ) { // Calculation of the matrix is required
-            // Contributions to stiffness matrix calculated on the reference config
+        //CalculateStress(deformation_vars, g, stress_vector, rCurrentProcessInfo);
+        //CalculateConstitutiveMatrix(deformation_vars, g, D, rCurrentProcessInfo);
+        if (CalculateStiffnessMatrixFlag == true)
+        { // Calculation of the matrix is required
+            // Contributions to stiffness matrix calculated on the reference
+            // config
             /* Material stiffness matrix */
-            this->CalculateAndAddKm( rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight );
+            this->CalculateAndAddKm(rLeftHandSideMatrix, deformation_vars.B(g), this_constitutive_variables.D, int_to_reference_weight);
 
             /* Geometric stiffness matrix */
-            this->CalculateAndAddKg( rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight );
+            this->CalculateAndAddKg(rLeftHandSideMatrix, deformation_vars.DN_DX0(g), this_constitutive_variables.StressVector, int_to_reference_weight);
         }
 
         if ( CalculateResidualVectorFlag == true ) { // Calculation of the matrix is required
@@ -892,19 +899,57 @@ void TotalLagrangian::CalculateAxisymmetricF(Matrix const& rJ,
     KRATOS_CATCH("");
 }
 
-void TotalLagrangian::CalculateStress(Vector& rStrain,
-                                      std::size_t IntegrationPoint,
+void TotalLagrangian::CalculateStress(LargeDisplacementDeformationVariables& rDeformationVars,
+                                      std::size_t IntegrationIndex,
                                       Vector& rStress,
                                       ProcessInfo const& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+    const auto strain_size = rDeformationVars.StrainVector(IntegrationIndex).size();
+    if (rStress.size() != strain_size)
+        rStress.resize(strain_size, false);
     ConstitutiveLaw::Parameters cl_params(GetGeometry(), GetProperties(), rCurrentProcessInfo);
     cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS | ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    cl_params.SetStrainVector(rStrain);
+    cl_params.SetDeformationGradientF(rDeformationVars.F(IntegrationIndex));
+    cl_params.SetStrainVector(rDeformationVars.StrainVector(IntegrationIndex));
     cl_params.SetStressVector(rStress);
-    mConstitutiveLawVector[IntegrationPoint]->CalculateMaterialResponse(cl_params, GetStressMeasure());
+    mConstitutiveLawVector[IntegrationIndex]->CalculateMaterialResponse(cl_params, GetStressMeasure());
     KRATOS_CATCH("");
 }
+
+void TotalLagrangian::CalculateStressSensitivity(Vector& rStrainSensitivity,
+                                                 std::size_t IntegrationIndex,
+                                                 Vector& rStressSensitivity,
+                                                 ProcessInfo const& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    const auto strain_size = rStrainSensitivity.size();
+    if (rStressSensitivity.size() != strain_size)
+        rStressSensitivity.resize(strain_size, false);
+    ConstitutiveLaw::Parameters cl_params(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS | ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    cl_params.SetStrainVector(rStrainSensitivity);
+    cl_params.SetStressVector(rStressSensitivity);
+    mConstitutiveLawVector[IntegrationIndex]->CalculateMaterialResponse(cl_params, GetStressMeasure());
+    KRATOS_CATCH("");
+}
+
+// void TotalLagrangian::CalculateConstitutiveMatrix(LargeDisplacementDeformationVariables& rDeformationVars,
+//                                                   std::size_t IntegrationIndex,
+//                                                   Matrix& rConstitutiveMatrix,
+//                                                   const ProcessInfo& rCurrentProcessInfo)
+// {
+//     KRATOS_TRY;
+//     ConstitutiveLaw::Parameters cl_params(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+//     // Setting USE_ELEMENT_PROVIDED_STRAIN for now since otherwise CL tries to compute strain...
+//     cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR | ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+//     cl_params.SetDeformationGradientF(rDeformationVars.F(IntegrationIndex));
+//     cl_params.SetDeterminantF(rDeformationVars.DetF(IntegrationIndex));
+//     cl_params.SetConstitutiveMatrix(rConstitutiveMatrix);
+//     mConstitutiveLawVector[IntegrationIndex]->CalculateMaterialResponse(
+//         cl_params, GetStressMeasure());
+//     KRATOS_CATCH("");
+// }
 
 std::size_t TotalLagrangian::GetStrainSize() const
 {
@@ -987,15 +1032,15 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
         LargeDisplacementSensitivityVariables sensitivity_vars(r_geom);
         for (std::size_t g = 0; g < r_geom.IntegrationPointsNumber(); ++g)
         {
-            CalculateStress(deformation_vars.StrainVector(g), g, stress_vector,
+            CalculateStress(deformation_vars, g, stress_vector,
                             rCurrentProcessInfo);
             N = row(r_geom.ShapeFunctionsValues(), g);
             body_force = GetBodyForce(r_geom.IntegrationPoints(), g);
             for (auto s = ShapeParameter::Sequence(nnodes, ws_dim); s; ++s)
             {
                 const auto& deriv = s.CurrentValue();
-                CalculateStress(sensitivity_vars.StrainVector(g, deriv), g,
-                                stress_vector_deriv, rCurrentProcessInfo);
+                CalculateStressSensitivity(sensitivity_vars.StrainVector(g, deriv),
+                                           g, stress_vector_deriv, rCurrentProcessInfo);
                 CalculateInternalForceSensitivityContribution(
                     residual_deriv, g, deriv, deformation_vars,
                     sensitivity_vars, stress_vector, stress_vector_deriv);

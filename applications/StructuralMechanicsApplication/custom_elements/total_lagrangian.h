@@ -224,10 +224,20 @@ private:
 
     void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
 
-    void CalculateStress(Vector& rStrain,
-                         std::size_t IntegrationPoint,
+    void CalculateStress(LargeDisplacementDeformationVariables& rDeformationVars,
+                         std::size_t IntegrationIndex,
                          Vector& rStress,
                          ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateStressSensitivity(Vector& rStrainSensitivity,
+                                    std::size_t IntegrationIndex,
+                                    Vector& rStressSensitivity,
+                                    ProcessInfo const& rCurrentProcessInfo);
+
+    // void CalculateConstitutiveMatrix(LargeDisplacementDeformationVariables& rDeformationVars,
+    //                                  std::size_t IntegrationIndex,
+    //                                  Matrix& rConstitutiveMatrix,
+    //                                  const ProcessInfo& rCurrentProcessInfo);
 
     std::size_t GetStrainSize() const;
 
