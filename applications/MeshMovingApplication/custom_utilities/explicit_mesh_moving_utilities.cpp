@@ -211,7 +211,6 @@ namespace Kratos
             // Check if any structure node is found
             if (n_str_nodes != 0){
                 // Compute the average MESH_DISPLACEMENT
-                double total_weight = 0.0;
                 for(unsigned int i_str = 0; i_str < n_str_nodes; ++i_str){
                     // Compute the structure point weight according to the kernel function
                     const double normalised_distance = i_fl_str_dists[i_str] / mSearchRadius;
@@ -227,13 +226,9 @@ namespace Kratos
                         r_mesh_disp[1] += weight * str_disp[1];
                     if (!it_node->IsFixed(MESH_DISPLACEMENT_Z))
                         r_mesh_disp[2] += weight * str_disp[2];
-
-                    // Accumulate the current structure pt. weight to compute the average
-                    total_weight += weight;
                 }
 
-                if (total_weight != 0.0)
-                    r_mesh_disp /= total_weight;
+                r_mesh_disp /= n_str_nodes;
             }
         }
     }
