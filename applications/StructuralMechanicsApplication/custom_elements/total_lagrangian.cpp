@@ -42,6 +42,15 @@ class LargeDisplacementDifferentialVariables
         KRATOS_CATCH("");
     }
 
+    double DetF(std::size_t IntegrationIndex, bool IsAxisymmetric = false)
+    {
+        KRATOS_TRY;
+        if (IntegrationIndex != mIntegrationIndexDetF)
+            CalculateDetF(IntegrationIndex, IsAxisymmetric);
+        return mDetF;
+        KRATOS_CATCH("");
+    }
+
     /// Shape functions gradients in reference configuration.
     const Matrix& DN_DX0(std::size_t IntegrationIndex)
     {
@@ -91,6 +100,15 @@ private:
         KRATOS_CATCH("");
     }
 
+    void CalculateDetF(std::size_t IntegrationIndex, bool IsAxisymmetric = false)
+    {
+        KRATOS_TRY;
+        const Matrix& rF = F(IntegrationIndex, IsAxisymmetric);
+        mDetF = MathUtils<double>::Det(rF);
+        mIntegrationIndexDetF = IntegrationIndex;
+        KRATOS_CATCH("");
+    }
+
     void CalculateDN_DX0(std::size_t IntegrationIndex)
     {
         KRATOS_TRY;
@@ -128,9 +146,11 @@ private:
     double mDetJ0;
     Matrix mF;
     Matrix mDN_DX0;
+    double mDetF;
     std::size_t mInternalIntegrationIndex = -1;
     std::size_t mIntegrationIndexF = -1;
     std::size_t mIntegrationIndexDN_DX0 = -1;
+    std::size_t mIntegrationIndexDetF = -1;
 };
 
 class LargeDisplacementDifferentialSensitivityVariables
@@ -509,6 +529,11 @@ public:
     const Matrix& F(std::size_t IntegrationIndex)
     {
         return mDiffVars.F(IntegrationIndex, mIsAxisymmetric);
+    }
+
+    double DetF(std::size_t IntegrationIndex)
+    {
+        return mDiffVars.DetF(IntegrationIndex, mIsAxisymmetric);
     }
 
     const Matrix& DN_DX0(std::size_t IntegrationIndex)
