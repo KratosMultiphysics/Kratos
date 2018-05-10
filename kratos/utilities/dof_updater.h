@@ -44,7 +44,14 @@ public:
     /// Pointer definition of DofUpdater
     KRATOS_CLASS_POINTER_DEFINITION(DofUpdater);
 
-    using DofsArrayType = ModelPart::DofsArrayType;
+	using DofType = Dof<typename TSparseSpace::DataType>;
+	using DofsArrayType = PointerVectorSet<
+		DofType,
+		SetIdentityFunction<DofType>,
+		std::less<typename SetIdentityFunction<DofType>::result_type>,
+		std::equal_to<typename SetIdentityFunction<DofType>::result_type>,
+		DofType* >;
+
     using SystemVectorType = typename TSparseSpace::VectorType;
 
     ///@}
@@ -110,7 +117,7 @@ public:
         for(int i = 0;  i < num_dof; ++i) {
             auto it_dof = rDofSet.begin() + i;
 
-            if (it_dof->IsFree())
+			if (it_dof->IsFree())
                 it_dof->GetSolutionStepValue() += TSparseSpace::GetValue(rDx,it_dof->EquationId());
         }
     }
@@ -142,6 +149,7 @@ public:
     ///@}
 
 }; // Class DofUpdater
+
 
 ///@}
 ///@name Input and output
