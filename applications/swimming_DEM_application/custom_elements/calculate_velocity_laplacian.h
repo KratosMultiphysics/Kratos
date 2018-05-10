@@ -58,7 +58,7 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
-class ComputeVelocityLaplacianSimplex : public ComputeMaterialDerivativeSimplex<TDim, TNumNodes>
+class KRATOS_API(SWIMMING_DEM_APPLICATION) ComputeVelocityLaplacianSimplex : public ComputeMaterialDerivativeSimplex<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
