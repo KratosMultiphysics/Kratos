@@ -343,7 +343,7 @@ private:
     void CalculateStrainTensor(std::size_t IntegrationIndex)
     {
         KRATOS_TRY;
-        const Matrix& rF = mrDiffVars.F(IntegrationIndex);
+        const Matrix& rF = mrDiffVars.F(IntegrationIndex, mIsAxisymmetric);
         if (mStrainTensor.size1() != rF.size2() || mStrainTensor.size2() != rF.size2())
             mStrainTensor.resize(rF.size2(), rF.size2(), false);
 
@@ -374,7 +374,7 @@ private:
         const unsigned int number_of_nodes = r_geom.PointsNumber();
         const unsigned int dimension = r_geom.WorkingSpaceDimension();
         const unsigned int strain_size = 4;
-        const Matrix& rF = mrDiffVars.F(IntegrationIndex);
+        const Matrix& rF = mrDiffVars.F(IntegrationIndex, true);
         const Matrix& rDN_DX0 = mrDiffVars.DN_DX0(IntegrationIndex);
         Vector N = row(r_geom.ShapeFunctionsValues(), IntegrationIndex);
         double radius = StructuralMechanicsMathUtilities::CalculateRadius(N, r_geom);
@@ -400,8 +400,11 @@ class LargeDisplacementKinematicSensitivityVariables
 public:
     LargeDisplacementKinematicSensitivityVariables(
         LargeDisplacementDifferentialVariables& rDiffVars,
-        LargeDisplacementDifferentialSensitivityVariables& rDiffVarSensitivities)
-        : mrDiffVars(rDiffVars), mrDiffVarSensitivities(rDiffVarSensitivities)
+        LargeDisplacementDifferentialSensitivityVariables& rDiffVarSensitivities,
+        bool IsAxisymmetric = false)
+        : mrDiffVars(rDiffVars),
+          mrDiffVarSensitivities(rDiffVarSensitivities),
+          mIsAxisymmetric(IsAxisymmetric)
     {
         mCurrentShapeDerivative.NodeIndex = -1;
         mCurrentShapeDerivative.Direction = -1;
@@ -435,6 +438,7 @@ public:
 private:
     LargeDisplacementDifferentialVariables& mrDiffVars;
     LargeDisplacementDifferentialSensitivityVariables& mrDiffVarSensitivities;
+    bool mIsAxisymmetric;
     Matrix mStrainTensorSensitivity;
     Vector mStrainVectorSensitivity;
     Matrix mBSensitivity;
@@ -459,8 +463,8 @@ private:
     void CalculateStrainTensorSensitivity(std::size_t IntegrationIndex, ShapeParameter Deriv)
     {
         KRATOS_TRY;
-        const Matrix& rF = mrDiffVars.F(IntegrationIndex);
-        const Matrix& rF_deriv = mrDiffVarSensitivities.F(IntegrationIndex, Deriv);
+        const Matrix& rF = mrDiffVars.F(IntegrationIndex, mIsAxisymmetric);
+        const Matrix& rF_deriv = mrDiffVarSensitivities.F(IntegrationIndex, Deriv, mIsAxisymmetric);
         mStrainTensorSensitivity =
             0.5 * (prod(trans(rF_deriv), rF) + prod(trans(rF), rF_deriv));
         KRATOS_CATCH("");
@@ -469,9 +473,10 @@ private:
     void CalculateBSensitivity(std::size_t IntegrationIndex, ShapeParameter Deriv)
     {
         KRATOS_TRY;
-        const Matrix& rF = mrDiffVars.F(IntegrationIndex);
+        KRATOS_ERROR_IF(mIsAxisymmetric) << "Axisymmetric not supported yet.\n";
+        const Matrix& rF = mrDiffVars.F(IntegrationIndex, mIsAxisymmetric);
         const Matrix& rDN_DX0 = mrDiffVars.DN_DX0(IntegrationIndex);
-        const Matrix& rF_deriv = mrDiffVarSensitivities.F(IntegrationIndex, Deriv);
+        const Matrix& rF_deriv = mrDiffVarSensitivities.F(IntegrationIndex, Deriv, mIsAxisymmetric);
         const Matrix& rDN_DX0_deriv =
             mrDiffVarSensitivities.DN_DX0(IntegrationIndex, Deriv);
         if (mrDiffVars.GetGeometry().WorkingSpaceDimension() == 2)
@@ -491,7 +496,7 @@ private:
         KRATOS_CATCH("");
     }
 };
-
+}
 class LargeDisplacementDeformationVariables
 {
 public:
@@ -540,8 +545,12 @@ private:
 class LargeDisplacementSensitivityVariables
 {
 public:
-    LargeDisplacementSensitivityVariables(Element::GeometryType const& rGeom)
-        : mDiffVars(rGeom), mDiffSensitivityVars(rGeom), mKinSensitivityVars(mDiffVars, mDiffSensitivityVars)
+    LargeDisplacementSensitivityVariables(Element::GeometryType const& rGeom,
+                                          bool IsAxisymmetric = false)
+        : mDiffVars(rGeom),
+          mDiffSensitivityVars(rGeom),
+          mKinSensitivityVars(mDiffVars, mDiffSensitivityVars, IsAxisymmetric),
+          mIsAxisymmetric(IsAxisymmetric)
     {
     }
 
@@ -555,9 +564,9 @@ public:
         return mDiffSensitivityVars.DN_DX0(IntegrationIndex, Deriv);
     }
 
-    const Matrix& F(std::size_t IntegrationIndex, ShapeParameter Deriv, bool IsAxisymmetric = false)
+    const Matrix& F(std::size_t IntegrationIndex, ShapeParameter Deriv)
     {
-        return mDiffSensitivityVars.F(IntegrationIndex, Deriv, IsAxisymmetric);
+        return mDiffSensitivityVars.F(IntegrationIndex, Deriv, mIsAxisymmetric);
     }
 
     const Matrix& StrainTensor(std::size_t IntegrationIndex, ShapeParameter Deriv)
@@ -580,8 +589,8 @@ private:
     LargeDisplacementDifferentialVariables mDiffVars;
     LargeDisplacementDifferentialSensitivityVariables mDiffSensitivityVars;
     LargeDisplacementKinematicSensitivityVariables mKinSensitivityVars;
+    const bool mIsAxisymmetric;
 };
-}
 
 TotalLagrangian::TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry)
     : BaseSolidElement(NewId, pGeometry)
@@ -882,10 +891,50 @@ bool TotalLagrangian::IsAxisymmetric() const
     return (GetStrainSize() == 4);
 }
 
+void TotalLagrangian::CalculateInternalForceSensitivityContribution(
+    Vector& rResidualSensitivity,
+    std::size_t IntegrationIndex,
+    ShapeParameter Deriv,
+    LargeDisplacementDeformationVariables& rDeformationVars,
+    LargeDisplacementSensitivityVariables& rSensitivityVars,
+    Vector const& rStressVector,
+    Vector const& rStressSensitivityVector)
+{
+    KRATOS_TRY;
+    const auto& r_geom = GetGeometry();
+    const double weight = r_geom.IntegrationPoints()[IntegrationIndex].Weight() *
+                          rDeformationVars.DetJ0(IntegrationIndex);
+    const double weight_deriv = r_geom.IntegrationPoints()[IntegrationIndex].Weight() *
+                                rSensitivityVars.DetJ0(IntegrationIndex, Deriv);
+    const Matrix& rB = rDeformationVars.B(IntegrationIndex);
+    const Matrix& rB_deriv = rSensitivityVars.B(IntegrationIndex, Deriv);
+    rResidualSensitivity = -weight_deriv * prod(trans(rB), rStressVector);
+    rResidualSensitivity -= weight * prod(trans(rB_deriv), rStressVector);
+    rResidualSensitivity -= weight * prod(trans(rB), rStressSensitivityVector);
+    KRATOS_CATCH("");
+}
+
+void TotalLagrangian::CalculateAndAddExternalForceSensitivityContribution(
+    Vector& rResidualSensitivity,
+    std::size_t IntegrationIndex,
+    ShapeParameter Deriv,
+    LargeDisplacementSensitivityVariables& rSensitivityVars,
+    Vector const& rN,
+    Vector const& rBodyForce,
+    ProcessInfo const& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    const auto& r_geom = GetGeometry();
+    const double weight_deriv = r_geom.IntegrationPoints()[IntegrationIndex].Weight() *
+                                rSensitivityVars.DetJ0(IntegrationIndex, Deriv);
+    CalculateAndAddExtForceContribution(rN, rCurrentProcessInfo, rBodyForce,
+                                        rResidualSensitivity, weight_deriv);
+    KRATOS_CATCH("");
+}
 /***********************************************************************************/
 /***********************************************************************************/
 
-int TotalLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
+int TotalLagrangian::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -905,42 +954,29 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
     const auto& r_geom = GetGeometry();
     if (rDesignVariable == SHAPE_SENSITIVITY)
     {
-        KRATOS_ERROR_IF(IsAxisymmetric()) << "Axisymmetric is not supported.\n";
         const std::size_t ws_dim = r_geom.WorkingSpaceDimension();
         const std::size_t nnodes = r_geom.PointsNumber();
-        const std::size_t mat_dim = nnodes * ws_dim;
-        rOutput.resize(mat_dim, mat_dim);
-        rOutput.clear();
-        Vector residual_deriv(rOutput.size1());
-        Vector N(nnodes);
-        Vector body_force;
+        Vector residual_deriv(nnodes * ws_dim), N, body_force, stress_vector, stress_vector_deriv;
+        rOutput.resize(residual_deriv.size(), residual_deriv.size());
         LargeDisplacementDeformationVariables deformation_vars(r_geom, IsAxisymmetric());
         LargeDisplacementSensitivityVariables sensitivity_vars(r_geom);
-        Vector stress_vector, stress_vector_deriv;
         for (std::size_t g = 0; g < r_geom.IntegrationPointsNumber(); ++g)
         {
-            const Matrix& rB = deformation_vars.B(g);
             CalculateStress(deformation_vars.StrainVector(g), g, stress_vector,
                             rCurrentProcessInfo);
-            double weight = GetIntegrationWeight(r_geom.IntegrationPoints(), g,
-                                                 deformation_vars.DetJ0(g));
-            noalias(N) = row(r_geom.ShapeFunctionsValues(), g);
+            N = row(r_geom.ShapeFunctionsValues(), g);
             body_force = GetBodyForce(r_geom.IntegrationPoints(), g);
-
             for (auto s = ShapeParameter::Sequence(nnodes, ws_dim); s; ++s)
             {
                 const auto& deriv = s.CurrentValue();
                 CalculateStress(sensitivity_vars.StrainVector(g, deriv), g,
                                 stress_vector_deriv, rCurrentProcessInfo);
-                const double weight_deriv = GetIntegrationWeight(
-                    r_geom.IntegrationPoints(), g, sensitivity_vars.DetJ0(g, deriv));
-                noalias(residual_deriv) = -weight_deriv * prod(trans(rB), stress_vector);
-                residual_deriv -=
-                    weight * prod(trans(sensitivity_vars.B(g, deriv)), stress_vector);
-                residual_deriv -= weight * prod(trans(rB), stress_vector_deriv);
-                CalculateAndAddExtForceContribution(
-                    N, rCurrentProcessInfo, body_force, residual_deriv, weight_deriv);
-
+                CalculateInternalForceSensitivityContribution(
+                    residual_deriv, g, deriv, deformation_vars,
+                    sensitivity_vars, stress_vector, stress_vector_deriv);
+                CalculateAndAddExternalForceSensitivityContribution(
+                    residual_deriv, g, deriv, sensitivity_vars, N, body_force,
+                    rCurrentProcessInfo);
                 for (std::size_t k = 0; k < residual_deriv.size(); ++k)
                     rOutput(k, deriv.NodeIndex * ws_dim + deriv.Direction) =
                         residual_deriv(k);

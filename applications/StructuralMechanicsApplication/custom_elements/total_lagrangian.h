@@ -45,18 +45,20 @@ namespace Kratos
 ///@{
 
 class ShapeParameter;
+class LargeDisplacementDeformationVariables;
+class LargeDisplacementSensitivityVariables;
 
 /**
  * @class TotalLagrangian
  * @ingroup StructuralMechanicsApplication
  * @brief Total Lagrangian element for 2D and 3D geometries.
- * @details Implements a total Lagrangian definition for structural analysis. This works for arbitrary geometries in 2D and 3D
+ * @details Implements a total Lagrangian definition for structural
+ * analysis. This works for arbitrary geometries in 2D and 3D
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian
-    : public BaseSolidElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian : public BaseSolidElement
 {
 public:
     ///@name Type Definitions
@@ -230,6 +232,24 @@ private:
     std::size_t GetStrainSize() const;
 
     bool IsAxisymmetric() const;
+
+    void CalculateInternalForceSensitivityContribution(
+        Vector& rResidualSensitivity,
+        std::size_t IntegrationIndex,
+        ShapeParameter Deriv,
+        LargeDisplacementDeformationVariables& rDeformationVars,
+        LargeDisplacementSensitivityVariables& rSensitivityVars,
+        Vector const& rStressVector,
+        Vector const& rStressSensitivityVector);
+
+    void CalculateAndAddExternalForceSensitivityContribution(
+        Vector& rResidualSensitivity,
+        std::size_t IntegrationIndex,
+        ShapeParameter Deriv,
+        LargeDisplacementSensitivityVariables& rSensitivityVars,
+        Vector const& rN,
+        Vector const& rBodyForce,
+        ProcessInfo const& rCurrentProcessInfo);
 
     ///@}
     ///@name Private  Access
