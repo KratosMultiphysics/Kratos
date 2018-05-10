@@ -42,7 +42,9 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
         # Validate and transfer settings
         if( custom_settings.Has("solving_strategy_settings") ):
-            self._validate_and_transfer_matching_settings(custom_settings["solving_strategy_settings"], implicit_solver_settings["solving_strategy_settings"])
+            from json_settings_utility import JsonSettingsUtility
+            JsonSettingsUtility.TransferMatchingSettingsToDestination(custom_settings["solving_strategy_settings"], implicit_solver_settings["solving_strategy_settings"])
+            
         self.implicit_solver_settings = implicit_solver_settings["solving_strategy_settings"]
 
         # Construct the base solver.
