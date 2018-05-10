@@ -30,11 +30,11 @@ class JsonSettingsUtility(object):
         for name, expected_value in expected_settings.items():
             if supplied_settings.Has(name): #  transfer value.
                 supplied_value = supplied_settings[name]
-                if JsonSettingsUtility.CheckMatchingValueType(expected_value, supplied_value):
+                if JsonSettingsUtility.CheckMatchingValueType(supplied_value,expected_value):
                     if expected_value.IsArray() and supplied_value.IsArray():
                         if expected_value.size() == supplied_value.size():
                             for i in range(expected_value.size()):
-                                if JsonSettingsUtility.CheckMatchingValueType(expected_value[i], supplied_value[i]):
+                                if JsonSettingsUtility.CheckMatchingValueType(supplied_value[i],expected_value[i]):
                                     if expected_value[i].IsSubParameter() and supplied_value[i].IsSubParameter():
                                         JsonSettingsUtility.CheckAndFixNotMatchingSettings(supplied_value[i], expected_value[i])
                                 else:
@@ -54,15 +54,16 @@ class JsonSettingsUtility(object):
         then the setting value is assigned to the destination, and deleted from the origin.
 
         """
+        print("start",origin_settings.PrettyPrintJsonString())
         for name, destination_value in destination_settings.items():
             if origin_settings.Has(name): # Validate and transfer value.
                 origin_value = origin_settings[name]
-                if JsonSettingsUtility.CheckAndTransferMatchingValueType(destination_value, origin_value):
+                if JsonSettingsUtility.CheckAndTransferMatchingValueType(origin_value,destination_value):
                     if destination_value.IsArray() and origin_value.IsArray():
                         if destination_value.size() != origin_value.size():
                             raise Exception('len("' + name + '") != ' + str(destination_value.size()))
                         for i in range(destination_value.size()):
-                            if JsonSettingsUtility.CheckAndTransferMatchingValueType(destination_value[i], origin_value[i]):
+                            if JsonSettingsUtility.CheckAndTransferMatchingValueType(origin_value[i],destination_value[i]):
                                 if destination_value[i].IsSubParameter() and origin_value[i].IsSubParameter():
                                     JsonSettingsUtility.TransferMatchingSettingsToDestination(origin_value[i], destination_value[i])
                                     if len(origin_value[i].items()) != 0:
@@ -76,7 +77,8 @@ class JsonSettingsUtility(object):
                 else:
                     raise Exception('Unsupported parameter type: ' + name)
                 origin_settings.RemoveValue(name)
-
+        print("end",origin_settings.PrettyPrintJsonString())
+        print("result",destination_settings.PrettyPrintJsonString())
 
     @staticmethod
     # checks and transfers mathing values (except array and subparameters)
