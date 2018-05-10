@@ -86,7 +86,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixPK
     )
 {
     if (ConstitutiveMatrix.size1() != 3 || ConstitutiveMatrix.size2() != 3)
-        ConstitutiveMatrix.resize(3, 3 false);
+        ConstitutiveMatrix.resize(3, 3, false);
 
     const double log_j = std::log(DeterminantF);
     
@@ -116,7 +116,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixKi
     )
 {
     if (ConstitutiveMatrix.size1() != 3 || ConstitutiveMatrix.size2() != 3)
-        ConstitutiveMatrix.resize(3, 3 false);
+        ConstitutiveMatrix.resize(3, 3, false);
 
     const double log_j = std::log(DeterminantF);
     
