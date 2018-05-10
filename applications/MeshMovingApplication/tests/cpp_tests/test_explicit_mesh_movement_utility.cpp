@@ -125,40 +125,19 @@ namespace Testing {
         const unsigned int buffer_size = 3;
         p_mesh_moving->ComputeExplicitMeshMovement(delta_time);
         p_mesh_moving->ProjectVirtualValues<2>(origin_model_part, buffer_size);
-
-        GidIO<> gid_io_origin("/home/rzorrilla/Desktop/test_expl_mesh_mov_origin_model_part", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-        gid_io_origin.InitializeMesh(0.0);
-        gid_io_origin.WriteMesh(origin_model_part.GetMesh());
-        gid_io_origin.FinalizeMesh();
-        gid_io_origin.InitializeResults(0, origin_model_part.GetMesh());
-        gid_io_origin.WriteNodalResults(VELOCITY, origin_model_part.Nodes(), 0, 0);
-        gid_io_origin.WriteNodalResults(PRESSURE, origin_model_part.Nodes(), 0, 0);
-        gid_io_origin.WriteNodalResults(MESH_VELOCITY, origin_model_part.Nodes(), 0, 0);
-        gid_io_origin.WriteNodalResults(MESH_DISPLACEMENT, origin_model_part.Nodes(), 0, 0);
-        gid_io_origin.FinalizeResults();
-
-        GidIO<> gid_io_virtual("/home/rzorrilla/Desktop/test_expl_mesh_mov_virtual_model_part", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-        gid_io_virtual.InitializeMesh(0.0);
-        gid_io_virtual.WriteMesh(virtual_model_part.GetMesh());
-        gid_io_virtual.FinalizeMesh();
-        gid_io_virtual.InitializeResults(0, virtual_model_part.GetMesh());
-        gid_io_virtual.WriteNodalResults(VELOCITY, virtual_model_part.Nodes(), 0, 0);
-        gid_io_virtual.WriteNodalResults(PRESSURE, virtual_model_part.Nodes(), 0, 0);
-        gid_io_virtual.WriteNodalResults(MESH_VELOCITY, virtual_model_part.Nodes(), 0, 0);
-        gid_io_virtual.WriteNodalResults(MESH_DISPLACEMENT, virtual_model_part.Nodes(), 0, 0);
-        gid_io_virtual.FinalizeResults();
-
-        GidIO<> gid_io_str("/home/rzorrilla/Desktop/test_expl_mesh_mov_str_model_part", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-        gid_io_str.InitializeMesh(0.0);
-        gid_io_str.WriteMesh(str_model_part.GetMesh());
-        gid_io_str.FinalizeMesh();
-        gid_io_str.InitializeResults(0, str_model_part.GetMesh());
-        gid_io_str.WriteNodalResults(DISPLACEMENT, str_model_part.Nodes(), 0, 0);
-        gid_io_str.FinalizeResults();
-
         p_mesh_moving->UndoMeshMovement();
 
-        //TODO: CHECK OBTAINED MESH_VELOCITY, AND HISTORICAL VELOCITY AND PRESSURE
+        // Check the obtained results
+        auto p_node_10 = origin_model_part.pGetNode(10);
+        const auto &r_vel_n1 = p_node_10->GetSolutionStepValue(VELOCITY,1);
+        const auto &r_mesh_vel = p_node_10->FastGetSolutionStepValue(MESH_VELOCITY);
+
+        const double tol = 1e-6;
+        KRATOS_CHECK_NEAR(r_vel_n1(0), 0.0710645, tol);
+        KRATOS_CHECK_NEAR(r_vel_n1(1), 0.0294852, tol);
+        KRATOS_CHECK_NEAR(r_mesh_vel(0), -0.439785, tol);
+        KRATOS_CHECK_NEAR(r_mesh_vel(1), 0.384812, tol);
+
     }
 }
 }  // namespace Kratos.
