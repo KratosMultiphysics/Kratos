@@ -100,7 +100,7 @@ public:
     ///@name Operations
     ///@{
 
-    static void CalculateEquivalentStress(const Vector& StressVector, double& rEqStress)
+    static void CalculateEquivalentStress(const Vector& StressVector, double& rEqStress, const Properties& rMaterialProperties)
     {
         // Implement for each yield surf
     }
