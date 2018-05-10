@@ -30,7 +30,7 @@ KRATOS_CLASS_POINTER_DEFINITION(AnalyticFaceWatcher);
 
 /// Default constructor
 
-AnalyticFaceWatcher(){}
+AnalyticFaceWatcher(ModelPart& model_part):mrModelPart(model_part){}
 
 /// Destructor
 
@@ -208,7 +208,7 @@ void GetTotalFlux(pybind11::list &times,
                   pybind11::list &n_particles,
                   pybind11::list &mass);
 
-virtual void MakeMeasurements(ModelPart& analytic_model_part);
+virtual void MakeMeasurements();
 
 virtual FaceHistoryDatabase& GetFaceDataBase(int id);
 
@@ -224,6 +224,7 @@ virtual void PrintData(std::ostream& rOStream) const;
 
 private:
 
+ModelPart& mrModelPart;
 std::set<int> mSetOfIds;
 std::vector<CrossingsTimeStepDataBase> mVectorOfTimeStepDatabases;
 std::map<int, FaceHistoryDatabase> mMapOfFaceHistoryDatabases;

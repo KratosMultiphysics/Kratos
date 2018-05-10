@@ -33,15 +33,13 @@ void AnalyticFaceWatcher::ClearData()
     mMapOfFaceHistoryDatabases.clear();
 }
 
-void AnalyticFaceWatcher::MakeMeasurements(ModelPart& analytic_model_part)
+void AnalyticFaceWatcher::MakeMeasurements()
 {
-    const double current_time = analytic_model_part.GetProcessInfo()[TIME];
+    const double current_time = mrModelPart.GetProcessInfo()[TIME];
     CrossingsTimeStepDataBase time_step_database(current_time);
-
-    for (ConditionsIteratorType i_cond = analytic_model_part.ConditionsBegin(); i_cond != analytic_model_part.ConditionsEnd(); ++i_cond){
+    for (ConditionsIteratorType i_cond = mrModelPart.ConditionsBegin(); i_cond != mrModelPart.ConditionsEnd(); ++i_cond){
         AnalyticFace& face = dynamic_cast<Kratos::AnalyticRigidFace3D&>(*(*(i_cond.base())));
-        const int n_crossings = abs(face.GetNumberThroughput());
-
+        const int n_crossings = face.AreThereNewCrossings();
         if (n_crossings){
             const int id = int(i_cond->Id());
             FaceHistoryDatabase& face_database = GetFaceDataBase(id);

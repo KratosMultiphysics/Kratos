@@ -5,6 +5,8 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 sys.path.insert(0, '')
+import csv
+import numpy as np
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
@@ -62,8 +64,8 @@ class Solution(object):
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
         self.SetAnalyticParticleWatcher()
-        self.SetAnalyticFaceWatcher()
         self.PreUtilities = PreUtilities()
+        self.aux = AuxiliaryUtilities()
 
 
         # Set the print function TO_DO: do this better...
@@ -125,18 +127,32 @@ class Solution(object):
         self.particle_watcher = AnalyticParticleWatcher()
         self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher=self.particle_watcher, path=self.main_path)
 
+
     def SetAnalyticFaceWatcher(self):
         from analytic_tools import analytic_data_procedures
-        self.face_watcher = AnalyticFaceWatcher()
-        self.face_watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(analytic_face_watcher=self.face_watcher, path=self.main_path)
+        self.face_watcher_dict = dict()
+        for sub_part in self.rigid_face_model_part.SubModelParts:
+            if sub_part[IDENTIFIER] == "ghostrigidface":
+                self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
+
+        # old method
+        #self.face_watcher = AnalyticFaceWatcher()
+        #self.face_watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(analytic_face_watcher=self.face_watcher, path=self.main_path)
 
     def MakeAnalyticsMeasurements(self):
-        pass
+        for face_watcher in self.face_watcher_dict.values():
+            face_watcher.MakeMeasurements()
 
-    def GetAnalyticFacesModelParts(self):
-        analytic_face_submodelpart_number = 1
-        analytic_face_submodelpart_name = self.rigid_face_model_part.GetSubModelPart(str(analytic_face_submodelpart_number))
-        return analytic_face_submodelpart_name
+    def FlushFluxData(self):
+        for face_watcher_name in self.face_watcher_dict.keys():
+            times = []
+            masses = []
+            n_particles = []
+            self.face_watcher_dict[face_watcher_name].GetTotalFlux(times, n_particles, masses)
+            with open('ghost'+ face_watcher_name +'.csv', 'w+') as f1:
+                writer = csv.writer(f1, delimiter='\t')
+                writer.writerows(zip(times, n_particles))
+            f1.close()
 
     def SetFinalTime(self):
         self.final_time = self.DEM_parameters["FinalTime"].GetDouble()
@@ -259,6 +275,8 @@ class Solution(object):
         self.AddVariables()
 
         self.ReadModelParts()
+
+        self.SetAnalyticFaceWatcher()  # TODO check order
 
         self.post_normal_impact_velocity_option = False
         if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
@@ -399,7 +417,7 @@ class Solution(object):
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
 
-	
+
 
     def RunMainTemporalLoop(self):
 
@@ -442,9 +460,19 @@ class Solution(object):
             self.DEMFEMProcedures.PrintBallsGraph(self.time)
 
             self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
-            
+
+            #Phantom
             self.MakeAnalyticsMeasurements()
- 
+            if self.IsTimeToPrintPostProcess():  # or IsCountStep()
+                self.FlushFluxData()
+                #self.face_watcher_analyser.FlushFluxData() should be here
+                #self.face_watcher_analyser.UpdateDataFile(self.time)
+
+            '''
+            if self.analytic_data_counter.Tick():
+                self.ProcessAnalyticData()
+            '''
+
             self.BeforePrintingOperations(self.time)
 
             #### GiD IO ##########################################
