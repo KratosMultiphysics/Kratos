@@ -52,7 +52,7 @@ namespace Kratos
  * @details
  * @author Alejandro Cornejo
  */
-template <class YieldSurfaceType, class ConstLawIntegratorType>
+template <class ConstLawIntegratorType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPlasticity3D
     : public ConstitutiveLaw
 {
@@ -72,9 +72,6 @@ public:
     */
     GenericSmallStrainIsotropicPlasticity3D()
     {
-        // Since we use static method it's not necessary
-        //mpYieldSurface = YieldSurfaceType().Clone();
-        //mpConstLawIntegrator = ConstLawIntegratorType().Clone();
     }
 
     /**
@@ -148,7 +145,7 @@ public:
         const Properties& rMaterialProperties = rValues.GetMaterialProperties();
         int VoigtSize = this->GetVoigtSize();
         Vector& IntegratedStressVector = rValues.GetStressVector();
-        Matrix& tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after inegration
+        Matrix& tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
 
         // Elastic Matrix
         Matrix C;
@@ -157,8 +154,8 @@ public:
         double Kp = 0.0, Capap = 0.0;
         Vector plastic_strain = ZeroVector(this->GetVoigtSize());
 
-        Kp            = this->GetThreshold();
-        Capap         = this->GetPlasticDissipation();
+        Kp             = this->GetThreshold();
+        Capap          = this->GetPlasticDissipation();
         plastic_strain = this->GetPlasticStrain();
 
         // S0 = C:(E-Ep)
@@ -172,7 +169,7 @@ public:
         ConstLawIntegratorType::CalculatePlasticParameters(PredictiveStressVector, UniaxialStress, Kp,
             PlasticDenominator, Fflux, Gflux, Capap, PlasticStrainIncrement, C);
 
-        const double F = UniaxialStress - Kp;
+        double F = UniaxialStress - Kp;
 
         if (F <= std::abs(1.0e-8 * Kp)) { // Elastic case
             IntegratedStressVector = PredictiveStressVector;
@@ -256,13 +253,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-//     typename YieldSurfaceType::Pointer mpYieldSurface;
-//                 typename ConstLawIntegratorType::Pointer mpConstLawIntegrator;
-//
-//     YieldSurfaceType mYieldSurface;
-//
-//     YieldSurfaceType::Calculatebabbaa
 
     ///@}
     ///@name Protected Operators

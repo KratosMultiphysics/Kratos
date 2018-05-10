@@ -50,7 +50,7 @@ namespace Kratos
  * @tparam TYieldSurfaceType
  * @author Alejandro Cornejo
  */
-template <class TYieldSurfaceType>
+template <class TYieldSurfaceType, class TVoigtSize>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegrator
 {
 public:
@@ -59,9 +59,8 @@ public:
 
     struct PlasticParameters
     {
-        Vector PredictiveStressVector; /// This bka
+        Vector PredictiveStressVector; 
         double UniaxialStress;
-        double Kp;
         double PlasticDenominator; 
         Vector Fflux;
         Vector Gflux;
@@ -73,13 +72,13 @@ public:
         {
 
         }
-    }
+	};
 
     /// The type of yield surface
-    typedef TYieldSurfaceType YieldSurfaceType;
+    typedef typename TYieldSurfaceType YieldSurfaceType;
 
-    /// The type of potential plasticity
-    typedef YieldSurfaceType::TPlasticPotentialType PlasticPotentialType;
+    /// The type of plastic potential 
+    typedef typename YieldSurfaceType::TPlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of GenericConstitutiveLawIntegrator
     KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegrator);
@@ -123,9 +122,9 @@ public:
         Vector& PlasticStrainIncrement,  
         const Matrix& C, 
         Vector& PlasticStrain, 
-        const Properties& rMaterialProperties)  
+        const Properties& rMaterialProperties
+    )  
     { 
-
         bool is_converged = false; 
         int iteration = 0, max_iter = 9000; 
         Vector DSigma = ZeroVector(6), DS = ZeroVector(6); 
@@ -138,11 +137,11 @@ public:
             if (PlasticConsistencyFactorIncrement < 0.0) PlasticConsistencyFactorIncrement = 0.0; 
 
             // todos noalias 
-            PlasticStrainIncrement = PlasticConsistencyFactorIncrement * Gflux; // check 
-            PlasticStrain += PlasticStrainIncrement; 
-            DS = prod(C, PlasticStrainIncrement); 
-            DSigma -= DS; 
-            PredictiveStressVector -= DSigma; 
+            noalias(PlasticStrainIncrement) = PlasticConsistencyFactorIncrement * Gflux; // check 
+            noalias(PlasticStrain) += PlasticStrainIncrement; 
+            noalias(DS) = prod(C, PlasticStrainIncrement); 
+            noalias(DSigma) -= DS; 
+            noalias(PredictiveStressVector) -= DSigma; 
 
             CalculatePlasticParameters(PredictiveStressVector, UniaxialStress, Threshold, 
                 PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
@@ -153,11 +152,10 @@ public:
             if (F < std::abs(1.0e-8 * Threshold)) // Has converged 
             { 
                 is_converged = true; 
-            } 
+            }
             else iteration++ 
-
         } 
-        if (iteration == max_iter) KRATOS_ERROR << "Reached max iterations inside the Plasticity loop" << std::endl; 
+        // if (iteration == max_iter) KRATOS_ERROR << "Reached max iterations inside the Plasticity loop" << std::endl; 
     }
 
     static void CalculatePlasticParameters(
@@ -204,7 +202,8 @@ public:
     {
 
     }
-
+    
+    // Calculates the McAully factors 
     static void CalculateRFactors(const Vector& StressVector, double& r0, double& r1)
     {
 
@@ -217,7 +216,7 @@ public:
 
     }
 
-    // Calculates Kp
+    // Calculates the stress threshold 
     static void CalculateEquivalentStressThreshold(const double Capap, const double r0,
         const double r1, double& rEquivalentStressThreshold, double& rSlope)
     {

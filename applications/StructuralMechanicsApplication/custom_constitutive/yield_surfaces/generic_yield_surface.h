@@ -70,7 +70,6 @@ public:
     /// Initialization constructor.
     GenericYieldSurface()
     {
-        //mpPlasticPotential = TPlasticPotentialType().Clone();
     }
 
     /// Copy constructor
