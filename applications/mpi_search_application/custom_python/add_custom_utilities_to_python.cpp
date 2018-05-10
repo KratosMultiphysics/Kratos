@@ -68,7 +68,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
     class_<MpiUtilitiesType, MpiUtilitiesType::Pointer>(m, "MpiUtilities")
         .def(init<>())
-        .def("Repart",                  &MpiUtilitiesType::ParallelPartitioning)
+        .def("Repartition",             &MpiUtilitiesType::ParallelPartitioning)
         .def("TransferModelElements",   &MpiUtilitiesType::MigrateElements)
         .def("TransferModelNodes",      &MpiUtilitiesType::MigrateNodes)
         .def("CalculateModelNewIds",    &MpiUtilitiesType::CalculateModelNewIds)
