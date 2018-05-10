@@ -71,7 +71,7 @@ public:
 
         void Initialize()
         {
-            
+
         }
     }
 
@@ -116,17 +116,48 @@ public:
     static void IntegrateStressVector(
         Vector& PredictiveStressVector, 
         double& UniaxialStress, 
-        double& Kp,
+        double& Threshold, 
         double& PlasticDenominator, 
-        Vector& Fflux, 
-        Vector& Gflux, 
-        double& Capap, 
-        Vector& PlasticStrainIncrement,
-        const Matrix& C,
-        Vector& PlasticStrain
-        )
-    {
+        Vector& Fflux, Vector& Gflux, 
+        double& PlasticDissipation, 
+        Vector& PlasticStrainIncrement,  
+        const Matrix& C, 
+        Vector& PlasticStrain, 
+        const Properties& rMaterialProperties)  
+    { 
 
+        bool is_converged = false; 
+        int iteration = 0, max_iter = 9000; 
+        Vector DSigma = ZeroVector(6), DS = ZeroVector(6); 
+        double PlasticConsistencyFactorIncrement = 0.0;     // Lambda 
+
+        // Backward Euler  
+        while (is_converged == false && iteration <= max_iter) 
+        { 
+            PlasticConsistencyFactorIncrement = UniaxialStress * PlasticDenominator; 
+            if (PlasticConsistencyFactorIncrement < 0.0) PlasticConsistencyFactorIncrement = 0.0; 
+
+            // todos noalias 
+            PlasticStrainIncrement = PlasticConsistencyFactorIncrement * Gflux; // check 
+            PlasticStrain += PlasticStrainIncrement; 
+            DS = prod(C, PlasticStrainIncrement); 
+            DSigma -= DS; 
+            PredictiveStressVector -= DSigma; 
+
+            CalculatePlasticParameters(PredictiveStressVector, UniaxialStress, Threshold, 
+                PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
+                C, rMaterialProperties); 
+
+            double F = UniaxialStress - Threshold; 
+
+            if (F < std::abs(1.0e-8 * Threshold)) // Has converged 
+            { 
+                is_converged = true; 
+            } 
+            else iteration++ 
+
+        } 
+        if (iteration == max_iter) KRATOS_ERROR << "Reached max iterations inside the Plasticity loop" << std::endl; 
     }
 
     static void CalculatePlasticParameters(
@@ -147,16 +178,16 @@ public:
         double J2 = 0.0, r0 = 0.0, r1 = 0.0, Slope = 0.0, HardParam = 0.0;
 
         YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector, UniaxialStress, rMaterialProperties);
-        this->CalculateDeviatorVector(PredictiveStressVector, Deviator, J2);
-        this->CalculateFFluxVector(PredictiveStressVector, Deviator, J2, Fflux);
-        this->CalculateGFluxVector(PredictiveStressVector, Deviator, J2, Gflux);
-        this->CalculateRFactors(PredictiveStressVector, r0, r1);
-        this->CalculatePlasticDissipation(PredictiveStressVector, r0,
+        CalculateDeviatorVector(PredictiveStressVector, Deviator, J2);
+        CalculateFFluxVector(PredictiveStressVector, Deviator, J2, Fflux);
+        CalculateGFluxVector(PredictiveStressVector, Deviator, J2, Gflux);
+        CalculateRFactors(PredictiveStressVector, r0, r1);
+        CalculatePlasticDissipation(PredictiveStressVector, r0,
             r1, PlasticStrainIncrement, PlasticDissipation, HCapa);
-        this->CalculateEquivalentStressThreshold(PlasticDissipation, r0,
+        CalculateEquivalentStressThreshold(PlasticDissipation, r0,
             r1, Threshold, Slope, rMaterialProperties);
-        this->CalculateHardeningParameter(Fflux, Slope, HCapa, HardParam); // FFlux or GFlux????
-        this->CalculatePlasticDenominator(Fflux, C, HardParam, PlasticDenominator)
+        CalculateHardeningParameter(Fflux, Slope, HCapa, HardParam); // FFlux or GFlux????
+        CalculatePlasticDenominator(Fflux, C, HardParam, PlasticDenominator)
 
     }
 
