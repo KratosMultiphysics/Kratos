@@ -31,7 +31,8 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
         """)
 
         # Validate and transfer settings
-        self._validate_and_transfer_matching_settings(custom_settings, static_settings)
+        from json_settings_utility import JsonSettingsUtility
+        JsonSettingsUtility.TransferMatchingSettingsToDestination(custom_settings, static_settings)
         time_integration_settings = custom_settings["time_integration_settings"]
 
         # Validate the remaining settings in the base class.

@@ -78,6 +78,10 @@ class MonolithicSolver(object):
         }
         """)
 
+        # Check and fix supplied settings compatibility (experimental)
+        from json_settings_utility import JsonSettingsUtility
+        JsonSettingsUtility.CheckAndFixNotMatchingSettings(custom_settings,default_settings)
+
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -222,64 +226,6 @@ class MonolithicSolver(object):
             self._mechanical_solver = self._create_mechanical_solver()
         return self._mechanical_solver
 
-    def _validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
-        """Transfer matching settings from origin to destination.
-
-        If a name in origin matches a name in destination, then the setting is
-        validated against the destination.
-
-        The typical use is for validating and extracting settings in derived classes:
-
-        class A:
-            def __init__(self, model_part, a_settings):
-                default_a_settings = Parameters('''{
-                    ...
-                }''')
-                a_settings.ValidateAndAssignDefaults(default_a_settings)
-        class B(A):
-            def __init__(self, model_part, custom_settings):
-                b_settings = Parameters('''{
-                    ...
-                }''') # Here the settings contain default values.
-                self.validate_and_transfer_matching_settings(custom_settings, b_settings)
-                super().__init__(model_part, custom_settings)
-        """
-        for name, dest_value in destination_settings.items():
-            if origin_settings.Has(name): # Validate and transfer value.
-                orig_value = origin_settings[name]
-                if dest_value.IsDouble() and orig_value.IsDouble():
-                    destination_settings[name].SetDouble(origin_settings[name].GetDouble())
-                elif dest_value.IsInt() and orig_value.IsInt():
-                    destination_settings[name].SetInt(origin_settings[name].GetInt())
-                elif dest_value.IsBool() and orig_value.IsBool():
-                    destination_settings[name].SetBool(origin_settings[name].GetBool())
-                elif dest_value.IsString() and orig_value.IsString():
-                    destination_settings[name].SetString(origin_settings[name].GetString())
-                elif dest_value.IsArray() and orig_value.IsArray():
-                    if dest_value.size() != orig_value.size():
-                        raise Exception('len("' + name + '") != ' + str(dest_value.size()))
-                    for i in range(dest_value.size()):
-                        if dest_value[i].IsDouble() and orig_value[i].IsDouble():
-                            dest_value[i].SetDouble(orig_value[i].GetDouble())
-                        elif dest_value[i].IsInt() and orig_value[i].IsInt():
-                            dest_value[i].SetInt(orig_value[i].GetInt())
-                        elif dest_value[i].IsBool() and orig_value[i].IsBool():
-                            dest_value[i].SetBool(orig_value[i].GetBool())
-                        elif dest_value[i].IsString() and orig_value[i].IsString():
-                            dest_value[i].SetString(orig_value[i].GetString())
-                        elif dest_value[i].IsSubParameter() and orig_value[i].IsSubParameter():
-                            self._validate_and_transfer_matching_settings(orig_value[i], dest_value[i])
-                            if len(orig_value[i].items()) != 0:
-                                raise Exception('Json settings not found in default settings: ' + orig_value[i].PrettyPrintJsonString())
-                        else:
-                            raise Exception('Unsupported parameter type.')
-                elif dest_value.IsSubParameter() and orig_value.IsSubParameter():
-                    self._validate_and_transfer_matching_settings(orig_value, dest_value)
-                    if len(orig_value.items()) != 0:
-                        raise Exception('Json settings not found in default settings: ' + orig_value.PrettyPrintJsonString())
-                else:
-                    raise Exception('Unsupported parameter type.')
-                origin_settings.RemoveValue(name)
 
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
@@ -379,7 +325,7 @@ class MonolithicSolver(object):
             dofs.append(dofs_list[i].GetString())
 
         # add default DISPLACEMENT dof
-        if( len(dofs) == 0 or (len(dofs) == 1 and self.dofs[0] =="ROTATION") ):
+        if( len(dofs) == 0 or (len(dofs) == 1 and dofs[0] =="ROTATION") ):
             dofs.append('DISPLACEMENT')
 
         #print(" DOFS ",dofs)
@@ -392,11 +338,11 @@ class MonolithicSolver(object):
             if( isinstance(kratos_variable,KratosMultiphysics.DoubleVariable) and (not scalar_dof_method_set) ):
                 scalar_integration_methods[dof].CalculateParameters(self.process_info)
                 scalar_dof_method_set = True
-                #print("::[Scalar_dof]:: ",dof," ",scalar_integration_methods[dof])
+                print("::[Scalar_dof]:: ",dof," ",scalar_integration_methods[dof])
             if( isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) and (not vector_dof_method_set) ):
                 component_integration_methods[dof+"_X"].CalculateParameters(self.process_info)
                 vector_dof_method_set = True
-                #print("::[Vector_dof]:: ",dof," ",component_integration_methods[dof+"_X"])
+                print("::[Vector_dof]:: ",dof," ",component_integration_methods[dof+"_X"])
 
         return scalar_integration_methods, component_integration_methods
 

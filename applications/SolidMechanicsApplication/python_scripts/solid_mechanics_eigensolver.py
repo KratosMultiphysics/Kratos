@@ -44,7 +44,8 @@ class EigenSolver(BaseSolver.MonolithicSolver):
         """)
 
         # Validate and transfer settings
-        self._validate_and_transfer_matching_settings(custom_settings, eigensolver_settings)
+        from json_settings_utility import JsonSettingsUtility
+        JsonSettingsUtility.TransferMatchingSettingsToDestination(custom_settings, eigensolver_settings)
         self.eigensolver_settings = eigensolver_settings["eigensolver_settings"]
 
         # Correction for the eigen solver parameters input
