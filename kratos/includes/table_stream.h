@@ -124,8 +124,7 @@ public:
             // Leave 3 extra space: One for negative sign, one for zero, one for decimal
             *mOutStream << std::setw(mColumnWidths.at(mIndexColumn)) << Input;
 
-            if (mIndexColumn == G
-                tNumColumns()-1) {
+            if (mIndexColumn == GetNumColumns()-1) {
                 *mOutStream << "|\n";
                 mIndexRow = mIndexRow + 1;
                 mIndexColumn = 0;
