@@ -221,12 +221,12 @@ virtual void PrintData(std::ostream& rOStream) const {}
 ///@}
 ///@name Friends
 ///@{
-vector<unsigned int>& GetElementPartition()
+DenseVector<unsigned int>& GetElementPartition()
 {
   return (mElementsPartition);
 }
 
-vector<unsigned int>& GetNodePartition()
+DenseVector<unsigned int>& GetNodePartition()
 {
   return (mNodesPartition);
 }
@@ -258,8 +258,8 @@ NodesArrayType::iterator GetNodePartitionEnd(ModelPart& r_model_part, unsigned i
 
 protected:
 
-vector<unsigned int> mElementsPartition;
-vector<unsigned int> mNodesPartition;
+DenseVector<unsigned int> mElementsPartition;
+DenseVector<unsigned int> mNodesPartition;
 
 private:
 

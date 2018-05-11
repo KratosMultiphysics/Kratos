@@ -24,16 +24,13 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 
 
-namespace Kratos
-{
+namespace Kratos {
+namespace Python {
 
-namespace Python
-{
-
-  void  AddCustomUtilitiesToPython();
+void  AddCustomUtilitiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 

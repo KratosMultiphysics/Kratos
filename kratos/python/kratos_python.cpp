@@ -30,7 +30,7 @@
 #include "add_deprecated_variables_to_python.h"
 #include "add_c2c_variables_to_python.h"
 #include "add_cfd_variables_to_python.h"
-#include "add_ale_variables_to_python.h"
+#include "add_mesh_moving_variables_to_python.h"
 #include "add_mapping_variables_to_python.h"
 #include "add_dem_variables_to_python.h"
 #include "add_fsi_variables_to_python.h"

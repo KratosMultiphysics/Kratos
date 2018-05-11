@@ -7,7 +7,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/deprecated_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/c2c_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/cfd_variables.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/ale_variables.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/mesh_moving_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/mapping_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/dem_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/fsi_variables.cpp;
@@ -75,7 +75,7 @@ set( KRATOS_PYTHON_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_deprecated_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_c2c_variables_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_cfd_variables_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_ale_variables_to_python.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mesh_moving_variables_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mapping_variables_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_dem_variables_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_fsi_variables_to_python.cpp

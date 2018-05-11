@@ -16,7 +16,7 @@ KratosMultiphysics.CheckRegisteredApplications(
     "TrilinosApplication",
     "MappingApplication",
     "FSIApplication",
-    "ALEApplication",
+    "MeshMovingApplication",
     "FluidDynamicsApplication",
     "StructuralMechanicsApplication")
 
@@ -25,7 +25,7 @@ import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 import KratosMultiphysics.MappingApplication as KratosMapping
 import KratosMultiphysics.FSIApplication as KratosFSI
-import KratosMultiphysics.ALEApplication as KratosALE
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
@@ -56,7 +56,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Construct the coupling partitioned strategy
         coupling_utility_parameters = self.settings["coupling_solver_settings"]["coupling_strategy"]
         self.coupling_utility = convergence_accelerator_factory.CreateTrilinosConvergenceAccelerator(self._GetFluidInterfaceSubmodelPart(),
-                                                                                                     self.epetra_communicator, 
+                                                                                                     self.epetra_communicator,
                                                                                                      coupling_utility_parameters)
 
         # Get the domain size
