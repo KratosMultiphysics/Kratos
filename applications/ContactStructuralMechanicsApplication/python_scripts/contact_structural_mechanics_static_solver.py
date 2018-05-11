@@ -176,7 +176,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         if (self.contact_settings["fancy_convergence_criterion"].GetBool() is True):
             table = KM.TableStreamUtility()
-            self.main_model_part.ProcessInfo[CSMA.COMMON_LOGGER] = table
+            table.SetOnProcessInfo(self.main_model_part.ProcessInfo)
 
         conv_params = KM.Parameters("{}")
         conv_params.AddValue("convergence_criterion", self.settings["convergence_criterion"])
