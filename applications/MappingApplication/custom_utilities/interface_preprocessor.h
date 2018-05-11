@@ -64,8 +64,7 @@ class InterfacePreprocessor
     /// Pointer definition of InterfacePreprocessor
     KRATOS_CLASS_POINTER_DEFINITION(InterfacePreprocessor);
 
-    using ModelPartPointerType = ModelPart::Pointer;
-    using MapperLocalSystemPointer = std::unique_ptr<MapperLocalSystem>;
+    using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
     using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
     using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
 
@@ -90,7 +89,7 @@ class InterfacePreprocessor
     ///@name Operations
     ///@{
 
-    void GenerateInterfaceModelPart(MapperLocalSystemPointer pLocalSystem);
+    void GenerateInterfaceModelPart(const MapperLocalSystemPointer& rpLocalSystem);
 
 
     ///@}
@@ -185,9 +184,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CreateMapperLocalSystemsFromNodes(const MapperLocalSystemPointer rLocalSystem);
+    void CreateMapperLocalSystemsFromNodes(const MapperLocalSystemPointer& rpLocalSystem);
 
-    void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystemPointer rLocalSystem);
+    void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystemPointer& rpLocalSystem);
 
     ///@}
     ///@name Private  Access

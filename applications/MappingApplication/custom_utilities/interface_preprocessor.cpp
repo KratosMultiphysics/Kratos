@@ -33,16 +33,16 @@ namespace Kratos
     {
     }
 
-    void InterfacePreprocessor::GenerateInterfaceModelPart(MapperLocalSystemPointer rLocalSystem)
+    void InterfacePreprocessor::GenerateInterfaceModelPart(const MapperLocalSystemPointer& rpLocalSystem)
     {
         mpMapperLocalSystems->clear();
 
-        const bool use_nodes = rLocalSystem->UseNodesAsBasis();
+        const bool use_nodes = rpLocalSystem->UseNodesAsBasis();
 
         if (use_nodes)
-            CreateMapperLocalSystemsFromNodes(std::move(rLocalSystem));
+            CreateMapperLocalSystemsFromNodes(rpLocalSystem);
         else
-            CreateMapperLocalSystemsFromGeometries(std::move(rLocalSystem));
+            CreateMapperLocalSystemsFromGeometries(rpLocalSystem);
     }
     /***********************************************************************************/
     /* PROTECTED Methods */
@@ -53,7 +53,7 @@ namespace Kratos
     /* PRIVATE Methods */
     /***********************************************************************************/
 
-    void InterfacePreprocessor::CreateMapperLocalSystemsFromNodes(const MapperLocalSystemPointer pLocalSystem)
+    void InterfacePreprocessor::CreateMapperLocalSystemsFromNodes(const MapperLocalSystemPointer& rpLocalSystem)
     {
         const std::size_t num_nodes = mrModelPartDestination.NumberOfNodes();
 
@@ -63,11 +63,11 @@ namespace Kratos
         for (int i = 0; i< static_cast<int>(num_nodes); ++i)
         {
             auto it_node = mrModelPartDestination.Nodes().begin() + i;
-            (*mpMapperLocalSystems)[i] = pLocalSystem->Create(*(it_node));
+            (*mpMapperLocalSystems)[i] = rpLocalSystem->Create(*(it_node));
         }
     }
 
-    void InterfacePreprocessor::CreateMapperLocalSystemsFromGeometries(const MapperLocalSystemPointer rLocalSystem)
+    void InterfacePreprocessor::CreateMapperLocalSystemsFromGeometries(const MapperLocalSystemPointer& rpLocalSystem)
     {
         KRATOS_ERROR << "This function is not implemented yet" << std::endl;
     }
