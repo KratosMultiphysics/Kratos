@@ -205,8 +205,8 @@ namespace Kratos
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int mat_size = number_of_nodes * dimension;
-
-        rOutput = ZeroMatrix(mat_size,mat_size);
+        
+        noalias(rOutput) = ZeroMatrix(mat_size,mat_size);
 
         if( rDesignVariable == POINT_LOAD )
         {
@@ -216,11 +216,18 @@ namespace Kratos
 
             PointLoadCondition::CalculateAll(dummy_LHS, RHS, copy_process_info, false, true);
 
+            // Check if intensities of the point load are still availible after the replacement process
+            const double numerical_limit = std::numeric_limits<double>::epsilon();
+            const double load_norm = MathUtils<double>::Norm(RHS);
+            KRATOS_ERROR_IF(load_norm < numerical_limit) << "The norm of the point load is zero. Something went wrong!" << std::endl;
+
             int k = 0;
             for(unsigned int i = 0; i < RHS.size(); ++i)
             {
-                if( RHS[i] > 1e-12 || RHS[i] < -1e-12 )
-                    rOutput(k, i) = 1.0; // or is it sign dependent?
+                if(RHS[i] > 0)
+                    rOutput(k, i) = 1.0; 
+                else if(RHS[i] < 0)
+                    rOutput(k, i) = -1.0; 
                 k++;
             }
         }
