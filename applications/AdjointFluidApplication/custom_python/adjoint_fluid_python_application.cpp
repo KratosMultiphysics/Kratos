@@ -15,7 +15,6 @@
 #include "includes/define_python.h"
 #include "adjoint_fluid_application.h"
 #include "custom_python/add_custom_schemes_to_python.h"
-#include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos
 {
@@ -34,7 +33,6 @@ PYBIND11_MODULE(KratosAdjointFluidApplication,m)
            ;
 
   AddCustomSchemesToPython(m);
-  AddCustomResponseFunctionsToPython(m);
 
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NUMERICAL_DIFFUSION )
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VMS_STEADY_TERM_PRIMAL_GRADIENT_MATRIX)

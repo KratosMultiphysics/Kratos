@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
+import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -67,7 +68,7 @@ class AdjointVMSMonolithicSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
-        
+
         print("variables for the adjoint fluid solver added correctly")
 
     def ImportModelPart(self):
@@ -143,9 +144,9 @@ class AdjointVMSMonolithicSolver:
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
             if (domain_size == 2):
-                self.response_function = AdjointFluidApplication.DragResponseFunction2D(self.settings["response_function_settings"])
+                self.response_function = FluidDynamicsApplication.DragResponseFunction2D(self.settings["response_function_settings"])
             elif (domain_size == 3):
-                self.response_function = AdjointFluidApplication.DragResponseFunction3D(self.settings["response_function_settings"])
+                self.response_function = FluidDynamicsApplication.DragResponseFunction3D(self.settings["response_function_settings"])
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
@@ -174,7 +175,7 @@ class AdjointVMSMonolithicSolver:
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         self.solver.Check()
-        
+
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
@@ -195,7 +196,7 @@ class AdjointVMSMonolithicSolver:
 
     def DivergenceClearance(self):
         pass
-        
+
     def SolverInitialize(self):
         self.solver.Initialize()
 
