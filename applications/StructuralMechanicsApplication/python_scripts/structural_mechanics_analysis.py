@@ -64,36 +64,25 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         super(StructuralMechanicsAnalysis, self).InitializeSolutionStep()
 
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
-            KratosMultiphysics.Logger.PrintInfo("TIME: ", self.time)
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
         sys.stdout.flush()
 
-        if (self.output_post == True):
-            self.gid_output.ExecuteInitializeSolutionStep()
-
-    def FinalizeSolutionStep(self):
-        super(StructuralMechanicsAnalysis, self).FinalizeSolutionStep()
-
-        if (self.output_post == True):
-            self.gid_output.ExecuteFinalizeSolutionStep()
-
     def OutputSolutionStep(self):
-        for process in self.list_of_processes:
-            process.ExecuteBeforeOutputStep()
+        if self.have_output and self.output.IsOutputStep():
 
-        if (self.output_post == True) and (self.gid_output.IsOutputStep()):
-            self.gid_output.PrintOutput()
+            for process in self.list_of_processes:
+                process.ExecuteBeforeOutputStep()
 
-        for process in self.list_of_processes:
-            process.ExecuteAfterOutputStep()
+            self.output.PrintOutput()
+
+            for process in self.list_of_processes:
+                process.ExecuteAfterOutputStep()
 
         self.solver.SaveRestart() # whether a restart-file is written is decided internally
 
     def Finalize(self):
         super(StructuralMechanicsAnalysis, self).Finalize()
-
-        if (self.output_post == True):
-            self.gid_output.ExecuteFinalize()
 
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
@@ -124,21 +113,19 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             ## Read the model - note that SetBufferSize is done here
             self.solver.ReadModelPart() # TODO move to global instance
 
-    def _InitializeIO(self):
-        """ Initialize GiD  I/O """
-        self.output_post  = self.project_parameters.Has("output_configuration")
-        if (self.output_post == True):
+    def _SetUpGiDOutput(self):
+        '''Initialize self.output as a GiD output instance.'''
+        self.have_output = self.project_parameters.Has("output_configuration")
+        if self.have_output:
             self.__CheckForDeprecatedGiDSettings()
-            if (self.parallel_type == "OpenMP"):
-                from gid_output_process import GiDOutputProcess as output_process
-            elif (self.parallel_type == "MPI"):
-                from gid_output_process_mpi import GiDOutputProcessMPI as output_process
+            if self.parallel_type == "OpenMP":
+                from gid_output_process import GiDOutputProcess as OutputProcess
+            elif self.parallel_type == "MPI":
+                from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
-            self.gid_output = output_process(self.solver.GetComputingModelPart(),
-                                             self.project_parameters["problem_data"]["problem_name"].GetString(),
-                                             self.project_parameters["output_configuration"])
-
-            self.gid_output.ExecuteInitialize()
+            self.output = OutputProcess(self.solver.GetComputingModelPart(),
+                                        self.project_parameters["problem_data"]["problem_name"].GetString() ,
+                                        self.project_parameters["output_configuration"])
 
     def _ExecuteInitialize(self):
         """ Initializing the Analysis """
@@ -147,9 +134,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         ## Adds the Dofs if they don't exist
         self.solver.AddDofs()
-
-        # Initialize IO
-        self._InitializeIO()
 
         ## Add the Modelpart to the Model if it is not already there
         if not self.using_external_model_part:
@@ -176,17 +160,20 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if (self.project_parameters.Has("check_analytic_results_process") == True):
             self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
 
+        #TODO this should be generic
+        # initialize GiD  I/O
+        self._SetUpGiDOutput()
+        if self.have_output:
+            self.list_of_processes += [self.output,]
+
         if self.is_printing_rank and self.echo_level > 1:
             count = 0
             for process in self.list_of_processes:
                 count += 1
                 # KratosMultiphysics.Logger.PrintInfo("Process " + str(count), process) # FIXME
 
-
     def _ExecuteBeforeSolutionLoop(self):
         """ Perform Operations before the SolutionLoop """
-        if (self.output_post == True):
-            self.gid_output.ExecuteBeforeSolutionLoop()
 
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()

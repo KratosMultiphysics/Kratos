@@ -241,9 +241,6 @@ class MechanicalSolver(object):
     def GetOutputVariables(self):
         pass
 
-    def ComputeDeltaTime(self):
-        pass
-
     def SaveRestart(self):
         # Check could be integrated in the utility
         # It is here intentionally, this way the utility is only created if it is actually needed!
