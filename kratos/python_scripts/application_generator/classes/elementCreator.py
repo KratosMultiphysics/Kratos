@@ -76,7 +76,7 @@ class ElementCreator(ClassCreator):
         '''
 
         localFlagsValue = ''
-        localFlagDefinition = ctab + 'KRATOS_DEFINE_LOCAL_FLAG({})\n'
+        localFlagDefinition = ctab + 'KRATOS_DEFINE_LOCAL_FLAG({});\n'
 
         for flagName in flagList:
             upperName = flagName.upper()
