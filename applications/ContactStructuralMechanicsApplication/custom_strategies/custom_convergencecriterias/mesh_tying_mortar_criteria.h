@@ -119,8 +119,8 @@ public:
         ) override
     {        
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        if (r_process_info.Has(COMMON_LOGGER)) {
-            TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+        if (r_process_info.Has(TABLE_UTILITY)) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             // TODO: Add somethig if necessary
         }
         
@@ -137,8 +137,8 @@ public:
         ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
         
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        if (r_process_info.Has(COMMON_LOGGER)) {
-            TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+        if (r_process_info.Has(TABLE_UTILITY)) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             // TODO: Add somethig if necessary
         }
     }

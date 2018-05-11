@@ -155,8 +155,8 @@ public:
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
-            if (r_process_info.Has(COMMON_LOGGER)) {
-                TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+            if (r_process_info.Has(TABLE_UTILITY)) {
+                TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                 p_table->AddToRow<IndexType>(rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]);
             }
         }
@@ -167,9 +167,9 @@ public:
             TSystemMatrixType copy_A; // NOTE: Can not be const, TODO: Change the solvers to const
             const double condition_number = mpConditionNumberUtility->GetConditionNumber(copy_A);
             
-            if (r_process_info.Has(COMMON_LOGGER)) {
+            if (r_process_info.Has(TABLE_UTILITY)) {
                 std::cout.precision(4);
-                TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+                TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                 auto& Table = p_table->GetTable();
                 Table  << condition_number;
             } else {
@@ -181,8 +181,8 @@ public:
         }
         
         if (criterion_result == true && rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-            if (r_process_info.Has(COMMON_LOGGER)) {
-                TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+            if (r_process_info.Has(TABLE_UTILITY)) {
+                TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                 p_table->PrintFooter();
             }
         
@@ -199,8 +199,8 @@ public:
         // The process info
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
-        if (r_process_info.Has(COMMON_LOGGER) && mTableIsInitialized == false) {
-            TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+        if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             (p_table->GetTable()).SetBold(!mPrintingOutput);
             (p_table->GetTable()).AddColumn("ITER", 4);
         }
@@ -208,8 +208,8 @@ public:
         mTableIsInitialized = true;
         BaseType::Initialize(rModelPart);
          
-        if (r_process_info.Has(COMMON_LOGGER) && mpConditionNumberUtility != nullptr) {
-            TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+        if (r_process_info.Has(TABLE_UTILITY) && mpConditionNumberUtility != nullptr) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             (p_table->GetTable()).AddColumn("COND.NUM.", 10);
         }
     }
@@ -241,8 +241,8 @@ public:
             else
                 KRATOS_INFO("MortarAndConvergenceCriteria") << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
                 
-            if (r_process_info.Has(COMMON_LOGGER)) {
-                TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+            if (r_process_info.Has(TABLE_UTILITY)) {
+                TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                 p_table->PrintHeader();
             }
         }

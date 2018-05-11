@@ -209,9 +209,9 @@ public:
             
             // We print the results  // TODO: Replace for the new log
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
-                if (r_process_info.Has(COMMON_LOGGER)) {
+                if (r_process_info.Has(TABLE_UTILITY)) {
                     std::cout.precision(4);
-                    TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+                    TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                     auto& Table = p_table->GetTable();
                     Table  << disp_ratio  << mDispRatioTolerance  << disp_abs  << mDispAbsTolerance  << lm_ratio  << mLMRatioTolerance  << lm_abs  << mLMAbsTolerance;
                 } else {
@@ -234,8 +234,8 @@ public:
             
             if (disp_converged && lm_converged) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
-                    if (r_process_info.Has(COMMON_LOGGER)) {
-                        TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+                    if (r_process_info.Has(TABLE_UTILITY)) {
+                        TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                         auto& table = p_table->GetTable();
                         if (mPrintingOutput == false)
                             table << BOLDFONT(FGRN("       Achieved"));
@@ -251,8 +251,8 @@ public:
                 return true;
             } else {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
-                    if (r_process_info.Has(COMMON_LOGGER)) {
-                        TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+                    if (r_process_info.Has(TABLE_UTILITY)) {
+                        TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                         auto& table = p_table->GetTable();
                         if (mPrintingOutput == false)
                             table << BOLDFONT(FRED("   Not achieved"));
@@ -282,8 +282,8 @@ public:
         BaseType::mConvergenceCriteriaIsInitialized = true;
         
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        if (r_process_info.Has(COMMON_LOGGER) && mTableIsInitialized == false) {
-            TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+        if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             auto& table = p_table->GetTable();
             table.AddColumn("DP RATIO", 10);
             table.AddColumn("EXP. RAT", 10);

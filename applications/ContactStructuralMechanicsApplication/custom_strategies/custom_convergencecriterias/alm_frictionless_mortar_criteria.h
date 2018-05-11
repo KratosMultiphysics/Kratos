@@ -193,8 +193,8 @@ public:
         r_process_info[ACTIVE_SET_CONVERGED] = active_set_converged;
         
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
-            if (r_process_info.Has(COMMON_LOGGER)) {
-                TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+            if (r_process_info.Has(TABLE_UTILITY)) {
+                TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                 auto& table = p_table->GetTable();
                 if (active_set_converged) {
                     if (mPrintingOutput == false)
@@ -233,8 +233,8 @@ public:
         ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
         
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        if (r_process_info.Has(COMMON_LOGGER) && mTableIsInitialized == false) {
-            TablePrinterPointerType p_table = r_process_info[COMMON_LOGGER];
+        if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             auto& table = p_table->GetTable();
             table.AddColumn("ACTIVE SET CONV", 15);
             mTableIsInitialized = true;
