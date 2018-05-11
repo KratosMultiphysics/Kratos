@@ -22,14 +22,14 @@ from base_analysis_stage import AnalysisStage
 # Other imports
 import sys
 
-class StructuralMechanicsAnalysisStage(AnalysisStage):
+class StructuralMechanicsAnalysis(AnalysisStage):
     """
     This class is the main-script of the StructuralMechanicsApplication put in a class
 
     It can be imported and used as "black-box"
     """
     def __init__(self, model, project_parameters):
-        super(StructuralMechanicsAnalysisStage, self).__init__(model, project_parameters)
+        super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
         ## Get echo level and parallel type
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
@@ -46,15 +46,6 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
 
         self._CreateSolver()
 
-    def RunSolutionLoop(self):
-        while self.time < self.end_time:
-            self.time = self.solver.AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self.solver.Predict()
-            self.solver.SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
-
     def Initialize(self):
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
@@ -70,7 +61,7 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
         self._ExecuteBeforeSolutionLoop()
 
     def InitializeSolutionStep(self):
-        super(StructuralMechanicsAnalysisStage, self).InitializeSolutionStep()
+        super(StructuralMechanicsAnalysis, self).InitializeSolutionStep()
 
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
@@ -81,7 +72,7 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
             self.gid_output.ExecuteInitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        super(StructuralMechanicsAnalysisStage, self).FinalizeSolutionStep()
+        super(StructuralMechanicsAnalysis, self).FinalizeSolutionStep()
 
         if (self.output_post == True):
             self.gid_output.ExecuteFinalizeSolutionStep()
@@ -99,7 +90,7 @@ class StructuralMechanicsAnalysisStage(AnalysisStage):
         self.solver.SaveRestart() # whether a restart-file is written is decided internally
 
     def Finalize(self):
-        super(StructuralMechanicsAnalysisStage, self).Finalize()
+        super(StructuralMechanicsAnalysis, self).Finalize()
 
         if (self.output_post == True):
             self.gid_output.ExecuteFinalize()
@@ -249,5 +240,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = StructuralMechanicsAnalysisStage(model, parameters)
+    simulation = StructuralMechanicsAnalysis(model, parameters)
     simulation.Run()
