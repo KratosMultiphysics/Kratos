@@ -124,13 +124,6 @@ class MechanicalSolver(object):
         else:
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-        # This is needed when the solving functions are called, only NewtonRaphson properly implements
-        # the different functions
-        if self.settings["analysis_type"].GetString() == "non_linear":
-            self.using_newton_raphson_strategy = True
-        else:
-            self.using_newton_raphson_strategy = False
-
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already
         # Add displacements.
@@ -266,23 +259,17 @@ class MechanicalSolver(object):
         mechanical_solution_strategy.Solve()
 
     def InitializeSolutionStep(self):
-        if self.using_newton_raphson_strategy:
-            self.get_mechanical_solution_strategy().InitializeSolutionStep()
+        self.get_mechanical_solution_strategy().InitializeSolutionStep()
 
     def Predict(self):
-        if self.using_newton_raphson_strategy:
-            self.get_mechanical_solution_strategy().Predict()
+        self.get_mechanical_solution_strategy().Predict()
 
     def SolveSolutionStep(self):
-        if self.using_newton_raphson_strategy:
-            is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
-        else:
-            is_converged = self.get_mechanical_solution_strategy().Solve()
+        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
         return is_converged
 
     def FinalizeSolutionStep(self):
-        if self.using_newton_raphson_strategy:
-            self.get_mechanical_solution_strategy().FinalizeSolutionStep()
+        self.get_mechanical_solution_strategy().FinalizeSolutionStep()
 
     def AdvanceInTime(self, current_time):
         dt = self.ComputeDeltaTime()

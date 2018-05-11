@@ -17,7 +17,7 @@ except ImportError:
     KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
 
 # Importing the base class
-from base_analysis_stage import AnalysisStage
+from analysis_stage import AnalysisStage
 
 # Other imports
 import sys
@@ -226,9 +226,9 @@ if __name__ == "__main__":
         err_msg =  'Too many input arguments!\n'
         err_msg += 'Use this script in the following way:\n'
         err_msg += '- With default ProjectParameters (read from "ProjectParameters.json"):\n'
-        err_msg += '    "python3 structural_mechanics_analysis_stage.py"\n'
+        err_msg += '    "python3 structural_mechanics_analysis.py"\n'
         err_msg += '- With custom ProjectParameters:\n'
-        err_msg += '    "python3 structural_mechanics_analysis_stage.py CustomProjectParameters.json"\n'
+        err_msg += '    "python3 structural_mechanics_analysis.py CustomProjectParameters.json"\n'
         raise Exception(err_msg)
 
     if len(argv) == 2: # ProjectParameters is being passed from outside
