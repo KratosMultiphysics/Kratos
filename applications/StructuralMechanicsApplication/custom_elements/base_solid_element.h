@@ -652,7 +652,15 @@ protected:
         const Vector& rStressVector,
         const double IntegrationWeight
         );
-    
+
+    void CalculateAndAddResidualVector(VectorType& rRightHandSideVector,
+                                       const Vector& rN,
+                                       const Matrix& rB,
+                                       const ProcessInfo& rCurrentProcessInfo,
+                                       const Vector& rBodyForce,
+                                       const Vector& rStressVector,
+                                       double IntegrationWeight);
+
     /**
      * @brief This function add the external force contribution
      * @param rN Shape function
