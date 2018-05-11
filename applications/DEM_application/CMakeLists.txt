@@ -95,7 +95,7 @@ set_target_properties(KratosDEMCore PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICAT
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosDEMApplication MODULE ${KRATOS_DEM_APPLICATION_PYTHON_INTERFACE})
+pybind11_add_module(KratosDEMApplication MODULE THIN_LTO ${KRATOS_DEM_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosDEMApplication PUBLIC KratosDEMCore)
 set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
 

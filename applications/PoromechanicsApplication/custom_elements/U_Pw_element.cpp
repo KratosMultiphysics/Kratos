@@ -378,7 +378,7 @@ void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, P
     double IntegrationCoefficient;
     const double& Porosity = Prop[POROSITY];
     const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
-    boost::numeric::ublas::bounded_matrix<double,TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
+    BoundedMatrix<double,TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
     
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
@@ -414,7 +414,7 @@ void UPwElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatr
     // Compute Stiffness matrix
     MatrixType StiffnessMatrix(element_size,element_size);
         
-    this->CaculateStiffnessMatrix(StiffnessMatrix,rCurrentProcessInfo);
+    this->CalculateStiffnessMatrix(StiffnessMatrix,rCurrentProcessInfo);
     
     // Compute Damping Matrix
     if ( rDampingMatrix.size1() != element_size )
@@ -575,11 +575,11 @@ void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints( const Variable<Con
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CaculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
+void UPwElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
 {    
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CaculateStiffnessMatrix method for a particular element ... illegal operation!!", "" )
+    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateStiffnessMatrix method for a particular element ... illegal operation!!", "" )
 
     KRATOS_CATCH( "" )
 }

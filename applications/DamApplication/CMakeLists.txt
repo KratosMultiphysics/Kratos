@@ -106,7 +106,7 @@ endif()
 #target_link_libraries(KratosDamCore PRIVATE KratosCore KratosSolidMechanicsCore KratosPoromechanicsCore)
 
 ## DamApplication python module
-pybind11_add_module(KratosDamApplication MODULE ${KRATOS_DAM_APPLICATION_PYTHON_INTERFACE_SOURCES})
+pybind11_add_module(KratosDamApplication MODULE THIN_LTO ${KRATOS_DAM_APPLICATION_PYTHON_INTERFACE_SOURCES})
 target_link_libraries(KratosDamApplication PRIVATE KratosDamCore)
 set_target_properties(KratosDamApplication PROPERTIES PREFIX "")
 

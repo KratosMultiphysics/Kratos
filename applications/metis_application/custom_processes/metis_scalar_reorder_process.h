@@ -292,20 +292,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-
-    MetisScalarReorder & operator=(MetisScalarReorder const& rOther)
-    {
-        this->mrModelPart = rOther.mrModelPart;
-        return *this;
-    }
-
-    /// Copy constructor.
-    //
-    //        MetisScalarReorder(MetisScalarReorder const& rOther)
-    //        {
-    //        }
-
 
     ///@}
 

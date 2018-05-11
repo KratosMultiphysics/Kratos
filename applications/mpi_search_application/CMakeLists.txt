@@ -11,13 +11,18 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/mpi_search_application )
 
 ## generate variables with the sources
-set( KRATOS_MPI_SEARCH_APPLICATION_SOURCES     
-	${CMAKE_CURRENT_SOURCE_DIR}/mpi_search_application.cpp 
+set( KRATOS_MPI_SEARCH_APPLICATION_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/mpi_search_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_mpi_search_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
 
-SET_SOURCE_FILES_PROPERTIES(${KRATOS_MPI_SEARCH_APPLICATION_SOURCES} PROPERTIES COMPILE_FLAGS -fno-strict-aliasing)
+## Add mpi tests
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+	file(GLOB_RECURSE KRATOS_MPI_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+SET_SOURCE_FILES_PROPERTIES(${KRATOS_MPI_SEARCH_APPLICATION_SOURCES} ${KRATOS_MPI_APPLICATION_TESTING_SOURCES} PROPERTIES COMPILE_FLAGS -fno-strict-aliasing)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
@@ -29,7 +34,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosMPISearchApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMPISearchApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

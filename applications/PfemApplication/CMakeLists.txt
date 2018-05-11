@@ -139,7 +139,7 @@ set_target_properties(KratosPfemCore PROPERTIES COMPILE_DEFINITIONS "PFEM_APPLIC
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosPfemApplication MODULE ${KRATOS_PFEM_APPLICATION_PYTHON_INTERFACE})
+pybind11_add_module(KratosPfemApplication MODULE THIN_LTO ${KRATOS_PFEM_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosPfemApplication PRIVATE KratosPfemCore)
 set_target_properties(KratosPfemApplication PROPERTIES PREFIX "")
 

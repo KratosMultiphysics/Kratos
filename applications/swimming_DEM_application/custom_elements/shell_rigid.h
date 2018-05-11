@@ -57,8 +57,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -91,7 +89,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ShellRigid
+class KRATOS_API(SWIMMING_DEM_APPLICATION) ShellRigid
     : public Element
 {
 public:
@@ -122,39 +120,39 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
 
 //		void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-    void GetValuesVector(Vector& values, int Step);
-    void GetFirstDerivativesVector(Vector& values, int Step = 0);
-    void GetSecondDerivativesVector(Vector& values, int Step = 0);
+    void GetValuesVector(Vector& values, int Step) override;
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
+    void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Initialize();
+    void Initialize() override;
 
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-    int  Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -231,8 +229,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    array_1d< boost::numeric::ublas::bounded_matrix<double,3,3> , 3 > mTs;
-    boost::numeric::ublas::bounded_matrix<double,3,3> mTE0;
+    array_1d< BoundedMatrix<double,3,3> , 3 > mTs;
+    BoundedMatrix<double,3,3> mTE0;
 
     array_1d< array_1d<double,3>, 3> rot_oldit;
 
@@ -253,7 +251,7 @@ private:
     );
 
     void CalculateMembraneB(
-        boost::numeric::ublas::bounded_matrix<double,9,3>& B,
+        BoundedMatrix<double,9,3>& B,
         const double&  beta0,
         const double& loc1,
         const double& loc2,
@@ -268,7 +266,7 @@ private:
 
 
     void CalculateBendingB(
-        boost::numeric::ublas::bounded_matrix<double,9,3>& Bb,
+        BoundedMatrix<double,9,3>& Bb,
         const double& loc2,
         const double& loc3,
         const double& x12,
@@ -280,34 +278,34 @@ private:
     );
 
     void CalculateMembraneContribution(
-        const boost::numeric::ublas::bounded_matrix<double,9,3>& Bm,
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
-        boost::numeric::ublas::bounded_matrix<double,9,9>& Km
+        const BoundedMatrix<double,9,3>& Bm,
+        const BoundedMatrix<double,3,3>& Em,
+        BoundedMatrix<double,9,9>& Km
     );
 
 
     void AssembleMembraneContribution(
-        const boost::numeric::ublas::bounded_matrix<double,9,9>& Km,
+        const BoundedMatrix<double,9,9>& Km,
         const double& coeff,
-        boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system
+        BoundedMatrix<double,18,18>& Kloc_system
     );
 
     void CalculateBendingContribution(
-        const boost::numeric::ublas::bounded_matrix<double,9,3>& Bb,
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& Eb,
-        boost::numeric::ublas::bounded_matrix<double,9,9>& Kb
+        const BoundedMatrix<double,9,3>& Bb,
+        const BoundedMatrix<double,3,3>& Eb,
+        BoundedMatrix<double,9,9>& Kb
     );
 
     void AssembleBendingContribution(
-        const boost::numeric::ublas::bounded_matrix<double,9,9>& Kb,
+        const BoundedMatrix<double,9,9>& Kb,
         const double& coeff,
-        boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system
+        BoundedMatrix<double,18,18>& Kloc_system
     );
 
     void CalculateGaussPointContribution(
-        boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system ,
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& Eb,
+        BoundedMatrix<double,18,18>& Kloc_system ,
+        const BoundedMatrix<double,3,3>& Em,
+        const BoundedMatrix<double,3,3>& Eb,
         const double& weight,
         const double& h, /*thickness*/
         const double& loc1, /*local coords*/
@@ -322,16 +320,16 @@ private:
     );
 
     double CalculateBeta(
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& Em
+        const BoundedMatrix<double,3,3>& Em
     );
 
     void CalculateMembraneElasticityTensor(
-        boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
+        BoundedMatrix<double,3,3>& Em,
         const double& h
     );
 
     void CalculateBendingElasticityTensor(
-        boost::numeric::ublas::bounded_matrix<double,3,3>& Eb,
+        BoundedMatrix<double,3,3>& Eb,
         const double& h );
 
     void CalculateAllMatrices(
@@ -350,7 +348,7 @@ private:
         const array_1d<double,3>& v1,
         const array_1d<double,3>& v2,
         const array_1d<double,3>& v3,
-        const boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system,
+        const BoundedMatrix<double,18,18>& Kloc_system,
         Matrix& rLeftHandSideMatrix
     );
 
@@ -358,7 +356,7 @@ private:
         const array_1d<double,3>& v1,
         const array_1d<double,3>& v2,
         const array_1d<double,3>& v3,
-        const boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system,
+        const BoundedMatrix<double,18,18>& Kloc_system,
         Matrix& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector
     );
@@ -376,7 +374,7 @@ private:
 
     void CalculateAndAddKg(
         MatrixType& LHS,
-        boost::numeric::ublas::bounded_matrix<double,18,18>& rWorkMatrix,
+        BoundedMatrix<double,18,18>& rWorkMatrix,
         const double& x12,
         const double& x23,
         const double& x31,
@@ -390,8 +388,8 @@ private:
     );
 
     void CalculateKg_GaussPointContribution(
-        boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system ,
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
+        BoundedMatrix<double,18,18>& Kloc_system ,
+        const BoundedMatrix<double,3,3>& Em,
         const double& weight,
         const double& h, /*thickness*/
         const double& loc1, /*local coords*/
@@ -408,9 +406,9 @@ private:
 
     void CalculateLocalShapeDerivatives(
         double alpha,
-        boost::numeric::ublas::bounded_matrix<double,2,9>& DNu_loc ,
-        boost::numeric::ublas::bounded_matrix<double,2,9>& DNv_loc ,
-        boost::numeric::ublas::bounded_matrix<double,2,9>& DNw_loc ,
+        BoundedMatrix<double,2,9>& DNu_loc ,
+        BoundedMatrix<double,2,9>& DNv_loc ,
+        BoundedMatrix<double,2,9>& DNw_loc ,
         const double& a, /*local coords*/ //loc1
         const double& b, //loc2
         const double& c, //loc3
@@ -423,7 +421,7 @@ private:
     );
 
     void CalculateProjectionOperator(
-        boost::numeric::ublas::bounded_matrix<double,18,18>& rProjOperator,
+        BoundedMatrix<double,18,18>& rProjOperator,
         const double& x12,
         const double& x23,
         const double& x31,
@@ -433,11 +431,11 @@ private:
     );
 
     void ApplyProjection(
-        boost::numeric::ublas::bounded_matrix<double,18,18>& rLeftHandSideMatrix,
+        BoundedMatrix<double,18,18>& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        boost::numeric::ublas::bounded_matrix<double,18,18>& rWorkMatrix,
+        BoundedMatrix<double,18,18>& rWorkMatrix,
         array_1d<double,18>& rWorkArray,
-        const boost::numeric::ublas::bounded_matrix<double,18,18>& rProjOperator
+        const BoundedMatrix<double,18,18>& rProjOperator
     );
 
     void UpdateNodalReferenceSystem(
@@ -477,8 +475,8 @@ private:
     );
 
     void InvertMatrix(
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& InputMatrix,
-        boost::numeric::ublas::bounded_matrix<double,3,3>& InvertedMatrix,
+        const BoundedMatrix<double,3,3>& InputMatrix,
+        BoundedMatrix<double,3,3>& InvertedMatrix,
         double& InputMatrixDet
     );
 
@@ -500,12 +498,12 @@ private:
     // A private default constructor necessary for serialization
     ShellRigid(){}
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
     }

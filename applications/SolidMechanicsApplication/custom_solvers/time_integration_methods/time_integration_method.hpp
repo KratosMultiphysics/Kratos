@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/process_info.h"
 #include "includes/variables.h"
 #include "includes/node.h"
@@ -81,6 +82,7 @@ namespace Kratos
       mpSecondDerivative = nullptr;
 
       mpInputVariable = nullptr;
+      mpOutputVariable = nullptr;
     }
 
     /// Copy Constructor.
@@ -89,6 +91,7 @@ namespace Kratos
       ,mpFirstDerivative(rOther.mpFirstDerivative)
       ,mpSecondDerivative(rOther.mpSecondDerivative)
       ,mpInputVariable(rOther.mpInputVariable)
+      ,mpOutputVariable(rOther.mpOutputVariable)
     {
     }
 
@@ -179,6 +182,12 @@ namespace Kratos
       mpInputVariable = &rVariable;
     }
 
+    // set output variable (calculated variable, dof)
+    void SetOutputVariable(const TVariableType& rVariable)
+    {
+      mpOutputVariable = &rVariable;
+    }
+
     virtual bool HasStepVariable()
     {
       return false;
@@ -189,21 +198,47 @@ namespace Kratos
     {
       KRATOS_ERROR << " Calling SetStepVariable from time integration base class " <<std::endl;
     }
-    
+
+    // assign
+    virtual void Assign(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling assign from time integration base class " <<std::endl;
+    }
+
     // predict
     virtual void Predict(NodeType& rNode)
     {
       KRATOS_ERROR << " Calling predict from time integration base class " <<std::endl;
     }
 
-  
     // update
-    
     virtual void Update(NodeType& rNode)
     {
       KRATOS_ERROR << " Calling update from time integration base class " <<std::endl;
     }
 
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * @return 0 all ok
+     */
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo )
+    {
+      KRATOS_TRY
+
+      if( this->mpVariable != nullptr )
+        KRATOS_ERROR << " time integration method Variable not set " <<std::endl;
+      
+      if( this->mpFirstDerivative != nullptr )
+        KRATOS_ERROR << " time integration method FirstDerivative not set " <<std::endl;
+      
+      if( this->mpSecondDerivative != nullptr )
+        KRATOS_ERROR << " time integration method SecondDerivative not set " <<std::endl;
+      
+
+      KRATOS_CATCH("")
+
+      return 0;
+    }
     
     ///@}
     ///@name Access
@@ -264,9 +299,13 @@ namespace Kratos
     VariablePointer mpSecondDerivative;
 
     
-    // input variable
+    // input variable (imposed variable)
     
     VariablePointer mpInputVariable;
+
+    // output variable (calculated and updated variable)
+
+    VariablePointer mpOutputVariable;
 
     
     ///@}
@@ -307,6 +346,20 @@ namespace Kratos
       KRATOS_ERROR << " Calling predict second derivative from time integration base class " <<std::endl;
     }
 
+    virtual void UpdateFromVariable(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update from variable from time integration base class " <<std::endl;
+    }
+    
+    virtual void UpdateFromFirstDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update from first derivative from time integration base class " <<std::endl;
+    }
+
+    virtual void UpdateFromSecondDerivative(NodeType& rNode)
+    {
+      KRATOS_ERROR << " Calling update from second derivative from time integration base class " <<std::endl;
+    }
     
     virtual void UpdateVariable(NodeType& rNode)
     {
@@ -370,6 +423,7 @@ namespace Kratos
       rSerializer.save("FirstDerivative", mpFirstDerivative->Name());
       rSerializer.save("SecondDerivative", mpSecondDerivative->Name());
       rSerializer.save("InputVariable", mpInputVariable->Name());
+      rSerializer.save("OutputVariable", mpOutputVariable->Name());
     };
 
     virtual void load(Serializer& rSerializer)
@@ -383,6 +437,8 @@ namespace Kratos
       mpSecondDerivative = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
       rSerializer.load("InputVariable", Name);
       mpInputVariable = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
+      rSerializer.load("OutputVariable", Name);
+      mpOutputVariable = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
     };
     ///@}
     ///@name Private Inquiry
