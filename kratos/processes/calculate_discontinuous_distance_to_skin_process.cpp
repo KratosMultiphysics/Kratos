@@ -26,16 +26,19 @@
 
 namespace Kratos
 {
-	CalculateDiscontinuousDistanceToSkinProcess::CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart)
+	template<std::size_t TDim>
+	CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart)
 		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart), mrSkinPart(rSkinPart), mrVolumePart(rVolumePart)
 	{
 	}
 
-	CalculateDiscontinuousDistanceToSkinProcess::~CalculateDiscontinuousDistanceToSkinProcess()
+	template<std::size_t TDim>
+	CalculateDiscontinuousDistanceToSkinProcess<TDim>::~CalculateDiscontinuousDistanceToSkinProcess()
 	{
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::Initialize()
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::Initialize()
 	{
 		// Initialize the intersected objects process
 		mFindIntersectedObjectsProcess.Initialize();
@@ -53,11 +56,10 @@ namespace Kratos
 
 		// Reset the Elemental distance to 1.0 which is the maximum distance in our normalized space.
 		// Also initialize the embedded velocity of the fluid element and the TO_SPLIT flag.
-		array_1d<double,4> ElementalDistances;
-		ElementalDistances[0] = initial_distance;
-		ElementalDistances[1] = initial_distance;
-		ElementalDistances[2] = initial_distance;
-		ElementalDistances[3] = initial_distance;
+		constexpr std::size_t num_nodes = TDim + 1;
+		array_1d<double,num_nodes> ElementalDistances;
+		for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
+			ElementalDistances[i_node] = initial_distance;
 
 		#pragma omp parallel for
 		for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfElements()); ++k)
@@ -69,17 +71,20 @@ namespace Kratos
 		}
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::FindIntersections()
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::FindIntersections()
 	{
 		mFindIntersectedObjectsProcess.FindIntersections();
 	}
 
-	std::vector<PointerVector<GeometricalObject>>& CalculateDiscontinuousDistanceToSkinProcess::GetIntersections()
+	template<std::size_t TDim>
+	std::vector<PointerVector<GeometricalObject>>& CalculateDiscontinuousDistanceToSkinProcess<TDim>::GetIntersections()
 	{
 		return mFindIntersectedObjectsProcess.GetIntersections();
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
 	{
 		const int number_of_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
 		auto& r_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
@@ -91,12 +96,14 @@ namespace Kratos
 		}
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::Clear()
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::Clear()
 	{
 		mFindIntersectedObjectsProcess.Clear();
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::Execute()
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::Execute()
 	{
 		this->Initialize();
 		this->FindIntersections();
@@ -104,22 +111,26 @@ namespace Kratos
 	}
 
 	/// Turn back information as a string.
-	std::string CalculateDiscontinuousDistanceToSkinProcess::Info() const {
+	template<std::size_t TDim>
+	std::string CalculateDiscontinuousDistanceToSkinProcess<TDim>::Info() const {
 		return "CalculateDiscontinuousDistanceToSkinProcess";
 	}
 
 	/// Print information about this object.
-	void CalculateDiscontinuousDistanceToSkinProcess::PrintInfo(std::ostream& rOStream) const
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::PrintInfo(std::ostream& rOStream) const
 	{
 		rOStream << Info();
 	}
 
 	/// Print object's data.
-	void CalculateDiscontinuousDistanceToSkinProcess::PrintData(std::ostream& rOStream) const
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::PrintData(std::ostream& rOStream) const
 	{
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects)
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects)
 	{
 		if (rIntersectedObjects.empty()) {
 			rElement1.Set(TO_SPLIT, false);
@@ -187,7 +198,8 @@ namespace Kratos
 		rElement1.Set(TO_SPLIT, has_positive_distance && has_negative_distance);
 	}
 
-	double CalculateDiscontinuousDistanceToSkinProcess::CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon)
+	template<std::size_t TDim>
+	double CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon)
 	{
 		double result_distance = std::numeric_limits<double>::max();
 		for (auto triangle : rIntersectedObjects.GetContainer()) {
@@ -208,7 +220,8 @@ namespace Kratos
 		return result_distance;
 	}
 
-	unsigned int CalculateDiscontinuousDistanceToSkinProcess::ComputeEdgesIntersections(
+	template<std::size_t TDim>
+	unsigned int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgesIntersections(
 		Element& rElement1, 
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
 		std::vector<unsigned int> &rCutEdgesVector,
@@ -273,7 +286,8 @@ namespace Kratos
 		return n_cut_edges;
 	}
 
-	int CalculateDiscontinuousDistanceToSkinProcess::ComputeEdgeIntersection(
+	template<std::size_t TDim>
+	int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgeIntersection(
 		const Element::GeometryType& rIntObjGeometry, 
 		const Element::NodeType& rEdgePoint1, 
 		const Element::NodeType& rEdgePoint2, 
@@ -294,7 +308,8 @@ namespace Kratos
 		return intersection_flag;
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::ComputeIntersectionNormal(
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeIntersectionNormal(
 		Element::GeometryType& rGeometry,
 		const Vector& rElementalDistances,
 		array_1d<double,3>& rNormal){
@@ -313,7 +328,8 @@ namespace Kratos
 		rNormal /= norm_2(rNormal);		
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::ComputePlaneApproximation(
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputePlaneApproximation(
 		const Element& rElement1, 
 		const std::vector< array_1d<double,3> >& rPointsCoord,
 		array_1d<double,3>& rPlaneBasePointCoords,
@@ -329,7 +345,8 @@ namespace Kratos
 		}
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::CorrectDistanceOrientation(
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CorrectDistanceOrientation(
 		Element::GeometryType& rGeometry,
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
 		Vector& rElementalDistances){
@@ -363,5 +380,8 @@ namespace Kratos
 			}
 		}
 	}
+
+	template class Kratos::CalculateDiscontinuousDistanceToSkinProcess<2>;
+	template class Kratos::CalculateDiscontinuousDistanceToSkinProcess<3>;
 
 }  // namespace Kratos.

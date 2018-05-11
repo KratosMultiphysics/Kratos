@@ -37,7 +37,8 @@ namespace Kratos
   /// Calculates the nodal distances using elemental discontinuous distances.
   /** This class calculates the nodal distances as a minimum elemental distances connected to it.
   */
-  class KRATOS_API(KRATOS_CORE) CalculateDistanceToSkinProcess : public CalculateDiscontinuousDistanceToSkinProcess
+  template<std::size_t TDim = 3>
+  class KRATOS_API(KRATOS_CORE) CalculateDistanceToSkinProcess : public CalculateDiscontinuousDistanceToSkinProcess<TDim>
     {
     public:
       ///@name Type Definitions
@@ -174,11 +175,11 @@ namespace Kratos
 
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream,
-				    CalculateDistanceToSkinProcess& rThis);
+				    CalculateDistanceToSkinProcess<>& rThis);
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream,
-				    const CalculateDistanceToSkinProcess& rThis)
+				    const CalculateDistanceToSkinProcess<>& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

@@ -247,14 +247,18 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
-    class_<CalculateDiscontinuousDistanceToSkinProcess, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess")
+    // Discontinuous distance computation methods
+    class_<CalculateDiscontinuousDistanceToSkinProcess<2>, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
+            .def(init<ModelPart&, ModelPart&>())
+            ;
+
+    class_<CalculateDiscontinuousDistanceToSkinProcess<3>, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
             .def(init<ModelPart&, ModelPart&>())
             ;
 
     class_<ReorderAndOptimizeModelPartProcess, Process>(m,"ReorderAndOptimizeModelPartProcess")
             .def(init<ModelPart&, Parameters>())
             ;
-
 
     class_<AssignScalarVariableToConditionsProcess, Process>(m,"AssignScalarVariableToConditionsProcess")
             .def(init<ModelPart&, Parameters >())

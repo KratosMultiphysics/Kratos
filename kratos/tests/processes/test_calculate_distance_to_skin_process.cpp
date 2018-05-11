@@ -61,7 +61,7 @@ namespace Kratos {
 		  skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
 
 		  // Compute distance
-		  CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
+		  CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
 
 		  for (auto& node : volume_part.Nodes())
 			  if (fabs(node.GetSolutionStepValue(DISTANCE)) < 1.00e16) { // There are no propagation in this version so I avoid numeric_limit::max() one
@@ -109,7 +109,7 @@ namespace Kratos {
 		  skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
 
 		  // Compute distance
-		  CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
+		  CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
 
 		  for (auto& node : volume_part.Nodes())
 			  if (fabs(node.GetSolutionStepValue(DISTANCE)) < 1.00e16) { // There are no propagation in this version so I avoid numeric_limit::max() one
@@ -160,7 +160,7 @@ namespace Kratos {
 		  skin_part.CreateNewElement("Element3D3N", 904, { 901,902,904 }, p_properties);
 
 		  // Compute distance
-		  CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
+		  CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
 
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
@@ -200,7 +200,7 @@ namespace Kratos {
 		  skin_part.CreateNewNode(13, 0.0, 12.0, 2.0);
 		  skin_part.CreateNewElement("Element3D3N", 1, { 11,12,13 }, p_properties);
 
-		  CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
+		  CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
 
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 12.00, 1e-6);
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), 8.00, 1e-6);
@@ -236,7 +236,7 @@ namespace Kratos {
 		  skin_part.CreateNewElement("Element3D3N", 903, { 902,903,904 }, p_properties);
 		  skin_part.CreateNewElement("Element3D3N", 904, { 901,902,904 }, p_properties);
 
-		  CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
+		  CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
 
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 2.0, 1e-6);
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), -0.132068, 1e-6);

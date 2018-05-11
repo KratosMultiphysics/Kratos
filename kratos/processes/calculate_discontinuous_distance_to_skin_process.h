@@ -41,6 +41,7 @@ namespace Kratos
   /** This process takes a volume model part (with tetrahedra mesh) and a skin model part (with triangle mesh) and
       and calcualtes the distance to the skin for all the elements and nodes of the volume model part.
   */
+  template<std::size_t TDim = 3>
   class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcess : public Process
     {
     public:
@@ -172,11 +173,11 @@ namespace Kratos
 
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream,
-				    CalculateDiscontinuousDistanceToSkinProcess& rThis);
+				    CalculateDiscontinuousDistanceToSkinProcess<>& rThis);
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream,
-				    const CalculateDiscontinuousDistanceToSkinProcess& rThis)
+				    const CalculateDiscontinuousDistanceToSkinProcess<>& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

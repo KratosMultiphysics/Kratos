@@ -26,24 +26,28 @@
 namespace Kratos
 {
 
-	CalculateDistanceToSkinProcess::CalculateDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart)
-		: CalculateDiscontinuousDistanceToSkinProcess(rVolumePart, rSkinPart)
+	template<std::size_t TDim>
+	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart)
+		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart)
 	{
 	}
 
-	CalculateDistanceToSkinProcess::~CalculateDistanceToSkinProcess()
+	template<std::size_t TDim>
+	CalculateDistanceToSkinProcess<TDim>::~CalculateDistanceToSkinProcess()
 	{
 	}
 
-	void CalculateDistanceToSkinProcess::Initialize()
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::Initialize()
 	{
-		CalculateDiscontinuousDistanceToSkinProcess::Initialize();
+		CalculateDiscontinuousDistanceToSkinProcess<TDim>::Initialize();
 		this->InitializeNodalDistances();
 	}
 
-	void CalculateDistanceToSkinProcess::InitializeNodalDistances()
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::InitializeNodalDistances()
 	{
-		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess).GetModelPart1();
+		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess).GetModelPart1();
 
 		for (auto& node : ModelPart1.Nodes())
 		{
@@ -51,17 +55,19 @@ namespace Kratos
 		}
 	}
 
-	void CalculateDistanceToSkinProcess::CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
 	{
 		this->CalculateElementalDistances(rIntersectedObjects);
 		this->CalculateNodalDistances();
 		this->CalculateNodesDistances();
 	}
 
-	void CalculateDistanceToSkinProcess::CalculateElementalDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::CalculateElementalDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
 	{
-		const int number_of_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
-		auto& r_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
+		const int number_of_elements = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
+		auto& r_elements = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
 
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < number_of_elements; ++i)
@@ -102,7 +108,8 @@ namespace Kratos
 		}
 	}
 
-	double CalculateDistanceToSkinProcess::CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon)
+	template<std::size_t TDim>
+	double CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon)
 	{
 		double result_distance = std::numeric_limits<double>::max();
 		for (auto triangle : rIntersectedObjects.GetContainer()) {
@@ -123,9 +130,10 @@ namespace Kratos
 		return result_distance;
 	}
 
-	void CalculateDistanceToSkinProcess::CalculateNodalDistances()
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::CalculateNodalDistances()
 	{
-		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess).GetModelPart1();
+		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess).GetModelPart1();
 
 		constexpr int number_of_tetrahedra_points = 4;
 		for (auto& element : ModelPart1.Elements())
@@ -145,9 +153,10 @@ namespace Kratos
 	}
 
 	//TODO: This method has been adapted from the previous implementation. It is still pending to update it.
-	void CalculateDistanceToSkinProcess::CalculateNodesDistances()
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::CalculateNodesDistances()
 	{
-		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess).GetModelPart1();
+		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess).GetModelPart1();
 
 		#pragma omp parallel for
 		for(int k = 0 ; k < static_cast<int>(ModelPart1.NumberOfNodes()); ++k)
@@ -159,7 +168,8 @@ namespace Kratos
 	}
 
 	//TODO: This method has been adapted from the previous implementation. It is still pending to update it.
-	void CalculateDistanceToSkinProcess::CalculateNodeDistance(Node<3>& rNode)
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::CalculateNodeDistance(Node<3>& rNode)
 	{
 		double coord[3] = {rNode.X(), rNode.Y(), rNode.Z()};
 		double distance = DistancePositionInSpace(coord);
@@ -173,7 +183,8 @@ namespace Kratos
 	}
 
 	//TODO: This method has been adapted from the previous implementation. It is still pending to update it.
-	double CalculateDistanceToSkinProcess::DistancePositionInSpace(double* coords)
+	template<std::size_t TDim>
+	double CalculateDistanceToSkinProcess<TDim>::DistancePositionInSpace(double* coords)
 	{
 
 		typedef Element::GeometryType triangle_type;
@@ -191,7 +202,7 @@ namespace Kratos
             // Creating the ray
             double ray[3] = {coords[0], coords[1], coords[2]};
 
-			OctreeType* pOctree = CalculateDiscontinuousDistanceToSkinProcess::CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess.GetOctreePointer();
+			OctreeType* pOctree = CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess.GetOctreePointer();
             pOctree->NormalizeCoordinates(ray);
             ray[i_direction] = 0; // starting from the lower extreme
 
@@ -231,7 +242,8 @@ namespace Kratos
         return distance;
 	}
 
-	void CalculateDistanceToSkinProcess::GetRayIntersections(double* ray, int direction, std::vector<std::pair<double,Element::GeometryType*> >& intersections)
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::GetRayIntersections(double* ray, int direction, std::vector<std::pair<double,Element::GeometryType*> >& intersections)
 	{
 		//This function passes the ray through the model and gives the hit point to all objects in its way
         //ray is of dimension (3) normalized in (0,1)^3 space
@@ -243,7 +255,7 @@ namespace Kratos
         intersections.clear();
 
         //OctreeType* octree = &mOctree;
-        OctreeType* pOctree = CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess.GetOctreePointer();
+        OctreeType* pOctree = CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess.GetOctreePointer();
 
         OctreeType::key_type ray_key[3] = {pOctree->CalcKeyNormalized(ray[0]), pOctree->CalcKeyNormalized(ray[1]), pOctree->CalcKeyNormalized(ray[2])};
         OctreeType::key_type cell_key[3];
@@ -284,7 +296,8 @@ namespace Kratos
         }
 	}
 
-	int  CalculateDistanceToSkinProcess::GetCellIntersections(OctreeType::cell_type* cell, double* ray,
+	template<std::size_t TDim>
+	int  CalculateDistanceToSkinProcess<TDim>::GetCellIntersections(OctreeType::cell_type* cell, double* ray,
 							 			  					  OctreeType::key_type* ray_key, int direction,
 							 		  	  					  std::vector<std::pair<double, Element::GeometryType*> >& intersections)
 	{
@@ -305,8 +318,8 @@ namespace Kratos
 		double ray_point2[3] = {ray[0], ray[1], ray[2]};
 		double normalized_coordinate;
 
-		// OctreeType* pOctree = (CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess.GetOctree()).get();
-		OctreeType* pOctree = CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess.GetOctreePointer();
+		// OctreeType* pOctree = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess.GetOctree()).get();
+		OctreeType* pOctree = CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess.GetOctreePointer();
 
 		pOctree->CalculateCoordinateNormalized(ray_key[direction], normalized_coordinate);
 		ray_point1[direction] = normalized_coordinate;
@@ -329,7 +342,8 @@ namespace Kratos
 	}
 
 	//TODO: This method has been adapted from the previous implementation. It is still pending to update it.
-	int CalculateDistanceToSkinProcess::IntersectionTriangleSegment(Element::GeometryType& rGeometry, double* RayPoint1, double* RayPoint2, double* IntersectionPoint)
+	template<std::size_t TDim>
+	int CalculateDistanceToSkinProcess<TDim>::IntersectionTriangleSegment(Element::GeometryType& rGeometry, double* RayPoint1, double* RayPoint2, double* IntersectionPoint)
 	{
 		const double epsilon = 1.00e-12;
 
@@ -408,7 +422,8 @@ namespace Kratos
 
 	}
 
-	void CalculateDistanceToSkinProcess::Execute()
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::Execute()
 	{
 		this->Initialize();
 		this->FindIntersections();
@@ -416,22 +431,26 @@ namespace Kratos
 	}
 
 	/// Turn back information as a string.
-	std::string CalculateDistanceToSkinProcess::Info() const
+	template<std::size_t TDim>
+	std::string CalculateDistanceToSkinProcess<TDim>::Info() const
 	{
 		return "CalculateDistanceToSkinProcess";
 	}
 
 	/// Print information about this object.
-	void CalculateDistanceToSkinProcess::PrintInfo(std::ostream& rOStream) const
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::PrintInfo(std::ostream& rOStream) const
 	{
 		rOStream << Info();
 	}
 
 	/// Print object's data.
-	void CalculateDistanceToSkinProcess::PrintData(std::ostream& rOStream) const
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::PrintData(std::ostream& rOStream) const
 	{
 	}
 
-
+	template class Kratos::CalculateDistanceToSkinProcess<2>;
+	template class Kratos::CalculateDistanceToSkinProcess<3>;
 
 }  // namespace Kratos.
