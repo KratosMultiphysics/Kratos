@@ -166,6 +166,10 @@ class SolutionScheme:
                         integration_method.SetStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(step_variable_name))
 
                     integration_methods.update({variables[0].Name(): integration_method})
+                    if( len(variables) == 4 ):    
+                        integration_methods.update({variables[1].Name(): integration_method})
+                        integration_methods.update({variables[2].Name(): integration_method})
+
 
         #print("Component time integration methods ", integration_methods)
 

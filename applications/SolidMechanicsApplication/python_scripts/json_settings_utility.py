@@ -54,7 +54,7 @@ class JsonSettingsUtility(object):
         then the setting value is assigned to the destination, and deleted from the origin.
 
         """
-        print("start",origin_settings.PrettyPrintJsonString())
+        #print("start",origin_settings.PrettyPrintJsonString())
         for name, destination_value in destination_settings.items():
             if origin_settings.Has(name): # Validate and transfer value.
                 origin_value = origin_settings[name]

@@ -311,6 +311,9 @@ class MonolithicSolver(object):
         # set integration method dictionary for components
         component_integration_methods = Schemes.GetComponentIntegrationMethods()
 
+        #print(scalar_integration_methods)
+        #print(component_integration_methods)
+        
         # set time order
         self.process_info[KratosSolid.TIME_INTEGRATION_ORDER] = Schemes.GetTimeIntegrationOrder()
 
