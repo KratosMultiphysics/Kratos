@@ -29,12 +29,12 @@ namespace Kratos
     {
     }
 
-    MapperLocalSystem:: MapperLocalSystemUniquePointer Create(const MapperLocalSystem::NodeType& rNode)
+    MapperLocalSystem::MapperLocalSystemUniquePointer MapperLocalSystem::Create(const MapperLocalSystem::NodeType& rNode) const
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
-    MapperLocalSystem:: MapperLocalSystemUniquePointer Create(const MapperLocalSystem::GeometryType& rGeometry)
+    MapperLocalSystem::MapperLocalSystemUniquePointer MapperLocalSystem::Create(const MapperLocalSystem::GeometryType& rGeometry) const
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }

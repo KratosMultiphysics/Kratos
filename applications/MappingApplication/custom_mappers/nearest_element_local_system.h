@@ -7,7 +7,7 @@ namespace Kratos
 {
 class NearestElementLocalSystem : public MapperLocalSystem
 {
-    std::unique_ptr<MapperLocalSystem> Create(const NodeType& rNode) const override
+    Kratos::unique_ptr<MapperLocalSystem> Create(const NodeType& rNode) const override
     {
         return std::make_unique<NearestElementLocalSystem>();
     }
