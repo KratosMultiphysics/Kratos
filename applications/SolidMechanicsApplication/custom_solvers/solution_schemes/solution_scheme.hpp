@@ -92,13 +92,18 @@ class SolutionScheme : public Flags
   typedef ModelPart::ElementsContainerType                   ElementsContainerType;
   typedef ModelPart::ConditionsContainerType               ConditionsContainerType;
 
-  typedef ModelPart::NodeType                                             NodeType;
-  typedef array_1d<double, 3>                                           VectorType;
-  typedef Variable<VectorType>                                        VariableType;
-  typedef TimeIntegrationMethod<VariableType,VectorType>           IntegrationType;
-  typedef typename IntegrationType::Pointer                 IntegrationPointerType;
-  typedef std::vector<IntegrationPointerType>         IntegrationMethodsVectorType;
-
+  typedef ModelPart::NodeType                                                NodeType;
+  typedef array_1d<double, 3>                                              VectorType;
+  typedef Variable<VectorType>                                     VariableVectorType;
+  typedef TimeIntegrationMethod<VariableVectorType,VectorType>  IntegrationVectorType;
+  typedef typename IntegrationVectorType::Pointer        IntegrationVectorPointerType;
+  typedef std::vector<IntegrationVectorPointerType>      IntegrationMethodsVectorType;
+  
+  typedef Variable<double>                                         VariableScalarType;
+  typedef TimeIntegrationMethod<VariableScalarType, double>     IntegrationScalarType;
+  typedef typename IntegrationScalarType::Pointer        IntegrationScalarPointerType;
+  typedef std::vector<IntegrationScalarPointerType>      IntegrationMethodsScalarType;
+  
   /// Pointer definition of SolutionScheme
   KRATOS_CLASS_POINTER_DEFINITION(SolutionScheme);
 
@@ -113,15 +118,26 @@ class SolutionScheme : public Flags
   SolutionScheme(Flags& rOptions) : Flags(), mOptions(rOptions) {}
 
   /// Constructor.
-  SolutionScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods, Flags& rOptions) : Flags(), mOptions(rOptions), mTimeIntegrationMethods(rTimeIntegrationMethods) {}
+  SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods, Flags& rOptions) : Flags(), mOptions(rOptions), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods) {}
 
   /// Constructor.
-  SolutionScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods) : Flags(), mTimeIntegrationMethods(rTimeIntegrationMethods) {}
+  SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods) : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods) {}
 
+  /// Constructor.
+  SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
+                 IntegrationMethodsScalarType& rTimeScalarIntegrationMethods,
+                 Flags& rOptions)
+      : Flags(), mOptions(rOptions), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {}
+
+  /// Constructor.
+  SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
+                 IntegrationMethodsScalarType& rTimeScalarIntegrationMethods)
+      : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {}
+  
   /// Copy contructor.
   SolutionScheme(SolutionScheme& rOther) : mOptions(rOther.mOptions)
   {
-    std::copy(std::begin(rOther.mTimeIntegrationMethods), std::end(rOther.mTimeIntegrationMethods), std::back_inserter(mTimeIntegrationMethods));
+    std::copy(std::begin(rOther.mTimeVectorIntegrationMethods), std::end(rOther.mTimeVectorIntegrationMethods), std::back_inserter(mTimeVectorIntegrationMethods));
   }
 
   /// Clone.
@@ -157,10 +173,14 @@ class SolutionScheme : public Flags
 
     this->InitializeConditions(rModelPart);
 
-    for(typename IntegrationMethodsVectorType::iterator it=mTimeIntegrationMethods.begin();
-        it!=mTimeIntegrationMethods.end(); ++it)
+    for(typename IntegrationMethodsVectorType::iterator it=mTimeVectorIntegrationMethods.begin();
+        it!=mTimeVectorIntegrationMethods.end(); ++it)
       (*it)->SetParameters(rModelPart.GetProcessInfo());
-
+    
+    for(typename IntegrationMethodsScalarType::iterator it=mTimeScalarIntegrationMethods.begin();
+        it!=mTimeScalarIntegrationMethods.end(); ++it)
+      (*it)->SetParameters(rModelPart.GetProcessInfo());
+    
     this->Set(LocalFlagType::INITIALIZED, true);
 
     KRATOS_CATCH("")
@@ -522,10 +542,14 @@ class SolutionScheme : public Flags
       it->Check(rModelPart.GetProcessInfo());
     }
 
-    for(typename IntegrationMethodsVectorType::iterator it=mTimeIntegrationMethods.begin();
-        it!=mTimeIntegrationMethods.end(); ++it)
+    for(typename IntegrationMethodsVectorType::iterator it=mTimeVectorIntegrationMethods.begin();
+        it!=mTimeVectorIntegrationMethods.end(); ++it)
       (*it)->Check(rModelPart.GetProcessInfo());
-
+    
+    for(typename IntegrationMethodsScalarType::iterator it=mTimeScalarIntegrationMethods.begin();
+        it!=mTimeScalarIntegrationMethods.end(); ++it)
+      (*it)->Check(rModelPart.GetProcessInfo());
+    
     KRATOS_CATCH("")
 
     return 0;
@@ -719,8 +743,9 @@ class SolutionScheme : public Flags
   // Flags to set options
   Flags mOptions;
 
-  // Time integration method
-  IntegrationMethodsVectorType  mTimeIntegrationMethods;
+  // Time integration methods
+  IntegrationMethodsVectorType  mTimeVectorIntegrationMethods;
+  IntegrationMethodsScalarType  mTimeScalarIntegrationMethods;
 
   ///@}
   ///@name Protected Operators
@@ -811,15 +836,21 @@ class SolutionScheme : public Flags
 
   virtual void IntegrationMethodUpdate(NodeType& rNode)
   {
-    for(typename IntegrationMethodsVectorType::iterator it=mTimeIntegrationMethods.begin();
-        it!=mTimeIntegrationMethods.end(); ++it)
+    for(typename IntegrationMethodsVectorType::iterator it=mTimeVectorIntegrationMethods.begin();
+        it!=mTimeVectorIntegrationMethods.end(); ++it)
+      (*it)->Update(rNode);
+    for(typename IntegrationMethodsScalarType::iterator it=mTimeScalarIntegrationMethods.begin();
+        it!=mTimeScalarIntegrationMethods.end(); ++it)
       (*it)->Update(rNode);
   }
 
   virtual void IntegrationMethodPredict(NodeType& rNode)
   {
-    for(typename IntegrationMethodsVectorType::iterator it=mTimeIntegrationMethods.begin();
-        it!=mTimeIntegrationMethods.end(); ++it)
+    for(typename IntegrationMethodsVectorType::iterator it=mTimeVectorIntegrationMethods.begin();
+        it!=mTimeVectorIntegrationMethods.end(); ++it)
+      (*it)->Predict(rNode);
+    for(typename IntegrationMethodsScalarType::iterator it=mTimeScalarIntegrationMethods.begin();
+        it!=mTimeScalarIntegrationMethods.end(); ++it)
       (*it)->Predict(rNode);
   }
 

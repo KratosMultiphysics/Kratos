@@ -218,6 +218,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     #
     def CreateAssignmentProcess(self, params):
 
+        params["variable_name"].SetString(self.settings["variable_name"].GetString())
         if( self.value_is_numeric ):
             params.AddEmptyValue("value").SetDouble(self.value)
             params.AddEmptyValue("entity_type").SetString("NODES")

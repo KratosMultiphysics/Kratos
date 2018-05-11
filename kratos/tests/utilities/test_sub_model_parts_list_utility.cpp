@@ -26,7 +26,8 @@ namespace Kratos
     namespace Testing
     {
         typedef Node<3> NodeType;
-        typedef std::unordered_map<int,int> IntIntMapType;
+        typedef std::size_t IndexSize;
+        typedef std::unordered_map<IndexSize,int> IntIntMapType;
         typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
 
         /**

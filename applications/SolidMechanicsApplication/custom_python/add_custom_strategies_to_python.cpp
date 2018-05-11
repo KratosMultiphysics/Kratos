@@ -35,8 +35,9 @@
 #include "custom_solvers/solution_builders_and_solvers/explicit_hamilton_builder_and_solver.hpp"
 
 // Convergence criteria
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_solvers/convergence_criteria/displacement_convergence_criterion.hpp"
+#include "custom_solvers/convergence_criteria/residual_criterion.hpp"
+#include "custom_solvers/convergence_criteria/dofs_criterion.hpp"
+#include "custom_solvers/convergence_criteria/composite_criterion.hpp"
 
 // Solution schemes
 #include "custom_solvers/solution_schemes/static_scheme.hpp"
@@ -78,17 +79,14 @@ typedef LinearSolver<SparseSpaceType, LocalSpaceType>                           
 typedef SolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>                   SolutionStrategyType;
 typedef SolutionBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>   SolutionBuilderAndSolverType;
 typedef SolutionScheme<SparseSpaceType, LocalSpaceType>                                         SolutionSchemeType;
-typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType>                               ConvergenceCriteriaType;
+typedef ConvergenceCriterion<SparseSpaceType, LocalSpaceType>                             ConvergenceCriterionType;
 typedef SolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>                   SolutionStrategyType;
 
 typedef SolutionStrategyType::Pointer                                                      SolutionStrategyPointer;
 typedef std::vector<SolutionStrategyType::Pointer>                                     SolutionStrategiesContainer;
 
-void Push_Back_Solution_Strategies( SolutionStrategiesContainer& ThisSolutionStrategyContainer,
-                                    SolutionStrategyPointer ThisSolutionStrategy )
-{
-  ThisSolutionStrategyContainer.push_back( ThisSolutionStrategy );
-}
+typedef typename ConvergenceCriterionType::Pointer                                 ConvergenceCriterionPointerType;
+typedef std::vector<ConvergenceCriterionPointerType>                                  ConvergenceCriteriaContainer;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -117,17 +115,19 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef DynamicScheme<SparseSpaceType, LocalSpaceType>                                          DynamicSchemeType;
 
   // Custom convergence criterion types
-  typedef DisplacementConvergenceCriterion<SparseSpaceType,  LocalSpaceType>   DisplacementConvergenceCriterionType;
+  typedef ResidualCriterion<SparseSpaceType, LocalSpaceType>                                  ResidualCriterionType;
+  typedef DofsCriterion<SparseSpaceType, LocalSpaceType>                                          DofsCriterionType;
+  typedef CompositeCriterion<SparseSpaceType, LocalSpaceType>                                CompositeCriterionType;
 
   // Time integration methods for vectors
   typedef array_1d<double, 3>                                                                      VectorType;
   typedef Variable<VectorType>                                                             VariableVectorType;
   typedef TimeIntegrationMethod<VariableVectorType, VectorType>               TimeIntegrationMethodVectorType;
-  
-  typedef std::vector<TimeIntegrationMethodVectorType::Pointer>                  TimeIntegrationMethodsVector;
+
+  typedef std::vector<TimeIntegrationMethodVectorType::Pointer>                  TimeVectorIntegrationMethods;
   typedef TimeIntegrationMethodsContainer<VariableVectorType, double>      VectorTimeIntegrationContainerType;
   typedef VectorTimeIntegrationContainerType::Pointer               VectorTimeIntegrationContainerPointerType;
-  
+
   typedef StaticMethod<VariableVectorType, VectorType>                                 StaticMethodVectorType;
   typedef NewmarkMethod<VariableVectorType, VectorType>                               NewmarkMethodVectorType;
   typedef BossakMethod<VariableVectorType, VectorType>                                 BossakMethodVectorType;
@@ -146,11 +146,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef BossakStepRotationMethod<VariableVectorType, VectorType>         BossakStepRotationMethodVectorType;
   typedef SimoStepRotationMethod<VariableVectorType, VectorType>             SimoStepRotationMethodVectorType;
   typedef EmcStepRotationMethod<VariableVectorType, VectorType>               EmcStepRotationMethodVectorType;
-       
-  // Time integration methods for scalars 
+
+  // Time integration methods for scalars
   typedef Variable<double>                                                                 VariableScalarType;
   typedef TimeIntegrationMethod<VariableScalarType, double>                   TimeIntegrationMethodScalarType;
 
+  typedef std::vector<TimeIntegrationMethodScalarType::Pointer>                  TimeScalarIntegrationMethods;
   typedef TimeIntegrationMethodsContainer<VariableScalarType, double>      ScalarTimeIntegrationContainerType;
   typedef ScalarTimeIntegrationContainerType::Pointer               ScalarTimeIntegrationContainerPointerType;
 
@@ -173,7 +174,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef SimoStepRotationMethod<VariableScalarType, double>                 SimoStepRotationMethodScalarType;
   typedef EmcStepRotationMethod<VariableScalarType, double>                   EmcStepRotationMethodScalarType;
 
-  
+
   // Time integration methods for components
   typedef VariableComponent<VectorComponentAdaptor<VectorType>>                        VariableComponentType;
   typedef TimeIntegrationMethod<VariableComponentType, double>            TimeIntegrationMethodComponentType;
@@ -201,7 +202,18 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef EmcStepRotationMethod<VariableComponentType, double>            EmcStepRotationMethodComponentType;
 
 
-  
+  //***************************SOLVER FLAGS******************************
+
+  // Convergence Criteria Local Flags
+  class_<CriterionLocalFlags>(m,"CriterionLocalFlags")
+      .def(init<>())
+      .def_readonly_static("INITIALIZED", &CriterionLocalFlags::INITIALIZED)
+      .def_readonly_static("INCREMENTAL", &CriterionLocalFlags::INCREMENTAL)
+      .def_readonly_static("CONVERGED", &CriterionLocalFlags::CONVERGED)
+      .def_readonly_static("AND", &CriterionLocalFlags::AND)
+      .def_readonly_static("OR", &CriterionLocalFlags::OR)
+      ;
+
   //***************************SOLVER FLAGS******************************
 
   // Solver Local Flags
@@ -219,12 +231,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 
   //*************************STRATEGY CLASSES***************************
-
-  // Solid Mechanics Solution Strategies Container
-  class_<SolutionStrategiesContainer>(m,"SolutionStragetiesContainer")
-      .def(init<>())
-      .def("PushBack", Push_Back_Solution_Strategies)
-      ;
 
   // Solid Mechanics Base Solution Strategy
   class_<SolutionStrategyType, typename SolutionStrategyType::Pointer, Flags>(m,"SolutionStrategy")
@@ -258,16 +264,16 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   // Solid Mechanics Newton Raphson Strategy
   class_<NewtonRaphsonStrategyType, typename NewtonRaphsonStrategyType::Pointer, LinearStrategyType>(m,"NewtonRaphsonStrategy")
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int>())
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
       .def("SetMaxIterationNumber", &NewtonRaphsonStrategyType::SetMaxIterationNumber)
       .def("GetMaxIterationNumber", &NewtonRaphsonStrategyType::GetMaxIterationNumber)
       ;
 
   // Solid Mechanics Newton Raphson Line Search Strategy
   class_<LineSearchStrategyType, typename LineSearchStrategyType::Pointer, NewtonRaphsonStrategyType>(m,"LineSearchStrategy")
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int>())
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
       ;
 
   // Solid Mechanics Explicit Strategy
@@ -339,8 +345,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   class_<SolutionSchemeType, typename SolutionSchemeType::Pointer, Flags>(m,"SolutionScheme")
       .def(init<>())
       .def(init<Flags&>())
-      .def(init<TimeIntegrationMethodsVector&, Flags&>())
-      .def(init<TimeIntegrationMethodsVector&>())
+      .def(init<TimeVectorIntegrationMethods&, Flags&>())
+      .def(init<TimeVectorIntegrationMethods&>())
+      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
+      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())
       .def("Initialize", &SolutionSchemeType::Initialize)
       .def("InitializeSolutionStep", &SolutionSchemeType::InitializeSolutionStep)
       .def("FinalizeSolutionStep", &SolutionSchemeType::FinalizeSolutionStep)
@@ -351,21 +359,25 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   // Static Scheme Type
   class_<StaticSchemeType, typename StaticSchemeType::Pointer, SolutionSchemeType>(m,"StaticScheme")
-      .def(init<TimeIntegrationMethodsVector&, Flags&>())
-      .def(init<TimeIntegrationMethodsVector&>())
+      .def(init<TimeVectorIntegrationMethods&, Flags&>())
+      .def(init<TimeVectorIntegrationMethods&>())
+      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
+      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())      
       ;
 
   // Dynamic Scheme Type
   class_<DynamicSchemeType, typename DynamicSchemeType::Pointer, SolutionSchemeType>(m,"DynamicScheme")
-      .def(init<TimeIntegrationMethodsVector&, Flags&>())
-      .def(init<TimeIntegrationMethodsVector&>())
+      .def(init<TimeVectorIntegrationMethods&, Flags&>())
+      .def(init<TimeVectorIntegrationMethods&>())
+      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
+      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())      
       ;
 
   // Explicit scheme: Central differences
   class_<ExplicitCentralDifferencesSchemeType, typename ExplicitCentralDifferencesSchemeType::Pointer, SolutionSchemeType>(m,"ExplicitCentralDifferencesScheme")
       .def(init<Flags& ,const double, const double, const double>())
       ;
-  
+
   // Eigensolver Scheme Type
   class_<EigensolverSchemeType, typename EigensolverSchemeType::Pointer, SolutionSchemeType>(m,"EigensolverScheme")
       .def(init<>())
@@ -380,13 +392,33 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   //*******************CONVERGENCE CRITERIA CLASSES*********************
 
-  // Displacement Convergence Criterion
-  class_<DisplacementConvergenceCriterionType, typename DisplacementConvergenceCriterionType::Pointer, ConvergenceCriteriaType>
-      (m,"DisplacementConvergenceCriterion")
-      .def( init<double, double>())
-      .def("SetEchoLevel", &DisplacementConvergenceCriterionType::SetEchoLevel)
+  // Convergence Criterion base type
+  class_<ConvergenceCriterionType, typename ConvergenceCriterionType::Pointer, Flags>(m,"ConvergenceCriterion")
+      .def(init<>())
+      .def("PreCriteria", &ConvergenceCriterionType::PreCriteria)
+      .def("PostCriteria", &ConvergenceCriterionType::PostCriteria)
+      .def("InitializeSolutionStep", &ConvergenceCriterionType::InitializeSolutionStep)
+      .def("FinalizeSolutionStep", &ConvergenceCriterionType::FinalizeSolutionStep)
+      .def("Check", &ConvergenceCriterionType::Check)
+      .def("SetEchoLevel", &ConvergenceCriterionType::SetEchoLevel)
       ;
 
+  class_<ResidualCriterionType, typename ResidualCriterionType::Pointer, ConvergenceCriterionType>(m,"ResidualCriterion")
+      .def(init<double, double>())
+      .def(init<const VariableScalarType&, double, double>())
+      .def(init<const VariableVectorType&, double, double>())
+      ;
+
+  class_<DofsCriterionType, typename DofsCriterionType::Pointer, ConvergenceCriterionType>(m,"DofsCriterion")
+      .def(init<double, double>())
+      .def(init<const VariableScalarType&, double, double>())
+      .def(init<const VariableVectorType&, double, double>())
+      ;
+
+  class_<CompositeCriterionType, typename CompositeCriterionType::Pointer, ConvergenceCriterionType >(m,"CompositeCriterion")
+      .def(init<ConvergenceCriterionPointerType, ConvergenceCriterionPointerType>())
+      .def(init<ConvergenceCriteriaContainer&>())
+      ;
 
   //*******************TIME INTEGRATION METHODS*************************
 
@@ -500,7 +532,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
-  
+
   //Time integration methods for scalar variables
   class_<TimeIntegrationMethodScalarType, TimeIntegrationMethodScalarType::Pointer>(m,"ScalarTimeIntegration")
       .def(init<const VariableScalarType&>())
@@ -510,7 +542,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("SetInputVariable", &TimeIntegrationMethodScalarType::SetInputVariable)
       .def("HasStepVariable", &TimeIntegrationMethodScalarType::HasStepVariable)
       .def("SetStepVariable", &TimeIntegrationMethodScalarType::SetStepVariable)
-      .def("GetPrimaryVariableName", &TimeIntegrationMethodScalarType::GetPrimaryVariableName)      
+      .def("GetPrimaryVariableName", &TimeIntegrationMethodScalarType::GetPrimaryVariableName)
       .def("CalculateParameters", &TimeIntegrationMethodScalarType::CalculateParameters)
       .def("SetParameters", &TimeIntegrationMethodScalarType::SetParameters)
       .def("Assign", &TimeIntegrationMethodScalarType::Assign)
@@ -518,7 +550,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("__repr__", &TimeIntegrationMethodScalarType::Info)
       ;
 
-  
+
   class_<StaticMethodScalarType, typename StaticMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"StaticScalarIntegration")
       .def(init<const VariableScalarType&>())
@@ -611,17 +643,17 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
-  
+
   // Time integration methods for variable components
   class_<TimeIntegrationMethodComponentType, typename TimeIntegrationMethodComponentType::Pointer>(m,"ComponentTimeIntegration")
       .def(init<const VariableComponentType&>())
       .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())      
+      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       .def("Clone", &TimeIntegrationMethodComponentType::Clone)
       .def("SetInputVariable", &TimeIntegrationMethodComponentType::SetInputVariable)
       .def("HasStepVariable", &TimeIntegrationMethodComponentType::HasStepVariable)
       .def("SetStepVariable", &TimeIntegrationMethodComponentType::SetStepVariable)
-      .def("GetPrimaryVariableName", &TimeIntegrationMethodComponentType::GetPrimaryVariableName)      
+      .def("GetPrimaryVariableName", &TimeIntegrationMethodComponentType::GetPrimaryVariableName)
       .def("CalculateParameters", &TimeIntegrationMethodComponentType::CalculateParameters)
       .def("SetParameters", &TimeIntegrationMethodComponentType::SetParameters)
       .def("Assign", &TimeIntegrationMethodComponentType::Assign)
@@ -738,7 +770,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   //to define it as a variable
   class_<Variable<VectorTimeIntegrationContainerPointerType>, VariableData>(m,"VectorTimeIntegrationMethodsVariable")
       ;
-  
+
   // Time vector integration methods container type
   class_<ComponentTimeIntegrationContainerType, ComponentTimeIntegrationContainerPointerType>(m,"ComponentTimeIntegrationMethods")
       .def(init<>())
@@ -755,7 +787,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   //to define it as a variable
   class_<Variable<ComponentTimeIntegrationContainerPointerType>, VariableData>(m,"ComponentTimeIntegrationMethodsVariable")
       ;
-  
+
   // Time vector integration methods container type
   class_<ScalarTimeIntegrationContainerType, ScalarTimeIntegrationContainerPointerType>(m,"ScalarTimeIntegrationMethods")
       .def(init<>())
@@ -768,11 +800,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO_PYTHON_AS_POINTER(ScalarTimeIntegrationContainerType)
       DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO_PYTHON_AS_POINTER(ScalarTimeIntegrationContainerType)
       ;
-  
+
   //to define it as a variable
   class_<Variable<ScalarTimeIntegrationContainerPointerType>, VariableData>(m,"ScalarTimeIntegrationMethodsVariable")
       ;
-  
+
 }
 
 }  // namespace Python.

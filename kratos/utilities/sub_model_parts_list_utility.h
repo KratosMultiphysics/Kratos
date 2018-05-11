@@ -82,7 +82,7 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
     ///@{
 
     /// The map containing the id for each component and the corresponding colors integers
-    typedef std::unordered_map<int,int> IntIntMapType;
+    typedef std::unordered_map<IndexType,int> IndexIntMapType;
 
     /// The map containing the colors integers and the names of the submodelparts related
     typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
@@ -127,9 +127,9 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
      * @param rColors Map where the keys (colors) and associated submodelparts combinations are stored
      */
     void ComputeSubModelPartsList(
-        IntIntMapType& rNodeColors,
-        IntIntMapType& rCondColors,
-        IntIntMapType& rElemColors,
+        IndexIntMapType& rNodeColors,
+        IndexIntMapType& rCondColors,
+        IndexIntMapType& rElemColors,
         IntStringMapType& rColors
         );
 

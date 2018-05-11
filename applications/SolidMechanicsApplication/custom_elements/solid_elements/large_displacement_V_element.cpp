@@ -265,15 +265,16 @@ void LargeDisplacementVElement::SetElementVariables(ElementVariables& rVariables
     }
 
     if( strain_rate_measure ){     
-      //Compute symmetric spatial velocity gradient [DN_DX = dN/dx_n*1]      
-      this->CalculateVelocityGradient( rVariables.H, rVariables.DN_DX, step );
-    }
-    else{
-      //Compute F and detF (from 0 to n+1) : store it in H variable and detH
-      rVariables.detH = rVariables.detF * rVariables.detF0;
-      noalias(rVariables.H) = prod( rVariables.F, rVariables.F0 );
+      //Compute symmetric spatial velocity gradient [DN_DX = dN/dx_n*1] stored in a vector
+      this->CalculateVelocityGradientVector( rVariables.StrainVector, rVariables.DN_DX, step );
+      Flags &ConstitutiveLawOptions=rValues.GetOptions();
+      ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     }
 
+    //Compute F and detF (from 0 to n+1) : store it in H variable and detH
+    rVariables.detH = rVariables.detF * rVariables.detF0;
+    noalias(rVariables.H) = prod( rVariables.F, rVariables.F0 );
+    
     rValues.SetDeterminantF(rVariables.detH);
     rValues.SetDeformationGradientF(rVariables.H);
     rValues.SetStrainVector(rVariables.StrainVector);
@@ -339,6 +340,63 @@ void LargeDisplacementVElement::CalculateVelocityGradient(Matrix& rH,
     KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementVElement::CalculateVelocityGradientVector(Vector& rH,
+                                                                const Matrix& rDN_DX,
+                                                                unsigned int step)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    rH = ZeroVector( dimension * dimension );
+
+    if( dimension == 2 )
+    {
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+          
+            rH[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rH[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rH[2] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rH[3] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+
+        }
+
+    }
+    else if( dimension == 3)
+    {
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+          array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+            
+            rH[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rH[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rH[2] += rCurrentVelocity[2]*rDN_DX ( i , 2 );
+            
+            rH[3] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rH[4] += rCurrentVelocity[1]*rDN_DX ( i , 2 );
+            rH[5] += rCurrentVelocity[2]*rDN_DX ( i , 0 );
+
+            rH[6] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+            rH[7] += rCurrentVelocity[2]*rDN_DX ( i , 1 );
+            rH[8] += rCurrentVelocity[0]*rDN_DX ( i , 2 );
+        }
+
+    }
+    else
+    {
+      KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
+    }
+    
+    KRATOS_CATCH( "" )
+}
 
 //************************************************************************************
 //************************************************************************************

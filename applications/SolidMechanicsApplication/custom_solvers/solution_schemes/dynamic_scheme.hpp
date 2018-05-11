@@ -78,26 +78,40 @@ namespace Kratos
     typedef typename BaseType::ElementsContainerType                ElementsContainerType;
     typedef typename BaseType::ConditionsContainerType            ConditionsContainerType;
 
-    typedef typename BaseType::IntegrationType                            IntegrationType;
-    typedef typename BaseType::IntegrationPointerType              IntegrationPointerType;
     typedef typename BaseType::IntegrationMethodsVectorType  IntegrationMethodsVectorType;
+    typedef typename BaseType::IntegrationMethodsScalarType  IntegrationMethodsScalarType;
    
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    DynamicScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods, Flags& rOptions)
-        :DerivedType(rTimeIntegrationMethods, rOptions)
+    DynamicScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods, Flags& rOptions)
+        :DerivedType(rTimeVectorIntegrationMethods, rOptions)
     {
     }
 
     /// Constructor.
-    DynamicScheme(IntegrationMethodsVectorType& rTimeIntegrationMethods)
-        :DerivedType(rTimeIntegrationMethods)
+    DynamicScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods)
+        :DerivedType(rTimeVectorIntegrationMethods)
     {
     }
 
+    /// Constructor.
+    DynamicScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
+                  IntegrationMethodsScalarType& rTimeScalarIntegrationMethods,
+                  Flags& rOptions)
+        :DerivedType(rTimeVectorIntegrationMethods, rTimeScalarIntegrationMethods, rOptions)
+    {
+    }
+
+    /// Constructor.
+    DynamicScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
+                  IntegrationMethodsScalarType& rTimeScalarIntegrationMethods)
+        :DerivedType(rTimeVectorIntegrationMethods, rTimeScalarIntegrationMethods)
+    {
+    }
+    
     /// Constructor.
     DynamicScheme(Flags& rOptions)
       :DerivedType(rOptions)
@@ -148,7 +162,7 @@ namespace Kratos
 	mVector.v.resize(NumThreads);
 	mVector.a.resize(NumThreads);
 
-        double parameter = this->mTimeIntegrationMethods.front()->GetSecondDerivativeKineticParameter(parameter);
+        double parameter = this->mTimeVectorIntegrationMethods.front()->GetSecondDerivativeKineticParameter(parameter);
 
         if( parameter != 0 )
           mVector.c.resize(NumThreads);
@@ -449,14 +463,14 @@ namespace Kratos
       // Adding mass contribution to the dynamic stiffness
       if (rM.size1() != 0) // if M matrix declared
         {
-	  parameter = this->mTimeIntegrationMethods.front()->GetSecondDerivativeInertialParameter(parameter);
+	  parameter = this->mTimeVectorIntegrationMethods.front()->GetSecondDerivativeInertialParameter(parameter);
 	  noalias(rLHS_Contribution) += rM * parameter;
         }
 
       // Adding  damping contribution
       if (rD.size1() != 0) // if D matrix declared
         {
-	  parameter = this->mTimeIntegrationMethods.front()->GetFirstDerivativeInertialParameter(parameter);
+	  parameter = this->mTimeVectorIntegrationMethods.front()->GetFirstDerivativeInertialParameter(parameter);
 	  noalias(rLHS_Contribution) += rD * parameter;
         }
     }
@@ -511,7 +525,7 @@ namespace Kratos
         {
 	  pCurrentElement->GetSecondDerivativesVector(mVector.a[thread], 0);
           
-          double parameter = this->mTimeIntegrationMethods.front()->GetSecondDerivativeKineticParameter(parameter);
+          double parameter = this->mTimeVectorIntegrationMethods.front()->GetSecondDerivativeKineticParameter(parameter);
 
           if( parameter != 0 ){
 
@@ -557,7 +571,7 @@ namespace Kratos
         {
 	  pCurrentCondition->GetSecondDerivativesVector(mVector.a[thread], 0);
 
-          double parameter = this->mTimeIntegrationMethods.front()->GetSecondDerivativeKineticParameter(parameter);
+          double parameter = this->mTimeVectorIntegrationMethods.front()->GetSecondDerivativeKineticParameter(parameter);
           
           if( parameter != 0 ){
 
