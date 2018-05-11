@@ -211,7 +211,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY,PseudoLoadMatrix,self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
-    def CalculateSensitivityMatrix_Property(self):
+    def test_CalculateSensitivityMatrix_Property(self):
         # unperturbed residual
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
         RHSUndisturbed = self._zero_vector(18)
