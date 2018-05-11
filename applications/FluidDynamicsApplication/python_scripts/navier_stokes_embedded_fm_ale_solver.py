@@ -133,45 +133,31 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
 
 
     def InitializeSolutionStep(self):
-        # Compute the BDF coefficients
-        (self.bdf_process).Execute()
+        if self._TimeBufferIsInitialized():
+            # Compute the BDF coefficients
+            (self.bdf_process).Execute()
 
-        #TODO: REMOVE THIS IF STATEMENT ONCE #1904 IS MERGED
-        step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-        if(step + 1 >= self.GetMinimumBufferSize()):
-            # Perform the FM-ALE operations
-            if (self._is_fm_ale_step()):
-                self._do_fm_ale_operations()
-            else:
-                self.fm_ale_step += 1
+            #TODO: REMOVE THIS IF STATEMENT ONCE #1904 IS MERGED
+            step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            if(step + 1 >= self.GetMinimumBufferSize()):
+                # Perform the FM-ALE operations
+                if (self._is_fm_ale_step()):
+                    self._do_fm_ale_operations()
+                else:
+                    self.fm_ale_step += 1
 
-        # Fluid solver step initialization
-        (self.solver).InitializeSolutionStep()
-
-
-    def Solve(self):
-        # Compute the BDF coefficients
-        (self.bdf_process).Execute()
-
-        #TODO: REMOVE THIS IF STATEMENT ONCE #1904 IS MERGED
-        step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-        if(step + 1 >= self.GetMinimumBufferSize()):
-            # Perform the FM-ALE operations
-            if (self._is_fm_ale_step()):
-                self._do_fm_ale_operations()
-            elif (self.fm_ale_step_frequency != 0):
-                self.fm_ale_step += 1
-
-            # Fluid solver solve call
-            (self.solver).Solve()
+            # Fluid solver step initialization
+            (self.solver).InitializeSolutionStep()
 
 
     def FinalizeSolutionStep(self):
-        super(NavierStokesEmbeddedFMALEMonolithicSolver, self).FinalizeSolutionStep()
+        if self._TimeBufferIsInitialized():
+            # Fluid solver finalize solution step
+            (self.solver).FinalizeSolutionStep()
 
-        # Undo the virtual model part movement
-        if (self._is_fm_ale_step()):
-            self.mesh_moving_util.UndoMeshMovement()
+            # Undo the virtual model part movement
+            if (self._is_fm_ale_step()):
+                self.mesh_moving_util.UndoMeshMovement()
 
 
     def _is_fm_ale_step(self):
