@@ -171,7 +171,7 @@ namespace Kratos
         if ( rLeftHandSideMatrix.size1() != mat_size )
             rLeftHandSideMatrix.resize( mat_size, mat_size, false );
 
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size );
+        rLeftHandSideMatrix = ZeroMatrix( mat_size, mat_size );
 
         KRATOS_CATCH( "" )
     }
@@ -206,7 +206,7 @@ namespace Kratos
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int mat_size = number_of_nodes * dimension;
         
-        noalias(rOutput) = ZeroMatrix(mat_size,mat_size);
+        rOutput = ZeroMatrix(mat_size,mat_size);
 
         if( rDesignVariable == POINT_LOAD )
         {
