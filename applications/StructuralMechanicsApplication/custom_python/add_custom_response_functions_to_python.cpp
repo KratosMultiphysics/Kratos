@@ -18,12 +18,10 @@
 #include "includes/define_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
-//Utilities
-#include "custom_response_functions/custom_utilities/finite_differences_utilities.h" //TODO: maybe remove this (used only for controlling results)
-
+// Processes
 #include "custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.h"
 
-//Response Functions
+// Response Functions
 #include "custom_response_functions/response_utilities/strain_energy_response_function_utility.h"
 #include "custom_response_functions/response_utilities/mass_response_function_utility.h"
 #include "custom_response_functions/response_utilities/eigenfrequency_response_function_utility.h"
@@ -91,19 +89,6 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
       (m, "AdjointStrainEnergyResponseFunction")
       .def(init<ModelPart&, Parameters&>());
 
-    //For global finite differences
-    class_<FiniteDifferencesUtilities, FiniteDifferencesUtilities::Pointer>(m, "FiniteDifferencesUtilities")
-      .def(init< >())
-      .def("SetDesignVariable", &FiniteDifferencesUtilities::SetDesignVariable)
-      .def("GetDesignVariable", &FiniteDifferencesUtilities::GetDesignVariable)
-      .def("SetDerivedObject", &FiniteDifferencesUtilities::SetDerivedObject)
-      .def("GetDerivedObject", &FiniteDifferencesUtilities::GetDerivedObject)
-      .def("DisturbElementDesignVariable", &FiniteDifferencesUtilities::DisturbElementDesignVariable)
-      .def("UndisturbElementDesignVariable", &FiniteDifferencesUtilities::UndisturbElementDesignVariable)
-      .def("GetStressResultantBeam", &FiniteDifferencesUtilities::GetStressResultantBeam)
-      .def("GetStressResultantShell", &FiniteDifferencesUtilities::GetStressResultantShell)
-      .def("GetNodalDisplacement", &FiniteDifferencesUtilities::GetNodalDisplacement)
-      .def("GetStrainEnergy", &FiniteDifferencesUtilities::GetStrainEnergy);
 }
 
 }  // namespace Python.
