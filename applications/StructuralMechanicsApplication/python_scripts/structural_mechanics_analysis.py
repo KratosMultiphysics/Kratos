@@ -198,12 +198,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
 
-    def GetModelPart(self):
-        return self.main_model_part
-
-    def GetSolver(self):
-        return self.solver
-
     def _GetSimulationName(self):
         return "::[KSM Simulation]:: "
 
