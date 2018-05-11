@@ -82,10 +82,16 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
     ///@{
 
     /// The map containing the id for each component and the corresponding colors integers
-    typedef std::unordered_map<int,int> IntIntMapType;
+    typedef std::unordered_map<IndexType,int> IndexIntMapType;
 
     /// The map containing the colors integers and the names of the submodelparts related
     typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
+
+    /// The map containing the colors integers and the pointers of the submodelparts related
+    //typedef std::unordered_map<int,std::vector<ModelPart>> IntModelPartPtrMapType;
+
+    /// The map containing the intersections of submodelparts combinations
+    typedef std::map<std::pair<int,int>, int> PairIntMapType;
 
     /// Pointer definition of SubModelPartsListUtility
     KRATOS_CLASS_POINTER_DEFINITION( SubModelPartsListUtility );
@@ -124,9 +130,9 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
      * @param rColors Map where the keys (colors) and associated submodelparts combinations are stored
      */
     void ComputeSubModelPartsList(
-        IntIntMapType& rNodeColors,
-        IntIntMapType& rCondColors,
-        IntIntMapType& rElemColors,
+        IndexIntMapType& rNodeColors,
+        IndexIntMapType& rCondColors,
+        IndexIntMapType& rElemColors,
         IntStringMapType& rColors
         );
 
@@ -147,6 +153,27 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
         ModelPart& ThisModelPart,
         const std::string& SubModelPartName
         );
+
+    /**
+     * @brief This method return the map with colors and pointers to the associated submodelparts
+     * @param ThisModelPart The main model part computed
+     * @param rColors The reference colors
+     * @return The fast access colors
+     */
+    static std::unordered_map<int, std::vector<ModelPart*>> GetModelPartColorsPointers(
+        ModelPart& ThisModelPart,
+        const IntStringMapType& rColors
+        );
+
+    /**
+     * @brief This method computes all the possible intersection of two colors (combinations of sub_model_parts)
+     * @param rColors the map containign the combinations
+     * @param rIntersections tha map containing the key combinations and its corresponding color
+     */
+    static void IntersectColors(
+        IntStringMapType& rColors,
+        PairIntMapType& rIntersections
+    );
 
     ///@}
     ///@name Access
@@ -233,8 +260,7 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                                       /// The model part to compute
-    std::unordered_map<int,std::vector<std::string>> mColors;     /// Where the sub model parts IDs are stored
+    ModelPart& mrModelPart;             /// The model part to compute
 
     ///@}
     ///@name Private Operators

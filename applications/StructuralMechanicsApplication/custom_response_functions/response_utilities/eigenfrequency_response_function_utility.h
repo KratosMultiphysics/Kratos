@@ -256,13 +256,13 @@ protected:
         ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
         // Predetermine all necessary eigenvalues and prefactors for gradient calculation
-        const unsigned int num_of_traced_eigenfrequencies = mTracedEigenfrequencyIds.size();
+        const std::size_t num_of_traced_eigenfrequencies = mTracedEigenfrequencyIds.size();
         Vector traced_eigenvalues(num_of_traced_eigenfrequencies,0.0);
         Vector gradient_prefactors(num_of_traced_eigenfrequencies,0.0);
         for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
         {
             traced_eigenvalues[i] = GetEigenvalue(mTracedEigenfrequencyIds[i]);
-            gradient_prefactors[i] = 1 / (2 * 2 * Globals::Pi * std::sqrt(traced_eigenvalues[i]));
+            gradient_prefactors[i] = 1 / (4 * Globals::Pi * std::sqrt(traced_eigenvalues[i]));
         }
 
         // Element-wise computation of gradients
@@ -275,7 +275,8 @@ protected:
             elem_i.CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
             elem_i.CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
 
-            int num_dofs_element = mass_matrix_org.size1();
+            const std::size_t num_dofs_element = mass_matrix_org.size1();
+            const std::size_t domain_size = CurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
             Matrix aux_matrix = Matrix(num_dofs_element,num_dofs_element);
             Vector aux_vector = Vector(num_dofs_element);
@@ -292,7 +293,7 @@ protected:
                 Matrix perturbed_LHS = Matrix(num_dofs_element,num_dofs_element);
                 Matrix perturbed_mass_matrix = Matrix(num_dofs_element,num_dofs_element);
 
-                for(std::size_t coord_dir_i = 0; coord_dir_i < CurrentProcessInfo.GetValue(DOMAIN_SIZE); coord_dir_i++)
+                for(std::size_t coord_dir_i = 0; coord_dir_i < domain_size; coord_dir_i++)
                 {
                     node_i.GetInitialPosition()[coord_dir_i] += mDelta;
 
@@ -307,8 +308,7 @@ protected:
                         aux_matrix.clear();
                         aux_vector.clear();
 
-                        noalias(aux_matrix) = perturbed_LHS;
-                        noalias(aux_matrix) -= (perturbed_mass_matrix * traced_eigenvalues[i]);
+                        noalias(aux_matrix) = perturbed_LHS - perturbed_mass_matrix * traced_eigenvalues[i];
                         noalias(aux_vector) = prod(aux_matrix , eigenvectors_of_element[i]);
 
                         gradient_contribution[coord_dir_i] += gradient_prefactors[i] * inner_prod(eigenvectors_of_element[i] , aux_vector) * mWeightingFactors[i];
@@ -332,14 +332,14 @@ protected:
     {
         rEigenvectorOfElement.resize(size_of_eigenvector,false);
 
-        const int num_nodes = traced_element.GetGeometry().size();
-        const int num_node_dofs = size_of_eigenvector/num_nodes;
+        const std::size_t num_nodes = traced_element.GetGeometry().size();
+        const std::size_t num_node_dofs = size_of_eigenvector/num_nodes;
 
         for (std::size_t node_index=0; node_index<num_nodes; node_index++)
         {
             Matrix& rNodeEigenvectors = traced_element.GetGeometry()[node_index].GetValue(EIGENVECTOR_MATRIX);
 
-            for (int dof_index = 0; dof_index < num_node_dofs; dof_index++)
+            for (std::size_t dof_index = 0; dof_index < num_node_dofs; dof_index++)
                 rEigenvectorOfElement(dof_index+num_node_dofs*node_index) = rNodeEigenvectors((eigenfrequency_id-1),dof_index);
         }
     }

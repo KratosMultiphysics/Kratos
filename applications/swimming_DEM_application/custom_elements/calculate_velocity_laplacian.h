@@ -58,7 +58,7 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
-class ComputeVelocityLaplacianSimplex : public ComputeMaterialDerivativeSimplex<TDim, TNumNodes>
+class KRATOS_API(SWIMMING_DEM_APPLICATION) ComputeVelocityLaplacianSimplex : public ComputeMaterialDerivativeSimplex<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -128,7 +128,7 @@ public:
      */
     ComputeVelocityLaplacianSimplex(IndexType NewId, const NodesArrayType& ThisNodes) :
         BaseType(NewId, ThisNodes)
-    {}	
+    {}
 
     /// Constructor using a geometry object.
     /**
@@ -269,7 +269,7 @@ protected:
     ///@name Protected  Access
     ///@{
 
-    void AddIntegrationPointRHSContribution(VectorType& F, const array_1d<double,TNumNodes>& rShapeFunc, const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight) override;
+    void AddIntegrationPointRHSContribution(VectorType& F, const array_1d<double,TNumNodes>& rShapeFunc, const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight) override;
 
     ///@}
     ///@name Protected Inquiry

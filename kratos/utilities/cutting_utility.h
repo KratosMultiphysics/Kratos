@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pablo Becker
-//                    
+//
 //
 
 #if !defined(KRATOS_CUTTING_UTILITY)
@@ -136,7 +136,6 @@ public:
         KRATOS_WATCH(smallest_edge);
     } //closing function
 
-
     ///************************************************************************************************
     ///************************************************************************************************
 
@@ -156,6 +155,12 @@ public:
         KRATOS_WATCH(versor);
         KRATOS_WATCH(Xp);
         KRATOS_TRY
+
+        if (!mr_new_model_part.GetNodalSolutionStepVariablesList().Has(FATHER_NODES) ||
+            !mr_new_model_part.GetNodalSolutionStepVariablesList().Has(WEIGHT_FATHER_NODES) )
+            KRATOS_ERROR << "The cut model part was not initialized. "
+                            "Please call AddVariablesToCutModelPart before GenerateCut."
+                         << std::endl;
 
         DenseVector<array_1d<int, 2 > > Position_Node;
         DenseVector<int> List_New_Nodes;
@@ -209,11 +214,13 @@ public:
         int number_of_triangles = 0; //we set it to zero to start
         int number_of_nodes = 0; //same as above
         int number_of_previous_nodes = 0; // nodes from the previous conditions (planes) created
-        int number_of_conditions = 0; 
+        int number_of_conditions = 0;
 
-        new_model_part.GetNodalSolutionStepVariablesList() = this_model_part.GetNodalSolutionStepVariablesList();
-        new_model_part.AddNodalSolutionStepVariable(FATHER_NODES);
-        new_model_part.AddNodalSolutionStepVariable(WEIGHT_FATHER_NODES);
+        if (!new_model_part.GetNodalSolutionStepVariablesList().Has(FATHER_NODES) ||
+            !new_model_part.GetNodalSolutionStepVariablesList().Has(WEIGHT_FATHER_NODES) )
+            KRATOS_ERROR << "The cut model part was not initialized. "
+                            "Please call AddVariablesToCutModelPart before AddSkinConditions."
+                         << std::endl;
 
         ConditionsArrayType& rConditions = this_model_part.Conditions();
         ConditionsArrayType::iterator cond_it_begin = rConditions.ptr_begin();
@@ -241,7 +248,7 @@ public:
         }
 
 
-		if (number_of_conditions!=0) 
+		if (number_of_conditions!=0)
 		{
 			for (unsigned int index=0 ; index != this_model_part.Nodes().size() ; ++index) Condition_Nodes[index]=0; //initializing in zero the whole vector (meaning no useful nodes for the condition layer)
 
@@ -305,6 +312,19 @@ public:
 
     }
 
+    /// Initialize the solution step data container for the cut model part.
+    /** Please call this function before either GenerateCut or AddSkinCondition.
+     *  @param rModelPart the reference (problem) model part.
+     *  @param rNewModelPart the new model part, where cut data will be stored.
+     */
+    void AddVariablesToCutModelPart(
+        const ModelPart& rModelPart,
+        ModelPart& rNewModelPart) const
+    {
+        rNewModelPart.GetNodalSolutionStepVariablesList() = rModelPart.GetNodalSolutionStepVariablesList();
+        rNewModelPart.AddNodalSolutionStepVariable(FATHER_NODES);
+        rNewModelPart.AddNodalSolutionStepVariable(WEIGHT_FATHER_NODES);
+    }
 
 
     //************************************************************************************************
@@ -585,11 +605,6 @@ public:
         Coordinate_New_Node.resize(Position_Node.size());
         //unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
         //Node < 3 > ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
-
-        //assigning variables to the new model part (original + father nodes (pointers) and weight (double)
-        new_model_part.GetNodalSolutionStepVariablesList() = this_model_part.GetNodalSolutionStepVariablesList();
-        new_model_part.AddNodalSolutionStepVariable(FATHER_NODES);
-        new_model_part.AddNodalSolutionStepVariable(WEIGHT_FATHER_NODES);
 
         for (unsigned int i = 0; i < Position_Node.size(); i++) //looping the new nodes
         {
