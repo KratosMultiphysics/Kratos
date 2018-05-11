@@ -125,19 +125,24 @@ class Solution(object):
     def SetAnalyticParticleWatcher(self):
         from analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
+
+        # is this being used? TODO
         self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher=self.particle_watcher, path=self.main_path)
 
 
     def SetAnalyticFaceWatcher(self):
         from analytic_tools import analytic_data_procedures
         self.face_watcher_dict = dict()
+        self.face_watcher_analyser = dict()
         for sub_part in self.rigid_face_model_part.SubModelParts:
-            if sub_part[IDENTIFIER] == "ghostrigidface":
+            if sub_part[IS_GHOST] == True:
+                name = sub_part.Name
                 self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
+                self.face_watcher_analyser[sub_part.Name] = analytic_data_procedures.FaceWatcherAnalyzer(name=name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name], path=self.main_path)
 
-        # old method
-        #self.face_watcher = AnalyticFaceWatcher()
-        #self.face_watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(analytic_face_watcher=self.face_watcher, path=self.main_path)
+
+
+        #self.face_watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(analytic_face_watcher=self.face_watcher_dict, path=self.main_path)
 
     def MakeAnalyticsMeasurements(self):
         for face_watcher in self.face_watcher_dict.values():
@@ -145,13 +150,11 @@ class Solution(object):
 
     def FlushFluxData(self):
         for face_watcher_name in self.face_watcher_dict.keys():
-            times = []
-            masses = []
-            n_particles = []
-            self.face_watcher_dict[face_watcher_name].GetTotalFlux(times, n_particles, masses)
+            times, number_flux, mass_flux = [], [], []
+            self.face_watcher_dict[face_watcher_name].GetTotalFlux(times, number_flux, mass_flux)
             with open('ghost'+ face_watcher_name +'.csv', 'w+') as f1:
                 writer = csv.writer(f1, delimiter='\t')
-                writer.writerows(zip(times, n_particles))
+                writer.writerows(zip(times, number_flux))
             f1.close()
 
     def SetFinalTime(self):
@@ -464,9 +467,10 @@ class Solution(object):
             #Phantom
             self.MakeAnalyticsMeasurements()
             if self.IsTimeToPrintPostProcess():  # or IsCountStep()
-                self.FlushFluxData()
-                #self.face_watcher_analyser.FlushFluxData() should be here
-                #self.face_watcher_analyser.UpdateDataFile(self.time)
+                #self.FlushFluxData()
+                for sub_part in self.rigid_face_model_part.SubModelParts:
+                    if sub_part[IS_GHOST] == True:
+                        self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(self.time)
 
             '''
             if self.analytic_data_counter.Tick():
