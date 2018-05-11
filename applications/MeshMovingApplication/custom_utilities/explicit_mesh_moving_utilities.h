@@ -14,8 +14,6 @@
 #define  KRATOS_EXPLICIT_MESH_MOVING_UTILITIES_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
@@ -53,14 +51,14 @@ namespace Kratos
   /// Utility to initialize the historical data in moving boundary problems
   /** This utility is based on the Fixed Mesh - Arbitrary Lagrangian Eulerian
    * (FM-ALE) method but solving the mesh problem in an explicit manner. Thus,
-   * a virtual mesh is set. This virtual mesh is moved according to the
-   * structure movement. The virtual mesh movement, is computed in an explicit 
+   * a virtual mesh is set. This virtual mesh is moved according to the embedded 
+   * object movement. The virtual mesh movement, is computed in an explicit 
    * manner as a weighted average. Such weights are computed by means of a 
    * kernel function. Once the mesh movement (and velocity) have been computed,
    * the origin mesh historical values (velocity and pressure) are computed as 
    * an interpolation in the virtualmodel part.
    */
-  class KRATOS_API(ALE_APPLICATION) ExplicitMeshMovingUtilities
+  class KRATOS_API(MESH_MOVING_APPLICATION) ExplicitMeshMovingUtilities
   {
   public:
 
