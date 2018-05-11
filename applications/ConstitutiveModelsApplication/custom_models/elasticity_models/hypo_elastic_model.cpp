@@ -94,11 +94,8 @@ namespace Kratos
 
     // ConstitutiveModelData::StressMeasure_Kirchhoff  allowed only
 
-    // spatial velocity gradient
-    const MatrixType& rSpatialVelocityGradient = rValues.GetDeltaDeformationMatrix();
-
     // symmetric spatial velocity gradient
-    rValues.StrainMatrix = 0.5 * (rSpatialVelocityGradient + trans(rSpatialVelocityGradient));
+    noalias(rVariables.StrainMatrix) = 0.5 * (rValues.StrainMatrix + trans(rValues.StrainMatrix)); // spatial velocity gradient is rValues.StrainMatrix
     
     rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_None);
     rValues.MaterialParameters.LameMuBar = rValues.MaterialParameters.LameMu; 
@@ -164,7 +161,7 @@ namespace Kratos
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
-    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.StrainMatrix, StrainVector);
 
     this->CalculateAndAddConstitutiveTensor(Variables);
     
@@ -209,7 +206,7 @@ namespace Kratos
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
-    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.StrainMatrix, StrainVector);
 
     this->CalculateAndAddConstitutiveTensor(Variables);
     
@@ -368,7 +365,7 @@ namespace Kratos
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
-    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.StrainMatrix, StrainVector);
 
     //Set constitutive matrix to zero before adding
     rConstitutiveMatrix.clear();
