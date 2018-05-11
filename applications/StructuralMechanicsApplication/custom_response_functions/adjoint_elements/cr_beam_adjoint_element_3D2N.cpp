@@ -311,9 +311,9 @@ namespace Kratos
             }
 
             if(stress_is_moment)
-                CrBeamElementLinear3D2N::GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
+                CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
             else
-                CrBeamElementLinear3D2N::GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
+                CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
     
             if(rVariable == STRESS_ON_GP)
             {
@@ -656,7 +656,7 @@ namespace Kratos
             double area_lambda = 0.0;
             for (int i = 0; i < number_of_nodes; ++i) 
                 area_lambda += Ncontainer(0, i) * this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X) * length;
-
+            
             double sensitivity_wrt_A = this->GetValue(CROSS_AREA_SENSITIVITY);
 
             double const_pseudo_load = sensitivity_wrt_A / area_lambda;
