@@ -61,13 +61,7 @@ namespace Kratos
     #define SWIMMING_POW_6(a)                                (a * a * a * a * a * a)
     #define SWIMMING_POW_7(a)                                (a * a * a * a * a * a * a)
 
-    KRATOS_DEFINE_APPLICATION_VARIABLE(FLUID_DYNAMICS_APPLICATION, double, SCALAR_ERROR)
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR)
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
-
-
-class KratosSwimmingDEMApplication : public KratosApplication
+class KRATOS_API(SWIMMING_DEM_APPLICATION) KratosSwimmingDEMApplication : public KratosApplication
 {
 public:
 
