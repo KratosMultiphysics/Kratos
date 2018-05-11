@@ -166,18 +166,11 @@ protected:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-        
-    /**
-     * @brief This functions updates the kinematics variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated 
-     * @param PointNumber The integration point considered
-     */ 
-    void CalculateKinematicVariables(
-        KinematicVariables& rThisKinematicVariables,
-        const unsigned int PointNumber,
-        const GeometryType::IntegrationMethod& rIntegrationMethod
-        ) override;
-    
+
+    void CalculateKinematicVariables(KinematicVariables& rThisKinematicVariables,
+                                     const unsigned int PointNumber,
+                                     const GeometryType::IntegrationMethod& rIntegrationMethod) override;
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -208,22 +201,6 @@ private:
     ///@name Private Operations
     ///@{
    
-    /**
-     * @brief This method computes the deformation matrix B
-     * @param rB The deformation matrix
-     * @param rF The deformation gradient
-     * @param rDN_DX The gradient derivative of the shape function
-     */
-    void CalculateB(Matrix& rB, Matrix const& rF, const Matrix& rDN_DX);
-
-    void Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
-
-    void Calculate3DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
-
-    void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
-
-    void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
-
     void CalculateStressAndConstitutiveMatrix(LargeDisplacementDeformationVariables& rDeformationVars,
                                               std::size_t IntegrationIndex,
                                               ConstitutiveVariables& rOutput,
@@ -233,11 +210,6 @@ private:
                          std::size_t IntegrationIndex,
                          Vector& rStress,
                          ProcessInfo const& rCurrentProcessInfo);
-
-    // void CalculateConstitutiveMatrix(LargeDisplacementDeformationVariables& rDeformationVars,
-    //                                  std::size_t IntegrationIndex,
-    //                                  Matrix& rConstitutiveMatrix,
-    //                                  const ProcessInfo& rCurrentProcessInfo);
 
     std::size_t GetStrainSize() const;
 
