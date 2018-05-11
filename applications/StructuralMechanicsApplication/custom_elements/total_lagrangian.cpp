@@ -658,49 +658,33 @@ void TotalLagrangian::CalculateAll(
     )
 {
     KRATOS_TRY;
-
     const auto& r_geom = GetGeometry();
-    const unsigned int dimension = r_geom.WorkingSpaceDimension();
-    const unsigned int mat_size = GetGeometry().PointsNumber() * dimension;
-
+    const unsigned int mat_size = r_geom.PointsNumber() * r_geom.WorkingSpaceDimension();
     if (CalculateStiffnessMatrixFlag == true)
         MatrixVectorUtils::InitializeMatrix(rLeftHandSideMatrix, mat_size, mat_size, true);
-
     if ( CalculateResidualVectorFlag == true )
         MatrixVectorUtils::InitializeVector(rRightHandSideVector, mat_size, true);
 
-    const auto& integration_points = r_geom.IntegrationPoints();
     LargeDisplacementDeformationVariables deformation_vars(r_geom, IsAxisymmetric());
     ConstitutiveVariables cl_vars(GetStrainSize());
-    Vector N;
+    Vector N, body_force;
     for (unsigned int g = 0; g < r_geom.IntegrationPointsNumber(); ++g)
     {
-        const Vector body_force = this->GetBodyForce(integration_points, g);
-        
-        // Calculating weights for integration on the reference configuration
-        double int_to_reference_weight = GetIntegrationWeight(integration_points, g, deformation_vars.DetJ0(g)); 
-        if ( dimension == 2 && this->GetProperties().Has( THICKNESS )) 
-            int_to_reference_weight *= this->GetProperties()[THICKNESS];
-
+        double weight = GetIntegrationWeight(r_geom.IntegrationPoints(), g, deformation_vars.DetJ0(g)); 
         CalculateStressAndConstitutiveMatrix(deformation_vars, g, cl_vars, rCurrentProcessInfo);
         if (CalculateStiffnessMatrixFlag == true)
-        {
-            /* Material stiffness matrix */
-            this->CalculateAndAddKm(rLeftHandSideMatrix, deformation_vars.B(g), cl_vars.D, int_to_reference_weight);
-            /* Geometric stiffness matrix */
-            this->CalculateAndAddKg(rLeftHandSideMatrix, deformation_vars.DN_DX0(g), cl_vars.StressVector, int_to_reference_weight);
-        }
+            CalculateStiffnessMatrix(deformation_vars, cl_vars, g, weight, rLeftHandSideMatrix);
 
         if (CalculateResidualVectorFlag == true)
         {
             N = row(r_geom.ShapeFunctionsValues(), g);
+            body_force = this->GetBodyForce(r_geom.IntegrationPoints(), g);
             this->CalculateAndAddResidualVector(
-                rRightHandSideVector, N, deformation_vars.B(g), rCurrentProcessInfo,
-                body_force, cl_vars.StressVector, int_to_reference_weight);
+                rRightHandSideVector, N, deformation_vars.B(g),
+                rCurrentProcessInfo, body_force, cl_vars.StressVector, weight);
         }
     }
-
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 // This function is deprecated and is only implemented for compatibility with base solid element.
@@ -718,6 +702,19 @@ void TotalLagrangian::CalculateKinematicVariables(KinematicVariables& rThisKinem
     noalias(rThisKinematicVariables.F) = deformation_vars.F(PointNumber);
     noalias(rThisKinematicVariables.B) = deformation_vars.B(PointNumber);
     rThisKinematicVariables.detF = deformation_vars.DetF(PointNumber);
+    KRATOS_CATCH("");
+}
+
+double TotalLagrangian::GetIntegrationWeight(const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
+                                             const unsigned int PointNumber,
+                                             const double detJ)
+{
+    KRATOS_TRY;
+    double weight = BaseSolidElement::GetIntegrationWeight(
+        rThisIntegrationPoints, PointNumber, detJ);
+    if (GetGeometry().WorkingSpaceDimension() == 2 && GetProperties().Has(THICKNESS))
+        weight *= GetProperties()[THICKNESS];
+    return weight;
     KRATOS_CATCH("");
 }
 
@@ -758,6 +755,22 @@ void TotalLagrangian::CalculateStress(Vector& rStrain,
     cl_params.SetStressVector(rStress);
     mConstitutiveLawVector[IntegrationIndex]->CalculateMaterialResponse(cl_params, GetStressMeasure());
     KRATOS_CATCH("");
+}
+
+void TotalLagrangian::CalculateStiffnessMatrix(LargeDisplacementDeformationVariables& rDeformationVars,
+                                               ConstitutiveVariables& rConstitutiveVars,
+                                               std::size_t IntegrationIndex,
+                                               double Weight,
+                                               MatrixType& rStiffnessMatrix)
+{
+    KRATOS_TRY;
+    /* Material stiffness matrix */
+    this->CalculateAndAddKm(
+        rStiffnessMatrix, rDeformationVars.B(IntegrationIndex), rConstitutiveVars.D, Weight);
+    /* Geometric stiffness matrix */
+    this->CalculateAndAddKg(rStiffnessMatrix, rDeformationVars.DN_DX0(IntegrationIndex),
+                            rConstitutiveVars.StressVector, Weight);
+    KRATOS_CATCH("")
 }
 
 std::size_t TotalLagrangian::GetStrainSize() const

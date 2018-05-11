@@ -171,6 +171,10 @@ protected:
                                      const unsigned int PointNumber,
                                      const GeometryType::IntegrationMethod& rIntegrationMethod) override;
 
+    double GetIntegrationWeight(const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
+                                const unsigned int PointNumber,
+                                const double detJ) override;
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -210,6 +214,12 @@ private:
                          std::size_t IntegrationIndex,
                          Vector& rStress,
                          ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateStiffnessMatrix(LargeDisplacementDeformationVariables& rDeformationVars,
+                                  ConstitutiveVariables& rConstitutiveVars,
+                                  std::size_t IntegrationIndex,
+                                  double Weight,
+                                  MatrixType& rStiffnessMatrix);
 
     std::size_t GetStrainSize() const;
 
