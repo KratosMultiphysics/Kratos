@@ -74,10 +74,6 @@ public:
     // saving the scheme
     this->mpScheme = pScheme;
 
-    // set flags to start correcty the calculations
-    this->mSolutionStepIsInitialized = false;
-    this->mInitializeWasPerformed = false;
-
     // set EchoLevel to the default value (only time is displayed)
     BaseType::SetEchoLevel(1);
 
@@ -175,36 +171,32 @@ public:
   void InitializeSolutionStep() override {
     KRATOS_TRY
 
-    if(!this->mSolutionStepIsInitialized){
+    typename TSchemeType::Pointer pScheme = GetScheme();
+    ModelPart &r_model_part = BaseType::GetModelPart();
 
-      typename TSchemeType::Pointer pScheme = GetScheme();
-      ModelPart &r_model_part = BaseType::GetModelPart();
+    TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
+    TSystemVectorType mDx = TSystemVectorType();
+    TSystemVectorType mb = TSystemVectorType();
 
-      TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
-      TSystemVectorType mDx = TSystemVectorType();
-      TSystemVectorType mb = TSystemVectorType();
+    // initial operations ... things that are constant over the Solution Step
+    pScheme->InitializeSolutionStep(r_model_part, matrix_a_dummy, mDx, mb);
 
-      // initial operations ... things that are constant over the Solution Step
-      pScheme->InitializeSolutionStep(r_model_part, matrix_a_dummy, mDx, mb);
+    ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
+    ElementsArrayType &r_elements = r_model_part.Elements();
 
-      ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
-      ElementsArrayType &r_elements = r_model_part.Elements();
-
-      if (BaseType::mRebuildLevel > 0) {
-        auto it_elem = r_model_part.ElementsBegin();
-  // #pragma omp parallel for firstprivate(it_elem)
-        for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
-          // Getting nodal mass and inertia from element
-          Vector dummy_vector;
-          // this function needs to be implemented in the respective
-          // element to provide inertias and nodal masses
-          (it_elem + i)
-              ->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR,
-                                        NODAL_INERTIA, r_current_process_info);
-        }
-      }
-      this->mSolutionStepIsInitialized = true;
-      }
+    if (BaseType::mRebuildLevel > 0) {
+    auto it_elem = r_model_part.ElementsBegin();
+// #pragma omp parallel for firstprivate(it_elem)
+    for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+        // Getting nodal mass and inertia from element
+        Vector dummy_vector;
+        // this function needs to be implemented in the respective
+        // element to provide inertias and nodal masses
+        (it_elem + i)
+            ->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR,
+                                    NODAL_INERTIA, r_current_process_info);
+    }
+    }
 
     KRATOS_CATCH("")
   }
@@ -281,9 +273,6 @@ public:
 
     // Cleaning memory after the solution
     pScheme->Clean();
-
-    // reset flags for next step
-    this->mSolutionStepIsInitialized = false;
   }
 
   //**********************************************************************
@@ -406,9 +395,7 @@ protected:
    */
   bool mCalculateReactionsFlag;
 
-  bool mSolutionStepIsInitialized;
-
-  bool mInitializeWasPerformed;
+  bool mInitializeWasPerformed = false;
 
   /*@} */
   /**@name Private Operators*/

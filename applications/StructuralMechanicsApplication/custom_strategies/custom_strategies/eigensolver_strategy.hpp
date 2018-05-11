@@ -103,8 +103,6 @@ public:
         // ensure initialization of system matrices in InitializeSolutionStep()
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
 
-        mInitializeWasPerformed = false;
-
         // default echo level (mute)
         this->SetEchoLevel(0);
 
@@ -541,7 +539,7 @@ private:
 
     SparseMatrixPointerType mpStiffnessMatrix;
 
-    bool mInitializeWasPerformed;
+    bool mInitializeWasPerformed = false;
 
     ///@}
     ///@name Private Operators

@@ -103,14 +103,9 @@ public:
         // ensure initialization of system matrices in InitializeSolutionStep()
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
 
-        mInitializeWasPerformed = false;
-
         mpForceVector = SparseSpaceType::CreateEmptyVectorPointer();
         mpModalMatrix = DenseSpaceType::CreateEmptyMatrixPointer();
 
-        mRayleighAlpha = 0.0;
-        mRayleighBeta = 0.0;
-        mSystemDamping = 0.0;
         this->SetUseMaterialDampingFlag(UseMaterialDampingFlag);
 
         // default echo level (mute)
@@ -570,17 +565,17 @@ private:
 
     BuilderAndSolverPointerType mpBuilderAndSolver;
 
-    bool mInitializeWasPerformed;
+    bool mInitializeWasPerformed = false;
 
     SparseVectorPointerType mpForceVector;
 
     DenseMatrixPointerType mpModalMatrix;
 
-    double mRayleighAlpha;
+    double mRayleighAlpha = 0.0;
 
-    double mRayleighBeta;
+    double mRayleighBeta = 0.0;
 
-    double mSystemDamping;
+    double mSystemDamping = 0.0;
 
     bool mUseMaterialDamping;
 
