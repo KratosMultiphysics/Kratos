@@ -77,8 +77,8 @@ class JsonSettingsUtility(object):
                 else:
                     raise Exception('Unsupported parameter type: ' + name)
                 origin_settings.RemoveValue(name)
-        print("end",origin_settings.PrettyPrintJsonString())
-        print("result",destination_settings.PrettyPrintJsonString())
+        #print("end",origin_settings.PrettyPrintJsonString())
+        #print("result",destination_settings.PrettyPrintJsonString())
 
     @staticmethod
     # checks and transfers mathing values (except array and subparameters)
