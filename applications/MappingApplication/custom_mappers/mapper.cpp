@@ -136,6 +136,8 @@ Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
     // ValidateParameters(MapperSettings);
     // mEchoLevel = MapperSettings["echo_level"].GetInt();
 
+    mpMapperLocalSystems = Kratos::make_shared<MapperLocalSystemPointerVector>();
+
     mpInterfacePreprocessor = std::make_unique<InterfacePreprocessor>(mrModelPartDestination,
                                                                       mpMapperLocalSystems);
     // GenerateInterfaceModelPart();
@@ -155,7 +157,12 @@ template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::Initialize()
 {
     mpMapperLocalSystems->clear();
-    // if(mpInterfacePreprocessor) mpInterfacePreprocessor->GenerateInterfaceModelPart();
+    if(mpInterfacePreprocessor)
+    {
+        MapperLocalSystemPointer p_ref_local_system;
+        // InitializeMapperLocalSystem(p_ref_local_system);
+        // mpInterfacePreprocessor->GenerateInterfaceModelPart(p_ref_local_system);
+    }
     // if(mpMappingOperationUtility) mpMappingOperationUtility->Initialize();
 }
 

@@ -67,6 +67,9 @@ public:
     /// Pointer definition of NearestNeighborMapper
     KRATOS_CLASS_POINTER_DEFINITION(NearestNeighborMapper);
 
+    using BaseType = Mapper<TSparseSpace, TDenseSpace>;
+    using MapperLocalSystemPointer = typename BaseType::MapperLocalSystemPointer;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -176,10 +179,10 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() override
-    // {
-
-    // }
+    void InitializeMapperLocalSystem(MapperLocalSystemPointer& pMapperLocalSystem) const override
+    {
+        // pMapperLocalSystem = Kratos::make_unique<NearestNeighborLocalSystem>();
+    }
 
     ///@}
     ///@name Protected  Access

@@ -22,6 +22,7 @@
 
 // Project includes
 #include "mapper.h"
+#include "nearest_element_local_system.h"
 
 
 namespace Kratos
@@ -67,7 +68,8 @@ public:
     /// Pointer definition of NearestElementMapper
     KRATOS_CLASS_POINTER_DEFINITION(NearestElementMapper);
 
-    using NodeType = MapperLocalSystem::NodeType;
+    using BaseType = Mapper<TSparseSpace, TDenseSpace>;
+    using MapperLocalSystemPointer = typename BaseType::MapperLocalSystemPointer;
 
     ///@}
     ///@name Life Cycle
@@ -188,10 +190,10 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() override
-    // {
-
-    // }
+    void InitializeMapperLocalSystem(MapperLocalSystemPointer& pMapperLocalSystem) const override
+    {
+        pMapperLocalSystem = Kratos::make_unique<NearestElementLocalSystem>();
+    }
 
     ///@}
     ///@name Protected  Access

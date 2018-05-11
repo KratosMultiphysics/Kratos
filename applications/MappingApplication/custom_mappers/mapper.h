@@ -92,14 +92,15 @@ public:
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
-    using MapperLocalSystemPointer = std::unique_ptr<MapperLocalSystem>;
-    using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<std::vector<MapperLocalSystemPointer>>;
+    using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
+    using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
+    using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
 
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
     typedef typename TSparseSpace::VectorType TSystemVectorType;
 
-    using TSystemMatrixTypeUniquePointerType = std::unique_ptr<TSystemMatrixType>;
-    using TSystemVectorTypeUniquePointerType = std::unique_ptr<TSystemVectorType>;
+    using TSystemMatrixTypeUniquePointerType = Kratos::unique_ptr<TSystemMatrixType>;
+    using TSystemVectorTypeUniquePointerType = Kratos::unique_ptr<TSystemVectorType>;
 
     ///@}
     ///@name Life Cycle
@@ -393,6 +394,8 @@ protected:
 
         mInverseMapperIsInitialized = true;
     }
+
+    virtual void InitializeMapperLocalSystem(MapperLocalSystemPointer& pMapperLocalSystem) const = 0;
 
 
     // virtual MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() = 0;

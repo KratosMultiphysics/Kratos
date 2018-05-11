@@ -13,8 +13,8 @@ class NearestElementLocalSystem : public MapperLocalSystem
     }
 
     void CalculateAll(MappingWeightsVector& rMappingWeights,
-                        OriginIdVector&       rOriginIds,
-                        DestinationIdVector&  rDestinationIds) override
+                      OriginIdVector&       rOriginIds,
+                      DestinationIdVector&  rDestinationIds) override
     {
 
     }

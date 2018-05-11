@@ -67,7 +67,7 @@ public:
     /// Pointer definition of MapperLocalSystem
     KRATOS_CLASS_POINTER_DEFINITION(MapperLocalSystem);
 
-    using MapperLocalSystemUniquePointer = std::unique_ptr<MapperLocalSystem>;
+    using MapperLocalSystemUniquePointer = Kratos::unique_ptr<MapperLocalSystem>;
     using MapperInterfaceInfoPointer = MapperInterfaceInfo::Pointer;
 
     using MappingWeightsVector = std::vector<double>;
@@ -97,8 +97,8 @@ public:
     ///@name Operations
     ///@{
 
+    // Only one of the Create functions have to be implemented, thats why they cannot be pure virtual!
     virtual MapperLocalSystemUniquePointer Create(const NodeType& rNode) const;
-
     virtual MapperLocalSystemUniquePointer Create(const GeometryType& rGeometry) const;
 
 
