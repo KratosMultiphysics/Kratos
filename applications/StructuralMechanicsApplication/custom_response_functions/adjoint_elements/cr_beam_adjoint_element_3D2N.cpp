@@ -659,7 +659,10 @@ namespace Kratos
             
             double sensitivity_wrt_A = this->GetValue(CROSS_AREA_SENSITIVITY);
 
-            double const_pseudo_load = sensitivity_wrt_A / area_lambda;
+            double const_pseudo_load = 0.0;
+            
+            if(std::abs(area_lambda) > std::numeric_limits<double>::epsilon())
+                const_pseudo_load = sensitivity_wrt_A / area_lambda;
 
             rOutput[0][0] = const_pseudo_load;
             rOutput[1][0] = const_pseudo_load;
