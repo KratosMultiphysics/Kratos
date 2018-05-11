@@ -35,13 +35,13 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
         self.input_file = "test_FSI_emulator_Structural"
 
         self.Dt = 0.1
-        self.end_time = 1.0
+        self.end_time = 0.09
 
         self.point_load_updater = 1.5
         self.initial_point_load = 10000
 
-        self.nl_tol = 1.0e-9
-        self.max_nl_it = 50
+        self.nl_tol = 1.0e-8
+        self.max_nl_it = 10
         self.initial_relaxation = 0.825
 
     def tearDown(self):
