@@ -23,7 +23,6 @@
 #include "includes/model_part.h"
 #include "meshing_application.h"
 #include "includes/kratos_parameters.h"
-#include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/process_factory_utility.h"
 // Processes
@@ -68,7 +67,8 @@ namespace Kratos
  * @author Anna Rehr
  */
 template<class TSparseSpace, class TDenseSpace>
-class ErrorMeshCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class ErrorMeshCriteria
+    : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
@@ -352,12 +352,14 @@ private:
             FindNodalHProcess find_nodal_h_process = FindNodalHProcess(rModelPart);
             find_nodal_h_process.Execute();
 
-            // Processes initialization
-            mpMyProcesses->ExecuteInitialize();
-            // Processes before the loop
-            mpMyProcesses->ExecuteBeforeSolutionLoop();
-            // Processes of initialize the solution step
-            mpMyProcesses->ExecuteInitializeSolutionStep();
+            if (mpMyProcesses != nullptr) {
+                // Processes initialization
+                mpMyProcesses->ExecuteInitialize();
+                // Processes before the loop
+                mpMyProcesses->ExecuteBeforeSolutionLoop();
+                // Processes of initialize the solution step
+                mpMyProcesses->ExecuteInitializeSolutionStep();
+            }
 
             // We reset the model part as modified
             rModelPart.Set(MODIFIED, false);
