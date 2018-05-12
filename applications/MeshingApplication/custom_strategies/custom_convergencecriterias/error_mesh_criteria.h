@@ -120,10 +120,10 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "error_mesh_tolerance" : 1.0e-3,
-            "error_mesh_constant" : 1.0e-3,
-            "remeshing_utility"   : "MMG",
-            "strategy"            : "Error",
-            "remeshing_parameters": 
+            "error_mesh_constant"  : 1.0e-3,
+            "remeshing_utility"    : "MMG",
+            "strategy"             : "Error",
+            "remeshing_parameters" :
             {
                 "filename"                             : "out",
                 "framework"                            : "Lagrangian",
@@ -175,7 +175,7 @@ public:
 
     /**
      * @brief This function initialize the convergence criteria
-     * @param rModelPart: The model part of interest
+     * @param rModelPart The model part of interest
      */
     void Initialize(ModelPart& rModelPart) override
     {
@@ -193,7 +193,7 @@ public:
 
     /**
      * @brief Compute relative and absolute error.
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
      * @param Dx Vector of results (variations on nodal variables)
@@ -209,64 +209,7 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        // Computing metric
-        // We initialize the check
-        const double check_threshold = 0.21;
-        double estimated_error = 0;
-        if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
-            SPRMetricProcess<2> ComputeMetric = SPRMetricProcess<2>(rModelPart, mThisParameters["error_strategy_parameters"]);
-            ComputeMetric.Execute();
-        } else {
-            SPRMetricProcess<3> ComputeMetric = SPRMetricProcess<3>(rModelPart, mThisParameters["error_strategy_parameters"]);
-            ComputeMetric.Execute();
-        }
-
-        // We get the estimated error
-        estimated_error = rModelPart.GetProcessInfo()[ERROR_ESTIMATE];
-
-        // We check if converged
-        const bool converged_error = (estimated_error > check_threshold) ? false : true;
-
-        if (converged_error) {
-            KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) << "The error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << "0.12" << ". No remeshing required" << std::endl;
-        } else {
-            KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-            << "The error due to the mesh size: " << estimated_error << " is bigger than the tolerance prescribed: " << "0.12" << ". Remeshing required" << std::endl
-            << "AVERAGE_NODAL_ERROR: " << rModelPart.GetProcessInfo()[AVERAGE_NODAL_ERROR] << std::endl;
-            
-            // Remeshing
-            if (mRemeshingUtilities == RemeshingUtilities::MMG) {
-            #ifdef INCLUDE_MMG
-                if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
-                    MmgProcess<2> MmgRemesh = MmgProcess<2>(rModelPart, mThisParameters["remeshing_parameters"]);
-                    MmgRemesh.Execute();
-                } else {
-                    MmgProcess<3> MmgRemesh = MmgProcess<3>(rModelPart, mThisParameters["remeshing_parameters"]);
-                    MmgRemesh.Execute();
-                }
-            #else
-                KRATOS_ERROR << "Please compile with MMG to use this utility" << std::endl;
-            #endif
-            } else {
-                KRATOS_ERROR << "Not an alternative utility" << std::endl;
-            }
-            
-            // We set the model part as modified
-            rModelPart.Set(MODIFIED, true);
-            
-            FindNodalHProcess find_nodal_h_process = FindNodalHProcess(rModelPart);
-            find_nodal_h_process.Execute();
-            
-            // Processes initialization
-            mpMyProcesses->ExecuteInitialize();
-            // Processes before the loop
-            mpMyProcesses->ExecuteBeforeSolutionLoop();
-            // Processes of initialize the solution step
-            mpMyProcesses->ExecuteInitializeSolutionStep();
-
-            // We reset the model part as modified
-            rModelPart.Set(MODIFIED, false);
-        }
+        const bool converged_error = ComputeRemesh(rModelPart);
         
         return converged_error;
     }
@@ -302,7 +245,7 @@ protected:
 
     /**
      * @brief This converts the remehing utility string to an enum
-     * @param str: The string that you want to comvert in the equivalent enum
+     * @param str The string that you want to comvert in the equivalent enum
      * @return RemeshingUtilities: The equivalent enum (this requires less memmory than a std::string)
      */
     RemeshingUtilities ConvertRemeshUtil(const std::string& str)
@@ -355,6 +298,73 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This process computes the remeshing depending of the error
+     * @param rModelPart The model part of interest
+     * @return True if converged, false otherwise
+     */
+    bool ComputeRemesh(ModelPart& rModelPart)
+    {
+        // Computing metric
+        double estimated_error = 0;
+        if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
+            SPRMetricProcess<2> ComputeMetric = SPRMetricProcess<2>(rModelPart, mThisParameters["error_strategy_parameters"]);
+            ComputeMetric.Execute();
+        } else {
+            SPRMetricProcess<3> ComputeMetric = SPRMetricProcess<3>(rModelPart, mThisParameters["error_strategy_parameters"]);
+            ComputeMetric.Execute();
+        }
+
+        // We get the estimated error
+        estimated_error = rModelPart.GetProcessInfo()[ERROR_ESTIMATE];
+
+        // We check if converged
+        const bool converged_error = (estimated_error > mErrorTolerance) ? false : true;
+
+        if (converged_error) {
+            KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) << "The error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << mErrorTolerance << ". No remeshing required" << std::endl;
+        } else {
+            KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
+            << "The error due to the mesh size: " << estimated_error << " is bigger than the tolerance prescribed: " << mErrorTolerance << ". Remeshing required" << std::endl
+            << "AVERAGE_NODAL_ERROR: " << rModelPart.GetProcessInfo()[AVERAGE_NODAL_ERROR] << std::endl;
+
+            // Remeshing
+            if (mRemeshingUtilities == RemeshingUtilities::MMG) {
+            #ifdef INCLUDE_MMG
+                if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
+                    MmgProcess<2> MmgRemesh = MmgProcess<2>(rModelPart, mThisParameters["remeshing_parameters"]);
+                    MmgRemesh.Execute();
+                } else {
+                    MmgProcess<3> MmgRemesh = MmgProcess<3>(rModelPart, mThisParameters["remeshing_parameters"]);
+                    MmgRemesh.Execute();
+                }
+            #else
+                KRATOS_ERROR << "Please compile with MMG to use this utility" << std::endl;
+            #endif
+            } else {
+                KRATOS_ERROR << "Not an alternative utility" << std::endl;
+            }
+
+            // We set the model part as modified
+            rModelPart.Set(MODIFIED, true);
+
+            FindNodalHProcess find_nodal_h_process = FindNodalHProcess(rModelPart);
+            find_nodal_h_process.Execute();
+
+            // Processes initialization
+            mpMyProcesses->ExecuteInitialize();
+            // Processes before the loop
+            mpMyProcesses->ExecuteBeforeSolutionLoop();
+            // Processes of initialize the solution step
+            mpMyProcesses->ExecuteInitializeSolutionStep();
+
+            // We reset the model part as modified
+            rModelPart.Set(MODIFIED, false);
+        }
+
+        return converged_error;
+    }
 
     ///@}
     ///@name Private  Access
