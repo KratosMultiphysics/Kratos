@@ -19,7 +19,7 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/ale_variables.h"
+#include "includes/mesh_moving_variables.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"

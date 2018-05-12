@@ -35,10 +35,10 @@
                 "matrix_free_filtering"      : true
             },
             "mesh_motion" : {
-                "apply_ale_mesh_solver" : true,
+                "apply_mesh_solver" : true,
                 "solver_settings" : {
                     "solver_type": "mesh_solver_structural_similarity",
-                    "ale_linear_solver_settings"  : {
+                    "mesh_motion_linear_solver_settings"  : {
                         "solver_type"         : "AMGCL",
                         "max_iteration"       : 500,
                         "tolerance"           : 1e-7,

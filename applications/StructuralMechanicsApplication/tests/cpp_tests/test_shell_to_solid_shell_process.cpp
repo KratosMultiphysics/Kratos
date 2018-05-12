@@ -92,7 +92,7 @@ namespace Kratos
         * Test 1 layer
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess1, KratosShellToSolidShellProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess1, KratosStructuralMechanicsFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -121,7 +121,7 @@ namespace Kratos
         * Test 2 layer
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess2, KratosShellToSolidShellProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess2, KratosStructuralMechanicsFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);

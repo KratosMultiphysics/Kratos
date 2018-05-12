@@ -23,9 +23,9 @@ namespace Kratos
 {
 
 class KRATOS_API(DEM_APPLICATION) DEMFEMUtilities {
-    
-    
-    
+
+
+
     public:
 
     typedef ModelPart::ConditionType                                  ConditionType;
@@ -44,14 +44,14 @@ class KRATOS_API(DEM_APPLICATION) DEMFEMUtilities {
     /// Destructor
 
     virtual ~DEMFEMUtilities();
-    
+
     void ChangeMeshVelocity(ModelPart& r_model_part, std::string id, array_1d<double, 3> linear_velocity);
-      
+
     void MoveAllMeshes(ModelPart& r_model_part, double time, double dt);
     void MoveAllMeshesUsingATable(ModelPart& r_model_part, double time, double dt);
 
     void CreateRigidFacesFromAllElements(ModelPart& r_model_part, PropertiesType::Pointer pProps);
-        
+
     /// Turn back information as a string
     virtual std::string Info() const;
 
@@ -63,10 +63,10 @@ class KRATOS_API(DEM_APPLICATION) DEMFEMUtilities {
 
     protected:
 
-        vector<unsigned int> mElementPartition;
+        DenseVector<unsigned int> mElementPartition;
 
     private:
-        
+
         array_1d<double, 3> mInitialCenterOfMassAndMass;
         double mInitialMass;
 

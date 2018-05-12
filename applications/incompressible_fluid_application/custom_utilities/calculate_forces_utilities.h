@@ -78,7 +78,7 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    //calculates the ale spatial acceleration, taking in account both the spatial and the time dependent
+    //calculates the mesh motion spatial acceleration, taking in account both the spatial and the time dependent
     //componenents acc = (v-vm)*dv/dx
     void CalculateForces3D(ModelPart& ThisModelPart)
     {
@@ -238,7 +238,7 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    //calculates the ale spatial acceleration, taking in account both the spatial and the time dependent
+    //calculates the mesh motion spatial acceleration, taking in account both the spatial and the time dependent
     //componenents acc = (v-vm)*dv/dx
     void CalculateForces2D(ModelPart& ThisModelPart)
     {
@@ -393,7 +393,7 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    //calculates the ale spatial acceleration, taking in account both the spatial and the time dependent
+    //calculates the mesh motion spatial acceleration, taking in account both the spatial and the time dependent
     //componenents acc = (v-vm)*dv/dx
     void CalculatePressureForces2D(ModelPart& ThisModelPart)
     {
@@ -553,6 +553,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CALCULATE_FORCE_UTILITIES_INCLUDED  defined 
+#endif // KRATOS_CALCULATE_FORCE_UTILITIES_INCLUDED  defined
 
 
