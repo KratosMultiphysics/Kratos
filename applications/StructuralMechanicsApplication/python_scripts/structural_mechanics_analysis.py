@@ -175,6 +175,11 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         for process in self.list_of_processes:
             process.ExecuteInitialize()
 
+        ## Add the processes to the solver
+        self.solver.AddProcessesList(self.list_of_processes)
+        if (self.output_post is True):
+            self.solver.AddPostProcess(self.gid_output)
+
         ## Solver initialization
         self.solver.Initialize()
 
