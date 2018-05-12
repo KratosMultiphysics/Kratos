@@ -11,17 +11,23 @@
 //  Co-author   :    Vicente Mataix Ferrandiz
 //
 
+// System includes
+
+// External includes
+
 // Project includes
 #include "custom_processes/metrics_spr_error_process.h"
+#include "linear_solvers/skyline_lu_factorization_solver.h"
 
 namespace Kratos
 {
 template<SizeType TDim>
 SPRMetricProcess<TDim>::SPRMetricProcess(
     ModelPart& rThisModelPart,
-    Parameters ThisParameters
-    )
-    :mThisModelPart(rThisModelPart)
+    Parameters ThisParameters,
+    LinearSolverType::Pointer pLinearSolver
+    ): mThisModelPart(rThisModelPart),
+       mpLinearSolver(pLinearSolver)
 {               
     Parameters default_parameters = Parameters(R"(
     {
@@ -50,7 +56,11 @@ SPRMetricProcess<TDim>::SPRMetricProcess(
     mTargetError = ThisParameters["error"].GetDouble();
     mAverageNodalH = ThisParameters["average_nodal_h"].GetBool();
 
-//     SkylineLUFactorizationSolver< UblasSpace<double,CompressedMatrix,Vector>, UblasSpace<double,Matrix,Vector>> solver = SkylineLUFactorizationSolver< UblasSpace<double,CompressedMatrix,Vector>, UblasSpace<double,Matrix,Vector>>();
+    // Creating a default solver in case none assigned
+    if (mpLinearSolver == nullptr) {
+       typedef SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType> SkylineLUFactorizationSolverType;
+       mpLinearSolver = Kratos::make_shared<SkylineLUFactorizationSolverType>();
+    }
 }
     
 /***********************************************************************************/
@@ -522,13 +532,11 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 //     }
 
     // Computing coefficients a: A*a=b
-    SkylineLUFactorizationSolver< UblasSpace<double,CompressedMatrix,Vector>, UblasSpace<double,Matrix,Vector>> solver = SkylineLUFactorizationSolver< UblasSpace<double,CompressedMatrix,Vector>, UblasSpace<double,Matrix,Vector>>();
-
     KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3) << A << std::endl;
     
     Vector coeff(mSigmaSize*(TDim+1));
     Vector b_vector = MatrixColumn(b,0);
-    solver.Solve(A,coeff,b_vector);
+    mpLinearSolver->Solve(A,coeff,b_vector);
 
     for (IndexType j = 0; j < mSigmaSize;++j){
         p_k(j,j*(TDim + 1) + 1)= itNode->X() - itPatchNode->X();
@@ -559,7 +567,7 @@ void SPRMetricProcess<TDim>::ComputeElementSize(ElementItType itElement)
     if (this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3){ // Triangular elements
         itElement->SetValue(ELEMENT_H, 2.0 * this_geometry.Circumradius());
     } else if(this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4){ // Tetrahedral elements
-        itElement->SetValue(ELEMENT_H,std::pow(12.0 * GeometryUtils::CalculateVolume3D(this_geometry)/std::sqrt(2.0), 1.0/3.0));
+        itElement->SetValue(ELEMENT_H,std::pow(12.0 * this_geometry.Volume()/std::sqrt(2.0), 1.0/3.0));
     }
 }
 

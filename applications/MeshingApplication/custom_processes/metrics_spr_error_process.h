@@ -14,17 +14,21 @@
 #if !defined(KRATOS_SPR_ERROR_METRICS_PROCESS)
 #define KRATOS_SPR_ERROR_METRICS_PROCESS
 
+// System includes
+#include <omp.h>
+
+// External includes
+
 // Project includes
-#include "utilities/math_utils.h"
-#include "custom_utilities/metrics_math_utils.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
 #include "meshing_application.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "spaces/ublas_space.h"
-#include "utilities/geometry_utilities.h"
+#include "linear_solvers/linear_solver.h"
+#include "utilities/math_utils.h"
+#include "custom_utilities/metrics_math_utils.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -34,15 +38,31 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    /// Containers definition
     typedef ModelPart::NodesContainerType                                     NodesArrayType;
     typedef ModelPart::ElementsContainerType                               ElementsArrayType;
     typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
+
+    /// The definition of the node type
     typedef Node <3>                                                                NodeType;
+
+    /// Definition of the iterators
     typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
     typedef NodesArrayType::iterator                                              NodeItType;
     typedef ElementsArrayType::iterator                                        ElementItType;
+
+    /// Definition of the indextype
     typedef std::size_t                                                            IndexType;
+
+    /// Definition of the size type
     typedef std::size_t                                                             SizeType;
+
+    /// Definition of the spaces
+    typedef UblasSpace<double, CompressedMatrix, Vector>                     SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector>                                LocalSpaceType;
+
+    /// The definition of linear solvers
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType>                   LinearSolverType;
     
 ///@}
 ///@name  Enum's
@@ -89,7 +109,8 @@ public:
     
     SPRMetricProcess(
         ModelPart& rThisModelPart,
-        Parameters ThisParameters = Parameters(R"({})")
+        Parameters ThisParameters = Parameters(R"({})"),
+        LinearSolverType::Pointer pLinearSolver = nullptr
         );
     
     /// Destructor.
@@ -190,17 +211,23 @@ private:
     ///@name Private member Variables
     ///@{
     
-    ModelPart& mThisModelPart;               // The model part to compute
-    double mMinSize;                         // The minimal size of the elements
-    double mMaxSize;                         // The maximal size of the elements
-    double mPenaltyNormal;                   // The normal penalty
-    double mPenaltyTangent;                  // The tangent penalty
-    int mEchoLevel;                          // The echo level 
-    SizeType mSigmaSize;                 // The size of the stress vector (Voigt Notation)
-    bool mSetElementNumber;                  // Determines if a target number of elements for the new mesh is set
-    SizeType mElementNumber;             // The target number of elements for the new mesh
-    double mTargetError;                     // The overall target error for the new mesh
-    bool mAverageNodalH;                     // Determines if the nodal h is averaged from the surrounding elements or if the lowest value is taken
+    ModelPart& mThisModelPart;                /// The model part to compute
+
+    double mMinSize;                          /// The minimal size of the elements
+    double mMaxSize;                          /// The maximal size of the elements
+
+    double mPenaltyNormal;                    /// The normal penalty
+    double mPenaltyTangent;                   /// The tangent penalty
+
+    SizeType mEchoLevel;                      /// The echo level
+
+    SizeType mSigmaSize;                      /// The size of the stress vector (Voigt Notation)
+    bool mSetElementNumber;                   /// Determines if a target number of elements for the new mesh is set
+    SizeType mElementNumber;                  /// The target number of elements for the new mesh
+    double mTargetError;                      /// The overall target error for the new mesh
+    bool mAverageNodalH;                      /// Determines if the nodal h is averaged from the surrounding elements or if the lowest value is taken
+
+    LinearSolverType::Pointer mpLinearSolver; /// The linear solver considered
     
     ///@}
     ///@name Private Operators
@@ -222,7 +249,8 @@ private:
         NodeItType itNode,
         NodeItType itPatchNode,
         SizeType NeighbourSize,
-        Vector& rSigmaRecovered);
+        Vector& rSigmaRecovered
+        );
 
     /** Calculates the recovered stress at a node in the case of a standard patch without contact BC
     * @param itNode the node for which the recovered stress should be calculated
@@ -232,7 +260,8 @@ private:
         NodeItType itNode,
         NodeItType itPatchNode,
         SizeType NeighbourSize,
-        Vector& rSigmaRecovered);
+        Vector& rSigmaRecovered
+        );
 
     /**
      * It calculates the recovered stress at a node where contact BCs are regarded
@@ -243,7 +272,8 @@ private:
         NodeItType itNode,
         NodeItType itPatchNode,
         SizeType NeighbourSize,
-        Vector& rSigmaRecovered);
+        Vector& rSigmaRecovered
+        );
 
     /**
      * Sets the element size
