@@ -179,7 +179,25 @@ public:
     ///@{
 
     /**
-     * Compute relative and absolute error.
+     * @brief This function initialize the convergence criteria
+     * @param rModelPart: The model part of interest
+     */
+    void Initialize(ModelPart& rModelPart) override
+    {
+        BaseType::Initialize(rModelPart);
+
+        // Initialize metrics
+        if (mDimension == 2) {
+            MetricFastInit<2> MetricInit = MetricFastInit<2>(mThisModelPart);
+            MetricInit.Execute();
+        } else {
+            MetricFastInit<3> MetricInit = MetricFastInit<3>(mThisModelPart);
+            MetricInit.Execute();
+        }
+    }
+
+    /**
+     * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -201,18 +219,15 @@ public:
         const double check_threshold = 0.21;
         double estimated_error = 0;
         if (mDimension == 2) {
-            MetricFastInit<2> MetricInit = MetricFastInit<2>(mThisModelPart);
-            MetricInit.Execute();           
             SPRMetricProcess<2> ComputeMetric = SPRMetricProcess<2>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
             ComputeMetric.Execute();
-            estimated_error = mThisModelPart.GetProcessInfo()[ERROR_ESTIMATE];
         } else {
-            MetricFastInit<3> MetricInit = MetricFastInit<3>(mThisModelPart);
-            MetricInit.Execute();
             SPRMetricProcess<3> ComputeMetric = SPRMetricProcess<3>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
             ComputeMetric.Execute();
-            estimated_error = mThisModelPart.GetProcessInfo()[ERROR_ESTIMATE];
         }
+
+        // We get the estimated error
+        estimated_error = mThisModelPart.GetProcessInfo()[ERROR_ESTIMATE];
 
         // We check if converged
         const bool converged_error = (estimated_error > check_threshold) ? false : true;
@@ -259,16 +274,6 @@ public:
         }
         
         return converged_error;
-    }
-    
-    /**
-     * This function initialize the convergence criteria
-     * @param rModelPart: The model part of interest
-     */ 
-    
-    void Initialize(ModelPart& rModelPart) override
-    {
-        BaseType::mConvergenceCriteriaIsInitialized = true;
     }
 
     ///@}
