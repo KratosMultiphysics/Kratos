@@ -28,6 +28,8 @@
 #include "custom_processes/internal_variables_interpolation_process.h"
 // #include "custom_processes/set_h_map_process.h"
 // #include "custom_processes/embedded_mesh_locator_process.h"
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
 
 #ifdef INCLUDE_MMG
 #include "custom_processes/mmg_process.h"
@@ -41,7 +43,14 @@ namespace Python
     using namespace pybind11;
     
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-        
+
+    /// Definition of the spaces
+    typedef UblasSpace<double, CompressedMatrix, Vector>                     SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector>                                LocalSpaceType;
+
+    /// The definition of linear solvers
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType>                   LinearSolverType;
+
 void  AddProcessesToPython(pybind11::module& m)
 {
 
@@ -127,12 +136,14 @@ void  AddProcessesToPython(pybind11::module& m)
         class_<SPRMetricProcess<2>, Process >(m, "SPRMetricProcess2D")
         .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
+        .def(init<ModelPart&, Parameters, LinearSolverType::Pointer>())
         .def("Execute",&SPRMetricProcess<2>::Execute)
         ;
 
         class_<SPRMetricProcess<3>, Process >(m, "SPRMetricProcess3D")
         .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
+        .def(init<ModelPart&, Parameters, LinearSolverType::Pointer>())
         .def("Execute",&SPRMetricProcess<3>::Execute)
         ;
         
