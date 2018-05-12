@@ -118,7 +118,6 @@ public:
           mThisModelPart(rThisModelPart),
           mDimension(rThisModelPart.GetProcessInfo()[DOMAIN_SIZE]),
           mThisParameters(ThisParameters),
-          mFindNodalH(FindNodalHProcess(mThisModelPart)),
           mpMyProcesses(pMyProcesses)
     {
         Parameters default_parameters = Parameters(R"(
@@ -199,7 +198,7 @@ public:
     {
         // Computing metric
         // We initialize the check
-        bool converged_error = true;
+        const double check_threshold = 0.21;
         double estimated_error = 0;
         if (mDimension == 2) {
             MetricFastInit<2> MetricInit = MetricFastInit<2>(mThisModelPart);
@@ -214,11 +213,11 @@ public:
             ComputeMetric.Execute();
             estimated_error = mThisModelPart.GetProcessInfo()[ERROR_ESTIMATE];
         }
-        if (estimated_error > 0.21) {
-            converged_error = false;
-        }
-    
-        if (converged_error == true) {
+
+        // We check if converged
+        const bool converged_error = (estimated_error > check_threshold) ? false : true;
+
+        if (converged_error) {
             KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) << "The error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << "0.12" << ". No remeshing required" << std::endl;
         } else {
             KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
@@ -245,7 +244,8 @@ public:
             // We set the model part as modified
             rModelPart.Set(MODIFIED, true);
             
-            mFindNodalH.Execute();
+            FindNodalHProcess find_nodal_h_process = FindNodalHProcess(mThisModelPart);
+            find_nodal_h_process.Execute();
             
             // Processes initialization
             mpMyProcesses->ExecuteInitialize();
@@ -339,17 +339,16 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mThisModelPart;                 // The model part where the refinement is computed
-    const unsigned int mDimension;             // The dimension of the problem
-    Parameters mThisParameters;                // The parameters
+    ModelPart& mThisModelPart;                 /// The model part where the refinement is computed
+    const SizeType mDimension;                 /// The dimension of the problem
+    Parameters mThisParameters;                /// The parameters
     
-    FindNodalHProcess mFindNodalH;             // The process to copmpute NODAL_H
-    RemeshingUtilities mRemeshingUtilities;    // The remeshing utilities to use
+    RemeshingUtilities mRemeshingUtilities;    /// The remeshing utilities to use
     
-    double mErrorTolerance;                    // The error tolerance considered
-    double mConstantError;                     // The constant considered in the remeshing process
+    double mErrorTolerance;                    /// The error tolerance considered
+    double mConstantError;                     /// The constant considered in the remeshing process
     
-    ProcessesListType mpMyProcesses;           // The processes list
+    ProcessesListType mpMyProcesses;           /// The processes list
     
     ///@}
     ///@name Private Operators
