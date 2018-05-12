@@ -111,11 +111,13 @@ public:
     /// Default constructors
     ErrorMeshCriteria(
         Parameters ThisParameters = Parameters(R"({})"),
-        ProcessesListType pMyProcesses = nullptr
+        ProcessesListType pMyProcesses = nullptr,
+        ProcessesListType pMyPostProcesses = nullptr
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mThisParameters(ThisParameters),
-          mpMyProcesses(pMyProcesses)
+          mpMyProcesses(pMyProcesses),
+          mpMyPostProcesses(pMyPostProcesses)
     {
         Parameters default_parameters = Parameters(R"(
         {
@@ -290,6 +292,7 @@ private:
     double mConstantError;                     /// The constant considered in the remeshing process
     
     ProcessesListType mpMyProcesses;           /// The processes list
+    ProcessesListType mpMyPostProcesses;       /// The post-processes list
     
     ///@}
     ///@name Private Operators
@@ -352,14 +355,26 @@ private:
             FindNodalHProcess find_nodal_h_process = FindNodalHProcess(rModelPart);
             find_nodal_h_process.Execute();
 
-            if (mpMyProcesses != nullptr) {
-                // Processes initialization
+            const bool has_processes = mpMyProcesses != nullptr ? true : false;
+//             const bool has_post_processes = mpMyPostProcesses != nullptr ? true : false;
+
+            // Processes initialization
+            if (has_processes)
                 mpMyProcesses->ExecuteInitialize();
-                // Processes before the loop
+//             if (has_post_processes)
+//                 mpMyPostProcesses->ExecuteInitialize();
+
+            // Processes before the loop
+            if (has_processes)
                 mpMyProcesses->ExecuteBeforeSolutionLoop();
-                // Processes of initialize the solution step
+//             if (has_post_processes)
+//                 mpMyPostProcesses->ExecuteBeforeSolutionLoop();
+
+            // Processes of initialize the solution step
+            if (has_processes)
                 mpMyProcesses->ExecuteInitializeSolutionStep();
-            }
+//             if (has_post_processes)
+//                 mpMyPostProcesses->ExecuteInitializeSolutionStep();
 
             // We reset the model part as modified
             rModelPart.Set(MODIFIED, false);

@@ -78,6 +78,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     class_< ErrorMeshCriteriaType, typename ErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ErrorMeshCriteria")
         .def(init<Parameters>())
         .def(init<Parameters, ProcessesListType>())
+        .def(init<Parameters, ProcessesListType, ProcessesListType>())
         ;
 #endif
             
