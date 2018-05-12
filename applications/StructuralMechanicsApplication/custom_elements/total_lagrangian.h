@@ -81,9 +81,6 @@ public:
     TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
     TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    /// Destructor.
-    ~TotalLagrangian() override;
-
     ///@}
     ///@name Operators
     ///@{

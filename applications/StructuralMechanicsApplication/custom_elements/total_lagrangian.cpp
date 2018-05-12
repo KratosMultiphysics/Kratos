@@ -51,13 +51,6 @@ Element::Pointer TotalLagrangian::Create( IndexType NewId, NodesArrayType const&
 /***********************************************************************************/
 /***********************************************************************************/
 
-TotalLagrangian::~TotalLagrangian()
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void TotalLagrangian::CalculateAll( 
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -76,27 +69,22 @@ void TotalLagrangian::CalculateAll(
 
     LargeDisplacementDeformationVariables deformation_vars(r_geom, IsAxisymmetric());
     ConstitutiveVariables cl_vars(GetStrainSize());
-    Vector N, body_force;
     for (unsigned int g = 0; g < r_geom.IntegrationPointsNumber(); ++g)
     {
         double weight = GetIntegrationWeight(r_geom.IntegrationPoints(), g, deformation_vars.DetJ0(g)); 
         CalculateStressAndConstitutiveMatrix(deformation_vars, g, cl_vars, rCurrentProcessInfo);
         if (CalculateStiffnessMatrixFlag == true)
             CalculateStiffnessMatrix(deformation_vars, cl_vars, g, weight, rLeftHandSideMatrix);
-
         if (CalculateResidualVectorFlag == true)
-        {
-            N = row(r_geom.ShapeFunctionsValues(), g);
-            body_force = this->GetBodyForce(r_geom.IntegrationPoints(), g);
-            this->CalculateAndAddResidualVector(
-                rRightHandSideVector, N, deformation_vars.B(g),
-                rCurrentProcessInfo, body_force, cl_vars.StressVector, weight);
-        }
+            CalculateAndAddResidualVector(
+                rRightHandSideVector, row(r_geom.ShapeFunctionsValues(), g),
+                deformation_vars.B(g), rCurrentProcessInfo,
+                GetBodyForce(r_geom.IntegrationPoints(), g), cl_vars.StressVector, weight);
     }
     KRATOS_CATCH("")
 }
 
-// This function is deprecated and is only implemented for compatibility with base solid element.
+// This function is implemented for compatibility with base solid element.
 void TotalLagrangian::CalculateKinematicVariables(KinematicVariables& rThisKinematicVariables,
                                                   const unsigned int PointNumber,
                                                   const GeometryType::IntegrationMethod& rIntegrationMethod)
