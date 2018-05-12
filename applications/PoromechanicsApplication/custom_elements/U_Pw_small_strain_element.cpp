@@ -445,6 +445,89 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPDamage ()
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+template< >
+void UPwSmallStrainElement<2,4>::ExtrapolateGPDamage ()
+{
+    KRATOS_TRY
+
+    // Triangle_2d_3 with GI_GAUSS_1
+
+    double DamageContainer = 0.0;
+    DamageContainer = mConstitutiveLawVector[0]->GetValue( DAMAGE_VARIABLE, DamageContainer );
+
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area();
+
+    array_1d<double,3> NodalDamage; //List with damage at each node
+
+    for(unsigned int i = 0; i < 3; i++) //NumNodes
+    {
+        NodalDamage[i] = DamageContainer*Area;
+
+        rGeom[i].SetLock();
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+
+    KRATOS_CATCH( "" )
+
+    KRATOS_TRY
+
+    // Quadrilateral_2d_4 with GI_GAUSS_2
+
+    GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+    std::vector<double> DamageContainer(NumGPoints);
+
+    double DamageContainer = 0.0;
+    DamageContainer = mConstitutiveLawVector[0]->GetValue( DAMAGE_VARIABLE, DamageContainer );
+
+
+    const double& Area = rGeom.Area();
+
+    array_1d<Vector,4> NodalStressVector; //List with stresses at each node
+    array_1d<Matrix,4> NodalStressTensor;
+
+    for(unsigned int Node = 0; Node < 4; Node ++)
+    {
+        NodalStressVector[Node].resize(VoigtSize);
+        NodalStressTensor[Node].resize(2,2);
+    }
+
+    BoundedMatrix<double,4,4> ExtrapolationMatrix;
+    ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+
+    BoundedMatrix<double,4,3> AuxNodalStress;
+    noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
+
+    /* INFO:
+        *
+        *                  |S0-0 S1-0 S2-0|
+        * AuxNodalStress = |S0-1 S1-1 S2-1|
+        *                  |S0-2 S1-2 S2-2|
+        *                  |S0-3 S1-3 S2-3|
+        *
+        * S1-0 = S[1] at node 0
+    */
+
+    for(unsigned int i = 0; i < 4; i++) //TNumNodes
+    {
+        noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
+        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
+
+        rGeom[i].SetLock();
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+
+    KRATOS_CATCH( "" )
+
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 //TODO: seguir
 
 
