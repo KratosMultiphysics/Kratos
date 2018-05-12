@@ -1113,12 +1113,12 @@ void BaseSolidElement::CalculateAll(
 //***********************************************************************
 
 double BaseSolidElement::GetIntegrationWeight(
-    const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
+    const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
     const unsigned int point_number,
     const double detJ
     )
 {
-    return ThisIntegrationMethod[point_number].Weight() * detJ;
+    return rThisIntegrationPoints[point_number].Weight() * detJ;
 }
 
 /***********************************************************************************/

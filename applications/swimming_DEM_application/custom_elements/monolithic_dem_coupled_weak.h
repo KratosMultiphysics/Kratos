@@ -134,7 +134,7 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
-class MonolithicDEMCoupledWeak : public Element
+class KRATOS_API(SWIMMING_DEM_APPLICATION) MonolithicDEMCoupledWeak : public Element
 {
 public:
     ///@name Type Definitions

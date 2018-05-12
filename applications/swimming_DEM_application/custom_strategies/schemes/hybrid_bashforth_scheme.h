@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class HybridBashforthScheme : public SymplecticEulerScheme {
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) HybridBashforthScheme : public SymplecticEulerScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
