@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_processes/metrics_spr_error_process.h"
+#include "utilities/variable_utils.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 
 namespace Kratos
@@ -69,6 +70,11 @@ SPRMetricProcess<TDim>::SPRMetricProcess(
 template<SizeType TDim>
 void SPRMetricProcess<TDim>::Execute()
 {
+    // Some initializations
+    const double tolerance = std::numeric_limits<double>::epsilon();
+    VariableUtils().SetNonHistoricalVariable(ELEMENT_ERROR, 0.0, mThisModelPart.Elements());
+    VariableUtils().SetNonHistoricalVariable(ELEMENT_H, 0.0, mThisModelPart.Elements());
+
     /************************************************************************
     --1-- Calculate superconvergent stresses (at the nodes) --1--
     ************************************************************************/
@@ -94,7 +100,7 @@ void SPRMetricProcess<TDim>::Execute()
             KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Recovered sigma: " << sigma_recovered << std::endl;
         } else {
             auto& neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
-            for(auto it_neighbour_nodes = neigh_nodes.begin(); it_neighbour_nodes != neigh_nodes.end(); it_neighbour_nodes++){
+            for(auto it_neighbour_nodes = neigh_nodes.begin(); it_neighbour_nodes != neigh_nodes.end(); it_neighbour_nodes++) {
                 
                 Vector sigma_recovered_i(mSigmaSize,0);
                 
@@ -120,12 +126,12 @@ void SPRMetricProcess<TDim>::Execute()
     /******************************************************************************
     --2-- calculate error estimation and new element size (for each element) --2--
     ******************************************************************************/
-    //loop over all elements: 
+    // Loop over all elements:
     double error_overall = 0.0;
     double energy_norm_overall = 0.0;
 
     ElementsArrayType& elements_array = mThisModelPart.Elements();
-    int num_elem = elements_array.end() - elements_array.begin();
+    const int num_elem = static_cast<int>(elements_array.size());
     
     // Compute the error estimate per element
     #pragma omp parallel for
@@ -147,16 +153,18 @@ void SPRMetricProcess<TDim>::Execute()
         
         KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Element error: " << error_energy_norm << std::endl;
 
-        std::vector<double> strain_energy;
-        it_elem->GetValueOnIntegrationPoints(STRAIN_ENERGY, strain_energy, process_info);
-        
-        double energy_norm = 0.0;
-        for(IndexType i = 0;i < strain_energy.size(); ++i)
-            energy_norm += 2.0 * strain_energy[i];
-        energy_norm_overall += energy_norm;
-        energy_norm= std::sqrt(energy_norm);
-        
-        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Energy norm: " << energy_norm << std::endl;
+        if (mEchoLevel > 2) {
+            std::vector<double> strain_energy;
+            it_elem->GetValueOnIntegrationPoints(STRAIN_ENERGY, strain_energy, process_info);
+
+            double energy_norm = 0.0;
+            for(IndexType i = 0;i < strain_energy.size(); ++i)
+                energy_norm += 2.0 * strain_energy[i];
+            energy_norm_overall += energy_norm;
+            energy_norm= std::sqrt(energy_norm);
+
+            KRATOS_INFO("SPRMetricProcess") << "Energy norm: " << energy_norm << std::endl;
+        }
     }
     
     error_overall = std::sqrt(error_overall);
@@ -174,16 +182,17 @@ void SPRMetricProcess<TDim>::Execute()
         auto it_elem = elements_array.begin() + i_elem;
         
         //Compute the current element size h
-        //it_elem->CalculateElementSize();
         ComputeElementSize(it_elem);
 
         // Compute new element size
-        double new_element_size = it_elem->GetValue(ELEMENT_H)/it_elem->GetValue(ELEMENT_ERROR);
+        const double element_error = it_elem->GetValue(ELEMENT_ERROR);
+        const double coeff = std::abs(element_error) < tolerance ? 1.0 : 1.0/element_error;
+        double new_element_size = coeff * it_elem->GetValue(ELEMENT_H);
 
-        // if a target number for elements is given: use this, else: use current element number
-        //if(mSetElementNumber == true && mElementNumber<mThisModelPart.Elements().size())
+        // If a target number for elements is given: use this, else: use current element number
+        // if(mSetElementNumber == true && mElementNumber<mThisModelPart.Elements().size())
         if(mSetElementNumber == true)
-            new_element_size *= std::sqrt((std::pow(energy_norm_overall, 2)+ std::pow(error_overall, 2))/mElementNumber) * mTargetError;
+            new_element_size *= std::sqrt((std::pow(energy_norm_overall, 2) + std::pow(error_overall, 2))/mElementNumber) * mTargetError;
         else
             new_element_size *= std::sqrt((energy_norm_overall*energy_norm_overall+error_overall*error_overall)/mThisModelPart.Elements().size())*mTargetError;
         
