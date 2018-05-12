@@ -534,7 +534,7 @@ class MechanicalSolver(object):
                 raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
         else:
             if (error_criteria is "adaptative_remesh_criteria"):
-                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.main_model_part, self.settings["adaptative_remesh_settings"]) # TODO: Add processes
+                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.settings["adaptative_remesh_settings"]) # TODO: Add processes
                 return adaptative_error_criteria
 
         # Regular convergence criteria
@@ -544,7 +544,7 @@ class MechanicalSolver(object):
         # If we combine the regular convergence criteria with adaptative
         if (missing_meshing_dependencies is False):
             if ("with_adaptative_remesh" in error_criteria):
-                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.main_model_part, self.settings["adaptative_remesh_settings"]) # TODO: Add processes
+                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.settings["adaptative_remesh_settings"]) # TODO: Add processes
                 convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
         return convergence_criterion.mechanical_convergence_criterion
 

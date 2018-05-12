@@ -110,13 +110,10 @@ public:
     
     /// Default constructors
     ErrorMeshCriteria(
-        ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})"),
         ProcessesListType pMyProcesses = nullptr
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
-          mThisModelPart(rThisModelPart),
-          mDimension(rThisModelPart.GetProcessInfo()[DOMAIN_SIZE]),
           mThisParameters(ThisParameters),
           mpMyProcesses(pMyProcesses)
     {
@@ -164,8 +161,6 @@ public:
     ///Copy constructor 
     ErrorMeshCriteria( ErrorMeshCriteria const& rOther )
       :BaseType(rOther)
-      ,mThisModelPart(rOther.mThisModelPart)
-      ,mDimension(rOther.mDimension)
       ,mErrorTolerance(rOther.mErrorTolerance)
       ,mConstantError(rOther.mConstantError)
     {
@@ -187,11 +182,11 @@ public:
         BaseType::Initialize(rModelPart);
 
         // Initialize metrics
-        if (mDimension == 2) {
-            MetricFastInit<2> MetricInit = MetricFastInit<2>(mThisModelPart);
+        if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
+            MetricFastInit<2> MetricInit = MetricFastInit<2>(rModelPart);
             MetricInit.Execute();
         } else {
-            MetricFastInit<3> MetricInit = MetricFastInit<3>(mThisModelPart);
+            MetricFastInit<3> MetricInit = MetricFastInit<3>(rModelPart);
             MetricInit.Execute();
         }
     }
@@ -218,16 +213,16 @@ public:
         // We initialize the check
         const double check_threshold = 0.21;
         double estimated_error = 0;
-        if (mDimension == 2) {
-            SPRMetricProcess<2> ComputeMetric = SPRMetricProcess<2>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
+        if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
+            SPRMetricProcess<2> ComputeMetric = SPRMetricProcess<2>(rModelPart, mThisParameters["error_strategy_parameters"]);
             ComputeMetric.Execute();
         } else {
-            SPRMetricProcess<3> ComputeMetric = SPRMetricProcess<3>(mThisModelPart, mThisParameters["error_strategy_parameters"]);
+            SPRMetricProcess<3> ComputeMetric = SPRMetricProcess<3>(rModelPart, mThisParameters["error_strategy_parameters"]);
             ComputeMetric.Execute();
         }
 
         // We get the estimated error
-        estimated_error = mThisModelPart.GetProcessInfo()[ERROR_ESTIMATE];
+        estimated_error = rModelPart.GetProcessInfo()[ERROR_ESTIMATE];
 
         // We check if converged
         const bool converged_error = (estimated_error > check_threshold) ? false : true;
@@ -242,11 +237,11 @@ public:
             // Remeshing
             if (mRemeshingUtilities == RemeshingUtilities::MMG) {
             #ifdef INCLUDE_MMG
-                if (mDimension == 2) {
-                    MmgProcess<2> MmgRemesh = MmgProcess<2>(mThisModelPart, mThisParameters["remeshing_parameters"]);
+                if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
+                    MmgProcess<2> MmgRemesh = MmgProcess<2>(rModelPart, mThisParameters["remeshing_parameters"]);
                     MmgRemesh.Execute();
                 } else {
-                    MmgProcess<3> MmgRemesh = MmgProcess<3>(mThisModelPart, mThisParameters["remeshing_parameters"]);
+                    MmgProcess<3> MmgRemesh = MmgProcess<3>(rModelPart, mThisParameters["remeshing_parameters"]);
                     MmgRemesh.Execute();
                 }
             #else
@@ -259,7 +254,7 @@ public:
             // We set the model part as modified
             rModelPart.Set(MODIFIED, true);
             
-            FindNodalHProcess find_nodal_h_process = FindNodalHProcess(mThisModelPart);
+            FindNodalHProcess find_nodal_h_process = FindNodalHProcess(rModelPart);
             find_nodal_h_process.Execute();
             
             // Processes initialization
@@ -344,8 +339,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mThisModelPart;                 /// The model part where the refinement is computed
-    const SizeType mDimension;                 /// The dimension of the problem
     Parameters mThisParameters;                /// The parameters
     
     RemeshingUtilities mRemeshingUtilities;    /// The remeshing utilities to use

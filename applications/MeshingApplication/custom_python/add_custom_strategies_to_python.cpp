@@ -76,8 +76,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Error mesh Convergence Criterion
 #ifdef INCLUDE_MMG
     class_< ErrorMeshCriteriaType, typename ErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ErrorMeshCriteria") 
-        .def(init<ModelPart&, Parameters>())
-        .def(init<ModelPart&, Parameters, ProcessesListType>())
+        .def(init<Parameters>())
+        .def(init<Parameters, ProcessesListType>())
         ;
 #endif
             
