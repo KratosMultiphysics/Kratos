@@ -49,6 +49,8 @@ SPRMetricProcess<TDim>::SPRMetricProcess(
     mElementNumber = ThisParameters["number_of_elements"].GetInt();
     mTargetError = ThisParameters["error"].GetDouble();
     mAverageNodalH = ThisParameters["average_nodal_h"].GetBool();
+
+//     SkylineLUFactorizationSolver< UblasSpace<double,CompressedMatrix,Vector>, UblasSpace<double,Matrix,Vector>> solver = SkylineLUFactorizationSolver< UblasSpace<double,CompressedMatrix,Vector>, UblasSpace<double,Matrix,Vector>>();
 }
     
 /***********************************************************************************/
@@ -58,7 +60,7 @@ template<SizeType TDim>
 void SPRMetricProcess<TDim>::Execute()
 {
     /************************************************************************
-    --1-- calculate superconvergent stresses (at the nodes) --1--
+    --1-- Calculate superconvergent stresses (at the nodes) --1--
     ************************************************************************/
 
     FindNodalNeighboursProcess find_neighbours(mThisModelPart);
@@ -80,13 +82,13 @@ void SPRMetricProcess<TDim>::Execute()
             it_node->SetValue(RECOVERED_STRESS, sigma_recovered);
             
             KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Recovered sigma: " << sigma_recovered << std::endl;
-        } else{
+        } else {
             auto& neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
             for(auto it_neighbour_nodes = neigh_nodes.begin(); it_neighbour_nodes != neigh_nodes.end(); it_neighbour_nodes++){
                 
                 Vector sigma_recovered_i(mSigmaSize,0);
                 
-                IndexType count_i=0;
+                IndexType count_i = 0;
                 for(IndexType i_node_loop = 0; i_node_loop < num_nodes; ++i_node_loop) { // FIXME: Avoid thsi double loop, extreamily expensive
                     auto it_node_loop = nodes_array.begin() + i_node_loop;
                     const SizeType size_elem_neigh = it_node_loop->GetValue(NEIGHBOUR_ELEMENTS).size();
@@ -116,13 +118,16 @@ void SPRMetricProcess<TDim>::Execute()
     int num_elem = elements_array.end() - elements_array.begin();
     
     // Compute the error estimate per element
+    #pragma omp parallel for
     for(int i_elem = 0; i_elem < num_elem; ++i_elem){
         auto it_elem = elements_array.begin() + i_elem;
         
         std::vector<double> error_integration_point;
         auto& process_info = mThisModelPart.GetProcessInfo();
         it_elem->GetValueOnIntegrationPoints(ERROR_INTEGRATION_POINT, error_integration_point, process_info);
-        //std::cout<<"Error:"<<error_integration_point<<std::endl;
+
+        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Error GP:" << error_integration_point << std::endl;
+
         double error_energy_norm = 0.0;
         for(IndexType i = 0;i < error_integration_point.size();++i)
             error_energy_norm += error_integration_point[i];
@@ -130,7 +135,7 @@ void SPRMetricProcess<TDim>::Execute()
         error_energy_norm = std::sqrt(error_energy_norm);
         it_elem->SetValue(ELEMENT_ERROR, error_energy_norm);
         
-        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Element_error: " << error_energy_norm << std::endl;
+        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Element error: " << error_energy_norm << std::endl;
 
         std::vector<double> strain_energy;
         it_elem->GetValueOnIntegrationPoints(STRAIN_ENERGY, strain_energy, process_info);
@@ -154,6 +159,7 @@ void SPRMetricProcess<TDim>::Execute()
         << "Error in percent: " << error_percentage << std::endl;
     
     // Compute new element size
+    #pragma omp parallel for
     for(int i_elem = 0; i_elem < num_elem; ++i_elem){
         auto it_elem = elements_array.begin() + i_elem;
         
@@ -162,8 +168,7 @@ void SPRMetricProcess<TDim>::Execute()
         ComputeElementSize(it_elem);
 
         // Compute new element size
-        double new_element_size;
-        new_element_size = it_elem->GetValue(ELEMENT_H)/it_elem->GetValue(ELEMENT_ERROR);
+        double new_element_size = it_elem->GetValue(ELEMENT_H)/it_elem->GetValue(ELEMENT_ERROR);
 
         // if a target number for elements is given: use this, else: use current element number
         //if(mSetElementNumber == true && mElementNumber<mThisModelPart.Elements().size())
@@ -183,9 +188,10 @@ void SPRMetricProcess<TDim>::Execute()
     }
 
     /******************************************************************************
-    --3-- calculate metric (for each node) --3--
+    --3-- Calculate metric (for each node) --3--
     ******************************************************************************/
 
+    #pragma omp parallel for
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
         auto it_node = nodes_array.begin() + i_node;
         /**************************************************************************
@@ -199,12 +205,12 @@ void SPRMetricProcess<TDim>::Execute()
             const double element_h = i_neighbour_elements->GetValue(ELEMENT_H);
             if(mAverageNodalH == false){
                 if(h_min == 0.0 || h_min > element_h) h_min = element_h;
-            }
-            else
+            } else {
                 h_min += element_h;
+            }
         }
         if(mAverageNodalH == true)
-        h_min = h_min/double(neigh_elements.size());
+            h_min = h_min/static_cast<double>(neigh_elements.size());
 
         // Set metric
         Matrix metric_matrix(TDim, TDim, 0.0);
@@ -229,17 +235,18 @@ void SPRMetricProcess<TDim>::CalculatePatch(
     NodeItType itNode,
     NodeItType itPatchNode,
     SizeType NeighbourSize,
-    Vector& rSigmaRecovered)
+    Vector& rSigmaRecovered
+    )
 {
     // Determine if contact BC has to be regarded
-    const bool regard_contact = (itNode->GetValue(CONTACT_PRESSURE) != 0.0);
+    // We take the geometry GP from the core
+    const double tolerance = std::numeric_limits<double>::epsilon();
+    const bool regard_contact = std::abs(itNode->GetValue(CONTACT_PRESSURE)) > tolerance ? true : false;
     
 //     regard_contact = itPatchNode->Has(CONTACT_PRESSURE);
-//     if(regard_contact == false)
-//     {
-//         for( auto it_neighbour_nodes = itPatchNode->GetValue(NEIGHBOUR_NODES).begin(); it_neighbour_nodes != itPatchNode->GetValue(NEIGHBOUR_NODES).end(); it_neighbour_nodes++) {
-//             if (it_neighbour_nodes->Has(CONTACT_PRESSURE))
-//             {
+//     if(regard_contact == false) {
+//         for( auto& i_neighbour_nodes : itPatchNode->GetValue(NEIGHBOUR_NODES)) {
+//             if (i_neighbour_nodes.Has(CONTACT_PRESSURE)) {
 //                 regard_contact = true;
 //                 break;
 //             }
@@ -277,8 +284,9 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
         it_elem->GetValueOnIntegrationPoints(variable_stress,stress_vector,mThisModelPart.GetProcessInfo());
         it_elem->GetValueOnIntegrationPoints(variable_coordinates,coordinates_vector,mThisModelPart.GetProcessInfo());
 
-        //std::cout << "\tstress: " << stress_vector[0] << std::endl;
-        //std::cout << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
+        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3)
+        << "\tStress: " << stress_vector[0] << std::endl
+        << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
         
         Matrix sigma(1,mSigmaSize);
         for(IndexType j = 0; j < mSigmaSize; ++j)
@@ -296,25 +304,26 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
     Matrix invA(TDim+1,TDim+1);
     double det;
     MathUtils<double>::InvertMatrix(A,invA,det);
-    //std::cout <<A<<std::endl;
-    //std::cout <<invA<<std::endl;
-    //std::cout << det<< std::endl;
-    if(det<1e-10){
-        //std::cout<<A<<std::endl;
-        for( int i=0; i<TDim+1;i++){
-            for( int j=0; j<TDim+1; j++)
+
+    KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3) << A << std::endl << invA << std::endl << det<< std::endl;
+
+    const double tolerance = std::numeric_limits<double>::epsilon();
+    if(det < tolerance){
+        KRATOS_WARNING_IF("SPRMetricProcess", mEchoLevel == 2) << A << std::endl;
+        for( IndexType i=0; i<TDim+1;i++){
+            for( IndexType j=0; j<TDim+1; j++)
                 A(i,j)+= 0.001;
         }
-        MathUtils<double>::InvertMatrix(A,invA,det);
-        std::cout <<"det: "<< det<< std::endl;
+        MathUtils<double>::InvertMatrix(A, invA, det);
+        KRATOS_WARNING_IF("SPRMetricProcess", mEchoLevel > 0) << "det: " << det << std::endl;
     }
 
     Matrix coeff(TDim+1,mSigmaSize);
     coeff = prod(invA,b);
     
-    if(NeighbourSize > TDim)
+    if(NeighbourSize > TDim) {
         rSigmaRecovered = MatrixRow(coeff,0);
-    else{
+    } else {
         p_k(0,1)=itNode->X()-itPatchNode->X(); 
         p_k(0,2)=itNode->Y()-itPatchNode->Y();
         if(TDim ==3)
@@ -358,9 +367,10 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
         it_elem->GetValueOnIntegrationPoints(variable_stress,stress_vector, process_info);
         it_elem->GetValueOnIntegrationPoints(variable_coordinates,coordinates_vector, process_info);
 
-        //std::cout << "\tElement: " << it_elem->Id() << std::endl;
-        //std::cout << "\tstress: " << stress_vector[0] << std::endl;
-        //std::cout << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
+        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3)
+        << "\tElement: " << it_elem->Id() << std::endl
+        << "\tStress: " << stress_vector[0] << std::endl
+        << "\tX: " << coordinates_vector[0][0] << "\tY: " << coordinates_vector[0][1] << "\tZ: " << coordinates_vector[0][2] << std::endl;
         
         for( IndexType j = 0; j < mSigmaSize; ++j)
             sigma(j,0) = stress_vector[0][j];
@@ -387,62 +397,55 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
     }
     
     // Set the normal and tangential vectors in Voigt Notation
-    std::vector<double> n(TDim);
-
     const array_1d<double, 3>& normal = itNode->GetValue(NORMAL);
-    for( IndexType j = 0; j < TDim; ++j) n[j] = normal[j];
 
-    if(TDim ==2){
-        N_k(0,0) = n[0]*n[0];
-        N_k(0,1) = n[1]*n[1];
-        N_k(0,2) = 2*n[0]*n[1];
+    if(TDim == 2) {
+        N_k(0,0) = normal[0]*normal[0];
+        N_k(0,1) = normal[1]*normal[1];
+        N_k(0,2) = 2.0*normal[0]*normal[1];
         
-        T_k(0,0) = n[0]*n[1];
-        T_k(0,1) = -n[0]*n[1];
-        T_k(0,2) = n[1]*n[1]-n[0]*n[0];
-    }
-    else if (TDim ==3){
-        N_k(0,0) = n[0]*n[0];
-        N_k(0,1) = n[1]*n[1];
-        N_k(0,1) = n[2]*n[2];
-        N_k(0,3) = 2*n[1]*n[2];
-        N_k(0,4) = 2*n[2]*n[0];
-        N_k(0,5) = 2*n[0]*n[1];
+        T_k(0,0) = normal[0]*normal[1];
+        T_k(0,1) = -normal[0]*normal[1];
+        T_k(0,2) = normal[1]*normal[1]-normal[0]*normal[0];
+    } else if (TDim == 3) {
+        N_k(0,0) = normal[0]*normal[0];
+        N_k(0,1) = normal[1]*normal[1];
+        N_k(0,1) = normal[2]*normal[2];
+        N_k(0,3) = 2*normal[1]*normal[2];
+        N_k(0,4) = 2*normal[2]*normal[0];
+        N_k(0,5) = 2*normal[0]*normal[1];
 
         // Set tangential vectors
-        std::vector<double> t1(3),t2(3);
-        if(n[0]!=0 || n[1] !=0){
-            double norm = sqrt((t1[0]*t1[0]+t1[1]*t1[1]));
-            t1[0] = n[1]/norm;
-            t1[1] = -n[0]/norm;
-            t1[2] = 0;
+        array_1d<double, 3> t1(3, 0.0);
+        array_1d<double, 3> t2(3, 0.0);
 
-            t2[0] = -n[0]*n[2]/norm;
-            t2[1] = -n[1]*n[2]/norm;
-            t2[2] = n[0]*n[0]+n[1]*n[1]/norm;
+        const double tolerance = std::numeric_limits<double>::epsilon();
+        if(std::abs(normal[0]) > tolerance || std::abs(normal[1]) > tolerance) {
+            const double norm = std::sqrt((t1[0]*t1[0]+t1[1]*t1[1]));
+            t1[0] = normal[1]/norm;
+            t1[1] = -normal[0]/norm;
+
+            t2[0] = -normal[0]*normal[2]/norm;
+            t2[1] = -normal[1]*normal[2]/norm;
+            t2[2] = normal[0]*normal[0]+normal[1]*normal[1]/norm;
         } else{
             t1[0] = 1.0;
-            t1[1] = 0.0;
-            t1[2] = 0.0;
-
-            t2[0] = 0.0;
             t2[1] = 1.0;
-            t2[2] = 0.0;
         }
 
-        T_k(0,0) = n[0]*t1[0];
-        T_k(0,1) = n[1]*t1[1];
-        T_k(0,2) = n[2]*t1[2];
-        T_k(0,3) = n[1]*t1[2]+n[2]*t1[1];
-        T_k(0,4) = n[2]*t1[0]+n[0]*t1[2];
-        T_k(0,5) = n[0]*t1[1]+n[1]*t1[0];
+        T_k(0,0) = normal[0]*t1[0];
+        T_k(0,1) = normal[1]*t1[1];
+        T_k(0,2) = normal[2]*t1[2];
+        T_k(0,3) = normal[1]*t1[2]+normal[2]*t1[1];
+        T_k(0,4) = normal[2]*t1[0]+normal[0]*t1[2];
+        T_k(0,5) = normal[0]*t1[1]+normal[1]*t1[0];
         
-        T_k2(0,0) = n[0]*t2[0];
-        T_k2(0,1) = n[1]*t2[1];
-        T_k2(0,2) = n[2]*t2[2];
-        T_k2(0,3) = n[1]*t2[2]+n[2]*t2[1];
-        T_k2(0,4) = n[2]*t2[0]+n[0]*t2[2];
-        T_k2(0,5) = n[0]*t2[1]+n[1]*t2[0];
+        T_k2(0,0) = normal[0]*t2[0];
+        T_k2(0,1) = normal[1]*t2[1];
+        T_k2(0,2) = normal[2]*t2[2];
+        T_k2(0,3) = normal[1]*t2[2]+normal[2]*t2[1];
+        T_k2(0,4) = normal[2]*t2[0]+normal[0]*t2[2];
+        T_k2(0,5) = normal[0]*t2[1]+normal[1]*t2[0];
     }
     
     A1 = prod(trans(p_k),trans(N_k));
@@ -458,18 +461,19 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 //     //PART 2: contributions from contact nodes: regard all nodes from the patch which are in contact
 //     //patch center node:
 //     if (itPatchNode->Has(CONTACT_PRESSURE)){
+//         const array_1d<double, 3>& normal_patch_node = itPatchNode->GetValue(NORMAL);
 //         p_k(0,1)=0.0;
 //         p_k(0,2)=0.0;
 //         p_k(1,4)=0.0;
 //         p_k(1,5)=0.0;
 //         p_k(2,7)=0.0;
 //         p_k(2,8)=0.0;
-//         N_k(0,0) = itPatchNode->GetValue(NORMAL)[0]*itPatchNode->GetValue(NORMAL)[0];
-//         N_k(0,1) = itPatchNode->GetValue(NORMAL)[1]*itPatchNode->GetValue(NORMAL)[1];
-//         N_k(0,2) = 2*itPatchNode->GetValue(NORMAL)[0]*itPatchNode->GetValue(NORMAL)[1];
-//         T_k(0,0) = itPatchNode->GetValue(NORMAL)[0]*itPatchNode->GetValue(NORMAL)[1];
-//         T_k(0,1) = -itPatchNode->GetValue(NORMAL)[0]*itPatchNode->GetValue(NORMAL)[1];
-//         T_k(0,2) = itPatchNode->GetValue(NORMAL)[1]*itPatchNode->GetValue(NORMAL)[1]-itPatchNode->GetValue(NORMAL)[0]*itPatchNode->GetValue(NORMAL)[0];
+//         N_k(0,0) = normal_patch_node[0]*normal_patch_node[0];
+//         N_k(0,1) = normal_patch_node[1]*normal_patch_node[1];
+//         N_k(0,2) = 2*normal_patch_node[0]*normal_patch_node[1];
+//         T_k(0,0) = normal_patch_node[0]*normal_patch_node[1];
+//         T_k(0,1) = -normal_patch_node[0]*normal_patch_node[1];
+//         T_k(0,2) = normal_patch_node[1]*normal_patch_node[1]-normal_patch_node[0]*normal_patch_node[0];
 //
 //         A1 = prod(trans(p_k),trans(N_k));
 //         A2 = prod(N_k,p_k);
@@ -485,20 +489,25 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 //     }
 //
 //     // Neighboring nodes:
-//     for( auto it_neighbour_nodes = itPatchNode->GetValue(NEIGHBOUR_NODES).begin(); it_neighbour_nodes != itPatchNode->GetValue(NEIGHBOUR_NODES).end(); it_neighbour_nodes++) {
-//         if (it_neighbour_nodes->Has(CONTACT_PRESSURE)){
-//             p_k(0,1)= it_neighbour_nodes->X()-itPatchNode->X();
-//             p_k(0,2)= it_neighbour_nodes->Y()-itPatchNode->Y();
-//             p_k(1,4)= it_neighbour_nodes->X()-itPatchNode->X();;
-//             p_k(1,5)= it_neighbour_nodes->Y()-itPatchNode->Y();
-//             p_k(2,7)= it_neighbour_nodes->X()-itPatchNode->X();;
-//             p_k(2,8)= it_neighbour_nodes->Y()-itPatchNode->Y();
-//             N_k(0,0) = it_neighbour_nodes->GetValue(NORMAL)[0]*it_neighbour_nodes->GetValue(NORMAL)[0];
-//             N_k(0,1) = it_neighbour_nodes->GetValue(NORMAL)[1]*it_neighbour_nodes->GetValue(NORMAL)[1];
-//             N_k(0,2) = 2*it_neighbour_nodes->GetValue(NORMAL)[0]*it_neighbour_nodes->GetValue(NORMAL)[1];
-//             T_k(0,0) = it_neighbour_nodes->GetValue(NORMAL)[0]*it_neighbour_nodes->GetValue(NORMAL)[1];
-//             T_k(0,1) = -it_neighbour_nodes->GetValue(NORMAL)[0]*it_neighbour_nodes->GetValue(NORMAL)[1];
-//             T_k(0,2) = it_neighbour_nodes->GetValue(NORMAL)[1]*it_neighbour_nodes->GetValue(NORMAL)[1]-it_neighbour_nodes->GetValue(NORMAL)[0]*it_neighbour_nodes->GetValue(NORMAL)[0];
+//     for( auto& i_neighbour_nodes : itPatchNode->GetValue(NEIGHBOUR_NODES)) {
+//         if (i_neighbour_nodes.Has(CONTACT_PRESSURE)){
+//             const array_1d<double, 3>& normal_neigh_node = i_neighbour_nodes.GetValue(NORMAL);
+//             const double x_patch = itPatchNode->X();
+//             const double y_patch = itPatchNode->Y();
+//             const double x_neigh = i_neighbour_nodes.X();
+//             const double y_neigh = i_neighbour_nodes.Y();
+//             p_k(0,1)= x_neigh-x_patch;
+//             p_k(0,2)= y_neigh-y_patch;
+//             p_k(1,4)= x_neigh-x_patch;
+//             p_k(1,5)= y_neigh-y_patch;
+//             p_k(2,7)= x_neigh-x_patch;
+//             p_k(2,8)= y_neigh-y_patch;
+//             N_k(0,0) = normal_neigh_node[0]*normal_neigh_node[0];
+//             N_k(0,1) = normal_neigh_node[1]*normal_neigh_node[1];
+//             N_k(0,2) = 2*normal_neigh_node[0]*normal_neigh_node[1];
+//             T_k(0,0) = normal_neigh_node[0]*normal_neigh_node[1];
+//             T_k(0,1) = -normal_neigh_node[0]*normal_neigh_node[1];
+//             T_k(0,2) = normal_neigh_node[1]*normal_neigh_node[1]-normal_neigh_node[0]*normal_neigh_node[0];
 //
 //             A1 = prod(trans(p_k),trans(N_k));
 //             A2 = prod(N_k,p_k);
@@ -513,15 +522,9 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 //     }
 
     // Computing coefficients a: A*a=b
-    //UblasSpace<double,CompressedMatrix,Vector> U1 = UblasSpace<double, Matrix,Vector>();
-    //UblasSpace<double, Matrix,Vector> U2 = UblasSpace<double, Matrix,Vector>();
     SkylineLUFactorizationSolver< UblasSpace<double,CompressedMatrix,Vector>, UblasSpace<double,Matrix,Vector>> solver = SkylineLUFactorizationSolver< UblasSpace<double,CompressedMatrix,Vector>, UblasSpace<double,Matrix,Vector>>();
-    //std::cout<<A<<std::endl;
-    /*CompressedMatrix compA(9,9,81);// = A.sparseView();
-    for (unsigned i = 0; i < compA.size1 (); ++ i){
-        for (unsigned j = 0; j < compA.size2 (); ++ j)
-            compA (i, j) = 9 * i + j;
-    }*/
+
+    KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3) << A << std::endl;
     
     Vector coeff(mSigmaSize*(TDim+1));
     Vector b_vector = MatrixColumn(b,0);
