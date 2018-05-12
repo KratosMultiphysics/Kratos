@@ -223,7 +223,7 @@ void SPRMetricProcess<TDim>::Execute()
             h_min = h_min/static_cast<double>(neigh_elements.size());
 
         // Set metric
-        Matrix metric_matrix(TDim, TDim, 0.0);
+        BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);
         for(IndexType i = 0;i < TDim; ++i)
             metric_matrix(i,i) = 1.0/std::pow(h_min, 2);
 
