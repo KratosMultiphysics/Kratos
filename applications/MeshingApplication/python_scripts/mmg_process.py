@@ -37,7 +37,14 @@ class MmgProcess(KratosMultiphysics.Process):
                 },
                 "set_number_of_elements"              : false,
                 "number_of_elements"                  : 1000,
-                "max_iterations"                      : 3
+                "max_iterations"                      : 3,
+                "linear_solver_settings"  : {
+                    "solver_type"             : "SuperLUSolver",
+                    "max_iteration"           : 500,
+                    "tolerance"               : 1e-9,
+                    "scaling"                 : false,
+                    "verbosity"               : 0
+                }
             },
             "framework"                            : "Eulerian",
             "internal_variables_parameters"        :
@@ -307,14 +314,21 @@ class MmgProcess(KratosMultiphysics.Process):
             spr_parameters.AddValue("number_of_elements", self.settings["spr_set_strategy_parameters"]["number_of_elements"])
             spr_parameters.AddValue("average_nodal_h", self.settings["spr_set_strategy_parameters"]["average_nodal_h"])
 
+            import linear_solver_factory
+            linear_solver = linear_solver_factory.ConstructSolver(self.settings["spr_set_strategy_parameters"]["linear_solver_settings"])
+
             if (self.dim == 2):
                 self.metric_process = MeshingApplication.SPRMetricProcess2D(
                     self.model_part,
-                    spr_parameters)
+                    spr_parameters,
+                    linear_solver
+                    )
             else:
                 self.metric_process = MeshingApplication.SPRMetricProcess3D(
                     self.model_part,
-                    spr_parameters)
+                    spr_parameters,
+                    linear_solver
+                    )
 
     def _CreateGradientProcess(self):
         # We compute the scalar value gradient
