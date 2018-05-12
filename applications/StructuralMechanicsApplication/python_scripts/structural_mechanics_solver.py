@@ -184,6 +184,8 @@ class MechanicalSolver(object):
             # Add specific variables for the problem (pressure dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESSURE_REACTION)
+        if (missing_meshing_dependencies is False):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         # Add variables that the user defined in the ProjectParameters
         for i in range(self.settings["auxiliary_variables_list"].size()):
             variable_name = self.settings["auxiliary_variables_list"][i].GetString()
