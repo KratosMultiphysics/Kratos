@@ -170,7 +170,7 @@ void SPRMetricProcess<TDim>::Execute()
     error_overall = std::sqrt(error_overall);
     energy_norm_overall = std::sqrt(energy_norm_overall);
     double error_percentage = error_overall/std::sqrt((std::pow(error_overall, 2) + std::pow(energy_norm_overall, 2)));
-    
+
     KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 1)
         << "Overall error norm: " << error_overall << std::endl
         << "Overall energy norm: "<< energy_norm_overall << std::endl
@@ -243,7 +243,10 @@ void SPRMetricProcess<TDim>::Execute()
         KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Node "<<it_node->Id()<<" has metric: "<<it_node->GetValue(MMG_METRIC)<<std::endl;
     }
     
-    mThisModelPart.GetProcessInfo()[ERROR_ESTIMATE] = error_overall/std::pow((error_overall*error_overall+energy_norm_overall*energy_norm_overall),0.5);
+    const double denominator = std::sqrt(std::pow(error_overall, 2) + std::pow(energy_norm_overall , 2));
+    const double coeff = denominator < tolerance ? 1.0 : 1.0/denominator;
+    KRATOS_WARNING_IF("SPRMetricProcess", denominator < tolerance) << "Denominator of error estimate zero or almost zero " << denominator << std::endl;
+    mThisModelPart.GetProcessInfo()[ERROR_ESTIMATE] = coeff * error_overall;
 }
 
 /***********************************************************************************/

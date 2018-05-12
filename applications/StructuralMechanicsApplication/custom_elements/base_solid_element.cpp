@@ -538,8 +538,8 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
         // Reading integration points
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
@@ -594,7 +594,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             MathUtils<double>::InvertMatrix(this_constitutive_variables.D, invD,detD);
 
             // Calculate error_energy
-            rOutput[point_number]= integration_weight*inner_prod(error_sigma,prod(invD,error_sigma));
+            rOutput[point_number]= integration_weight * inner_prod(error_sigma, prod(invD, error_sigma));
         }
     } else if (rVariable == VON_MISES_STRESS) {
         const unsigned int number_of_nodes = GetGeometry().size();
