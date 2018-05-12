@@ -33,16 +33,8 @@ def ConstructSolver(configuration):
     elif(solver_type == "Skyline LU factorization"):
         raise Exception("not implemented within trilinos")
     #
-
-    elif(solver_type == "AmesosSolver"):
+    elif(solver_type == "amesos"):
         linear_solver = AmesosSolver(configuration);
-
-    ##
-    #elif(solver_type == "Klu"):
-        #linear_solver = AmesosSolver(configuration);
-    ##
-    #elif(solver_type == "Mumps"):
-        #linear_solver = AmesosSolver(configuration);
     #
     elif(solver_type == "SuperLUIterativeSolver"):
         raise Exception("not implemented within trilinos")
