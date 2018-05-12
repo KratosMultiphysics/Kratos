@@ -1,8 +1,23 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
-from KratosMultiphysics.ExternalSolversApplication  import *
 from KratosMultiphysics.StructuralMechanicsApplication  import *
+# Importing the solvers (if available)
+try:
+    from KratosMultiphysics.ExternalSolversApplication import *
+    Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
+except ImportError:
+    Logger.PrintInfo("ExternalSolversApplication", "not imported")
+try:
+    from KratosMultiphysics.EigenSolversApplication import *
+    Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
+except ImportError:
+    Logger.PrintInfo("EigenSolversApplication", "not imported")
+try:
+    from KratosMultiphysics.MeshingApplication import *
+    Logger.PrintInfo("MeshingApplication", "succesfully imported")
+except ImportError:
+    Logger.PrintInfo("MeshingApplication", "not imported")
 
 ## Import define_output
 with open("ProjectParameters.json",'r') as parameter_file:
