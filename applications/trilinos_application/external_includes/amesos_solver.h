@@ -70,8 +70,8 @@ public:
 
         mSolverName = settings["amesos_solver_type"].GetString();
 
-        KRATOS_ERROR_IF_NOT(HasSolver(mSolverName)) << "attempting to use Amesos solver " << mSolverName
-            << " unfortunately the current compilation of trilinos does not include it" << std::endl;
+        KRATOS_ERROR_IF_NOT(HasSolver(mSolverName)) << "attempting to use Amesos solver \"" << mSolverName
+            << "\" unfortunately the current compilation of Trilinos does not include it" << std::endl;
     }
 
     /**
@@ -82,8 +82,8 @@ public:
         mParameterList = rParameterList;
         mSolverName = SolverName;
 
-        KRATOS_ERROR_IF_NOT(HasSolver(mSolverName)) << "attempting to use Amesos solver " << mSolverName
-            << " unfortunately the current compilation of trilinos does not include it" << std::endl;
+        KRATOS_ERROR_IF_NOT(HasSolver(mSolverName)) << "attempting to use Amesos solver \"" << mSolverName
+            << "\" unfortunately the current compilation of Trilinos does not include it" << std::endl;
     }
 
     /**
