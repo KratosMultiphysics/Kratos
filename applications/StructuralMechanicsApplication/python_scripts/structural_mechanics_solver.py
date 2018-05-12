@@ -539,7 +539,7 @@ class MechanicalSolver(object):
             if ("adaptative_remesh" in error_criteria):
                 raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
         else:
-            if (error_criteria is "adaptative_remesh_criteria"):
+            if (error_criteria == "adaptative_remesh_criteria"):
                 adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.settings["adaptative_remesh_settings"], self.processes_list)
                 return adaptative_error_criteria
 
