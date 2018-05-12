@@ -284,6 +284,11 @@ class GiDOutputProcess(Process):
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()
 
+    def ExecuteBeforeOutputStep(self):
+        pass
+
+    def ExecuteAfterOutputStep(self):
+        pass
 
     def ExecuteFinalize(self):
         '''Finalize files and free resources.'''
