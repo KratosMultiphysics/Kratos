@@ -535,13 +535,14 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         // Create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
         // Reading integration points
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
-        // Set constitutive law flags:
-        Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
         //Calculate Cauchy Stresses from the FE solution
         std::vector<Vector> sigma_FE_solution(number_of_nodes);
@@ -551,6 +552,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         // calculate the determinatn of the Jacobian in the current configuration
         Vector detJ(integration_points.size());
         detJ = GetGeometry().DeterminantOfJacobian(detJ);
+
+        // If strain has to be computed inside of the constitutive law with PK2
+        Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
 
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++) {
             // Compute element kinematics B, F, DN_DX ...
@@ -565,12 +569,14 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 integration_weight *= this->GetProperties()[THICKNESS];
 
             // Calculate recovered stresses at integration points
-            Vector sigma_recovered(strain_size,0);
+            Vector sigma_recovered(strain_size, 0.0);
 
-            for (IndexType stress_component = 0; stress_component<strain_size; stress_component++) {
-                // sigma_recovered = sum(N_i * sigma_recovered_i)
-                for (IndexType node_number=0; node_number<number_of_nodes; node_number++)
-                    sigma_recovered[stress_component] += this_kinematic_variables.N[node_number]*GetGeometry()[node_number].GetValue(RECOVERED_STRESS)[stress_component];
+            // sigma_recovered = sum(N_i * sigma_recovered_i)
+            for (IndexType node_number=0; node_number<number_of_nodes; node_number++) {
+                const auto& sigma_recovered_node = GetGeometry()[node_number].GetValue(RECOVERED_STRESS);
+                for (IndexType stress_component = 0; stress_component<strain_size; stress_component++) {
+                    sigma_recovered[stress_component] += this_kinematic_variables.N[node_number] * sigma_recovered_node[stress_component];
+                }
             }
 
             // Calculate error_sigma
