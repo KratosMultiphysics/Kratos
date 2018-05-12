@@ -9,18 +9,6 @@ KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-try:
-    # Check that applications were imported in the main script
-    KratosMultiphysics.CheckRegisteredApplications("MeshingApplication")
-    import KratosMultiphysics.MeshingApplication as MeshingApplication
-    missing_meshing_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_meshing_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
-
 # Convergence criteria class
 class convergence_criterion:
     def __init__(self, convergence_criterion_parameters):
@@ -33,14 +21,10 @@ class convergence_criterion:
         
         echo_level = convergence_criterion_parameters["echo_level"].GetInt()
         convergence_crit = convergence_criterion_parameters["convergence_criterion"].GetString()
-        
+
         if(echo_level >= 1):
             KratosMultiphysics.Logger.PrintInfo("::[Mechanical Solver]:: ", "CONVERGENCE CRITERION : " + 
                   convergence_criterion_parameters["convergence_criterion"].GetString())
-
-        if (missing_meshing_dependencies == True):
-            if (convergence_criterion_parameters["convergence_criterion"].GetString() == "AdaptativeErrorCriteria"):
-                raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
 
         rotation_dofs = False
         if(convergence_criterion_parameters.Has("rotation_dofs")):
@@ -48,7 +32,7 @@ class convergence_criterion:
                 rotation_dofs = True
         
         # Convergence criteria if there are rotation DOFs in the problem
-        if(rotation_dofs == True):
+        if(rotation_dofs is True):
             if(convergence_crit == "displacement_criterion"):
                 self.mechanical_convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(D_RT, D_AT)
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
@@ -98,11 +82,7 @@ class convergence_criterion:
                 Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
                 Residual.SetEchoLevel(echo_level)
                 self.mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
-            #elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "AdaptativeErrorCriteria"): # TODO: think about this
-                #self.mechanical_convergence_criterion = MeshingApplication.ErrorMeshCriteria(model_part, adaptative_parameters, processes_list)
             else:
                 err_msg =  "The requested convergence criterion \"" + convergence_crit + "\" is not available!\n"
-                err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
+                err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\, \"adaptative_remesh_criteria\""
                 raise Exception(err_msg)
-        
-
