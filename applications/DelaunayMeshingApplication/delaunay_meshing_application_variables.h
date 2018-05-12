@@ -1,3 +1,13 @@
+//----------------------------------------------------------
+//          ___  __                                        .
+//  KRATOS | _ \/ _|___ _ __                               .
+//         |  _/  _/ -_) '  \                              .  
+//         |_| |_| \___|_|_|_| APPLICATION                 .
+//                                                         .    
+//  License:(BSD)   DelaunayMeshingApplication/license.txt .
+//  Main authors:   Josep Maria Carbonell                  .
+//                        ..                               .
+//----------------------------------------------------------
 //
 //   Project Name:        KratosDelaunayMeshingApplication $
 //   Created by:          $Author:             JMCarbonell $
@@ -6,7 +16,6 @@
 //   Revision:            $Revision:                   0.0 $
 //
 //
-
 
 #if !defined(KRATOS_DELAUNAY_MESHING_APPLICATION_VARIABLES_H_INCLUDED )
 #define  KRATOS_DELAUNAY_MESHING_APPLICATION_VARIABLES_H_INCLUDED
@@ -18,11 +27,50 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "includes/kratos_flags.h"
 #include "includes/kratos_application.h"
+
 
 namespace Kratos
 {
+  ///@name Type Definitions
+  ///@{
+  typedef array_1d<double,3> Vector3;
+  typedef array_1d<double,6> Vector6;
+  typedef PointerVectorSet<Condition, IndexedObject> ConditionContainerType;
+  ///@}
 
-} // Namespace Kratos
+  ///@name Kratos Globals
+  ///@{
 
-#endif	// KRATOS_DELAUNAY_MESHING_APPLICATION_VARIABLES_H_INCLUDED
+  //Define Variables
+
+  //nodal dofs
+  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( DELAUNAY_MESHING_APPLICATION, OFFSET )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, double, SHRINK_FACTOR )
+
+
+
+  //domain definition
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, bool, INITIALIZED_DOMAINS )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, bool, MESHING_STEP_PERFORMED )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, std::string, MODEL_PART_NAME )
+
+  //boundary definition
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, int,                               RIGID_WALL )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, Condition::Pointer,          MASTER_CONDITION )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, WeakPointerVector< Element >, MASTER_ELEMENTS )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, WeakPointerVector< Node<3> >,    MASTER_NODES )
+
+  //condition variables
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, ConditionContainerType, CHILDREN_CONDITIONS)
+    
+  //modeler criteria
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, double, MEAN_ERROR )
+
+
+  ///@}
+
+}
+
+#endif	/* KRATOS_DELAUNAY_MESHING_APPLICATION_VARIABLES_H_INCLUDED */
