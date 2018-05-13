@@ -321,6 +321,15 @@ private:
         // The process info
         ProcessInfo& process_info = rModelPart.GetProcessInfo();
 
+        const bool has_processes = mpMyProcesses != nullptr ? true : false;
+//         const bool has_post_processes = mpMyPostProcesses != nullptr ? true : false;
+
+        // Processes finalize (before compute metric)
+        if (has_processes)
+            mpMyProcesses->ExecuteFinalizeSolutionStep();
+//         if (has_post_processes)
+//             mpMyPostProcesses->ExecuteFinalizeSolutionStep();
+
         // Computing metric
         double estimated_error = 0;
         if (process_info[DOMAIN_SIZE] == 2) {
@@ -366,9 +375,6 @@ private:
 
             FindNodalHProcess find_nodal_h_process = FindNodalHProcess(rModelPart);
             find_nodal_h_process.Execute();
-
-            const bool has_processes = mpMyProcesses != nullptr ? true : false;
-//             const bool has_post_processes = mpMyPostProcesses != nullptr ? true : false;
 
             // Processes initialization
             if (has_processes)
