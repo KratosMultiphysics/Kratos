@@ -61,7 +61,7 @@ namespace Kratos
             gid_io.InitializeResults(label, ThisModelPart.GetMesh());
             gid_io.WriteNodalResults(DISPLACEMENT, ThisModelPart.Nodes(), label, 0);
             gid_io.PrintOnGaussPoints(ERROR_INTEGRATION_POINT, ThisModelPart, label);
-//             gid_io.PrintOnGaussPoints(VON_MISES_STRESS, ThisModelPart, label);
+            gid_io.PrintOnGaussPoints(CAUCHY_STRESS_VECTOR, ThisModelPart, label);
             gid_io.PrintOnGaussPoints(STRAIN_ENERGY, ThisModelPart, label);
             gid_io.WriteNodalResultsNonHistorical(MMG_METRIC, ThisModelPart.Nodes(), label);
         }
@@ -456,6 +456,8 @@ namespace Kratos
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
+            p_elem_prop->SetValue(YOUNG_MODULUS, 1.0);
+            p_elem_prop->SetValue(POISSON_RATIO, 0.0);
 
             Create2DGeometry(this_model_part, "SmallDisplacementElement2D3N");
             for (auto& ielem : this_model_part.Elements()) {
@@ -476,18 +478,17 @@ namespace Kratos
             SPRMetricProcess<2> spr_process = SPRMetricProcess<2>(this_model_part);
             spr_process.Execute();
             
-            // DEBUG
-            GiDIODebugMetricSPR(this_model_part);
+//             // DEBUG
+//             GiDIODebugMetricSPR(this_model_part);
             
-//             const double tolerance = 1.0e-4;
-//             Vector ref_metric(3);
-//             ref_metric[0] = 100;
-//             ref_metric[1] = 0;
-//             ref_metric[2] = 100;
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(1)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(5)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(6)->GetValue(MMG_METRIC) - ref_metric), tolerance);
+            const double tolerance = 1.0e-4;
+            Vector ref_metric(3);
+            ref_metric[0] = 331.893;
+            ref_metric[1] = 0;
+            ref_metric[2] = 331.893;
+
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
         }
         
         /** 
@@ -514,6 +515,8 @@ namespace Kratos
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
+            p_elem_prop->SetValue(YOUNG_MODULUS, 1.0);
+            p_elem_prop->SetValue(POISSON_RATIO, 0.0);
 
             Create3DGeometry(this_model_part, "SmallDisplacementElement3D4N");
             for (auto& ielem : this_model_part.Elements()) {
@@ -522,7 +525,7 @@ namespace Kratos
             }
             
             // Set DISPLACEMENT_X and other variables
-           for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
+            for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISPLACEMENT_X) = (it_node->X() == 1.0) ? 0.5 : 0.0;
                 it_node->Coordinates()[0] += (it_node->X() == 1.0) ? 0.5 : 0.0;
@@ -530,26 +533,23 @@ namespace Kratos
                 it_node->SetValue(MMG_METRIC, ZeroVector(6));
             }
                       
-//             // Compute metric
-//             SPRMetricProcess<3> spr_process = SPRMetricProcess<3>(this_model_part);
-//             spr_process.Execute();
-//
+            // Compute metric
+            SPRMetricProcess<3> spr_process = SPRMetricProcess<3>(this_model_part);
+            spr_process.Execute();
+
 //             // DEBUG
 //             GiDIODebugMetricSPR(this_model_part);
-//
-//             const double tolerance = 1.0e-4;
-//             Vector ref_metric = ZeroVector(6);
-//             ref_metric[0] = 100;
-//             ref_metric[3] = 100;
-//             ref_metric[5] = 100;
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(1)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(5)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(9)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(10)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(11)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(12)->GetValue(MMG_METRIC) - ref_metric), tolerance);
+
+            const double tolerance = 1.0e-4;
+            Vector ref_metric = ZeroVector(6);
+            ref_metric[0] = 2740.55;
+            ref_metric[3] = 2740.55;
+            ref_metric[5] = 2740.55;
+
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(6)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(7)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(8)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.
