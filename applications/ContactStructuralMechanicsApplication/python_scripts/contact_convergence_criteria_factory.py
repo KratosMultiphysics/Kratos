@@ -18,6 +18,10 @@ class convergence_criterion:
         # Note that all the convergence settings are introduced via a Kratos parameters object.
         self.echo_level = convergence_criterion_parameters["echo_level"].GetInt()
         self.convergence_criterion_name = convergence_criterion_parameters["convergence_criterion"].GetString()
+        self.mortar_type = convergence_criterion_parameters["mortar_type"].GetString()
+        self.fancy_convergence_criterion = convergence_criterion_parameters["fancy_convergence_criterion"].GetBool()
+        self.print_convergence_criterion = convergence_criterion_parameters["print_convergence_criterion"].GetBool()
+        self.gidio_debug = convergence_criterion_parameters["gidio_debug"].GetBool()
         if "contact" in self.convergence_criterion_name:
             D_RT = convergence_criterion_parameters["displacement_relative_tolerance"].GetDouble()
             D_AT = convergence_criterion_parameters["displacement_absolute_tolerance"].GetDouble()
@@ -28,11 +32,7 @@ class convergence_criterion:
             CR_RT = convergence_criterion_parameters["contact_residual_relative_tolerance"].GetDouble()
             CR_AT = convergence_criterion_parameters["contact_residual_absolute_tolerance"].GetDouble()
             condn_convergence_criterion = convergence_criterion_parameters["condn_convergence_criterion"].GetBool()
-            self.fancy_convergence_criterion = convergence_criterion_parameters["fancy_convergence_criterion"].GetBool()
-            self.print_convergence_criterion = convergence_criterion_parameters["print_convergence_criterion"].GetBool()
-            self.mortar_type = convergence_criterion_parameters["mortar_type"].GetString()
             ensure_contact = convergence_criterion_parameters["ensure_contact"].GetBool()
-            self.gidio_debug = convergence_criterion_parameters["gidio_debug"].GetBool()
 
             if(self.echo_level >= 1):
                 KM.Logger.PrintInfo("::[Mechanical Solver]:: ", "CONVERGENCE CRITERION : " + self.convergence_criterion_name)
@@ -138,6 +138,8 @@ class convergence_criterion:
             self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
             self.mechanical_convergence_criterion.SetActualizeRHSFlag(True)
 
+        elif "adaptative_remesh_criteria" == self.convergence_criterion_name:
+            self.mechanical_convergence_criterion = None
         else: # Standard criteria (same as structural mechanics application)
             # Construction of the class convergence_criterion
             import convergence_criteria_factory
