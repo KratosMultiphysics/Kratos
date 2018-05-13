@@ -146,6 +146,7 @@ void SPRMetricProcess<TDim>::Execute()
         double error_energy_norm = 0.0;
         for(IndexType i = 0;i < error_integration_point.size();++i)
             error_energy_norm += error_integration_point[i];
+        #pragma omp atomic
         error_overall += error_energy_norm;
         error_energy_norm = std::sqrt(error_energy_norm);
         it_elem->SetValue(ELEMENT_ERROR, error_energy_norm);
@@ -158,6 +159,7 @@ void SPRMetricProcess<TDim>::Execute()
         double energy_norm = 0.0;
         for(IndexType i = 0;i < strain_energy.size(); ++i)
             energy_norm += 2.0 * strain_energy[i];
+        #pragma omp atomic
         energy_norm_overall += energy_norm;
         energy_norm= std::sqrt(energy_norm);
 
@@ -212,19 +214,21 @@ void SPRMetricProcess<TDim>::Execute()
         auto it_node = nodes_array.begin() + i_node;
         /**************************************************************************
         ** Determine nodal element size h:
-        ** if average_nodal_h == true : the nodal element size is averaged from the element size of neighboring elements
-        ** if average_nodal_h == false: the nodal element size is the minimum element size from neighboring elements
+        ** if mAverageNodalH == true : the nodal element size is averaged from the element size of neighboring elements
+        ** if mAverageNodalH == false: the nodal element size is the minimum element size from neighboring elements
         */
         double h_min = 0.0;
         auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
         for(WeakElementItType i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++){
             const double element_h = i_neighbour_elements->GetValue(ELEMENT_H);
-            if(mAverageNodalH == false){
-                if(h_min == 0.0 || h_min > element_h) h_min = element_h;
+            if(mAverageNodalH == false) {
+                if(h_min == 0.0 || h_min > element_h)
+                    h_min = element_h;
             } else {
                 h_min += element_h;
             }
         }
+
         if(mAverageNodalH == true)
             h_min = h_min/static_cast<double>(neigh_elements.size());
 
