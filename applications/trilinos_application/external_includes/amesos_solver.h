@@ -65,7 +65,6 @@ public:
             else if(it->IsInt()) mParameterList.set(it.name(), it->GetInt());
             else if(it->IsBool()) mParameterList.set(it.name(), it->GetBool());
             else if(it->IsDouble()) mParameterList.set(it.name(), it->GetDouble());
-
         }
 
         mSolverName = settings["amesos_solver_type"].GetString();
@@ -93,8 +92,8 @@ public:
 
     static bool HasSolver(const std::string& AmesosSolverName)
     {
-        Amesos Factory;
-        return Factory.Query(AmesosSolverName);
+        Amesos amesos_factory;
+        return amesos_factory.Query(AmesosSolverName);
     }
 
     /**
@@ -109,18 +108,18 @@ public:
     {
         KRATOS_TRY
         rA.Comm().Barrier();
-        Epetra_LinearProblem Problem(&rA,&rX,&rB);
-        Amesos_BaseSolver* Solver;
-        Amesos Factory;
-        Solver = Factory.Create(mSolverName, Problem); // that the solver exists is checked in the constructor
+        Epetra_LinearProblem linear_problem(&rA,&rX,&rB);
+        Amesos_BaseSolver* p_amesos_solver;
+        Amesos amesos_factory;
+        p_amesos_solver = amesos_factory.Create(mSolverName, linear_problem); // that the solver exists is checked in the constructor
 
-        Solver->SetParameters( mParameterList );
+        p_amesos_solver->SetParameters( mParameterList );
 
-        Solver->SymbolicFactorization();
-        Solver->NumericFactorization();
-        Solver->Solve();
+        p_amesos_solver->SymbolicFactorization();
+        p_amesos_solver->NumericFactorization();
+        p_amesos_solver->Solve();
 
-        delete Solver;
+        delete p_amesos_solver;
 
         rA.Comm().Barrier();
 
