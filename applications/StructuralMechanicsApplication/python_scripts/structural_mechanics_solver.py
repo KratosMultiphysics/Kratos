@@ -88,8 +88,8 @@ class MechanicalSolver(object):
             "residual_relative_tolerance": 1.0e-4,
             "residual_absolute_tolerance": 1.0e-9,
             "adaptative_remesh_settings" : {
-                "error_mesh_tolerance" : 1.0e-3,
-                "error_mesh_constant"  : 1.0e-3,
+                "error_mesh_tolerance" : 5.0e-3,
+                "error_mesh_constant"  : 5.0e-3,
                 "remeshing_utility"    : "MMG",
                 "strategy"             : "Error",
                 "remeshing_parameters":
@@ -111,8 +111,8 @@ class MechanicalSolver(object):
                 "error_strategy_parameters":
                 {
                     "minimal_size"                        : 0.01,
-                    "maximal_size"                        : 10.0,
-                    "error"                               : 0.05,
+                    "maximal_size"                        : 1.0,
+                    "error"                               : 0.01,
                     "penalty_normal"                      : 1.0e4,
                     "penalty_tangential"                  : 1.0e4,
                     "echo_level"                          : 0,

@@ -33,10 +33,10 @@ SPRMetricProcess<TDim>::SPRMetricProcess(
     Parameters default_parameters = Parameters(R"(
     {
         "minimal_size"                        : 0.01,
-        "maximal_size"                        : 10.0, 
-        "error"                               : 0.1,
-        "penalty_normal"                      : 10000.0,
-        "penalty_tangential"                  : 10000.0,
+        "maximal_size"                        : 1.0,
+        "error"                               : 0.01,
+        "penalty_normal"                      : 1.0e4,
+        "penalty_tangential"                  : 1.0e4,
         "echo_level"                          : 0,
         "set_number_of_elements"              : false,
         "number_of_elements"                  : 1000,
@@ -153,18 +153,16 @@ void SPRMetricProcess<TDim>::Execute()
         
         KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Element error: " << error_energy_norm << std::endl;
 
-        if (mEchoLevel > 2) {
-            std::vector<double> strain_energy;
-            it_elem->GetValueOnIntegrationPoints(STRAIN_ENERGY, strain_energy, process_info);
+        std::vector<double> strain_energy;
+        it_elem->GetValueOnIntegrationPoints(STRAIN_ENERGY, strain_energy, process_info);
 
-            double energy_norm = 0.0;
-            for(IndexType i = 0;i < strain_energy.size(); ++i)
-                energy_norm += 2.0 * strain_energy[i];
-            energy_norm_overall += energy_norm;
-            energy_norm= std::sqrt(energy_norm);
+        double energy_norm = 0.0;
+        for(IndexType i = 0;i < strain_energy.size(); ++i)
+            energy_norm += 2.0 * strain_energy[i];
+        energy_norm_overall += energy_norm;
+        energy_norm= std::sqrt(energy_norm);
 
-            KRATOS_INFO("SPRMetricProcess") << "Energy norm: " << energy_norm << std::endl;
-        }
+        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Energy norm: " << energy_norm << std::endl;
     }
     
     error_overall = std::sqrt(error_overall);

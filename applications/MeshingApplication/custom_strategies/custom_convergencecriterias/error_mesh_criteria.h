@@ -121,19 +121,19 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "error_mesh_tolerance" : 1.0e-3,
-            "error_mesh_constant"  : 1.0e-3,
+            "error_mesh_tolerance" : 5.0e-3,
+            "error_mesh_constant"  : 5.0e-3,
             "remeshing_utility"    : "MMG",
             "strategy"             : "Error",
-            "remeshing_parameters" :
+            "remeshing_parameters":
             {
                 "filename"                             : "out",
                 "framework"                            : "Lagrangian",
                 "internal_variables_parameters"        :
                 {
-                    "allocation_size"                      : 1000, 
-                    "bucket_size"                          : 4, 
-                    "search_factor"                        : 2, 
+                    "allocation_size"                      : 1000,
+                    "bucket_size"                          : 4,
+                    "search_factor"                        : 2,
                     "interpolation_type"                   : "LST",
                     "internal_variable_interpolation_list" :[]
                 },
@@ -141,13 +141,13 @@ public:
                 "max_number_of_searchs"            : 1000,
                 "echo_level"                       : 0
             },
-            "error_strategy_parameters": 
+            "error_strategy_parameters":
             {
                 "minimal_size"                        : 0.01,
-                "maximal_size"                        : 10.0,
-                "error"                               : 0.05,
-                "penalty_normal"                      : 10000.0,
-                "penalty_tangential"                  : 10000.0,
+                "maximal_size"                        : 1.0,
+                "error"                               : 0.01,
+                "penalty_normal"                      : 1.0e4,
+                "penalty_tangential"                  : 1.0e4,
                 "echo_level"                          : 0,
                 "set_number_of_elements"              : false,
                 "number_of_elements"                  : 1000,
