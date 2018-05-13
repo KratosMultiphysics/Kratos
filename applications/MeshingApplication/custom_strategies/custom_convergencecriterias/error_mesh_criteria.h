@@ -139,7 +139,7 @@ public:
                 },
                 "save_external_files"              : false,
                 "max_number_of_searchs"            : 1000,
-                "echo_level"                       : 3
+                "echo_level"                       : 0
             },
             "error_strategy_parameters": 
             {
@@ -183,8 +183,11 @@ public:
     {
         BaseType::Initialize(rModelPart);
 
+        // The process info
+        ProcessInfo& process_info = rModelPart.GetProcessInfo();
+
         // Initialize metrics
-        if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
+        if (process_info[DOMAIN_SIZE] == 2) {
             MetricFastInit<2> MetricInit = MetricFastInit<2>(rModelPart);
             MetricInit.Execute();
         } else {
@@ -309,9 +312,12 @@ private:
      */
     bool ComputeRemesh(ModelPart& rModelPart)
     {
+        // The process info
+        ProcessInfo& process_info = rModelPart.GetProcessInfo();
+
         // Computing metric
         double estimated_error = 0;
-        if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
+        if (process_info[DOMAIN_SIZE] == 2) {
             SPRMetricProcess<2> ComputeMetric = SPRMetricProcess<2>(rModelPart, mThisParameters["error_strategy_parameters"]);
             ComputeMetric.Execute();
         } else {
@@ -320,22 +326,22 @@ private:
         }
 
         // We get the estimated error
-        estimated_error = rModelPart.GetProcessInfo()[ERROR_ESTIMATE];
+        estimated_error = process_info[ERROR_ESTIMATE];
 
         // We check if converged
         const bool converged_error = (estimated_error > mErrorTolerance) ? false : true;
 
         if (converged_error) {
-            KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) << "The error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << mErrorTolerance << ". No remeshing required" << std::endl;
+            KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) << "NL ITERATION: " << process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << mErrorTolerance << ". No remeshing required" << std::endl;
         } else {
             KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-            << "The error due to the mesh size: " << estimated_error << " is bigger than the tolerance prescribed: " << mErrorTolerance << ". Remeshing required" << std::endl
-            << "AVERAGE_NODAL_ERROR: " << rModelPart.GetProcessInfo()[AVERAGE_NODAL_ERROR] << std::endl;
+            << "NL ITERATION: " << process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is bigger than the tolerance prescribed: " << mErrorTolerance << ". Remeshing required" << std::endl
+            << "AVERAGE_NODAL_ERROR: " << process_info[AVERAGE_NODAL_ERROR] << std::endl;
 
             // Remeshing
             if (mRemeshingUtilities == RemeshingUtilities::MMG) {
             #ifdef INCLUDE_MMG
-                if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
+                if (process_info[DOMAIN_SIZE] == 2) {
                     MmgProcess<2> MmgRemesh = MmgProcess<2>(rModelPart, mThisParameters["remeshing_parameters"]);
                     MmgRemesh.Execute();
                 } else {

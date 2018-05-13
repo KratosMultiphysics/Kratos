@@ -106,7 +106,7 @@ class MechanicalSolver(object):
                     },
                     "save_external_files"              : false,
                     "max_number_of_searchs"            : 1000,
-                    "echo_level"                       : 3
+                    "echo_level"                       : 0
                 },
                 "error_strategy_parameters":
                 {
