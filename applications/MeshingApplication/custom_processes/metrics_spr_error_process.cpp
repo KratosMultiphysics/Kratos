@@ -123,7 +123,7 @@ void SPRMetricProcess<TDim>::Execute()
         }
     }
     /******************************************************************************
-    --2-- calculate error estimation and new element size (for each element) --2--
+    --2-- Calculate error estimation and new element size (for each element) --2--
     ******************************************************************************/
     // Loop over all elements:
     double error_overall = 0.0;
@@ -321,7 +321,7 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
     }
     
     double det;
-    BoundedMatrix<double, TDim + 1, TDim + 1> invA = MathUtils<double>::InvertMatrix<TDim + 1>(A,det);
+    BoundedMatrix<double, TDim + 1, TDim + 1> invA = MathUtils<double>::InvertMatrix<TDim + 1>(A, det, -1.0); // We consider a negative tolerance in order to avoid error
 
     KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3) << A << std::endl << invA << std::endl << det<< std::endl;
 
