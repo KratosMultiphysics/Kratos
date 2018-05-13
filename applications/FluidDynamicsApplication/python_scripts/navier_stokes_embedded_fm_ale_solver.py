@@ -20,7 +20,7 @@ def CreateSolver(main_model_part, structure_model_part, custom_settings):
 class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver):
 
     def __init__(self, main_model_part, structure_model_part, custom_settings):
-        
+
         self.element_name = "EmbeddedNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
         self.min_buffer_size = 3
@@ -131,7 +131,7 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
 
         ## Set the virtual model part geometry
         if (self.fm_ale_step_frequency != 0):
-            self.mesh_moving_util.FillVirtualModelPart(self.main_model_part)     
+            self.mesh_moving_util.FillVirtualModelPart(self.main_model_part)
 
 
     def InitializeSolutionStep(self):
@@ -163,7 +163,7 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
         if (self.fm_ale_step_frequency != 0):
             if (self.fm_ale_step == self.fm_ale_step_frequency):
                 return True
-            else: 
+            else:
                 return False
 
     def _do_fm_ale_operations(self):

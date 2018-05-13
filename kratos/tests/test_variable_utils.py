@@ -30,8 +30,6 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
         ##set the values in the destination model part
         for node in origin_model_part.Nodes:
-            print("Node id: ",node.Id," node.X: ",node.X," node.Y: ",node.Y)
-            print(node.GetSolutionStepValue(VISCOSITY))
             node.SetSolutionStepValue(VISCOSITY, 0, node.X + node.Y)
             node.SetSolutionStepValue(VISCOSITY, 1, 2.0 * node.X + 3.0 * node.Y)
             node.SetSolutionStepValue(DISPLACEMENT, 0, [node.X ** 2, 0.0, 0.0])
@@ -45,12 +43,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
         ##check the copied values
         for node in destination_model_part.Nodes:
-            print("Node id: ",node.Id," node.X: ",node.X," node.Y: ",node.Y)
-            print(node.GetSolutionStepValue(VISCOSITY))
-            #self.assertEqual(node.GetSolutionStepValue(VISCOSITY, 0), node.X + node.Y)
-            #self.assertEqual(node.GetSolutionStepValue(VISCOSITY, 1), 2.0 * node.X + 3.0 * node.Y)
-            #self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X, 0), node.X ** 2)
-            #self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X, 1), node.X)
+            self.assertEqual(node.GetSolutionStepValue(VISCOSITY, 0), node.X + node.Y)
+            self.assertEqual(node.GetSolutionStepValue(VISCOSITY, 1), 2.0 * node.X + 3.0 * node.Y)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X, 0), node.X ** 2)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X, 1), node.X)
 
     def test_copy_model_part_elemental_var(self):
         ##set the origin model part
