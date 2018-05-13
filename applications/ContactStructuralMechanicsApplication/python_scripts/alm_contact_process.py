@@ -503,26 +503,14 @@ class ALMContactProcess(python_process.PythonProcess):
             slave_interface_model_part = interface_model_part.GetSubModelPart("SlaveSubModelPart")
         else:
             slave_interface_model_part = interface_model_part.CreateSubModelPart("SlaveSubModelPart")
-            for cond in interface_model_part.Conditions:
-                if (cond.Is(KM.SLAVE)):
-                    slave_interface_model_part.AddCondition(cond)
-            del(cond)
-            for node in interface_model_part.Nodes:
-                if (node.Is(KM.SLAVE)):
-                    slave_interface_model_part.AddNode(node, 0)
-            del(node)
+            KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.SLAVE)
+            KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.SLAVE)
         if (interface_model_part.HasSubModelPart("MasterSubModelPart")):
             master_interface_model_part = interface_model_part.GetSubModelPart("MasterSubModelPart")
         else:
             master_interface_model_part = interface_model_part.CreateSubModelPart("MasterSubModelPart")
-            for cond in interface_model_part.Conditions:
-                if (cond.Is(KM.MASTER)):
-                    slave_interface_model_part.AddCondition(cond)
-            del(cond)
-            for node in interface_model_part.Nodes:
-                if (node.Is(KM.MASTER)):
-                    slave_interface_model_part.AddNode(node, 0)
-            del(node)
+            KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.MASTER)
+            KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.MASTER)
         if (self.dimension == 2):
             mortar_mapping = KM.SimpleMortarMapperProcess2D2NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
         else:
