@@ -486,9 +486,9 @@ void RemoveSubModelPart2(ModelPart& rModelPart, ModelPart& ThisSubModelPart)
 	rModelPart.RemoveSubModelPart(ThisSubModelPart);
 }
 
-void AddNodesByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ConditionNodeIds )
+void AddNodesByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& NodesIds )
 {
-    rModelPart.AddNodes(ConditionNodeIds);
+    rModelPart.AddNodes(NodesIds);
 }
 
 void AddConditionsByIds(ModelPart& rModelPart,std::vector< ModelPart::IndexType >& ConditionsIds )
@@ -496,9 +496,9 @@ void AddConditionsByIds(ModelPart& rModelPart,std::vector< ModelPart::IndexType 
     rModelPart.AddConditions(ConditionsIds);
 }
 
-void AddElementsByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ElementIds )
+void AddElementsByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ElementsIds )
 {
-    rModelPart.AddElements(ElementIds);
+    rModelPart.AddElements(ElementsIds);
 }
 
 const ModelPart::SubModelPartIterator GetSubModelPartBegin(ModelPart& rModelPart)

@@ -1710,19 +1710,21 @@ template <typename T> std::vector<double> SphericSwimmingParticle<T>::mTs;
 template <typename T> std::vector<double> SphericSwimmingParticle<T>::mAlphas;
 template <typename T> std::vector<double> SphericSwimmingParticle<T>::mBetas;
 template <typename T> double SphericSwimmingParticle<T>::mTimeWindow;
+template <typename T> bool SphericSwimmingParticle<T>::mDaitcheVectorsAreFull;
 
 // Instantiation
-#define INSTANTIATE_SPHERIC_SWIMMING(_T)                          \
-template std::vector<double> SphericSwimmingParticle<_T>::mAjs;   \
-template std::vector<double> SphericSwimmingParticle<_T>::mBns;   \
-template std::vector<double> SphericSwimmingParticle<_T>::mCns;   \
-template std::vector<double> SphericSwimmingParticle<_T>::mDns;   \
-template std::vector<double> SphericSwimmingParticle<_T>::mEns;   \
-template std::vector<double> SphericSwimmingParticle<_T>::mAs;    \
-template std::vector<double> SphericSwimmingParticle<_T>::mTs;    \
-template std::vector<double> SphericSwimmingParticle<_T>::mAlphas;\
-template std::vector<double> SphericSwimmingParticle<_T>::mBetas; \
-template double SphericSwimmingParticle<_T>::mTimeWindow;
+#define INSTANTIATE_SPHERIC_SWIMMING(_T)                            \
+template std::vector<double> SphericSwimmingParticle<_T>::mAjs;     \
+template std::vector<double> SphericSwimmingParticle<_T>::mBns;     \
+template std::vector<double> SphericSwimmingParticle<_T>::mCns;     \
+template std::vector<double> SphericSwimmingParticle<_T>::mDns;     \
+template std::vector<double> SphericSwimmingParticle<_T>::mEns;     \
+template std::vector<double> SphericSwimmingParticle<_T>::mAs;      \
+template std::vector<double> SphericSwimmingParticle<_T>::mTs;      \
+template std::vector<double> SphericSwimmingParticle<_T>::mAlphas;  \
+template std::vector<double> SphericSwimmingParticle<_T>::mBetas;   \
+template double SphericSwimmingParticle<_T>::mTimeWindow;           \
+template bool SphericSwimmingParticle<_T>::mDaitcheVectorsAreFull;
 
 INSTANTIATE_SPHERIC_SWIMMING(SphericParticle)
 INSTANTIATE_SPHERIC_SWIMMING(NanoParticle)
