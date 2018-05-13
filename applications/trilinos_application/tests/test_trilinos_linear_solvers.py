@@ -92,7 +92,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "amesos",
+                        "solver_type" : "AmesosSolver",
                         "amesos_solver_type" : "Amesos_Superludist"
                     }
                 ]
@@ -107,7 +107,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "amesos",
+                        "solver_type" : "AmesosSolver",
                         "amesos_solver_type" : "Amesos_Mumps"
                     }
                 ]
@@ -123,7 +123,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "amesos",
+                        "solver_type" : "AmesosSolver",
                         "amesos_solver_type" : "Amesos_Klu"
                     }
                 ]
