@@ -51,7 +51,6 @@ SPRMetricProcess<TDim>::SPRMetricProcess(
     mPenaltyNormal = ThisParameters["penalty_normal"].GetDouble();
     mPenaltyTangent = ThisParameters["penalty_tangential"].GetDouble();
     mEchoLevel = ThisParameters["echo_level"].GetInt();
-    mSigmaSize = (TDim == 2) ? 3 : 6;
     mSetElementNumber = ThisParameters["set_number_of_elements"].GetBool();
     mElementNumber = ThisParameters["number_of_elements"].GetInt();
     mTargetError = ThisParameters["error"].GetDouble();
@@ -91,7 +90,7 @@ void SPRMetricProcess<TDim>::Execute()
         
         const SizeType neighbour_size = it_node->GetValue(NEIGHBOUR_ELEMENTS).size();
 
-        Vector sigma_recovered(mSigmaSize, 0.0);
+        Vector sigma_recovered(SigmaSize, 0.0);
         
         if(neighbour_size > TDim) {
             CalculatePatch(it_node, it_node, neighbour_size,sigma_recovered);
@@ -102,7 +101,7 @@ void SPRMetricProcess<TDim>::Execute()
             auto& neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
             for(auto it_neighbour_nodes = neigh_nodes.begin(); it_neighbour_nodes != neigh_nodes.end(); it_neighbour_nodes++) {
                 
-                Vector sigma_recovered_i(mSigmaSize,0);
+                Vector sigma_recovered_i(SigmaSize,0);
                 
                 IndexType count_i = 0;
                 for(IndexType i_node_loop = 0; i_node_loop < num_nodes; ++i_node_loop) { // FIXME: Avoid thsi double loop, extreamily expensive
@@ -294,9 +293,9 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
     std::vector<array_1d<double,3>> coordinates_vector(1);
     Variable<array_1d<double,3>> variable_coordinates = INTEGRATION_COORDINATES;
     Variable<Vector> variable_stress = CAUCHY_STRESS_VECTOR;
-    Matrix A(TDim+1,TDim+1,0);
-    Matrix b(TDim+1,mSigmaSize,0); 
-    Matrix p_k(1,TDim+1,0);
+    BoundedMatrix<double, TDim + 1, TDim + 1> A = ZeroMatrix(TDim + 1,TDim + 1);
+    BoundedMatrix<double, TDim + 1, SigmaSize> b = ZeroMatrix(TDim + 1,SigmaSize);
+    BoundedMatrix<double, 1, TDim + 1> p_k;
     
     auto& neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
     for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
@@ -308,49 +307,46 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
         << "\tStress: " << stress_vector[0] << std::endl
         << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
         
-        Matrix sigma(1,mSigmaSize);
-        for(IndexType j = 0; j < mSigmaSize; ++j)
-            sigma(0,j)=stress_vector[0][j];
-        p_k(0,0)=1;
-        p_k(0,1)=coordinates_vector[0][0]-itPatchNode->X(); 
-        p_k(0,2)=coordinates_vector[0][1]-itPatchNode->Y();
+        BoundedMatrix<double, 1, SigmaSize> sigma;
+        for(IndexType j = 0; j < SigmaSize; ++j)
+            sigma(0,j) = stress_vector[0][j];
+        p_k(0,0) = 1.0;
+        p_k(0,1) = coordinates_vector[0][0] - itPatchNode->X();
+        p_k(0,2) = coordinates_vector[0][1] - itPatchNode->Y();
         if(TDim == 3)
-            p_k(0,3)=coordinates_vector[0][2]-itPatchNode->Z();       
+            p_k(0,3)=coordinates_vector[0][2] - itPatchNode->Z();
         
-        A += prod(trans(p_k), p_k);
-        b += prod(trans(p_k), sigma);
+        noalias(A) += prod(trans(p_k), p_k);
+        noalias(b) += prod(trans(p_k), sigma);
     }
     
-    Matrix invA(TDim+1,TDim+1);
     double det;
-    MathUtils<double>::InvertMatrix(A,invA,det);
+    BoundedMatrix<double, TDim + 1, TDim + 1> invA = MathUtils<double>::InvertMatrix<TDim + 1>(A,det);
 
     KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3) << A << std::endl << invA << std::endl << det<< std::endl;
 
     const double tolerance = std::numeric_limits<double>::epsilon();
     if(det < tolerance){
         KRATOS_WARNING_IF("SPRMetricProcess", mEchoLevel == 2) << A << std::endl;
-        for( IndexType i=0; i<TDim+1;i++){
-            for( IndexType j=0; j<TDim+1; j++)
-                A(i,j)+= 0.001;
+        for( IndexType i = 0; i < TDim + 1;i++){
+            for( IndexType j = 0; j < TDim + 1; j++)
+                A(i,j) += 0.001;
         }
-        MathUtils<double>::InvertMatrix(A, invA, det);
+        invA = MathUtils<double>::InvertMatrix<TDim + 1>(A,det);
         KRATOS_WARNING_IF("SPRMetricProcess", mEchoLevel > 0) << "det: " << det << std::endl;
     }
 
-    Matrix coeff(TDim+1,mSigmaSize);
-    coeff = prod(invA,b);
+    const BoundedMatrix<double, TDim + 1, SigmaSize> coeff = prod(invA, b);
     
     if(NeighbourSize > TDim) {
-        rSigmaRecovered = MatrixRow(coeff,0);
+        noalias(rSigmaRecovered) = row(coeff, 0);
     } else {
-        p_k(0,1)=itNode->X()-itPatchNode->X(); 
-        p_k(0,2)=itNode->Y()-itPatchNode->Y();
+        p_k(0,1) = itNode->X() - itPatchNode->X();
+        p_k(0,2) = itNode->Y() - itPatchNode->Y();
         if(TDim ==3)
-            p_k(0,3)=itNode->Z()-itPatchNode->Z();
-        Matrix sigma(1,mSigmaSize);
-        sigma = prod(p_k,coeff);
-        rSigmaRecovered = MatrixRow(sigma,0);
+            p_k(0,3) = itNode->Z() - itPatchNode->Z();
+        const BoundedMatrix<double, 1, SigmaSize> sigma = prod(p_k,coeff);
+        noalias(rSigmaRecovered) = row(sigma, 0);
     }
 }
 
@@ -367,16 +363,16 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 
     std::vector<Vector> stress_vector(1);
     std::vector<array_1d<double,3>> coordinates_vector(1);
-    Variable<array_1d<double,3>> variable_coordinates = INTEGRATION_COORDINATES;
-    Variable<Vector> variable_stress = CAUCHY_STRESS_VECTOR;
+    const Variable<array_1d<double,3>> variable_coordinates = INTEGRATION_COORDINATES;
+    const Variable<Vector> variable_stress = CAUCHY_STRESS_VECTOR;
 
-    CompressedMatrix A((mSigmaSize*(TDim+1)),(mSigmaSize*(TDim+1)),0);
-    Matrix b((mSigmaSize*(TDim+1)),1,0); 
-    Matrix p_k(mSigmaSize,(mSigmaSize*(TDim+1)),0);
-    Matrix N_k(1,mSigmaSize,0);
-    Matrix T_k(1,mSigmaSize,0);
-    Matrix T_k2(1,mSigmaSize,0);  // in case of 3D: second tangential vector
-    Matrix sigma(mSigmaSize,1);
+    CompressedMatrix A(SigmaSize * (TDim + 1), SigmaSize * (TDim + 1), 0.0);
+    BoundedMatrix<double, SigmaSize * (TDim+1),1> b = ZeroMatrix(SigmaSize * (TDim+1), 1);
+    BoundedMatrix<double, SigmaSize, SigmaSize * (TDim+1)> p_k;
+    BoundedMatrix<double, 1, SigmaSize> N_k;
+    BoundedMatrix<double, 1, SigmaSize> T_k1;
+    BoundedMatrix<double, 1, SigmaSize> T_k2;  // in case of 3D: second tangential vector
+    BoundedMatrix<double, SigmaSize, 1> sigma;
     
     /* Computation A and b */
     // PART 1: contributions from the neighboring elements
@@ -392,24 +388,25 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
         << "\tStress: " << stress_vector[0] << std::endl
         << "\tX: " << coordinates_vector[0][0] << "\tY: " << coordinates_vector[0][1] << "\tZ: " << coordinates_vector[0][2] << std::endl;
         
-        for( IndexType j = 0; j < mSigmaSize; ++j)
+        for( IndexType j = 0; j < SigmaSize; ++j)
             sigma(j,0) = stress_vector[0][j];
         
-        for ( IndexType j = 0; j < mSigmaSize; ++j){
-            p_k(j,j*(TDim+1))=1;
-            p_k(j,j*(TDim+1)+1)=coordinates_vector[0][0]-itPatchNode->X(); 
-            p_k(j,j*(TDim+1)+2)=coordinates_vector[0][1]-itPatchNode->Y();
+        for ( IndexType j = 0; j < SigmaSize; ++j){
+            p_k(j, j * (TDim+1) + 0) = 1.0;
+            p_k(j, j * (TDim+1) + 1) = coordinates_vector[0][0] - itPatchNode->X();
+            p_k(j, j * (TDim+1) + 2) = coordinates_vector[0][1] - itPatchNode->Y();
             if(TDim == 3)
-                p_k(j,j*(TDim+1)+3)=coordinates_vector[0][2]-itPatchNode->Z();
+                p_k(j, j * (TDim+1) + 3) = coordinates_vector[0][2] - itPatchNode->Z();
         }
         
-        A += prod(trans(p_k),p_k);
-        b += prod(trans(p_k),sigma);
+        noalias(A) += prod(trans(p_k), p_k);
+        noalias(b) += prod(trans(p_k), sigma);
     }
     
     // Computing A and b
-    Matrix A1((mSigmaSize * (TDim + 1)),1,0), A2(1,(mSigmaSize *(TDim + 1)),0);
-    for (IndexType j = 0; j < mSigmaSize; ++j){
+    BoundedMatrix<double, SigmaSize * (TDim + 1), 1> A1;
+    BoundedMatrix<double, 1, SigmaSize * (TDim + 1)> A2;
+    for (IndexType j = 0; j < SigmaSize; ++j){
         p_k(j,j * (TDim + 1) + 1)= itNode->X() - itPatchNode->X();
         p_k(j,j * (TDim + 1) + 2)= itNode->Y() - itPatchNode->Y();
         if(TDim == 3)
@@ -420,20 +417,20 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
     const array_1d<double, 3>& normal = itNode->GetValue(NORMAL);
 
     if(TDim == 2) {
-        N_k(0,0) = normal[0]*normal[0];
-        N_k(0,1) = normal[1]*normal[1];
-        N_k(0,2) = 2.0*normal[0]*normal[1];
+        N_k(0,0) = normal[0] * normal[0];
+        N_k(0,1) = normal[1] * normal[1];
+        N_k(0,2) = 2.0 * normal[0] * normal[1];
         
-        T_k(0,0) = normal[0]*normal[1];
-        T_k(0,1) = -normal[0]*normal[1];
-        T_k(0,2) = normal[1]*normal[1]-normal[0]*normal[0];
+        T_k1(0,0) =  normal[0] * normal[1];
+        T_k1(0,1) = -normal[0] * normal[1];
+        T_k1(0,2) =  normal[1] * normal[1] - normal[0] * normal[0];
     } else if (TDim == 3) {
-        N_k(0,0) = normal[0]*normal[0];
-        N_k(0,1) = normal[1]*normal[1];
-        N_k(0,1) = normal[2]*normal[2];
-        N_k(0,3) = 2*normal[1]*normal[2];
-        N_k(0,4) = 2*normal[2]*normal[0];
-        N_k(0,5) = 2*normal[0]*normal[1];
+        N_k(0,0) = normal[0] * normal[0];
+        N_k(0,1) = normal[1] * normal[1];
+        N_k(0,1) = normal[2] * normal[2];
+        N_k(0,3) = 2.0 * normal[1] * normal[2];
+        N_k(0,4) = 2.0 * normal[2] * normal[0];
+        N_k(0,5) = 2.0 * normal[0] * normal[1];
 
         // Set tangential vectors
         array_1d<double, 3> t1(3, 0.0);
@@ -453,12 +450,12 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
             t2[1] = 1.0;
         }
 
-        T_k(0,0) = normal[0]*t1[0];
-        T_k(0,1) = normal[1]*t1[1];
-        T_k(0,2) = normal[2]*t1[2];
-        T_k(0,3) = normal[1]*t1[2]+normal[2]*t1[1];
-        T_k(0,4) = normal[2]*t1[0]+normal[0]*t1[2];
-        T_k(0,5) = normal[0]*t1[1]+normal[1]*t1[0];
+        T_k1(0,0) = normal[0]*t1[0];
+        T_k1(0,1) = normal[1]*t1[1];
+        T_k1(0,2) = normal[2]*t1[2];
+        T_k1(0,3) = normal[1]*t1[2]+normal[2]*t1[1];
+        T_k1(0,4) = normal[2]*t1[0]+normal[0]*t1[2];
+        T_k1(0,5) = normal[0]*t1[1]+normal[1]*t1[0];
         
         T_k2(0,0) = normal[0]*t2[0];
         T_k2(0,1) = normal[1]*t2[1];
@@ -468,15 +465,15 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
         T_k2(0,5) = normal[0]*t2[1]+normal[1]*t2[0];
     }
     
-    A1 = prod(trans(p_k),trans(N_k));
-    A2 = prod(N_k,p_k);
-    A += mPenaltyNormal*prod(A1, A2);
+    noalias(A1) = prod(trans(p_k),trans(N_k));
+    noalias(A2) = prod(N_k,p_k);
+    noalias(A) += mPenaltyNormal * prod(A1, A2);
 
-    A1 = prod(trans(p_k),trans(T_k));
-    A2 = prod(T_k,p_k);
-    A += mPenaltyTangent*prod(A1, A2);
+    noalias(A1) = prod(trans(p_k),trans(T_k1));
+    noalias(A2) = prod(T_k1,p_k);
+    noalias(A) += mPenaltyTangent*prod(A1, A2);
 
-    b += mPenaltyNormal*prod(trans(p_k),trans(N_k))*itNode->GetValue(CONTACT_PRESSURE);
+    noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k)) * itNode->GetValue(CONTACT_PRESSURE);
 
 //     //PART 2: contributions from contact nodes: regard all nodes from the patch which are in contact
 //     //patch center node:
@@ -491,19 +488,19 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 //         N_k(0,0) = normal_patch_node[0]*normal_patch_node[0];
 //         N_k(0,1) = normal_patch_node[1]*normal_patch_node[1];
 //         N_k(0,2) = 2*normal_patch_node[0]*normal_patch_node[1];
-//         T_k(0,0) = normal_patch_node[0]*normal_patch_node[1];
-//         T_k(0,1) = -normal_patch_node[0]*normal_patch_node[1];
-//         T_k(0,2) = normal_patch_node[1]*normal_patch_node[1]-normal_patch_node[0]*normal_patch_node[0];
+//         T_k1(0,0) = normal_patch_node[0]*normal_patch_node[1];
+//         T_k1(0,1) = -normal_patch_node[0]*normal_patch_node[1];
+//         T_k1(0,2) = normal_patch_node[1]*normal_patch_node[1]-normal_patch_node[0]*normal_patch_node[0];
 //
 //         A1 = prod(trans(p_k),trans(N_k));
 //         A2 = prod(N_k,p_k);
 //         A+= mPenaltyNormal*prod(A1, A2);
 //
-//         A1 = prod(trans(p_k),trans(T_k));
-//         A2 = prod(T_k,p_k);
+//         A1 = prod(trans(p_k),trans(T_k1));
+//         A2 = prod(T_k1,p_k);
 //         A+= mPenaltyTangent*prod(A1, A2);
 //         //A+= mPenaltyNormal*prod(prod(trans(p_k),trans(N_k)),prod(N_k,p_k));
-//         //A+= mPenaltyTangent*prod(prod(prod(trans(p_k),trans(T_k)),T_k),p_k);
+//         //A+= mPenaltyTangent*prod(prod(prod(trans(p_k),trans(T_k1)),T_k1),p_k);
 //
 //         b-= mPenaltyNormal*prod(trans(p_k),trans(N_k))*itPatchNode->GetValue(CONTACT_PRESSURE);
 //     }
@@ -525,9 +522,9 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 //             N_k(0,0) = normal_neigh_node[0]*normal_neigh_node[0];
 //             N_k(0,1) = normal_neigh_node[1]*normal_neigh_node[1];
 //             N_k(0,2) = 2*normal_neigh_node[0]*normal_neigh_node[1];
-//             T_k(0,0) = normal_neigh_node[0]*normal_neigh_node[1];
-//             T_k(0,1) = -normal_neigh_node[0]*normal_neigh_node[1];
-//             T_k(0,2) = normal_neigh_node[1]*normal_neigh_node[1]-normal_neigh_node[0]*normal_neigh_node[0];
+//             T_k1(0,0) = normal_neigh_node[0]*normal_neigh_node[1];
+//             T_k1(0,1) = -normal_neigh_node[0]*normal_neigh_node[1];
+//             T_k1(0,2) = normal_neigh_node[1]*normal_neigh_node[1]-normal_neigh_node[0]*normal_neigh_node[0];
 //
 //             A1 = prod(trans(p_k),trans(N_k));
 //             A2 = prod(N_k,p_k);
@@ -544,24 +541,24 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
     // Computing coefficients a: A*a=b
     KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3) << A << std::endl;
     
-    Vector coeff(mSigmaSize*(TDim+1));
-    Vector b_vector = MatrixColumn(b,0);
-    mpLinearSolver->Solve(A,coeff,b_vector);
+    Vector coeff(SigmaSize * (TDim+1));
+    Vector b_vector = row(b, 0);
+    mpLinearSolver->Solve(A, coeff, b_vector);
 
-    for (IndexType j = 0; j < mSigmaSize;++j){
+    for (IndexType j = 0; j < SigmaSize;++j){
         p_k(j,j*(TDim + 1) + 1)= itNode->X() - itPatchNode->X();
         p_k(j,j*(TDim + 1) + 2)= itNode->Y() - itPatchNode->Y();
         if (TDim == 3)
             p_k(j,j*(TDim + 1) + 3)= itNode->Z() - itPatchNode->Z();
     }
     
-    Matrix coeff_matrix(mSigmaSize*(TDim + 1), 1);
-    for (IndexType i=0; i<mSigmaSize*(TDim + 1); ++i)
-        coeff_matrix(i,0)=coeff(i);
+    BoundedMatrix<double, SigmaSize*(TDim + 1), 1> coeff_matrix;
+    for (IndexType i=0; i<SigmaSize*(TDim + 1); ++i)
+        coeff_matrix(i, 0) = coeff[i];
     
-    sigma = prod(p_k,coeff_matrix);
+    noalias(sigma) = prod(p_k, coeff_matrix);
 
-    rSigmaRecovered = MatrixColumn(sigma,0);
+    rSigmaRecovered = row(sigma,0);
     
     KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 1) <<" Recovered pressure: "<< prod(N_k,sigma) <<", LM: "<<itNode->GetValue(CONTACT_PRESSURE)<<std::endl;
 }

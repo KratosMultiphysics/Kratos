@@ -95,6 +95,9 @@ public:
     /// Pointer definition of SPRMetricProcess
     KRATOS_CLASS_POINTER_DEFINITION(SPRMetricProcess);
     
+    /// The Voigt notation size
+    static constexpr SizeType SigmaSize = (TDim == 2) ? 3 : 6;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -221,7 +224,6 @@ private:
 
     SizeType mEchoLevel;                      /// The echo level
 
-    SizeType mSigmaSize;                      /// The size of the stress vector (Voigt Notation)
     bool mSetElementNumber;                   /// Determines if a target number of elements for the new mesh is set
     SizeType mElementNumber;                  /// The target number of elements for the new mesh
     double mTargetError;                      /// The overall target error for the new mesh
