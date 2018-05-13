@@ -524,17 +524,17 @@ class ALMContactProcess(python_process.PythonProcess):
                     slave_interface_model_part.AddNode(node, 0)
             del(node)
         if (self.dimension == 2):
-            mortar_mapping1 = KM.SimpleMortarMapperProcess2D2NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
+            mortar_mapping = KM.SimpleMortarMapperProcess2D2NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
         else:
             if (num_nodes == 3):
-                mortar_mapping1 = KM.SimpleMortarMapperProcess3D3NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
+                mortar_mapping = KM.SimpleMortarMapperProcess3D3NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
             else:
-                mortar_mapping1 = KM.SimpleMortarMapperProcess3D4NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
+                mortar_mapping = KM.SimpleMortarMapperProcess3D4NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
 
         mortar_mapping.Execute()
 
         # Transfering the AUGMENTED_NORMAL_CONTACT_PRESSURE to CONTACT_PRESSURE
-        KM.VariableUtils().SaveScalarNonHistVar(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, KM.CONTACT_PRESSURE, interface_model_part.Nodes)
+        KM.VariableUtils().SaveScalarNonHistoricalVar(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, KM.CONTACT_PRESSURE, interface_model_part.Nodes)
 
         self._reset_search()
 
