@@ -17,24 +17,14 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-
-// ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include <unordered_map>
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
+#include "includes/key_hash.h"
 #include "shape_optimization_application.h"
 
 // ==============================================================================
@@ -79,28 +69,6 @@ public:
     /// Pointer definition of GeometryUtilities
     KRATOS_CLASS_POINTER_DEFINITION(GeometryUtilities);
 
-	// Structs needed for operations related to surface extraction
-	struct KeyComparor
-	{
-		bool operator()(const vector<unsigned int>& lhs, const vector<unsigned int>& rhs) const
-		{
-			if(lhs.size() != rhs.size())
-				return false;
-
-			for(unsigned int i=0; i<lhs.size(); i++)
-				if(lhs[i] != rhs[i]) return false;
-
-			return true;
-		}
-	};
-	struct KeyHasher
-	{
-		std::size_t operator()(const vector<int>& k) const
-		{
-			return boost::hash_range(k.begin(), k.end());
-		}
-	};
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -132,6 +100,8 @@ public:
         KRATOS_TRY;
 
         const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+        KRATOS_ERROR_IF((domain_size == 3 && mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
+            "> Normal calculation of 2-noded conditions in 3D domains is not possible!" << std::endl;
         CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
         CalculateUnitNormals();
 
@@ -172,7 +142,7 @@ public:
     	mrModelPart.CreateSubModelPart(NewSubModelPartName);
 
     	// Some type-definitions
-    	typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        typedef std::unordered_map<vector<unsigned int>, unsigned int, KeyHasherRange<vector<unsigned int>>, KeyComparorRange<vector<unsigned int>> > hashmap;
 
     	// Create map to ask for number of faces for the given set of node ids representing one face in the model part
     	hashmap n_faces_map;
@@ -203,7 +173,7 @@ public:
     	std::vector<std::size_t> temp_surface_node_ids;
 
     	// Add surface nodes to sub-model part
-    	for(hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
+    	for(auto it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
     	{
     		// If given node set represents face that is not overlapping with a face of another element, add it as skin element
     		if(it->second == 1)

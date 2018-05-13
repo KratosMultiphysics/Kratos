@@ -1,28 +1,13 @@
-/*
-==============================================================================
-Kratos Click2Cast Application
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2014
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-COPYRIGHT RESERVED.
-
-==============================================================================
- */
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: Jordi Rubio$
-//   Date:                $Date: 2015-05-20 14:14:49 $
-//   Revision:            $Revision: 1.6 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Jordi Rubio
 //
 
 // System includes
@@ -44,7 +29,7 @@ COPYRIGHT RESERVED.
 #define mu_parameter 0.0001
 
 namespace Kratos {
-	
+
 //************************************************************************************
 //************************************************************************************
 
@@ -100,7 +85,7 @@ KRATOS_TRY
 
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    BoundedMatrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
     //getting data for the given geometry
@@ -133,9 +118,9 @@ KRATOS_TRY
 
         const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
         const array_1d<double, 3 > & w = GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
-        
+
 		for (unsigned int j = 0; j < dim; j++)
-		{   
+		{
 			double efec_vj=v[j];//-0.5*mu_parameter*grad_D[j]*0.0;
 			ms_vel_gauss[j] += vel_fac * (efec_vj - w[j]);
 		}
@@ -158,14 +143,14 @@ KRATOS_TRY
     double dt_inv = 1.0 / delta_t;
 
     //INERTIA CONTRIBUTION
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > msMassFactors = 0.25* IdentityMatrix(4, 4);
+    BoundedMatrix<double, 4, 4 > msMassFactors = 0.25* IdentityMatrix(4, 4);
     noalias(rLeftHandSideMatrix) = dt_inv * msMassFactors;
 
 
     //Advective term
     array_1d<double, 4 > a_dot_grad;
     noalias(a_dot_grad) = prod(DN_DX, ms_vel_gauss);
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
+    BoundedMatrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
     noalias(rLeftHandSideMatrix) += (1.0 - cr_nk) * Advective_Matrix;
 
     //stabilization terms
@@ -200,7 +185,7 @@ KRATOS_TRY
     h = 0.666666667 * h * 1.732;
 
     //Add all n_step terms
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > old_step_matrix = dt_inv*msMassFactors;
+    BoundedMatrix<double, 4, 4 > old_step_matrix = dt_inv*msMassFactors;
     old_step_matrix -= (cr_nk * Advective_Matrix);
     noalias(rRightHandSideVector) = prod(old_step_matrix, step_unknown);
 
@@ -244,11 +229,11 @@ void SUPGConvLevelSet::CalculatePenalty(VectorType& penalty)
 KRATOS_TRY
 	//std::cout << "Inside Calculating Penalty" << std::endl;
     //compute geometrical data of the element
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    BoundedMatrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > Ncenter;
     double Volume;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, Ncenter, Volume);
-	 
+
 	//gather variables on all nodes
     array_1d<double,4> distances;
     for(unsigned int i=0; i<4; i++)
@@ -276,11 +261,11 @@ KRATOS_TRY
 	//grad_D.resize(3);
 	//std::cout << "Inside Calculating Penalty" << std::endl;
     //compute geometrical data of the element
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    BoundedMatrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > Ncenter;
     double Volume;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, Ncenter, Volume);
-	 
+
 	//gather variables on all nodes
     array_1d<double,4> distances;
     for(unsigned int i=0; i<4; i++)

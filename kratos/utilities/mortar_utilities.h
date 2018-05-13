@@ -66,16 +66,30 @@ public:
     ///@name Type Definitions
     ///@{
     
-    // General type definitions
+    // Some geometrical definitions
     typedef Node<3>                                              NodeType;
     typedef Point                                               PointType;
     typedef PointType::CoordinatesArrayType          CoordinatesArrayType;
+
+    /// Definition of geometries
     typedef Geometry<NodeType>                               GeometryType;
     typedef Geometry<PointType>                         GeometryPointType;
+
+    /// The integration method type
     typedef GeometryData::IntegrationMethod             IntegrationMethod;
+
+    /// The containers of the components of the model parts
     typedef ModelPart::NodesContainerType                  NodesArrayType;
     typedef ModelPart::ConditionsContainerType        ConditionsArrayType;
-    typedef std::unordered_map<int, int>                           IntMap;
+
+    /// Index type definition
+    typedef std::size_t                                         IndexType;
+
+    /// Size type definition
+    typedef std::size_t                                          SizeType;
+
+    /// A map for integers
+    typedef std::unordered_map<IndexType, IndexType>               IntMap;
     
     ///@}
     ///@name Life Cycle
@@ -118,22 +132,22 @@ public:
         const array_1d<double,3>& Normal,
         const array_1d<double,3>& Vector
         )
-    {    
-        // We define the tolerance
-        const double tolerance = std::numeric_limits<double>::epsilon();
-        
+    {
+        // Zero tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
         // We define the distance
         double distance = 0.0;
         
         const array_1d<double,3> vector_points = Geom[0].Coordinates() - PointDestiny.Coordinates();
 
-        if( norm_2( Vector ) < tolerance && norm_2( Normal ) > tolerance ) {
+        if( norm_2( Vector ) < zero_tolerance && norm_2( Normal ) > zero_tolerance ) {
             distance = inner_prod(vector_points, Normal)/norm_2(Normal);
 
             PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * distance;
             KRATOS_WARNING("Warning: Zero projection vector.") << " Projection using the condition vector instead." << std::endl;
         }
-        else if (std::abs(inner_prod(Vector, Normal) ) > tolerance) {
+        else if (std::abs(inner_prod(Vector, Normal) ) > zero_tolerance) {
             distance = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
 
             PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * distance;
@@ -162,12 +176,12 @@ public:
         double& Distance
         )
     {
-        array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
+        const array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
 
         Distance = inner_prod(vector_points, Normal); 
         
         PointType point_projected;
-        point_projected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
+        noalias(point_projected.Coordinates()) = PointDestiny.Coordinates() - Normal * Distance;
         
         return point_projected;
     }
@@ -199,8 +213,8 @@ public:
         normals[0] = GeomOrigin[0].FastGetSolutionStepValue(NORMAL);
         normals[1] = GeomOrigin[1].FastGetSolutionStepValue(NORMAL);
         
-        bounded_matrix<double,2,2> X;
-        bounded_matrix<double,2,1> DN;
+        BoundedMatrix<double,2,2> X;
+        BoundedMatrix<double,2,1> DN;
         for(unsigned int i=0; i<2;++i) {
             X(0,i) = GeomOrigin[i].X();
             X(1,i) = GeomOrigin[i].Y();
@@ -336,7 +350,7 @@ public:
         PointType aux_point_to_rotate;
         aux_point_to_rotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
         
-        bounded_matrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
+        BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
         
         if (Inversed == false) {
             for (unsigned int i = 0; i < 3; ++i) {
@@ -370,10 +384,7 @@ public:
         
         const double this_norm = norm_2(normal);
         
-    #ifdef KRATOS_DEBUG
-        const bool not_zero_vector = (this_norm > std::numeric_limits<double>::epsilon());
-        KRATOS_ERROR_IF(!not_zero_vector) << "Zero norm normal vector. Norm:" << this_norm << std::endl;
-    #endif
+        KRATOS_DEBUG_ERROR_IF(this_norm < std::numeric_limits<double>::epsilon()) << "Zero norm normal vector. Norm:" << this_norm << std::endl;
         
         normal /= this_norm;
         
@@ -405,9 +416,6 @@ public:
      */
     
     static inline void ComputeNodesMeanNormalModelPart(ModelPart& rModelPart) {
-        // Tolerance
-        const double tolerance = std::numeric_limits<double>::epsilon();
-        
         NodesArrayType& nodes_array = rModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
@@ -434,7 +442,7 @@ public:
             for (unsigned int i = 0; i < number_nodes; ++i) {
                 auto& this_node = this_geometry[i];
                 aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_node.Coordinates());
-                const array_1d<double, 3>& normal = this_geometry.UnitNormal(aux_coords);
+                const array_1d<double, 3> normal = this_geometry.UnitNormal(aux_coords);
                 auto& aux_normal = this_node.FastGetSolutionStepValue(NORMAL);
                 for (unsigned int index = 0; index < 3; ++index) {
                     #pragma omp atomic
@@ -449,7 +457,7 @@ public:
 
             array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
             const double norm_normal = norm_2(normal);
-            if (norm_normal > tolerance) normal /= norm_normal;
+            if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
             else KRATOS_ERROR << "WARNING:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
         }
     }
@@ -463,13 +471,13 @@ public:
      */
     
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline bounded_matrix<double, TNumNodes, TDim> GetCoordinates(
+    static inline BoundedMatrix<double, TNumNodes, TDim> GetCoordinates(
         const GeometryType& ThisNodes,
         const bool Current = true,
         const unsigned int Step = 0
         ) {
         /* DEFINITIONS */            
-        bounded_matrix<double, TNumNodes, TDim> coordinates;
+        BoundedMatrix<double, TNumNodes, TDim> coordinates;
         array_1d<double, 3> coord;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
@@ -488,6 +496,42 @@ public:
         }
         
         return coordinates;
+    }
+
+    /**
+     * @brief It calculates the matrix containing the tangent vector of the LM (for frictional contact)
+     * @param ThisNodes The geometry to calculate
+     * @return tangent_matrix The matrix containing the tangent vectors of the LM
+     */
+
+    template< unsigned int TNumNodes, unsigned int TDim>
+    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrix(const GeometryType& ThisNodes) {
+        /* DEFINITIONS */
+        // Zero tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+        // Tangent matrix
+        BoundedMatrix<double, TNumNodes, TDim> tangent_matrix;
+
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            const array_1d<double, 3>& lm = ThisNodes[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+            if (norm_2(lm) > zero_tolerance) { // Non zero LM
+                const array_1d<double, 3>& normal = ThisNodes[i_node].FastGetSolutionStepValue(NORMAL);
+                const array_1d<double, 3> tangent_lm = lm - inner_prod(lm, normal) * normal;
+                if (norm_2(tangent_lm) > zero_tolerance) {
+                    const array_1d<double, 3> tangent = tangent_lm/norm_2(tangent_lm);
+                    for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
+                        tangent_matrix(i_node, i_dof) = tangent[i_dof];
+                } else {
+                    for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
+                        tangent_matrix(i_node, i_dof) = 0.0;
+                }
+            } else { // In case of zero LM
+                for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
+                    tangent_matrix(i_node, i_dof) = 0.0;
+            }
+        }
+
+        return tangent_matrix;
     }
 
     /**
@@ -522,13 +566,13 @@ public:
      */
         
     template< unsigned int TNumNodes, class TVarType = Variable<double> >
-    static inline bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
+    static inline BoundedMatrix<double, TNumNodes, 1> GetVariableVectorMatrix(
         const GeometryType& ThisNodes,
         const TVarType& rVariable,
         const unsigned int Step
         ) {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, 1> var_vector;
+        BoundedMatrix<double, TNumNodes, 1> var_vector;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
             var_vector(i_node, 0) = ThisNodes[i_node].FastGetSolutionStepValue(rVariable, Step);
@@ -565,12 +609,12 @@ public:
      */
     
     template< unsigned int TNumNodes, class TVarType = Variable<double> >
-    static inline bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
+    static inline BoundedMatrix<double, TNumNodes, 1> GetVariableVectorMatrix(
         const GeometryType& ThisNodes,
         const TVarType& rVariable
         ) {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, 1> var_vector;
+        BoundedMatrix<double, TNumNodes, 1> var_vector;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
             var_vector(i_node, 0) = ThisNodes[i_node].GetValue(rVariable);
@@ -587,13 +631,13 @@ public:
      */
     
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline Matrix GetVariableMatrix(
+    static inline BoundedMatrix<double, TNumNodes, TDim> GetVariableMatrix(
         const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVariable,
         const unsigned int Step
         ) {
         /* DEFINITIONS */        
-        Matrix var_matrix(TNumNodes, TDim);
+        BoundedMatrix<double, TNumNodes, TDim> var_matrix;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3> value = Nodes[i_node].FastGetSolutionStepValue(rVariable, Step);
@@ -612,12 +656,12 @@ public:
      */
         
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline Matrix GetVariableMatrix(
+    static inline BoundedMatrix<double, TNumNodes, TDim> GetVariableMatrix(
         const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVariable
         ) {
         /* DEFINITIONS */        
-        Matrix var_matrix(TNumNodes, TDim);
+        BoundedMatrix<double, TNumNodes, TDim> var_matrix;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3>& value = Nodes[i_node].GetValue(rVariable);
@@ -635,9 +679,9 @@ public:
      */
         
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline bounded_matrix<double, TNumNodes, TDim> GetAbsMatrix(const bounded_matrix<double, TNumNodes, TDim>& InputMatrix) {
+    static inline BoundedMatrix<double, TNumNodes, TDim> GetAbsMatrix(const BoundedMatrix<double, TNumNodes, TDim>& InputMatrix) {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, TDim> AbsMatrix;
+        BoundedMatrix<double, TNumNodes, TDim> AbsMatrix;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof)

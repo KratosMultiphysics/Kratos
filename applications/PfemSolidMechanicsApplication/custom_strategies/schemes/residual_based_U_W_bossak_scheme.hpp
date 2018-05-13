@@ -112,7 +112,7 @@ namespace Kratos
          /**
           * Clone 
           */
-         virtual BaseTypePointer Clone()
+         BaseTypePointer Clone() override
          {
             return BaseTypePointer( new ResidualBasedUWBossakScheme(*this) );
          }
@@ -136,7 +136,7 @@ namespace Kratos
                DofsArrayType& rDofSet,
                TSystemMatrixType& A,
                TSystemVectorType& Dx,
-               TSystemVectorType& b )
+               TSystemVectorType& b ) override
          {
             KRATOS_TRY
 
@@ -212,7 +212,7 @@ namespace Kratos
                TSystemMatrixType& A,
                TSystemVectorType& Dx,
                TSystemVectorType& b
-               )
+               ) override
          {
 
             KRATOS_TRY
@@ -423,7 +423,7 @@ namespace Kratos
           * @param r_model_part
           * @return 0 all ok
           */
-         virtual int Check(ModelPart& r_model_part)
+         int Check(ModelPart& r_model_part) override
          {
             KRATOS_TRY
 

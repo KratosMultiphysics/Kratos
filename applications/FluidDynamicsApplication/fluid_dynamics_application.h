@@ -39,6 +39,7 @@
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"
+#include "custom_elements/d_vms.h"
 #include "custom_elements/symbolic_navier_stokes.h"
 #include "custom_elements/embedded_fluid_element.h"
 //#include "custom_elements/dynamic_vms.h"
@@ -66,6 +67,7 @@
 #include "custom_elements/navier_stokes.h"
 #include "custom_elements/embedded_navier_stokes.h"
 #include "custom_elements/embedded_ausas_navier_stokes.h"
+#include "custom_elements/compressible_navier_stokes.h"
 
 
 #include "custom_utilities/qsvms_data.h"
@@ -105,7 +107,7 @@ namespace Kratos
 ///@{
 
 /// Main class of the Fluid Dynamics Application
-class KratosFluidDynamicsApplication : public KratosApplication
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) KratosFluidDynamicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -249,6 +251,8 @@ private:
     const QSVMS< QSVMSData<3,8> > mQSVMS3D8N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
+    const DVMS< QSVMSData<2,3> > mDVMS2D3N;
+    const DVMS< QSVMSData<3,4> > mDVMS3D4N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokes2D3N;
@@ -348,6 +352,10 @@ private:
     const EmbeddedAusasNavierStokes<3> mEmbeddedAusasNavierStokes3D;
     const EmbeddedAusasNavierStokesWallCondition<2> mEmbeddedAusasNavierStokesWallCondition2D;
     const EmbeddedAusasNavierStokesWallCondition<3> mEmbeddedAusasNavierStokesWallCondition3D;
+
+    /// Compressible Navier-Stokes symbolic element
+    const CompressibleNavierStokes<2> mCompressibleNavierStokes2D;
+    const CompressibleNavierStokes<3> mCompressibleNavierStokes3D;
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;

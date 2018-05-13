@@ -26,7 +26,7 @@ FluidFieldUtility(SpaceTimeSet::Pointer p_sts, VelocityField::Pointer p_vector_f
 
 virtual ~FluidFieldUtility(){}
 
-void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed);
+void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed) override;
 
 void ImposeFieldOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& variable_to_be_imposed) override;
 

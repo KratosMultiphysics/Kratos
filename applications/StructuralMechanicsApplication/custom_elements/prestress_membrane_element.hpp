@@ -228,12 +228,12 @@ namespace Kratos
                                 const bounded_matrix<double,3,3>& rDeformationGradientTotal,
                                 const array_1d<double, 3>& rE1Tot, const array_1d<double, 3>& rE2Tot,
                                 const double Lambda1, const double Lambda2,
-                                bounded_matrix<double,3,3>& rNAct);
+                                BoundedMatrix<double,3,3>& rNAct);
 
     void ModifyPrestress(const unsigned int& rPointNumber,
                     bounded_matrix<double,3,3>& rOrigin, bounded_matrix<double,3,3>& rTarget,bounded_matrix<double,3,3>& rTensor,
                     const array_1d<double, 3>& rE1, const array_1d<double, 3>& rE2, const array_1d<double, 3>& rE3, const array_1d<double, 3>& rG3,
-                    const array_1d<double, 3>& rg1, const array_1d<double, 3>& rg2, const array_1d<double, 3>& rg3, const bounded_matrix<double,3,3>& rNAct,
+                    const array_1d<double, 3>& rg1, const array_1d<double, 3>& rg2, const array_1d<double, 3>& rg3, const BoundedMatrix<double,3,3>& rNAct,
                     const double Lambda1, const double Lambda2);
 
     const Matrix CalculateDeformationGradient(const unsigned int& rPointNumber);

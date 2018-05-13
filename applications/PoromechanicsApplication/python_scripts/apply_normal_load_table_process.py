@@ -19,7 +19,6 @@ class ApplyNormalLoadTableProcess(KratosMultiphysics.Process):
         if settings["active"][0].GetBool() == True:
             normal_params = KratosMultiphysics.Parameters("{}")
             normal_params.AddValue("model_part_name",settings["model_part_name"])
-            normal_params.AddValue("mesh_id",settings["mesh_id"])
             normal_params.AddValue("variable_name",settings["variable_name"])
             if settings["hydrostatic"].GetBool() == False:
                 normal_params.AddValue("value",settings["value"][0])
@@ -41,7 +40,6 @@ class ApplyNormalLoadTableProcess(KratosMultiphysics.Process):
         if settings["active"][1].GetBool() == True:
             tangential_params = KratosMultiphysics.Parameters("{}")
             tangential_params.AddValue("model_part_name",settings["model_part_name"])
-            tangential_params.AddValue("mesh_id",settings["mesh_id"])
             tangential_params.AddEmptyValue("variable_name").SetString("TANGENTIAL_CONTACT_STRESS") # Note: this is not general
             tangential_params.AddValue("value",settings["value"][1])
             if settings["table"][1].GetInt() == 0:

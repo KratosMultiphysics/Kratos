@@ -36,6 +36,7 @@
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.h"
+#include "custom_constitutive/DEM_compound_constitutive_law.h"
 
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
@@ -82,7 +83,7 @@ KRATOS_CREATE_VARIABLE(int, VIRTUAL_MASS_OPTION)
 KRATOS_CREATE_VARIABLE(int, SEARCH_CONTROL)
 KRATOS_CREATE_VARIABLE(double, COORDINATION_NUMBER)
 KRATOS_CREATE_VARIABLE(double, MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS)
-KRATOS_CREATE_VARIABLE(vector<int>, SEARCH_CONTROL_VECTOR)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, SEARCH_CONTROL_VECTOR)
 KRATOS_CREATE_VARIABLE(int, CLEAN_INDENT_OPTION)
 KRATOS_CREATE_VARIABLE(int, TRIHEDRON_OPTION)
 KRATOS_CREATE_VARIABLE(int, ROLLING_FRICTION_OPTION)
@@ -124,7 +125,7 @@ KRATOS_CREATE_VARIABLE(double, PARTICLE_TENSION)
 KRATOS_CREATE_VARIABLE(double, PARTICLE_COHESION)
 KRATOS_CREATE_VARIABLE(int, IF_BOUNDARY_ELEMENT)
 KRATOS_CREATE_VARIABLE(Vector, IF_BOUNDARY_FACE)
-KRATOS_CREATE_VARIABLE(vector<int>, PARTICLE_CONTACT_FAILURE_ID)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, PARTICLE_CONTACT_FAILURE_ID)
 
 // *************** Continuum only END ***************
 
@@ -194,9 +195,8 @@ KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_HIGH)
 KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_LOW)
 KRATOS_CREATE_VARIABLE(double, MEAN_CONTACT_AREA)
 KRATOS_CREATE_VARIABLE(double, REPRESENTATIVE_VOLUME)
-KRATOS_CREATE_VARIABLE(boost::numeric::ublas::vector<int>, NEIGHBOUR_IDS)
-KRATOS_CREATE_VARIABLE(
-    boost::numeric::ublas::vector<double>, NEIGHBOURS_CONTACT_AREAS)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, NEIGHBOUR_IDS)
+KRATOS_CREATE_VARIABLE(DenseVector<double>, NEIGHBOURS_CONTACT_AREAS)
 // *************** Continuum only END ***************
 
 //INLET PARAMETERS
@@ -207,6 +207,9 @@ KRATOS_CREATE_VARIABLE(double, STANDARD_DEVIATION)
 KRATOS_CREATE_VARIABLE(double, MAX_RAND_DEVIATION_ANGLE)
 KRATOS_CREATE_VARIABLE(bool, IMPOSED_MASS_FLOW_OPTION)
 KRATOS_CREATE_VARIABLE(double, MASS_FLOW)
+//KRATOS_CREATE_VARIABLE(double, MAX_RADIUS)
+//KRATOS_CREATE_VARIABLE(double, MIN_RADIUS)
+KRATOS_CREATE_VARIABLE(bool, DENSE_INLET)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LINEAR_VELOCITY)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INLET_INITIAL_VELOCITY)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INLET_INITIAL_PARTICLES_VELOCITY)
@@ -388,6 +391,8 @@ KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_STRESS_TENSOR, 12);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, COPIED_STRESS_TENSOR, 13);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, COPIED_STRESS_TENSOR2, 14);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, PRINT_STRESS_TENSOR, 15);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, CUMULATIVE_ZONE, 16);
+
 
 //ELEMENTS
 
@@ -416,29 +421,29 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))) {}
 
+// Explicit instantiation of composed constituive laws
+template class DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>;
+template class DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>;
+template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>;
+template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>;
+
 void KratosDEMApplication::Register() {
     // Calling base class register to register Kratos components
 
     KratosApplication::Register();
 
-    std::cout << std::endl;
-    std::cout
-        << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "
-        << std::endl;
-    std::cout << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "
-              << std::endl;
-    std::cout << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "
-              << std::endl;
-    std::cout
-        << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      "
-        << std::endl
-        << std::endl;
-    std::cout << "Importing DEMApplication... ";
+    KRATOS_INFO("DEM") << std::endl;
+    KRATOS_INFO("DEM") << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "<< std::endl;
+    KRATOS_INFO("DEM") << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "<< std::endl;
+    KRATOS_INFO("DEM") << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "<< std::endl;
+    KRATOS_INFO("DEM") << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      " << std::endl;
+    KRATOS_INFO("DEM") << std::endl;
+    KRATOS_INFO("DEM") << "Importing DEMApplication... ";
 
 #ifdef KRATOS_BUILD_TYPE
 #define ____CONVERT_INNER_VALUE_TO_STRING(S) ____CONVERT_TO_STRING(S)
 #define ____CONVERT_TO_STRING(S) #S
-    std::cout << "( compiled in mode \""
+    KRATOS_INFO("DEM") << "( compiled in mode \""
               << ____CONVERT_INNER_VALUE_TO_STRING(KRATOS_BUILD_TYPE) << "\" )";
 #undef ____CONVERT_INNER_VALUE_TO_STRING
 #undef ____CONVERT_TO_STRING
@@ -467,7 +472,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(BOTTOM)
     KRATOS_REGISTER_VARIABLE(FORCE_INTEGRATION_GROUP)
     KRATOS_REGISTER_VARIABLE(TABLE_NUMBER)
-    KRATOS_REGISTER_VARIABLE(TABLE_VELOCITY_COMPONENT)        
+    KRATOS_REGISTER_VARIABLE(TABLE_VELOCITY_COMPONENT)
     KRATOS_REGISTER_VARIABLE(SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION)
     KRATOS_REGISTER_VARIABLE(POISSON_EFFECT_OPTION)
     KRATOS_REGISTER_VARIABLE(ROLLING_FRICTION_OPTION)
@@ -594,6 +599,9 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(MAX_RAND_DEVIATION_ANGLE)
     KRATOS_REGISTER_VARIABLE(IMPOSED_MASS_FLOW_OPTION)
     KRATOS_REGISTER_VARIABLE(MASS_FLOW)
+    //KRATOS_REGISTER_VARIABLE(MAX_RADIUS)
+    //KRATOS_REGISTER_VARIABLE(MIN_RADIUS)
+    KRATOS_REGISTER_VARIABLE(DENSE_INLET)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINEAR_VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INLET_INITIAL_VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(
@@ -777,7 +785,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ShipElement3D", mShipElement3D)
     KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
     KRATOS_REGISTER_ELEMENT("SingleSphereCluster3D", mSingleSphereCluster3D)
-    
+
     KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D", mSolidFace3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D3N", mSolidFace3D3N)
@@ -829,6 +837,6 @@ void KratosDEMApplication::Register() {
     Serializer::Register("QuaternionIntegrationScheme", QuaternionIntegrationScheme());
     Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());
 
-    std::cout << " done." << std::endl;
+    KRATOS_INFO("DEM") << " done." << std::endl;
 }
 }  // namespace Kratos.

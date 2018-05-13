@@ -59,7 +59,7 @@ namespace Kratos
    * For the body fitted slip case, it integrates the pressure stress term over the given submodelpart conditions (the 
    * shear stress term is assumed to be zero).
    */
-  class DragUtilities
+  class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DragUtilities
   {
   public:
 

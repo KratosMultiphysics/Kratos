@@ -101,41 +101,34 @@ public:
     }
 
     static inline void Comp_Orthonor_Base(
-            boost::numeric::ublas::bounded_matrix<double, 3, 3 > & t,
-            array_1d<double, 3 > & t1g,
-            array_1d<double, 3 > & t2g,
-            array_1d<double, 3 > & t3g,
-            const array_1d<double, 3 > & vxe,
-            const array_1d<double, 3 > & Xdxi,
-            const array_1d<double, 3 > & Xdeta
-            )
+        BoundedMatrix<double, 3, 3 > & t,
+        const array_1d<double, 3 > & vxe,
+        const array_1d<double, 3 > & Xdxi,
+        const array_1d<double, 3 > & Xdeta
+        )
     {
         double n;
+
+        array_1d<double, 3 > t1g, t2g, t3g;
 
         MathUtils<double>::CrossProduct(t3g, Xdxi, Xdeta);
 
         n = norm_2(t3g);
         t3g /= n;
 
-        t(2, 0) = t3g[0];
-        t(2, 1) = t3g[1];
-        t(2, 2) = t3g[2];
-
         MathUtils<double>::CrossProduct(t2g, t3g, vxe);
         n = norm_2(t2g);
         t2g /= n;
-
-        t(1, 0) = t2g[0];
-        t(1, 1) = t2g[1];
-        t(1, 2) = t2g[2];
 
         MathUtils<double>::CrossProduct(t1g, t2g, t3g);
         n = norm_2(t1g);
         t1g /= n;
 
-        t(0, 0) = t1g[0];
-        t(0, 1) = t1g[1];
-        t(0, 2) = t1g[2];
+        for (std::size_t i = 0; i < 3; ++i) {
+            t(0, i) = t1g[i];
+            t(1, i) = t2g[i];
+            t(2, i) = t3g[i];
+        }
     }
 
     /**
@@ -385,11 +378,11 @@ public:
      */
     template<int TDim>
     static inline void TensorTransformation(
-        bounded_matrix<double,TDim,TDim>& rOriginLeft,
-        bounded_matrix<double,TDim,TDim>& rOriginRight,
-        bounded_matrix<double,TDim,TDim>& rTargetLeft,
-        bounded_matrix<double,TDim,TDim>& rTargetRight,
-        bounded_matrix<double,TDim,TDim>& rTensor)
+        BoundedMatrix<double,TDim,TDim>& rOriginLeft,
+        BoundedMatrix<double,TDim,TDim>& rOriginRight,
+        BoundedMatrix<double,TDim,TDim>& rTargetLeft,
+        BoundedMatrix<double,TDim,TDim>& rTargetRight,
+        BoundedMatrix<double,TDim,TDim>& rTensor)
     {
         // metric computation (of the target systems)
         bounded_matrix<double,TDim,TDim> metric_left = ZeroMatrix(TDim,TDim); // Anna noalias?

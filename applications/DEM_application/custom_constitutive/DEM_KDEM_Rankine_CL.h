@@ -9,13 +9,13 @@
 
 namespace Kratos {
 
-    class DEM_KDEM_Rankine : public DEM_KDEM {
+    class KRATOS_API(DEM_APPLICATION) DEM_KDEM_Rankine : public DEM_KDEM {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_Rankine);
 
         DEM_KDEM_Rankine() {
-        }    
+        }
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
@@ -23,7 +23,7 @@ namespace Kratos {
         }
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
-        
+
         void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
         void CalculateNormalForces(double LocalElasticContactForce[3],
@@ -40,8 +40,8 @@ namespace Kratos {
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalElasticExtraContactForce[3],
-                double LocalCoordSystem[3][3],             
-                double LocalDeltDisp[3],                
+                double LocalCoordSystem[3][3],
+                double LocalDeltDisp[3],
                 const double kt_el,
                 const double equiv_shear,
                 double& contact_sigma,
@@ -54,9 +54,9 @@ namespace Kratos {
                 int i_neighbour_count,
                 bool& sliding,
                 int search_control,
-                vector<int>& search_control_vector,
+                DenseVector<int>& search_control_vector,
                 const ProcessInfo& r_process_info) override;
-        
+
         virtual bool CheckRequirementsOfStressTensor() override;
 
     private:

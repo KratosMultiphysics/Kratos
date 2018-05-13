@@ -39,7 +39,6 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "dimension": 2,
                 "von_mises_limit": 100.0e6
             }  )" );
@@ -51,7 +50,6 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
         
-        mmesh_id = rParameters["mesh_id"].GetInt();
         mDimension = rParameters["dimension"].GetInt();
         if(mDimension == 2)
             mVoigtSize = 3;
@@ -65,18 +63,18 @@ public:
     ///------------------------------------------------------------------------------------
     
     /// Destructor
-    virtual ~PeriodicInterfaceProcess() {}
+    ~PeriodicInterfaceProcess() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Execute method is used to execute the PeriodicInterfaceProcess algorithms.
-    void Execute()
+    void Execute() override
     {
     }
     
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
         KRATOS_TRY;
         
@@ -109,7 +107,7 @@ public:
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
-    void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
         KRATOS_TRY;
         
@@ -154,19 +152,19 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "PeriodicInterfaceProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "PeriodicInterfaceProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -177,7 +175,6 @@ protected:
     /// Member Variables
 
     ModelPart& mr_model_part;
-    std::size_t mmesh_id;
     int mDimension;
     int mVoigtSize;
     double mVonMisesLimit;

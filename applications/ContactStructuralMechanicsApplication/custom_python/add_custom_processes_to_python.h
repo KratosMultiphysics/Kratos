@@ -13,9 +13,9 @@
 #define  KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED
 
 // System includes 
+#include <pybind11/pybind11.h>
 
 // External includes 
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -27,7 +27,7 @@ namespace Kratos
   namespace Python
   {
 
-    void  AddCustomProcessesToPython();
+    void  AddCustomProcessesToPython(pybind11::module& m);
 
   }  // namespace Python.
   

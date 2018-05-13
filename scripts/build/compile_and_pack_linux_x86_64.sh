@@ -69,8 +69,7 @@ cmake ..  																		                                 \
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3   " 								               \
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3   " 									                 \
 -DBOOST_LIBRARYDIR="${BOOST_ROOT}/stage/lib"									                 \
--DPYTHON_INCLUDE_PATH="/home/odin/Python-3.3.4/Include"							           \
--DPYTHON_LIBRARY="/home/odin/Python-3.3.4/libpython3.3m.so.1.0"					       \
+-DPYTHON_EXECUTABLE="/usr/bin/python${PYTHON_VERSION_S}.${PYTHON_VERSION_M}"                    \
 -DCMAKE_BUILD_TYPE=Release  													                         \
 -DINCOMPRESSIBLE_FLUID_APPLICATION=ON  											                   \
 -DMESHING_APPLICATION=ON 														                           \
@@ -78,7 +77,7 @@ cmake ..  																		                                 \
 -DSTRUCTURAL_APPLICATION=ON 													                         \
 -DCONVECTION_DIFFUSION_APPLICATION=ON 											                   \
 -DFLUID_DYNAMICS_APPLICATION=ON 												                       \
--DALE_APPLICATION=ON 															                             \
+-DMESH_MOVING_APPLICATION=ON 															                             \
 -DDEM_APPLICATION=ON 															                             \
 -DFSI_APPLICATION=ON 															                             \
 -DOPENCL_APPLICATION=OFF														                           \

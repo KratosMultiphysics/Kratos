@@ -9,7 +9,7 @@
 
 namespace Kratos {
 
-    class DEM_KDEMFabric : public DEM_KDEM {
+    class KRATOS_API(DEM_APPLICATION) DEM_KDEMFabric : public DEM_KDEM {
     
     public:
 

@@ -18,6 +18,15 @@ class TestCase(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
+    
+    def _remove_file(self, file_path):
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
+    def _remove_h5_files(self, model_part_name):
+        for name in os.listdir():
+            if name.find(model_part_name) == 0:
+                self._remove_file(name)
 
     def test_Execution(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -34,13 +43,10 @@ class TestCase(KratosUnittest.TestCase):
             test = test_MainKratos.MainKratos(project_parameters)
             test.Solve()
             # remove hdf5 file
-            if "io_test_0.h5" in os.listdir("./test_input_output"):
-                os.remove("./test_input_output/io_test_0.h5")
+            self._remove_h5_files("MainModelPart")
             # remove other generated files
-            if "io_test.time" in os.listdir("./test_input_output"):
-                os.remove("./test_input_output/io_test.time")
-            if "reference_results.json" in os.listdir("./test_input_output"):
-                os.remove("./test_input_output/reference_results.json")
+            self._remove_file("./test_input_output/io_test.time")
+            self._remove_file("./test_input_output/reference_results.json")
 
     def tearDown(self):
         pass

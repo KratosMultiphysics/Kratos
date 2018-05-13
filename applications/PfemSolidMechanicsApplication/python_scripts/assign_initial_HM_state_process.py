@@ -37,6 +37,7 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
         self.model_part_name = self.settings["model_part_name"].GetString()
         #self.restarted = self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
         self.restarted = False
+        self.executed = False
         if ( self.restarted):
             print(' HMInitialState, not finishing constructing beause is restarted')
             return;
@@ -44,10 +45,11 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
 
         ##
 
-    def ExecuteBeforeSolutionLoop(self):
+    def ExecuteThisProcess(self):
         self.model_part = self.model_part[self.model_part_name]
         self.restarted = self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
         if ( self.restarted == True):
+            self.executed = True
             return
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name", self.settings["model_part_name"])
@@ -65,6 +67,12 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
             GG = node.GetSolutionStepValue( KratosMultiphysics.VOLUME_ACCELERATION)
             GG[1] = -10;
             node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION, GG)
+
+    def ExecuteInitializeSolutionStep(self):
+
+        if ( self.executed == False ):
+            self.ExecuteThisProcess()
+            self.executed = True
 
     #
     @classmethod

@@ -668,9 +668,7 @@ void PrestressMembraneElement::CalculateAll(
         bounded_matrix<double, 3, 3> Q;
         noalias(Q) = ZeroMatrix(3, 3);
         // basis vectors in deformed system
-        array_1d<double, 3> g1;
-        array_1d<double, 3> g2;
-        array_1d<double, 3> g3;
+        array_1d<double, 3> g1, g2, g3;
 
         CalculateQ(Q, point_number);
         CalculateMetricDeformed(point_number, DN_De, gab, g1, g2);
@@ -724,7 +722,7 @@ void PrestressMembraneElement::CalculateAll(
             // adding membrane contribution to the stiffness matrix
             CalculateAndAddKm(rLeftHandSideMatrix, B, D, int_reference_weight);
 
-            // adding non-linear-contribution to stiffness matrix
+            // Adding non-linear-contribution to stiffness matrix
             CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
                 strain_local_cart_11, strain_local_cart_22, strain_local_cart_12,
                 strain_deformation,
@@ -972,7 +970,7 @@ void PrestressMembraneElement::UpdatePrestress(const unsigned int& rPointNumber)
     ComputeRelevantCoSys(rPointNumber, g1, g2, g3, gab, G3, E1_tot, E2_tot, E3_tot, E1, E2, E3, base_ref_contra_tot_1, base_ref_contra_tot_2);
 
     // --2-- computation total deformation gradient
-    bounded_matrix<double,3,3> deformation_gradient_total;
+    BoundedMatrix<double,3,3> deformation_gradient_total;
     for(unsigned int i=0; i<3; i++){
         for(unsigned int j=0; j<3; j++){
             deformation_gradient_total(i,j) = base_ref_contra_tot_1(j)*g1(i) + base_ref_contra_tot_2(j)*g2(i) + mG3Initial[rPointNumber](j)*g3(i);
@@ -1115,7 +1113,7 @@ void PrestressMembraneElement::ComputeEigenvectorsDeformationGradient(const unsi
                                 const bounded_matrix<double,3,3>& rDeformationGradientTotal,
                                 const array_1d<double, 3>& rE1Tot, const array_1d<double, 3>& rE2Tot,
                                 const double Lambda1, const double Lambda2,
-                                bounded_matrix<double,3,3>& rNAct){
+                                BoundedMatrix<double,3,3>& rNAct){
     //Check if rTensor is the Identity Matrix -> no deformation
     //(rTensor-lambda^2*I)=ZeroMatrix
     bool principal_strain_state = false;
@@ -1196,7 +1194,7 @@ void PrestressMembraneElement::ComputeEigenvectorsDeformationGradient(const unsi
 void PrestressMembraneElement::ModifyPrestress(const unsigned int& rPointNumber,
                     bounded_matrix<double,3,3>& rOrigin, bounded_matrix<double,3,3>& rTarget,bounded_matrix<double,3,3>& rTensor,
                     const array_1d<double, 3>& rE1, const array_1d<double, 3>& rE2, const array_1d<double, 3>& rE3, const array_1d<double, 3>& rG3,
-                    const array_1d<double, 3>& rg1, const array_1d<double, 3>& rg2, const array_1d<double, 3>& rg3, const bounded_matrix<double,3,3>& rNAct,
+                    const array_1d<double, 3>& rg1, const array_1d<double, 3>& rg2, const array_1d<double, 3>& rg3, const BoundedMatrix<double,3,3>& rNAct,
                     const double Lambda1, const double Lambda2){
     // Transform prestresses from the local cosy in reference config to the curvilinear cosy in reference config, covariant
     for (int i=0;i<3;i++){
@@ -1370,9 +1368,7 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
         double integration_weight = rIntegrationPoints[point_number].Weight();
 
         // base vectors in reference configuration
-        array_1d<double, 3> G1;
-        array_1d<double, 3> G2;
-        array_1d<double, 3> G3;
+        array_1d<double, 3> G1, G2, G3;
 
         G1[0] = J0[point_number](0, 0);
         G2[0] = J0[point_number](0, 1);
@@ -1439,9 +1435,9 @@ void PrestressMembraneElement::ComputeContravariantBaseVectors(
 
     // contravariant metric
     array_1d<double, 3> metric_contra;
-    metric_contra[0]= 1.0/det_metric * mGab0[rPointNumber][1];
-    metric_contra[1]= 1.0/det_metric * mGab0[rPointNumber][0];
-    metric_contra[2]= -1.0/det_metric * mGab0[rPointNumber][2];
+    metric_contra[0]=  inv_det_metric * mGab0[rPointNumber][1];
+    metric_contra[1]=  inv_det_metric * mGab0[rPointNumber][0];
+    metric_contra[2]= -inv_det_metric * mGab0[rPointNumber][2];
 
     // contravariant base vectors
     rG1Contra = metric_contra[0]*column( GetValue(BASE_REF_1),rPointNumber ) + metric_contra[2]*column( GetValue(BASE_REF_2),rPointNumber );

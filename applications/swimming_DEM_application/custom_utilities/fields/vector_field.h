@@ -11,8 +11,6 @@
 #include <omp.h>
 #endif
 
-#include "boost/smart_ptr.hpp"
-
 /* Project includes */
 #include "includes/define.h"
 #include "includes/variables.h"
@@ -62,20 +60,20 @@ virtual void CalculateRotational(const double time, const array_1d<double, 3>& c
 
 virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl, const int i_thread = 0){}
 
-virtual void Evaluate(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0)
+virtual void Evaluate(const double time, const DenseVector<double>& coor, DenseVector<double>& result, const int i_thread = 0)
 {
     result[0] = 0.0;
     result[1] = 0.0;
     result[2] = 0.0;
 }
 
-virtual void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0){}
+virtual void CalculateTimeDerivative(const double time, const DenseVector<double>& coor, DenseVector<double>& result, const int i_thread = 0){}
 
-virtual double CalculateDivergence(const double time, const vector<double>& coor, const int i_thread = 0){return 0.0;}
+virtual double CalculateDivergence(const double time, const DenseVector<double>& coor, const int i_thread = 0){return 0.0;}
 
-virtual void CalculateRotational(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0){}
+virtual void CalculateRotational(const double time, const DenseVector<double>& coor, DenseVector<double>& result, const int i_thread = 0){}
 
-virtual void CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0){}
+virtual void CalculateLaplacian(const double time, const DenseVector<double>& coor, DenseVector<double>& result, const int i_thread = 0){}
 
 virtual void ResizeVectorsForParallelism(const int n_threads){}
 

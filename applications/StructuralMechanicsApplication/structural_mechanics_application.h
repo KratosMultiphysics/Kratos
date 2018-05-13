@@ -52,7 +52,7 @@
 #include "custom_elements/spring_damper_element_3D2N.hpp"
 
 /* Adding the SPRISM element */
-#include "custom_elements/SprismElement3D6N.hpp"
+#include "custom_elements/solid_shell_element_sprism_3D6N.h"
 
 /* Adding solid elements */
 #include "custom_elements/small_displacement.h"
@@ -80,6 +80,7 @@
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/elastic_isotropic_plane_stress_uncoupled_shear.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
@@ -88,6 +89,7 @@
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 #include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/linear_j2_plasticity_3d.h"
+#include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
 /* UTILITIES */
 // Cross sections
@@ -121,7 +123,7 @@ namespace Kratos
  * This application features Elements, Conditions, Constitutive laws and Utilities
  * for structural analysis problems
  */
-class KratosStructuralMechanicsApplication : public KratosApplication
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) KratosStructuralMechanicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -280,7 +282,7 @@ private:
     const PrestressMembraneElement mPreStressMembraneElement3D4N;
     
     // Adding the SPRISM element 
-    const SprismElement3D6N mSprismElement3D6N;
+    const SolidShellElementSprism3D6N mSolidShellElementSprism3D6N;
     
     // Adding the nodal concentrated element 
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
@@ -388,6 +390,7 @@ private:
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+    const ElasticIsotropicPlaneStressUncoupledShear  mElasticIsotropicPlaneStressUncoupledShear;
     const HyperElasticIsotropicKirchhoff3D  mHyperElasticIsotropicKirchhoff3D;
     const HyperElasticIsotropicKirchhoffPlaneStress2D  mHyperElasticIsotropicKirchhoffPlaneStress2D;
     const HyperElasticIsotropicKirchhoffPlaneStrain2D  mHyperElasticIsotropicKirchhoffPlaneStrain2D;
@@ -397,6 +400,7 @@ private:
 
     const LinearJ2Plasticity3D mLinearJ2Plasticity3D;
     const LinearJ2PlasticityPlaneStrain2D mLinearJ2PlasticityPlaneStrain2D;
+    const LinearIsotropicDamage3D mLinearIsotropicDamage3D;
 
     ///@}
     ///@name Private Operators

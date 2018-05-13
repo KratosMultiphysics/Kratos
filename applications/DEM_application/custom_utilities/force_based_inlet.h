@@ -14,6 +14,8 @@ namespace Kratos {
         typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
         typedef WeakPointerVector<Element> ParticleWeakVectorType;
         typedef ModelPart::ElementsContainerType ElementsArrayType;
+
+        KRATOS_CLASS_POINTER_DEFINITION(DEM_Force_Based_Inlet);
               
         /// Constructor:               
         DEM_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force);

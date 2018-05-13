@@ -54,7 +54,10 @@ public:
     /// Pointer definition of MasterSlaveProcess
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveProcess);
 
-    // General type definitions
+    /// Index type definition
+    typedef std::size_t IndexType;
+
+    /// General type definitions
     typedef Node<3>                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
     typedef ModelPart::NodesContainerType              NodesArrayType;
@@ -65,7 +68,8 @@ public:
     ///@{
 
     /// Default constructor.
-    MasterSlaveProcess( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart)
+    MasterSlaveProcess( ModelPart& rThisModelPart)
+        :mrThisModelPart(rThisModelPart)
     {
         KRATOS_TRY;
 
@@ -190,7 +194,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mrThisModelPart;
+
+    ModelPart& mrThisModelPart; /// The model part where to mcompute the master/slave flags
 
     ///@}
     ///@name Private Operators

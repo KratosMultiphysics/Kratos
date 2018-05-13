@@ -126,7 +126,9 @@ class GiDOutputProcess(Process):
 
         # Generate the cuts and store them in self.cut_model_part
         if self.skin_output or self.num_planes > 0:
-            self.__initialize_cut_output(plane_output_configuration)
+            self.cut_model_part = ModelPart("CutPart")
+            self.cut_manager = CuttingUtility()
+            self._initialize_cut_output(plane_output_configuration)
 
         # Retrieve gidpost flags and setup GiD output tool
         gidpost_flags = result_file_configuration["gidpost_flags"]
@@ -342,12 +344,11 @@ class GiDOutputProcess(Process):
         return value
 
 
-    def __initialize_cut_output(self,plane_output_configuration):
+    def _initialize_cut_output(self,plane_output_configuration):
         '''Set up tools used to produce output in skin and cut planes.'''
 
-        self.cut_model_part = ModelPart("CutPart")
-        self.cut_manager = CuttingUtility()
         self.cut_manager.FindSmallestEdge(self.model_part)
+        self.cut_manager.AddVariablesToCutModelPart(self.model_part,self.cut_model_part)
         if self.skin_output:
             self.cut_manager.AddSkinConditions(self.model_part,self.cut_model_part,self.output_surface_index)
             self.output_surface_index += 1
@@ -504,7 +505,7 @@ class GiDOutputProcess(Process):
         if self.cut_io is not None:
             self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
             for variable in self.nodal_variables:
-                self.cut_io.WriteNodalResults(variable, self.cut_model_part.GetCommunicator().LocalMesh().Nodes, label, 0)      
+                self.cut_io.WriteNodalResults(variable, self.cut_model_part.GetCommunicator().LocalMesh().Nodes, label, 0)
 
     def __write_gp_results(self, label):
 

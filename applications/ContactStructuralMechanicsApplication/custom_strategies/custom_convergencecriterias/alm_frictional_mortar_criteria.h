@@ -80,6 +80,8 @@ public:
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
     typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
+    
+    typedef std::size_t                                                        IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -154,18 +156,19 @@ public:
         const TSystemVectorType& b
         ) override
     {
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array(3, 0.0);
+
         // We call the base class
         BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
         
         // Defining the convergence
-        unsigned int is_converged_active = 0;
-        unsigned int is_converged_slip = 0;
+        IndexType is_converged_active = 0;
+        IndexType is_converged_slip = 0;
         
 //         const double epsilon = rModelPart.GetProcessInfo()[INITIAL_PENALTY]; 
         const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
         const double tangent_factor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
-        
-        const array_1d<double,3> zero_vector(3, 0.0);
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
@@ -181,40 +184,42 @@ public:
             
             const double augmented_normal_pressure = scale_factor * normal_lagrange_multiplier + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);     
             
-            it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+            it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure);
             
             if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
-                if (it_node->Is(ACTIVE) == false ) {
+                if (it_node->IsNot(ACTIVE)) {
                     it_node->Set(ACTIVE, true);
                     is_converged_active += 1;
                 }
                 
+                // The friction coefficient
+                const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
+
+                // The weighted slip
+                const array_1d<double, 3>& gt = it_node->FastGetSolutionStepValue(WEIGHTED_SLIP);
+
                 // Computing the augmented tangent pressure
                 const array_1d<double,3> tangent_lagrange_multiplier = lagrange_multiplier - normal_lagrange_multiplier * nodal_normal;
-                const double lambda_tangent = norm_2(tangent_lagrange_multiplier); 
+                const array_1d<double,3> augmented_tangent_pressure_components = scale_factor * tangent_lagrange_multiplier + tangent_factor * epsilon * gt;
+
+                // Finally we assign and compute the norm
+                it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_tangent_pressure_components);
+                const double augmented_tangent_pressure = norm_2(augmented_tangent_pressure_components);
                 
-                // The friction coefficient
-                const double mu = it_node->GetValue(WEIGHTED_FRICTION);
-                
-                // Finally we compute the augmented tangent pressure
-                const double gt = it_node->FastGetSolutionStepValue(WEIGHTED_SLIP);
-                const double augmented_tangent_pressure = std::abs(scale_factor * lambda_tangent + tangent_factor * epsilon * gt) + mu * augmented_normal_pressure;
-                
-                it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_tangent_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
-                
-                if (augmented_tangent_pressure <= 0.0) { // TODO: Check if it is minor equal or just minor
-                    if (it_node->Is(SLIP) == true ) {
+                if (augmented_tangent_pressure <= - mu * augmented_normal_pressure) { // STICK CASE
+                    if (it_node->Is(SLIP)) {
                         it_node->Set(SLIP, false);
                         is_converged_slip += 1;
                     }
-                } else {
-                    if (it_node->Is(SLIP) == false) {
+                } else { // SLIP CASE
+                    if (it_node->IsNot(SLIP)) {
                         it_node->Set(SLIP, true);
                         is_converged_slip += 1;
                     }
                 }   
             } else {
-                if (it_node->Is(ACTIVE) == true ) {
+                it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array;
+                if (it_node->Is(ACTIVE)) {
                     it_node->Set(ACTIVE, false);
                     is_converged_active += 1;
                 }
@@ -336,10 +341,14 @@ protected:
      */
     
     void ResetWeightedGap(ModelPart& rModelPart) override
-    {       
+    {
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array(3, 0.0);
+
+        // We reset the weighted values
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
-        VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_SLIP, 0.0, nodes_array);
+        VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
     }
     
     ///@}
