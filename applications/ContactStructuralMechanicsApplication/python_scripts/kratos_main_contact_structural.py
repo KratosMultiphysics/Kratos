@@ -1,9 +1,24 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
-from KratosMultiphysics.ExternalSolversApplication  import *
 from KratosMultiphysics.StructuralMechanicsApplication  import *
 from KratosMultiphysics.ContactStructuralMechanicsApplication  import *
+# Importing the solvers (if available)
+try:
+    from KratosMultiphysics.ExternalSolversApplication import *
+    Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
+except ImportError:
+    Logger.PrintInfo("ExternalSolversApplication", "not imported")
+try:
+    from KratosMultiphysics.EigenSolversApplication import *
+    Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
+except ImportError:
+    Logger.PrintInfo("EigenSolversApplication", "not imported")
+try:
+    from KratosMultiphysics.MeshingApplication import *
+    Logger.PrintInfo("MeshingApplication", "succesfully imported")
+except ImportError:
+    Logger.PrintInfo("MeshingApplication", "not imported")
 
 ## Import define_output
 parameter_file = open("ProjectParameters.json",'r')
@@ -37,7 +52,7 @@ solver.AddDofs()
 
 ## Initialize GiD  I/O
 output_post  = ProjectParameters.Has("output_configuration")
-if (output_post == True):
+if (output_post is True):
     if (parallel_type == "OpenMP"):
         from gid_output_process import GiDOutputProcess
         gid_output = GiDOutputProcess(solver.GetComputingModelPart(),
@@ -67,11 +82,11 @@ if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
 import process_factory
 list_of_processes = process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["constraints_process_list"])
 list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["loads_process_list"])
-if (ProjectParameters.Has("list_other_processes") == True):
+if (ProjectParameters.Has("list_other_processes") is True):
     list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["list_other_processes"])
-if (ProjectParameters.Has("contact_process_list") == True):
+if (ProjectParameters.Has("contact_process_list") is True):
     list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["contact_process_list"])
-if (ProjectParameters.Has("json_output_process") == True):
+if (ProjectParameters.Has("json_output_process") is True):
     list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["json_output_process"])
 
 if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
@@ -86,14 +101,14 @@ for process in list_of_processes:
 
 ## Add the processes to the solver
 solver.AddProcessesList(list_of_processes)
-if (output_post == True):
+if (output_post is True):
     solver.AddPostProcess(gid_output)
 
 ## Solver initialization
 solver.Initialize()
 solver.SetEchoLevel(echo_level)
 
-if (output_post == True):
+if (output_post is True):
     gid_output.ExecuteBeforeSolutionLoop()
 
 for process in list_of_processes:
@@ -130,7 +145,7 @@ while(time <= end_time):
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
 
-    if (output_post == True):
+    if (output_post is True):
         gid_output.ExecuteInitializeSolutionStep()
 
     solver.Solve()
@@ -138,13 +153,13 @@ while(time <= end_time):
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
 
-    if (output_post == True):
+    if (output_post is True):
         gid_output.ExecuteFinalizeSolutionStep()
 
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
 
-    if (output_post == True) and (gid_output.IsOutputStep()):
+    if (output_post is True) and (gid_output.IsOutputStep()):
         gid_output.PrintOutput()
 
     for process in list_of_processes:
@@ -153,7 +168,7 @@ while(time <= end_time):
 for process in list_of_processes:
     process.ExecuteFinalize()
 
-if (output_post == True):
+if (output_post is True):
     gid_output.ExecuteFinalize()
 
 if (parallel_type == "OpenMP") or (mpi.rank == 0):
