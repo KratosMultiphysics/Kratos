@@ -1,11 +1,26 @@
-Ffrom __future__ import print_function, absolute_import, division  # makes KM backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division  # makes KM backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics as KM
+
+# Check that applications were imported in the main script
+KM.CheckRegisteredApplications("StructuralMechanicsApplication")
+KM.CheckRegisteredApplications("ContactStructuralMechanicsApplication")
+
+# Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
-# Check that KM was imported in the main script
-KM.CheckForPreviousImport()
+try:
+    # Check that applications were imported in the main script
+    KM.CheckRegisteredApplications("MeshingApplication")
+    import KratosMultiphysics.MeshingApplication as MA
+    missing_meshing_dependencies = False
+    missing_application = ''
+except ImportError as e:
+    missing_meshing_dependencies = True
+    # extract name of the missing application from the error message
+    import re
+    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
 
 # Import the implicit solver (the explicit one is derived from it)
 import structural_mechanics_static_solver
@@ -167,7 +182,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
 
     #### Private functions ####
 
-    def _create_convergence_criterion(self):
+    def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         conv_params = KM.Parameters("{}")
         conv_params.AddValue("convergence_criterion", self.settings["convergence_criterion"])
@@ -187,8 +202,26 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         conv_params.AddValue("print_convergence_criterion", self.contact_settings["print_convergence_criterion"])
         conv_params.AddValue("ensure_contact", self.contact_settings["ensure_contact"])
         conv_params.AddValue("gidio_debug", self.contact_settings["gidio_debug"])
+
+        return conv_params
+
+    def _create_convergence_criterion(self):
         import contact_convergence_criteria_factory
-        convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(conv_params)
+        convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
+
+        error_criteria = self.settings["convergence_criterion"].GetString()
+        # If we just use the adaptative convergence criteria
+        if (missing_meshing_dependencies is True):
+            if ("adaptative_remesh" in error_criteria):
+                raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
+        else:
+            if (error_criteria == "adaptative_remesh_criteria"):
+                adaptative_error_criteria = MA.ErrorMeshCriteria(self.settings["adaptative_remesh_settings"], self.processes_list, self.post_process)
+                convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.GetMortarCriteria(False), adaptative_error_criteria)
+            elif ("with_adaptative_remesh" in error_criteria): # If we combine the regular convergence criteria with adaptative
+                adaptative_error_criteria = MA.ErrorMeshCriteria(self.settings["adaptative_remesh_settings"], self.processes_list, self.post_process)
+                convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
+
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
