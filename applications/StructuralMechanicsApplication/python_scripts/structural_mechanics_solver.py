@@ -110,9 +110,15 @@ class MechanicalSolver(object):
                 },
                 "error_strategy_parameters":
                 {
-                    "minimal_size"                        : 0.1,
+                    "minimal_size"                        : 0.01,
                     "maximal_size"                        : 10.0,
-                    "error"                               : 0.05
+                    "error"                               : 0.05,
+                    "penalty_normal"                      : 1.0e4,
+                    "penalty_tangential"                  : 1.0e4,
+                    "echo_level"                          : 0,
+                    "set_number_of_elements"              : false,
+                    "number_of_elements"                  : 1000,
+                    "average_nodal_h"                     : false
                 }
             },
             "max_iteration": 10,

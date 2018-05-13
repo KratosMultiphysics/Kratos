@@ -143,9 +143,15 @@ public:
             },
             "error_strategy_parameters": 
             {
-                "minimal_size"                        : 0.1,
-                "maximal_size"                        : 10.0, 
-                "error"                               : 0.05
+                "minimal_size"                        : 0.01,
+                "maximal_size"                        : 10.0,
+                "error"                               : 0.05,
+                "penalty_normal"                      : 10000.0,
+                "penalty_tangential"                  : 10000.0,
+                "echo_level"                          : 0,
+                "set_number_of_elements"              : false,
+                "number_of_elements"                  : 1000,
+                "average_nodal_h"                     : false
             }
         })" );
         
