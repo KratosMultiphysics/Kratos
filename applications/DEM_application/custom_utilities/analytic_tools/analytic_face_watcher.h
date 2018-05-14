@@ -58,7 +58,9 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
     {
         ++mNCrossings;
         mNSignedCrossings += Sign(id2);
-        mMass += mass;
+        mMass += mass*Sign(id2);
+        mRelVelNormalxMass += mass*normal_vel;
+        mRelVelTangentialxMass += mass*tang_vel;
         mMasses.push_back(mass);
         mId1.push_back(id1);
         mId2.push_back(std::abs(id2));
@@ -80,6 +82,17 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
     {
         return mTime;
     }
+
+    double GetRelVelNormalxMass()
+    {
+        return mRelVelNormalxMass;
+    }
+
+    double GetRelVelTangentialxMass()
+    {
+        return mRelVelTangentialxMass;
+    }
+
 
     void FillUpPythonLists(pybind11::list& ids,
                            pybind11::list& neighbour_ids,
@@ -114,6 +127,9 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
         std::vector<double> mRelVelTangential;
+        double mRelVelNormalxMass;
+        double mRelVelTangentialxMass;
+
     };
 
 class FaceHistoryDatabase // It holds the historical information gathered for a single face
@@ -180,6 +196,8 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
         std::vector<double> mRelVelTangential;
+        double mRelVelNormalxMass;
+        double mRelVelTangentialxMass;
 };
 
 void ClearData();
@@ -206,7 +224,9 @@ void GetTimeStepsData(pybind11::list& ids,
 
 void GetTotalFlux(pybind11::list &times,
                   pybind11::list &n_particles,
-                  pybind11::list &mass);
+                  pybind11::list &mass,
+                  pybind11::list &normal_relative_vel,
+                  pybind11::list &tangential_relative_vel);
 
 virtual void MakeMeasurements();
 

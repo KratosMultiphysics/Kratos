@@ -141,7 +141,9 @@ void AnalyticFaceWatcher::GetTimeStepsData(pybind11::list& ids,
 
 void AnalyticFaceWatcher::GetTotalFlux(pybind11::list &times,
                                        pybind11::list &n_particles,
-                                       pybind11::list &mass)
+                                       pybind11::list &mass,
+                                       pybind11::list &vel_nr,
+                                       pybind11::list &vel_tg)
 {
     const int n_time_steps = mVectorOfTimeStepDatabases.size();
 
@@ -149,6 +151,8 @@ void AnalyticFaceWatcher::GetTotalFlux(pybind11::list &times,
         times.append(mVectorOfTimeStepDatabases[i].GetTime());
         n_particles.append(mVectorOfTimeStepDatabases[i].GetTotalThroughput());
         mass.append(mVectorOfTimeStepDatabases[i].GetTotalMassThroughput());
+        vel_nr.append(mVectorOfTimeStepDatabases[i].GetRelVelNormalxMass());
+        vel_tg.append(mVectorOfTimeStepDatabases[i].GetRelVelTangentialxMass());
     }
 }
 
