@@ -39,7 +39,6 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
 
         # To avoid many prints
-        self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         if (self.echo_level == 0):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
@@ -57,6 +56,7 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
         ## Solver construction
         import python_solvers_wrapper_contact_structural
         self.solver = python_solvers_wrapper_contact_structural.CreateSolver(self.main_model_part, self.project_parameters)
+        self.solver.SetEchoLevel(self.echo_level)
 
         ## Adds the necessary variables to the model_part only if they don't exist
         self.solver.AddVariables()
