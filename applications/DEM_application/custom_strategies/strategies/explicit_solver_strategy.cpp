@@ -845,6 +845,8 @@ namespace Kratos {
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) { //each iteration refers to a different triangle or quadrilateral
 
                 Condition::GeometryType& geom = it->GetGeometry();
+                if (geom.size()>2)
+                {
                 //double Element_Area = geom.Area();
 
                 it->CalculateRightHandSide(rhs_cond, r_process_info);
@@ -852,7 +854,7 @@ namespace Kratos {
                 p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
                 array_1d<double, 3> Normal_to_Element = ZeroVector(3);
 
-                if (geom.size()>2) p_wall->CalculateNormal(Normal_to_Element);
+                p_wall->CalculateNormal(Normal_to_Element);
 
                 const unsigned int& dim = geom.WorkingSpaceDimension();
 
@@ -879,6 +881,7 @@ namespace Kratos {
                     noalias(node_rhs_tang) += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
 
                     geom[i].UnSetLock();
+                }
                 }
             }
         }
