@@ -18,6 +18,7 @@
 // Project includes
 #include "utilities/openmp_utils.h"
 #include "adjoint_structural_response_function.h"
+#include "utilities/variable_utils.h"
 
 
 // Application includes
@@ -31,23 +32,13 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        mSensitivityModelPartName =
-           ResponseSettings["sensitivity_model_part_name"].GetString();
+        mSensitivityModelPartName = ResponseSettings["sensitivity_model_part_name"].GetString();
 
-        Parameters nodal_sensitivity_variables = ResponseSettings["nodal_sensitivity_variables"];
-        mNodalSensitivityVariables.resize(nodal_sensitivity_variables.size());
-        for (unsigned int i = 0; i < nodal_sensitivity_variables.size(); ++i)
-            mNodalSensitivityVariables[i] = nodal_sensitivity_variables[i].GetString();
+        mNodalSensitivityVariables = this->ReadDesignVariables(ResponseSettings["nodal_sensitivity_variables"]);
+    
+        mElementSensitivityVariables = this->ReadDesignVariables(ResponseSettings["element_sensitivity_variables"]);
 
-        Parameters element_sensitivity_variables = ResponseSettings["element_sensitivity_variables"];
-        mElementSensitivityVariables.resize(element_sensitivity_variables.size());
-        for (unsigned int i = 0; i < element_sensitivity_variables.size(); ++i)
-            mElementSensitivityVariables[i] = element_sensitivity_variables[i].GetString();
-
-        Parameters condition_sensitivity_variables = ResponseSettings["condition_sensitivity_variables"];
-        mConditionSensitivityVariables.resize(condition_sensitivity_variables.size());
-        for (unsigned int i = 0; i < condition_sensitivity_variables.size(); ++i)
-            mConditionSensitivityVariables[i] = condition_sensitivity_variables[i].GetString();
+        mConditionSensitivityVariables = this->ReadDesignVariables(ResponseSettings["condition_sensitivity_variables"]);
 
         // Set gradient mode
         const std::string gradient_mode = ResponseSettings["gradient_mode"].GetString();
@@ -92,39 +83,14 @@ namespace Kratos
         ModelPart& r_sensitivity_model_part = r_model_part.GetSubModelPart(mSensitivityModelPartName);
 
         // Initialize flags.
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_sensitivity_model_part.Nodes().size()); ++i) 
-        {
-            NodesContainerType::iterator it = r_sensitivity_model_part.NodesBegin() + i;
-            it->SetValue(UPDATE_SENSITIVITIES, true);
-        }
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_sensitivity_model_part.Elements().size()); ++i) 
-        {
-            ElementsContainerType::iterator it = r_sensitivity_model_part.ElementsBegin() + i;
-            it->SetValue(UPDATE_SENSITIVITIES, true);
-        }
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_sensitivity_model_part.Conditions().size()); ++i) 
-        {
-            ConditionsContainerType::iterator it = r_sensitivity_model_part.ConditionsBegin() + i;
-            it->SetValue(UPDATE_SENSITIVITIES, true);
-        }
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Nodes());
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Elements());
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Conditions());
 
     if(mGradientMode == 1)
     {
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i) 
-        {
-            ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
-            it->SetValue(DISTURBANCE_MEASURE, mDelta);
-        }
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i) 
-        {
-            ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
-            it->SetValue(DISTURBANCE_MEASURE, mDelta);
-        }
+        VariableUtils().SetNonHistoricalVariable(DISTURBANCE_MEASURE, mDelta, r_sensitivity_model_part.Elements());
+        VariableUtils().SetNonHistoricalVariable(DISTURBANCE_MEASURE, mDelta, r_sensitivity_model_part.Conditions());
     }
 
         KRATOS_CATCH("");
@@ -160,24 +126,9 @@ namespace Kratos
         ModelPart& r_model_part = this->GetModelPart();
 
         // Reset flags.
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_model_part.Nodes().size()); ++i) 
-        {
-            NodesContainerType::iterator it = r_model_part.NodesBegin() + i;
-            it->SetValue(UPDATE_SENSITIVITIES, false);
-        }
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i) 
-        {
-            ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
-            it->SetValue(UPDATE_SENSITIVITIES, false);
-        }
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i) 
-        {
-            ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
-            it->SetValue(UPDATE_SENSITIVITIES, false);
-        }
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false, r_model_part.Nodes());
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false, r_model_part.Elements());
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false, r_model_part.Conditions());
 
         // Set sensitivity variables to zero.
         for (const auto& label : mNodalSensitivityVariables)
@@ -187,25 +138,15 @@ namespace Kratos
                 const Variable<double>& r_variable =
                     KratosComponents<Variable<double>>::Get(label);
 
-                #pragma omp parallel for
-                for (int i = 0; i< static_cast<int> (r_model_part.Nodes().size()); ++i) 
-                {
-                    NodesContainerType::iterator it = r_model_part.NodesBegin() + i;
-                    it->FastGetSolutionStepValue(r_variable) = r_variable.Zero();
-                }
-                
+                VariableUtils().SetToZero_ScalarVar(r_variable, r_model_part.Nodes());    
+    
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(label) == true)
             {
                 const Variable<array_1d<double, 3>>& r_variable =
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(label);
 
-                #pragma omp parallel for
-                for (int i = 0; i< static_cast<int> (r_model_part.Nodes().size()); ++i) 
-                {
-                    NodesContainerType::iterator it = r_model_part.NodesBegin() + i;
-                    it->FastGetSolutionStepValue(r_variable) = r_variable.Zero();
-                }
+                VariableUtils().SetToZero_VectorVar(r_variable, r_model_part.Nodes()); 
             }
             else
                 KRATOS_ERROR << "Unsupported variable: " << label << "." << std::endl;
@@ -513,8 +454,7 @@ namespace Kratos
 
         ModelPart& r_model_part = this->GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        //double delta_time = -r_process_info[DELTA_TIME];
-        const int num_threads = 1; //OpenMPUtils::GetNumThreads();
+        const int num_threads = 1; 
         std::vector<Vector> sensitivity_vector(num_threads);
         std::vector<Vector> response_gradient(num_threads);
         std::vector<Vector> adjoint_vector(num_threads);
@@ -536,113 +476,90 @@ namespace Kratos
                             rSensitivityVariable.Zero();
             }
         }
-        // Assemble element contributions.
-/*#pragma omp parallel
+
+        int k = 0;
+
+        for (ModelPart::ElementIterator it = r_model_part.ElementsBegin(); it != r_model_part.ElementsEnd(); ++it)
         {
-            ModelPart::ElementIterator elements_begin;
-            ModelPart::ElementIterator elements_end;
-            OpenMPUtils::PartitionedIterators(r_model_part.Elements(),
-                                              elements_begin, elements_end);
-            int k = OpenMPUtils::ThisThread();*/
-
-            int k = 0;
-
-            //for (auto it = elements_begin; it != elements_end; ++it)
-            for (ModelPart::ElementIterator it = r_model_part.ElementsBegin(); it != r_model_part.ElementsEnd(); ++it)
-            {
-                Element::GeometryType& r_geom = it->GetGeometry();
-                bool update_sensitivities = false;
-                for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
-                    if (r_geom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
-                    {
-                        update_sensitivities = true;
-                        break;
-                    }
-
-                if (update_sensitivities == false) // true for most elements
-                    continue;
-
-                // Compute the pseudo load
-                it->CalculateSensitivityMatrix(
-                    rSensitivityVariable, sensitivity_matrix[k], r_process_info);
-
-                if(sensitivity_matrix[k].size1() > 0)
-                {  
-                    // This part of the sensitivity is computed from the objective
-                    // with primal variables treated as constant.
-                    this->CalculateSensitivityGradient(
-                        *it, rSensitivityVariable, sensitivity_matrix[k],
-                        response_gradient[k], r_process_info);
-
-                    // Get the adjoint displacement field
-                    it->GetValuesVector(adjoint_vector[k]);
-
-                    if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                        sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
-
-                    // Compute the whole sensitivity
-                    noalias(sensitivity_vector[k]) =
-                                    /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
-                                    response_gradient[k]);
-
-                    this->AssembleNodalSensitivityContribution(
-                        rSensitivityVariable, sensitivity_vector[k], r_geom); 
+            Element::GeometryType& r_geom = it->GetGeometry();
+            bool update_sensitivities = false;
+            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
+                if (r_geom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
+                {
+                    update_sensitivities = true;
+                    break;
                 }
-            }
-        //}
 
-//         Assemble condition contributions.
-/*#pragma omp parallel
+            if (update_sensitivities == false) // true for most elements
+                continue;
+
+            // Compute the pseudo load
+            it->CalculateSensitivityMatrix(
+                rSensitivityVariable, sensitivity_matrix[k], r_process_info);
+
+            if(sensitivity_matrix[k].size1() > 0)
+            {  
+                // This part of the sensitivity is computed from the objective
+                // with primal variables treated as constant.
+                this->CalculateSensitivityGradient(
+                    *it, rSensitivityVariable, sensitivity_matrix[k],
+                    response_gradient[k], r_process_info);
+
+                // Get the adjoint displacement field
+                it->GetValuesVector(adjoint_vector[k]);
+
+                if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+                    sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
+
+                // Compute the whole sensitivity
+                noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                                response_gradient[k]);
+
+                this->AssembleNodalSensitivityContribution(
+                    rSensitivityVariable, sensitivity_vector[k], r_geom); 
+            }
+        }
+    
+        // Assemble condition contributions.
+        for (ModelPart::ConditionIterator it = r_model_part.ConditionsBegin(); it != r_model_part.ConditionsEnd(); ++it)
         {
-            ModelPart::ConditionIterator conditions_begin;
-            ModelPart::ConditionIterator conditions_end;
-            OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),
-                                               conditions_begin, conditions_end);
-            int k = OpenMPUtils::ThisThread();*/
-
-            for (ModelPart::ConditionIterator it = r_model_part.ConditionsBegin(); it != r_model_part.ConditionsEnd(); ++it)
-            {
-                Condition::GeometryType& r_geom = it->GetGeometry();
-                bool update_sensitivities = false;
-                for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
-                    if (r_geom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
-                    {
-                        update_sensitivities = true;
-                        break;
-                    }
-
-                if (update_sensitivities == false)
-                    continue;
-
-                // This is multiplied with the adjoint to compute sensitivity
-                // contributions from the condition.
-                it->CalculateSensitivityMatrix(
-                    rSensitivityVariable, sensitivity_matrix[k], r_process_info);
-
-                if(sensitivity_matrix[k].size1() > 0)
-                {  
-                    // This part of the sensitivity is computed from the objective
-                    // with primal variables treated as constant.
-                    this->CalculateSensitivityGradient(
-                        *it, rSensitivityVariable, sensitivity_matrix[k],
-                        response_gradient[k], r_process_info);
-
-                    // Get the adjoint displacement field
-                    it->GetValuesVector(adjoint_vector[k]);
-
-                    if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                        sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
-
-                    // Compute the whole sensitivity
-                    noalias(sensitivity_vector[k]) =
-                                    /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
-                                        response_gradient[k]);
-
-                    this->AssembleNodalSensitivityContribution(
-                        rSensitivityVariable, sensitivity_vector[k], r_geom);	
+            Condition::GeometryType& r_geom = it->GetGeometry();
+            bool update_sensitivities = false;
+            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
+                if (r_geom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
+                {
+                    update_sensitivities = true;
+                    break;
                 }
+
+            if (update_sensitivities == false)
+                continue;
+
+            // This is multiplied with the adjoint to compute sensitivity
+            // contributions from the condition.
+            it->CalculateSensitivityMatrix(
+                rSensitivityVariable, sensitivity_matrix[k], r_process_info);
+
+            if(sensitivity_matrix[k].size1() > 0)
+            {  
+                // This part of the sensitivity is computed from the objective
+                // with primal variables treated as constant.
+                this->CalculateSensitivityGradient(
+                    *it, rSensitivityVariable, sensitivity_matrix[k],
+                    response_gradient[k], r_process_info);
+
+                // Get the adjoint displacement field
+                it->GetValuesVector(adjoint_vector[k]);
+
+                if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+                    sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
+
+                // Compute the whole sensitivity
+                noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) + response_gradient[k]);
+
+                this->AssembleNodalSensitivityContribution(rSensitivityVariable, sensitivity_vector[k], r_geom);	
             }
-        //}
+        }
 
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
@@ -657,7 +574,6 @@ namespace Kratos
 
         ModelPart& r_model_part = this->GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        //double delta_time = -r_process_info[DELTA_TIME];
         const int num_threads = OpenMPUtils::GetNumThreads();
         std::vector<Vector> sensitivity_vector(num_threads);
         std::vector<Vector> response_gradient(num_threads);
@@ -696,8 +612,7 @@ namespace Kratos
                             sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
                         // Compute the whole sensitivity
-                        noalias(sensitivity_vector[k]) =
-                                    /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                        noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                     response_gradient[k]);
 
                         this->AssembleElementSensitivityContribution(
@@ -720,7 +635,6 @@ namespace Kratos
 
         ModelPart& r_model_part = this->GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        //double delta_time = -r_process_info[DELTA_TIME];
         const int num_threads = OpenMPUtils::GetNumThreads();
         std::vector<Vector> sensitivity_vector(num_threads);
         std::vector<Vector> response_gradient(num_threads);
@@ -760,8 +674,7 @@ namespace Kratos
                             sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
                         // Compute the whole sensitivity
-                        noalias(sensitivity_vector[k]) =
-                                /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                        noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                     response_gradient[k]);
 
                         Condition::GeometryType& r_geom = it->GetGeometry();
@@ -935,6 +848,16 @@ namespace Kratos
                 r_sensitivity[d] += rSensitivityVector[index++];
             rGeom[i_node].UnSetLock();
         }
+    }
+
+    std::vector<std::string> AdjointStructuralResponseFunction::ReadDesignVariables(Parameters DesignVariableSettings)
+    {
+        std::vector<std::string> design_variables;
+        design_variables.resize(DesignVariableSettings.size());
+        for (unsigned int i = 0; i < DesignVariableSettings.size(); ++i)
+            design_variables[i] = DesignVariableSettings[i].GetString();
+
+        return design_variables;    
     }
 
 };

@@ -200,11 +200,13 @@ private:
 
     ///@}
     ///@name Private Operators
-    ///@{
+    ///@{  
 
     ///@}
     ///@name Private Operations
     ///@{
+        
+    std::vector<std::string> ReadDesignVariables(Parameters DesignVariableSettings);    
 
     ///@}
 };
