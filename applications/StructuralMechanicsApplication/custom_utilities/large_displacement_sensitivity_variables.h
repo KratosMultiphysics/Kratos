@@ -57,6 +57,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LargeDisplacementDifferential
         std::size_t mCurrentIntegrationIndex = -1;
         ShapeParameter mCurrentShapeDerivative;
 
+        /// Recalculate member data if integration point or derivative differ from internally stored values.
         void Synchronize(std::size_t IntegrationIndex, ShapeParameter Deriv);
 
         void RecalculateJ0(std::size_t IntegrationIndex);
