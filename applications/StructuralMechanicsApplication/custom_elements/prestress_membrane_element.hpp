@@ -149,12 +149,12 @@ namespace Kratos
         const double& rWeight);
 
     void CalculateQ(
-      bounded_matrix<double, 3, 3>& rQ,
+      BoundedMatrix<double, 3, 3>& rQ,
       const unsigned int& rPointNumber);
 
     void CalculateB(
         Matrix& B,
-        const bounded_matrix<double, 3, 3>& Q,
+        const BoundedMatrix<double, 3, 3>& Q,
         const Matrix& DN_De,
         const array_1d<double, 3>& g1,
         const array_1d<double, 3>& g2);
@@ -190,7 +190,7 @@ namespace Kratos
         Matrix& Strain_locCartesian11,
         Matrix& Strain_locCartesian22,
         Matrix& Strain_locCartesian12,
-        bounded_matrix<double, 3, 3>& Q);
+        BoundedMatrix<double, 3, 3>& Q);
 
     void InitializeFormfinding(const unsigned int& rIntegrationPointSize);
 
@@ -217,21 +217,21 @@ namespace Kratos
              array_1d<double, 3>& rBaseRefContraTot1,array_1d<double, 3>& rBaseRefContraTot2);
 
     void ComputeEigenvaluesDeformationGradient(const unsigned int& rPointNumber,
-                    bounded_matrix<double,3,3>& rOrigin, bounded_matrix<double,3,3>& rTarget, bounded_matrix<double,3,3>& rTensor,
+                    BoundedMatrix<double,3,3>& rOrigin, BoundedMatrix<double,3,3>& rTarget, BoundedMatrix<double,3,3>& rTensor,
                     const array_1d<double, 3>& rBaseRefContraTot1, const array_1d<double, 3>& rBaseRefContraTot2,
                     const array_1d<double, 3>& rE1Tot, const array_1d<double, 3>& rE2Tot, const array_1d<double, 3>& rE3Tot,
                     const array_1d<double, 3>& rgab,
                     double& rLambda1, double& rLambda2);
 
     void ComputeEigenvectorsDeformationGradient(const unsigned int& rPointNumber,
-                                bounded_matrix<double,3,3>& rTensor, bounded_matrix<double,3,3>& rOrigin,
-                                const bounded_matrix<double,3,3>& rDeformationGradientTotal,
+                                BoundedMatrix<double,3,3>& rTensor, BoundedMatrix<double,3,3>& rOrigin,
+                                const BoundedMatrix<double,3,3>& rDeformationGradientTotal,
                                 const array_1d<double, 3>& rE1Tot, const array_1d<double, 3>& rE2Tot,
                                 const double Lambda1, const double Lambda2,
                                 BoundedMatrix<double,3,3>& rNAct);
 
     void ModifyPrestress(const unsigned int& rPointNumber,
-                    bounded_matrix<double,3,3>& rOrigin, bounded_matrix<double,3,3>& rTarget,bounded_matrix<double,3,3>& rTensor,
+                    BoundedMatrix<double,3,3>& rOrigin, BoundedMatrix<double,3,3>& rTarget,BoundedMatrix<double,3,3>& rTensor,
                     const array_1d<double, 3>& rE1, const array_1d<double, 3>& rE2, const array_1d<double, 3>& rE3, const array_1d<double, 3>& rG3,
                     const array_1d<double, 3>& rg1, const array_1d<double, 3>& rg2, const array_1d<double, 3>& rg3, const BoundedMatrix<double,3,3>& rNAct,
                     const double Lambda1, const double Lambda2);
