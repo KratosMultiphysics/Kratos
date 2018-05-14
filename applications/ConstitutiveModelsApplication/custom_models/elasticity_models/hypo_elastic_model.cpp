@@ -2,7 +2,7 @@
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                JMCarbonell $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                   April 2017 $
+//   Date:                $Date:                   April 2018 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -115,6 +115,26 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
+  //************// W
+    
+  void HypoElasticModel::CalculateAndAddIsochoricStrainEnergy(ElasticDataType& rVariables, double& rIsochoricDensityFunction)
+  {
+    KRATOS_TRY
+
+    KRATOS_ERROR << "calling the base class function in HypoElasticModel ... illegal operation" << std::endl;
+    
+    KRATOS_CATCH(" ")
+  }
+    
+    
+  void HypoElasticModel::CalculateAndAddVolumetricStrainEnergy(ElasticDataType& rVariables, double& rVolumetricDensityFunction)
+  {
+    KRATOS_TRY
+
+    KRATOS_ERROR << "calling the base class function in HypoElasticModel ... illegal operation" << std::endl;
+	
+    KRATOS_CATCH(" ")
+  }
 
   //************************************************************************************
   //************************************************************************************
@@ -175,6 +195,8 @@ namespace Kratos
     
     // Total stress stored in the HistoryVector
     this->AddHistoricalStress(rValues, rStressMatrix);    
+
+    Variables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
     
     KRATOS_CATCH(" ")
   }
@@ -188,9 +210,7 @@ namespace Kratos
     KRATOS_TRY
 
     noalias(rStressVector) = prod(rVariables.ConstitutiveTensor,rStrainVector);
-    
-    rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
-    
+        
     KRATOS_CATCH(" ")
   }
   
@@ -220,6 +240,8 @@ namespace Kratos
     
     // Isochoric stress stored in the HistoryVector
     this->AddHistoricalStress(rValues, rStressMatrix);
+
+    Variables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
     
     KRATOS_CATCH(" ")
   }
@@ -239,9 +261,7 @@ namespace Kratos
     rStressVector[0] -= MeanStress;
     rStressVector[1] -= MeanStress;
     rStressVector[2] -= MeanStress;
-	
-    rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
-	
+		
     KRATOS_CATCH(" ")
   }
 
@@ -253,7 +273,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    this->CalculateStressTensor( rValues, rStressMatrix);
+    this->CalculateStressTensor( rValues, rStressMatrix );
     double MeanPressure = 0;
     for (unsigned int i = 0; i < 3; i++)
        MeanPressure += rStressMatrix(i,i)/3.0;

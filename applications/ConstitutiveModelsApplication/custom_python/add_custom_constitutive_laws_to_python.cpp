@@ -52,7 +52,7 @@
 #include "custom_models/elasticity_models/borja_model.hpp"
 #include "custom_models/elasticity_models/ogden_model.hpp"
 #include "custom_models/elasticity_models/isochoric_ogden_model.hpp"
-#include "custom_models/elasticity_models/hypo_elastic_model.hpp"
+#include "custom_models/elasticity_models/incompressible_hypo_elastic_model.hpp"
 
 // Plasticity models
 #include "custom_models/plasticity_models/von_mises_linear_elastic_plasticity_model.hpp"
@@ -226,6 +226,16 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
   
   class_< HypoElasticModel, typename HypoElasticModel::Pointer, ConstitutiveModelBaseType >
       (m, "HypoElasticModel")
+      .def( init<>() )
+      ;
+
+  class_< IsochoricHypoElasticModel, typename IsochoricHypoElasticModel::Pointer, ConstitutiveModelBaseType >
+      (m, "IsochoricHypoElasticModel")
+      .def( init<>() )
+      ;
+
+  class_< IncompressibleHypoElasticModel, typename IncompressibleHypoElasticModel::Pointer, ConstitutiveModelBaseType >
+      (m, "IncompressibleHypoElasticModel")
       .def( init<>() )
       ;
   
