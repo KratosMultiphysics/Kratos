@@ -140,6 +140,9 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/isotropic_damage_modified_mises_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/isotropic_damage_modified_mises_plane_stress_2D_law.cpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/new_nklh_3D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/new_nklh_2D_law.cpp
+
 	## DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION ##
 )
 

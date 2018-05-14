@@ -124,6 +124,10 @@
 #include "custom_constitutive/isotropic_damage_modified_mises_plane_strain_2D_law.hpp"
 #include "custom_constitutive/isotropic_damage_modified_mises_plane_stress_2D_law.hpp"
 
+#include "custom_constitutive/new_nklh_3D_law.hpp"
+#include "custom_constitutive/new_nklh_2D_law.hpp"
+
+
 #include "solid_mechanics_application_variables.h"
 
 namespace Kratos
@@ -479,6 +483,8 @@ typedef array_1d<double,6> Vector6;
    const LinearElasticPlaneStrain2DLaw           mLinearElasticPlaneStrain2DLaw;
    const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
    const LinearElasticAxisym2DLaw                mLinearElasticAxisym2DLaw;
+   const NewNKLH3DLaw                            mNewNKLH3DLaw;
+   const NewNKLH2DLaw                            mNewNKLH2DLaw;
 
    //Hyperelastic Plastic J2 specilization laws 
    const HyperElasticPlasticJ23DLaw              mHyperElasticPlasticJ23DLaw;

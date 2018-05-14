@@ -19,6 +19,8 @@
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_axisym_2D_law.hpp"
+#include "custom_constitutive/new_nklh_3D_law.hpp"
+#include "custom_constitutive/new_nklh_2D_law.hpp"
 
 #include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.hpp"
@@ -56,6 +58,14 @@ using namespace pybind11;
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
   // Linear Elastic laws
+
+   class_< NewNKLH2DLaw, typename NewNKLH2DLaw::Pointer, ConstitutiveLaw >
+      (m, "NewNKLH2DLaw").def(init<>() )
+      ;
+
+   class_< NewNKLH3DLaw, typename NewNKLH3DLaw::Pointer, ConstitutiveLaw >
+      (m, "NewNKLH3DLaw").def(init<>() )
+      ;
 
   class_< LinearElastic3DLaw, typename LinearElastic3DLaw::Pointer, ConstitutiveLaw >
       (m, "LinearElastic3DLaw").def(init<>() )
