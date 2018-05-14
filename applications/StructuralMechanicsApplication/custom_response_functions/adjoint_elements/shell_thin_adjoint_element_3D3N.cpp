@@ -152,14 +152,14 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
 
     // check properties
-    KRATOS_ERROR_IF(this->pGetProperties() == NULL) << "Properties not provided for element " << this->Id() << std::endl;
+    KRATOS_ERROR_IF(this->pGetProperties() == nullptr) << "Properties not provided for element " << this->Id() << std::endl;
 
     const PropertiesType & props = this->GetProperties();    
 
     if(props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
     {
         const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
-        KRATOS_ERROR_IF(section == NULL) << "SHELL_CROSS_SECTION not provided for element " << this->Id() << std::endl;
+        KRATOS_ERROR_IF(section == nullptr) << "SHELL_CROSS_SECTION not provided for element " << this->Id() << std::endl;
 
         section->Check(props, r_geom, rCurrentProcessInfo);
     }
@@ -167,7 +167,7 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_ERROR_IF_NOT(props.Has(CONSTITUTIVE_LAW)) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
         const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
-        KRATOS_ERROR_IF(claw == NULL) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
+        KRATOS_ERROR_IF(claw == nullptr) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
 
         KRATOS_ERROR_IF_NOT(props.Has(THICKNESS)) <<  "THICKNESS not provided for element " <<  this->Id() << std::endl;
         KRATOS_ERROR_IF(props[THICKNESS] <= 0.0) << "wrong THICKNESS value provided for element " << this->Id() << std::endl;
@@ -210,6 +210,7 @@ void ShellThinAdjointElement3D3N::GetValuesVector(Vector& values, int Step)
         values.resize(num_dofs, false); 
 
     const GeometryType & geom = GetGeometry();
+    const int dimension = geom.WorkingSpaceDimension();
 
     for (SizeType i = 0; i < geom.size(); i++)
     {
@@ -217,7 +218,7 @@ void ShellThinAdjointElement3D3N::GetValuesVector(Vector& values, int Step)
         const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
         const array_1d<double,3>& rot = iNode.FastGetSolutionStepValue(ADJOINT_ROTATION, Step);
 
-        int index = i*6;
+        const SizeType index = i * dimension * 2;
         values[index]     = disp[0];
         values[index + 1] = disp[1];
         values[index + 2] = disp[2];

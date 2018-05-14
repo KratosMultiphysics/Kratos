@@ -410,7 +410,7 @@ namespace Kratos
     void CrBeamAdjointElement3D2N::GetValuesVector(Vector& rValues, int Step) {
 
         KRATOS_TRY
-            const int number_of_nodes = this->GetGeometry().PointsNumber();
+        const int number_of_nodes = this->GetGeometry().PointsNumber();
         const int dimension = this->GetGeometry().WorkingSpaceDimension();
         const unsigned int element_size = number_of_nodes * dimension * 2;
 
@@ -418,7 +418,7 @@ namespace Kratos
 
         for (int i = 0; i < number_of_nodes; ++i)
         {
-            int index = i * dimension * 2;
+            const SizeType index = i * dimension * 2;
             rValues[index] = this->GetGeometry()[i]
                 .FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X, Step);
             rValues[index + 1] = this->GetGeometry()[i]
