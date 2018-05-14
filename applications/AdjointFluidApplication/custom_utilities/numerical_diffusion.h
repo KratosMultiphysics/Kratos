@@ -343,7 +343,7 @@ private:
         Vector adjoint_values_vector;
         rElement.GetValuesVector(adjoint_values_vector, 1);
 
-        BoundedVector<double, (TDim+1)*TDim> const temp_1 = prod(vms_steady_term_primal_gradient, adjoint_values_vector);
+        BoundedVector<double, (TDim+1)*(TDim+1)> const temp_1 = prod(vms_steady_term_primal_gradient, adjoint_values_vector);
         double const adjoint_energy = inner_prod(temp_1, adjoint_values_vector);
         
         MatrixType numerical_diffusion_matrix;
@@ -351,7 +351,7 @@ private:
 
         AddNumericalDiffusionTerm<TDim>(numerical_diffusion_matrix, dn_dx, volume);
 
-        BoundedVector<double, (TDim+1)*TDim> const temp_2 = prod(numerical_diffusion_matrix, adjoint_values_vector);
+        BoundedVector<double, (TDim+1)*(TDim+1)> const temp_2 = prod(numerical_diffusion_matrix, adjoint_values_vector);
         double const diffusion_energy = inner_prod(temp_2,adjoint_values_vector);
 
         rNumericalDiffusion = 0.0;
