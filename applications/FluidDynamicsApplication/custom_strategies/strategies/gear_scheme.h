@@ -109,12 +109,9 @@ public:
         mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {}
 
-    /// Constructor to use the formulation combined with a turbulence model.
+    /// Constructor for periodic boundary conditions.
     /**
-     * The turbulence model is assumed to be implemented as a Kratos::Process.
-     * The model's Execute() method wil be called at the start of each
-     * non-linear iteration.
-     * @param pTurbulenceModel pointer to the turbulence model
+     * @param rPeriodicVar the variable used to store periodic pair indices.
      */
     GearScheme(const Kratos::Variable<int>& rPeriodicVar)
         :
@@ -771,7 +768,7 @@ protected:
     /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
      * both sides of the boundary. This is done using the conditions and the non-historical nodal data containers as follows:\n
      * 1- The partition that owns the PeriodicCondition adds the values on both nodes to their non-historical containers.\n
-     * 2- The non-historical containers are added across processes, transmiting the right value from the condition owner to all partitions.\n
+     * 2- The non-historical containers are added across processes, communicating the right value from the condition owner to all partitions.\n
      * 3- The value on all periodic nodes is replaced by the one received in step 2.
      */
     void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
@@ -793,31 +790,7 @@ protected:
             auto it_cond = rModelPart.ConditionsBegin() + i;
 
             if(it_cond->Is(PERIODIC)) {
-                ModelPart::ConditionType::GeometryType& rGeom = it_cond->GetGeometry();
-                unsigned int nodes_in_cond = rGeom.PointsNumber();
-
-                double NodalArea = 0.0;
-                array_1d<double,3> AdvProj(3,0.0);
-                double DivProj = 0.0;
-                for ( unsigned int i = 0; i < nodes_in_cond; i++ )
-                {
-                    NodalArea += rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
-                    noalias(AdvProj) += rGeom[i].FastGetSolutionStepValue(ADVPROJ);
-                    DivProj += rGeom[i].FastGetSolutionStepValue(DIVPROJ);
-                }
-
-                for ( unsigned int i = 0; i < nodes_in_cond; i++ )
-                {
-                    /* Note that it is assumed that each node belongs to a single periodic link,
-                        * if this lock is necessary, the algorithm will not work anyways.
-                        * I'm leaving it here to prevent locking issues, though (JC)
-                        */
-                    rGeom[i].SetLock();
-                    rGeom[i].GetValue(NODAL_AREA) = NodalArea;
-                    noalias(rGeom[i].GetValue(ADVPROJ)) = AdvProj;
-                    rGeom[i].GetValue(DIVPROJ) = DivProj;
-                    rGeom[i].UnSetLock();
-                }
+                this->AssemblePeriodicContributionToProjections(it_cond->GetGeometry());
             }
         }
 
@@ -828,13 +801,49 @@ protected:
         #pragma omp parallel for
         for (int i = 0; i < num_nodes; i++) {
             auto it_node = rModelPart.NodesBegin() + i;
+            this->CorrectContributionsOnPeriodicNode(*it_node);
+        }
+    }
 
-            if (it_node->GetValue(NODAL_AREA) != 0.0)
-            {
-                it_node->FastGetSolutionStepValue(NODAL_AREA) = it_node->GetValue(NODAL_AREA);
-                noalias(it_node->FastGetSolutionStepValue(ADVPROJ)) = it_node->GetValue(ADVPROJ);
-                it_node->FastGetSolutionStepValue(DIVPROJ) = it_node->GetValue(DIVPROJ);
-            }
+    void AssemblePeriodicContributionToProjections(Geometry< Node<3> >& rGeometry)
+    {
+        unsigned int nodes_in_cond = rGeometry.PointsNumber();
+
+        double nodal_area = 0.0;
+        array_1d<double,3> momentum_projection(3,0.0);
+        double mass_projection = 0.0;
+        for ( unsigned int i = 0; i < nodes_in_cond; i++ )
+        {
+            auto& r_node = rGeometry[i];
+            nodal_area += r_node.FastGetSolutionStepValue(NODAL_AREA);
+            noalias(momentum_projection) += r_node.FastGetSolutionStepValue(ADVPROJ);
+            mass_projection += r_node.FastGetSolutionStepValue(DIVPROJ);
+        }
+
+        for ( unsigned int i = 0; i < nodes_in_cond; i++ )
+        {
+            auto& r_node = rGeometry[i];
+            /* Note that this loop is expected to be threadsafe in normal conditions,
+             * since each node should belong to a single periodic link. However, I am
+             * setting the locks for openmp in case that we try more complicated things
+             * in the future (like having different periodic conditions for different
+             * coordinate directions).
+             */
+            r_node.SetLock();
+            r_node.GetValue(NODAL_AREA) = nodal_area;
+            noalias(r_node.GetValue(ADVPROJ)) = momentum_projection;
+            r_node.GetValue(DIVPROJ) = mass_projection;
+            r_node.UnSetLock();
+        }
+    }
+
+    void CorrectContributionsOnPeriodicNode(Node<3>& rNode)
+    {
+        if (rNode.GetValue(NODAL_AREA) != 0.0)
+        {
+            rNode.FastGetSolutionStepValue(NODAL_AREA) = rNode.GetValue(NODAL_AREA);
+            noalias(rNode.FastGetSolutionStepValue(ADVPROJ)) = rNode.GetValue(ADVPROJ);
+            rNode.FastGetSolutionStepValue(DIVPROJ) = rNode.GetValue(DIVPROJ);
         }
     }
 
