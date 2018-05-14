@@ -19,7 +19,7 @@
 
 namespace Kratos {
 
-  //Application variables creation: (see pfem_solid_mechanics_application_variables.cpp)
+  //Application variables creation: (see contact_mechanics_application_variables.cpp)
 
   //Application Constructor:
   KratosContactMechanicsApplication::KratosContactMechanicsApplication():

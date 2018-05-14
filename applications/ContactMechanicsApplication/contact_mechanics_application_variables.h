@@ -31,7 +31,7 @@
 
 // Core applications
 #include "includes/mat_variables.h"
-#include "pfem_application_variables.h"
+#include "delaunay_meshing_application_variables.h"
 
 namespace Kratos
 {
