@@ -53,7 +53,7 @@ namespace Kratos
         MZX,
         MZY,
         MZZ,
-        StressTypeNotAvailible
+        StressTypeNotAvailable
     };
 
     enum StressTreatment
@@ -61,7 +61,7 @@ namespace Kratos
         mean,
         node,
         GP,
-        StressTreatmentNotAvailible
+        StressTreatmentNotAvailable
     };
 
 
@@ -149,7 +149,7 @@ public:
         else if(Str == "MZZ")
             return TracedStressType::MZZ;
         else
-            return TracedStressType::StressTypeNotAvailible;	
+            return TracedStressType::StressTypeNotAvailable;	
     }
 
     StressTreatment ConvertStressTreatment(const std::string& Str)
@@ -161,7 +161,7 @@ public:
         else if(Str == "GP")
             return StressTreatment::GP;
         else
-            return StressTreatment::StressTreatmentNotAvailible;
+            return StressTreatment::StressTreatmentNotAvailable;
     }
     
 private:

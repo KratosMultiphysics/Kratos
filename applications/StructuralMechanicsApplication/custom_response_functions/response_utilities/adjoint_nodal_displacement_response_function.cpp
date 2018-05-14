@@ -43,26 +43,26 @@ namespace Kratos
 
         // Check if variable for traced dof is valid
         if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedDofLabel)) )
-            KRATOS_ERROR << "Specified traced DOF is not availible. Specified DOF: " << mTracedDofLabel << std::endl;
+            KRATOS_ERROR << "Specified traced DOF is not available. Specified DOF: " << mTracedDofLabel << std::endl;
         else
         {
             const VariableComponentType& rTRACED_DOF =
                 KratosComponents<VariableComponentType>::Get(mTracedDofLabel);
             KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(rTRACED_DOF) )
-                << "Specified DOF is not availible at traced node." << std::endl;
+                << "Specified DOF is not available at traced node." << std::endl;
         }
 
         // Check if variable for traced adjoint dof is valid
         if( !(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(std::string("ADJOINT_") + mTracedDofLabel)) )
         {
-            KRATOS_ERROR << "Specified traced adjoint DOF is not availible." << std::endl;
+            KRATOS_ERROR << "Specified traced adjoint DOF is not available." << std::endl;
         }
         else
         {
             const VariableComponentType& rTRACED_ADJOINT_DOF =
                 KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDofLabel);
             KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(rTRACED_ADJOINT_DOF) )
-                << "Specified adjoint DOF is not availible at traced node." << std::endl;
+                << "Specified adjoint DOF is not available at traced node." << std::endl;
         }
 
         mDisplacementValue = 0.0;
@@ -106,7 +106,7 @@ namespace Kratos
             if(neighboring_element_found) { break; }
         }
         KRATOS_ERROR_IF_NOT(neighboring_element_found)
-             << "No neighboring element is availible for the traced node." << std::endl;
+             << "No neighboring element is available for the traced node." << std::endl;
 
         KRATOS_CATCH("");
 

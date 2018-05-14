@@ -617,7 +617,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
     primal_solution_variable_list.push_back(ROTATION_Z);       
     
     KRATOS_ERROR_IF(rCurrentProcessInfo.Has(NL_ITERATION_NUMBER)) 
-        << "Stress displacement derivative computation is currently only for linear cases availible!" << std::endl;
+        << "Stress displacement derivative computation is currently only for linear cases available!" << std::endl;
 	
     for (int i = 0; i < num_nodes; i++) 
     {	

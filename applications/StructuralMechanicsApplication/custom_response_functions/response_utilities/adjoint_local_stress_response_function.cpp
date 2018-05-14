@@ -38,12 +38,12 @@ namespace Kratos
 
         // Tell traced element the stress type
         TracedStressType traced_stress_type = stress_response_data.ConvertStressType(rParameters["stress_type"].GetString()); 
-        KRATOS_ERROR_IF(traced_stress_type == StressTypeNotAvailible) << "Chosen stress type is not availible!" << std::endl;
+        KRATOS_ERROR_IF(traced_stress_type == StressTypeNotAvailable) << "Chosen stress type is not available!" << std::endl;
         mpTracedElement->SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress_type) );		
 
         // Get info how and where to treat the stress
         mStressTreatment = stress_response_data.ConvertStressTreatment( rParameters["stress_treatment"].GetString() );
-        KRATOS_ERROR_IF(mStressTreatment == StressTreatmentNotAvailible) << "Chosen option for stress treatmeant is not availible! Chose 'GP','node' or 'mean'!" << std::endl;
+        KRATOS_ERROR_IF(mStressTreatment == StressTreatmentNotAvailable) << "Chosen option for stress treatmeant is not available! Chose 'GP','node' or 'mean'!" << std::endl;
 
         if(mStressTreatment == GP || mStressTreatment == node)
         {
@@ -94,7 +94,7 @@ namespace Kratos
             if(stress_vec_size >= mIdOfLocation)
                 mStressValue = element_stress[mIdOfLocation - 1];
             else
-                KRATOS_ERROR << "Chosen Gauss-Point is not availible. Chose 'stress_location' between 1 and " <<
+                KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                                 stress_vec_size  << "!"<< std::endl;
         }
         else if(mStressTreatment == node)
@@ -103,7 +103,7 @@ namespace Kratos
             if(num_ele_nodes >= mIdOfLocation)
                 mStressValue = element_stress[mIdOfLocation - 1];
             else
-                KRATOS_ERROR << "Chosen Node is not availible. The element has only " <<
+                KRATOS_ERROR << "Chosen Node is not available. The element has only " <<
                                 num_ele_nodes  << " nodes."<< std::endl;
 
         }
@@ -152,7 +152,7 @@ namespace Kratos
                     if(num_of_deriv >= mIdOfLocation)
                         stress_displ_deriv_value = stress_displ_deriv(dof_it, (mIdOfLocation-1));
                     else
-                        KRATOS_ERROR << "Chosen Gauss-Point is not availible. Chose 'stress_location' between 1 and " <<
+                        KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                                     num_of_deriv  << "!"<< std::endl;
                 }
                 else if(mStressTreatment == node)
@@ -160,7 +160,7 @@ namespace Kratos
                     if(num_of_deriv >= mIdOfLocation)
                         stress_displ_deriv_value = stress_displ_deriv(dof_it, (mIdOfLocation-1));
                     else
-                        KRATOS_ERROR << "Chosen node is not availible. The element has only " <<
+                        KRATOS_ERROR << "Chosen node is not available. The element has only " <<
                                     num_of_deriv  << " nodes."<< std::endl;
 
                 }
@@ -213,7 +213,7 @@ namespace Kratos
                     if(num_of_deriv >= mIdOfLocation)
                         stress_DV_deriv_value = stress_DV_deriv(dv_it, (mIdOfLocation-1));
                     else
-                        KRATOS_ERROR << "Chosen Gauss-Point is not availible. Chose 'stress_location' between 1 and " <<
+                        KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                                     num_of_deriv  << "!"<< std::endl;
                 }
                 else if(mStressTreatment == node)
@@ -221,7 +221,7 @@ namespace Kratos
                     if(num_of_deriv >= mIdOfLocation)
                         stress_DV_deriv_value = stress_DV_deriv(dv_it, (mIdOfLocation-1));
                     else
-                        KRATOS_ERROR << "Chosen node is not availible. The element has only " <<
+                        KRATOS_ERROR << "Chosen node is not available. The element has only " <<
                                     num_of_deriv  << " nodes."<< std::endl;
                 }
                 rResponseGradient[dv_it] =  stress_DV_deriv_value;
@@ -298,7 +298,7 @@ namespace Kratos
                     if(num_of_deriv >= mIdOfLocation)
                         stress_DV_deriv_value = stress_DV_deriv(dv_it, (mIdOfLocation-1));
                     else
-                        KRATOS_ERROR << "Chosen Gauss-Point is not availible. Chose 'stress_location' between 1 and " <<
+                        KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                                     num_of_deriv  << "!"<< std::endl;
                 }
                 else if(mStressTreatment == node)
@@ -306,7 +306,7 @@ namespace Kratos
                     if(num_of_deriv >= mIdOfLocation)
                         stress_DV_deriv_value = stress_DV_deriv(dv_it, (mIdOfLocation-1));
                     else
-                        KRATOS_ERROR << "Chosen node is not availible. The element has only " <<
+                        KRATOS_ERROR << "Chosen node is not available. The element has only " <<
                                     num_of_deriv  << " nodes."<< std::endl;
                 }
                 rResponseGradient[dv_it] = stress_DV_deriv_value;

@@ -255,7 +255,7 @@ protected:
     /**
     * Needed to reset the sections for semi analytical sensitivity analysis where the 
     * derivatives are calculated with finite differenes.
-    * There it is necessary the reset the sections and re-initialize them 
+    * There it is necessary to reset the sections and re-initialize them 
     * again after the design variable is perturbed
     * in order have sections with the changed properties.
     */
