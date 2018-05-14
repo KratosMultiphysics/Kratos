@@ -124,11 +124,11 @@ void LargeDisplacementDifferentialVariables::CalculateAxisymmetricF(std::size_t 
             mF(i, j) = F2x2(i, j);
         mF(i, 2) = mF(2, i) = 0.0;
     }
-    Vector N = row(mrGeom.ShapeFunctionsValues(), IntegrationIndex);
+    const Vector& rN = row(mrGeom.ShapeFunctionsValues(), IntegrationIndex);
     const double current_radius =
-        StructuralMechanicsMathUtilities::CalculateRadius(N, mrGeom, Current);
+        StructuralMechanicsMathUtilities::CalculateRadius(rN, mrGeom, Current);
     const double initial_radius =
-        StructuralMechanicsMathUtilities::CalculateRadius(N, mrGeom, Initial);
+        StructuralMechanicsMathUtilities::CalculateRadius(rN, mrGeom, Initial);
     mF(2, 2) = current_radius / initial_radius;
     KRATOS_CATCH("");
 }
@@ -214,8 +214,8 @@ void LargeDisplacementKinematicVariables::CalculateB_Axisymmetric(std::size_t In
     const unsigned int strain_size = 4;
     const Matrix& rF = mrDiffVars.F(IntegrationIndex, true);
     const Matrix& rDN_DX0 = mrDiffVars.DN_DX0(IntegrationIndex);
-    const auto N = row(r_geom.ShapeFunctionsValues(), IntegrationIndex);
-    double radius = StructuralMechanicsMathUtilities::CalculateRadius(N, r_geom);
+    const Vector& rN = row(r_geom.ShapeFunctionsValues(), IntegrationIndex);
+    double radius = StructuralMechanicsMathUtilities::CalculateRadius(rN, r_geom);
     
     if (mB.size1() != strain_size || mB.size2() != dimension * number_of_nodes)
         mB.resize(strain_size, dimension * number_of_nodes, false);
@@ -226,7 +226,7 @@ void LargeDisplacementKinematicVariables::CalculateB_Axisymmetric(std::size_t In
         mB(0, index + 1) = rF(1, 0) * rDN_DX0(i, 0);
         mB(1, index + 1) = rF(0, 1) * rDN_DX0(i, 1);
         mB(1, index + 1) = rF(1, 1) * rDN_DX0(i, 1);
-        mB(2, index + 0) = N[i] / radius;
+        mB(2, index + 0) = rN[i] / radius;
         mB(3, index + 0) = rF(0, 0) * rDN_DX0(i, 1) + rF(0, 1) * rDN_DX0(i, 0);
         mB(3, index + 1) = rF(1, 0) * rDN_DX0(i, 1) + rF(1, 1) * rDN_DX0(i, 0);
     }

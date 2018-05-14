@@ -205,9 +205,11 @@ void TotalLagrangian::CalculateInternalForceSensitivityContribution(
                                 rSensitivityVars.DetJ0(IntegrationIndex, Deriv);
     const Matrix& rB = rDeformationVars.B(IntegrationIndex);
     const Matrix& rB_deriv = rSensitivityVars.B(IntegrationIndex, Deriv);
-    rResidualSensitivity = -weight_deriv * prod(trans(rB), rStressVector);
-    rResidualSensitivity -= weight * prod(trans(rB_deriv), rStressVector);
-    rResidualSensitivity -= weight * prod(trans(rB), rStressSensitivityVector);
+    if (rResidualSensitivity.size() != rB.size2())
+        rResidualSensitivity.resize(rB.size2(), false);
+    noalias(rResidualSensitivity) = -weight_deriv * prod(trans(rB), rStressVector);
+    noalias(rResidualSensitivity) -= weight * prod(trans(rB_deriv), rStressVector);
+    noalias(rResidualSensitivity) -= weight * prod(trans(rB), rStressSensitivityVector);
     KRATOS_CATCH("");
 }
 

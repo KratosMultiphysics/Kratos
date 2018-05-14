@@ -168,7 +168,9 @@ void LargeDisplacementKinematicSensitivityVariables::CalculateStrainTensorSensit
     const Matrix& rF = mrDiffVars.F(IntegrationIndex, mIsAxisymmetric);
     const Matrix& rF_deriv =
         mrDiffVarSensitivities.F(IntegrationIndex, Deriv, mIsAxisymmetric);
-    mStrainTensorSensitivity =
+    if (mStrainTensorSensitivity.size1() != rF_deriv.size2() || mStrainTensorSensitivity.size2() != rF.size2())
+        mStrainTensorSensitivity.resize(rF_deriv.size2(), rF.size2(), false);
+    noalias(mStrainTensorSensitivity) =
         0.5 * (prod(trans(rF_deriv), rF) + prod(trans(rF), rF_deriv));
     KRATOS_CATCH("");
 }
@@ -188,14 +190,14 @@ void LargeDisplacementKinematicSensitivityVariables::CalculateBSensitivity(std::
         CalculateB_2D(rF_deriv, rDN_DX0, mBSensitivity);
         Matrix tmp;
         CalculateB_2D(rF, rDN_DX0_deriv, tmp);
-        mBSensitivity = mBSensitivity + tmp;
+        noalias(mBSensitivity) += tmp;
     }
     else
     {
         CalculateB_3D(rF_deriv, rDN_DX0, mBSensitivity);
         Matrix tmp;
         CalculateB_3D(rF, rDN_DX0_deriv, tmp);
-        mBSensitivity = mBSensitivity + tmp;
+        noalias(mBSensitivity) += tmp;
     }
     KRATOS_CATCH("");
 }
