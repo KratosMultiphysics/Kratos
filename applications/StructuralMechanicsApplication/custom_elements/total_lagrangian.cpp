@@ -17,7 +17,6 @@
 
 // Project includes
 #include "custom_elements/total_lagrangian.h"
-#include "utilities/matrix_vector_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/large_displacement_variables.h"
 #include "custom_utilities/large_displacement_sensitivity_variables.h"
@@ -63,9 +62,17 @@ void TotalLagrangian::CalculateAll(
     const auto& r_geom = GetGeometry();
     const unsigned int mat_size = r_geom.PointsNumber() * r_geom.WorkingSpaceDimension();
     if (CalculateStiffnessMatrixFlag == true)
-        MatrixVectorUtils::InitializeMatrix(rLeftHandSideMatrix, mat_size, mat_size, true);
-    if ( CalculateResidualVectorFlag == true )
-        MatrixVectorUtils::InitializeVector(rRightHandSideVector, mat_size, true);
+    {
+        if (rLeftHandSideMatrix.size1() != mat_size || rLeftHandSideMatrix.size2() != mat_size)
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+    }
+    if (CalculateResidualVectorFlag == true)
+    {
+        if (rRightHandSideVector.size() != mat_size)
+            rRightHandSideVector.resize(mat_size, false);
+        noalias(rRightHandSideVector) = ZeroVector(mat_size);
+    }
 
     LargeDisplacementDeformationVariables deformation_vars(r_geom, IsAxisymmetric());
     ConstitutiveVariables cl_vars(GetStrainSize());
@@ -145,7 +152,8 @@ void TotalLagrangian::CalculateStress(Vector& rStrain,
                                       ProcessInfo const& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    MatrixVectorUtils::InitializeVector(rStress, rStrain.size(), false);
+    if (rStress.size() != rStrain.size())
+        rStress.resize(rStrain.size(), false);
     ConstitutiveLaw::Parameters cl_params(GetGeometry(), GetProperties(), rCurrentProcessInfo);
     cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS | ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     cl_params.SetStrainVector(rStrain);
@@ -246,8 +254,8 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
         const std::size_t ws_dim = r_geom.WorkingSpaceDimension();
         const std::size_t nnodes = r_geom.PointsNumber();
         Vector residual_deriv(nnodes * ws_dim), N, body_force, stress_vector, stress_vector_deriv;
-        MatrixVectorUtils::InitializeMatrix(rOutput, residual_deriv.size(),
-                                            residual_deriv.size(), false);
+        if (rOutput.size1() != residual_deriv.size() || rOutput.size2() != residual_deriv.size())
+            rOutput.resize(residual_deriv.size(), residual_deriv.size(), false);
         LargeDisplacementDeformationVariables deformation_vars(r_geom, IsAxisymmetric());
         LargeDisplacementSensitivityVariables sensitivity_vars(r_geom);
         for (std::size_t g = 0; g < r_geom.IntegrationPointsNumber(); ++g)

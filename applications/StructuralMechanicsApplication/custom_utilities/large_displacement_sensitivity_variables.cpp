@@ -15,7 +15,6 @@
 
 // Project includes
 #include "custom_utilities/large_displacement_sensitivity_variables.h"
-#include "utilities/matrix_vector_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 
@@ -97,7 +96,9 @@ void LargeDisplacementDifferentialSensitivityVariables::CalculateFSensitivity()
 {
     KRATOS_TRY;
     const std::size_t ws_dim = mrGeom.WorkingSpaceDimension();
-    MatrixVectorUtils::InitializeMatrix(mF_Deriv, ws_dim, ws_dim, true);
+    if (mF_Deriv.size1() != ws_dim || mF_Deriv.size2() != ws_dim)
+        mF_Deriv.resize(ws_dim, ws_dim, false);
+    noalias(mF_Deriv) = ZeroMatrix(ws_dim, ws_dim);
     for (std::size_t i = 0; i < ws_dim; ++i)
         for (std::size_t j = 0; j < ws_dim; ++j)
             for (std::size_t k = 0; k < mrGeom.PointsNumber(); ++k)

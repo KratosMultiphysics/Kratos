@@ -20,7 +20,6 @@
 #include "includes/define.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
-#include "utilities/matrix_vector_utilities.h"
 #include "custom_utilities/large_displacement_variables.h"
 #include "utilities/geometrical_sensitivity_utility.h"
 

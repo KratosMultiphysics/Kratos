@@ -15,7 +15,6 @@
 
 // Project includes
 #include "custom_utilities/large_displacement_variables.h"
-#include "utilities/matrix_vector_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
@@ -117,7 +116,8 @@ void LargeDisplacementDifferentialVariables::CalculateAxisymmetricF(std::size_t 
 {
     KRATOS_TRY;
     BoundedMatrix<double, 2, 2> F2x2 = mF;
-    MatrixVectorUtils::InitializeMatrix(mF, 3, 3, false);
+    if (mF.size1() != 3 || mF.size2() != 3)
+        mF.resize(3, 3, false);
     for (unsigned i = 0; i < 2; ++i)
     {
         for (unsigned j = 0; j < 2; ++j)
@@ -183,7 +183,8 @@ void LargeDisplacementKinematicVariables::CalculateStrainTensor(std::size_t Inte
 {
     KRATOS_TRY;
     const Matrix& rF = mrDiffVars.F(IntegrationIndex, mIsAxisymmetric);
-    MatrixVectorUtils::InitializeMatrix(mStrainTensor, rF.size2(), rF.size2(), false);
+    if (mStrainTensor.size1() != rF.size2() || mStrainTensor.size2() != rF.size2())
+        mStrainTensor.resize(rF.size2(), rF.size2(), false);
     noalias(mStrainTensor) = 0.5 * prod(trans(rF), rF);
     for (std::size_t i = 0; i < mStrainTensor.size1(); ++i)
         mStrainTensor(i, i) -= 0.5;
@@ -215,7 +216,9 @@ void LargeDisplacementKinematicVariables::CalculateB_Axisymmetric(std::size_t In
     const Matrix& rDN_DX0 = mrDiffVars.DN_DX0(IntegrationIndex);
     Vector N = row(r_geom.ShapeFunctionsValues(), IntegrationIndex);
     double radius = StructuralMechanicsMathUtilities::CalculateRadius(N, r_geom);
-    MatrixVectorUtils::InitializeMatrix(mB, strain_size, dimension * number_of_nodes, false);
+    
+    if (mB.size1() != strain_size || mB.size2() != dimension * number_of_nodes)
+        mB.resize(strain_size, dimension * number_of_nodes, false);
     for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
         const unsigned int index = dimension * i;
@@ -277,7 +280,8 @@ void CalculateB_2D(Matrix const& rF, Matrix const& rDN_DX0, Matrix& rB)
     const std::size_t dimension = 2;
     const std::size_t strain_size = 3;
     const std::size_t number_of_nodes = rDN_DX0.size1();
-    MatrixVectorUtils::InitializeMatrix(rB, strain_size, dimension * number_of_nodes, false);
+    if (rB.size1() != strain_size || rB.size2() != dimension * number_of_nodes)
+        rB.resize(strain_size, dimension * number_of_nodes, false);
     for (std::size_t i = 0; i < number_of_nodes; ++i)
     {
         const auto index = dimension * i;
@@ -297,7 +301,8 @@ void CalculateB_3D(Matrix const& rF, Matrix const& rDN_DX0, Matrix& rB)
     const std::size_t dimension = 3;
     const std::size_t strain_size = 6;
     const std::size_t number_of_nodes = rDN_DX0.size1();
-    MatrixVectorUtils::InitializeMatrix(rB, strain_size, dimension * number_of_nodes, false);
+    if (rB.size1() != strain_size || rB.size2() != dimension * number_of_nodes)
+        rB.resize(strain_size, dimension * number_of_nodes, false);
     for (std::size_t i = 0; i < rDN_DX0.size1(); ++i)
     {
         const auto index = dimension * i;
