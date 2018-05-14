@@ -224,16 +224,9 @@ namespace Kratos
             int k = 0;
             for(unsigned int i = 0; i < RHS.size(); ++i)
             {
-                if(RHS[i] > 0)
-                    rOutput(k, i) = 1.0; 
-                else if(RHS[i] < 0)
-                    rOutput(k, i) = -1.0; 
+                rOutput(k,i)=(RHS[i]>0) ? 1.0 : -1.0;
                 k++;
             }
-        }
-        else if( rDesignVariable == SHAPE_SENSITIVITY )
-        {
-            rOutput.clear();
         }
         else
             rOutput.clear();
