@@ -1435,9 +1435,9 @@ void PrestressMembraneElement::ComputeContravariantBaseVectors(
 
     // contravariant metric
     array_1d<double, 3> metric_contra;
-    metric_contra[0]=  inv_det_metric * mGab0[rPointNumber][1];
-    metric_contra[1]=  inv_det_metric * mGab0[rPointNumber][0];
-    metric_contra[2]= -inv_det_metric * mGab0[rPointNumber][2];
+    metric_contra[0]=  1.0/det_metric * mGab0[rPointNumber][1];
+    metric_contra[1]=  1.0/det_metric * mGab0[rPointNumber][0];
+    metric_contra[2]= -1.0/det_metric * mGab0[rPointNumber][2];
 
     // contravariant base vectors
     rG1Contra = metric_contra[0]*column( GetValue(BASE_REF_1),rPointNumber ) + metric_contra[2]*column( GetValue(BASE_REF_2),rPointNumber );

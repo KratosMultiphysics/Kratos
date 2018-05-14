@@ -33,11 +33,14 @@
 
 namespace Kratos
 {
-	class FormfindingIOUtility
+	class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)FormfindingIOUtility
 	{
 		public:
 		
-		FormfindingIOUtility(const ModelPart& rModelPart, const Parameters rParameter);
+		/// Pointer definition
+    	KRATOS_CLASS_POINTER_DEFINITION(FormfindingIOUtility);
+
+		FormfindingIOUtility(ModelPart& rModelPart, const Parameters rParameter);
 
 		~FormfindingIOUtility(){}
 
@@ -49,7 +52,7 @@ namespace Kratos
 
 		private:
 
-		ModelPart mModelPart;
+		ModelPart& mModelPart;
 
 
 	};  // class Formfinding Utilities.

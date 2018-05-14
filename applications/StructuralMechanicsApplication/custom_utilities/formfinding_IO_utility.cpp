@@ -22,12 +22,13 @@
 #include "formfinding_IO_utility.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/model_part_io.h"
+#include "includes/model_part.h"
 
 
 namespace Kratos
 {
 
-	FormfindingIOUtility::FormfindingIOUtility(const ModelPart& rModelPart, const Parameters rParameter): 
+	FormfindingIOUtility::FormfindingIOUtility(ModelPart& rModelPart, const Parameters rParameter): 
 		mModelPart(rModelPart)
 		{}
     void FormfindingIOUtility::PrintModelPart(){

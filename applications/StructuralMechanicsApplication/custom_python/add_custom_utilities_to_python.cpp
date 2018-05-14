@@ -32,13 +32,9 @@ namespace Python
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     using namespace pybind11;
-    
 
-//     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-//     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-//     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
-    class_<FormfindingIOUtility>("FormfindingIOUtility", init<const ModelPart&, const Parameters>())
+    class_<FormfindingIOUtility>(m,"FormfindingIOUtility")
+    .def(init<ModelPart&, const Parameters>())
     .def("PrintModelPart",&FormfindingIOUtility::PrintModelPart)
     .def("ReadPrestressData",&FormfindingIOUtility::ReadPrestressData )
     .def("PrintPrestressData",&FormfindingIOUtility::PrintPrestressData )
