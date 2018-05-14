@@ -170,7 +170,7 @@ There are currently three different types of response functions available which 
 - ```adjoint_strain_energy```: The response is the linear strain energy. No additional settings are necessary.
 
 - ```adjoint_local_stress```: The response is the stress or stress-resultant of a single element. Necessary additional settings are:
-    * ```traced_element```: ID of the element which should be traced
+    * ```traced_element_id```: ID of the element which should be traced
     * ```stress_type```: Stress type which should be traced (e.g. FX, MY, FXX or MXX)
     * ```stress_treatment```: There are three possibilities: ```node``` (Takes the response value at the position of a defined node of the element. Only available for beam element.), ```GP``` (Takes the response value at a defined Gauss-Point of the element.) and ```mean``` (The response is the mean value of all Gauss-Point results of the traced stress type.)
     * ```stress_location```: Only necessary if ```node``` or ```GP``` is chosen as ```stress_treatment```. Define here the local ID of the position where the stress has to be traced (e.g. if the stress resultant of a beam element should be traced at one of his two nodes ```stress_location``` has to be 1 or 2)
@@ -211,7 +211,7 @@ Examples:
             "element_sensitivity_variables"  : ["I22"],
             "condition_sensitivity_variables"  : ["POINT_LOAD"],
             "step_size"         : 1e-6,
-            "traced_element"    : 6,
+            "traced_element_id"    : 6,
             "stress_type"       : "MY",
             "stress_treatment"  : "node",
             "stress_location"   : 1

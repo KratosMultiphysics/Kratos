@@ -26,7 +26,7 @@
             "element_sensitivity_variables"  : ["THICKNESS"],
             "condition_sensitivity_variables"  : [],
             "step_size"         : 1.0e-6,
-            "traced_element"    : 2,
+            "traced_element_id"    : 2,
             "stress_type"       : "MXX",
             "stress_treatment"  : "mean",
             "stress_location"   : 1

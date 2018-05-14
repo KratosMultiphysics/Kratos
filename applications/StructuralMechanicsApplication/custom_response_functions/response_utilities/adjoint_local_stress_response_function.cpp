@@ -33,7 +33,7 @@ namespace Kratos
         ResponseData stress_response_data;
 
         // Get traced element
-        mIdOfTracedElement = ResponseSettings["traced_element"].GetInt();
+        mIdOfTracedElement = ResponseSettings["traced_element_id"].GetInt();
         mpTracedElement = r_model_part.pGetElement(mIdOfTracedElement);
 
         // Tell traced element the stress type
