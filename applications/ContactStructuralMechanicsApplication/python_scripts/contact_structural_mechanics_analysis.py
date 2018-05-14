@@ -34,6 +34,11 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
         # Construct the base analysis.
         super(ContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
+    def Initialize(self):
+        """ Initializing the Analysis """
+        super(ContactStructuralMechanicsAnalysis, self).Initialize()
+        self.solver.SetEchoLevel(self.echo_level)
+
     #### Internal functions ####
     def _CreateSolver(self, external_model_part=None):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
@@ -56,7 +61,6 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
         ## Solver construction
         import python_solvers_wrapper_contact_structural
         self.solver = python_solvers_wrapper_contact_structural.CreateSolver(self.main_model_part, self.project_parameters)
-        self.solver.SetEchoLevel(self.echo_level)
 
         ## Adds the necessary variables to the model_part only if they don't exist
         self.solver.AddVariables()
