@@ -96,10 +96,8 @@ void TotalLagrangian::CalculateKinematicVariables(KinematicVariables& rThisKinem
 {
     KRATOS_TRY;
     const auto& r_geom = GetGeometry();
-    #ifdef KRATOS_DEBUG
-    KRATOS_ERROR_IF(rIntegrationMethod != r_geom.GetDefaultIntegrationMethod())
+    KRATOS_DEBUG_ERROR_IF(rIntegrationMethod != r_geom.GetDefaultIntegrationMethod())
         << "Non-default integration method.\n";
-    #endif
     noalias(rThisKinematicVariables.N) = row(r_geom.ShapeFunctionsValues(), PointNumber);
     LargeDisplacementDeformationVariables deformation_vars(r_geom, IsAxisymmetric());
     rThisKinematicVariables.detJ0 = deformation_vars.DetJ0(PointNumber);
