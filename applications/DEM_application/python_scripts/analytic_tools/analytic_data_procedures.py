@@ -117,7 +117,7 @@ class FaceWatcherAnalyzer:
         import numpy as np
         shape, time, n_particles, mass, vel_nr_mass, vel_tg_mass = np.array(self.MakeReading())  # initial with 1 for each surface, should be one for each condition in each surface
         if np.sum(mass) != 0.0:
-            avg_vel_nr = vel_nr_mass/mass
+            avg_vel_nr = vel_nr_mass/mass  # sum (normal vel * particle_mass) / total mass flux of that timestep
             avg_vel_tg = vel_tg_mass/mass  # is this rlly useful for something?
         else:
             avg_vel_nr = mass*0.0
