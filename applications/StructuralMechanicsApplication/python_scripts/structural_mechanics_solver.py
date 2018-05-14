@@ -9,6 +9,9 @@ KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
+# Importing the base class
+from python_solver import PythonSolver
+
 # Other imports
 import os
 
@@ -17,7 +20,7 @@ def CreateSolver(main_model_part, custom_settings):
     return MechanicalSolver(main_model_part, custom_settings)
 
 
-class MechanicalSolver(object):
+class MechanicalSolver(PythonSolver):
     """The base class for structural mechanics solvers.
 
     This class provides functions for importing and exporting models,
@@ -45,6 +48,8 @@ class MechanicalSolver(object):
     main_model_part -- the model part used to construct the solver.
     """
     def __init__(self, main_model_part, custom_settings):
+        super(MechanicalSolver, self).__init__(main_model_part, custom_settings)
+
         default_settings = KratosMultiphysics.Parameters("""
         {
             "echo_level": 0,
@@ -113,8 +118,6 @@ class MechanicalSolver(object):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
 
         # Set if the analysis is restarted
@@ -209,12 +212,6 @@ class MechanicalSolver(object):
             self._set_and_fill_buffer()
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "ModelPart prepared for Solver.")
 
-    def ExportModelPart(self):
-        name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
-        file = open(name_out_file + ".mdpa","w")
-        file.close()
-        KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
-
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Initializing ...")
@@ -234,9 +231,6 @@ class MechanicalSolver(object):
                 pass
         self.Check()
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
-
-    def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
 
     def GetOutputVariables(self):
         pass
