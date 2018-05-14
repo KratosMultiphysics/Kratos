@@ -310,7 +310,7 @@ public:
     {
         BaseType::InitializeSolutionStep();
         
-        // TODO: Add something if necessary
+        mFinalizeWasPerformed = false;
     }
     
     /**
