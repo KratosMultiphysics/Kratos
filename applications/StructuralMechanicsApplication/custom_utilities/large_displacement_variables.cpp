@@ -214,7 +214,7 @@ void LargeDisplacementKinematicVariables::CalculateB_Axisymmetric(std::size_t In
     const unsigned int strain_size = 4;
     const Matrix& rF = mrDiffVars.F(IntegrationIndex, true);
     const Matrix& rDN_DX0 = mrDiffVars.DN_DX0(IntegrationIndex);
-    Vector N = row(r_geom.ShapeFunctionsValues(), IntegrationIndex);
+    const auto N = row(r_geom.ShapeFunctionsValues(), IntegrationIndex);
     double radius = StructuralMechanicsMathUtilities::CalculateRadius(N, r_geom);
     
     if (mB.size1() != strain_size || mB.size2() != dimension * number_of_nodes)
