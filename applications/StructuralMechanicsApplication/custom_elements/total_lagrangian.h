@@ -24,6 +24,8 @@
 #include "includes/define.h"
 #include "custom_elements/base_solid_element.h"
 #include "includes/variables.h"
+#include "custom_utilities/large_displacement_variables.h"
+#include "custom_utilities/large_displacement_sensitivity_variables.h"
 
 namespace Kratos
 {
@@ -43,10 +45,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-class ShapeParameter;
-class LargeDisplacementDeformationVariables;
-class LargeDisplacementSensitivityVariables;
 
 /**
  * @class TotalLagrangian

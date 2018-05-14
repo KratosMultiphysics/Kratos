@@ -18,8 +18,6 @@
 // Project includes
 #include "custom_elements/total_lagrangian.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_utilities/large_displacement_variables.h"
-#include "custom_utilities/large_displacement_sensitivity_variables.h"
 
 namespace Kratos
 {
