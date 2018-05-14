@@ -96,24 +96,22 @@ class MatrixBasedMappingOperationUtility
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
         ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination) override { }
+        ModelPart& rModelPartDestination) const override { }
 
     // The "Build" function
-    void BuildMappingMatrix(MapperLocalSystemPointerVector& rMapperLocalSystems,
-                                    TSystemMatrixType& rMdo) override { }
+    void BuildMappingMatrix(const MapperLocalSystemPointerVector& rMapperLocalSystems,
+                                    TSystemMatrixType& rMdo) const override { }
 
-
-    void UpdateInterface() override { }
 
     // The "Solve" function
     void ExecuteMapping(const Variable<double>& rOriginVariable,
                                 const Variable<double>& rDestinationVariable,
-                                Kratos::Flags MappingOptions) override { }
+                                Kratos::Flags MappingOptions) const override { }
 
     // The "Solve" function
     void ExecuteMapping(const Variable<array_1d<double, 3>>& rOriginVariable,
                                 const Variable<array_1d<double, 3>>& rDestinationVariable,
-                                Kratos::Flags MappingOptions) override { }
+                                Kratos::Flags MappingOptions) const override { }
 
 
     ///@}

@@ -92,9 +92,9 @@ public:
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
-    using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
-    using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
-    using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
+    using MapperLocalSystemPointer = typename MappingOperationUtilityType::MapperLocalSystemPointer;
+    using MapperLocalSystemPointerVector = typename MappingOperationUtilityType::MapperLocalSystemPointerVector;
+    using MapperLocalSystemPointerVectorPointer = typename MappingOperationUtilityType::MapperLocalSystemPointerVectorPointer;
 
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
     typedef typename TSparseSpace::VectorType TSystemVectorType;
@@ -254,6 +254,8 @@ protected:
     virtual void Initialize();
 
     virtual void InitializeInterface();
+
+    virtual void BuildMappingMatrix();
 
     virtual void InitializeMappingOperationUtility();
 

@@ -32,6 +32,8 @@ void Mapper<TSparseSpace, TDenseSpace>::UpdateInterface(Kratos::Flags MappingOpt
     /*
     if ... REMESHED
         InitializeInterface();
+    else
+        BuildMappingMatrix();
     */
 }
 
@@ -160,7 +162,6 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeInterface()
 {
     // Check if members are valid
     KRATOS_ERROR_IF_NOT(mpInterfacePreprocessor) << "mpInterfacePreprocessor is a nullptr!" << std::endl;
-    KRATOS_ERROR_IF_NOT(mpMappingOperationUtility) << "mpMappingOperationUtility is a nullptr!" << std::endl;
 
     mpMapperLocalSystems->clear();
 
@@ -169,7 +170,23 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeInterface()
 
     mpInterfacePreprocessor->GenerateInterfaceModelPart(p_ref_local_system);
 
-    // if(mpMappingOperationUtility) mpMappingOperationUtility->Initialize();
+    BuildMappingMatrix();
+}
+
+/* Performs operations that are needed for Initialization and when the interface is updated (All cases)
+I.e. Operations that can be performed several times in the livetime of the mapper
+*/
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix()
+{
+    KRATOS_ERROR_IF_NOT(mpMappingOperationUtility) << "mpMappingOperationUtility is a nullptr!" << std::endl;
+
+    // this function can always be called, it won't do anything if the sizes are correct
+    mpMappingOperationUtility->ResizeAndInitializeVectors(*mpMdo, *mpQo, *mpQd,
+                                                          mrModelPartOrigin,
+                                                          mrModelPartDestination);
+
+    mpMappingOperationUtility->BuildMappingMatrix(*mpMapperLocalSystems, *mpMdo);
 }
 
 template<class TSparseSpace, class TDenseSpace>

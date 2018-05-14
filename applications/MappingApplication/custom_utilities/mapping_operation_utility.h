@@ -66,8 +66,9 @@ class MappingOperationUtility
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
-    using MapperLocalSystemPointer = std::unique_ptr<MapperLocalSystem>;
-    using MapperLocalSystemPointerVector = Kratos::shared_ptr<std::vector<MapperLocalSystemPointer>>;
+    using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
+    using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
+    using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
 
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
     typedef typename TSparseSpace::VectorType TSystemVectorType;
@@ -100,24 +101,22 @@ class MappingOperationUtility
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
         ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination) = 0;
+        ModelPart& rModelPartDestination) const = 0;
 
     // The "Build" function
-    virtual void BuildMappingMatrix(MapperLocalSystemPointerVector& rMapperLocalSystems,
-                                    TSystemMatrixType& rMdo) = 0;
+    virtual void BuildMappingMatrix(const MapperLocalSystemPointerVector& rMapperLocalSystems,
+                                    TSystemMatrixType& rMdo) const = 0;
 
-
-    virtual void UpdateInterface() = 0;
 
     // The "Solve" function
     virtual void ExecuteMapping(const Variable<double>& rOriginVariable,
                                 const Variable<double>& rDestinationVariable,
-                                Kratos::Flags MappingOptions) = 0;
+                                Kratos::Flags MappingOptions) const = 0;
 
     // The "Solve" function
     virtual void ExecuteMapping(const Variable<array_1d<double, 3>>& rOriginVariable,
                                 const Variable<array_1d<double, 3>>& rDestinationVariable,
-                                Kratos::Flags MappingOptions) = 0;
+                                Kratos::Flags MappingOptions) const = 0;
 
 
     ///@}
