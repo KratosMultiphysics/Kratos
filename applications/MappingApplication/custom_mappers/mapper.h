@@ -92,6 +92,8 @@ public:
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
+    using MapperUniquePointerType = Kratos::unique_ptr<Mapper>;
+
     using MapperLocalSystemPointer = typename MappingOperationUtilityType::MapperLocalSystemPointer;
     using MapperLocalSystemPointerVector = typename MappingOperationUtilityType::MapperLocalSystemPointerVector;
     using MapperLocalSystemPointerVectorPointer = typename MappingOperationUtilityType::MapperLocalSystemPointerVectorPointer;
@@ -124,7 +126,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius);
+    void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius);
 
     /* This function maps from Origin to Destination */
     virtual void Map(const Variable<double>& rOriginVariable,
@@ -146,7 +148,7 @@ public:
                             const Variable< array_1d<double, 3> >& rDestinationVariable,
                             Kratos::Flags MappingOptions);
 
-    virtual Mapper<TSparseSpace, TDenseSpace>::Pointer Clone(ModelPart& rModelPartOrigin,
+    virtual MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) = 0;
 
@@ -212,13 +214,9 @@ protected:
         "echo_level"        : 0
     }  )" );
 
-    bool mInverseMapperIsInitialized = false;
-
     MappingOperationUtilityPointerType mpMappingOperationUtility;
     InterfacePreprocessorPointerType mpInterfacePreprocessor;
     MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
-
-    Mapper::Pointer mpInverseMapper;
 
     // The mapping matrix and the corresponding vectors
     TSystemMatrixTypeUniquePointerType mpMdo;
@@ -258,6 +256,8 @@ protected:
     virtual void BuildMappingMatrix();
 
     virtual void InitializeMappingOperationUtility();
+
+    virtual void UpdateInterfaceInternal(Kratos::Flags MappingOptions, double SearchRadius);
 
 
 
@@ -322,9 +322,9 @@ protected:
         }
         else
         {
-            mpMappingOperationUtility->ExecuteMapping(rOriginVariable,
-                                                      rDestinationVariable,
-                                                      MappingOptions);
+            // mpMappingOperationUtility->ExecuteMapping(rOriginVariable,
+            //                                           rDestinationVariable,
+            //                                           MappingOptions);
         }
     }
 
@@ -342,11 +342,16 @@ protected:
         }
         else
         {
-            // Construct the inverse mapper if it hasn't been done before
-            if (!mInverseMapperIsInitialized) InitializeInverseMapper();
-
-            mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
         }
+    }
+
+    MapperUniquePointerType& GetInverseMapper()
+    {
+        if (!mInverseMapperIsInitialized)
+            InitializeInverseMapper();
+
+        return mpInverseMapper;
     }
 
     TSystemMatrixType& GetMdo()
@@ -378,15 +383,6 @@ protected:
     virtual void ValidateMapperSpecificSettings(Parameters AllMapperSettings)
     {
         mGeneralMapperSettings = AllMapperSettings;
-    }
-
-    void InitializeInverseMapper()
-    {
-        mpInverseMapper = Clone(mrModelPartDestination, // TODO needs "this->" ?
-                                mrModelPartOrigin,
-                                mGeneralMapperSettings); // TODO how to handle this ...? => some parameters wil be validated in the derived clases (Mappers)
-
-        mInverseMapperIsInitialized = true;
     }
 
     virtual void InitializeMapperLocalSystem(MapperLocalSystemPointer& pMapperLocalSystem) const = 0;
@@ -460,6 +456,9 @@ private:
     ///@name Member Variables
     ///@{
 
+    bool mInverseMapperIsInitialized = false;
+
+    MapperUniquePointerType mpInverseMapper;
 
     ///@}
     ///@name Private Operators
@@ -469,21 +468,23 @@ private:
     ///@name Private Operations
     ///@{
 
+    void InitializeInverseMapper()
+    {
+        if (!mInverseMapperIsInitialized)
+        {
+            mpInverseMapper = Clone(mrModelPartDestination,
+                                    mrModelPartOrigin,
+                                    mGeneralMapperSettings); // TODO how to handle this ...? => some parameters wil be validated in the derived clases (Mappers)
+
+            mInverseMapperIsInitialized = true;
+        }
+    }
+
     void ValidateParameters(Parameters AllMapperSettings)
     {
         ValidateMapperSpecificSettings(AllMapperSettings);
         mGeneralMapperSettings.RecursivelyValidateAndAssignDefaults(mGeneralMapperSettingsDefaults);
     }
-
-    // void GenerateInterfaceModelPart()
-    // {
-    //     mpInterfacePreprocessor->GenerateInterfaceModelPart(GetInterfaceParameters());
-    // }
-
-    // void InitializeInterfaceCommunicator();
-
-
-
 
     ///@}
     ///@name Private  Access

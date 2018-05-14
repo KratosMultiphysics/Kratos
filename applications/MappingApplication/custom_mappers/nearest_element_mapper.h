@@ -71,6 +71,8 @@ public:
     using BaseType = Mapper<TSparseSpace, TDenseSpace>;
     using MapperLocalSystemPointer = typename BaseType::MapperLocalSystemPointer;
 
+    using MapperUniquePointerType = typename BaseType::MapperUniquePointerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -112,25 +114,25 @@ public:
     ///@name Operations
     ///@{
 
-    void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius) override
-    {
-        // mpMapperCommunicator->UpdateInterface(MappingOptions, SearchRadius);
-        // if (mpInverseMapper)
-        // {
-        //     mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
-        // }
+    // void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius) override
+    // {
+    //     // mpMapperCommunicator->UpdateInterface(MappingOptions, SearchRadius);
+    //     // if (mpInverseMapper)
+    //     // {
+    //     //     mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
+    //     // }
 
-        // if (MappingOptions.Is(MapperFlags::REMESHED))
-        // {
-        //     ComputeNumberOfNodesAndConditions();
-        // }
-    }
+    //     // if (MappingOptions.Is(MapperFlags::REMESHED))
+    //     // {
+    //     //     ComputeNumberOfNodesAndConditions();
+    //     // }
+    // }
 
-    typename Mapper<TSparseSpace, TDenseSpace>::Pointer Clone(ModelPart& rModelPartOrigin,
+    MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
                           Parameters JsonParameters) override
     {
-        return Kratos::make_shared<NearestElementMapper<TSparseSpace, TDenseSpace>>(rModelPartOrigin,
+        return Kratos::make_unique<NearestElementMapper<TSparseSpace, TDenseSpace>>(rModelPartOrigin,
                                                          rModelPartDestination,
                                                          JsonParameters);
     }

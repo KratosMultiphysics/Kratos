@@ -29,12 +29,9 @@ namespace Kratos
 template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius)
 {
-    /*
-    if ... REMESHED
-        InitializeInterface();
-    else
-        BuildMappingMatrix();
-    */
+    UpdateInterfaceInternal(MappingOptions, SearchRadius);
+    if (mInverseMapperIsInitialized)
+        mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -194,6 +191,19 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeMappingOperationUtility()
 {
     // here we could return the MatrixFree variant in the future
     mpMappingOperationUtility = Kratos::make_unique<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>();
+}
+
+/*
+This function contains the actual Implementation Of the UpdateInterface function
+It is done like this bcs in this way the same operation can be called on the InverseMapper (if it is initialized)
+*/
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::UpdateInterfaceInternal(Kratos::Flags MappingOptions, double SearchRadius)
+{
+    if (MappingOptions.Is(MapperFlags::REMESHED))
+        InitializeInterface();
+    else
+        BuildMappingMatrix();
 }
 
 /***********************************************************************************/

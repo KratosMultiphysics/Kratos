@@ -109,14 +109,26 @@ class MappingOperationUtility
 
 
     // The "Solve" function
-    virtual void ExecuteMapping(const Variable<double>& rOriginVariable,
-                                const Variable<double>& rDestinationVariable,
-                                Kratos::Flags MappingOptions) const = 0;
+    virtual void ExecuteMapping(
+        const TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const Variable<double>& rOriginVariable,
+        const Variable<double>& rDestinationVariable,
+        const Kratos::Flags MappingOptions) const = 0;
 
     // The "Solve" function
-    virtual void ExecuteMapping(const Variable<array_1d<double, 3>>& rOriginVariable,
-                                const Variable<array_1d<double, 3>>& rDestinationVariable,
-                                Kratos::Flags MappingOptions) const = 0;
+    virtual void ExecuteMapping(
+        const TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const Variable<array_1d<double, 3>>& rOriginVariable,
+        const Variable<array_1d<double, 3>>& rDestinationVariable,
+        const Kratos::Flags MappingOptions) const = 0;
 
 
     ///@}
