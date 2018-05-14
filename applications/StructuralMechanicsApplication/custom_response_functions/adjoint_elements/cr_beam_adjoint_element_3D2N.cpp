@@ -648,6 +648,41 @@ namespace Kratos
             rOutput[0][2] = 0.0;
             rOutput[1][2] = 0.0;
             rOutput[2][2] = 0.0;
+            
+            // Check continuous pseudo-load by computing the the L_2-product between the influence function and pseudo-load******
+            Vector boundary_values_pseudo_load;
+            boundary_values_pseudo_load.resize(2);
+            boundary_values_pseudo_load[0] = function_prefactor;
+            boundary_values_pseudo_load[1] = -1.0 * function_prefactor;
+
+            unsigned int num_gauss_points = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
+            Vector DetJ = ZeroVector(num_gauss_points);
+            this->GetGeometry().DeterminantOfJacobian(DetJ,GeometryData::GI_GAUSS_2); //=0.5*l
+
+            Vector integration_weigths;
+            integration_weigths.resize(num_gauss_points);
+
+            const Matrix &Ncontainer = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+            const auto& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
+
+            double analytic_sensitivity =  0.0;
+            for (unsigned int g = 0; g < num_gauss_points; g++)
+            {
+                integration_weigths[g] = DetJ[g]*IntegrationPoints[g].Weight();
+
+                for(unsigned int i = 0; i < this->GetGeometry().PointsNumber(); i++ )
+                {
+                    analytic_sensitivity += Ncontainer(g, i) * Ncontainer(g, i) * 
+                            this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X) * integration_weigths[g] * 
+                            boundary_values_pseudo_load[i];
+                }
+            }
+            //std::cout << "Discrete sensitivity = " << this->GetValue(CROSS_AREA_SENSITIVITY) << std::endl;
+            //std::cout << "Analytic sensitivity = " << 0.5 * analytic_sensitivity << std::endl;
+            std::cout << "Difference = " << 0.5 * analytic_sensitivity - this->GetValue(CROSS_AREA_SENSITIVITY) << std::endl;
+            //************************************************
+
         }
         else if(rVariable == PSEUDO_LOAD_2) 
         {
