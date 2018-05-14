@@ -18,24 +18,9 @@ namespace Kratos
 {
 
 
-    ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceElementsAndConditionsForAdjointProblemProcess(ModelPart& model_part, 
-                              Parameters Settings
-                                   ) : Process(Flags()) , mr_model_part(model_part), mSettings( Settings)
+    ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceElementsAndConditionsForAdjointProblemProcess(ModelPart& model_part) : Process(Flags()) , mr_model_part(model_part)
     {
-        KRATOS_TRY
-
-        Parameters default_parameters( R"(
-            {
-                "add_string": "NAME_OF_ADD_STRING",
-                "add_before_in_element_name": "ADD_STRING_BEFORE",
-                "add_before_in_condition_name": "ADD_STRING_BEFORE",
-                "elements_conditions_to_ignore": "NAME_OF_EXEPTION",
-                "from_primal_to_adjoint": true
-            }  )" );    
-        //now validate agains defaults -- this also ensures no type mismatch*/
-        Settings.ValidateAndAssignDefaults(default_parameters); 
-        
-        KRATOS_CATCH("")
+    
     }
     
 
@@ -49,35 +34,16 @@ namespace Kratos
     {
         ModelPart& r_root_model_part = ObtainRootModelPart( mr_model_part );
 
-        std::string sub_name_element = mSettings["add_before_in_element_name"].GetString();
-        std::string sub_name_condition = mSettings["add_before_in_condition_name"].GetString();
-        std::string adding_string = mSettings["add_string"].GetString();
-        std::string ignore_string = mSettings["elements_conditions_to_ignore"].GetString();
-        bool  from_primal_to_adjoint = mSettings["from_primal_to_adjoint"].GetBool();
-        
     #pragma omp parallel for                              
         for(int i=0; i< (int)r_root_model_part.Elements().size(); i++)
         {
             ModelPart::ElementsContainerType::iterator it = r_root_model_part.ElementsBegin() + i;
 
             std::string element_name; 
-            CompareElementsAndConditionsUtility::GetRegisteredName(*it, element_name);
- 
-            if(!(element_name == ignore_string))
+            bool replace_element = GetNewElementName(*it, element_name);
+        
+            if(replace_element)
             {
-                if(from_primal_to_adjoint) 
-                {
-                    std::string::size_type position_ele = 0;
-                    std::string::size_type found_ele;
-                    found_ele = element_name.find(sub_name_element, position_ele);
-                    element_name.insert(found_ele, adding_string);
-                }
-                else
-                {
-                   auto pos = element_name.find(adding_string);
-                   element_name.erase(pos,adding_string.length());   
-                }
-
                 KRATOS_ERROR_IF_NOT( KratosComponents< Element >::Has( element_name ) )
                     << "Element name not found in KratosComponents< Element > -- name is " << element_name << std::endl;
                 const Element& rReferenceElement = KratosComponents<Element>::Get(element_name); 
@@ -97,22 +63,10 @@ namespace Kratos
             ModelPart::ConditionsContainerType::iterator it = r_root_model_part.ConditionsBegin() + i;
 
             std::string condition_name; 
-            CompareElementsAndConditionsUtility::GetRegisteredName(*it, condition_name);
+            bool replace_condition = GetNewConditionName(*it, condition_name);
 
-            if(!(condition_name == ignore_string))
+            if(replace_condition)
             {
-                if(from_primal_to_adjoint) 
-                {
-                    std::string::size_type position_cond = 0;
-                    std::string::size_type found_cond;
-                    found_cond = condition_name.find(sub_name_condition, position_cond);
-                    condition_name.insert(found_cond, adding_string);
-                }
-                else
-                {
-                    auto pos = condition_name.find(adding_string);
-                    condition_name.erase(pos,adding_string.length());
-                }
                 KRATOS_ERROR_IF_NOT( KratosComponents< Condition >::Has( condition_name ) )
                     << "Condition name not found in KratosComponents< Condition > -- name is " << condition_name;
                 const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name); 
@@ -180,6 +134,61 @@ namespace Kratos
         //change the sons
         for (ModelPart::SubModelPartIterator i_sub_model_part = r_model_part.SubModelPartsBegin(); i_sub_model_part != r_model_part.SubModelPartsEnd(); i_sub_model_part++)
             UpdateSubModelPart( *i_sub_model_part, r_root_model_part );
+    }
+
+    bool ReplaceElementsAndConditionsForAdjointProblemProcess::GetNewElementName(const Element& rElement, std::string& rName)
+    {
+        KRATOS_TRY
+
+        bool replacement_necessary = true;
+        std::string name_current_element;
+        CompareElementsAndConditionsUtility::GetRegisteredName(rElement, name_current_element);
+
+        // Add here all new adjoint elements or elements which should be ignored by the replacement process 
+        if(name_current_element == "CrLinearBeamElement3D2N")
+            rName = "CrLinearBeamAdjointElement3D2N";  
+        else if(name_current_element == "CrLinearBeamAdjointElement3D2N")
+            rName = "CrLinearBeamElement3D2N"; 
+        else if(name_current_element == "ShellThinElement3D3N")
+            rName = "ShellThinAdjointElement3D3N";
+        else if(name_current_element == "ShellThinAdjointElement3D3N")
+            rName = "ShellThinElement3D3N";
+        else
+            KRATOS_ERROR << "It is not possible to replace the " << name_current_element <<
+             " because there is no equivalent adjoint/primal element available." << std::endl;         
+
+        return replacement_necessary;
+
+        KRATOS_CATCH("")
+    }
+
+    bool ReplaceElementsAndConditionsForAdjointProblemProcess::GetNewConditionName(const Condition& rCondition, std::string& rName)
+    {
+        KRATOS_TRY
+
+        bool replacement_necessary = true;
+        std::string name_current_condition;
+        CompareElementsAndConditionsUtility::GetRegisteredName(rCondition, name_current_condition);
+
+        // Add here all new adjoint conditions or conditions which should be ignored by the replacement process 
+        if(name_current_condition == "PointLoadCondition2D1N")
+            rName = "PointLoadAdjointCondition2D1N";
+        else if(name_current_condition == "PointLoadCondition3D1N")
+            rName = "PointLoadAdjointCondition3D1N";
+        else if(name_current_condition == "PointLoadAdjointCondition2D1N")
+            rName = "PointLoadCondition2D1N";
+        else if(name_current_condition == "PointLoadAdjointCondition3D1N")
+            rName = "PointLoadCondition3D1N";
+        else if(name_current_condition == "ShapeOptimizationCondition")   
+            replacement_necessary = false;
+        else
+            KRATOS_ERROR << "It is not possible to replace the " << name_current_condition <<
+             " because there is no equivalent adjoint/primal condition available." << std::endl; 
+               
+
+        return replacement_necessary;
+
+        KRATOS_CATCH("")
     }
 
 }  // namespace Kratos.
