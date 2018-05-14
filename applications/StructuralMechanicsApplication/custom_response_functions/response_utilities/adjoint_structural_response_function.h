@@ -32,7 +32,7 @@ namespace Kratos
 ///@{
 
 /// A base class for response functions.
-class AdjointStructuralResponseFunction
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointStructuralResponseFunction
 {
 public:
     ///@name Type Definitions

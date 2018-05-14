@@ -57,7 +57,7 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class AdjointLocalStressResponseFunction : public AdjointStructuralResponseFunction
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointLocalStressResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
     ///@name Type Definitions

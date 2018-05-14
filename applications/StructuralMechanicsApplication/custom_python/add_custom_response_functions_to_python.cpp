@@ -64,12 +64,12 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
       .def("CalculateValue", &EigenfrequencyResponseFunctionUtility::CalculateValue)
       .def("CalculateGradient", &EigenfrequencyResponseFunctionUtility::CalculateGradient);
 
-    /// Processes
+    // Processes
     class_<ReplaceElementsAndConditionsForAdjointProblemProcess , Process>
       (m, "ReplaceElementsAndConditionsForAdjointProblemProcess")
       .def(init<ModelPart&>());
 
-    //Response Functions
+    // Response Functions
     class_<AdjointStructuralResponseFunction, AdjointStructuralResponseFunction::Pointer>
       (m, "AdjointStructuralResponseFunction")
       .def(init<ModelPart&, Parameters&>())

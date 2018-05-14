@@ -57,7 +57,7 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class AdjointNodalDisplacementResponseFunction : public AdjointStructuralResponseFunction
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointNodalDisplacementResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
     ///@name Type Definitions

@@ -32,7 +32,7 @@ namespace Kratos
 /// The base class for all processes in Kratos.
 /** This function applies a constant value (and fixity) to all of the nodes in a given mesh
 */
-class ReplaceElementsAndConditionsForAdjointProblemProcess : public Process
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReplaceElementsAndConditionsForAdjointProblemProcess : public Process
 {
 public:
     ///@name Type Definitions
