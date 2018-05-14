@@ -51,7 +51,8 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
-#include "solving_strategies/schemes/residual_based_bdf_scheme.h"
+#include "solving_strategies/schemes/residual_based_bdf_displacement_scheme.h"
+#include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
 
@@ -168,18 +169,26 @@ void  AddSchemes(pybind11::module& m)
     class_ <
         ResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename ResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >
-           (
-               m,"TrilinosResidualBasedBossakDisplacementScheme").def(init<double >()
-           );
+        TrilinosBaseSchemeType > (m,"TrilinosResidualBasedBossakDisplacementScheme")
+        .def(init<double >())
+        ;
 
     class_ <
-        ResidualBasedBDFScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename ResidualBasedBDFScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >
-           (
-               m,"TrilinosResidualBasedBDFScheme").def(init<double >()
-           );
+        ResidualBasedBDFDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+        typename ResidualBasedBDFDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
+        TrilinosBaseSchemeType > (m,"TrilinosResidualBasedBDFDisplacementScheme")
+        .def(init<  >())
+        .def(init <const std::size_t>())
+        ;
+
+    class_ <
+        ResidualBasedBDFCustomScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+        typename ResidualBasedBDFCustomScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
+        TrilinosBaseSchemeType > (m,"TrilinosResidualBasedBDFCustomScheme")
+        .def(init<  >())
+        .def(init <const std::size_t>())
+        .def(init <const std::size_t, Parameters>())
+        ;
 
     typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedPredictorCorrectorVelocityBossak;
 
