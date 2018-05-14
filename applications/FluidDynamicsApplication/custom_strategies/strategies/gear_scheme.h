@@ -839,7 +839,7 @@ protected:
 
     void CorrectContributionsOnPeriodicNode(Node<3>& rNode)
     {
-        if (rNode.GetValue(NODAL_AREA) != 0.0)
+        if (rNode.GetValue(NODAL_AREA) != 0.0) // Only periodic nodes will have a non-historical NODAL_AREA set.
         {
             rNode.FastGetSolutionStepValue(NODAL_AREA) = rNode.GetValue(NODAL_AREA);
             noalias(rNode.FastGetSolutionStepValue(ADVPROJ)) = rNode.GetValue(ADVPROJ);

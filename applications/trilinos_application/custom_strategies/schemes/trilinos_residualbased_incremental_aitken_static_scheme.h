@@ -308,7 +308,7 @@ protected:
         Dx.Comm().Barrier();
 
         //performing the update
-        typename DofsArrayType::iterator dof_begin = rDofSet.begin();
+        auto dof_begin = rDofSet.begin();
         for(unsigned int iii=0; iii<rDofSet.size(); iii++)
         {
             int global_id = (dof_begin+iii)->EquationId();
@@ -332,7 +332,7 @@ protected:
 
         //filling the array with the global ids
         int counter = 0;
-        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+        for(auto i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
         {
             int id = i_dof->EquationId();
             if( id < system_size )
@@ -349,13 +349,9 @@ protected:
         int check_size = -1;
         int tot_update_dofs = index_array.size();
         Dx.Comm().SumAll(&tot_update_dofs,&check_size,1);
-        if ( (check_size < system_size) &&  (Dx.Comm().MyPID() == 0) )
-        {
-            std::stringstream Msg;
-            Msg << "Dof count is not correct. There are less dofs then expected." << std::endl;
-            Msg << "Expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
-            KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"")
-        }
+        KRATOS_ERROR_IF( (check_size < system_size) &&  (Dx.Comm().MyPID() == 0) )
+            << "Dof count is not correct. There are less dofs then expected." << std::endl
+            << "Expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
 
         //defining a map as needed
         Epetra_Map dof_update_map(-1,index_array.size(), &(*(index_array.begin())),0,Dx.Comm() );
