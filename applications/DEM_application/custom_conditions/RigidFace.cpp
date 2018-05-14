@@ -189,23 +189,29 @@ void RigidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
 //    MathUtils<double>::CrossProduct(rnormal, v1, v2);
 
 //    rnormal /= MathUtils<double>::Norm3(rnormal);
-    double v1[3];
-    double v2[3];
     Geometry<Node<3> >& geom = GetGeometry();
-    double p0[3] = {geom[0][0], geom[0][1], geom[0][2]};
-    double p1[3] = {geom[1][0], geom[1][1], geom[1][2]};
-    double p2[3] = {geom[2][0], geom[2][1], geom[2][2]};
+    if (geom.size()>2){
+        double v1[3];
+        double v2[3];
 
-    v1[0] = p1[0] - p0[0];
-    v1[1] = p1[1] - p0[1];
-    v1[2] = p1[2] - p0[2];
+        double p0[3] = {geom[0][0], geom[0][1], geom[0][2]};
+        double p1[3] = {geom[1][0], geom[1][1], geom[1][2]};
+        double p2[3] = {geom[2][0], geom[2][1], geom[2][2]};
 
-    v2[0] = p2[0] - p0[0];
-    v2[1] = p2[1] - p0[1];
-    v2[2] = p2[2] - p0[2];
-    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(v1, v2, rnormal)
-    const double norm_n_inv = 1.0 / DEM_MODULUS_3(rnormal) ;
-    DEM_MULTIPLY_BY_SCALAR_3(rnormal, norm_n_inv)
+        v1[0] = p1[0] - p0[0];
+        v1[1] = p1[1] - p0[1];
+        v1[2] = p1[2] - p0[2];
+
+        v2[0] = p2[0] - p0[0];
+        v2[1] = p2[1] - p0[1];
+        v2[2] = p2[2] - p0[2];
+        DEM_SET_TO_CROSS_OF_FIRST_TWO_3(v1, v2, rnormal)
+        const double norm_n_inv = 1.0 / DEM_MODULUS_3(rnormal) ;
+        DEM_MULTIPLY_BY_SCALAR_3(rnormal, norm_n_inv);
+    }
+    else{
+        KRATOS_ERROR << "Calculating normal direction for line or point is not possible" << std::endl;
+    }
 }
 
 

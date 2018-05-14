@@ -70,7 +70,7 @@ public:
 
   /// Definition of the object and object container to be used by the bins.
   typedef typename DiscreteParticleConfigure<TDimension>::ElementType ObjectType;
-  typedef ElementsContainerType                                       ObjectContainerType;
+  typedef ElementsContainerType                                      ObjectContainerType;
 
   ///@}
   ///@name Life Cycle
