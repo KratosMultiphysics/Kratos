@@ -525,11 +525,7 @@ public:
         noalias(rLHS_Contribution) =
             mBetaNewmark * mDt * mInvGamma * mLeftHandSide[thread_id] +
             mFirstDerivsLHS[thread_id] + mInvGamma * mInvDt * mSecondDerivsLHS[thread_id];
-
-        // Calculate system contributions in residual form.
-        pCurrentElement->GetValuesVector(mAdjointValuesVector[thread_id]);
-        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValuesVector[thread_id]);
-
+            
         // Calculate added numerical diffusion stabilization term
         #ifdef EIGEN_ROOT
             mNumericalDiffusion.CalculateNumericalDiffusion(
@@ -538,7 +534,11 @@ public:
                 rCurrentProcessInfo
             );
             noalias(rLHS_Contribution) -= mLeftHandSide[thread_id];        
-        #endif
+        #endif          
+
+        // Calculate system contributions in residual form.
+        pCurrentElement->GetValuesVector(mAdjointValuesVector[thread_id]);
+        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValuesVector[thread_id]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
