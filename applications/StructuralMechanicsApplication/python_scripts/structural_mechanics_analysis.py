@@ -135,7 +135,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         '''Initialize self.output as a GiD output instance.'''
         self.have_output = self.project_parameters.Has("output_configuration")
         if self.have_output:
-            self.__CheckForDeprecatedGiDSettings()
+            #self.__CheckForDeprecatedGiDSettings()
             if self.parallel_type == "OpenMP":
                 from gid_output_process import GiDOutputProcess as OutputProcess
             elif self.parallel_type == "MPI":
