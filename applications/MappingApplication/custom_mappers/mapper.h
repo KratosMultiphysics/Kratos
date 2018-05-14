@@ -220,6 +220,11 @@ protected:
 
     Mapper::Pointer mpInverseMapper;
 
+    // The mapping matrix and the corresponding vectors
+    TSystemMatrixTypeUniquePointerType mpMdo;
+    TSystemVectorTypeUniquePointerType mpQo;
+    TSystemVectorTypeUniquePointerType mpQd;
+
     // global, aka of the entire submodel-parts
     // int mNumConditionsOrigin;
     // int mNumConditionsDestination;
@@ -247,6 +252,12 @@ protected:
      * This function can be overridden by derived Mappers to do sth different
      * */
     virtual void Initialize();
+
+    virtual void InitializeInterface();
+
+    virtual void InitializeMappingOperationUtility();
+
+
 
     // template< class TVarType>
     // void InitializeMappingStep(const TVarType& rVarOrigin,
@@ -367,25 +378,6 @@ protected:
         mGeneralMapperSettings = AllMapperSettings;
     }
 
-    // virtual InterfaceCommunicatorPointerType CreateInterfaceCommunicator(
-    //     ModelPart& rModelPartOrigin, ModelPartPointerType pInterfaceModelPart) const
-    // {
-    //     return Kratos::make_shared<InterfaceCommunicator>(rModelPartOrigin, pInterfaceModelPart);
-    // }
-
-    virtual MappingOperationUtilityPointerType CreateMappingOperationUtility() const
-    {   // here we could return the MatrixFree variant in the future
-        return Kratos::make_shared<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>();
-    }
-
-// #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-//     virtual InterfaceCommunicatorPointerType CreateMPIInterfaceCommunicator(
-//         ModelPart& rModelPartOrigin, ModelPartPointerType pInterfaceModelPart) const
-//     {
-//         return Kratos::make_shared<InterfaceCommunicatorMPI>(rModelPartOrigin, pInterfaceModelPart);
-//     }
-// #endif
-
     void InitializeInverseMapper()
     {
         mpInverseMapper = Clone(mrModelPartDestination, // TODO needs "this->" ?
@@ -466,9 +458,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    TSystemMatrixTypeUniquePointerType mpMdo;
-    TSystemVectorTypeUniquePointerType mpQo;
-    TSystemVectorTypeUniquePointerType mpQd;
 
     ///@}
     ///@name Private Operators
@@ -491,7 +480,7 @@ private:
 
     // void InitializeInterfaceCommunicator();
 
-    void InitializeMappingOperationUtility();
+
 
 
     ///@}

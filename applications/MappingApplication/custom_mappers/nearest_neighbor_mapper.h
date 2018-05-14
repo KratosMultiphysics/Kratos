@@ -86,6 +86,11 @@ public:
                                    rModelPartDestination,
                                    JsonParameters)
     {
+        // The Initialize function has to be called here bcs it internally calls virtual
+        // functions that would not exist yet if it was called from the BaseClass!
+        this->Initialize();
+
+
         // mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node_Coords);
         // mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
         // mpMapperCommunicator->Initialize();

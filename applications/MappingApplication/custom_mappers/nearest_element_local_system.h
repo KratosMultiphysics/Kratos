@@ -9,7 +9,7 @@ class NearestElementLocalSystem : public MapperLocalSystem
 {
     Kratos::unique_ptr<MapperLocalSystem> Create(const NodeType& rNode) const override
     {
-        return std::make_unique<NearestElementLocalSystem>();
+        return Kratos::make_unique<NearestElementLocalSystem>();
     }
 
     void CalculateAll(MappingWeightsVector& rMappingWeights,

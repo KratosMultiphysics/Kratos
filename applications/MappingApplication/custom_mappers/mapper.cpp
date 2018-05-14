@@ -29,7 +29,10 @@ namespace Kratos
 template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius)
 {
-
+    /*
+    if ... REMESHED
+        InitializeInterface();
+    */
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -120,8 +123,6 @@ void Mapper<TSparseSpace, TDenseSpace>::InverseMap(const Variable< array_1d<doub
     TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
 }
 
-
-
 /***********************************************************************************/
 /* PROTECTED Methods */
 /***********************************************************************************/
@@ -132,85 +133,56 @@ Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
                     mrModelPartOrigin(rModelPartOrigin),
                     mrModelPartDestination(rModelPartDestination)
 {
-
     // ValidateParameters(MapperSettings);
     // mEchoLevel = MapperSettings["echo_level"].GetInt();
-
-    mpMapperLocalSystems = Kratos::make_shared<MapperLocalSystemPointerVector>();
-
-    mpInterfacePreprocessor = std::make_unique<InterfacePreprocessor>(mrModelPartDestination,
-                                                                      mpMapperLocalSystems);
-    // GenerateInterfaceModelPart();
-
-
-    // InitializeInterfacePreprocessor();
-    InitializeMappingOperationUtility();
-
-    Initialize();
 }
 
-
 /* This function initializes the Mapper
-It is a separate function because it is also being called if the interface is updated with remeshing!
+I.e. Operations that should be performed ONLY ONCE in the livetime of the mapper
 */
 template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::Initialize()
 {
+    mpMapperLocalSystems = Kratos::make_shared<MapperLocalSystemPointerVector>();
+
+    mpInterfacePreprocessor = Kratos::make_unique<InterfacePreprocessor>(mrModelPartDestination,
+                                                                         mpMapperLocalSystems);
+    InitializeMappingOperationUtility();
+
+    InitializeInterface();
+}
+
+/* Performs operations that are needed for Initialization and when the interface is updated (=> Remeshed)
+I.e. Operations that can be performed several times in the livetime of the mapper
+*/
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::InitializeInterface()
+{
+    // Check if members are valid
+    KRATOS_ERROR_IF_NOT(mpInterfacePreprocessor) << "mpInterfacePreprocessor is a nullptr!" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpMappingOperationUtility) << "mpMappingOperationUtility is a nullptr!" << std::endl;
+
     mpMapperLocalSystems->clear();
-    if(mpInterfacePreprocessor)
-    {
-        MapperLocalSystemPointer p_ref_local_system;
-        // InitializeMapperLocalSystem(p_ref_local_system);
-        // mpInterfacePreprocessor->GenerateInterfaceModelPart(p_ref_local_system);
-    }
+
+    MapperLocalSystemPointer p_ref_local_system;
+    InitializeMapperLocalSystem(p_ref_local_system);
+
+    mpInterfacePreprocessor->GenerateInterfaceModelPart(p_ref_local_system);
+
     // if(mpMappingOperationUtility) mpMappingOperationUtility->Initialize();
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::InitializeMappingOperationUtility()
+{
+    // here we could return the MatrixFree variant in the future
+    mpMappingOperationUtility = Kratos::make_unique<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>();
 }
 
 /***********************************************************************************/
 /* PRIVATE Methods */
 /***********************************************************************************/
-// template<class TSparseSpace, class TDenseSpace>
-// void Mapper<TSparseSpace, TDenseSpace>::InitializeInterfaceCommunicator()
-// {
-//     const auto mapper_interface_info = GetMapperInterfaceInfo();
 
-//     mpInterfaceCommunicator = Kratos::make_shared<InterfaceCommunicator>(
-//         mrModelPartOrigin, mpInterfaceModelPart, mapper_interface_info);
-
-// // #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-// //     int mpi_initialized;
-// //     MPI_Initialized(&mpi_initialized);
-// //     if (mpi_initialized) // parallel execution, i.e. mpi imported in python
-// //     {
-// //         int comm_size;
-// //         MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-// //         if (comm_size > 1)
-// //             mpInterfaceCommunicator = CreateInterfaceCommunicator(mrModelPartOrigin,
-// //                                                                      mpInterfaceModelPart,
-// //                                                                      mapper_interface_info);
-// //     }
-// // #else // serial compilation
-// //     mpInterfaceCommunicator = CreateInterfaceCommunicator(mrModelPartOrigin,
-// //                                                           mpInterfaceModelPart,
-// //                                                           mapper_interface_info);
-// // #endif
-// }
-
-template<>
-void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
-{
-    // KRATOS_WATCH("Without MPI")
-    mpMappingOperationUtility = CreateMappingOperationUtility();
-}
-
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-template<>
-void Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeMappingOperationUtility()
-{
-    // KRATOS_WATCH("With MPI")
-    mpMappingOperationUtility = CreateMappingOperationUtility();
-}
-#endif
 
 // /// input stream function
 // inline std::istream & operator >> (std::istream& rIStream, Mapper& rThis);
