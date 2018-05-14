@@ -842,26 +842,6 @@ void PrestressMembraneElement::CalculateSecondVariationStrain(Matrix DN_De,
 void PrestressMembraneElement::ProjectPrestress(
     const unsigned int& rPointNumber){
 
-    // definition prestress axes
-    array_1d<double,3> global_prestress_axis1, global_prestress_axis2, global_prestress_axis3;
-    for(unsigned int i=0; i<3;i++){
-        global_prestress_axis1[i] = GetValue(PRESTRESS_AXIS_1)(i,rPointNumber);
-        global_prestress_axis2[i] = GetValue(PRESTRESS_AXIS_2)(i,rPointNumber);
-    }
-
-    #ifdef KRATOS_DEBUG
-        KRATOS_ERROR_IF(norm_2(global_prestress_axis1) < std::numeric_limits<double>::epsilon() && norm_2(global_prestress_axis1) > -std::numeric_limits<double>::epsilon()) << "division by zero!" << std::endl;
-        KRATOS_ERROR_IF(norm_2(global_prestress_axis2) < std::numeric_limits<double>::epsilon() && norm_2(global_prestress_axis2) > -std::numeric_limits<double>::epsilon()) << "division by zero!" << std::endl;
-    #endif
-
-    // normalization global prestress axes
-    global_prestress_axis1 /= norm_2(global_prestress_axis1);
-    global_prestress_axis2 /= norm_2(global_prestress_axis2);
-
-    // Compute global_prestress_axis3
-    MathUtils<double>::CrossProduct(global_prestress_axis3, global_prestress_axis1, global_prestress_axis2);
-    global_prestress_axis3 /= norm_2(global_prestress_axis3);
-
     // Compute local cartesian basis E1, E2, E3
     array_1d<double,3> E1 = column( GetValue(BASE_REF_1),rPointNumber )/norm_2(column( GetValue(BASE_REF_1),rPointNumber ));
     array_1d<double,3> E2, E3;
@@ -870,16 +850,61 @@ void PrestressMembraneElement::ProjectPrestress(
     MathUtils<double>::CrossProduct(E2,E3,E1);
     E2 /= norm_2(E2);
 
-
-    // Compute T1, T2, T3
-    array_1d<double, 3> normal_projection_plane;
-    MathUtils<double>::CrossProduct(normal_projection_plane, global_prestress_axis3, global_prestress_axis1);
+    // definition in-plane prestress vectors
     array_1d<double, 3> T1, T2, T3;
-    MathUtils<double>::CrossProduct(T1, normal_projection_plane, E3);
-    T1 /= norm_2(T1);
-    MathUtils<double>::CrossProduct(T2,E3,T1);
-    T2 /= norm_2(T2);
-    T3 = E3;
+
+    // Alternative 1: planar projection according to dissertation Roland Wuechner
+    if(GetProperties()[PROJECTION_TYPE_COMBO] == "planar"){
+        // definition prestress axes
+        array_1d<double,3> global_prestress_axis1, global_prestress_axis2, global_prestress_axis3;
+        for(unsigned int i=0; i<3;i++){
+            global_prestress_axis1[i] = GetValue(PRESTRESS_AXIS_1)(i,rPointNumber);
+            global_prestress_axis2[i] = GetValue(PRESTRESS_AXIS_2)(i,rPointNumber);
+        }
+
+        #ifdef KRATOS_DEBUG
+            KRATOS_ERROR_IF(norm_2(global_prestress_axis1) < std::numeric_limits<double>::epsilon() && norm_2(global_prestress_axis1) > -std::numeric_limits<double>::epsilon()) << "division by zero!" << std::endl;
+            KRATOS_ERROR_IF(norm_2(global_prestress_axis2) < std::numeric_limits<double>::epsilon() && norm_2(global_prestress_axis2) > -std::numeric_limits<double>::epsilon()) << "division by zero!" << std::endl;
+        #endif
+
+        // normalization global prestress axes
+        global_prestress_axis1 /= norm_2(global_prestress_axis1);
+        global_prestress_axis2 /= norm_2(global_prestress_axis2);
+
+        // Compute global_prestress_axis3
+        MathUtils<double>::CrossProduct(global_prestress_axis3, global_prestress_axis1, global_prestress_axis2);
+        global_prestress_axis3 /= norm_2(global_prestress_axis3);
+
+        // Compute T1, T2, T3
+        array_1d<double, 3> normal_projection_plane;
+        MathUtils<double>::CrossProduct(normal_projection_plane, global_prestress_axis3, global_prestress_axis1);
+        MathUtils<double>::CrossProduct(T1, normal_projection_plane, E3);
+        T1 /= norm_2(T1);
+        MathUtils<double>::CrossProduct(T2,E3,T1);
+        T2 /= norm_2(T2);
+        T3 = E3;
+    }
+
+    // Alternative 2: radial projection (T1 = radial direction, T3 = out-of-plane direction, T2=T3xT1)
+    if(GetProperties()[PROJECTION_TYPE_COMBO] == "radial"){
+        // definition prestress axes
+        array_1d<double,3> global_prestress_axis1; // = direction of rotational axis
+        for(unsigned int i=0; i<3;i++)
+            global_prestress_axis1[i] = GetValue(PRESTRESS_AXIS_1)(i,rPointNumber);
+        
+        #ifdef KRATOS_DEBUG
+            KRATOS_ERROR_IF(norm_2(global_prestress_axis1) < std::numeric_limits<double>::epsilon() && norm_2(global_prestress_axis1) > -std::numeric_limits<double>::epsilon()) << "division by zero!" << std::endl;
+        #endif
+        
+        // compute T1, T2, T3
+        MathUtils<double>::CrossProduct(T1, global_prestress_axis1, E3);
+        T1 /= norm_2(T1);
+        MathUtils<double>::CrossProduct(T2, E3, T1);
+        T2 /= norm_2(T2);
+        T3 = E3;
+
+
+    }
 
     // Transform prestresses in the local cartesian cosy in reference configuration
     bounded_matrix<double,3,3> origin, target, tensor;
@@ -1290,8 +1315,7 @@ void PrestressMembraneElement::ComputePrestress(const unsigned int& rIntegration
     this->SetValue(PRESTRESS_AXIS_1, prestress_direction1);
     this->SetValue(PRESTRESS_AXIS_2, prestress_direction2);
 
-
-    // determine if the prestress state is isotropic or anisotropic
+    
     if(GetProperties().Has(PRESTRESS_VECTOR)){
         Matrix& prestress_variable = this->GetValue(MEMBRANE_PRESTRESS);
         Matrix& prestress_axis_1 = this->GetValue(PRESTRESS_AXIS_1);
@@ -1311,23 +1335,29 @@ void PrestressMembraneElement::ComputePrestress(const unsigned int& rIntegration
                 // Initialize Prestress
                 for (unsigned int i_strain=0; i_strain<strain_size; i_strain++){
                     prestress_variable(i_strain,point_number) = GetProperties()[PRESTRESS_VECTOR](i_strain);
-                    if(GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL) && GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) == true){
+                    if(GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL))
                         prestress_axis_1(i_strain,point_number) = GetProperties()[PRESTRESS_AXIS_1_GLOBAL](i_strain);
+                    if(GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL))
                         prestress_axis_2(i_strain,point_number) = GetProperties()[PRESTRESS_AXIS_2_GLOBAL](i_strain);
-                    }
                 }
                 // in case that no prestress directions are prescribed: hardcode the prestress direction
-                if ((GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL) == false) || (GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) == false)){
+                if (GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) == false){
                     prestress_axis_1(0,point_number) = 1;
                     prestress_axis_1(1,point_number) = 0;
                     prestress_axis_1(2,point_number) = 0;
-
+                }
+                if (GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL) == false){
                     prestress_axis_2(0,point_number) = 0;
                     prestress_axis_2(1,point_number) = 1;
                     prestress_axis_2(2,point_number) = 0;
                 }
 
-                ProjectPrestress(point_number);
+                // Project prestress in membrane plane
+                if(GetProperties().Has(PROJECTION_TYPE_COMBO)){
+                    if((GetProperties()[PROJECTION_TYPE_COMBO] == "planar") || (GetProperties()[PROJECTION_TYPE_COMBO] == "radial"))
+                        ProjectPrestress(point_number);
+                }
+                
             }
 
             // in case of isotropic prestress: set prestress in the first step (no transformation necessary)
