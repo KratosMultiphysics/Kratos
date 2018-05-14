@@ -25,29 +25,29 @@
 namespace Kratos
 {
     /// Default constructor.
-    AdjointLocalStressResponseFunction::AdjointLocalStressResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
-    : AdjointStructuralResponseFunction(rModelPart, rParameters)
+    AdjointLocalStressResponseFunction::AdjointLocalStressResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
+    : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
         ModelPart& r_model_part = this->GetModelPart();
 
         ResponseData stress_response_data;
 
         // Get traced element
-        mIdOfTracedElement = rParameters["traced_element"].GetInt();
+        mIdOfTracedElement = ResponseSettings["traced_element"].GetInt();
         mpTracedElement = r_model_part.pGetElement(mIdOfTracedElement);
 
         // Tell traced element the stress type
-        TracedStressType traced_stress_type = stress_response_data.ConvertStressType(rParameters["stress_type"].GetString()); 
+        TracedStressType traced_stress_type = stress_response_data.ConvertStressType(ResponseSettings["stress_type"].GetString()); 
         KRATOS_ERROR_IF(traced_stress_type == StressTypeNotAvailable) << "Chosen stress type is not available!" << std::endl;
         mpTracedElement->SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress_type) );		
 
         // Get info how and where to treat the stress
-        mStressTreatment = stress_response_data.ConvertStressTreatment( rParameters["stress_treatment"].GetString() );
+        mStressTreatment = stress_response_data.ConvertStressTreatment( ResponseSettings["stress_treatment"].GetString() );
         KRATOS_ERROR_IF(mStressTreatment == StressTreatmentNotAvailable) << "Chosen option for stress treatmeant is not available! Chose 'GP','node' or 'mean'!" << std::endl;
 
         if(mStressTreatment == GP || mStressTreatment == node)
         {
-            mIdOfLocation = rParameters["stress_location"].GetInt();
+            mIdOfLocation = ResponseSettings["stress_location"].GetInt();
             KRATOS_ERROR_IF(mIdOfLocation < 1) << "Chose a 'stress_location' > 0. Specified 'stress_location': " << mIdOfLocation << std::endl;
         }
 

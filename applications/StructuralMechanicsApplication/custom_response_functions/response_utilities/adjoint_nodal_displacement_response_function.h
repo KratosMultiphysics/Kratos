@@ -70,7 +70,7 @@ public:
     ///@{
 
     /// Default constructor.
-    AdjointNodalDisplacementResponseFunction(ModelPart& model_part, Parameters& responseSettings);
+    AdjointNodalDisplacementResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
     ~AdjointNodalDisplacementResponseFunction() override;
@@ -203,7 +203,7 @@ private:
     ///@}    
     ///@name Un accessible methods
     ///@{
-        
+
     ///@}
 
 }; // Class AdjointNodalDisplacementResponseFunction

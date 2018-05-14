@@ -26,37 +26,37 @@ namespace Kratos
 {
 
     /// Constructor.
-    AdjointStructuralResponseFunction::AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
+    AdjointStructuralResponseFunction::AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
       : mrModelPart(rModelPart)
     {
         KRATOS_TRY;
 
         mSensitivityModelPartName =
-           rParameters["sensitivity_model_part_name"].GetString();
+           ResponseSettings["sensitivity_model_part_name"].GetString();
 
-        Parameters nodal_sensitivity_variables = rParameters["nodal_sensitivity_variables"];
+        Parameters nodal_sensitivity_variables = ResponseSettings["nodal_sensitivity_variables"];
         mNodalSensitivityVariables.resize(nodal_sensitivity_variables.size());
         for (unsigned int i = 0; i < nodal_sensitivity_variables.size(); ++i)
             mNodalSensitivityVariables[i] = nodal_sensitivity_variables[i].GetString();
 
-        Parameters element_sensitivity_variables = rParameters["element_sensitivity_variables"];
+        Parameters element_sensitivity_variables = ResponseSettings["element_sensitivity_variables"];
         mElementSensitivityVariables.resize(element_sensitivity_variables.size());
         for (unsigned int i = 0; i < element_sensitivity_variables.size(); ++i)
             mElementSensitivityVariables[i] = element_sensitivity_variables[i].GetString();
 
-        Parameters condition_sensitivity_variables = rParameters["condition_sensitivity_variables"];
+        Parameters condition_sensitivity_variables = ResponseSettings["condition_sensitivity_variables"];
         mConditionSensitivityVariables.resize(condition_sensitivity_variables.size());
         for (unsigned int i = 0; i < condition_sensitivity_variables.size(); ++i)
             mConditionSensitivityVariables[i] = condition_sensitivity_variables[i].GetString();
 
         // Set gradient mode
-        const std::string gradient_mode = rParameters["gradient_mode"].GetString();
+        const std::string gradient_mode = ResponseSettings["gradient_mode"].GetString();
 
         // Mode 1: semi-analytic sensitivities
-        if (gradient_mode== "semi_analytic")
+        if (gradient_mode == "semi_analytic")
         {
             mGradientMode = 1;
-            double delta = rParameters["step_size"].GetDouble();
+            double delta = ResponseSettings["step_size"].GetDouble();
             mDelta = delta;
         }
         else

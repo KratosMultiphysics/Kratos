@@ -55,7 +55,7 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters& rParameters);
+    AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
     virtual ~AdjointStructuralResponseFunction();

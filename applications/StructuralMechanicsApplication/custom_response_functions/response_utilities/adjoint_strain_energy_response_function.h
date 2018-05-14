@@ -66,7 +66,7 @@ public:
     ///@{
 
     /// Default constructor.
-    AdjointStrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings);
+    AdjointStrainEnergyResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
     ~AdjointStrainEnergyResponseFunction();

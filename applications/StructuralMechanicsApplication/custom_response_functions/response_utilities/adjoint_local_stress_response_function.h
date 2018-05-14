@@ -67,7 +67,7 @@ public:
     ///@{
 
     /// Default constructor.
-    AdjointLocalStressResponseFunction(ModelPart& rModelPart, Parameters& rParameters);
+    AdjointLocalStressResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
     ~AdjointLocalStressResponseFunction() override;
@@ -194,7 +194,7 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-        
+
     ///@}
 
 }; // Class AdjointLocalStressResponseFunction

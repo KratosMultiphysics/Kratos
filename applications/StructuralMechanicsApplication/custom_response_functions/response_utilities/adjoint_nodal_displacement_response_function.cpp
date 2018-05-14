@@ -25,18 +25,17 @@
 
 namespace Kratos
 {
-    AdjointNodalDisplacementResponseFunction::AdjointNodalDisplacementResponseFunction(ModelPart& model_part, Parameters& responseSettings)
-    : AdjointStructuralResponseFunction(model_part, responseSettings)
+    AdjointNodalDisplacementResponseFunction::AdjointNodalDisplacementResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
+    : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
         ModelPart& r_model_part = this->GetModelPart();
 
         // Get id of node where a displacement should be traced
-        mIdOfTracedNode = responseSettings["traced_node"].GetInt();
+        mIdOfTracedNode = ResponseSettings["traced_node"].GetInt();
 
         // Get the corresponding dof to the displacement which should be traced
         // By this response function e.g. DISPLACEMENT_X, ROTATION_X,...
-        mTracedDofLabel = responseSettings["traced_dof"].GetString();
-
+        mTracedDofLabel = ResponseSettings["traced_dof"].GetString();
 
         // Get pointer to traced node
         mpTracedNode = r_model_part.pGetNode(mIdOfTracedNode);
