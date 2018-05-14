@@ -103,10 +103,6 @@ public:
 
     void GetValuesVector(Vector& values, int Step = 0) override;
 
-    double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable);
-
-    double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
-
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
                                             const ProcessInfo& rCurrentProcessInfo) override;
     
@@ -117,22 +113,11 @@ public:
                            const ProcessInfo& rCurrentProcessInfo) override;                                         
 
     void Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo) override;   
-
-    void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
-                                    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);    
-
-    void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
-                                        Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
-    
-    void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable, 
-                                            const Variable<Vector>& rStressVariable,
-                                             Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);                       
+                           const ProcessInfo& rCurrentProcessInfo) override;                    
 
     void CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;    
                       
     // Results calculation on integration points
-
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput,
                                         const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -166,6 +151,21 @@ private:
 
     ///@name Private Operations
     ///@{
+    
+    double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable);
+
+    double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
+
+    void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
+                                    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);    
+
+    void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
+                                        Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    
+    void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable, 
+                                            const Variable<Vector>& rStressVariable,
+                                             Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);      
+
     ///@}
 
     ///@name Static Member Variables

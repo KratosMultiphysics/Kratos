@@ -57,10 +57,6 @@ namespace Kratos
             DofsVectorType& rElementalDofList,
             ProcessInfo& rCurrentProcessInfo) override;
 
-        double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable);
-
-        double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
-
         void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -73,17 +69,6 @@ namespace Kratos
         void Calculate(const Variable<Matrix >& rVariable,
                            Matrix& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable, Matrix& rOutput,
-                                                   const ProcessInfo& rCurrentProcessInfo);
-
-        void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable,
-                                            const Variable<Vector>& rStressVariable, Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo);
-
-        void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
-                                            const Variable<Vector>& rStressVariable,
-                                            Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
         void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                           std::vector<double>& rOutput,
@@ -105,6 +90,22 @@ namespace Kratos
 
 
     private:
+        double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable);
+
+        double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
+
+        void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable, Matrix& rOutput,
+                                                   const ProcessInfo& rCurrentProcessInfo);
+
+        void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable,
+                                            const Variable<Vector>& rStressVariable, Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo);
+
+        void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
+                                            const Variable<Vector>& rStressVariable,
+                                            Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
+
+
         friend class Serializer;
         void save(Serializer& rSerializer) const override;
         void load(Serializer& rSerializer) override;

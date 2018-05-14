@@ -109,39 +109,6 @@ namespace Kratos
         }
     }
 
-    double CrBeamAdjointElement3D2N::GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rDesignVariable)
-    {
-        KRATOS_TRY;
-
-        if ( this->GetProperties().Has(rDesignVariable) )
-        {
-            const double variable_value = this->GetProperties()[rDesignVariable];
-            return variable_value;
-        }
-        else
-            return 1.0;
-
-        KRATOS_CATCH("")
-    }
-
-    double CrBeamAdjointElement3D2N::GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
-    {
-        KRATOS_TRY;
-
-        if(rDesignVariable == SHAPE_SENSITIVITY)
-        {
-            double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-            double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-            double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-            double L = std::sqrt(dx*dx + dy*dy + dz*dz);
-            return L;
-        }
-        else
-            return 1.0;
-
-        KRATOS_CATCH("")
-    }
-
     void CrBeamAdjointElement3D2N::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
@@ -398,6 +365,172 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    void CrBeamAdjointElement3D2N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                          std::vector<double>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        if(this->Has(rVariable))
+        {
+            // Get result value for output
+            double output_value = this->GetValue(rVariable);
+
+            // Resize Output
+            const unsigned int&  write_points_number = GetGeometry()
+                .IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+            if (rOutput.size() != write_points_number)
+            {
+                rOutput.resize(write_points_number);
+            }
+
+            // Write scalar result value on all Gauss-Points
+            for(unsigned int i = 0; i < write_points_number; ++i)
+            {
+                rOutput[i] = output_value;
+            }
+        }
+        else
+            KRATOS_ERROR << "Unsupported output variable." << std::endl;
+
+
+        KRATOS_CATCH("")
+
+    }
+
+    void CrBeamAdjointElement3D2N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                         std::vector<double>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        KRATOS_CATCH("")
+    }
+
+    void CrBeamAdjointElement3D2N::GetValuesVector(Vector& rValues, int Step) {
+
+        KRATOS_TRY
+            const int number_of_nodes = this->GetGeometry().PointsNumber();
+        const int dimension = this->GetGeometry().WorkingSpaceDimension();
+        const unsigned int element_size = number_of_nodes * dimension * 2;
+
+        if (rValues.size() != element_size) rValues.resize(element_size, false);
+
+        for (int i = 0; i < number_of_nodes; ++i)
+        {
+            int index = i * dimension * 2;
+            rValues[index] = this->GetGeometry()[i]
+                .FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X, Step);
+            rValues[index + 1] = this->GetGeometry()[i]
+                .FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y, Step);
+            rValues[index + 2] = this->GetGeometry()[i]
+                .FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z, Step);
+
+            rValues[index + 3] = this->GetGeometry()[i]
+                .FastGetSolutionStepValue(ADJOINT_ROTATION_X, Step);
+            rValues[index + 4] = this->GetGeometry()[i]
+                .FastGetSolutionStepValue(ADJOINT_ROTATION_Y, Step);
+            rValues[index + 5] = this->GetGeometry()[i]
+                .FastGetSolutionStepValue(ADJOINT_ROTATION_Z, Step);
+        }
+        KRATOS_CATCH("")
+    }
+
+    int CrBeamAdjointElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
+        << "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
+
+        // verify that the variables are correctly initialized
+        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+        KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+        KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
+        KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
+        KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
+
+        // check properties
+        KRATOS_ERROR_IF(this->GetProperties().Has(CROSS_AREA) == false || this->GetProperties()[CROSS_AREA] == 0)
+        << "CROSS_AREA not provided for this element" << this->Id() << std::endl;
+
+        KRATOS_ERROR_IF(this->GetProperties().Has(YOUNG_MODULUS) == false || this->GetProperties()[YOUNG_MODULUS] == 0)
+        << "YOUNG_MODULUS not provided for this element" << this->Id() << std::endl;
+
+        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(DENSITY) )
+        << "DENSITY not provided for this element" << this->Id() << std::endl;
+
+        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(POISSON_RATIO) )
+        << "POISSON_RATIO not provided for this element" << this->Id() << std::endl;
+
+        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(TORSIONAL_INERTIA) )
+        << "TORSIONAL_INERTIA not provided for this element" << this->Id() << std::endl;
+    
+        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I22) )
+        << "I22 not provided for this element" << this->Id() << std::endl;
+
+        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I33) )
+        << "I33 not provided for this element" << this->Id() << std::endl;
+
+        // Check dofs
+        GeometryType& r_geom = GetGeometry();
+        for (unsigned int i = 0; i < r_geom.size(); i++)
+        {
+            auto& r_node = r_geom[i];
+
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, r_node);
+
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node);
+        }
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+
+    double CrBeamAdjointElement3D2N::GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rDesignVariable)
+    {
+        KRATOS_TRY;
+
+        if ( this->GetProperties().Has(rDesignVariable) )
+        {
+            const double variable_value = this->GetProperties()[rDesignVariable];
+            return variable_value;
+        }
+        else
+            return 1.0;
+
+        KRATOS_CATCH("")
+    }
+
+    double CrBeamAdjointElement3D2N::GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
+    {
+        KRATOS_TRY;
+
+        if(rDesignVariable == SHAPE_SENSITIVITY)
+        {
+            double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
+            double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
+            double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
+            double L = std::sqrt(dx*dx + dy*dy + dz*dz);
+            return L;
+        }
+        else
+            return 1.0;
+
+        KRATOS_CATCH("")
+    }
+
     void CrBeamAdjointElement3D2N::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
     {
@@ -577,140 +710,6 @@ namespace Kratos
         }
         else
             KRATOS_ERROR << "Unsupported design variable!" << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-
-    void CrBeamAdjointElement3D2N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                          std::vector<double>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY;
-
-        if(this->Has(rVariable))
-        {
-            // Get result value for output
-            double output_value = this->GetValue(rVariable);
-
-            // Resize Output
-            const unsigned int&  write_points_number = GetGeometry()
-                .IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
-            if (rOutput.size() != write_points_number)
-            {
-                rOutput.resize(write_points_number);
-            }
-
-            // Write scalar result value on all Gauss-Points
-            for(unsigned int i = 0; i < write_points_number; ++i)
-            {
-                rOutput[i] = output_value;
-            }
-        }
-        else
-            KRATOS_ERROR << "Unsupported output variable." << std::endl;
-
-
-        KRATOS_CATCH("")
-
-    }
-
-    void CrBeamAdjointElement3D2N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                         std::vector<double>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY;
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-        KRATOS_CATCH("")
-    }
-
-    void CrBeamAdjointElement3D2N::GetValuesVector(Vector& rValues, int Step) {
-
-        KRATOS_TRY
-            const int number_of_nodes = this->GetGeometry().PointsNumber();
-        const int dimension = this->GetGeometry().WorkingSpaceDimension();
-        const unsigned int element_size = number_of_nodes * dimension * 2;
-
-        if (rValues.size() != element_size) rValues.resize(element_size, false);
-
-        for (int i = 0; i < number_of_nodes; ++i)
-        {
-            int index = i * dimension * 2;
-            rValues[index] = this->GetGeometry()[i]
-                .FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X, Step);
-            rValues[index + 1] = this->GetGeometry()[i]
-                .FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y, Step);
-            rValues[index + 2] = this->GetGeometry()[i]
-                .FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z, Step);
-
-            rValues[index + 3] = this->GetGeometry()[i]
-                .FastGetSolutionStepValue(ADJOINT_ROTATION_X, Step);
-            rValues[index + 4] = this->GetGeometry()[i]
-                .FastGetSolutionStepValue(ADJOINT_ROTATION_Y, Step);
-            rValues[index + 5] = this->GetGeometry()[i]
-                .FastGetSolutionStepValue(ADJOINT_ROTATION_Z, Step);
-        }
-        KRATOS_CATCH("")
-    }
-
-    int CrBeamAdjointElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
-        << "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
-
-        // verify that the variables are correctly initialized
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-        KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-        KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
-        KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
-        KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
-
-        // check properties
-        KRATOS_ERROR_IF(this->GetProperties().Has(CROSS_AREA) == false || this->GetProperties()[CROSS_AREA] == 0)
-        << "CROSS_AREA not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF(this->GetProperties().Has(YOUNG_MODULUS) == false || this->GetProperties()[YOUNG_MODULUS] == 0)
-        << "YOUNG_MODULUS not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(DENSITY) )
-        << "DENSITY not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(POISSON_RATIO) )
-        << "POISSON_RATIO not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(TORSIONAL_INERTIA) )
-        << "TORSIONAL_INERTIA not provided for this element" << this->Id() << std::endl;
-    
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I22) )
-        << "I22 not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I33) )
-        << "I33 not provided for this element" << this->Id() << std::endl;
-
-        // Check dofs
-        GeometryType& r_geom = GetGeometry();
-        for (unsigned int i = 0; i < r_geom.size(); i++)
-        {
-            auto& r_node = r_geom[i];
-
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, r_node);
-
-            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
-            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
-            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
-            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);
-            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node);
-            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node);
-        }
-
-        return 0;
 
         KRATOS_CATCH("")
     }
