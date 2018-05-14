@@ -49,13 +49,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-
- */
-
-//template<class TDenseSpace>
-
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointStrainEnergyResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
@@ -64,8 +57,6 @@ public:
 
     typedef AdjointStructuralResponseFunction BaseType;
     typedef array_1d<double, 3> array_3d;
-
-
 
     /// Pointer definition of AdjointStrainEnergyResponseFunction
     KRATOS_CLASS_POINTER_DEFINITION(AdjointStrainEnergyResponseFunction);
@@ -80,7 +71,6 @@ public:
     /// Destructor.
     ~AdjointStrainEnergyResponseFunction();
    
-
     ///@}
     ///@name Operators
     ///@{
@@ -138,7 +128,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    
     void CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
@@ -190,7 +179,7 @@ private:
     double mCurrentResponseValue;
 
     ///@}
-///@name Private Operators
+    ///@name Private Operators
     ///@{
 
     ///@}
@@ -208,12 +197,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    //      AdjointStrainEnergyResponseFunction& operator=(AdjointStrainEnergyResponseFunction const& rOther);
-
-    /// Copy constructor.
-    //      AdjointStrainEnergyResponseFunction(AdjointStrainEnergyResponseFunction const& rOther);
 
     ///@}
 

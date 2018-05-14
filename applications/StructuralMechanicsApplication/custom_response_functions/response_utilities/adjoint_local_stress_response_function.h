@@ -50,13 +50,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-
- */
-
-//template<class TDenseSpace>
-
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointLocalStressResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
@@ -74,7 +67,6 @@ public:
     ///@{
 
     /// Default constructor.
-
     AdjointLocalStressResponseFunction(ModelPart& rModelPart, Parameters& rParameters);
 
     /// Destructor.
@@ -184,7 +176,7 @@ private:
     StressTreatment mStressTreatment;
 
     ///@}
-///@name Private Operators
+    ///@name Private Operators
     ///@{
 
     ///@}
@@ -202,13 +194,7 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    //      AdjointLocalStressResponseFunction& operator=(SAdjointLocalStressResponseFunction const& rOther);
-
-    /// Copy constructor.
-    //      AdjointLocalStressResponseFunction(AdjointLocalStressResponseFunction const& rOther);
-
+        
     ///@}
 
 }; // Class AdjointLocalStressResponseFunction
