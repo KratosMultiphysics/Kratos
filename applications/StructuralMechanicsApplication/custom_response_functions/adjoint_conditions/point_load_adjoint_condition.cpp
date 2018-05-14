@@ -188,7 +188,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        KRATOS_ERROR << "There is no scalar design variable availible!" << std::endl; 
+        KRATOS_ERROR << "There is no scalar design variable available!" << std::endl; 
 
         KRATOS_CATCH( "" )
     }
@@ -216,7 +216,7 @@ namespace Kratos
 
             PointLoadCondition::CalculateAll(dummy_LHS, RHS, copy_process_info, false, true);
 
-            // Check if intensities of the point load are still availible after the replacement process
+            // Check if intensities of the point load are still available after the replacement process
             const double numerical_limit = std::numeric_limits<double>::epsilon();
             const double load_norm = MathUtils<double>::Norm(RHS);
             KRATOS_ERROR_IF(load_norm < numerical_limit) << "The norm of the point load is zero. Something went wrong!" << std::endl;
@@ -224,16 +224,9 @@ namespace Kratos
             int k = 0;
             for(unsigned int i = 0; i < RHS.size(); ++i)
             {
-                if(RHS[i] > 0)
-                    rOutput(k, i) = 1.0; 
-                else if(RHS[i] < 0)
-                    rOutput(k, i) = -1.0; 
+                rOutput(k,i)=(RHS[i]>0) ? 1.0 : -1.0;
                 k++;
             }
-        }
-        else if( rDesignVariable == SHAPE_SENSITIVITY )
-        {
-            rOutput.clear();
         }
         else
             rOutput.clear();

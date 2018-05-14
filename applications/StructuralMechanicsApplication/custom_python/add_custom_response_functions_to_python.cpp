@@ -67,7 +67,7 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     // Processes
     class_<ReplaceElementsAndConditionsForAdjointProblemProcess , Process>
       (m, "ReplaceElementsAndConditionsForAdjointProblemProcess")
-      .def(init<ModelPart&, Parameters>());
+      .def(init<ModelPart&>());
 
     // Response Functions
     class_<AdjointStructuralResponseFunction, AdjointStructuralResponseFunction::Pointer>

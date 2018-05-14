@@ -46,25 +46,9 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
     def PrepareModelPartForSolver(self):
-        # here we replace the dummy elements we read with proper elements
-        self.settings.AddEmptyValue("element_replace_settings")
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                "add_string": "Adjoint",
-                "add_before_in_element_name": "Element",
-                "add_before_in_condition_name": "Condition",
-                "elements_conditions_to_ignore": "ShapeOptimizationCondition",
-                "from_primal_to_adjoint": true
-                }
-                """)
-
-        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            raise Exception("there is currently no 2D adjoint element")
-        else:
-            raise Exception("domain size is not 2 or 3")
-
-        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]!= 3):
+            raise Exception("there are currently only 3D adjoint elements available")
+        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part).Execute()
         super(StructuralMechanicsAdjointStaticSolver, self).PrepareModelPartForSolver()
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
 
@@ -84,21 +68,21 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if self.response_function_settings["response_type"].GetString() == "adjoint_local_stress":
             if (domain_size == 2):
-                raise Exception("Currently only availible for 3D. Your choice is 2D")
+                raise Exception("Currently only available for 3D. Your choice is 2D")
             elif (domain_size == 3):
                 self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.response_function_settings)
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         elif self.response_function_settings["response_type"].GetString() == "adjoint_nodal_displacement":
             if (domain_size == 2):
-                raise Exception("Currently only availible for 3D. Your choice is 2D")
+                raise Exception("Currently only available for 3D. Your choice is 2D")
             elif (domain_size == 3):
                 self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.response_function_settings)
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         elif self.response_function_settings["response_type"].GetString() == "adjoint_strain_energy":
             if (domain_size == 2):
-                raise Exception("Currently only availible for 3D. Your choice is 2D")
+                raise Exception("Currently only available for 3D. Your choice is 2D")
             elif (domain_size == 3):
                 self.response_function = StructuralMechanicsApplication.AdjointStrainEnergyResponseFunction(self.main_model_part, self.response_function_settings)
             else:

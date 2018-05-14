@@ -384,35 +384,10 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         self.primal_analysis.Finalize()
 
     def __performReplacementProcess(self, from_primal_to_adjoint=True):
-        self.ProjectParametersPrimal.AddEmptyValue("element_replace_settings")
-        if(self.primal_analysis.GetModelPart().ProcessInfo[DOMAIN_SIZE] == 3):
-            if(from_primal_to_adjoint == True):
-                self.ProjectParametersPrimal["element_replace_settings"] = Parameters("""
-                    {
-                    "add_string": "Adjoint",
-                    "add_before_in_element_name": "Element",
-                    "add_before_in_condition_name": "Condition",
-                    "elements_conditions_to_ignore": "ShapeOptimizationCondition",
-                    "from_primal_to_adjoint": true
-                    }
-                    """)
-            else:
-                self.ProjectParametersPrimal["element_replace_settings"] = Parameters("""
-                    {
-                    "add_string": "Adjoint",
-                    "add_before_in_element_name": "Element",
-                    "add_before_in_condition_name": "Condition",
-                    "elements_conditions_to_ignore": "ShapeOptimizationCondition",
-                    "from_primal_to_adjoint": false
-                    }
-                    """)
-
-        elif(self.primal_analysis.GetModelPart().ProcessInfo[DOMAIN_SIZE] == 2):
-            raise Exception("there is currently no 2D adjoint element")
-        else:
-            raise Exception("domain size is not 2 or 3")
+        if(self.primal_analysis.GetModelPart().ProcessInfo[DOMAIN_SIZE] != 3):
+            raise Exception("there are currently only 3D adjoint elements available")   
         StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
-            self.primal_analysis.GetModelPart(), self.ProjectParametersPrimal["element_replace_settings"]).Execute()
+            self.primal_analysis.GetModelPart()).Execute()
 
     def __initializeAfterReplacement(self, model_part):
         for element in model_part.Elements:

@@ -152,14 +152,14 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
 
     // check properties
-    KRATOS_ERROR_IF(this->pGetProperties() == NULL) << "Properties not provided for element " << this->Id() << std::endl;
+    KRATOS_ERROR_IF(this->pGetProperties() == nullptr) << "Properties not provided for element " << this->Id() << std::endl;
 
     const PropertiesType & props = this->GetProperties();    
 
     if(props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
     {
         const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
-        KRATOS_ERROR_IF(section == NULL) << "SHELL_CROSS_SECTION not provided for element " << this->Id() << std::endl;
+        KRATOS_ERROR_IF(section == nullptr) << "SHELL_CROSS_SECTION not provided for element " << this->Id() << std::endl;
 
         section->Check(props, r_geom, rCurrentProcessInfo);
     }
@@ -167,7 +167,7 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_ERROR_IF_NOT(props.Has(CONSTITUTIVE_LAW)) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
         const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
-        KRATOS_ERROR_IF(claw == NULL) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
+        KRATOS_ERROR_IF(claw == nullptr) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
 
         KRATOS_ERROR_IF_NOT(props.Has(THICKNESS)) <<  "THICKNESS not provided for element " <<  this->Id() << std::endl;
         KRATOS_ERROR_IF(props[THICKNESS] <= 0.0) << "wrong THICKNESS value provided for element " << this->Id() << std::endl;
@@ -210,6 +210,7 @@ void ShellThinAdjointElement3D3N::GetValuesVector(Vector& values, int Step)
         values.resize(num_dofs, false); 
 
     const GeometryType & geom = GetGeometry();
+    const int dimension = geom.WorkingSpaceDimension();
 
     for (SizeType i = 0; i < geom.size(); i++)
     {
@@ -217,7 +218,7 @@ void ShellThinAdjointElement3D3N::GetValuesVector(Vector& values, int Step)
         const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
         const array_1d<double,3>& rot = iNode.FastGetSolutionStepValue(ADJOINT_ROTATION, Step);
 
-        int index = i*6;
+        const SizeType index = i * dimension * 2;
         values[index]     = disp[0];
         values[index + 1] = disp[1];
         values[index + 2] = disp[2];
@@ -226,52 +227,6 @@ void ShellThinAdjointElement3D3N::GetValuesVector(Vector& values, int Step)
         values[index + 4] = rot[1];
         values[index + 5] = rot[2];
     }
-}
-
-
-double ShellThinAdjointElement3D3N::GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rDesignVariable)
-{
-    KRATOS_TRY;
-
-    if ( this->GetProperties().Has(rDesignVariable) ) 
-    {
-        const double variable_value = this->GetProperties()[rDesignVariable];
-        return variable_value;
-    }
-    else
-        return 1.0;
-
-    KRATOS_CATCH("")	
-}
-
-double ShellThinAdjointElement3D3N::GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
-{
-    KRATOS_TRY;
-
-    if(rDesignVariable == SHAPE_SENSITIVITY) 
-    {
-        double dx, dy, dz, L = 0.0;
-   
-        dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-        dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-        dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-        L += sqrt(dx*dx + dy*dy + dz*dz);
-        dx = this->GetGeometry()[2].X0() - this->GetGeometry()[1].X0();
-        dy = this->GetGeometry()[2].Y0() - this->GetGeometry()[1].Y0();
-        dz = this->GetGeometry()[2].Z0() - this->GetGeometry()[1].Z0();
-        L += sqrt(dx*dx + dy*dy + dz*dz);
-        dx = this->GetGeometry()[2].X0() - this->GetGeometry()[0].X0();
-        dy = this->GetGeometry()[2].Y0() - this->GetGeometry()[0].Y0();
-        dz = this->GetGeometry()[2].Z0() - this->GetGeometry()[0].Z0();
-        L += sqrt(dx*dx + dy*dy + dz*dz);
-        L /= 3.0;
-        
-        return L;
-    }
-    else
-        return 1.0;
-
-    KRATOS_CATCH("")
 }
 
 void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
@@ -590,6 +545,103 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Matrix >& rVariable, 
     KRATOS_CATCH("")
 }
 
+void ShellThinAdjointElement3D3N::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, 
+        ProcessInfo& rCurrentProcessInfo)
+{
+    Vector dummy;
+    ShellThinElement3D3N::CalculateLocalSystem(rLeftHandSideMatrix, dummy, rCurrentProcessInfo);
+}        
+// =====================================================================================
+//
+// Class ShellThinAdjointElement3D3N - Results on Gauss Points
+//
+// =====================================================================================
+
+void ShellThinAdjointElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                          std::vector<double>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+        
+    if(this->Has(rVariable))
+    {
+        // Get result value for output
+        double output_value = this->GetValue(rVariable);
+        const SizeType num_gps = GetNumberOfGPs();
+
+        // Resize Output
+        if(rOutput.size() != num_gps)
+            rOutput.resize(num_gps);
+
+        // Write scalar result value on all Gauss-Points
+        for(unsigned int i = 0; i < num_gps; i++)
+            rOutput[i] = output_value; 
+
+        //OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rOutput);    
+    }
+    else
+        KRATOS_ERROR << "Unsupported output variable." << std::endl;
+
+
+
+    KRATOS_CATCH("")
+
+}
+
+void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                    std::vector<double>& rValues,
+                    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    KRATOS_CATCH("")
+}
+
+double ShellThinAdjointElement3D3N::GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rDesignVariable)
+{
+    KRATOS_TRY;
+
+    if ( this->GetProperties().Has(rDesignVariable) ) 
+    {
+        const double variable_value = this->GetProperties()[rDesignVariable];
+        return variable_value;
+    }
+    else
+        return 1.0;
+
+    KRATOS_CATCH("")	
+}
+
+double ShellThinAdjointElement3D3N::GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
+{
+    KRATOS_TRY;
+
+    if(rDesignVariable == SHAPE_SENSITIVITY) 
+    {
+        double dx, dy, dz, L = 0.0;
+   
+        dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
+        dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
+        dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
+        L += sqrt(dx*dx + dy*dy + dz*dz);
+        dx = this->GetGeometry()[2].X0() - this->GetGeometry()[1].X0();
+        dy = this->GetGeometry()[2].Y0() - this->GetGeometry()[1].Y0();
+        dz = this->GetGeometry()[2].Z0() - this->GetGeometry()[1].Z0();
+        L += sqrt(dx*dx + dy*dy + dz*dz);
+        dx = this->GetGeometry()[2].X0() - this->GetGeometry()[0].X0();
+        dy = this->GetGeometry()[2].Y0() - this->GetGeometry()[0].Y0();
+        dz = this->GetGeometry()[2].Z0() - this->GetGeometry()[0].Z0();
+        L += sqrt(dx*dx + dy*dy + dz*dz);
+        L /= 3.0;
+        
+        return L;
+    }
+    else
+        return 1.0;
+
+    KRATOS_CATCH("")
+}
+
 void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable, 
                                             Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -617,7 +669,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
     primal_solution_variable_list.push_back(ROTATION_Z);       
     
     KRATOS_ERROR_IF(rCurrentProcessInfo.Has(NL_ITERATION_NUMBER)) 
-        << "Stress displacement derivative computation is currently only for linear cases availible!" << std::endl;
+        << "Stress displacement derivative computation is currently only for linear cases available!" << std::endl;
 	
     for (int i = 0; i < num_nodes; i++) 
     {	
@@ -774,59 +826,6 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
 
     KRATOS_CATCH("")
 }                                            
-
-void ShellThinAdjointElement3D3N::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, 
-        ProcessInfo& rCurrentProcessInfo)
-{
-    Vector dummy;
-    ShellThinElement3D3N::CalculateLocalSystem(rLeftHandSideMatrix, dummy, rCurrentProcessInfo);
-}        
-// =====================================================================================
-//
-// Class ShellThinAdjointElement3D3N - Results on Gauss Points
-//
-// =====================================================================================
-
-void ShellThinAdjointElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                          std::vector<double>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-        
-    if(this->Has(rVariable))
-    {
-        // Get result value for output
-        double output_value = this->GetValue(rVariable);
-        const SizeType num_gps = GetNumberOfGPs();
-
-        // Resize Output
-        if(rOutput.size() != num_gps)
-            rOutput.resize(num_gps);
-
-        // Write scalar result value on all Gauss-Points
-        for(unsigned int i = 0; i < num_gps; i++)
-            rOutput[i] = output_value; 
-
-        //OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rOutput);    
-    }
-    else
-        KRATOS_ERROR << "Unsupported output variable." << std::endl;
-
-
-
-    KRATOS_CATCH("")
-
-}
-
-void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                    std::vector<double>& rValues,
-                    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
 
 // =====================================================================================
 //

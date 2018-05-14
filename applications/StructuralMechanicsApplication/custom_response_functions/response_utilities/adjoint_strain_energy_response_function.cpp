@@ -72,7 +72,7 @@ namespace Kratos
 
         // Check if there are at the time of calling adjoint or primal elements
         KRATOS_ERROR_IF( r_current_process_info[IS_ADJOINT] )
-             << "Calculate value for strain energy response is not availible when using adjoint elements" << std::endl;
+             << "Calculate value for strain energy response is not available when using adjoint elements" << std::endl;
             
         // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
         for (auto& elem_i : r_model_part.Elements())

@@ -45,7 +45,7 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    ReplaceElementsAndConditionsForAdjointProblemProcess(ModelPart& model_part, Parameters Settings);
+    ReplaceElementsAndConditionsForAdjointProblemProcess(ModelPart& model_part);
     
     /// Destructor.
     ~ReplaceElementsAndConditionsForAdjointProblemProcess() override;
@@ -102,7 +102,6 @@ public:
 protected:
     
     ModelPart& mr_model_part;
-    Parameters mSettings;
 
 private:
     ///@name Static Member Variables
@@ -115,6 +114,10 @@ private:
 
     
     void UpdateSubModelPart(ModelPart& r_model_part, ModelPart& r_root_model_part);
+
+    bool GetNewElementName(const Element& rElement, std::string& rName);
+
+    bool GetNewConditionName(const Condition& rCondition, std::string& rName);
 
     /// Assignment operator.
     ReplaceElementsAndConditionsForAdjointProblemProcess& operator=(ReplaceElementsAndConditionsForAdjointProblemProcess const& rOther);
