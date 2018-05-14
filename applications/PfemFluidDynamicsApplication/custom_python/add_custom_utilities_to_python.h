@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED
 
 // System includes 
 
@@ -19,16 +19,18 @@
 #include "includes/define.h"
 
 
+#include "custom_utilities/two_step_v_p_settings.h"
+
 namespace Kratos
 {
 
   namespace Python
   {
 
-    void  AddCustomProcessesToPython();
+    void  AddCustomUtilitiesToPython();
 
   }  // namespace Python.
   
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED  defined 

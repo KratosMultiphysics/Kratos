@@ -7,28 +7,37 @@
 //
 //
 
-#if !defined(KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED
-
 // System includes 
+#include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // External includes 
-#include "boost/smart_ptr.hpp"
 
 // Project includes
+#include "includes/node.h"
 #include "includes/define.h"
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
+#include "utilities/openmp_utils.h"
 
+//Application includes
+#include "custom_python/add_custom_utilities_to_python.h"
+
+#include "custom_utilities/two_step_v_p_settings.h"
 
 namespace Kratos
 {
-
+	
   namespace Python
   {
+    
+    void  AddCustomUtilitiesToPython()
+    {
 
-    void  AddCustomProcessesToPython();
+      using namespace boost::python;
+    }
 
   }  // namespace Python.
-  
-}  // namespace Kratos.
 
-#endif // KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED  defined 
+} // Namespace Kratos
+

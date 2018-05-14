@@ -7,12 +7,13 @@
 //
 //
 
-#if !defined(KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED
 
-// System includes 
+#if !defined(KRATOS_ADD_CUSTOM_CONDITIONS_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_CUSTOM_CONDITIONS_TO_PYTHON_H_INCLUDED
 
-// External includes 
+// System includes
+
+// External includes
 #include "boost/smart_ptr.hpp"
 
 // Project includes
@@ -21,14 +22,11 @@
 
 namespace Kratos
 {
+namespace Python
+{
+void  AddCustomConditionsToPython();
+}  // namespace Python.
 
-  namespace Python
-  {
-
-    void  AddCustomProcessesToPython();
-
-  }  // namespace Python.
-  
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_CONDITIONS_TO_PYTHON_H_INCLUDED  defined 

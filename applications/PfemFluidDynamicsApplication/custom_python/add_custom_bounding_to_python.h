@@ -7,13 +7,12 @@
 //
 //
 
-#if !defined(KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_CUSTOM_BOUNDING_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_CUSTOM_BOUNDING_TO_PYTHON_H_INCLUDED
 
-// System includes 
+// System includes
 
-// External includes 
-#include "boost/smart_ptr.hpp"
+// External includes
 
 // Project includes
 #include "includes/define.h"
@@ -25,10 +24,10 @@ namespace Kratos
   namespace Python
   {
 
-    void  AddCustomProcessesToPython();
-
-  }  // namespace Python.
+    void  AddCustomBoundingToPython();
   
+  }  // namespace Python.
+ 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_CUSTOM_BOUNDING_TO_PYTHON_H_INCLUDED  defined 

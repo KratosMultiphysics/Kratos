@@ -77,9 +77,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // Counted pointer of ClassName
-    KRATOS_CLASS_POINTER_DEFINITION(TwoStepVPStrategy);
-  
+    /// Counted pointer of TwoStepVPStrategy
+    typedef boost::shared_ptr< TwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 

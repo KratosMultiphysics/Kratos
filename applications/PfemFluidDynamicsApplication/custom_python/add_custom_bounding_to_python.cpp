@@ -7,28 +7,32 @@
 //
 //
 
-#if !defined(KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED
+// System includes
 
-// System includes 
-
-// External includes 
-#include "boost/smart_ptr.hpp"
+// External includes
+#include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // Project includes
 #include "includes/define.h"
+#include "processes/process.h"
+#include "custom_python/add_custom_bounding_to_python.h"
 
+// Meshers
+
+// Bounding Boxes
 
 namespace Kratos
 {
 
-  namespace Python
+namespace Python
+{
+
+  void  AddCustomBoundingToPython()
   {
+  }
 
-    void  AddCustomProcessesToPython();
+}  // namespace Python.
 
-  }  // namespace Python.
-  
-}  // namespace Kratos.
+} // Namespace Kratos
 
-#endif // KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED  defined 
