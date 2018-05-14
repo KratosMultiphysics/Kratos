@@ -117,7 +117,8 @@ class MappingOperationUtility
         ModelPart& rModelPartDestination,
         const Variable<double>& rOriginVariable,
         const Variable<double>& rDestinationVariable,
-        const Kratos::Flags MappingOptions) const = 0;
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const = 0;
 
     // The "Solve" function
     virtual void ExecuteMapping(
@@ -128,7 +129,8 @@ class MappingOperationUtility
         ModelPart& rModelPartDestination,
         const Variable<array_1d<double, 3>>& rOriginVariable,
         const Variable<array_1d<double, 3>>& rDestinationVariable,
-        const Kratos::Flags MappingOptions) const = 0;
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const = 0;
 
 
     ///@}

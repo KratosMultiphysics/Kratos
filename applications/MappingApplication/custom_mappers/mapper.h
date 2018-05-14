@@ -22,19 +22,13 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "custom_utilities/matrix_based_mapping_operation_utility.h"
 #include "custom_utilities/interface_preprocessor.h"
-#include "includes/kratos_parameters.h"
 #include "custom_utilities/mapper_local_system.h"
-#include "custom_utilities/mapper_interface_info.h"
+// #include "custom_utilities/mapper_interface_info.h" // TODO needed?
 #include "custom_utilities/mapper_utilities.h"
 #include "custom_utilities/mapper_flags.h"
-
-// For MPI-parallel Mapper
-#ifdef KRATOS_USING_MPI
-#include "mpi.h" // TODO needed here?
-// #include "custom_utilities/interface_communicator_mpi.h"
-#endif
 
 
 namespace Kratos
@@ -126,27 +120,44 @@ public:
     ///@name Operations
     ///@{
 
-    void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius);
+    void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius)
+    {
+        UpdateInterfaceInternal(MappingOptions, SearchRadius);
+        if (mInverseMapperIsInitialized)
+            mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
+    }
 
     /* This function maps from Origin to Destination */
     virtual void Map(const Variable<double>& rOriginVariable,
                      const Variable<double>& rDestinationVariable,
-                     Kratos::Flags MappingOptions);
+                     Kratos::Flags MappingOptions)
+    {
+        TMap(rOriginVariable, rDestinationVariable, MappingOptions);
+    }
 
     /* This function maps from Origin to Destination */
     virtual void Map(const Variable< array_1d<double, 3> >& rOriginVariable,
                      const Variable< array_1d<double, 3> >& rDestinationVariable,
-                     Kratos::Flags MappingOptions);
+                     Kratos::Flags MappingOptions)
+    {
+        TMap(rOriginVariable, rDestinationVariable, MappingOptions);
+    }
 
     /* This function maps from Destination to Origin */
     virtual void InverseMap(const Variable<double>& rOriginVariable,
                             const Variable<double>& rDestinationVariable,
-                            Kratos::Flags MappingOptions);
+                            Kratos::Flags MappingOptions)
+    {
+        TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
+    }
 
     /* This function maps from Destination to Origin */
     virtual void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
                             const Variable< array_1d<double, 3> >& rDestinationVariable,
-                            Kratos::Flags MappingOptions);
+                            Kratos::Flags MappingOptions)
+    {
+        TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
+    }
 
     virtual MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
@@ -260,120 +271,77 @@ protected:
     virtual void UpdateInterfaceInternal(Kratos::Flags MappingOptions, double SearchRadius);
 
 
-
-    // template< class TVarType>
-    // void InitializeMappingStep(const TVarType& rVarOrigin,
-    //                            const TVarType& rVarDestination,
-    //                            const Kratos::Flags& MappingOptions)
-    // {
-    //     if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) // TODO replace this with USE_TRANSPOSE!
-    //     {
-    //         mpMappingMatrixBuilder->UpdateSystemVector(mrModelPartDestination, *mpQd, rVarDestination);
-    //     }
-    //     else
-    //     {
-    //         mpMappingMatrixBuilder->UpdateSystemVector(mrModelPartOrigin, *mpQo, rVarOrigin);
-    //     }
-    // }
-
-    // virtual void ExecuteMappingStep(const Kratos::Flags& MappingOptions) // Override this class in Mortar
-    // {
-    //     if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE))
-    //     {
-    //         const bool transpose_flag = true; // constexpr?
-    //         mpMappingMatrixBuilder->Multiply(*mpMdo, *mpQd, *mpQo, transpose_flag);
-    //     }
-    //     else
-    //     {
-    //         mpMappingMatrixBuilder->Multiply(*mpMdo, *mpQo, *mpQd);
-    //     }
-    // }
-
-    // template< class TVarType>
-    // void FinalizeMappingStep(const TVarType& rVarOrigin,
-    //                          const TVarType& rVarDestination,
-    //                          const Kratos::Flags& MappingOptions)
-    // {
-    //     double factor = 1.0f;
-    //     ProcessMappingOptions(MappingOptions, factor);
-
-    //     if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE))
-    //     {
-
-    //         mpMappingMatrixBuilder->Update(mrModelPartOrigin, *mpQo, rVarOrigin, MappingOptions, factor);
-    //     }
-    //     else
-    //     {
-    //         mpMappingMatrixBuilder->Update(mrModelPartDestination, *mpQd, rVarDestination, MappingOptions, factor);
-    //     }
-    // }
-
     template< typename TDataType >
     void TMap(const Variable<TDataType>& rOriginVariable,
               const Variable<TDataType>& rDestinationVariable,
-              Kratos::Flags MappingOptions)
+              Kratos::Flags MappingOptions,
+              const bool UseTranspose = false)
     {
-        if (MappingOptions.Is(MapperFlags::CONSERVATIVE))
-        {
-            MappingOptions.Reset(MapperFlags::CONSERVATIVE); // TODO test this!!!
-            MappingOptions.Set(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
+        CheckForConservative(MappingOptions);
 
-            InverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
+        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE))
+        {
+            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
+            const bool use_transpose = true;
+            TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions, use_transpose);
         }
         else
         {
-            // mpMappingOperationUtility->ExecuteMapping(rOriginVariable,
-            //                                           rDestinationVariable,
-            //                                           MappingOptions);
+            mpMappingOperationUtility->ExecuteMapping(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                rOriginVariable, rDestinationVariable,
+                MappingOptions, UseTranspose);
         }
     }
 
     template< typename TDataType >
     void TInverseMap(const Variable<TDataType>& rOriginVariable,
                      const Variable<TDataType>& rDestinationVariable,
-                     Kratos::Flags MappingOptions)
+                     Kratos::Flags MappingOptions,
+                     const bool UseTranspose = false)
     {
-        if (MappingOptions.Is(MapperFlags::CONSERVATIVE))
-        {
-            MappingOptions.Reset(MapperFlags::CONSERVATIVE); // TODO test this!!!
-            MappingOptions.Set(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
+        CheckForConservative(MappingOptions);
 
-            Map(rOriginVariable, rDestinationVariable, MappingOptions);
+        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE))
+        {
+            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
+            const bool use_transpose = true;
+            TMap(rOriginVariable, rDestinationVariable, MappingOptions, use_transpose);
         }
         else
-        {
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
+            GetInverseMapper()->TMap(rDestinationVariable, rOriginVariable, MappingOptions, UseTranspose);
     }
 
     MapperUniquePointerType& GetInverseMapper()
     {
-        if (!mInverseMapperIsInitialized)
-            InitializeInverseMapper();
-
+        InitializeInverseMapper(); // Checks if it was initialized
         return mpInverseMapper;
     }
 
-    TSystemMatrixType& GetMdo()
-    {
-        TSystemMatrixType& rMdo = *mpMdo;
+    // template< typename T>
+    // void TestFunction(T someParam);
 
-        return rMdo;
-    }
+    // TSystemMatrixType& GetMdo()
+    // {
+    //     TSystemMatrixType& rMdo = *mpMdo;
 
-    TSystemVectorType& GetQo()
-    {
-        TSystemVectorType& rQo = *mpQo;
+    //     return rMdo;
+    // }
 
-        return rQo;
-    }
+    // TSystemVectorType& GetQo()
+    // {
+    //     TSystemVectorType& rQo = *mpQo;
 
-    TSystemVectorType& GetQd()
-    {
-        TSystemVectorType& rQd = *mpQd;
+    //     return rQo;
+    // }
 
-        return rQd;
-    }
+    // TSystemVectorType& GetQd()
+    // {
+    //     TSystemVectorType& rQd = *mpQd;
+
+    //     return rQd;
+    // }
 
     /**
      * This function can be overridden by derived Mappers if they need some
@@ -484,6 +452,18 @@ private:
     {
         ValidateMapperSpecificSettings(AllMapperSettings);
         mGeneralMapperSettings.RecursivelyValidateAndAssignDefaults(mGeneralMapperSettingsDefaults);
+    }
+
+    // From outside the user might specify CONSERVATIVE
+    // This is translated to USE_TRANSPOSE for internal use
+    // Note that if the user would specify USE_TRANSPOSE it would have the same effect
+    void CheckForConservative(Kratos::Flags& rMappingOptions)
+    {
+        if (rMappingOptions.Is(MapperFlags::CONSERVATIVE))
+        {
+            rMappingOptions.Reset(MapperFlags::CONSERVATIVE); // TODO test this!!!
+            rMappingOptions.Set(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
+        }
     }
 
     ///@}

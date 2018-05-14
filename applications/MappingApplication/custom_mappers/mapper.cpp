@@ -26,101 +26,6 @@ namespace Kratos
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
-template<class TSparseSpace, class TDenseSpace>
-void Mapper<TSparseSpace, TDenseSpace>::UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius)
-{
-    UpdateInterfaceInternal(MappingOptions, SearchRadius);
-    if (mInverseMapperIsInitialized)
-        mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
-}
-
-template<class TSparseSpace, class TDenseSpace>
-void Mapper<TSparseSpace, TDenseSpace>::Map(const Variable<double>& rOriginVariable,
-                    const Variable<double>& rDestinationVariable,
-                    Kratos::Flags MappingOptions)
-{
-    TMap(rOriginVariable, rDestinationVariable, MappingOptions);
-}
-
-template<class TSparseSpace, class TDenseSpace>
-void Mapper<TSparseSpace, TDenseSpace>::Map(const Variable< array_1d<double, 3> >& rOriginVariable,
-                    const Variable< array_1d<double, 3> >& rDestinationVariable,
-                    Kratos::Flags MappingOptions)
-{
-    TMap(rOriginVariable, rDestinationVariable, MappingOptions);
-    // if (MappingOptions.Is(MapperFlags::CONSERVATIVE))
-    // {
-    //     MappingOptions.Reset(MapperFlags::CONSERVATIVE); // TODO test this!!!
-    //     MappingOptions.Set(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
-
-    //     InverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
-    // }
-    // else
-    // {
-    //     VectorComponentType var_component_x_origin =
-    //         KratosComponents< VectorComponentType >::Get(rOriginVariable.Name()+std::string("_X"));
-    //     VectorComponentType var_component_y_origin =
-    //         KratosComponents< VectorComponentType >::Get(rOriginVariable.Name()+std::string("_Y"));
-    //     VectorComponentType var_component_z_origin =
-    //         KratosComponents< VectorComponentType >::Get(rOriginVariable.Name()+std::string("_Z"));
-
-    //     VectorComponentType var_component_x_destination =
-    //         KratosComponents< VectorComponentType >::Get(rDestinationVariable.Name()+std::string("_X"));
-    //     VectorComponentType var_component_y_destination =
-    //         KratosComponents< VectorComponentType >::Get(rDestinationVariable.Name()+std::string("_Y"));
-    //     VectorComponentType var_component_z_destination =
-    //         KratosComponents< VectorComponentType >::Get(rDestinationVariable.Name()+std::string("_Z"));
-
-    //     // X-Component
-    //     InitializeMappingStep<VectorComponentType>(var_component_x_origin,
-    //                                                var_component_x_destination,
-    //                                                MappingOptions);
-
-    //     ExecuteMappingStep(MappingOptions);
-
-    //     FinalizeMappingStep<VectorComponentType>(var_component_x_origin,
-    //                                              var_component_x_destination,
-    //                                              MappingOptions);
-
-    //     // Y-Component
-    //     InitializeMappingStep<VectorComponentType>(var_component_y_origin,
-    //                                                var_component_y_destination,
-    //                                                MappingOptions);
-
-    //     ExecuteMappingStep(MappingOptions);
-
-    //     FinalizeMappingStep<VectorComponentType>(var_component_y_origin,
-    //                                              var_component_y_destination,
-    //                                              MappingOptions);
-
-    //     // Z-Component
-    //     InitializeMappingStep<VectorComponentType>(var_component_z_origin,
-    //                                                var_component_z_destination,
-    //                                                MappingOptions);
-
-    //     ExecuteMappingStep(MappingOptions);
-
-    //     FinalizeMappingStep<VectorComponentType>(var_component_z_origin,
-    //                                              var_component_z_destination,
-    //                                              MappingOptions);
-    // }
-}
-
-template<class TSparseSpace, class TDenseSpace>
-void Mapper<TSparseSpace, TDenseSpace>::InverseMap(const Variable<double>& rOriginVariable,
-                        const Variable<double>& rDestinationVariable,
-                        Kratos::Flags MappingOptions)
-{
-    TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
-}
-
-template<class TSparseSpace, class TDenseSpace>
-void Mapper<TSparseSpace, TDenseSpace>::InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
-                        const Variable< array_1d<double, 3> >& rDestinationVariable,
-                        Kratos::Flags MappingOptions)
-{
-    TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
-}
 
 /***********************************************************************************/
 /* PROTECTED Methods */
@@ -206,10 +111,15 @@ void Mapper<TSparseSpace, TDenseSpace>::UpdateInterfaceInternal(Kratos::Flags Ma
         BuildMappingMatrix();
 }
 
+
+// template<class TSparseSpace, class TDenseSpace> template<typename T>
+// void Mapper<TSparseSpace, TDenseSpace>::TestFunction(T someParam)
+// {
+
+// }
 /***********************************************************************************/
 /* PRIVATE Methods */
 /***********************************************************************************/
-
 
 // /// input stream function
 // inline std::istream & operator >> (std::istream& rIStream, Mapper& rThis);
