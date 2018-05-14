@@ -1077,27 +1077,32 @@ namespace Kratos {
                 rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = (*sub_model_part)[IMPOSED_VELOCITY_X_VALUE];
             }
+            else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
             if ((*sub_model_part).Has(IMPOSED_VELOCITY_Y_VALUE)) {
                 rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = (*sub_model_part)[IMPOSED_VELOCITY_Y_VALUE];
             }
+            else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
             if ((*sub_model_part).Has(IMPOSED_VELOCITY_Z_VALUE)) {
                 rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = (*sub_model_part)[IMPOSED_VELOCITY_Z_VALUE];
             }
+            else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
             if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) {
                 rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
             }
+            else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
             if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) {
                 rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];
             }
+            else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
             if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) {
                 rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
             }
-
+            else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
             rigid_body_elements_counter++;
         }
 
