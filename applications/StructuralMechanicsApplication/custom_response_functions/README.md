@@ -88,7 +88,7 @@ For example the ```solver_settings``` can look like this (Hints for the ```respo
                 "element_sensitivity_variables"  : ["I22"],
                 "condition_sensitivity_variables"  : [],
                 "step_size"         : 1e-6,
-                "traced_node"       : 6,
+                "traced_node_id"       : 6,
                 "traced_dof"        : "DISPLACEMENT_Z"
 
             },
@@ -164,7 +164,7 @@ In order to use an element or condition design variable one has to ensure that a
 
 There are currently three different types of response functions available which can be chosen as ```response_type```. For each of them specific settings are necessary:
 - ```adjoint_nodal_displacement```: The response is the displacement or rotation of a single node. Necessary additional settings are:
-    * ```traced_node```: ID of the traced node
+    * ```traced_node_id```: ID of the traced node
     * ```traced_dof```: Define the traced DOF (e.g. ```DISPLACEMENT_Z``` or ```ROTATION_X```)
 
 - ```adjoint_strain_energy```: The response is the linear strain energy. No additional settings are necessary.
@@ -185,7 +185,7 @@ Examples:
             "element_sensitivity_variables"  : ["I22"],
             "condition_sensitivity_variables"  : ["POINT_LOAD"],
             "step_size"         : 1e-6,
-            "traced_node"       : 6,
+            "traced_node_id"       : 6,
             "traced_dof"        : "DISPLACEMENT_Z"
         }
 ```   

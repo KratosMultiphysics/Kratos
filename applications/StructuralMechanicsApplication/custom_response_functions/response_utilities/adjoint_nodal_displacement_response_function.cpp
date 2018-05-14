@@ -37,7 +37,7 @@ namespace Kratos
         KRATOS_ERROR_IF(domain_size != 3) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
 
         // Get id of node where a displacement should be traced
-        mIdOfTracedNode = ResponseSettings["traced_node"].GetInt();
+        mIdOfTracedNode = ResponseSettings["traced_node_id"].GetInt();
 
         // Get the corresponding dof to the displacement which should be traced
         // by this response function e.g. DISPLACEMENT_X, ROTATION_X,...

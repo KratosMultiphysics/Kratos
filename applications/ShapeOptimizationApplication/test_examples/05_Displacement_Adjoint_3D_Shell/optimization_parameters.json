@@ -22,7 +22,7 @@
                 "element_sensitivity_variables"  : [],
                 "condition_sensitivity_variables"  : [],
                 "step_size"         : 1.0e-6,
-                "traced_node"       : 188,
+                "traced_node_id"       : 188,
                 "traced_dof"        : "DISPLACEMENT_Z",
                 "primal_settings"  : "rectangular_plate_parameters.json",
                 "adjoint_settings" : "rectangular_plate_adjoint_parameters.json"
