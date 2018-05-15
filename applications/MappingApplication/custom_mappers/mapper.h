@@ -80,9 +80,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
     typedef MappingOperationUtility<TSparseSpace, TDenseSpace> MappingOperationUtilityType;
-    typedef typename MappingOperationUtilityType::Pointer MappingOperationUtilityPointerType;
-    using InterfacePreprocessorPointerType = InterfacePreprocessor::Pointer;
-    using ModelPartPointerType = ModelPart::Pointer;
+    typedef typename Kratos::unique_ptr<MappingOperationUtilityType> MappingOperationUtilityPointerType;
+    using InterfacePreprocessorPointerType = Kratos::unique_ptr<InterfacePreprocessor>;
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
@@ -92,11 +91,12 @@ public:
     using MapperLocalSystemPointerVector = typename MappingOperationUtilityType::MapperLocalSystemPointerVector;
     using MapperLocalSystemPointerVectorPointer = typename MappingOperationUtilityType::MapperLocalSystemPointerVectorPointer;
 
-    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
-    typedef typename TSparseSpace::VectorType TSystemVectorType;
+    using TSystemMatrixType = typename MappingOperationUtilityType::TSystemMatrixType;
+    using TSystemVectorType = typename MappingOperationUtilityType::TSystemVectorType;
 
-    using TSystemMatrixTypeUniquePointerType = Kratos::unique_ptr<TSystemMatrixType>;
-    using TSystemVectorTypeUniquePointerType = Kratos::unique_ptr<TSystemVectorType>;
+    using TSystemMatrixTypeUniquePointerType = typename MappingOperationUtilityType::TSystemMatrixTypeUniquePointerType;
+    using TSystemVectorTypeUniquePointerType = typename MappingOperationUtilityType::TSystemVectorTypeUniquePointerType;
+
 
     ///@}
     ///@name Life Cycle

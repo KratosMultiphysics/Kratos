@@ -69,6 +69,9 @@ class MatrixBasedMappingOperationUtility
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
+    typedef typename BaseType::TSystemMatrixTypeUniquePointerType TSystemMatrixTypeUniquePointerType;
+    typedef typename BaseType::TSystemVectorTypeUniquePointerType TSystemVectorTypeUniquePointerType;
+
 
 
     ///@}
@@ -76,7 +79,7 @@ class MatrixBasedMappingOperationUtility
     ///@{
 
     /// Default constructor.
-    MatrixBasedMappingOperationUtility();
+    MatrixBasedMappingOperationUtility(Parameters Settings);
 
     /// Destructor.
     virtual ~MatrixBasedMappingOperationUtility() {}
@@ -92,15 +95,15 @@ class MatrixBasedMappingOperationUtility
     ///@{
 
     void ResizeAndInitializeVectors(
-        TSystemMatrixType& rMdo,
-        TSystemVectorType& rQo,
-        TSystemVectorType& rQd,
+        TSystemMatrixTypeUniquePointerType& rpMdo,
+        TSystemVectorTypeUniquePointerType& rpQo,
+        TSystemVectorTypeUniquePointerType& rpQd,
         ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination) const override { }
+        ModelPart& rModelPartDestination) const override;
 
     // The "Build" function
     void BuildMappingMatrix(const MapperLocalSystemPointerVector& rMapperLocalSystems,
-                            TSystemMatrixType& rMdo) const override { }
+                            TSystemMatrixType& rMdo) const override;
 
 
     // The "Solve" function
@@ -113,7 +116,7 @@ class MatrixBasedMappingOperationUtility
         const Variable<double>& rOriginVariable,
         const Variable<double>& rDestinationVariable,
         const Kratos::Flags MappingOptions,
-        const bool UseTranspose) const override { }
+        const bool UseTranspose) const override;
 
     // The "Solve" function
     void ExecuteMapping(
@@ -125,7 +128,7 @@ class MatrixBasedMappingOperationUtility
         const Variable<array_1d<double, 3>>& rOriginVariable,
         const Variable<array_1d<double, 3>>& rDestinationVariable,
         const Kratos::Flags MappingOptions,
-        const bool UseTranspose) const override {
+        const bool UseTranspose) const override;
 
     // template< class TVarType>
     // void InitializeMappingStep(const TVarType& rVarOrigin,
@@ -227,7 +230,6 @@ class MatrixBasedMappingOperationUtility
 //     FinalizeMappingStep<VectorComponentType>(var_component_z_origin,
 //                                              var_component_z_destination,
 //                                              MappingOptions);
-    }
 
 
     ///@}

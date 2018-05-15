@@ -86,7 +86,7 @@ void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix()
     KRATOS_ERROR_IF_NOT(mpMappingOperationUtility) << "mpMappingOperationUtility is a nullptr!" << std::endl;
 
     // this function can always be called, it won't do anything if the sizes are correct
-    mpMappingOperationUtility->ResizeAndInitializeVectors(*mpMdo, *mpQo, *mpQd,
+    mpMappingOperationUtility->ResizeAndInitializeVectors(mpMdo, mpQo, mpQd,
                                                           mrModelPartOrigin,
                                                           mrModelPartDestination);
 
@@ -97,7 +97,8 @@ template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::InitializeMappingOperationUtility()
 {
     // here we could return the MatrixFree variant in the future
-    mpMappingOperationUtility = Kratos::make_unique<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>();
+    Parameters utility_settings(R"({})"); // TODO fill this
+    mpMappingOperationUtility = Kratos::make_unique<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>(utility_settings);
 }
 
 /*

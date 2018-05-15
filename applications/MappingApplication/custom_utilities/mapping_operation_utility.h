@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 #include "mapper_local_system.h"
 
 
@@ -70,17 +71,23 @@ class MappingOperationUtility
     using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
     using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
 
-    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
-    typedef typename TSparseSpace::VectorType TSystemVectorType;
+    using TSystemMatrixType = typename TSparseSpace::MatrixType;
+    using TSystemVectorType = typename TSparseSpace::VectorType;
+
+    using TSystemMatrixTypeUniquePointerType = Kratos::unique_ptr<TSystemMatrixType>;
+    using TSystemVectorTypeUniquePointerType = Kratos::unique_ptr<TSystemVectorType>;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MappingOperationUtility()
+    MappingOperationUtility(Parameters Settings) : mSettings(Settings)
     {
-
+        // Note that no validation is done here,
+        // this is supposed to be done in the derived classes
+        if (Settings.Has("echo_level"))
+            mEchoLevel = Settings["echo_level"].GetInt();
     }
 
     /// Destructor.
@@ -97,9 +104,9 @@ class MappingOperationUtility
     ///@{
 
     virtual void ResizeAndInitializeVectors(
-        TSystemMatrixType& rMdo,
-        TSystemVectorType& rQo,
-        TSystemVectorType& rQd,
+        TSystemMatrixTypeUniquePointerType& rpMdo,
+        TSystemVectorTypeUniquePointerType& rpQo,
+        TSystemVectorTypeUniquePointerType& rpQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination) const = 0;
 
@@ -176,6 +183,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    Parameters mSettings;
+
 
     ///@}
     ///@name Protected Operators
@@ -186,6 +195,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    int GetEchoLevel() { return mEchoLevel; }
 
     ///@}
     ///@name Protected  Access
@@ -213,6 +223,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    int mEchoLevel = 0;
 
     ///@}
     ///@name Private Operators
