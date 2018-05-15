@@ -64,7 +64,6 @@ class MaterialTest(object):
       self.new_strain = 0.0
 
       # for the graph plotting
-      self.loading_velocity = 0.0
       self.height = self.parameters["SpecimenLength"].GetDouble()
       self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
       self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
