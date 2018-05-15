@@ -140,14 +140,11 @@ class Solution(object):
                 self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
                 self.face_watcher_analyser[sub_part.Name] = analytic_data_procedures.FaceWatcherAnalyzer(name=name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name], path=self.main_path)
 
-
-
-        #self.face_watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(analytic_face_watcher=self.face_watcher_dict, path=self.main_path)
-
     def MakeAnalyticsMeasurements(self):
         for face_watcher in self.face_watcher_dict.values():
             face_watcher.MakeMeasurements()
 
+    '''
     def FlushFluxData(self):
         for face_watcher_name in self.face_watcher_dict.keys():
             times, number_flux, mass_flux = [], [], []
@@ -156,6 +153,7 @@ class Solution(object):
                 writer = csv.writer(f1, delimiter='\t')
                 writer.writerows(zip(times, number_flux))
             f1.close()
+    '''
 
     def SetFinalTime(self):
         self.final_time = self.DEM_parameters["FinalTime"].GetDouble()
