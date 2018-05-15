@@ -84,7 +84,7 @@ For example the ```solver_settings``` can look like this (Hints for the ```respo
                 "response_type"     : "adjoint_nodal_displacement",
                 "gradient_mode"     : "semi_analytic",
                 "sensitivity_model_part_name" : "Parts_Beam",
-                "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+                "nodal_sensitivity_variables"  : ["SHAPE"],
                 "element_sensitivity_variables"  : ["I22"],
                 "condition_sensitivity_variables"  : [],
                 "step_size"         : 1e-6,
@@ -155,7 +155,7 @@ Independet from the chosen response function the following definitions are alway
 - ```gradient_mode```: Currently there is only ```semi_analytic``` available.
 - ```step_size``` is the perturbation measure for finite difference computations within the semi-analytic apporach. 
 - ```sensitivity_model_part_name```: Add here the name of the model part for which components sensitivities has to be computed (e.g. if the chosen design parameter is ```THICKNESS``` then for each element in this model part the sensitivity w.r.t. this variable is calculated).
-- ```nodal_sensitivity_variables```: Currently only ```SHAPE_SENSITIVITY``` is available. Doing this the sensitivities w.r.t. to the x-, y- and z-coordinate of all nodes in the ```sensitivity_model_part_name``` are computed.
+- ```nodal_sensitivity_variables```: Currently only ```SHAPE``` is available. Doing this the sensitivities w.r.t. to the x-, y- and z-coordinate of all nodes in the ```sensitivity_model_part_name``` are computed.
 - ```element_sensitivity_variables```: Here are sensitivities with respect to the properties of the elements are computed. For that the respective name of the Kratos-Variable has to be given (e.g. ```THICKNESS```, ```I22``` or ```YOUNG_MODULUS```)
 - ```condition_sensitivity_variables```: Here are sensitivities with respect to the properties of the conditions are computed. Currenty there is only ```POINT_LOAD``` available.
 
@@ -181,7 +181,7 @@ Examples:
             "response_type"     : "adjoint_nodal_displacement",
             "gradient_mode"     : "semi_analytic",
             "sensitivity_model_part_name" : "Parts_Beam",
-            "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "nodal_sensitivity_variables"  : ["SHAPE"],
             "element_sensitivity_variables"  : ["I22"],
             "condition_sensitivity_variables"  : ["POINT_LOAD"],
             "step_size"         : 1e-6,
@@ -195,7 +195,7 @@ Examples:
             "response_type"     : "adjoint_strain_energy",
             "gradient_mode"     : "semi_analytic",
             "sensitivity_model_part_name" : "Parts_Beam",
-            "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "nodal_sensitivity_variables"  : ["SHAPE"],
             "element_sensitivity_variables"  : ["I22"],
             "condition_sensitivity_variables"  : ["POINT_LOAD"],
             "step_size"         : 1e-6
@@ -207,7 +207,7 @@ Examples:
             "response_type"     : "adjoint_local_stress",
             "gradient_mode"     : "semi_analytic",
             "sensitivity_model_part_name" : "Parts_Beam",
-            "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "nodal_sensitivity_variables"  : ["SHAPE"],
             "element_sensitivity_variables"  : ["I22"],
             "condition_sensitivity_variables"  : ["POINT_LOAD"],
             "step_size"         : 1e-6,
