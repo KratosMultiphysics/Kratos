@@ -339,7 +339,7 @@ public:
 
         }
         //define a standard static strategy to be used in the calculation
-        if(SolutionType == "StaticSolver")
+        if(SolutionType == "StaticSolver" || SolutionType == "Static")
         {
 
 
@@ -368,7 +368,7 @@ public:
         }
 
         //define a dynamic strategy to be used in the calculation
-        else if(SolutionType == "DynamicSolver")
+        else if(SolutionType == "DynamicSolver" || SolutionType == "Dynamic")
         {
             double Alpham;
             double Dynamic;
@@ -397,7 +397,7 @@ public:
         }
 
         //define a quasi-static strategy to be used in the calculation
-        else if(SolutionType == "QuasiStaticSolver")
+        else if(SolutionType == "QuasiStaticSolver" || SolutionType == "Quasi-static")
         {
             double Alpham;
             double Dynamic;
