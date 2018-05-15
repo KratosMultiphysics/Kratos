@@ -146,6 +146,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       // Adding the spring damper element
       mSpringDamperElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       // Addint the adjoint elements
+      mAdjointFiniteDifferencingBaseElement( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
       mShellThinAdjointElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ), false ),
       mCrLinearBeamAdjointElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
       /* CONDITIONS */
@@ -456,6 +457,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SpringDamperElement3D2N", mSpringDamperElement3D2N);
 
     //Register the adjoint elements
+    KRATOS_REGISTER_ELEMENT( "AdjointFiniteDifferencingBaseElement", mAdjointFiniteDifferencingBaseElement )
     KRATOS_REGISTER_ELEMENT( "ShellThinAdjointElement3D3N", mShellThinAdjointElement3D3N )
     KRATOS_REGISTER_ELEMENT( "CrLinearBeamAdjointElement3D2N", mCrLinearBeamAdjointElement3D2N )
 

@@ -39,6 +39,7 @@
 #include "custom_elements/cr_beam_element_linear_2D2N.hpp"
 
 /* Adding the adjoint elements */
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "custom_response_functions/adjoint_elements/shell_thin_adjoint_element_3D3N.hpp"
 #include "custom_response_functions/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
 
@@ -281,16 +282,16 @@ private:
     const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
 	const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
 
-    // Adding the membrane element 
+    // Adding the membrane element
     const MembraneElement mMembraneElement3D3N;
     const MembraneElement mMembraneElement3D4N;
     const PrestressMembraneElement mPreStressMembraneElement3D3N;
     const PrestressMembraneElement mPreStressMembraneElement3D4N;
-    
-    // Adding the SPRISM element 
+
+    // Adding the SPRISM element
     const SolidShellElementSprism3D6N mSolidShellElementSprism3D6N;
-    
-    // Adding the nodal concentrated element 
+
+    // Adding the nodal concentrated element
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedDampedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
@@ -363,6 +364,7 @@ private:
     const SpringDamperElement3D2N mSpringDamperElement3D2N;
 
     // Adding adjoint elements
+    const AdjointFiniteDifferencingBaseElement mAdjointFiniteDifferencingBaseElement;
     const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
     const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
 
