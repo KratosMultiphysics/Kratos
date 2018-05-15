@@ -27,7 +27,6 @@
 #include "includes/constitutive_law.h"
 #include "includes/geometrical_object.h"
 
-#include "geometries/line_2d.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
@@ -1092,9 +1091,6 @@ void KratosApplication::RegisterVariables() {
     Serializer::Register("Sphere3D1", Sphere3D1Prototype);
 
     //Lines:
-    Line2D<Node<3> > Line2DPrototype(Element::GeometryType::PointsArrayType(2));
-    Serializer::Register("Line2D", Line2DPrototype);
-
     Line2D2<Node<3> > Line2D2Prototype(
         Element::GeometryType::PointsArrayType(2));
     Serializer::Register("Line2D2", Line2D2Prototype);
