@@ -1,7 +1,5 @@
 ﻿from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 
@@ -38,7 +36,7 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
             A_python = A_python + B_python
 
             # Solve
-            solver = CSMA.SparseMatrixMultiplicationUtility
+            solver = KratosMultiphysics.SparseMatrixMultiplicationUtility
             solver.MatrixAdd(A, B, 1.0)
 
             for i, j in np.nditer(A_python.nonzero()):
@@ -76,7 +74,7 @@ class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
             A2_python = np.dot(A_python, A_python)
 
             # Solve
-            solver = CSMA.SparseMatrixMultiplicationUtility
+            solver = KratosMultiphysics.SparseMatrixMultiplicationUtility
             if (problem == "saad"):
                 solver.MatrixMultiplicationSaad(A, A, A2)
             elif (problem == "rmerge"):
