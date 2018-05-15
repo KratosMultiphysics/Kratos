@@ -24,7 +24,6 @@
 #include "meshing_application.h"
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "utilities/process_factory_utility.h"
 // Processes
 #include "processes/find_nodal_h_process.h"
 #include "custom_processes/metric_fast_init_process.h"
@@ -95,8 +94,6 @@ public:
     typedef std::size_t                                              KeyType;
     
     typedef std::size_t                                             SizeType;
-    
-    typedef ProcessFactoryUtility::Pointer                 ProcessesListType;
 
     ///@}
     ///@name Enum's
@@ -109,13 +106,9 @@ public:
     ///@{
     
     /// Default constructors
-    ErrorMeshCriteria(
-        Parameters ThisParameters = Parameters(R"({})"),
-        ProcessesListType pMyProcesses = nullptr
-        )
+    ErrorMeshCriteria(Parameters ThisParameters = Parameters(R"({})"))
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
-          mThisParameters(ThisParameters),
-          mpMyProcesses(pMyProcesses)
+          mThisParameters(ThisParameters)
     {
         Parameters default_parameters = Parameters(R"(
         {
@@ -298,8 +291,6 @@ private:
     double mErrorTolerance;                    /// The error tolerance considered
     double mConstantError;                     /// The constant considered in the remeshing process
     
-    ProcessesListType mpMyProcesses;           /// The processes list
-    
     ///@}
     ///@name Private Operators
     ///@{
@@ -360,21 +351,6 @@ private:
 
             // We set the model part as modified
             rModelPart.Set(MODIFIED, true);
-
-            FindNodalHProcess find_nodal_h_process = FindNodalHProcess(rModelPart);
-            find_nodal_h_process.Execute();
-
-            if (mpMyProcesses != nullptr) {
-                // Processes initialization
-                mpMyProcesses->ExecuteInitialize();
-                // Processes before the loop
-                mpMyProcesses->ExecuteBeforeSolutionLoop();
-                // Processes of initialize the solution step
-                mpMyProcesses->ExecuteInitializeSolutionStep();
-            }
-
-            // We reset the model part as modified
-            rModelPart.Set(MODIFIED, false);
         }
 
         return converged_error;

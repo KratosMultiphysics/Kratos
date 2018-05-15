@@ -13,8 +13,6 @@
 // System includes
 
 // External includes
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -43,7 +41,6 @@ using namespace pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
-    typedef ProcessFactoryUtility::Pointer ProcessesListType;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
@@ -77,7 +74,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 #ifdef INCLUDE_MMG
     class_< ErrorMeshCriteriaType, typename ErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ErrorMeshCriteria")
         .def(init<Parameters>())
-        .def(init<Parameters, ProcessesListType>())
         ;
 #endif
             
