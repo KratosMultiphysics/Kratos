@@ -327,23 +327,6 @@ namespace Kratos
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-        /*Communicator& r_comm = r_model_part.GetCommunicator();
-        if (r_comm.TotalProcesses() > 1)
-        {
-            // here we make sure we only add the old sensitivity once
-            // when we assemble.
-#pragma omp parallel
-            {
-                ModelPart::NodeIterator nodes_begin;
-                ModelPart::NodeIterator nodes_end;
-                OpenMPUtils::PartitionedIterators(r_model_part.Nodes(), nodes_begin, nodes_end);
-                for (auto it = nodes_begin; it != nodes_end; ++it)
-                    if (it->FastGetSolutionStepValue(PARTITION_INDEX) != r_comm.MyPID())
-                        it->FastGetSolutionStepValue(rOutputVariable) =
-                            rOutputVariable.Zero();
-            }
-        }*/
-
         int k = 0;
 
         for (ModelPart::ElementIterator it = r_model_part.ElementsBegin(); it != r_model_part.ElementsEnd(); ++it)
@@ -447,46 +430,42 @@ namespace Kratos
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-    #pragma omp parallel
+        #pragma omp parallel for
+        for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i) 
         {
-            ModelPart::ElementIterator elements_begin;
-            ModelPart::ElementIterator elements_end;
-            OpenMPUtils::PartitionedIterators(r_model_part.Elements(),
-                                              elements_begin, elements_end);
-            int k = OpenMPUtils::ThisThread();
+            const unsigned int k = OpenMPUtils::ThisThread();
+            ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
 
-            for (auto it = elements_begin; it != elements_end; ++it)
+            if (it->GetValue(UPDATE_SENSITIVITIES) == true)
             {
-                if (it->GetValue(UPDATE_SENSITIVITIES) == true)
-                {
-                    // Compute the pseudo load
-                    it->CalculateSensitivityMatrix(
-                        rSensitivityVariable, sensitivity_matrix[k], r_process_info);
+                // Compute the pseudo load
+                it->CalculateSensitivityMatrix(
+                    rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
-                    if(sensitivity_matrix[k].size1() > 0)
-                    {    
-                        // This part of the sensitivity is computed from the objective
-                        // with primal variables treated as constant.
-                        this->CalculateSensitivityGradient(
-                            *it, rSensitivityVariable, sensitivity_matrix[k],
-                                response_gradient[k], r_process_info);
+                if(sensitivity_matrix[k].size1() > 0)
+                {    
+                    // This part of the sensitivity is computed from the objective
+                    // with primal variables treated as constant.
+                    this->CalculateSensitivityGradient(
+                        *it, rSensitivityVariable, sensitivity_matrix[k],
+                            response_gradient[k], r_process_info);
                     
                   
-                        // Get the adjoint displacement field
-                        it->GetValuesVector(adjoint_vector[k]);
+                    // Get the adjoint displacement field
+                    it->GetValuesVector(adjoint_vector[k]);
 
-                        if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                            sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
+                    if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+                        sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
-                        // Compute the whole sensitivity
-                        noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                    // Compute the whole sensitivity
+                    noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                     response_gradient[k]);
 
-                        this->AssembleElementSensitivityContribution(
-                                  rOutputVariable, sensitivity_vector[k], *it);		
-                    }
+                    this->AssembleElementSensitivityContribution(
+                                rOutputVariable, sensitivity_vector[k], *it);		
                 }
             }
+            
         }
 
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
@@ -508,46 +487,40 @@ namespace Kratos
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-    //  Assemble condition contributions.
-#pragma omp parallel
+        //  Assemble condition contributions.
+        #pragma omp parallel for
+        for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i) 
         {
-            ModelPart::ConditionIterator conditions_begin;
-            ModelPart::ConditionIterator conditions_end;
-            OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),
-                                               conditions_begin, conditions_end);
-            int k = OpenMPUtils::ThisThread();
+            const unsigned int k = OpenMPUtils::ThisThread();
+            ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
 
-            for (auto it = conditions_begin; it != conditions_end; ++it)
+            if (it->GetValue(UPDATE_SENSITIVITIES) == true)
             {
+                // Compute the pseudo load
+                it->CalculateSensitivityMatrix(
+                    rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
-                if (it->GetValue(UPDATE_SENSITIVITIES) == true)
-                {
-                    // Compute the pseudo load
-                    it->CalculateSensitivityMatrix(
-                        rSensitivityVariable, sensitivity_matrix[k], r_process_info);
+                if(sensitivity_matrix[k].size1() > 0)
+                {      
+                    // This part of the sensitivity is computed from the objective
+                    // with primal variables treated as constant.
+                    this->CalculateSensitivityGradient(
+                        *it, rSensitivityVariable, sensitivity_matrix[k],
+                        response_gradient[k], r_process_info);
 
-                    if(sensitivity_matrix[k].size1() > 0)
-                    {      
-                        // This part of the sensitivity is computed from the objective
-                        // with primal variables treated as constant.
-                        this->CalculateSensitivityGradient(
-                            *it, rSensitivityVariable, sensitivity_matrix[k],
-                            response_gradient[k], r_process_info);
+                    // Get the adjoint displacement field
+                    it->GetValuesVector(adjoint_vector[k]);
 
-                        // Get the adjoint displacement field
-                        it->GetValuesVector(adjoint_vector[k]);
+                    if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+                        sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
-                        if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                            sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
-
-                        // Compute the whole sensitivity
-                        noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                    // Compute the whole sensitivity
+                    noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                     response_gradient[k]);
 
-                        Condition::GeometryType& r_geom = it->GetGeometry();
-                        this->AssembleConditionSensitivityContribution(
-                                   rOutputVariable, sensitivity_vector[k], r_geom); 
-                    }
+                    Condition::GeometryType& r_geom = it->GetGeometry();
+                    this->AssembleConditionSensitivityContribution(
+                                rOutputVariable, sensitivity_vector[k], r_geom); 
                 }
             }
         }
