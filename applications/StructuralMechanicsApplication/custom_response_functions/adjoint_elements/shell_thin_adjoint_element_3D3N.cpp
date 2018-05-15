@@ -142,7 +142,7 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     this->CheckVariables();
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
-    
+
     this->CheckProperties(rCurrentProcessInfo);
 
     // Check dofs
@@ -334,117 +334,117 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Vector >& rVariable,
 
         switch (traced_stress_type)  
         { 
-            case MXX:
+            case TracedStressType::MXX:
             {
                 direction_1 = 0; 
                 direction_2 = 0; 
                 break;
             }
-            case MXY:
+            case TracedStressType::MXY:
             {
                 direction_1 = 0; 
                 direction_2 = 1;
                 break; 
             }
-            case MXZ:
+            case TracedStressType::MXZ:
             {
                 direction_1 = 0; 
                 direction_2 = 2;
                 break; 
             }
-            case MYX:
+            case TracedStressType::MYX:
             {
                 direction_1 = 1; 
                 direction_2 = 0; 
                 break;
             }
-            case MYY :
+            case TracedStressType::MYY :
             {
                 direction_1 = 1; 
                 direction_2 = 1; 
                 break;
             }
-            case MYZ:
+            case TracedStressType::MYZ:
             {
                 direction_1 = 1; 
                 direction_2 = 2; 
                 break;
             }
-            case MZX:
+            case TracedStressType::MZX:
             {
                 direction_1 = 2; 
                 direction_2 = 0; 
                 break;
             }
-            case MZY:
+            case TracedStressType::MZY:
             {
                 direction_1 = 2; 
                 direction_2 = 1; 
                 break;
             }
-            case MZZ :
+            case TracedStressType::MZZ :
             {
                 direction_1 = 2; 
                 direction_2 = 2; 
                 break;
             }
-            case FXX :
+            case TracedStressType::FXX :
             {
                 direction_1 = 0; 
                 direction_2 = 0; 
                 stress_is_moment = false;
                 break;
             }
-            case FXY:
+            case TracedStressType::FXY:
             {
                 direction_1 = 0; 
                 direction_2 = 1;
                 stress_is_moment = false;
                 break; 
             }
-            case FXZ:
+            case TracedStressType::FXZ:
             {
                 direction_1 = 0; 
                 direction_2 = 2;
                 stress_is_moment = false;
                 break; 
             }
-            case FYX:
+            case TracedStressType::FYX:
             {
                 direction_1 = 1; 
                 direction_2 = 0; 
                 stress_is_moment = false;
                 break;
             }
-            case FYY:
+            case TracedStressType::FYY:
             {
                 direction_1 = 1; 
                 direction_2 = 1; 
                 stress_is_moment = false;
                 break;
             }
-            case FYZ:
+            case TracedStressType::FYZ:
             {
                 direction_1 = 1; 
                 direction_2 = 2; 
                 stress_is_moment = false;
                 break;
             }
-            case FZX:
+            case TracedStressType::FZX:
             {
                 direction_1 = 2; 
                 direction_2 = 0; 
                 stress_is_moment = false;
                 break;
             }
-            case FZY:
+            case TracedStressType::FZY:
             {
                 direction_1 = 2; 
                 direction_2 = 1; 
                 stress_is_moment = false;
                 break;
             }
-            case FZZ:
+            case TracedStressType::FZZ:
             {
                 direction_1 = 2; 
                 direction_2 = 2; 

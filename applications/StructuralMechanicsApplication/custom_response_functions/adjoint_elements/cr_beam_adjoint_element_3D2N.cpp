@@ -240,34 +240,34 @@ namespace Kratos
   
             switch (traced_stress_type)  
             { 
-                case MX:
+                case TracedStressType::MX:
                 {
                     direction_1 = 0; 
                     break;
                 }
-                case MY:
+                case TracedStressType::MY:
                 {
                     direction_1 = 1; 
                     break; 
                 }
-                case MZ:
+                case TracedStressType::MZ:
                 {
                     direction_1 = 2; 
                     break; 
                 }
-                case FX:
+                case TracedStressType::FX:
                 {
                     direction_1 = 0; 
                     stress_is_moment = false;
                     break;
                 }	
-                case FY:
+                case TracedStressType::FY:
                 {
                     direction_1 = 1; 
                     stress_is_moment = false;
                     break;
                 }
-                case FZ:
+                case TracedStressType::FZ:
                 {
                     direction_1 = 2; 
                     stress_is_moment = false;
