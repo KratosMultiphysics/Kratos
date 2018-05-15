@@ -11,6 +11,72 @@ def GetFilePath(fileName):
 
 class TestVariableUtils(KratosUnittest.TestCase):
 
+    def test_copy_model_part_nodal_var(self):
+        ##set the origin model part
+        origin_model_part = ModelPart("OriginModelPart")
+        origin_model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        origin_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        origin_model_part.SetBufferSize(2)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(origin_model_part)
+
+        ##set the destination model part
+        destination_model_part = ModelPart("DestinationModelPart")
+        destination_model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        destination_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        destination_model_part.SetBufferSize(2)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(destination_model_part)
+
+        ##set the values in the destination model part
+        for node in origin_model_part.Nodes:
+            node.SetSolutionStepValue(VISCOSITY, 0, node.X + node.Y)
+            node.SetSolutionStepValue(VISCOSITY, 1, 2.0 * node.X + 3.0 * node.Y)
+            node.SetSolutionStepValue(DISPLACEMENT, 0, [node.X ** 2, 0.0, 0.0])
+            node.SetSolutionStepValue(DISPLACEMENT, 1, [node.X, node.Y, node.Z])
+
+        ##copy the values to the destination model part
+        VariableUtils().CopyModelPartNodalVar(VISCOSITY, origin_model_part, destination_model_part, 0)
+        VariableUtils().CopyModelPartNodalVar(VISCOSITY, origin_model_part, destination_model_part, 1)
+        VariableUtils().CopyModelPartNodalVar(DISPLACEMENT, origin_model_part, destination_model_part, 0)
+        VariableUtils().CopyModelPartNodalVar(DISPLACEMENT, origin_model_part, destination_model_part, 1)
+
+        ##check the copied values
+        for node in destination_model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(VISCOSITY, 0), node.X + node.Y)
+            self.assertEqual(node.GetSolutionStepValue(VISCOSITY, 1), 2.0 * node.X + 3.0 * node.Y)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X, 0), node.X ** 2)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X, 1), node.X)
+
+    def test_copy_model_part_elemental_var(self):
+        ##set the origin model part
+        origin_model_part = ModelPart("OriginModelPart")
+        origin_model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        origin_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(origin_model_part)
+
+        ##set the destination model part
+        destination_model_part = ModelPart("DestinationModelPart")
+        destination_model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        destination_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(destination_model_part)
+        ##set the values in the destination model part
+        for element in origin_model_part.Elements:
+            element.SetValue(DENSITY, element.Id*100)
+            element.SetValue(VOLUME_ACCELERATION, [element.Id*100, 0.0, 0.0])
+
+        ##copy the values to the destination model part
+        VariableUtils().CopyModelPartElementalVar(DENSITY, origin_model_part, destination_model_part)
+        VariableUtils().CopyModelPartElementalVar(VOLUME_ACCELERATION, origin_model_part, destination_model_part)
+
+        ##check the copied values
+        for element in destination_model_part.Elements:
+            self.assertEqual(element.GetValue(DENSITY), element.Id*100)
+            self.assertEqual(element.GetValue(VOLUME_ACCELERATION)[0], element.Id*100)
+        
+
     def test_set_variable(self):
         ##set the model part
         model_part = ModelPart("Main")

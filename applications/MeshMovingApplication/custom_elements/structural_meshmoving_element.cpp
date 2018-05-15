@@ -51,6 +51,7 @@ StructuralMeshMovingElement::Create(IndexType NewId,
                                                           pProperties);
 }
 
+
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::GetValuesVector(VectorType &rValues,
@@ -113,7 +114,7 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
   const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
                          // elements; 0 = no stiffening
   const double quotient = factor / detJ0[rPointNumber];
-  const double weighting_factor = std::pow(quotient, xi);
+  const double weighting_factor = detJ0[rPointNumber] * std::pow(quotient, xi);
   const double poisson_coefficient = 0.3;
 
   // The ratio between lambda and mu affects relative stiffening against
