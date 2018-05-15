@@ -12,7 +12,7 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
         pass
 
     def __sparse_matrix_sum(self):
-        file_name = "../../../kratos/tests/A.mm"
+        file_name = "A.mm"
 
         # Read the matrices
         A = KratosMultiphysics.CompressedMatrix()
@@ -53,7 +53,7 @@ class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
         pass
 
     def __sparse_matrix_multiplication(self, problem = "saad"):
-        file_name = "../../../kratos/tests/A.mm"
+        file_name = "A.mm"
 
         # Read the matrices
         A = KratosMultiphysics.CompressedMatrix()
