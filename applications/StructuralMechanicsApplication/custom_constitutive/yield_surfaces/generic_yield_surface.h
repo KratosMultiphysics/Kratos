@@ -50,7 +50,7 @@ namespace Kratos
  * @tparam TPlasticPotentialType 
  * @author Alejandro Cornejo
  */
-template <class TPlasticPotentialType>
+template <class TPlasticPotentialType , class TVoigtSize>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 {
 public:

@@ -37,11 +37,19 @@
 #include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
-// A Cornejo
+// CL
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
+
+// Yield surfaces
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+
+// Plastic potentials
 #include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator.h"
+
+// Stress Integrators
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
 
 namespace Kratos
 {
