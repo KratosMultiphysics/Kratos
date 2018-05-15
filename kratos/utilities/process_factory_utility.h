@@ -1,12 +1,10 @@
-//
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 // 
@@ -17,9 +15,9 @@
 // System includes
 #include <iostream>
 #include <vector>
+#include <pybind11/pybind11.h>
 
 // External includes
-#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/serializer.h"
@@ -47,7 +45,7 @@ namespace Kratos
 
 /**
  * @class ProcessFactoryUtility
- * @ingroup KratosCore
+ * @ingroup ContactStructuralMechanicsApplication
  * @brief This is a experimental process factory utility
  * @details This class is used in order to interoperate between c++ and python
  * @author Vicente Mataix Ferrandiz
@@ -58,16 +56,16 @@ public:
 
     ///@name Type Definitions
     ///@{
-
+    
     /// Counted pointer of ProcessFactoryUtility
     KRATOS_CLASS_POINTER_DEFINITION( ProcessFactoryUtility );
 
     /// The object type in python
     typedef pybind11::object ObjectType;
-
+    
     /// The list [] of python
     typedef pybind11::list     ListType;
-
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -94,23 +92,23 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
+    
     /// Assignment operator.
-
+    
     ProcessFactoryUtility& operator=(ProcessFactoryUtility const& rOther)
     = default;
-
+    
     ///@}
     ///@name Operations
     ///@{
-
+    
     /**
      * @brief It add new process to the existing process list
      * @param rProcess The process that will be appended at the vector of processes
      */
 
     void AddProcess(ObjectType& rProcess);
-
+    
     /**
      * @brief It add new processes to the existing process list
      * @param ProcessesList List of processes that will be appended the vector of processes
@@ -124,43 +122,43 @@ public:
      */
 
     void ExecuteMethod(const std::string& rNameMethod);
-
+    
     /**
      * @brief It executes the ExecuteInitialize() from the list of processes
      */
 
     void ExecuteInitialize();
-
+    
     /**
      * @brief It executes the ExecuteBeforeSolutionLoop() from the list of processes
      */
-
+        
     void ExecuteBeforeSolutionLoop();
 
     /**
      * @brief It executes the ExecuteInitializeSolutionStep() from the list of processes
      */
-
+        
     void ExecuteInitializeSolutionStep();
-
+    
     /**
      * @brief It executes the ExecuteFinalizeSolutionStep() from the list of processes
      */
-
+        
     void ExecuteFinalizeSolutionStep();
-
+    
     /**
      * @brief It executes the ExecuteBeforeOutputStep() from the list of processes
      */
-
+        
     void ExecuteBeforeOutputStep();
-
+    
     /**
      * @brief It executes the ExecuteAfterOutputStep() from the list of processes
      */
-
+        
     void ExecuteAfterOutputStep();
-
+    
     /**
      * @brief It executes the ExecuteFinalize() from the list of processes
      */
@@ -178,7 +176,7 @@ public:
      */
 
     void PrintOutput();
-
+    
     /**
      * @brief It executes the Clear() from the list of processes
      */
@@ -192,15 +190,15 @@ public:
     ///@}
     ///@name Flags
     ///@{
-
+    
     ///@}
     ///@name Inquiry
     ///@{
-
+    
     ///@}
     ///@name Input and output
     ///@{
-
+    
     /// Turn back information as a string.
 
     virtual std::string Info() const
@@ -293,7 +291,7 @@ private:
         // TODO: Fill if necessary
 //         rSerializer.load("Processes", mProcesses);
     }
-
+    
     ///@name Private Inquiry
     ///@{
     ///@}
