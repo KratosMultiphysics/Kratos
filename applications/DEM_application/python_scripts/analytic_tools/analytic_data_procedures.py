@@ -14,7 +14,6 @@ class ParticleWatcherAnalyzer:
 
 class FaceWatcherAnalyzer:
     def __init__(self, name, analytic_face_watcher, path, do_clear_data = True):
-        #self.face_watcher_dict = analytic_face_watcher
         self.face_watcher = analytic_face_watcher
         self.face_watcher_name = name
         self.do_clear_data = do_clear_data

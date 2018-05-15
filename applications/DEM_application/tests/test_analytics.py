@@ -35,8 +35,8 @@ class AnalyticsTestSolution(main_script.Solution):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
     def GetProblemNameWithPath(self):
-        print("GetProblemNameWithPath in test_analytics")
-        print(os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString()))
+        #print("GetProblemNameWithPath in test_analytics")
+        #print(os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString()))
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeTimeStep(self, time):
@@ -112,28 +112,47 @@ class GhostsTestSolution(main_script.Solution):
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
+    def OldMakeAnalyticsMeasurements(self):
+        for face_watcher in self.face_watcher_dict.values():
+            face_watcher.MakeMeasurements()
+            times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
+            total_number_of_crossing_particles = 0
+            self.face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
+
+            for n_part in n_particles:
+                total_number_of_crossing_particles = total_number_of_crossing_particles + n_part
+
+            self.CheckTotalNumberOfCrossingParticles(total_number_of_crossing_particles, times)
+
+
     def MakeAnalyticsMeasurements(self):
-        self.face_watcher.MakeMeasurements(self.GetAnalyticFacesModelParts())
+        for face_watcher in self.face_watcher_dict.values():
+            face_watcher.MakeMeasurements()
 
-        times = []
-        n_particles = []
-        masses = []
+        if self.IsTimeToPrintPostProcess():
+            for sub_part in self.rigid_face_model_part.SubModelParts:
+                if sub_part[IS_GHOST] == True:
+                    self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(self.time)
+
+
+    def MakeReading(self):
+        import numpy as np
+        times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
         total_number_of_crossing_particles = 0
-
-        self.face_watcher.GetTotalFlux(times, n_particles, masses)
-        
+        self.face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
         for n_part in n_particles:
             total_number_of_crossing_particles = total_number_of_crossing_particles + n_part
-              
+
         self.CheckTotalNumberOfCrossingParticles(total_number_of_crossing_particles, times)
-        
+
+
     def CheckTotalNumberOfCrossingParticles(self, total_number_of_crossing_particles, times):
-        
+
         for time in times:
             current_time = time
-        
+
         if current_time > 0.145 and total_number_of_crossing_particles is not -4:
-            raise ValueError('The total value of crossing particles was not the expected!')    
+            raise ValueError('The total value of crossing particles was not the expected!')
 
     def Finalize(self):
         super(GhostsTestSolution, self).Finalize()

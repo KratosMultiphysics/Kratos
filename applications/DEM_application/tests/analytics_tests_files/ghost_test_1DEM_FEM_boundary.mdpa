@@ -13,18 +13,18 @@ YOUNG_MODULUS 1e20
 POISSON_RATIO 0.25
 End Properties
 
-Begin Nodes // GUI DEM-FEM-Wall group identifier: ghostrigidface
+Begin Nodes // GUI DEM-FEM-Wall group identifier: DEM-FEM-Wall
 1 -0.800000 1.20000 0.500000
 6 1.20000 1.20000 0.500000
 7 1.20000 -0.800000 0.500000
 End Nodes
 
-Begin Conditions AnalyticRigidFace3D3N // GUI DEM-FEM-Wall group identifier: ghostrigidface
+Begin Conditions AnalyticRigidFace3D3N // GUI DEM-FEM-Wall group identifier: DEM-FEM-Wall
 1 0 7 6 1
 End Conditions
 
-Begin SubModelPart 1 // DEM-FEM-Wall. Group name: ghostrigidface
-  Begin SubModelPartData // DEM-FEM-Wall. Group name: ghostrigidface
+Begin SubModelPart 1 // DEM-FEM-Wall. Group name: DEM-FEM-Wall
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-FEM-Wall
   FIXED_MESH_OPTION 0
   RIGID_BODY_MOTION 0
   FREE_BODY_MOTION 0
@@ -33,7 +33,8 @@ Begin SubModelPart 1 // DEM-FEM-Wall. Group name: ghostrigidface
   RIGID_BODY_INERTIAS [3] (0.0,0.0,0.0)
   TABLE_NUMBER 0
   //TABLE_VELOCITY_COMPONENT 0
-  IDENTIFIER ghostrigidface
+  IDENTIFIER DEM-FEM-Wall
+  IS_GHOST 1
   TOP 0
   BOTTOM 0
   FORCE_INTEGRATION_GROUP 0
