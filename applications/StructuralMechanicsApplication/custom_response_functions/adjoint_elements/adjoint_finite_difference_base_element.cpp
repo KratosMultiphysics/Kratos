@@ -502,7 +502,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
         delta *= correction_factor;
         if(rDesignVariable == SHAPE_SENSITIVITY)
         {
-            const int number_of_nodes = GetGeometry().PointsNumber();
+            const int number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
             const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
             const int local_size = number_of_nodes * dimension * 2;
 
