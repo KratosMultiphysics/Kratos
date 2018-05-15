@@ -139,46 +139,8 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     GeometryType& r_geom = GetGeometry();
 
-    // verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION);
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
-
-    // check properties
-    KRATOS_ERROR_IF(this->pGetProperties() == nullptr) << "Properties not provided for element " << this->Id() << std::endl;
-
-    const PropertiesType & props = this->GetProperties();    
-
-    if(props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
-    {
-        const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
-        KRATOS_ERROR_IF(section == nullptr) << "SHELL_CROSS_SECTION not provided for element " << this->Id() << std::endl;
-
-        section->Check(props, r_geom, rCurrentProcessInfo);
-    }
-    else // ... allow the automatic creation of a homogeneous section from a material and a thickness
-    {
-        KRATOS_ERROR_IF_NOT(props.Has(CONSTITUTIVE_LAW)) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
-        const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
-        KRATOS_ERROR_IF(claw == nullptr) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT(props.Has(THICKNESS)) <<  "THICKNESS not provided for element " <<  this->Id() << std::endl;
-        KRATOS_ERROR_IF(props[THICKNESS] <= 0.0) << "wrong THICKNESS value provided for element " << this->Id() << std::endl;
-
-        ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
-        dummySection->BeginStack();
-        dummySection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
-        dummySection->EndStack();
-        dummySection->SetSectionBehavior(ShellCrossSection::Thin);
-        dummySection->Check(props, r_geom, rCurrentProcessInfo);
-    }
+    this->CheckVariables();
+    this->CheckProperties(rCurrentProcessInfo);
 
     // Check dofs
     for (unsigned int i = 0; i < r_geom.size(); i++)
