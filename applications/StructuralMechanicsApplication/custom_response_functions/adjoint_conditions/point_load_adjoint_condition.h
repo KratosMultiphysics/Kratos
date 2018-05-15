@@ -43,10 +43,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
-
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  PointLoadAdjointCondition
     : public PointLoadCondition
 {
@@ -121,15 +117,6 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-//      virtual String Info() const;
-
-    /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
 
     ///@}
     ///@name Friends
@@ -173,8 +160,6 @@ protected:
     
     // A protected default constructor necessary for serialization
     PointLoadAdjointCondition(): PointLoadCondition(){};
-
-    
 
     ///@}
 
@@ -227,13 +212,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    //PointLoadAdjointCondition& operator=(const PointLoadAdjointCondition& rOther);
-
-    /// Copy constructor.
-    //PointLoadAdjointCondition(const PointLoadAdjointCondition& rOther);
-
-
     ///@}
 
 }; // Class PointLoadAdjointCondition
@@ -247,21 +225,6 @@ private:
 ///@name Input and output
 ///@{
 
-
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-        PointLoadAdjointCondition& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-        const PointLoadAdjointCondition& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
 ///@}
 
 }  // namespace Kratos.
