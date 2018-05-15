@@ -37,9 +37,6 @@ class FaceWatcherAnalyzer:
         length = len(times)
         assert length == len(number_flux) == len(mass_flux)
         shape = (length, )
-        #for i in np.arange(len(number_flux)):
-            #if number_flux[i] !=0:
-                #print(number_flux)
         number_flux, mass_flux = self.CalculateAccumulatedVectors(length, number_flux, mass_flux)
         if self.inlet is not None:
             self.inlet_accumulated_mass.append(self.inlet.GetMassInjectedSoFar())
@@ -147,13 +144,7 @@ class FaceWatcherAnalyzer:
                 del f['/' + self.face_watcher_name + '/'+ name_avg_vel_nr]
                 avg_vel_nr_db_old = f['/' + self.face_watcher_name + '/mass_avg_normal_vel_old']
 
-                old_shape = (times_db_old.shape[0], )
-                new_shape = shape
                 current_shape = (times_db_old.shape[0]+shape[0], )
-
-                print(old_shape)
-                print(new_shape)
-                print(current_shape)
 
                 times_db = []; n_particles_db = []; mass_db = []; avg_vel_nr_db = []
                 times_db[:times_db_old.shape[0]] = times_db_old[:]
@@ -169,7 +160,6 @@ class FaceWatcherAnalyzer:
                 avg_vel_nr_db[avg_vel_nr_db_old.shape[0]:] = avg_vel_nr[:]
 
                 surface_data = f.require_group(self.face_watcher_name)
-                print(self.face_watcher_name)
                 surface_data.require_dataset('time', data = times_db, shape = current_shape, dtype = np.float64)
                 del f['/' + self.face_watcher_name + '/times_old']
                 surface_data.require_dataset(name_n_particles, data = n_particles_db, shape = current_shape, dtype = np.float64)

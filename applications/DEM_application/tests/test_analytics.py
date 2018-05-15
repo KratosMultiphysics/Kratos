@@ -104,7 +104,7 @@ class AnalyticsTestSolution(main_script.Solution):
 class GhostsTestSolution(main_script.Solution):
 
     def GetParametersFileName(self):
-        return os.path.join(self.main_path, "ProjectParametersDEM.json")
+        return os.path.join(self.main_path, "ProjectParametersDEM_single_layer_ghost.json")
 
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
@@ -131,32 +131,75 @@ class GhostsTestSolution(main_script.Solution):
 
         if self.IsTimeToPrintPostProcess():
             for sub_part in self.rigid_face_model_part.SubModelParts:
-                if sub_part[IS_GHOST] == True:
+                if sub_part[IS_GHOST]:
                     self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(self.time)
+                    times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
+                    face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
+                    self.CheckTotalNumberOfCrossingParticles()
 
 
-    def MakeReading(self):
+    def CheckTotalNumberOfCrossingParticles(self):
         import numpy as np
-        times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
-        total_number_of_crossing_particles = 0
-        self.face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
-        for n_part in n_particles:
-            total_number_of_crossing_particles = total_number_of_crossing_particles + n_part
+        import h5py
 
-        self.CheckTotalNumberOfCrossingParticles(total_number_of_crossing_particles, times)
-
-
-    def CheckTotalNumberOfCrossingParticles(self, total_number_of_crossing_particles, times):
-
-        for time in times:
-            current_time = time
-
-        if current_time > 0.145 and total_number_of_crossing_particles is not -4:
+        input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
+        n_accum_h5 = input_data.get('1/n_accum')
+        n_accum = np.array(n_accum_h5)
+        print(n_accum)
+        if self.time > 0.145 and n_accum[-1] != -4:
             raise ValueError('The total value of crossing particles was not the expected!')
 
     def Finalize(self):
         super(GhostsTestSolution, self).Finalize()
         self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
+
+
+
+
+class MultiGhostsTestSolution(main_script.Solution):
+
+    def GetParametersFileName(self):
+        return os.path.join(self.main_path, "ProjectParametersDEM_multi_layer_ghost.json")
+
+    def GetMainPath(self):
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
+
+    def GetProblemNameWithPath(self):
+        return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
+
+
+    def MakeAnalyticsMeasurements(self):
+        for face_watcher in self.face_watcher_dict.values():
+            face_watcher.MakeMeasurements()
+
+        if self.IsTimeToPrintPostProcess():
+            for sub_part in self.rigid_face_model_part.SubModelParts:
+                if sub_part[IS_GHOST]:
+                    if sub_part[Kratos.IDENTIFIER] == 'DEM-wall2':
+                        self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(self.time)
+                        times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
+                        face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
+                        self.CheckTotalNumberOfCrossingParticles()
+
+
+    def CheckTotalNumberOfCrossingParticles(self):
+        import numpy as np
+        import h5py
+
+        input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
+        n_accum_h5 = input_data.get('2/n_accum')
+        n_accum = np.array(n_accum_h5)
+        print(n_accum)
+        if self.time > 1.9 and n_accum[-1] != -4:
+            raise ValueError('The total value of crossing particles was not the expected!')
+
+    def Finalize(self):
+        super(MultiGhostsTestSolution, self).Finalize()
+        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
+
+
+
+
 
 
 class TestAnalytics(KratosUnittest.TestCase):
@@ -171,6 +214,10 @@ class TestAnalytics(KratosUnittest.TestCase):
     @classmethod
     def test_Analytics_2(self):
         GhostsTestSolution().Run()
+
+    @classmethod
+    def test_Analytics_3(self):
+        MultiGhostsTestSolution().Run()
 
     def tearDown(self):
         file_to_remove = os.path.join("analytics_tests_files", "TimesPartialRelease")
