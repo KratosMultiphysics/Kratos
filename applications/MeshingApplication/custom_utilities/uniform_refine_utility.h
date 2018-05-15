@@ -34,7 +34,6 @@
 #include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
-#include "utilities/sub_model_parts_list_utility.h"
 
 
 namespace Kratos
@@ -220,12 +219,10 @@ private:
     std::unordered_map<IndexType,int> mCondColorMap;
     std::unordered_map<IndexType,int> mElemColorMap;
     std::unordered_map<int,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
+    std::map<std::pair<int,int>,int> mIntersections;           /// Where the colors intersection are stored
 
     NodesInEdgeMapType mNodesMap;              /// Where the father nodes IDs are stored
     NodesInFaceMapType mNodesInFaceMap;        /// Where the father nodes IDs are stored
-
-    SubModelPartsListUtility mSubModelPartsColors;
-
 
     ///@}
     ///@name Private Operators

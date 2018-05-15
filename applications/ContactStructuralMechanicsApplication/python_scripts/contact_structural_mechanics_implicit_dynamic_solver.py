@@ -144,15 +144,15 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
-        mechanical_solver = self.get_mechanical_solution_strategy()
+        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
 
         # The steps of the solve are Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep(), FinalizeSolutionStep()
-        mechanical_solver.Solve()
-        #mechanical_solver.Initialize()
-        #mechanical_solver.InitializeSolutionStep()
-        #mechanical_solver.Predict()
-        #mechanical_solver.SolveSolutionStep()
-        #mechanical_solver.FinalizeSolutionStep()
+        mechanical_solution_strategy.Solve()
+        #mechanical_solution_strategy.Initialize()
+        #mechanical_solution_strategy.InitializeSolutionStep()
+        #mechanical_solution_strategy.Predict()
+        #mechanical_solution_strategy.SolveSolutionStep()
+        #mechanical_solution_strategy.FinalizeSolutionStep()
 
     def AddProcessesList(self, processes_list):
         self.processes_list = CSMA.ProcessFactoryUtility(processes_list)

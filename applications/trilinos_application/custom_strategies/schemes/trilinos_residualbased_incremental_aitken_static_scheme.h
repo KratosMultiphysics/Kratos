@@ -26,7 +26,7 @@
 #include "includes/define.h"
 
 // Application includes
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 
 namespace Kratos
@@ -57,7 +57,7 @@ namespace Kratos
 /** Aitken's method intends to improve convergence by introducing a relaxation factor in the update of the solution after each iteration.
   */
 template< class TSparseSpace,class TDenseSpace >
-class TrilinosResidualBasedIncrementalAitkenStaticScheme : public TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>
+class TrilinosResidualBasedIncrementalAitkenStaticScheme : public ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>
 {
 public:
     ///@name Type Definitions
@@ -66,7 +66,7 @@ public:
     /// Pointer definition of TrilinosResidualBasedIncrementalAitkenStaticScheme
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosResidualBasedIncrementalAitkenStaticScheme);
 
-    typedef TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
+    typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -89,7 +89,7 @@ public:
     /** @param DefaultOmega Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
       */
     TrilinosResidualBasedIncrementalAitkenStaticScheme(double DefaultOmega):
-        TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
+        ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
         mDefaultOmega(DefaultOmega),
         mOldOmega(DefaultOmega)
     {}
@@ -182,6 +182,12 @@ public:
         mOldOmega = Omega;
 
         KRATOS_CATCH("");
+    }
+
+    void Clear() override
+    {
+        mpDofImporter.reset();
+        mImporterIsInitialized = false;
     }
 
     ///@}
@@ -302,7 +308,7 @@ protected:
         Dx.Comm().Barrier();
 
         //performing the update
-        typename DofsArrayType::iterator dof_begin = rDofSet.begin();
+        auto dof_begin = rDofSet.begin();
         for(unsigned int iii=0; iii<rDofSet.size(); iii++)
         {
             int global_id = (dof_begin+iii)->EquationId();
@@ -316,15 +322,70 @@ protected:
         KRATOS_CATCH("");
     }
 
+
+    virtual void InitializeDofImporter(DofsArrayType& rDofSet,
+                                       TSystemVectorType& Dx)
+    {
+        int system_size = TSparseSpace::Size(Dx);
+        int number_of_dofs = rDofSet.size();
+        std::vector< int > index_array(number_of_dofs);
+
+        //filling the array with the global ids
+        int counter = 0;
+        for(auto i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+        {
+            int id = i_dof->EquationId();
+            if( id < system_size )
+            {
+                index_array[counter] = id;
+                counter += 1;
+            }
+        }
+
+        std::sort(index_array.begin(),index_array.end());
+        std::vector<int>::iterator NewEnd = std::unique(index_array.begin(),index_array.end());
+        index_array.resize(NewEnd-index_array.begin());
+
+        int check_size = -1;
+        int tot_update_dofs = index_array.size();
+        Dx.Comm().SumAll(&tot_update_dofs,&check_size,1);
+        KRATOS_ERROR_IF( (check_size < system_size) &&  (Dx.Comm().MyPID() == 0) )
+            << "Dof count is not correct. There are less dofs then expected." << std::endl
+            << "Expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
+
+        //defining a map as needed
+        Epetra_Map dof_update_map(-1,index_array.size(), &(*(index_array.begin())),0,Dx.Comm() );
+
+        //defining the importer class
+        Kratos::shared_ptr<Epetra_Import> pDofImporter = Kratos::make_shared<Epetra_Import>(dof_update_map,Dx.Map());
+        mpDofImporter.swap(pDofImporter);
+
+        mImporterIsInitialized = true;
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
 
+    /// Get pointer Epetra_Import instance that can be used to import values from Dx to the owner of each Dof.
+    /**
+     * @note Important: always check that the Importer is initialized before calling using
+     * DofImporterIsInitialized or initialize it with InitializeDofImporter.
+     * @return Importer
+     */
+    Kratos::shared_ptr<Epetra_Import> pGetImporter()
+    {
+        return mpDofImporter;
+    }
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
+    bool DofImporterIsInitialized() const
+    {
+        return mImporterIsInitialized;
+    }
 
     ///@}
     ///@name Protected LifeCycle
@@ -356,6 +417,10 @@ private:
 
     /// Vector of solution variations obtained in the previous iteration.
     SystemVectorPointerType mpPreviousDx;
+
+    bool mImporterIsInitialized = false;
+
+    Kratos::shared_ptr<Epetra_Import> mpDofImporter = nullptr;
 
     ///@}
     ///@name Private Operators
