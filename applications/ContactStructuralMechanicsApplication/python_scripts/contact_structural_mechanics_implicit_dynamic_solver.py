@@ -169,7 +169,11 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         #mechanical_solution_strategy.SolveSolutionStep()
         #mechanical_solution_strategy.FinalizeSolutionStep()
 
-    #### Specific internal functions ####
+    def AddProcessesList(self, processes_list):
+        self.processes_list = KM.ProcessFactoryUtility(processes_list)
+
+    def AddPostProcess(self, post_process):
+        self.post_process = KM.ProcessFactoryUtility(post_process)
 
     def print_on_rank_zero(self, *args):
         # This function will be overridden in the trilinos-solvers
@@ -178,8 +182,6 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
     def print_warning_on_rank_zero(self, *args):
         # This function will be overridden in the trilinos-solvers
         KM.Logger.PrintWarning(" ".join(map(str,args)))
-
-    #### Private functions ####
 
     def _create_linear_solver(self):
         linear_solver = super(ContactImplicitMechanicalSolver, self)._create_linear_solver()

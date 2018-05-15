@@ -95,11 +95,6 @@ if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
 for process in list_of_processes:
     process.ExecuteInitialize()
 
-## Add the processes to the solver
-solver.AddProcessesList(list_of_processes)
-if (output_post == True):
-    solver.AddPostProcess(gid_output)
-
 ## Solver initialization
 solver.Initialize()
 solver.SetEchoLevel(echo_level)

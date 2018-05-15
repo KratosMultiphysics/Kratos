@@ -291,12 +291,6 @@ class MechanicalSolver(object):
     def Check(self):
         self.get_mechanical_solution_strategy().Check()
 
-    def AddProcessesList(self, processes_list):
-        self.processes_list = KratosMultiphysics.ProcessFactoryUtility(processes_list)
-
-    def AddPostProcess(self, post_process):
-        self.post_process = KratosMultiphysics.ProcessFactoryUtility(post_process)
-
     #### Specific internal functions ####
 
     def get_solution_scheme(self):
