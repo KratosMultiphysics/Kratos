@@ -306,7 +306,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
         rVariables.Initialize();
         
         // Update slave element info
-        rDerivativeData.UpdateMasterPair(master_geometry);
+        rDerivativeData.UpdateMasterPair(master_geometry, rCurrentProcessInfo);
         
         // Initialize the mortar operators
         rThisMortarConditionMatrices.Initialize();
@@ -434,7 +434,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
         rVariables.Initialize();
         
         // Update slave element info
-        rDerivativeData.UpdateMasterPair(master_geometry);
+        rDerivativeData.UpdateMasterPair(master_geometry, rCurrentProcessInfo);
         
         // Initialize the mortar operators
         rThisMortarConditionMatrices.Initialize();
