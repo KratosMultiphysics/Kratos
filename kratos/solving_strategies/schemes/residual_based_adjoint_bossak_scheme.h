@@ -176,7 +176,7 @@ public:
         KRATOS_TRY;
 
         // Update degrees of freedom: adjoint variables associated to the residual of the physical problem.
-        this->UpdateDegreesOfFreedom(rDofSet,rDx);
+        this->mpDofUpdater->UpdateDofs(rDofSet,rDx);
 
         // Update adjoint variables associated to time integration.
         this->UpdateTimeSchemeAdjoints(rModelPart);
@@ -402,21 +402,6 @@ protected:
         rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
     }
 
-    virtual void UpdateDegreesOfFreedom(
-        DofsArrayType& rDofSet,
-        SystemVectorType& rDx)
-    {
-        const int num_dofs = rDofSet.size();
-
-        #pragma omp parallel for
-        for (int i = 0; i < num_dofs; i++) {
-            typename DofsArrayType::iterator i_dof = rDofSet.begin() + i;
-            if (i_dof->IsFree()) {
-                i_dof->GetSolutionStepValue() += TSparseSpace::GetValue(rDx, i_dof->EquationId());
-            }
-        }
-    }
-
     virtual void UpdateTimeSchemeAdjoints(ModelPart& rModelPart)
     {
         Communicator& r_communicator = rModelPart.GetCommunicator();
@@ -566,6 +551,12 @@ protected:
         rModelPart.GetCommunicator().AssembleCurrentData(mAuxiliaryVariable);
     }
 
+    /// Free memory allocated by this class.
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -608,6 +599,8 @@ private:
     Variable< array_1d<double,3> > mVelocityUpdateAdjointVariable;
     Variable< array_1d<double,3> > mAccelerationUpdateAdjointVariable;
     Variable< array_1d<double,3> > mAuxiliaryVariable;
+
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
     ///@}
     ///@name Private Operators
