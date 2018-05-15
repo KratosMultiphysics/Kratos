@@ -443,38 +443,13 @@ namespace Kratos
         KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
         << "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
 
-        // verify that the variables are correctly initialized
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-        KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-        KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
+        CheckVariables();
         KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
         KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
 
-        // check properties
-        KRATOS_ERROR_IF(this->GetProperties().Has(CROSS_AREA) == false || this->GetProperties()[CROSS_AREA] == 0)
-        << "CROSS_AREA not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF(this->GetProperties().Has(YOUNG_MODULUS) == false || this->GetProperties()[YOUNG_MODULUS] == 0)
-        << "YOUNG_MODULUS not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(DENSITY) )
-        << "DENSITY not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(POISSON_RATIO) )
-        << "POISSON_RATIO not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(TORSIONAL_INERTIA) )
-        << "TORSIONAL_INERTIA not provided for this element" << this->Id() << std::endl;
-    
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I22) )
-        << "I22 not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I33) )
-        << "I33 not provided for this element" << this->Id() << std::endl;
-
-        // Check dofs
+        CheckProperties();
+        
+        // check dofs
         GeometryType& r_geom = GetGeometry();
         for (unsigned int i = 0; i < r_geom.size(); i++)
         {
