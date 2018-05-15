@@ -33,6 +33,7 @@ class ParticleMPMSolver(object):
             "solver_type"                        : "StaticSolver",
             "echo_level"                         : 0,
             "time_integration_method"            : "Implicit",
+            "analysis_type"                      : "linear",
             "scheme_type"                        : "Newmark",
             "grid_model_import_settings"              : {
                 "input_type"     : "mdpa",
