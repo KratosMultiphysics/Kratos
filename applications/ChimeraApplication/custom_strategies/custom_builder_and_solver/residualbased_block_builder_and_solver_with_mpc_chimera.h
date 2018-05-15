@@ -173,7 +173,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
         ModelPart &r_model_part) override
     {
         BaseType::SetUpSystem(r_model_part);
-        std::cout<<" formulating equation ID relationmaps "<<std::endl;
         FormulateEquationIdRelationMap(r_model_part);
     }
 
@@ -281,6 +280,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                 {
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
                     // Modifying the local contributions for MPC
                     this->Element_ApplyMultipointConstraints(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 //assemble the elemental contribution
@@ -322,7 +322,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
 #endif
 
                     // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
+                        pScheme->CleanMemory(*(it.base()));
                 }
             }
         }
@@ -476,7 +476,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
         {
             if (mpcData->IsActive())
             {
-                 std::cout<<"1 active parameter for this patch is "<<mpcData->GetVelocityOrPressure()<<std::endl;
                 // For each node check if it is a slave or not If it is .. we change the Transformation matrix
                 for (std::size_t j = 0; j < number_of_nodes; j++)
                 {
@@ -521,8 +520,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
             if (mpcData->IsActive())
             {
                 // For each node check if it is a slave or not If it is .. we change the Transformation matrix
-                std::cout<<"2 active parameter for this patch is "<<mpcData->GetVelocityOrPressure()<<std::endl;
-
                 for (std::size_t j = 0; j < number_of_nodes; j++)
                 {
                     DofsVectorType conditionDofs;
@@ -586,8 +583,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
         {
             if (mpcData->IsActive())
             {
-                std::cout<<"3 active parameter for this patch is"<<mpcData->GetVelocityOrPressure()<<std::endl;
-
                 std::vector<std::size_t> localEquationIds;
                 std::vector<std::size_t> localSlaveEquationIds;
                 std::vector<std::size_t> localInternEquationIds;
@@ -809,8 +804,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
             if (mpcData->IsActive())
             {
 
-                std::cout<<"4 active parameter for this patch is "<<mpcData->GetVelocityOrPressure()<<std::endl;
-
                 std::vector<std::size_t> localEquationIds;
                 std::vector<std::size_t> localSlaveEquationIds;
                 std::vector<std::size_t> localInternEquationIds;
@@ -978,13 +971,17 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
             {
                 if (mpcData->IsActive())
                 {
-                    std::cout<<"5  active parameter for this patch is "<<mpcData->GetVelocityOrPressure()<<std::endl;
                     for (auto slaveMasterDofMap : mpcData->mDofConstraints)
                     {
                         SlavePairType slaveDofMap = slaveMasterDofMap.first;
                         MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
                         std::size_t slaveNodeId = slaveDofMap.first;
+
+                        //std::cout<<" SLAVE IDs::"<<slaveNodeId<<std::endl;
+
                         std::size_t slaveDofKey = slaveDofMap.second;
+                         //std::cout<<" SLAVE key::"<<slaveDofKey<<std::endl;
+
                         NodeType &node = r_model_part.Nodes()[slaveNodeId];
                         Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
                         std::size_t slaveEquationId = it->EquationId();
@@ -992,6 +989,9 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                         for (auto masterDofMapElem : masterDofMap)
                         {
                             std::size_t masterNodeId;
+
+                            //std::cout<<" Master IDs::"<<masterNodeId<<std::endl;
+
                             std::size_t PartitionId;
                             std::size_t masterEquationId;
                             std::size_t masterDofKey;
@@ -1026,8 +1026,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
             if (mpcData->IsActive())
 
             {
-                std::cout<<"6 active parameter for this patch is "<<mpcData->GetVelocityOrPressure()<<std::endl;
-
                 for (std::size_t i = 0; i < n_nodes; i++)
                 {
                     ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin() + i;
@@ -1088,7 +1086,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
             if (mpcData->IsActive())
 
             {
-                std::cout<<"7 active parameter for this patch is "<<mpcData->GetVelocityOrPressure()<<std::endl;
                 if (mpcData->mType == "conservative")
                 {
                     double nodalMass;
@@ -1199,10 +1196,10 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
         {
             if (mpcData->IsActive())
             {
-                std::cout<<"8 active parameter for this patch is "<<mpcData->GetVelocityOrPressure()<<std::endl;
                 double norm = 0.0;
                 for (auto slaveMasterDofMap : mpcData->mDofConstraints)
                 {
+
                     SlavePairType slaveDofMap = slaveMasterDofMap.first;
                     MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
                     std::size_t slaveNodeId = slaveDofMap.first;

@@ -227,7 +227,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() override 
+    void Initialize() override
     {}
 
     int Check() override
@@ -587,6 +587,7 @@ protected:
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
 
         this->CalculateEndOfStepVelocity();
+
         /*
         mpPressureStrategy->Clear();
         double NormDu = mpPressureStrategy->Solve();
@@ -831,7 +832,7 @@ protected:
         {
             ModelPart::NodeIterator itNode = rModelPart.NodesBegin() + i;
             const Node<3>& r_const_node = *itNode;
-            
+
             if ( r_const_node.GetValue(rSlipWallFlag) != 0.0 )
             {
                 const array_1d<double,3>& rNormal = itNode->FastGetSolutionStepValue(NORMAL);

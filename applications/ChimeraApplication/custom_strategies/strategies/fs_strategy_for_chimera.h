@@ -85,6 +85,14 @@ public:
 
     typedef MpcData::Pointer MpcDataPointerType;
 
+    typedef Kratos::MpcData::MasterIdWeightMapType MasterIdWeightMapType;
+
+    typedef Kratos::MpcData::SlavePairType SlavePairType;
+
+    typedef Kratos::MpcData::MasterDofWeightMapType MasterDofWeightMapType;
+
+    typedef Node<3> NodeType;
+
     typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -280,6 +288,8 @@ public:
     {
 
         std::cout<<"Inside FS Strategy for chimera solve"<<std::endl;
+
+
         // Initialize BDF2 coefficients
         ModelPart& rModelPart = BaseType::GetModelPart();
         this->SetTimeCoefficients(rModelPart.GetProcessInfo());
@@ -321,8 +331,6 @@ public:
         if (mReformDofSet)
             this->Clear();
 
-
-
         return NormDp;
     }
 
@@ -362,23 +370,30 @@ public:
 
             for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
             {
+                bool element_is_active = true;
+                if ((itElem)->IsDefined(ACTIVE))
+                    element_is_active = (itElem)->Is(ACTIVE);
 
-                //itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
-
-                // Build local system
-                itElem->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
-
-                Element::GeometryType& rGeom = itElem->GetGeometry();
-                std::size_t NumNodes = rGeom.PointsNumber();
-                std::size_t index = 0;
-
-                for (std::size_t i = 0; i < NumNodes; i++)
+                if(element_is_active)
                 {
-                    rGeom[i].SetLock();
-                    array_1d<double,3>& rReaction = rGeom[i].FastGetSolutionStepValue(REACTION);
-                    for (std::size_t d = 0; d < mDomainSize; ++d)
-                        rReaction[d] -= RHS_Contribution[index++];
-                    rGeom[i].UnSetLock();
+
+                    //itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
+
+                    // Build local system
+                    itElem->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
+
+                    Element::GeometryType& rGeom = itElem->GetGeometry();
+                    std::size_t NumNodes = rGeom.PointsNumber();
+                    std::size_t index = 0;
+
+                    for (std::size_t i = 0; i < NumNodes; i++)
+                    {
+                        rGeom[i].SetLock();
+                        array_1d<double,3>& rReaction = rGeom[i].FastGetSolutionStepValue(REACTION);
+                        for (std::size_t d = 0; d < mDomainSize; ++d)
+                            rReaction[d] -= RHS_Contribution[index++];
+                        rGeom[i].UnSetLock();
+                    }
                 }
             }
         }
@@ -534,7 +549,6 @@ protected:
         for (auto mpcData : (*mpcDataVector))
         {
             if(mpcData->GetVelocityOrPressure() == "Velocity")
-
             {
                 mpcData->SetActive(true);
                 std::cout<<"made one patch active for Velocity "<<std::endl;
@@ -585,7 +599,8 @@ protected:
         // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
 
-#pragma omp parallel
+/*
+    #pragma omp parallel
         {
             ModelPart::NodeIterator NodesBegin;
             ModelPart::NodeIterator NodesEnd;
@@ -593,10 +608,34 @@ protected:
 
             for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
             {
-                const double OldPress = itNode->FastGetSolutionStepValue(PRESSURE);
-                itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
+                if (! itNode->Is(SLAVE) ){
+                    const double OldPress = itNode->FastGetSolutionStepValue(PRESSURE);
+                    itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
+                }
             }
         }
+ */
+
+    //Rishith's code
+            ModelPart::ElementIterator ElemBegin;
+            ModelPart::ElementIterator ElemEnd;
+            for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
+            {
+
+             bool element_is_active = true;
+                if ((itElem)->IsDefined(ACTIVE))
+                    element_is_active = (itElem)->Is(ACTIVE);
+
+                if(element_is_active)
+                {
+                    for (unsigned int i_node = 0; i_node < itElem->GetGeometry().PointsNumber(); ++i_node)
+                    {
+                        const double OldPress = itElem->GetGeometry()[i_node].FastGetSolutionStepValue(PRESSURE);
+                        itElem->GetGeometry()[i_node].FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
+                    }
+                }
+            }
+    //till here
 
         for (auto mpcData : (*mpcDataVector))
         {
@@ -622,7 +661,6 @@ protected:
             std::cout<<"made all patch active after solving for pressure "<<std::endl;
         }
 
-
 #pragma omp parallel
         {
             ModelPart::NodeIterator NodesBegin;
@@ -630,7 +668,10 @@ protected:
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
 
             for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-                itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) += itNode->FastGetSolutionStepValue(PRESSURE);
+                //if (! itNode->Is(SLAVE) )
+                //{
+                    itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) += itNode->FastGetSolutionStepValue(PRESSURE);
+                //}
         }
 
         // 3. Compute end-of-step velocity
@@ -639,6 +680,7 @@ protected:
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
 
         this->CalculateEndOfStepVelocity();
+
         /*
         mpPressureStrategy->Clear();
         double NormDu = mpPressureStrategy->Solve();
@@ -649,7 +691,6 @@ protected:
         for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
              iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
             (*iExtraSteps)->Execute();
-
 
         return NormDp;
     }
@@ -762,7 +803,13 @@ protected:
 
             for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
             {
-                itElem->Calculate(CONV_PROJ,Out,rModelPart.GetProcessInfo());
+
+                bool element_is_active = true;
+                if ((itElem)->IsDefined(ACTIVE))
+                    element_is_active = (itElem)->Is(ACTIVE);
+
+                if(element_is_active)
+                    itElem->Calculate(CONV_PROJ,Out,rModelPart.GetProcessInfo());
             }
         }
 
@@ -783,9 +830,12 @@ protected:
             for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
             {
                 const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
-                itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
-                itNode->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
+                if( NodalArea > 1E-8)
+                {
+                    itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
+                    itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
+                    itNode->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
+                }
             }
         }
     }
@@ -817,7 +867,14 @@ protected:
 
             for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
             {
-                itElem->Calculate(VELOCITY,Out,rModelPart.GetProcessInfo());
+
+
+             bool element_is_active = true;
+                if ((itElem)->IsDefined(ACTIVE))
+                    element_is_active = (itElem)->Is(ACTIVE);
+
+                if(element_is_active)
+                    itElem->Calculate(VELOCITY,Out,rModelPart.GetProcessInfo());
             }
         }
 
@@ -858,13 +915,56 @@ protected:
 
                 for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
                 {
-                    const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                    if ( ! itNode->IsFixed(VELOCITY_X) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-                    if ( ! itNode->IsFixed(VELOCITY_Y) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+
+                    //if (! itNode->Is(SLAVE) )
+                    //{
+                        const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
+                        if(NodalArea > 1E-8)
+                        {
+                            if ( ! itNode->IsFixed(VELOCITY_X) )
+                                itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+                            if ( ! itNode->IsFixed(VELOCITY_Y) )
+                                itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+                        }
+                    //}
                 }
             }
+            //std::cout<<"Interpolating end step velocity to slave nodes from their Masters"<<std::endl;
+         /*    ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+            MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
+            for (auto mpcData : (*mpcDataVector))
+            {
+                if (mpcData->GetVelocityOrPressure()=="Velocity")
+                {
+                    for (auto slaveMasterDofMap : mpcData->mDofConstraints)
+                    {
+                        SlavePairType slaveDofMap = slaveMasterDofMap.first;
+                        MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
+                        std::size_t slaveNodeId = slaveDofMap.first;
+                        NodeType &node = rModelPart.Nodes()[slaveNodeId];
+                        std::cout<<"interpolating for node id "<<node.Id()<<std::endl;
+                        std::cout<<"It has a velocity of Vx "<<node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
+                        node.FastGetSolutionStepValue(VELOCITY_X)=0;
+                        node.FastGetSolutionStepValue(VELOCITY_Y)=0;
+                        for (auto masterDofMapElem : masterDofMap)
+                        {
+                            std::size_t masterNodeId;
+                            double constant;
+                            std::size_t masterDofKey;
+                            std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
+                            double weight = masterDofMapElem.second;
+                            NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
+                            //std::cout<<"master node velocity x"<<masterNode.FastGetSolutionStepValue(VELOCITY_X)<<"and weight is"<<weight<<std::endl;
+                            //std::cout<<"master node velocity y"<<masterNode.FastGetSolutionStepValue(VELOCITY_Y)<<"and weight is"<<weight<<std::endl;
+                            node.FastGetSolutionStepValue(VELOCITY_X) +=(masterNode.FastGetSolutionStepValue(VELOCITY_X))*weight;
+                            node.FastGetSolutionStepValue(VELOCITY_Y) +=(masterNode.FastGetSolutionStepValue(VELOCITY_Y))*weight;
+                        }
+                        std::cout<<"interpolated value Velocity X for node id "<<node.Id()<<"is::"<<node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
+                        //std::cout<<"interpolated value Velocity Y for node id "<<node.Id()<<"is::"<<node.FastGetSolutionStepValue(VELOCITY_Y)<<std::endl;
+                    }
+                }
+            } */
+
         }
     }
 
@@ -923,28 +1023,33 @@ protected:
                  if (rGeom.PointsNumber() == 2)
                  {
                      Node<3>& rNode0 = rGeom[0];
-                     int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                     Node<3>& rNode1 = rGeom[1];
-                     int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
+                    if(rNode0.FastGetSolutionStepValue(NODAL_AREA)>1E-8)
+                    {
 
-                     // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
-                     if ( ( static_cast<int>(rNode0.Id()) == Node1Pair ) && (static_cast<int>(rNode1.Id()) == Node0Pair ) )
-                     {
-                         double NodalArea = rNode0.FastGetSolutionStepValue(NODAL_AREA) + rNode1.FastGetSolutionStepValue(NODAL_AREA);
-                         array_1d<double,3> ConvProj = rNode0.FastGetSolutionStepValue(CONV_PROJ) + rNode1.FastGetSolutionStepValue(CONV_PROJ);
-                         array_1d<double,3> PressProj = rNode0.FastGetSolutionStepValue(PRESS_PROJ) + rNode1.FastGetSolutionStepValue(PRESS_PROJ);
-                         double DivProj = rNode0.FastGetSolutionStepValue(DIVPROJ) + rNode1.FastGetSolutionStepValue(DIVPROJ);
+                        int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                         rNode0.GetValue(NODAL_AREA) = NodalArea;
-                         rNode0.GetValue(CONV_PROJ) = ConvProj;
-                         rNode0.GetValue(PRESS_PROJ) = PressProj;
-                         rNode0.GetValue(DIVPROJ) = DivProj;
-                         rNode1.GetValue(NODAL_AREA) = NodalArea;
-                         rNode1.GetValue(CONV_PROJ) = ConvProj;
-                         rNode1.GetValue(PRESS_PROJ) = PressProj;
-                         rNode1.GetValue(DIVPROJ) = DivProj;
-                     }
+                        Node<3>& rNode1 = rGeom[1];
+                        int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
+
+                        // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
+                        if ( ( static_cast<int>(rNode0.Id()) == Node1Pair ) && (static_cast<int>(rNode1.Id()) == Node0Pair ) )
+                        {
+                            double NodalArea = rNode0.FastGetSolutionStepValue(NODAL_AREA) + rNode1.FastGetSolutionStepValue(NODAL_AREA);
+                            array_1d<double,3> ConvProj = rNode0.FastGetSolutionStepValue(CONV_PROJ) + rNode1.FastGetSolutionStepValue(CONV_PROJ);
+                            array_1d<double,3> PressProj = rNode0.FastGetSolutionStepValue(PRESS_PROJ) + rNode1.FastGetSolutionStepValue(PRESS_PROJ);
+                            double DivProj = rNode0.FastGetSolutionStepValue(DIVPROJ) + rNode1.FastGetSolutionStepValue(DIVPROJ);
+
+                            rNode0.GetValue(NODAL_AREA) = NodalArea;
+                            rNode0.GetValue(CONV_PROJ) = ConvProj;
+                            rNode0.GetValue(PRESS_PROJ) = PressProj;
+                            rNode0.GetValue(DIVPROJ) = DivProj;
+                            rNode1.GetValue(NODAL_AREA) = NodalArea;
+                            rNode1.GetValue(CONV_PROJ) = ConvProj;
+                            rNode1.GetValue(PRESS_PROJ) = PressProj;
+                            rNode1.GetValue(DIVPROJ) = DivProj;
+                        }
+                    }
                  }
                  else if (rGeom.PointsNumber() == 4 && rGeom[0].FastGetSolutionStepValue(mrPeriodicIdVar) > GlobalNodesNum)
                  {
@@ -978,7 +1083,7 @@ protected:
 
              for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
              {
-                 if (itNode->GetValue(NODAL_AREA) != 0.0)
+                 if (itNode->GetValue(NODAL_AREA) >1E-8)
                  {
                      itNode->FastGetSolutionStepValue(NODAL_AREA) = itNode->GetValue(NODAL_AREA);
                      itNode->FastGetSolutionStepValue(CONV_PROJ) = itNode->GetValue(CONV_PROJ);
