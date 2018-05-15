@@ -71,10 +71,10 @@ public:
     typedef std::ptrdiff_t  SignedIndexType;
 
     /// A vector of indexes
-    typedef vector<IndexType> IndexVectorType;
+    typedef DenseVector<IndexType> IndexVectorType;
 
     /// A vector of indexes (signed)
-    typedef vector<SignedIndexType> SignedIndexVectorType;
+    typedef DenseVector<SignedIndexType> SignedIndexVectorType;
 
     ///@}
     ///@name Life Cycle
