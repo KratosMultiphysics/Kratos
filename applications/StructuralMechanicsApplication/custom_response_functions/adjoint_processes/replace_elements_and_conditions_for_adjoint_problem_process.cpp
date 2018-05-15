@@ -131,7 +131,6 @@ namespace Kratos
 
     void ReplaceElementsAndConditionsForAdjointProblemProcess::UpdateSubModelPart(ModelPart& r_model_part, ModelPart& r_root_model_part)
     {
-        KRATOS_WATCH("UpdateSubModelPart")
         //change the model part itself
         #pragma omp parallel for
         for(int i=0; i< (int)r_model_part.Elements().size(); i++)
