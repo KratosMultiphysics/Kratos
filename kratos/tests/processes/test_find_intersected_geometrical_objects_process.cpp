@@ -7,21 +7,66 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Pooyan Dadvand, Ruben Zorrilla
 //
 //
 
 // Project includes
 #include "testing/testing.h"
+#include "includes/gid_io.h"
 #include "includes/checks.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "geometries/hexahedra_3d_8.h"
+#include "geometries/quadrilateral_2d_4.h"
 
 namespace Kratos {
 	namespace Testing {
 
-		KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess, KratosCoreFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess2D, KratosCoreFastSuite)
+		{
+
+			Node<3>::Pointer p_point1(new Node<3>(1, 0.0, 0.0, 0.0));
+			Node<3>::Pointer p_point2(new Node<3>(2, 0.0, 1.0, 0.0));
+			Node<3>::Pointer p_point3(new Node<3>(3, 1.0, 1.0, 0.0));
+			Node<3>::Pointer p_point4(new Node<3>(4, 1.0, 0.0, 0.0));
+
+			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+
+			Parameters mesher_parameters(R"( 
+            {
+                "number_of_divisions" : 1,
+                "element_name" : "Element2D3N"
+            }  )");
+
+			ModelPart surface_part("Surface");
+			ModelPart skin_part("Boundaries");
+			skin_part.CreateNewNode(100, 0.3, 0.5, 0.0);
+			skin_part.CreateNewNode(200, 0.6, 0.5, 0.0);
+			// skin_part.CreateNewNode(300, 0.6, 0.5, 0.0);
+			Properties::Pointer p_properties(new Properties(0));
+			skin_part.CreateNewElement("Element2D2N", 1, {{ 100,200 }}, p_properties);
+			// skin_part.CreateNewElement("Element2D2N", 2, {{ 200,300 }}, p_properties);
+			StructuredMeshGeneratorProcess(geometry, surface_part, mesher_parameters).Execute();
+			FindIntersectedGeometricalObjectsProcess(surface_part, skin_part).Execute();
+
+			GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/surface_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+			gid_io_fluid.InitializeMesh(0.00);
+			gid_io_fluid.WriteMesh(surface_part.GetMesh());
+			gid_io_fluid.FinalizeMesh();
+			gid_io_fluid.InitializeResults(0, surface_part.GetMesh());
+			gid_io_fluid.FinalizeResults();
+
+			GidIO<> gid_io_skin("/home/rzorrilla/Desktop/skin_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+			gid_io_skin.InitializeMesh(0.00);
+			gid_io_skin.WriteMesh(skin_part.GetMesh());
+			gid_io_skin.FinalizeMesh();
+			gid_io_skin.InitializeResults(0, skin_part.GetMesh());
+			gid_io_skin.FinalizeResults();
+
+		}
+
+		KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess3D, KratosCoreFastSuite)
 		{
 
 			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
@@ -58,7 +103,7 @@ namespace Kratos {
 				KRATOS_CHECK(volume_part.GetElement(i).IsNot(SELECTED));
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessNoIntersection, KratosCoreFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessNoIntersection3D, KratosCoreFastSuite)
 		{
 			
 			// Generate the tetrahedron element
