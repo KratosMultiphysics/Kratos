@@ -27,7 +27,6 @@
 
 /* Trilinos includes */
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 
 namespace Kratos
@@ -113,7 +112,7 @@ public:
         GenerateMeshPart();
 
         typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(
-            new TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
+            new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
 
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
         BuilderSolverTypePointer builderSolver = BuilderSolverTypePointer(

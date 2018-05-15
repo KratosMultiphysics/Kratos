@@ -241,9 +241,6 @@ class MechanicalSolver(object):
     def GetOutputVariables(self):
         pass
 
-    def ComputeDeltaTime(self):
-        pass
-
     def SaveRestart(self):
         # Check could be integrated in the utility
         # It is here intentionally, this way the utility is only created if it is actually needed!
@@ -270,6 +267,21 @@ class MechanicalSolver(object):
 
     def FinalizeSolutionStep(self):
         self.get_mechanical_solution_strategy().FinalizeSolutionStep()
+
+    def AdvanceInTime(self, current_time):
+        dt = self.ComputeDeltaTime()
+        new_time = current_time + dt
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.main_model_part.CloneTimeStep(new_time)
+
+        return new_time
+
+    def ComputeDeltaTime(self):
+        return self.delta_time
+
+    def SetDeltaTime(self, dt):
+        # This is a TEMPORARY function until the solver can compute dt!
+        self.delta_time = dt
 
     def SetEchoLevel(self, level):
         self.get_mechanical_solution_strategy().SetEchoLevel(level)
