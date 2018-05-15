@@ -1606,13 +1606,23 @@ double CrBeamElement3D2N::CalculateShearModulus() {
 
 int CrBeamElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
-  const double numerical_limit = std::numeric_limits<double>::epsilon();
   if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2) {
     KRATOS_ERROR
         << "The beam element works only in 3D and with 2 noded elements"
         << "" << std::endl;
   }
-  // verify that the variables are correctly initialized
+
+  CheckVariables();
+  CheckDofs();
+  CheckProperties();
+
+  return 0;
+
+  KRATOS_CATCH("")
+}
+
+void CrBeamElement3D2N::CheckVariables()
+{
   if (VELOCITY.Key() == 0) {
     KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is "
                     "correctly registered"
@@ -1638,8 +1648,11 @@ int CrBeamElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
                     "correctly registered"
                  << "" << std::endl;
   }
-  // verify that the dofs exist
-  for (unsigned int i = 0; i < this->GetGeometry().size(); ++i) {
+}
+
+void CrBeamElement3D2N::CheckDofs()
+{
+    for (unsigned int i = 0; i < this->GetGeometry().size(); ++i) {
     if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) {
       KRATOS_ERROR << "missing variable DISPLACEMENT on node "
                    << this->GetGeometry()[i].Id() << std::endl;
@@ -1652,10 +1665,15 @@ int CrBeamElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
           << GetGeometry()[i].Id() << std::endl;
     }
   }
+}
+
+void CrBeamElement3D2N::CheckProperties()
+{
+  const double numerical_limit = std::numeric_limits<double>::epsilon();
 
   if (this->GetProperties().Has(CROSS_AREA) == false ||
-      this->GetProperties()[CROSS_AREA] <= numerical_limit) {
-    KRATOS_ERROR << "CROSS_AREA not provided for this element" << this->Id()
+  this->GetProperties()[CROSS_AREA] <= numerical_limit) {
+  KRATOS_ERROR << "CROSS_AREA not provided for this element" << this->Id()
                  << std::endl;
   }
 
@@ -1686,9 +1704,6 @@ int CrBeamElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
     KRATOS_ERROR << "I33 not provided for this element" << this->Id()
                  << std::endl;
   }
-  return 0;
-
-  KRATOS_CATCH("")
 }
 
 void CrBeamElement3D2N::save(Serializer &rSerializer) const {
