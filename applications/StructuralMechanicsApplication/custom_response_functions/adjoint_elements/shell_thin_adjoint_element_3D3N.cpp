@@ -302,7 +302,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
         double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
         delta *= correction_factor;	
 
-        if(rDesignVariable == SHAPE_SENSITIVITY) 
+        if(rDesignVariable == SHAPE) 
         {
             const int number_of_nodes = GetGeometry().PointsNumber();
             const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
@@ -616,7 +616,7 @@ double ShellThinAdjointElement3D3N::GetDisturbanceMeasureCorrectionFactor(const 
 {
     KRATOS_TRY;
 
-    if(rDesignVariable == SHAPE_SENSITIVITY) 
+    if(rDesignVariable == SHAPE) 
     {
         double dx, dy, dz, L = 0.0;
    
@@ -782,7 +782,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
     double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
     delta *= correction_factor;	
 
-    if(rDesignVariable == SHAPE_SENSITIVITY) 
+    if(rDesignVariable == SHAPE) 
     {
         const int number_of_nodes = GetGeometry().PointsNumber();
         const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);

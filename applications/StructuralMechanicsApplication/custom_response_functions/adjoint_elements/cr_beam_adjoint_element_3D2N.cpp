@@ -180,7 +180,7 @@ namespace Kratos
         double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
         delta *= correction_factor;
 
-        if(rDesignVariable == SHAPE_SENSITIVITY)
+        if(rDesignVariable == SHAPE)
         {
             const int number_of_nodes = GetGeometry().PointsNumber();
             const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
@@ -517,7 +517,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if(rDesignVariable == SHAPE_SENSITIVITY)
+        if(rDesignVariable == SHAPE)
         {
             double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
             double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
@@ -668,7 +668,7 @@ namespace Kratos
         double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
         delta *= correction_factor;
 
-        if(rDesignVariable == SHAPE_SENSITIVITY)
+        if(rDesignVariable == SHAPE)
         {
             const int number_of_nodes = GetGeometry().PointsNumber();
             const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
