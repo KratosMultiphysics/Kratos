@@ -407,7 +407,7 @@ public:
         {
             KRATOS_ERROR_IF( eigenvalues[i] < std::numeric_limits<double>::epsilon() ) << "No valid eigenvalue "
                     << "for mode " << i << std::endl;
-            modal_damping = mSystemDamping + mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
+            modal_damping = mSystemDamping + mRayleighAlpha / (2 * std::sqrt(eigenvalues[i])) + mRayleighBeta * std::sqrt(eigenvalues[i]) / 2;
 
             if( mUseMaterialDamping )
             {
