@@ -21,6 +21,12 @@ def CreateSolver(main_model_part, custom_settings):
         elif (solver_type == "static" or solver_type == "Static"):
             solver_module_name = "contact_structural_mechanics_static_solver"
 
+        elif (solver_type == "adaptative_dynamic" or solver_type == "AdaptativeDynamic"):
+            solver_module_name = "adaptative_contact_structural_mechanics_implicit_dynamic_solver"
+
+        elif (solver_type == "adaptative_static" or solver_type == "AdaptativeStatic"):
+            solver_module_name = "adaptative_contact_structural_mechanics_static_solver"
+
         else:
             raise Exception("The requested solver type is not in the python solvers wrapper")
 

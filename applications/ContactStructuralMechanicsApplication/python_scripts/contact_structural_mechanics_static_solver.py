@@ -26,9 +26,9 @@ except ImportError as e:
 import structural_mechanics_static_solver
 
 def CreateSolver(main_model_part, custom_settings):
-    return StaticMechanicalSolver(main_model_part, custom_settings)
+    return ContactStaticMechanicalSolver(main_model_part, custom_settings)
 
-class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanicalSolver):
+class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanicalSolver):
     """The structural mechanics contact static solver.
 
     This class creates the mechanical solvers for contact static analysis. It currently
@@ -79,7 +79,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         self.contact_settings = contact_settings["contact_settings"]
 
         # Construct the base solver.
-        super().__init__(self.main_model_part, self.settings)
+        super(ContactStaticMechanicalSolver, self).__init__(self.main_model_part, self.settings)
 
         # Setting default configurations true by default
         if (self.settings["clear_storage"].GetBool() == False):
@@ -105,7 +105,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
 
     def AddVariables(self):
 
-        super().AddVariables()
+        super(ContactStaticMechanicalSolver, self).AddVariables()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if  mortar_type != "":
@@ -135,7 +135,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
 
     def AddDofs(self):
 
-        super().AddDofs()
+        super(ContactStaticMechanicalSolver, self).AddDofs()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if (mortar_type == "ALMContactFrictionless"):
@@ -154,7 +154,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
-        super().Initialize() # The mechanical solver is created here.
+        super(ContactStaticMechanicalSolver, self).Initialize() # The mechanical solver is created here.
 
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
@@ -208,24 +208,10 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
     def _create_convergence_criterion(self):
         import contact_convergence_criteria_factory
         convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
-
-        error_criteria = self.settings["convergence_criterion"].GetString()
-        # If we just use the adaptative convergence criteria
-        if (missing_meshing_dependencies is True):
-            if ("adaptative_remesh" in error_criteria):
-                raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
-        else:
-            if (error_criteria == "adaptative_remesh_criteria"):
-                adaptative_error_criteria = MA.ErrorMeshCriteria(self.settings["adaptative_remesh_settings"], self.processes_list, self.post_process)
-                convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.GetMortarCriteria(False), adaptative_error_criteria)
-            elif ("with_adaptative_remesh" in error_criteria): # If we combine the regular convergence criteria with adaptative
-                adaptative_error_criteria = MA.ErrorMeshCriteria(self.settings["adaptative_remesh_settings"], self.processes_list, self.post_process)
-                convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
-
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        linear_solver = super()._create_linear_solver()
+        linear_solver = super(ContactStaticMechanicalSolver, self)._create_linear_solver()
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"):
             if (self.contact_settings["use_mixed_ulm_solver"].GetBool() == True):
@@ -274,7 +260,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             else:
                 raise Exception("Contact not compatible with EliminationBuilderAndSolver")
         else:
-            builder_and_solver = super()._create_builder_and_solver()
+            builder_and_solver = super(ContactStaticMechanicalSolver, self)._create_builder_and_solver()
 
         return builder_and_solver
 
@@ -288,7 +274,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 else:
                     mechanical_solution_strategy = self._create_contact_newton_raphson_strategy()
         else:
-            mechanical_solution_strategy = super()._create_mechanical_solution_strategy()
+            mechanical_solution_strategy = super(ContactStaticMechanicalSolver, self)._create_mechanical_solution_strategy()
 
         return mechanical_solution_strategy
 

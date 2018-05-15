@@ -26,9 +26,9 @@ except ImportError as e:
 import structural_mechanics_implicit_dynamic_solver
 
 def CreateSolver(main_model_part, custom_settings):
-    return ImplicitMechanicalSolver(main_model_part, custom_settings)
+    return ContactImplicitMechanicalSolver(main_model_part, custom_settings)
 
-class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
+class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
     """The structural mechanics contact implicit dynamic solver.
 
     This class creates the mechanical solvers for contact implicit dynamic analysis.
@@ -78,7 +78,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         self.contact_settings = contact_settings["contact_settings"]
 
         # Construct the base solver.
-        super().__init__(self.main_model_part, self.settings)
+        super(ContactImplicitMechanicalSolver, self).__init__(self.main_model_part, self.settings)
 
         # Setting default configurations true by default
         if (self.settings["clear_storage"].GetBool() == False):
@@ -104,7 +104,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
 
     def AddVariables(self):
 
-        super().AddVariables()
+        super(ContactImplicitMechanicalSolver, self).AddVariables()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if  mortar_type != "":
@@ -134,7 +134,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
 
     def AddDofs(self):
 
-        super().AddDofs()
+        super(ContactImplicitMechanicalSolver, self).AddDofs()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if (mortar_type == "ALMContactFrictionless"):                                                      # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
@@ -153,7 +153,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         self.print_on_rank_zero("::[Contact Mechanical Implicit Dynamic Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
-        super().Initialize() # The mechanical solver is created here.
+        super(ContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
 
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
@@ -182,7 +182,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
     #### Private functions ####
 
     def _create_linear_solver(self):
-        linear_solver = super()._create_linear_solver()
+        linear_solver = super(ContactImplicitMechanicalSolver, self)._create_linear_solver()
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"):
             if (self.contact_settings["use_mixed_ulm_solver"].GetBool() == True):
@@ -246,20 +246,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
     def _create_convergence_criterion(self):
         import contact_convergence_criteria_factory
         convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
-
-        error_criteria = self.settings["convergence_criterion"].GetString()
-        # If we just use the adaptative convergence criteria
-        if (missing_meshing_dependencies is True):
-            if ("adaptative_remesh" in error_criteria):
-                raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
-        else:
-            if (error_criteria == "adaptative_remesh_criteria"):
-                adaptative_error_criteria = MA.ErrorMeshCriteria(self.settings["adaptative_remesh_settings"], self.processes_list, self.post_process)
-                convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.GetMortarCriteria(False), adaptative_error_criteria)
-            elif ("with_adaptative_remesh" in error_criteria): # If we combine the regular convergence criteria with adaptative
-                adaptative_error_criteria = MA.ErrorMeshCriteria(self.settings["adaptative_remesh_settings"], self.processes_list, self.post_process)
-                convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
-
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_builder_and_solver(self):
@@ -273,7 +259,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             else:
                 raise Exception("Contact not compatible with EliminationBuilderAndSolver")
         else:
-            builder_and_solver = super()._create_builder_and_solver()
+            builder_and_solver = super(ContactImplicitMechanicalSolver, self)._create_builder_and_solver()
 
         return builder_and_solver
 
@@ -287,7 +273,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                 else:
                     mechanical_solution_strategy = self._create_contact_newton_raphson_strategy()
         else:
-            mechanical_solution_strategy = super()._create_mechanical_solution_strategy()
+            mechanical_solution_strategy = super(ContactImplicitMechanicalSolver, self)._create_mechanical_solution_strategy()
 
         return mechanical_solution_strategy
 
