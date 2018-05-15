@@ -23,6 +23,7 @@
 
 namespace Kratos
 {
+
 void VariableUtils::SetVectorVar(
     const ArrayVarType& rVariable,
     const array_1d<double, 3 >& Value,

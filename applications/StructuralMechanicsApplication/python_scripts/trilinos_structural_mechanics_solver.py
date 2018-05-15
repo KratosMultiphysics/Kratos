@@ -27,8 +27,8 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def __init__(self, main_model_part, custom_settings):
         if not custom_settings.Has("linear_solver_settings"): # Override defaults in the base class.
             linear_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type" : "Klu",
-                "scaling" : false
+                "solver_type" : "AmesosSolver",
+                "amesos_solver_type" : "Amesos_Klu"
             }""")
             custom_settings.AddValue("linear_solver_settings", linear_solver_settings)
 

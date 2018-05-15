@@ -212,7 +212,7 @@ public:
     /// The container of the sub model parts. A hash table is used.
     /**
     */
-    typedef PointerHashMapSet<ModelPart, boost::hash< std::string >, GetModelPartName, ModelPart::Pointer>  SubModelPartsContainerType;
+    typedef PointerHashMapSet<ModelPart, std::hash< std::string >, GetModelPartName, ModelPart::Pointer>  SubModelPartsContainerType;
 
     /// Iterator over the sub model parts of this model part.
     /**	Note that this iterator only iterates over the next level of

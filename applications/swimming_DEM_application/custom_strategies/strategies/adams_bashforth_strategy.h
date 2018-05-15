@@ -49,7 +49,7 @@
 
 namespace Kratos {
 
-    class AdamsBashforthStrategy: public ExplicitSolverStrategy {
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) AdamsBashforthStrategy: public ExplicitSolverStrategy {
     public:
 
         typedef ExplicitSolverStrategy BaseType;

@@ -83,7 +83,7 @@ KRATOS_CREATE_VARIABLE(int, VIRTUAL_MASS_OPTION)
 KRATOS_CREATE_VARIABLE(int, SEARCH_CONTROL)
 KRATOS_CREATE_VARIABLE(double, COORDINATION_NUMBER)
 KRATOS_CREATE_VARIABLE(double, MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS)
-KRATOS_CREATE_VARIABLE(vector<int>, SEARCH_CONTROL_VECTOR)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, SEARCH_CONTROL_VECTOR)
 KRATOS_CREATE_VARIABLE(int, CLEAN_INDENT_OPTION)
 KRATOS_CREATE_VARIABLE(int, TRIHEDRON_OPTION)
 KRATOS_CREATE_VARIABLE(int, ROLLING_FRICTION_OPTION)
@@ -125,7 +125,7 @@ KRATOS_CREATE_VARIABLE(double, PARTICLE_TENSION)
 KRATOS_CREATE_VARIABLE(double, PARTICLE_COHESION)
 KRATOS_CREATE_VARIABLE(int, IF_BOUNDARY_ELEMENT)
 KRATOS_CREATE_VARIABLE(Vector, IF_BOUNDARY_FACE)
-KRATOS_CREATE_VARIABLE(vector<int>, PARTICLE_CONTACT_FAILURE_ID)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, PARTICLE_CONTACT_FAILURE_ID)
 
 // *************** Continuum only END ***************
 
@@ -195,9 +195,8 @@ KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_HIGH)
 KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_LOW)
 KRATOS_CREATE_VARIABLE(double, MEAN_CONTACT_AREA)
 KRATOS_CREATE_VARIABLE(double, REPRESENTATIVE_VOLUME)
-KRATOS_CREATE_VARIABLE(boost::numeric::ublas::vector<int>, NEIGHBOUR_IDS)
-KRATOS_CREATE_VARIABLE(
-    boost::numeric::ublas::vector<double>, NEIGHBOURS_CONTACT_AREAS)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, NEIGHBOUR_IDS)
+KRATOS_CREATE_VARIABLE(DenseVector<double>, NEIGHBOURS_CONTACT_AREAS)
 // *************** Continuum only END ***************
 
 //INLET PARAMETERS
@@ -413,6 +412,7 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mSolidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mRigidFace3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mAnalyticRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
@@ -792,6 +792,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_CONDITION("SolidFace3D3N", mSolidFace3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D4N", mSolidFace3D4N)
     KRATOS_REGISTER_CONDITION("RigidFace3D", mRigidFace3D3N)
+    KRATOS_REGISTER_CONDITION("RigidFace3D2N", mRigidFace3D2N)
     KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D3N", mRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D3N", mAnalyticRigidFace3D3N)
