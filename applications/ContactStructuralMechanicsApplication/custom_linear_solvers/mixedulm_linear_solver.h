@@ -28,7 +28,7 @@
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/openmp_utils.h"
 #include "contact_structural_mechanics_application_variables.h"
-#include "custom_utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 #include "custom_utilities/logging_settings.hpp"
 
 namespace Kratos
