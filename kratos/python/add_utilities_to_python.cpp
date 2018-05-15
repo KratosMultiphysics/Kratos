@@ -50,7 +50,6 @@
 #include "utilities/interval_utility.h"
 #include "utilities/table_stream_utility.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
-#include "utilities/process_factory_utility.h"
 
 namespace Kratos
 {
@@ -422,26 +421,6 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<const unsigned int>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
-    ;
-
-    // Process Factory utility
-    class_<ProcessFactoryUtility, typename ProcessFactoryUtility::Pointer>(m, "ProcessFactoryUtility")
-    .def(init< >())
-    .def(init<pybind11::list&>())
-    .def(init<pybind11::object&>())
-    .def("AddProcess",&ProcessFactoryUtility::AddProcess)
-    .def("AddProcesses",&ProcessFactoryUtility::AddProcesses)
-    .def("ExecuteMethod",&ProcessFactoryUtility::ExecuteMethod)
-    .def("ExecuteInitialize",&ProcessFactoryUtility::ExecuteInitialize)
-    .def("ExecuteBeforeSolutionLoop",&ProcessFactoryUtility::ExecuteBeforeSolutionLoop)
-    .def("ExecuteInitializeSolutionStep",&ProcessFactoryUtility::ExecuteInitializeSolutionStep)
-    .def("ExecuteFinalizeSolutionStep",&ProcessFactoryUtility::ExecuteFinalizeSolutionStep)
-    .def("ExecuteBeforeOutputStep",&ProcessFactoryUtility::ExecuteBeforeOutputStep)
-    .def("ExecuteAfterOutputStep",&ProcessFactoryUtility::ExecuteAfterOutputStep)
-    .def("ExecuteFinalize",&ProcessFactoryUtility::ExecuteFinalize)
-    .def("IsOutputStep",&ProcessFactoryUtility::IsOutputStep)
-    .def("PrintOutput",&ProcessFactoryUtility::PrintOutput)
-    .def("Clear",&ProcessFactoryUtility::Clear)
     ;
 }
 

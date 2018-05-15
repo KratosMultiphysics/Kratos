@@ -21,6 +21,7 @@ except ImportError as e:
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
 # Exact integration tests
+from test_process_factory import TestProcessFactory as TTestProcessFactory
 from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
 from test_dynamic_search import TestDynamicSearch as TTestDynamicSearch
 from test_mortar_mapper import TestMortarMapping as TTestMortarMapping
@@ -121,6 +122,10 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
+
+    # Test ProcessFactoryUtility
+    smallSuite.addTest(TTestProcessFactory('test_process_factory'))
+    smallSuite.addTest(TTestProcessFactory('test_processes_list_factory'))
 
     # Mesh tying tests
     smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
@@ -233,6 +238,7 @@ def AssambleTestSuites():
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             ### STANDALONE
+            TTestProcessFactory,
             TTestDoubleCurvatureIntegration,
             TTestDynamicSearch,
             TTestMortarMapping,

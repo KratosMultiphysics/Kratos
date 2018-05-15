@@ -23,6 +23,7 @@
 
 //Utilities
 #include "custom_utilities/tree_contact_search.h"
+#include "custom_utilities/process_factory_utility.h"
 #include "custom_utilities/sparse_matrix_multiplication_utility.h"
 
 namespace Kratos
@@ -69,6 +70,26 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("ResetContactOperators",&TreeContactSearch<3, 4>::ResetContactOperators)
     .def("CheckMortarConditions",&TreeContactSearch<3, 4>::CheckMortarConditions)
     .def("InvertSearch",&TreeContactSearch<3, 4>::InvertSearch)
+    ;
+
+    // Process Factory utility
+    class_<ProcessFactoryUtility, typename ProcessFactoryUtility::Pointer>(m, "ProcessFactoryUtility")
+    .def(init< >())
+    .def(init<  list&>())
+    .def(init<  object&>())
+    .def("AddProcess",&ProcessFactoryUtility::AddProcess)
+    .def("AddProcesses",&ProcessFactoryUtility::AddProcesses)
+    .def("ExecuteMethod",&ProcessFactoryUtility::ExecuteMethod)
+    .def("ExecuteInitialize",&ProcessFactoryUtility::ExecuteInitialize)
+    .def("ExecuteBeforeSolutionLoop",&ProcessFactoryUtility::ExecuteBeforeSolutionLoop)
+    .def("ExecuteInitializeSolutionStep",&ProcessFactoryUtility::ExecuteInitializeSolutionStep)
+    .def("ExecuteFinalizeSolutionStep",&ProcessFactoryUtility::ExecuteFinalizeSolutionStep)
+    .def("ExecuteBeforeOutputStep",&ProcessFactoryUtility::ExecuteBeforeOutputStep)
+    .def("ExecuteAfterOutputStep",&ProcessFactoryUtility::ExecuteAfterOutputStep)
+    .def("ExecuteFinalize",&ProcessFactoryUtility::ExecuteFinalize)
+    .def("IsOutputStep",&ProcessFactoryUtility::IsOutputStep)
+    .def("PrintOutput",&ProcessFactoryUtility::PrintOutput)
+    .def("Clear",&ProcessFactoryUtility::Clear)
     ;
 
     // Sparse matrix multiplication utility

@@ -30,7 +30,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/color_utilities.h"
 #include "utilities/math_utils.h"
-#include "utilities/process_factory_utility.h"
+#include "custom_utilities/process_factory_utility.h"
 
 namespace Kratos {
 
