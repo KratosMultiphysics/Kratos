@@ -268,9 +268,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     }
     # Nodal smoothed variables
     if {[GiD_AccessValue get gendata Nodal_Smoothing] eq true} {
+        AppendOutputVariables PutStrings iGroup Write_Effective_Stress NODAL_CAUCHY_STRESS_TENSOR
         AppendOutputVariables PutStrings iGroup Write_Damage NODAL_DAMAGE_VARIABLE
         AppendOutputVariables PutStrings iGroup Write_Joint_Width NODAL_JOINT_WIDTH
-        AppendOutputVariables PutStrings iGroup Write_Effective_Stress NODAL_CAUCHY_STRESS_TENSOR
+        AppendOutputVariables PutStrings iGroup Write_Damage NODAL_JOINT_DAMAGE
     }
     if {$iGroup > 0} {
         set PutStrings [string trimright $PutStrings ,]

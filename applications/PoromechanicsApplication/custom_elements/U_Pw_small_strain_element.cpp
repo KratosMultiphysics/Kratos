@@ -209,8 +209,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& r
 
             this->SaveGPStress(StressContainer,StressVector,VoigtSize,GPoint);
         }
-        this->ExtrapolateGPStress(StressContainer,VoigtSize);
-        this->ExtrapolateGPDamage();
+        this->ExtrapolateGPValues(StressContainer,VoigtSize);
     }
     else
     {
@@ -257,11 +256,14 @@ void UPwSmallStrainElement<TDim,TNumNodes>::SaveGPStress(Matrix& rStressContaine
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainElement<2,3>::ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& VoigtSize)
+void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& StressContainer, const unsigned int& VoigtSize)
 {
     KRATOS_TRY
 
     // Triangle_2d_3 with GI_GAUSS_1
+
+    double DamageContainer = 0.0;
+    DamageContainer = mConstitutiveLawVector[0]->GetValue( DAMAGE_VARIABLE, DamageContainer );
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area = rGeom.Area();
@@ -281,6 +283,7 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPStress(const Matrix& StressContain
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += DamageContainer*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -291,11 +294,19 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPStress(const Matrix& StressContain
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainElement<2,4>::ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& VoigtSize)
+void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& StressContainer, const unsigned int& VoigtSize)
 {
     KRATOS_TRY
 
     // Quadrilateral_2d_4 with GI_GAUSS_2
+
+    array_1d<double,4> DamageContainer; // 4 GPoints
+
+    for ( unsigned int i = 0;  i < 4; i++ ) //NumGPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area = rGeom.Area();
@@ -324,6 +335,9 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPStress(const Matrix& StressContain
         * S1-0 = S[1] at node 0
     */
 
+    array_1d<double,4> NodalDamage; //List with stresses at each node
+    noalias(NodalDamage) = prod(ExtrapolationMatrix,DamageContainer);
+
     for(unsigned int i = 0; i < 4; i++) //TNumNodes
     {
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
@@ -331,6 +345,7 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPStress(const Matrix& StressContain
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -341,11 +356,14 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPStress(const Matrix& StressContain
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainElement<3,4>::ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& VoigtSize)
+void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& StressContainer, const unsigned int& VoigtSize)
 {
     KRATOS_TRY
 
     // Tetrahedra_3d_4 with GI_GAUSS_1
+
+    double DamageContainer = 0.0;
+    DamageContainer = mConstitutiveLawVector[0]->GetValue( DAMAGE_VARIABLE, DamageContainer );
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area = rGeom.Area(); // In 3D this is Volume
@@ -365,6 +383,7 @@ void UPwSmallStrainElement<3,4>::ExtrapolateGPStress(const Matrix& StressContain
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += DamageContainer*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -375,11 +394,19 @@ void UPwSmallStrainElement<3,4>::ExtrapolateGPStress(const Matrix& StressContain
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainElement<3,8>::ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& VoigtSize)
+void UPwSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& StressContainer, const unsigned int& VoigtSize)
 {
     KRATOS_TRY
 
     // Hexahedra_3d_8 with GI_GAUSS_2
+
+    array_1d<double,8> DamageContainer; // 8 GPoints
+
+    for ( unsigned int i = 0;  i < 8; i++ ) //NumGPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area = rGeom.Area(); // In 3D this is Volume
@@ -398,6 +425,9 @@ void UPwSmallStrainElement<3,8>::ExtrapolateGPStress(const Matrix& StressContain
     BoundedMatrix<double,8,6> AuxNodalStress;
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
 
+    array_1d<double,8> NodalDamage; //List with stresses at each node
+    noalias(NodalDamage) = prod(ExtrapolationMatrix,DamageContainer);
+
     for(unsigned int i = 0; i < 8; i++) //TNumNodes
     {
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
@@ -405,132 +435,13 @@ void UPwSmallStrainElement<3,8>::ExtrapolateGPStress(const Matrix& StressContain
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
     }
 
     KRATOS_CATCH( "" )
 }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-template< >
-void UPwSmallStrainElement<2,3>::ExtrapolateGPDamage ()
-{
-    KRATOS_TRY
-
-    // Triangle_2d_3 with GI_GAUSS_1
-
-    double DamageContainer = 0.0;
-    DamageContainer = mConstitutiveLawVector[0]->GetValue( DAMAGE_VARIABLE, DamageContainer );
-
-    GeometryType& rGeom = this->GetGeometry();
-    const double& Area = rGeom.Area();
-
-    array_1d<double,3> NodalDamage; //List with damage at each node
-
-    for(unsigned int i = 0; i < 3; i++) //NumNodes
-    {
-        NodalDamage[i] = DamageContainer*Area;
-
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
-        rGeom[i].UnSetLock();
-    }
-
-    KRATOS_CATCH( "" )
-
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-template< >
-void UPwSmallStrainElement<2,4>::ExtrapolateGPDamage ()
-{
-    KRATOS_TRY
-
-    // Triangle_2d_3 with GI_GAUSS_1
-
-    double DamageContainer = 0.0;
-    DamageContainer = mConstitutiveLawVector[0]->GetValue( DAMAGE_VARIABLE, DamageContainer );
-
-    GeometryType& rGeom = this->GetGeometry();
-    const double& Area = rGeom.Area();
-
-    array_1d<double,3> NodalDamage; //List with damage at each node
-
-    for(unsigned int i = 0; i < 3; i++) //NumNodes
-    {
-        NodalDamage[i] = DamageContainer*Area;
-
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
-        rGeom[i].UnSetLock();
-    }
-
-    KRATOS_CATCH( "" )
-
-    KRATOS_TRY
-
-    // Quadrilateral_2d_4 with GI_GAUSS_2
-
-    GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
-    std::vector<double> DamageContainer(NumGPoints);
-
-    double DamageContainer = 0.0;
-    DamageContainer = mConstitutiveLawVector[0]->GetValue( DAMAGE_VARIABLE, DamageContainer );
-
-
-    const double& Area = rGeom.Area();
-
-    array_1d<Vector,4> NodalStressVector; //List with stresses at each node
-    array_1d<Matrix,4> NodalStressTensor;
-
-    for(unsigned int Node = 0; Node < 4; Node ++)
-    {
-        NodalStressVector[Node].resize(VoigtSize);
-        NodalStressTensor[Node].resize(2,2);
-    }
-
-    BoundedMatrix<double,4,4> ExtrapolationMatrix;
-    ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
-    BoundedMatrix<double,4,3> AuxNodalStress;
-    noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
-
-    /* INFO:
-        *
-        *                  |S0-0 S1-0 S2-0|
-        * AuxNodalStress = |S0-1 S1-1 S2-1|
-        *                  |S0-2 S1-2 S2-2|
-        *                  |S0-3 S1-3 S2-3|
-        *
-        * S1-0 = S[1] at node 0
-    */
-
-    for(unsigned int i = 0; i < 4; i++) //TNumNodes
-    {
-        noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
-        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
-
-        rGeom[i].SetLock();
-        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
-        rGeom[i].UnSetLock();
-    }
-
-    KRATOS_CATCH( "" )
-
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-//TODO: seguir
-
-
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

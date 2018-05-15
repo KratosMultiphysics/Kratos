@@ -189,14 +189,20 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Proce
     ConstitutiveParameters.SetDeterminantF(detF);
     ConstitutiveParameters.SetDeformationGradientF(F);
 
+    // Auxiliar output variables
+    unsigned int NumGPoints = mConstitutiveLawVector.size();
+    std::vector<double> JointWidthContainer(NumGPoints);
+
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
     {
         InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
         noalias(RelDispVector) = prod(Nu,DisplacementVector);
 
         noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
+
+        JointWidthContainer[GPoint] = mInitialGap[GPoint] + StrainVector[TDim-1];
 
         this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
 
@@ -206,7 +212,138 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Proce
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
     }
 
+    if(rCurrentProcessInfo[NODAL_SMOOTHING] == true)
+    {
+        this->ExtrapolateGPValues(JointWidthContainer);
+    }
+
     KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPwSmallStrainInterfaceElement<2,4>::ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
+{
+    array_1d<double,2> DamageContainer; // 2 LobattoPoints
+
+    for ( unsigned int i = 0;  i < 2; i++ ) // NumLobattoPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
+
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area();
+
+    array_1d<double,4> NodalJointWidth;
+    NodalJointWidth[0] = JointWidthContainer[0]*Area;
+    NodalJointWidth[1] = JointWidthContainer[1]*Area;
+    NodalJointWidth[2] = JointWidthContainer[1]*Area;
+    NodalJointWidth[3] = JointWidthContainer[0]*Area;
+
+    array_1d<double,4> NodalDamage;
+    NodalDamage[0] = DamageContainer[0]*Area;
+    NodalDamage[1] = DamageContainer[1]*Area;
+    NodalDamage[2] = DamageContainer[1]*Area;
+    NodalDamage[3] = DamageContainer[0]*Area;
+
+    for(unsigned int i = 0; i < 4; i++) //NumNodes
+    {
+        rGeom[i].SetLock();
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPwSmallStrainInterfaceElement<3,6>::ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
+{
+    array_1d<double,3> DamageContainer; // 3 LobattoPoints
+
+    for ( unsigned int i = 0;  i < 3; i++ ) // NumLobattoPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
+
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area();
+
+    array_1d<double,6> NodalJointWidth;
+    NodalJointWidth[0] = JointWidthContainer[0]*Area;
+    NodalJointWidth[1] = JointWidthContainer[1]*Area;
+    NodalJointWidth[2] = JointWidthContainer[2]*Area;
+    NodalJointWidth[3] = JointWidthContainer[0]*Area;
+    NodalJointWidth[4] = JointWidthContainer[1]*Area;
+    NodalJointWidth[5] = JointWidthContainer[2]*Area;
+
+    array_1d<double,6> NodalDamage;
+    NodalDamage[0] = DamageContainer[0]*Area;
+    NodalDamage[1] = DamageContainer[1]*Area;
+    NodalDamage[2] = DamageContainer[2]*Area;
+    NodalDamage[3] = DamageContainer[0]*Area;
+    NodalDamage[4] = DamageContainer[1]*Area;
+    NodalDamage[5] = DamageContainer[2]*Area;
+
+    for(unsigned int i = 0; i < 6; i++) //NumNodes
+    {
+        rGeom[i].SetLock();
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPwSmallStrainInterfaceElement<3,8>::ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
+{
+    array_1d<double,4> DamageContainer; // 4 LobattoPoints
+
+    for ( unsigned int i = 0;  i < 4; i++ ) // NumLobattoPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
+
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area();
+
+    array_1d<double,8> NodalJointWidth;
+    NodalJointWidth[0] = JointWidthContainer[0]*Area;
+    NodalJointWidth[1] = JointWidthContainer[1]*Area;
+    NodalJointWidth[2] = JointWidthContainer[2]*Area;
+    NodalJointWidth[3] = JointWidthContainer[3]*Area;
+    NodalJointWidth[4] = JointWidthContainer[0]*Area;
+    NodalJointWidth[5] = JointWidthContainer[1]*Area;
+    NodalJointWidth[6] = JointWidthContainer[2]*Area;
+    NodalJointWidth[7] = JointWidthContainer[3]*Area;
+
+    array_1d<double,8> NodalDamage;
+    NodalDamage[0] = DamageContainer[0]*Area;
+    NodalDamage[1] = DamageContainer[1]*Area;
+    NodalDamage[2] = DamageContainer[2]*Area;
+    NodalDamage[3] = DamageContainer[3]*Area;
+    NodalDamage[4] = DamageContainer[0]*Area;
+    NodalDamage[5] = DamageContainer[1]*Area;
+    NodalDamage[6] = DamageContainer[2]*Area;
+    NodalDamage[7] = DamageContainer[3]*Area;
+
+    for(unsigned int i = 0; i < 8; i++) //NumNodes
+    {
+        rGeom[i].SetLock();
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -266,7 +403,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
     else
     {
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -301,7 +438,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
     else
     {
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -339,7 +476,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
     else
     {
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 

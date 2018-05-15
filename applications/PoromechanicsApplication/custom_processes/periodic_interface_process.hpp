@@ -122,12 +122,12 @@ public:
             Vector PrincipalStresses(mDimension);
             if(mDimension == 2)
             {
-                PrincipalStresses[0] = 0.5*(StressMatrix(0,0)+StressMatrix(1,1)) +
-                                    sqrt(0.25*(StressMatrix(0,0)-StressMatrix(1,1))*(StressMatrix(0,0)-StressMatrix(1,1)) +
-                                            StressMatrix(0,1)*StressMatrix(0,1));
-                PrincipalStresses[1] = 0.5*(StressMatrix(0,0)+StressMatrix(1,1)) -
-                                    sqrt(0.25*(StressMatrix(0,0)-StressMatrix(1,1))*(StressMatrix(0,0)-StressMatrix(1,1)) +
-                                            StressMatrix(0,1)*StressMatrix(0,1));
+                PrincipalStresses[0] = 0.5*(NodalStressMatrix(0,0)+NodalStressMatrix(1,1)) +
+                                    sqrt(0.25*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1))*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1)) +
+                                            NodalStressMatrix(0,1)*NodalStressMatrix(0,1));
+                PrincipalStresses[1] = 0.5*(NodalStressMatrix(0,0)+NodalStressMatrix(1,1)) -
+                                    sqrt(0.25*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1))*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1)) +
+                                            NodalStressMatrix(0,1)*NodalStressMatrix(0,1));
             }
             else
             {

@@ -132,8 +132,6 @@ VALUE: false
 QUESTION: Write_Body_Acceleration#CB#(true,false)
 VALUE: false
 
-QUESTION: Nodal_Smoothing#CB#(true,false)
-VALUE: false
 QUESTION: Write_Strain#CB#(true,false)
 VALUE: false
 QUESTION: Write_Effective_Stress#CB#(true,false)
@@ -157,6 +155,8 @@ VALUE: false
 QUESTION: Write_Local_Fluid_Flux#CB#(true,false)
 VALUE: false
 QUESTION: Write_Local_Permeability#CB#(true,false)
+VALUE: false
+QUESTION: Nodal_Smoothing#CB#(true,false)
 VALUE: false
 
 QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
