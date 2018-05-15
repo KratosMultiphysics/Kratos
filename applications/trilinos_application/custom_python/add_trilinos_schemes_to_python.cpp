@@ -37,7 +37,6 @@
 #include "trilinos_application.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
-// #include "add_trilinos_linear_solvers_to_python.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 
@@ -70,16 +69,8 @@
 #include "../../AdjointFluidApplication/custom_schemes/adjoint_steady_velocity_pressure_scheme.h"
 #include "../../AdjointFluidApplication/custom_schemes/adjoint_bossak_scheme.h"
 
-//linear solvers
-#include "linear_solvers/linear_solver.h"
-
 //teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
-
-#include "external_includes/aztec_solver.h"
-#include "external_includes/amesos_solver.h"
-#include "external_includes/ml_solver.h"
-
 
 
 namespace Kratos

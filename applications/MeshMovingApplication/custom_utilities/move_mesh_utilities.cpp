@@ -42,7 +42,14 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 
 //******************************************************************************
 //******************************************************************************
+
 void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart,
+                             const int TimeOrder, const double DeltaTime) {
+
+    CalculateMeshVelocities(*pMeshModelPart, TimeOrder, DeltaTime);
+}
+
+void CalculateMeshVelocities(ModelPart &rMeshModelPart,
                              const int TimeOrder, const double DeltaTime) {
   KRATOS_TRY;
 
@@ -52,8 +59,8 @@ void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart,
 
   if (TimeOrder == 1) {
     for (ModelPart::NodeIterator i =
-             (*pMeshModelPart).GetCommunicator().LocalMesh().NodesBegin();
-         i != (*pMeshModelPart).GetCommunicator().LocalMesh().NodesEnd(); ++i) {
+             rMeshModelPart.GetCommunicator().LocalMesh().NodesBegin();
+         i != rMeshModelPart.GetCommunicator().LocalMesh().NodesEnd(); ++i) {
 
       array_1d<double, 3> &mesh_v =
           (i)->FastGetSolutionStepValue(MESH_VELOCITY);
@@ -70,8 +77,8 @@ void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart,
     const double c3 = 0.50 * coeff;
 
     for (ModelPart::NodeIterator i =
-             (*pMeshModelPart).GetCommunicator().LocalMesh().NodesBegin();
-         i != (*pMeshModelPart).GetCommunicator().LocalMesh().NodesEnd(); ++i) {
+             rMeshModelPart.GetCommunicator().LocalMesh().NodesBegin();
+         i != rMeshModelPart.GetCommunicator().LocalMesh().NodesEnd(); ++i) {
 
       array_1d<double, 3> &mesh_v =
           (i)->FastGetSolutionStepValue(MESH_VELOCITY);
