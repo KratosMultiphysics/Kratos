@@ -140,6 +140,9 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     GeometryType& r_geom = GetGeometry();
 
     this->CheckVariables();
+    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
+    
     this->CheckProperties(rCurrentProcessInfo);
 
     // Check dofs
