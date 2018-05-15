@@ -598,7 +598,8 @@ public:
 
         // Displacements and velocities of the slave
         u1 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1);
-        X1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false, 1);
+        const IndexType step = (rCurrentProcessInfo[STEP] == 1) ? 0 : 1;
+        X1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false, step);
 
         // We get the ALM variables
         for (std::size_t i = 0; i < TNumNodes; ++i)
@@ -651,16 +652,21 @@ public:
     /**
      * @brief Updating the Master pair
      * @param MasterGeometry The master geometry
+     * @param rCurrentProcessInfo The process info from the system
      */
 
-    virtual void UpdateMasterPair(const GeometryType& MasterGeometry)
+    virtual void UpdateMasterPair(
+        const GeometryType& MasterGeometry,
+        const ProcessInfo& rCurrentProcessInfo
+        )
     {
         NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL, 0);
 
         // Displacements, coordinates and normals of the master
         u2 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0)
            - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1);
-        X2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry, false, 1);
+        const IndexType step = (rCurrentProcessInfo[STEP] == 1) ? 0 : 1;
+        X2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry, false, step);
     }
 
     ///@}
@@ -813,11 +819,15 @@ public:
     /**
      * @brief Updating the Master pair
      * @param MasterGeometry The geometry of the master
+     * @param rCurrentProcessInfo The process info from the system
      */
 
-    void UpdateMasterPair(const GeometryType& MasterGeometry) override
+    void UpdateMasterPair(
+        const GeometryType& MasterGeometry,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
     {
-        BaseClassType::UpdateMasterPair(MasterGeometry);
+        BaseClassType::UpdateMasterPair(MasterGeometry, rCurrentProcessInfo);
 
         u2old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
     }
