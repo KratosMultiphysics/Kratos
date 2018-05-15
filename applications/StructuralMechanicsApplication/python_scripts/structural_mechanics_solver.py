@@ -9,18 +9,6 @@ KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-try:
-    # Check that applications were imported in the main script
-    KratosMultiphysics.CheckRegisteredApplications("MeshingApplication")
-    import KratosMultiphysics.MeshingApplication as MeshingApplication
-    missing_meshing_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_meshing_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
-
 # Other imports
 import os
 
@@ -87,40 +75,6 @@ class MechanicalSolver(object):
             "displacement_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,
             "residual_absolute_tolerance": 1.0e-9,
-            "adaptative_remesh_settings" : {
-                "error_mesh_tolerance" : 5.0e-3,
-                "error_mesh_constant"  : 5.0e-3,
-                "remeshing_utility"    : "MMG",
-                "strategy"             : "Error",
-                "remeshing_parameters":
-                {
-                    "filename"                             : "out",
-                    "framework"                            : "Lagrangian",
-                    "internal_variables_parameters"        :
-                    {
-                        "allocation_size"                      : 1000,
-                        "bucket_size"                          : 4,
-                        "search_factor"                        : 2,
-                        "interpolation_type"                   : "LST",
-                        "internal_variable_interpolation_list" :[]
-                    },
-                    "save_external_files"              : false,
-                    "max_number_of_searchs"            : 1000,
-                    "echo_level"                       : 0
-                },
-                "error_strategy_parameters":
-                {
-                    "minimal_size"                        : 0.01,
-                    "maximal_size"                        : 1.0,
-                    "error"                               : 0.01,
-                    "penalty_normal"                      : 1.0e4,
-                    "penalty_tangential"                  : 1.0e4,
-                    "echo_level"                          : 0,
-                    "set_number_of_elements"              : false,
-                    "number_of_elements"                  : 1000,
-                    "average_nodal_h"                     : false
-                }
-            },
             "max_iteration": 10,
             "linear_solver_settings":{
                 "solver_type": "SuperLUSolver",
@@ -190,8 +144,6 @@ class MechanicalSolver(object):
             # Add specific variables for the problem (pressure dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESSURE_REACTION)
-        if (missing_meshing_dependencies is False):
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         # Add variables that the user defined in the ProjectParameters
         for i in range(self.settings["auxiliary_variables_list"].size()):
             variable_name = self.settings["auxiliary_variables_list"][i].GetString()
@@ -553,25 +505,9 @@ class MechanicalSolver(object):
         return conv_params
 
     def _create_convergence_criterion(self):
-        error_criteria = self.settings["convergence_criterion"].GetString()
-        # If we just use the adaptative convergence criteria
-        if (missing_meshing_dependencies is True):
-            if ("adaptative_remesh" in error_criteria):
-                raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
-        else:
-            if (error_criteria == "adaptative_remesh_criteria"):
-                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.settings["adaptative_remesh_settings"], self.processes_list, self.post_process)
-                return adaptative_error_criteria
-
-        # Regular convergence criteria
+        # Convergence criteria
         import convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
-
-        # If we combine the regular convergence criteria with adaptative
-        if (missing_meshing_dependencies is False):
-            if ("with_adaptative_remesh" in error_criteria):
-                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.settings["adaptative_remesh_settings"], self.processes_list, self.post_process)
-                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
