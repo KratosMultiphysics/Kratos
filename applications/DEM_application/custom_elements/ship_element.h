@@ -37,7 +37,7 @@ namespace Kratos
         void ComputeBuoyancyEffects();
         void ComputeEngineForce();
         void ComputeWaterDragForce();
-        void ComputeAdditionalForces(const array_1d<double,3>& gravity);
+        void ComputeExternalForces(const array_1d<double,3>& gravity);
 
         virtual std::string Info() const override
         {

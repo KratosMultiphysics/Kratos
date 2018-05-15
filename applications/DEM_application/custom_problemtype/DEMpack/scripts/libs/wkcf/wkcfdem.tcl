@@ -3506,7 +3506,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.VEnd" "dv"]"
 	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE \[3\] ($ExternalFX,$ExternalFY,$ExternalFZ)"
 	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT \[3\] ($ExternalMX,$ExternalMY,$ExternalMZ)"
-	    GiD_File fprintf $demfemchannel "  //FLOATING_OPTION $Buoyancy"
+	    GiD_File fprintf $demfemchannel "  FLOATING_OPTION $Buoyancy"
 	    }
 	    GiD_File fprintf $demfemchannel "  FIXED_MESH_OPTION $fixed_wall_value"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MOTION $RigidBodyMotionOption"

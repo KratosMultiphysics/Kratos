@@ -86,8 +86,9 @@ namespace Kratos {
         KRATOS_TRY
 
         // We are assuming the ship is moving in the X direction
-        const double engine_power = 60000000; // 60MW Arktika-class icebreaker
-        const double max_engine_force = 60000000; // with 20MN the ship almost couldn't make it through the ice
+        // Here insert the corresponding engine characteristics
+        const double engine_power = 0.0; //60000000; // 60MW Arktika-class icebreaker
+        const double max_engine_force = 0.0; //60000000; // with 20MN the ship almost couldn't make it through the ice
         const double threshold_velocity = 1.0; // It was set to 3.0 m/s before, which corresponded to a maximum force of 20MN
         const double engine_performance = 1.0;
 
@@ -103,10 +104,11 @@ namespace Kratos {
     void ShipElement3D::ComputeWaterDragForce() {
 
         KRATOS_TRY
-
-        const double drag_constant_X = 500000; // Such that the X maximum velocity is 11 m/s, which corresponds to Arktika-class icebreakers
-        const double drag_constant_Y = 240000000; // Such that the Y maximum velocity is 0.5 m/s
-        const double drag_constant_Z = 240000000; // Such that the Z maximum velocity is 0.5 m/s
+        
+        // Here insert the corresponding drag constant values
+        const double drag_constant_X = 0.0; // 500000; // Such that the X maximum velocity is 11 m/s, which corresponds to Arktika-class icebreakers
+        const double drag_constant_Y = 0.0; // 240000000; // Such that the Y maximum velocity is 0.5 m/s
+        const double drag_constant_Z = 0.0; // 240000000; // Such that the Z maximum velocity is 0.5 m/s
         array_1d<double, 3>& external_applied_force  = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
         const array_1d<double, 3> velocity = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
@@ -119,12 +121,12 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ShipElement3D::ComputeAdditionalForces(const array_1d<double,3>& gravity) {
+    void ShipElement3D::ComputeExternalForces(const array_1d<double,3>& gravity) {
 
         KRATOS_TRY
         // Gravity
         noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += RigidBodyElement3D::GetMass() * gravity;
-
+        
         ComputeBuoyancyEffects();
         ComputeEngineForce();
         ComputeWaterDragForce();
