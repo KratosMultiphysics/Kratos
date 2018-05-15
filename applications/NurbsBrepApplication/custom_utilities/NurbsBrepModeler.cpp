@@ -490,8 +490,7 @@ namespace Kratos
 				//unsigned int face_id_of_nearest_point;
 				Node<3>::Pointer node = Kratos::make_shared<Node<3>>(0,0,0,0); // ::Pointer(new Node<3>(0));
 				Node<3>::Pointer node_on_geometry = Node<3>::Pointer(new Node<3>(0,0,0,0));
-				
-				std::vector<Condition*> point_conditions;// = (*element).GetValue(WALL_POINT_CONDITION_POINTERS);
+
 				//if (point_conditions.size() > 0)
 				//{
 				//	Condition closestElement = point_conditions[0];
@@ -558,15 +557,18 @@ namespace Kratos
 						}
 						std::string condition_name = "MeshlessForceInterfaceCondition";
 						std::size_t id = 1;
+
 						Condition::Pointer cond = rConditionModelPart.CreateNewCondition(condition_name, id, node_ids_int, element->pGetProperties());
-						//point_conditions.push_back(cond);
 						Vector external_force_vector = ZeroVector(3);
 						cond->SetValue(LOCAL_PARAMETERS, node_on_geometry->GetValue(LOCAL_PARAMETERS));
 						cond->SetValue(FACE_BREP_ID, node_on_geometry->GetValue(FACE_BREP_ID));
 						cond->SetValue(SHAPE_FUNCTION_VALUES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTIONS));
 						cond->SetValue(EXTERNAL_FORCES_VECTOR, external_force_vector);
-						point_conditions.push_back(&*cond);
-						element->SetValue(WALL_POINT_CONDITION_POINTERS, point_conditions);
+
+						element->GetValue(WALL_POINT_CONDITION_POINTERS).push_back(&*cond);
+						element->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES).push_back(ZeroVector(3));
+						element->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES).push_back(ZeroVector(3));
+
 					}
 				}
 			}
