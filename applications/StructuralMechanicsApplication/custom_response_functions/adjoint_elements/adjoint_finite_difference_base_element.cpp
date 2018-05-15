@@ -449,6 +449,8 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 
     if ( mpPrimalElement->GetProperties().Has(rDesignVariable) )
     {
+        // TODO ActualizeElementWithDisturbance
+
         // Save properties and its pointer
         Properties& r_global_property = mpPrimalElement->GetProperties();
         Properties::Pointer p_global_properties = mpPrimalElement->pGetProperties();
@@ -461,8 +463,9 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
         const double current_property_value = mpPrimalElement->GetProperties()[rDesignVariable];
         p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
 
-        mpPrimalShellElement->ResetSections();
-        mpPrimalElement->Initialize();
+        // TODO ActualizeElementWithDisturbance
+        mpPrimalShellElement->ResetSections(); // TODO move to separate function at derived element
+        mpPrimalElement->Initialize(); // TODO move to separate function at derived element
 
         // Compute RHS after disturbance
         mpPrimalElement->CalculateRightHandSide(RHS_dist, copy_process_info);
@@ -478,6 +481,8 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
         mpPrimalShellElement->ResetSections();
         mpPrimalElement->Initialize();
         mpPrimalElement->CalculateRightHandSide(RHS_dist, copy_process_info);
+
+        // TODO FinalizeDisturbance
     }
     else
         rOutput.clear();
@@ -517,15 +522,15 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
             {
                 for(std::size_t coord_dir_i = 0; coord_dir_i < dimension; coord_dir_i++)
                 {
+                    // TODO InitializeDisturbance
+
                     // disturb the design variable
                     node_i.GetInitialPosition()[coord_dir_i] += delta;
 
+                    // TODO ActualizeElementWithDisturbance
+
                     // compute RHS after disturbance
                     mpPrimalElement->CalculateRightHandSide(RHS_dist, copy_process_info);
-
-                    Matrix dummy;
-                    mpPrimalShellElement->CalculateAll(dummy, RHS_dist, copy_process_info, true, true);
-                    mpPrimalShellElement->CalculateLocalSystem(dummy, RHS_dist, copy_process_info);
 
                     //compute derivative of RHS w.r.t. design variable with finite differences
                     noalias(RHS_dist) -= RHS_undist;
@@ -538,6 +543,9 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 
                     // undisturb the design variable
                     node_i.GetInitialPosition()[coord_dir_i] -= delta;
+
+                    // TODO FinalizeDisturbance
+
                 }
                 index++;
 
