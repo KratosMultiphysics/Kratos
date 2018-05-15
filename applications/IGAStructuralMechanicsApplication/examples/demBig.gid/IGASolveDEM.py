@@ -31,6 +31,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.IGAStructuralMechanicsApplication import *
 from KratosMultiphysics.NurbsBrepApplication import *
 import KratosMultiphysics.MappingApplication as KratosMapping
+from KratosMultiphysics.ExternalSolversApplication import *
 
 from KratosMultiphysics import DEMApplication
 import main_script
