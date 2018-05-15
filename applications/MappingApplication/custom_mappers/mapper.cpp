@@ -37,6 +37,8 @@ Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
                     mrModelPartOrigin(rModelPartOrigin),
                     mrModelPartDestination(rModelPartDestination)
 {
+    // TODO throw error in case of MPI-execution with one core
+
     // ValidateParameters(MapperSettings);
     // mEchoLevel = MapperSettings["echo_level"].GetInt();
 }

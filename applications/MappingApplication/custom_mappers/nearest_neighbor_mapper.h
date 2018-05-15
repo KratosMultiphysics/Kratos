@@ -111,20 +111,6 @@ public:
     ///@name Operations
     ///@{
 
-    // void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius) override
-    // {
-    //     // mpMapperCommunicator->UpdateInterface(MappingOptions, SearchRadius);
-    //     // if (mpInverseMapper)
-    //     // {
-    //     //     mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
-    //     // }
-
-    //     // if (MappingOptions.Is(MapperFlags::REMESHED))
-    //     // {
-    //     //     ComputeNumberOfNodesAndConditions();
-    //     // }
-    // }
-
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
                           Parameters JsonParameters) override
@@ -221,37 +207,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    // template <typename T>
-    // static T GetValueOfNode(InterfaceObject::Pointer pInterfaceObject, //TODO const
-    //                         const Variable< T >& rVariable,
-    //                         const Kratos::Flags& rOptions,
-    //                         const std::vector<double>& rShapeFunctionValues)
-    // {
-    //     Node<3>* p_base_node = pInterfaceObject->pGetBaseNode();
-
-    //     return p_base_node->FastGetSolutionStepValue(rVariable);
-    // }
-
-
-    // template <typename T>
-    // static void SetValueOfNode(InterfaceObject::Pointer pInterfaceObject,
-    //                            const T& rValue,
-    //                            const Variable< T >& rVariable,
-    //                            const Kratos::Flags& rOptions,
-    //                            const double Factor)
-    // {
-    //     Node<3>* p_base_node = pInterfaceObject->pGetBaseNode();
-
-    //     if (rOptions.Is(MapperFlags::ADD_VALUES))
-    //     {
-    //         p_base_node->FastGetSolutionStepValue(rVariable) += rValue * Factor;
-    //     }
-    //     else
-    //     {
-    //         p_base_node->FastGetSolutionStepValue(rVariable) = rValue * Factor;
-    //     }
-    // }
 
     ///@}
     ///@name Private  Access

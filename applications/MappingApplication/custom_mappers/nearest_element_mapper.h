@@ -114,20 +114,6 @@ public:
     ///@name Operations
     ///@{
 
-    // void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius) override
-    // {
-    //     // mpMapperCommunicator->UpdateInterface(MappingOptions, SearchRadius);
-    //     // if (mpInverseMapper)
-    //     // {
-    //     //     mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
-    //     // }
-
-    //     // if (MappingOptions.Is(MapperFlags::REMESHED))
-    //     // {
-    //     //     ComputeNumberOfNodesAndConditions();
-    //     // }
-    // }
-
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
                           Parameters JsonParameters) override
@@ -240,61 +226,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    // static double GetInterpolatedValueFromGeometryScalar(InterfaceObject::Pointer pInterfaceObject, //TODO const
-    //         const Variable<double>& rVariable,
-    //         const Kratos::Flags& rOptions,
-    //         const std::vector<double>& rShapeFunctionValues)
-    // {
-    //     Geometry<Node<3>>* p_base_geometry = pInterfaceObject->pGetBaseGeometry();
-
-    //     double interpolated_value = 0.0f;
-
-    //     for (std::size_t i = 0; i < p_base_geometry->PointsNumber(); ++i)
-    //     {
-    //         interpolated_value += p_base_geometry->GetPoint(i).FastGetSolutionStepValue(rVariable) * rShapeFunctionValues[i];
-    //     }
-    //     return interpolated_value;
-    // }
-
-    // static array_1d<double, 3> GetInterpolatedValueFromGeometryVector(InterfaceObject::Pointer pInterfaceObject, //TODO const
-    //         const Variable< array_1d<double, 3> >& rVariable,
-    //         const Kratos::Flags& rOptions,
-    //         const std::vector<double>& rShapeFunctionValues)
-    // {
-    //     Geometry<Node<3>>* p_base_geometry = pInterfaceObject->pGetBaseGeometry();
-
-    //     array_1d<double, 3> interpolated_value;
-    //     interpolated_value[0] = 0.0f;
-    //     interpolated_value[1] = 0.0f;
-    //     interpolated_value[2] = 0.0f;
-    //     for (std::size_t i = 0; i < p_base_geometry->PointsNumber(); ++i)
-    //     {
-    //         interpolated_value[0] += p_base_geometry->GetPoint(i).FastGetSolutionStepValue(rVariable)[0] * rShapeFunctionValues[i];
-    //         interpolated_value[1] += p_base_geometry->GetPoint(i).FastGetSolutionStepValue(rVariable)[1] * rShapeFunctionValues[i];
-    //         interpolated_value[2] += p_base_geometry->GetPoint(i).FastGetSolutionStepValue(rVariable)[2] * rShapeFunctionValues[i];
-    //     }
-    //     return interpolated_value;
-    // }
-
-
-    // template <typename T>
-    // static void SetValueOfNode(InterfaceObject::Pointer pInterfaceObject,
-    //                            const T& rValue,
-    //                            const Variable< T >& rVariable,
-    //                            const Kratos::Flags& rOptions,
-    //                            const double Factor)
-    // {
-    //     Node<3>* p_base_node = pInterfaceObject->pGetBaseNode();
-
-    //     if (rOptions.Is(MapperFlags::ADD_VALUES))
-    //     {
-    //         p_base_node->FastGetSolutionStepValue(rVariable) += rValue * Factor;
-    //     }
-    //     else
-    //     {
-    //         p_base_node->FastGetSolutionStepValue(rVariable) = rValue * Factor;
-    //     }
-    // }
 
     ///@}
     ///@name Private  Access

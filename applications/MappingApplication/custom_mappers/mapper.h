@@ -287,6 +287,9 @@ protected:
         }
         else
         {
+            KRATOS_DEBUG_ERROR_IF_NOT(mpMappingOperationUtility)<< "mpMappingOperationUtility "
+                << "is a nullptr" << std::endl;
+
             mpMappingOperationUtility->ExecuteMapping(
                 *mpMdo, *mpQo, *mpQd,
                 mrModelPartOrigin, mrModelPartDestination,
@@ -356,53 +359,9 @@ protected:
     virtual void InitializeMapperLocalSystem(MapperLocalSystemPointer& pMapperLocalSystem) const = 0;
 
 
-    // virtual MapperInterfaceInfo::Pointer GetMapperInterfaceInfo() = 0;
-
-
-
-    // void ComputeNumberOfNodesAndConditions()
-    // {
-    //     // Compute the quantities of the local model_parts
-    //     mNumConditionsOrigin = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfConditions();
-    //     mNumConditionsDestination = mrModelPartDestination.GetCommunicator().LocalMesh().NumberOfConditions();
-
-    //     mNumNodesOrigin = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
-    //     mNumNodesDestination = mrModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
-
-    //     // Compute the quantities of the global model_parts
-    //     mrModelPartOrigin.GetCommunicator().SumAll(mNumConditionsOrigin);
-    //     mrModelPartDestination.GetCommunicator().SumAll(mNumConditionsDestination);
-
-    //     mrModelPartOrigin.GetCommunicator().SumAll(mNumNodesOrigin);
-    //     mrModelPartDestination.GetCommunicator().SumAll(mNumNodesDestination);
-    // }
-
-    // void ProcessMappingOptions(const Kratos::Flags& rMappingOptions,
-    //                            double& Factor)
-    // {
-    //     if (rMappingOptions.Is(MapperFlags::SWAP_SIGN))
-    //     {
-    //         Factor *= (-1);
-    //     }
-    // }
-
     ///@}
     ///@name Protected  Access
     ///@{
-
-        /* Kratos::Serializer particleSerializer;
-
-        particleSerializer.save("VariableList",mpVariables_list);
-        particleSerializer.save("ObjectList",SendObjects[i].GetContainer());
-
-        std::stringstream * stream = (std::stringstream *)particleSerializer.pGetBuffer();
-        const std::string & stream_str = stream->str();
-        const char * cstr = stream_str.c_str();
-
-        msgSendSize[i] = sizeof(char) * (stream_str.size()+1);
-        mpi_send_buffer[i] = (char *)malloc(msgSendSize[i]);
-        memcpy(mpi_send_buffer[i],cstr,msgSendSize[i]); */
-
 
 
     ///@}
