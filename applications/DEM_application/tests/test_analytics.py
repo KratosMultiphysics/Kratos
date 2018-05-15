@@ -112,6 +112,7 @@ class GhostsTestSolution(main_script.Solution):
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
+    ''' deprecated
     def OldMakeAnalyticsMeasurements(self):
         for face_watcher in self.face_watcher_dict.values():
             face_watcher.MakeMeasurements()
@@ -123,7 +124,7 @@ class GhostsTestSolution(main_script.Solution):
                 total_number_of_crossing_particles = total_number_of_crossing_particles + n_part
 
             self.CheckTotalNumberOfCrossingParticles(total_number_of_crossing_particles, times)
-
+    '''
 
     def MakeAnalyticsMeasurements(self):
         for face_watcher in self.face_watcher_dict.values():
@@ -133,8 +134,8 @@ class GhostsTestSolution(main_script.Solution):
             for sub_part in self.rigid_face_model_part.SubModelParts:
                 if sub_part[IS_GHOST]:
                     self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(self.time)
-                    times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
-                    face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
+                    #times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
+                    #face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
                     self.CheckTotalNumberOfCrossingParticles()
 
 
@@ -177,8 +178,8 @@ class MultiGhostsTestSolution(main_script.Solution):
                 if sub_part[IS_GHOST]:
                     if sub_part[Kratos.IDENTIFIER] == 'DEM-wall2':
                         self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(self.time)
-                        times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
-                        face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
+                        #times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
+                        #face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
                         self.CheckTotalNumberOfCrossingParticles()
 
 
