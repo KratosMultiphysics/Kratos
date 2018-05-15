@@ -41,6 +41,10 @@ namespace Kratos {
 	//KRATOS_DEFINE_VARIABLE(NurbsBrepModeler::tree::Pointer, SEARCH_TREE)
 	//variables for IGA - DEM coupling
 	KRATOS_DEFINE_VARIABLE(std::vector<Condition*>, WALL_POINT_CONDITION_POINTERS)
+	typedef std::vector<array_1d<double, 3> > std_vector_of_arrays_3d;
+  	KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, std_vector_of_arrays_3d, WALL_POINT_CONDITION_ELASTIC_FORCES)
+  	KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, std_vector_of_arrays_3d, WALL_POINT_CONDITION_TOTAL_FORCES)
+
 	KRATOS_DEFINE_VARIABLE(double, RADIUS)
 	KRATOS_DEFINE_VARIABLE(Vector, COORDINATES)
 

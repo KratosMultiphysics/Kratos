@@ -16,7 +16,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-#include "includes/condition.h"  
+#include "includes/condition.h"
 
 #include "geometries/geometry.h"
 
@@ -44,6 +44,9 @@ namespace Kratos {
 
 		//variables for IGA - DEM coupling
 		KRATOS_REGISTER_VARIABLE(WALL_POINT_CONDITION_POINTERS)
+		KRATOS_REGISTER_VARIABLE(WALL_POINT_CONDITION_ELASTIC_FORCES)
+	    KRATOS_REGISTER_VARIABLE(WALL_POINT_CONDITION_TOTAL_FORCES)
+
 		KRATOS_REGISTER_VARIABLE(RADIUS)
 		KRATOS_REGISTER_VARIABLE(COORDINATES)
 		//KRATOS_REGISTER_VARIABLE( SEARCH_TREE )
