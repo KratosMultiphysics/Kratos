@@ -138,10 +138,16 @@ void SkinDetectionProcess<TDim>::Execute()
     // The number of conditions
     IndexType condition_id = mrModelPart.Conditions().size();
 
+    // The indexes of the nodes of the skin
+    std::unordered_set<IndexType> nodes_in_the_skin;
+
     // Create the auxiliar conditions
     Properties::Pointer p_prop_0 = mrModelPart.pGetProperties(0);
     for (auto& set : inverse_face_set) {
         condition_id += 1;
+
+        for (auto& index : set)
+            nodes_in_the_skin.insert(index);
 
         const std::string complete_name = name_condition + std::to_string(TDim) + "D" + std::to_string(set.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
         if (TDim == 2) {
@@ -154,6 +160,11 @@ void SkinDetectionProcess<TDim>::Execute()
             p_cond->Set(INTERFACE, true);
         }
     }
+
+    // Adding to the auxiliar model part
+    std::vector<IndexType> indexes_skin;
+    indexes_skin.insert(indexes_skin.end(), nodes_in_the_skin.begin(), nodes_in_the_skin.end());
+    p_auxiliar_model_part->AddNodes(indexes_skin);
 
     KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << inverse_face_set.size() << "have been created" << std::endl;
 
