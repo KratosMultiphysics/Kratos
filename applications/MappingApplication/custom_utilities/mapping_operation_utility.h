@@ -74,8 +74,8 @@ class MappingOperationUtility
     using TSystemMatrixType = typename TSparseSpace::MatrixType;
     using TSystemVectorType = typename TSparseSpace::VectorType;
 
-    using TSystemMatrixTypeUniquePointerType = Kratos::unique_ptr<TSystemMatrixType>;
-    using TSystemVectorTypeUniquePointerType = Kratos::unique_ptr<TSystemVectorType>;
+    using TSystemMatrixUniquePointerType = Kratos::unique_ptr<TSystemMatrixType>;
+    using TSystemVectorUniquePointerType = Kratos::unique_ptr<TSystemVectorType>;
 
     ///@}
     ///@name Life Cycle
@@ -104,11 +104,12 @@ class MappingOperationUtility
     ///@{
 
     virtual void ResizeAndInitializeVectors(
-        TSystemMatrixTypeUniquePointerType& rpMdo,
-        TSystemVectorTypeUniquePointerType& rpQo,
-        TSystemVectorTypeUniquePointerType& rpQd,
+        TSystemMatrixUniquePointerType& rpMdo,
+        TSystemVectorUniquePointerType& rpQo,
+        TSystemVectorUniquePointerType& rpQd,
         ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination) const = 0;
+        ModelPart& rModelPartDestination,
+        const MapperLocalSystemPointerVector& rMapperLocalSystems) const = 0;
 
     // The "Build" function
     virtual void BuildMappingMatrix(const MapperLocalSystemPointerVector& rMapperLocalSystems,

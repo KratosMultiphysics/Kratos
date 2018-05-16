@@ -88,7 +88,8 @@ void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix()
     // this function can always be called, it won't do anything if the sizes are correct
     mpMappingOperationUtility->ResizeAndInitializeVectors(mpMdo, mpQo, mpQd,
                                                           mrModelPartOrigin,
-                                                          mrModelPartDestination);
+                                                          mrModelPartDestination,
+                                                          *mpMapperLocalSystems);
 
     mpMappingOperationUtility->BuildMappingMatrix(*mpMapperLocalSystems, *mpMdo);
 }

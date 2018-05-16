@@ -39,11 +39,12 @@ namespace Kratos
 
     template<>
     void UtilityType::ResizeAndInitializeVectors(
-        TSystemMatrixTypeUniquePointerType& rpMdo,
-        TSystemVectorTypeUniquePointerType& rpQo,
-        TSystemVectorTypeUniquePointerType& rpQd,
+        TSystemMatrixUniquePointerType& rpMdo,
+        TSystemVectorUniquePointerType& rpQo,
+        TSystemVectorUniquePointerType& rpQd,
         ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination) const
+        ModelPart& rModelPartDestination,
+        const MapperLocalSystemPointerVector& rMapperLocalSystems) const
     {
 
 
@@ -168,7 +169,12 @@ namespace Kratos
     /***********************************************************************************/
     /* PROTECTED Methods */
     /***********************************************************************************/
+    template<>
+    void UtilityType::ConstructMatrixStructure(const MapperLocalSystemPointerVector& rMapperLocalSystems,
+                                               TSystemMatrixType& rMdo) const
+    {
 
+    }
 
     /***********************************************************************************/
     /* PRIVATE Methods */

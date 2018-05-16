@@ -39,27 +39,28 @@ namespace Kratos
 
     template<>
     void UtilityType::ResizeAndInitializeVectors(
-        TSystemMatrixTypeUniquePointerType& rpMdo,
-        TSystemVectorTypeUniquePointerType& rpQo,
-        TSystemVectorTypeUniquePointerType& rpQd,
+        TSystemMatrixUniquePointerType& rpMdo,
+        TSystemVectorUniquePointerType& rpQo,
+        TSystemVectorUniquePointerType& rpQd,
         ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination) const
+        ModelPart& rModelPartDestination,
+        const MapperLocalSystemPointerVector& rMapperLocalSystems) const
     {
         KRATOS_TRY
 
         if (rpMdo == nullptr) //if the pointer is not initialized initialize it to an empty matrix
         {
-            TSystemMatrixTypeUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(0,0);
+            TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(0,0);
             rpMdo.swap(p_Mdo);
         }
         if (rpQo == nullptr) //if the pointer is not initialized initialize it to an empty vector
         {
-            TSystemVectorTypeUniquePointerType p_Do = Kratos::make_unique<TSystemVectorType>(0);
+            TSystemVectorUniquePointerType p_Do = Kratos::make_unique<TSystemVectorType>(0);
             rpQo.swap(p_Do);
         }
         if (rpQd == nullptr) //if the pointer is not initialized initialize it to an empty vector
         {
-            TSystemVectorTypeUniquePointerType p_Dd = Kratos::make_unique<TSystemVectorType>(0);
+            TSystemVectorUniquePointerType p_Dd = Kratos::make_unique<TSystemVectorType>(0);
             rpQd.swap(p_Dd);
         }
 
@@ -72,7 +73,10 @@ namespace Kratos
 
         // TODO CHECK THIS!!!
         if (r_Mdo.size1() != num_nodes_origin || r_Mdo.size2() != num_nodes_destination)
+        {
             r_Mdo.resize(num_nodes_origin, num_nodes_destination, false);
+            // ConstructMatrixStructure(rMapperLocalSystems, r_Mdo);
+        }
 
         if (r_Qo.size() != num_nodes_origin)
             r_Qo.resize(num_nodes_origin, false);
@@ -128,7 +132,12 @@ namespace Kratos
     /***********************************************************************************/
     /* PROTECTED Methods */
     /***********************************************************************************/
+    template<>
+    void UtilityType::ConstructMatrixStructure(const MapperLocalSystemPointerVector& rMapperLocalSystems,
+                                               TSystemMatrixType& rMdo) const
+    {
 
+    }
 
     /***********************************************************************************/
     /* PRIVATE Methods */

@@ -63,14 +63,16 @@ class MatrixBasedMappingOperationUtility
     KRATOS_CLASS_POINTER_DEFINITION(MatrixBasedMappingOperationUtility);
 
     using BaseType = MappingOperationUtility<TSparseSpace, TDenseSpace>;
+
     using MapperLocalSystemPointerType = typename BaseType::MapperLocalSystemPointer;
     using MapperLocalSystemPointerVector = typename BaseType::MapperLocalSystemPointerVector;
+    using MapperLocalSystemPointerVectorPointer = typename BaseType::MapperLocalSystemPointerVectorPointer;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    typedef typename BaseType::TSystemMatrixTypeUniquePointerType TSystemMatrixTypeUniquePointerType;
-    typedef typename BaseType::TSystemVectorTypeUniquePointerType TSystemVectorTypeUniquePointerType;
+    typedef typename BaseType::TSystemMatrixUniquePointerType TSystemMatrixUniquePointerType;
+    typedef typename BaseType::TSystemVectorUniquePointerType TSystemVectorUniquePointerType;
 
 
 
@@ -95,11 +97,12 @@ class MatrixBasedMappingOperationUtility
     ///@{
 
     void ResizeAndInitializeVectors(
-        TSystemMatrixTypeUniquePointerType& rpMdo,
-        TSystemVectorTypeUniquePointerType& rpQo,
-        TSystemVectorTypeUniquePointerType& rpQd,
+        TSystemMatrixUniquePointerType& rpMdo,
+        TSystemVectorUniquePointerType& rpQo,
+        TSystemVectorUniquePointerType& rpQd,
         ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination) const override;
+        ModelPart& rModelPartDestination,
+        const MapperLocalSystemPointerVector& rMapperLocalSystems) const override;
 
     // The "Build" function
     void BuildMappingMatrix(const MapperLocalSystemPointerVector& rMapperLocalSystems,
@@ -284,6 +287,9 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void ConstructMatrixStructure(const MapperLocalSystemPointerVector& rMapperLocalSystems,
+                                  TSystemMatrixType& rMdo) const;
 
 
     ///@}

@@ -94,8 +94,8 @@ public:
     using TSystemMatrixType = typename MappingOperationUtilityType::TSystemMatrixType;
     using TSystemVectorType = typename MappingOperationUtilityType::TSystemVectorType;
 
-    using TSystemMatrixTypeUniquePointerType = typename MappingOperationUtilityType::TSystemMatrixTypeUniquePointerType;
-    using TSystemVectorTypeUniquePointerType = typename MappingOperationUtilityType::TSystemVectorTypeUniquePointerType;
+    using TSystemMatrixUniquePointerType = typename MappingOperationUtilityType::TSystemMatrixUniquePointerType;
+    using TSystemVectorUniquePointerType = typename MappingOperationUtilityType::TSystemVectorUniquePointerType;
 
 
     ///@}
@@ -230,9 +230,9 @@ protected:
     MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
 
     // The mapping matrix and the corresponding vectors
-    TSystemMatrixTypeUniquePointerType mpMdo;
-    TSystemVectorTypeUniquePointerType mpQo;
-    TSystemVectorTypeUniquePointerType mpQd;
+    TSystemMatrixUniquePointerType mpMdo;
+    TSystemVectorUniquePointerType mpQo;
+    TSystemVectorUniquePointerType mpQd;
 
     // global, aka of the entire submodel-parts
     // int mNumConditionsOrigin;
