@@ -3,6 +3,9 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing Kratos
 import KratosMultiphysics
 
+# Other imports
+import os
+
 class PythonSolver(object):
     """The base class for the Python Solvers in the applications
     Changes to this BaseClass have to be discussed first!
@@ -156,9 +159,11 @@ class PythonSolver(object):
 
 
     def _GetRestartSettings(self):
-        restart_settings = KratosMultiphysics.Parameters("""{}""")
-        restart_settings.AddValue("input_filename", self.solver_settings["model_import_settings"]["input_filename"])
-        if self.solver_settings.Has("echo_level")
+        restart_settings = self.settings["model_import_settings"].Clone()
+        restart_settings.RemoveValue("input_type")
+        if not restart_settings.Has("restart_load_file_label"):
+            raise Exception('"restart_load_file_label" must be specified when starting from a restart-file!')
+        if self.solver_settings.Has("echo_level"):
             restart_settings.AddValue("echo_level", self.solver_settings["echo_level"])
 
         return restart_settings

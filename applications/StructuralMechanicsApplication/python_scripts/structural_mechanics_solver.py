@@ -12,9 +12,6 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 # Importing the base class
 from python_solver import PythonSolver
 
-# Other imports
-import os
-
 
 def CreateSolver(main_model_part, custom_settings):
     return MechanicalSolver(main_model_part, custom_settings)
@@ -170,40 +167,6 @@ class MechanicalSolver(PythonSolver):
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE_REACTION,self.main_model_part)
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "DOF's ADDED")
-
-    # def ImportModelPart(self):
-    #     """ Legacy function, use ReadModelPart and PrepareModelPartForSolver instead """
-    #     KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Importing model part.")
-    #     problem_path = os.getcwd()
-    #     input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
-    #     if self.is_restarted():
-    #         self.get_restart_utility().LoadRestart()
-    #     elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-    #         # Import model part from mdpa file.
-    #         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-    #         KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
-    #         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Finished reading model part from mdpa file.")
-    #         self.PrepareModelPartForSolver()
-    #     else:
-    #         raise Exception("Other model part input options are not yet implemented.")
-    #     KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
-    #     KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished importing model part.")
-
-    def ReadModelPart(self):
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part.")
-        problem_path = os.getcwd()
-        input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
-        if self.is_restarted():
-            self.get_restart_utility().LoadRestart()
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            # Import model part from mdpa file.
-            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
-            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Finished reading model part from mdpa file.")
-        else:
-            raise Exception("Other model part input options are not yet implemented.")
-        KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished reading model part.")
 
     def PrepareModelPartForSolver(self):
         if not self.is_restarted():
