@@ -113,7 +113,8 @@ public:
     ///@{
 
     static void IntegrateStressVector(
-        Vector& PredictiveStressVector, 
+        Vector& PredictiveStressVector,
+        Vector& StrainVector, 
         double& UniaxialStress, 
         double& Threshold, 
         double& PlasticDenominator, 
@@ -142,7 +143,7 @@ public:
             noalias(DSigma) -= DS; 
             noalias(PredictiveStressVector) -= DSigma; 
 
-            CalculatePlasticParameters(PredictiveStressVector, UniaxialStress, Threshold, 
+            CalculatePlasticParameters(PredictiveStressVector, StrainVector, UniaxialStress, Threshold, 
                 PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
                 C, rMaterialProperties); 
 
@@ -159,6 +160,7 @@ public:
 
     static void CalculatePlasticParameters(
         Vector& PredictiveStressVector, 
+        Vector& StrainVector,
         double& UniaxialStress, 
         double& Threshold,
         double& PlasticDenominator, 
@@ -174,7 +176,7 @@ public:
         BoundedVector<double, TVoigtSize> HCapa    = ZeroVector(TVoigtSize);
         double J2 = 0.0, r0 = 0.0, r1 = 0.0, Slope = 0.0, HardParam = 0.0;
 
-        YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector, UniaxialStress, rMaterialProperties);
+        YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector, StrainVector, UniaxialStress, rMaterialProperties);
         CalculateDeviatorVector(PredictiveStressVector, Deviator, J2);
         CalculateFFluxVector(PredictiveStressVector, Deviator, J2, Fflux);
         CalculateGFluxVector(PredictiveStressVector, Deviator, J2, Gflux);

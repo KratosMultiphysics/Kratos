@@ -95,12 +95,13 @@ public:
     ///@{
 
     static void CalculateEquivalentStress(
-        const Vector& StressVector, 
+        const Vector& StressVector,
+        const Vector& StrainVector, 
         double& rEqStress, 
         const Properties& rMaterialProperties
     )
     {
-        double I1 = 0.0, J2 = 0.0;
+        double I1, J2;
         Vector Deviator = ZeroVector(TVoigtSize);
 
         CalculateI1Invariant(StressVector, I1);

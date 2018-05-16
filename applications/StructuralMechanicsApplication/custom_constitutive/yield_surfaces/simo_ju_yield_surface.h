@@ -9,8 +9,8 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_MODIFIED_MOHR_COULOMB_YIELD_SURFACE_H_INCLUDED)
-#define  KRATOS_MODIFIED_MOHR_COULOMB_YIELD_SURFACE_H_INCLUDED
+#if !defined(KRATOS_SIMO_JU_YIELD_SURFACE_H_INCLUDED)
+#define  KRATOS_SIMO_JU_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 #include <string>
@@ -44,7 +44,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class ModifiedMohrCoulombYieldSurface
+ * @class SimoJuYieldSurface
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
@@ -52,7 +52,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template <class TPlasticPotentialType , class TVoigtSize>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurface
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
 {
 public:
     ///@name Type Definitions
@@ -61,31 +61,31 @@ public:
     /// The type of potential plasticity
     typedef typename TPlasticPotentialType PlasticPotentialType;
 
-    /// Counted pointer of ModifiedMohrCoulombYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION( ModifiedMohrCoulombYieldSurface );
+    /// Counted pointer of SimoJuYieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION(SimoJuYieldSurface);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Initialization constructor.
-    ModifiedMohrCoulombYieldSurface()
+    SimoJuYieldSurface()
     {
     }
 
     /// Copy constructor
-    ModifiedMohrCoulombYieldSurface(ModifiedMohrCoulombYieldSurface const& rOther)
+    SimoJuYieldSurface(SimoJuYieldSurface const& rOther)
     {
     }
 
     /// Assignment operator
-    ModifiedMohrCoulombYieldSurface& operator=(ModifiedMohrCoulombYieldSurface const& rOther)
+    SimoJuYieldSurface& operator=(SimoJuYieldSurface const& rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~ModifiedMohrCoulombYieldSurface() {};
+    virtual ~SimoJuYieldSurface() {};
 
     ///@}
     ///@name Operators
@@ -100,41 +100,36 @@ public:
         double& rEqStress, 
         const Properties& rMaterialProperties
     )
-    {      
-		double sigma_c = rMaterialProperties[YIELD_STRESS_C];
-		double sigma_t = rMaterialProperties[YIELD_STRESS_T];
-		double friction_angle = rMaterialProperties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+    {   // It compares with fc / sqrt(E)
+		Vector PrincipalStressVector;
+		CalculatePrincipalStresses(PrincipalStressVector, StressVector);
 
-		// Check input variables 
-        double tol = std::numeric_limits<double>::epsilon();
-		if (friction_angle < tol) { friction_angle = 32 * Globals::Pi / 180; std::cout << "Friction Angle not defined, assumed equal to 32 deg " << std::endl; }
-		if (sigma_c < tol) { KRATOS_ERROR << " ERROR: Yield stress in compression not defined, include YIELD_STRESS_C in .mdpa "; }
-		if (sigma_t < tol) { KRATOS_ERROR << " ERROR: Yield stress in tension not defined, include YIELD_STRESS_T in .mdpa "; }
+		double sigma_t, sigma_c, n;
+		sigma_t = rMaterialProperties[YIELD_STRESS_T];
+		sigma_c = rMaterialProperties[YIELD_STRESS_C];
+		n = abs(sigma_c / sigma_t);
 
-		double K1, K2, K3, Rmorh, R, alpha_r, theta;
-		R = std::abs(sigma_c / sigma_t);
-		Rmorh = std::pow(tan((Globals::Pi / 4.0) + friction_angle / 2.0), 2);
-		alpha_r = R / Rmorh;
-		double sinphi = std::sin(friction_angle);
+		double SumA, SumB, SumC, ere0, ere1;
+		for (int cont = 0;cont < 2;cont++)
+		{
+			SumA += std::abs(PrincipalStressVector[cont]);
+			SumB += 0.5*(PrincipalStressVector[cont]  + std::abs(PrincipalStressVector[cont]));
+			SumC += 0.5*(-PrincipalStressVector[cont] + std::abs(PrincipalStressVector[cont]));
+		}
+		ere0 = SumB / SumA;
+		ere1 = SumC / SumA;
 
-		double I1, J2, J3;
-        CalculateI1Invariant(StressVector, I1);
-		Vector Deviator = ZeroVector(6);
-        CalculateJ2Invariant(StressVector, I1, Deviator, J2);
-		CalculateJ3Invariant(Deviator, J3);
-
-		K1 = 0.5*(1 + alpha_r) - 0.5*(1 - alpha_r)*sinphi;
-		K2 = 0.5*(1 + alpha_r) - 0.5*(1 - alpha_r) / sinphi;
-		K3 = 0.5*(1 + alpha_r)*sinphi - 0.5*(1 - alpha_r);
-
-		double rEqStress; 
-		// Check Modified Mohr-Coulomb criterion
-		if (I1 == 0.0)  rEqStress = 0.0; 
+		// Check SimoJu criterion
+		if (StrainVector[0] == 0) rEqStress = 0; 
 		else
 		{
-			CalculateLodeAngle(J2, J3, theta);
-			rEqStress = (2.0*std::tan(Globals::Pi*0.25 + friction_angle*0.5) / std::cos(friction_angle))*((I1*K3 / 3.0) + 
-                std::sqrt(J2)*(K1*std::cos(theta) - K2*std::sin(theta)*sinphi / std::sqrt(3.0)));
+			double auxf = 0.0;
+			for (int cont = 0; cont < 6; cont++)
+			{
+				auxf += StrainVector[cont] * StressVector[cont];  // E*S
+			}
+			rEqStress = std::sqrt(auxf);
+			rEqStress *= (ere0*n + ere1);
 		}
     }
 
@@ -201,6 +196,46 @@ public:
 		if (sint3 > 0.95)  sint3 = 1; 
 		LodeAngle = asin(sint3) / 3.0;
     }
+
+	static void CalculatePrincipalStresses(Vector& rPrincipalStressVector, const Vector StressVector)
+	{
+		rPrincipalStressVector.resize(3);
+		double I1, I2, I3, phi, Num, Denom, II1;
+		CalculateI1Invariant(StressVector, I1);
+		CalculateI2Invariant(StressVector, I2);
+		CalculateI3Invariant(StressVector, I3);
+		II1 = I1*I1;
+
+		Num = (2.0*II1 - 9.0*I2)*I1 + 27.0*I3;
+		Denom = (II1 - 3.0*I2);
+
+		if (Denom != 0.0)
+		{
+			phi = Num / (2.0*Denom*std::sqrt(Denom));
+
+			if (std::abs(phi) > 1.0)
+			{
+				if (phi > 0.0) phi = 1.0;
+				else phi = -1.0;
+			}
+
+			double acosphi = std::acos(phi);
+			phi = acosphi / 3.0;
+
+			double aux1 = 0.666666666666667*sqrt(II1 - 3.0*I2);
+			double aux2 = I1 / 3.0;
+
+			rPrincipalStressVector[0] = aux2 + aux1*cos(phi);
+			rPrincipalStressVector[1] = aux2 + aux1*cos(phi - 2.09439510239);
+			rPrincipalStressVector[2] = aux2 + aux1*cos(phi - 4.18879020478);
+		}
+		else 
+		{
+			rPrincipalStressVector = ZeroVector(3);
+		}
+		
+	}
+
 
     ///@}
     ///@name Access
@@ -291,7 +326,7 @@ private:
 
     ///@}
 
-}; // Class ModifiedMohrCoulombYieldSurface
+}; // Class SimoJuYieldSurface
 
 ///@}
 

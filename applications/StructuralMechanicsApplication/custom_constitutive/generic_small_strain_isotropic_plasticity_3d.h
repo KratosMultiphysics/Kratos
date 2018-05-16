@@ -166,8 +166,8 @@ public:
         Vector Fflux = ZeroVector(VoigtSize), Gflux = ZeroVector(VoigtSize); // DF/DS & DG/DS
         Vector PlasticStrainIncrement = ZeroVector(VoigtSize);
 
-        ConstLawIntegratorType::CalculatePlasticParameters(PredictiveStressVector, UniaxialStress, Kp,
-            PlasticDenominator, Fflux, Gflux, Capap, PlasticStrainIncrement, C);
+        ConstLawIntegratorType::CalculatePlasticParameters(PredictiveStressVector, rValues.GetStrainVector(),
+            UniaxialStress, Kp, PlasticDenominator, Fflux, Gflux, Capap, PlasticStrainIncrement, C);
 
         double F = UniaxialStress - Kp;
 
@@ -177,13 +177,17 @@ public:
             this->SetNonConvPlasticDissipation(Capap);
             this->SetNonConvPlasticStrain(plastic_strain);
             this->SetNonConvThreshold(Kp);
-        } else { // Plastic case
+        } 
+        else 
+        {    // Plastic case
+
             // while loop backward euler
             /* Inside IntegrateStressVector the PredictiveStressVector
-            is updated to verify the yield criterion */
+               is updated to verify the yield criterion */
 
-            ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, UniaxialStress, Kp,
-                PlasticDenominator, Fflux, Gflux, Capap, PlasticStrainIncrement, C, plastic_strain);
+            ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, rValues.GetStrainVector(), 
+                UniaxialStress, Kp, PlasticDenominator, Fflux, Gflux, Capap, PlasticStrainIncrement, 
+                C, plastic_strain);
 
             this->SetNonConvPlasticDissipation(Capap);
             this->SetNonConvPlasticStrain(plastic_strain);
