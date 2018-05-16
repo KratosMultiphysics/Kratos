@@ -10,26 +10,26 @@ class PythonSolver(object):
     """The base class for the Python Solvers in the applications
     Changes to this BaseClass have to be discussed first!
     """
-    def __init__(self, model_part, solver_settings):
+    def __init__(self, model_part, settings):
         """The constructor of the PythonSolver-Object.
 
         It is intended to be called from the constructor
         of deriving classes:
-        super(DerivedSolver, self).__init__(solver_settings)
+        super(DerivedSolver, self).__init__(settings)
 
         Keyword arguments:
         self -- It signifies an instance of a class.
         model_part -- The ModelPart to be used
-        solver_settings -- The solver settings used
+        settings -- The solver settings used
         """
         if (type(model_part) != KratosMultiphysics.ModelPart):
             raise Exception("Input is expected to be provided as a Kratos Model object")
 
-        if (type(solver_settings) != KratosMultiphysics.Parameters):
+        if (type(settings) != KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
         self.main_model_part = model_part
-        self.solver_settings = solver_settings
+        self.settings = settings
 
     def AddVariables(self):
         """This function add the Variables needed by this PythonSolver to the the ModelPart
@@ -48,13 +48,17 @@ class PythonSolver(object):
         """
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
         problem_path = os.getcwd()
-        input_filename = self.solver_settings["model_import_settings"]["input_filename"].GetString()
-        input_type = self.solver_settings["model_import_settings"]["input_type"].GetString()
+        model_import_settings = self.settings["model_import_settings"]
+        input_filename = model_import_settings["input_filename"].GetString()
+        input_type = model_import_settings["input_type"].GetString()
 
         if (input_type == "mdpa"):
             # Import model part from mdpa file.
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
+            if (model_import_settings.Has("reorder") and model_import_settings["reorder"].GetBool()):
+                tmp = KratosMultiphysics.Parameters("{}")
+                KratosMultiphysics.ReorderAndOptimizeModelPartProcess(self.main_model_part, tmp).Execute()
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
         elif (input_type == "rest"):
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
@@ -86,7 +90,7 @@ class PythonSolver(object):
     def ExportModelPart(self):
         """This function exports the ModelPart to and mdpa-file
         """
-        name_out_file = self.solver_settings["model_import_settings"]["input_filename"].GetString()+".out"
+        name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         file = open(name_out_file + ".mdpa","w")
         file.close()
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
@@ -155,7 +159,7 @@ class PythonSolver(object):
         pass
 
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.solver_settings["computing_model_part_name"].GetString())
+        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
 
 
     def _GetRestartSettings(self):
@@ -163,7 +167,7 @@ class PythonSolver(object):
         restart_settings.RemoveValue("input_type")
         if not restart_settings.Has("restart_load_file_label"):
             raise Exception('"restart_load_file_label" must be specified when starting from a restart-file!')
-        if self.solver_settings.Has("echo_level"):
-            restart_settings.AddValue("echo_level", self.solver_settings["echo_level"])
+        if self.settings.Has("echo_level"):
+            restart_settings.AddValue("echo_level", self.settings["echo_level"])
 
         return restart_settings

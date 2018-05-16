@@ -57,7 +57,6 @@ class MechanicalSolver(PythonSolver):
                 "input_filename": "unknown_name"
             },
             "restart_settings" : {
-                "load_restart"  : false,
                 "save_restart"  : false
             },
             "computing_model_part_name" : "computing_domain",
@@ -112,15 +111,13 @@ class MechanicalSolver(PythonSolver):
             self.print_warning_on_rank_zero("Time integration method", warning)
 
         # Overwrite the default settings with user-provided parameters.
-        self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
 
         # Set if the analysis is restarted
-        if self.settings["restart_settings"].Has("load_restart"):
-            load_restart = self.settings["restart_settings"]["load_restart"].GetBool()
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = load_restart
+        if self.settings["model_import_settings"]["input_type"].GetString() == "rest":
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
         else:
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
