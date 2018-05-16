@@ -25,6 +25,7 @@
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
+#include "custom_processes/skin_detection_process.h"
 
 namespace Kratos
 {
@@ -51,27 +52,32 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     
     class_<TotalStructuralMassProcess, Process >(m,"TotalStructuralMassProcess")
         .def(init<ModelPart&>())
-        .def("Execute", &TotalStructuralMassProcess::Execute)
         ;
     
 
     class_<PrismNeighboursProcess, Process>(m, "PrismNeighboursProcess")
         .def(init<ModelPart&>())
         .def(init<ModelPart&, const bool >())
-        .def("Execute",&PrismNeighboursProcess::Execute)
-        .def("ClearNeighbours",&PrismNeighboursProcess::ClearNeighbours)
         ;
 
     class_<ShellToSolidShellProcess<3>, Process>(m, "TriangleShellToSolidShellProcess")
         .def(init<ModelPart&>())
         .def(init< ModelPart&, Parameters >())
-        .def("Execute",&ShellToSolidShellProcess<3>::Execute)
         ;
 
     class_<ShellToSolidShellProcess<4>, Process>(m, "QuadrilateralShellToSolidShellProcess")
         .def(init<ModelPart&>())
         .def(init< ModelPart&, Parameters >())
-        .def("Execute",&ShellToSolidShellProcess<4>::Execute)
+        ;
+
+    class_<SkinDetectionProcess<2>, Process>(m, "SkinDetectionProcess2D")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters >())
+        ;
+
+    class_<SkinDetectionProcess<3>, Process>(m, "SkinDetectionProcess3D")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters >())
         ;
 }
 

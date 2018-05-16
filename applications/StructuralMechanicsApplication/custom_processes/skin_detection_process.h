@@ -9,8 +9,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_PRISM_NEIGHBOURS_PROCESS_H_INCLUDED )
-#define  KRATOS_PRISM_NEIGHBOURS_PROCESS_H_INCLUDED
+#if !defined(KRATOS_SKIN_DTEECTION_PROCESS_H_INCLUDED )
+#define  KRATOS_SKIN_DTEECTION_PROCESS_H_INCLUDED
 
 // System includes
 
@@ -21,6 +21,7 @@
 #include "processes/process.h"
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -31,6 +32,16 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
+
+    // General geometry type definitions
+    typedef Node<3>                                          NodeType;
+    typedef Geometry<NodeType>                           GeometryType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
 ///@}
 ///@name  Enum's
@@ -45,25 +56,26 @@ namespace Kratos
 ///@{
 
 /**
- * @class PrismNeighboursProcess
+ * @class SkinDetectionProcess
  * @ingroup StructuralMechanicsApplication
- * @brief An algorithm that looks for neighbour nodes and elements in a mesh of prismatic elements
- * @details For that pourpose if builds an unordered map of the surrounding elements and nodes and performs different checks
+ * @brief An algorithm that looks for neighbour elements in a mesh and creates a submodelpart containing the skin of the disconnected elements (interface elements)
+ * @details For that pourpose if builds an unordered map of the surrounding elements and nodes and performs different checks.
+ * @warning Please check that you geometry is compatible, it will be assumed that a geometry has a neighbour geometries of the same class. If your geometries combines for example hexahedra, prism, pyramids and tetrahedra you will need to refactor this
+ * @todo Solve the previous problem
+ * @todo Move this to the core if people demands this
+ * @tparam TDim The dimension where the problem is computed
  * @author Vicente Mataix Ferrandiz
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PrismNeighboursProcess
+template<SizeType TDim>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SkinDetectionProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of PrismNeighboursProcess
-    KRATOS_CLASS_POINTER_DEFINITION(PrismNeighboursProcess);
-
-    // General geometry type definitions
-    typedef Node<3>                                          NodeType;
-    typedef Geometry<NodeType>                           GeometryType;
+    /// Pointer definition of SkinDetectionProcess
+    KRATOS_CLASS_POINTER_DEFINITION(SkinDetectionProcess);
 
     // Containers definition
     typedef ModelPart::NodesContainerType              NodesArrayType;
@@ -78,12 +90,6 @@ public:
     // Weak pointers vectors types
     typedef WeakPointerVector<NodeType> NodePointerVector;
     typedef WeakPointerVector<Element> ElementPointerVector;
-
-    /// The definition of the index type
-    typedef std::size_t IndexType;
-
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
 
     /// Definition of the vector indexes considered
     typedef vector<IndexType> VectorIndexType;
@@ -113,18 +119,15 @@ public:
     /**
      * @brief Default constructor.
      * @param rModelPart The model part where the search of neighbours is performed
-     * @param ComputeOnNodes If true it will compute neighbours on nodes besides the elements. False by default to save memory
+     * @param ThisParameters The parameters of configuration
      */
-    PrismNeighboursProcess(
+    SkinDetectionProcess(
         ModelPart& rModelPart,
-        const bool ComputeOnNodes = false
-        ) : mrModelPart(rModelPart),
-            mComputeOnNodes(ComputeOnNodes)
-    {
-    }
+        Parameters ThisParameters = Parameters(R"({})")
+        );
 
     /// Destructor.
-    virtual ~PrismNeighboursProcess() {}
+    virtual ~SkinDetectionProcess() {}
 
     ///@}
     ///@name Operators
@@ -166,13 +169,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
-        return "PrismNeighboursProcess";
+        return "SkinDetectionProcess";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "PrismNeighboursProcess";
+        rOStream << "SkinDetectionProcess";
     }
 
     /// Print object's data.
@@ -226,12 +229,31 @@ private:
     ///@{
 
     ModelPart& mrModelPart;     /// The main model part
-    const bool mComputeOnNodes; /// If true it will compute neighbours on nodes besides the elements. False by default to save memory
+    Parameters mThisParameters; /// The parameters (can be used for general pourposes)
 
     ///@}
     ///@name Private Operators
     ///@{
-    
+
+    /**
+     * @brief This method computes the required reserve size for neighbours
+     * @param itElem The element iterator where to check the size and so on
+     * @return The reserve size for the neighbour elements vector
+     * @todo Check that EdgesNumber() and FacesNumber() are properly implemeted on the geometries of interest
+     */
+    SizeType ComputeReserveSize(ElementsIteratorType itElem);
+
+    /**
+     * @brief This method returns the subgeometry of the current geometry we are interested of
+     * @param BaseGeometry The base geometry where we get the subgeometry
+     * @param IndexSubGeometry The index of the corresponding subgeometry
+     * @return The corresponding subgeometry
+     */
+    GeometryType& GetSubGeometry(
+        GeometryType& BaseGeometry,
+        const IndexType IndexSubGeometry
+        );
+
     /**
      * @brief This method should be called in case that the current list of neighbour must be drop
      */
@@ -281,11 +303,11 @@ private:
     ///@{
 
     /// Assignment operator.
-    PrismNeighboursProcess& operator=(PrismNeighboursProcess const& rOther);
+    SkinDetectionProcess& operator=(SkinDetectionProcess const& rOther);
 
     ///@}
 
-}; // Class PrismNeighboursProcess
+}; // Class SkinDetectionProcess
 
 ///@}
 
@@ -299,12 +321,14 @@ private:
 
 
 /// input stream function
+template<SizeType TDim>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  PrismNeighboursProcess& rThis);
+                                  SkinDetectionProcess<TDim>& rThis);
 
 /// output stream function
+template<SizeType TDim>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const PrismNeighboursProcess& rThis)
+                                  const SkinDetectionProcess<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -317,4 +341,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PRISM_NEIGHBOURS_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_SKIN_DTEECTION_PROCESS_H_INCLUDED  defined
