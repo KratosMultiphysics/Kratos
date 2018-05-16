@@ -14,13 +14,12 @@
 /* System includes */
 
 /* External includes */
-#include "utilities/math_utils.h"
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/variables.h"
 #include "includes/ublas_interface.h"
-#include "includes/kratos_parameters.h"
+#include "utilities/svd_utils.h"
+#include "utilities/math_utils.h"
+#include "utilities/qr_utility.h"
 #include "convergence_accelerator.hpp"
 
 namespace Kratos
@@ -73,25 +72,31 @@ public:
      * Constructor.
      * Aitken convergence accelerator
      */
-    MVQNFullJacobianConvergenceAccelerator( Parameters &rConvAcceleratorParameters )
-    {
+    MVQNFullJacobianConvergenceAccelerator(
+        Parameters &rConvAcceleratorParameters){
+            
         Parameters mvqn_default_parameters(R"(
         {
-            "solver_type" : "MVQN",
-            "w_0"         : 0.825
+            "solver_type"     : "MVQN",
+            "w_0"             : 0.825,
+            "cut_off_epsilon" : 1e-8
         }
         )");
 
         rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_default_parameters);
 
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
+        mCutOffEpsilon = rConvAcceleratorParameters["cut_off_epsilon"].GetDouble();
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;
     }
 
-    MVQNFullJacobianConvergenceAccelerator( double rOmegaInitial = 0.825 )
-    {
-        mOmega_0 = rOmegaInitial;
+    MVQNFullJacobianConvergenceAccelerator(
+        const double OmegaInitial = 0.825,
+        const double CutOffEpsilon = 1e-8){
+
+        mOmega_0 = OmegaInitial;
+        mCutOffEpsilon = CutOffEpsilon;
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;
     }
@@ -99,18 +104,12 @@ public:
     /**
      * Copy Constructor.
      */
-    MVQNFullJacobianConvergenceAccelerator( const MVQNFullJacobianConvergenceAccelerator& rOther )
-    {
-        mOmega_0 = rOther.mOmega_0;
-        mConvergenceAcceleratorIteration = 0;
-        mConvergenceAcceleratorFirstCorrectionPerformed = false;
-    }
+    MVQNFullJacobianConvergenceAccelerator(const MVQNFullJacobianConvergenceAccelerator& rOther) = delete;
 
     /**
      * Destructor.
      */
-    virtual ~MVQNFullJacobianConvergenceAccelerator
-    () {}
+    virtual ~MVQNFullJacobianConvergenceAccelerator(){}
 
     ///@}
 
@@ -158,19 +157,11 @@ public:
                 // The very first correction of the problem is done with a fixed point iteration
                 TSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
 
-                // Resize the Jacobian approximation
-                MatrixPointerType pNewJac_n = MatrixPointerType(new MatrixType(mProblemSize,mProblemSize));
-                std::swap(pNewJac_n,mpJac_n);
-
-                // Initialize the Jacobian approximation matrix (exclusively done in the very fist iteration)
-                for (unsigned int i = 0; i < mProblemSize; i++)
-                {
-                    for (unsigned int j = 0; j < mProblemSize; j++)
-                    {
-                        (*mpJac_n)(i,j) = 0.0;
-                    }
-                    (*mpJac_n)(i,i) = -1.0;
-                }
+                // Initialize the Jacobian approximation matrix as minus the diagonal matrix
+                // Note that this is exclusively done in the very fist iteration
+                MatrixPointerType p_new_jac_n = Kratos::make_shared<MatrixType>(mProblemSize,mProblemSize);
+                std::swap(p_new_jac_n,mpJac_n);
+                (*mpJac_n) = -1.0 * IdentityMatrix(mProblemSize,mProblemSize);
 
                 mConvergenceAcceleratorFirstCorrectionPerformed = true;
             }
@@ -193,8 +184,6 @@ public:
                 std::swap(mpObsMatrixV,pNewObsMatrixV);
                 std::swap(mpObsMatrixW,pNewObsMatrixW);
 
-                //~ std::cout << "First observation matrices step fill" << std::endl;
-
                 // First observation matrices fill
                 for (unsigned int i = 0; i < mProblemSize; i++)
                 {
@@ -205,31 +194,25 @@ public:
             else
             {
                 // Reshape the existent observation matrices
-                if (mConvergenceAcceleratorIteration <= mProblemSize)
-                {
-                    //~ std::cout << "Current iteration info storage: observation matrices resized (column addition)" << std::endl;
-
-                    MatrixPointerType pNewObsMatrixV = MatrixPointerType(new MatrixType(mProblemSize, mConvergenceAcceleratorIteration));
-                    MatrixPointerType pNewObsMatrixW = MatrixPointerType(new MatrixType(mProblemSize, mConvergenceAcceleratorIteration));
-
-                    MatrixType &NewObsMatrixV = *pNewObsMatrixV;
-                    MatrixType &NewObsMatrixW = *pNewObsMatrixW;
+                const std::size_t n_old_cols = mpObsMatrixV->size2();
+                if (n_old_cols < mProblemSize){
+                    // Add the current iteration observation data column to the observation matrices.
+                    MatrixPointerType pNewObsMatrixV = MatrixPointerType(new MatrixType(mProblemSize, n_old_cols + 1));
+                    MatrixPointerType pNewObsMatrixW = MatrixPointerType(new MatrixType(mProblemSize, n_old_cols + 1));
 
                     // Recover the previous iterations information
-                    for (unsigned int i = 0; i < mProblemSize; i++)
-                    {
-                        for (unsigned int j = 0; j < (mConvergenceAcceleratorIteration-1); j++)
-                        {
-                            NewObsMatrixV(i,j) = (*mpObsMatrixV)(i,j);
-                            NewObsMatrixW(i,j) = (*mpObsMatrixW)(i,j);
+                    for (unsigned int i = 0; i < mProblemSize; i++){
+                        for (unsigned int j = 0; j < n_old_cols; j++){
+                            (*pNewObsMatrixV)(i,j) = (*mpObsMatrixV)(i,j);
+                            (*pNewObsMatrixW)(i,j) = (*mpObsMatrixW)(i,j);
                         }
                     }
 
                     // Fill the attached column with the current iteration information
                     for (unsigned int i = 0; i < mProblemSize; i++)
                     {
-                        NewObsMatrixV(i, mConvergenceAcceleratorIteration-1) = (*mpResidualVector_1)(i) - (*mpResidualVector_0)(i);
-                        NewObsMatrixW(i, mConvergenceAcceleratorIteration-1) = (*mpIterationValue_1)(i) - (*mpIterationValue_0)(i);
+                        (*pNewObsMatrixV)(i, n_old_cols) = (*mpResidualVector_1)(i) - (*mpResidualVector_0)(i);
+                        (*pNewObsMatrixW)(i, n_old_cols) = (*mpIterationValue_1)(i) - (*mpIterationValue_0)(i);
                     }
 
                     std::swap(mpObsMatrixV,pNewObsMatrixV);
@@ -237,9 +220,7 @@ public:
                 }
                 else
                 {
-                    //~ std::cout << "Current iteration info storage: observation matrices are not resized (oldest column is dropped)" << std::endl;
-
-                    // Observation matrices size are close to the interface DOFs number. Old columns are to be dropped.
+                    // Observation matrices size is equal to the interface DOFs number. Oldest columns are to be dropped.
                     MatrixPointerType pNewObsMatrixV = MatrixPointerType(new MatrixType(mProblemSize, mProblemSize));
                     MatrixPointerType pNewObsMatrixW = MatrixPointerType(new MatrixType(mProblemSize, mProblemSize));
 
@@ -265,39 +246,54 @@ public:
                 }
 
             }
-
+            
             // Compute the jacobian approximation
-            MatrixType aux1( mProblemSize, mConvergenceAcceleratorIteration );
-            MatrixType aux2( mConvergenceAcceleratorIteration, mConvergenceAcceleratorIteration );
-            MatrixType aux2inv( mConvergenceAcceleratorIteration, mConvergenceAcceleratorIteration );
-            MatrixType aux3( mProblemSize, mConvergenceAcceleratorIteration );
+            std::size_t data_cols = mpObsMatrixV->size2();
+            MatrixType aux2(data_cols, data_cols);
+            noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
 
-            //~ std::cout << "Jacobian approximation computation starts..." << std::endl;
+            // Perform the observation matrix V Singular Value Decomposition (SVD) such that 
+            // matrix V (m x n) is equal to the SVD matrices product V = u_svd * w_svd * v_svd
+            MatrixType u_svd; // Orthogonal matrix (m x m)
+            MatrixType w_svd; // Rectangular diagonal matrix (m x n)
+            MatrixType v_svd; // Orthogonal matrix (n x n)
+            const auto svd_its = SVDUtils<double>::SingularValueDecomposition(aux2,u_svd,w_svd,v_svd);
 
-            noalias(aux1) = *mpObsMatrixW - prod(*mpJac_n,*mpObsMatrixV); // Note: dense matrix product is not present in the space
-            noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);     // Note: dense matrix product is not present in the space
-            bool inversion_successful = InvertMatrix<>(aux2, aux2inv);
+            // Set the cuf-off threshold
+            const double cut_off_tol = mCutOffEpsilon * TSpace::TwoNorm(aux2);
 
-            if (inversion_successful == false)
-            {
-                KRATOS_ERROR << "Matrix inversion error within the Jacobian approximation computation!!";
+            // Check if the last information columns are linear dependent
+            const std::size_t last_col = w_svd.size2() - 1;
+            if (w_svd(last_col, last_col) < cut_off_tol){
+                // Drop the observation matrices last column
+                this->DropObservationMatricesLastColum();
+                // Update the number of columns
+                --data_cols;
+                // Recompute trans(V)*V
+                aux2.resize(data_cols, data_cols);
+                noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
             }
 
-            noalias(aux3) = prod(aux1,aux2inv); // Note: dense matrix product is not present in the space
+            // Perform the matrix inversion
+            double det_aux2;
+            MatrixType aux2inv(data_cols, data_cols);
+            MathUtils<double>::InvertMatrix(aux2, aux2inv, det_aux2);
+            KRATOS_WARNING_IF("MVQNFullJacobianConvergenceAccelerator",det_aux2 < 1e-12) << "Inverted matrix determinant is close to be singular" << std::endl;
+
+            // Compute the current inverse Jacobian approximation
+            MatrixType aux1(mProblemSize, data_cols);
+            MatrixType aux3(mProblemSize, data_cols);
+            noalias(aux1) = *mpObsMatrixW - prod(*mpJac_n,*mpObsMatrixV);
+            noalias(aux3) = prod(aux1,aux2inv); 
 
             MatrixPointerType pJac_k1 = MatrixPointerType(new MatrixType(mProblemSize, mProblemSize));
-
             std::swap(mpJac_k1,pJac_k1);
-
-            noalias(*mpJac_k1) = *mpJac_n + prod(aux3,trans(*mpObsMatrixV)); // Note: dense matrix product is not present in the space
-
-            //~ std::cout << "Jacobian approximation computed" << std::endl;
+            noalias(*mpJac_k1) = *mpJac_n + prod(aux3,trans(*mpObsMatrixV));
 
             // Perform the correction
             VectorType AuxVec(mProblemSize);
             TSpace::Mult(*mpJac_k1, *mpResidualVector_1, AuxVec);
             TSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
-
         }
 
         KRATOS_CATCH( "" );
@@ -348,16 +344,13 @@ public:
     ///@name Friends
     ///@{
 
-protected:
+private:
 
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-
-    ///@name Protected member Variables
+    ///@name Static Member Variables
     ///@{
 
     double mOmega_0;                                            // Relaxation factor for the initial fixed point iteration
+    double mCutOffEpsilon;                                      // Epsilon parameter for setting the cut off tolerance
     unsigned int mProblemSize;                                  // Residual to minimize size
     unsigned int mConvergenceAcceleratorIteration;              // Convergence accelerator iteration counter
     bool mConvergenceAcceleratorFirstCorrectionPerformed;       // Indicates that the initial fixed point iteration has been already performed
@@ -373,84 +366,55 @@ protected:
     MatrixPointerType mpObsMatrixW;             // Solution increment observation matrix
 
     ///@}
-
-    ///@name Protected Operators
+    ///@name Member Variables
     ///@{
+
     ///@}
-
-    ///@name Protected Operations
+    ///@name Private Operators
     ///@{
 
-    template<class T>
-    bool InvertMatrix(const T& input, T& inverse)
-    {
-        typedef permutation_matrix<std::size_t> pmatrix;
+    /**
+     * @brief This function drops the last column of both observation matrices
+     */
+    void DropObservationMatricesLastColum(){
+        // Set two auxiliar observation matrices
+        const auto cols = mpObsMatrixV->size2() - 1;
+        MatrixPointerType p_aux_v = Kratos::make_shared<MatrixType>(mProblemSize, cols);
+        MatrixPointerType p_aux_w = Kratos::make_shared<MatrixType>(mProblemSize, cols);
 
-        // create a working copy of the input
-        T A(input);
+        // Drop the last column
+        for (std::size_t i_row = 0; i_row < mProblemSize; ++i_row){
+            for (std::size_t i_col = 0; i_col < cols; ++i_col){
+                (*p_aux_v)(i_row, i_col) = (*mpObsMatrixV)(i_row, i_col);
+                (*p_aux_w)(i_row, i_col) = (*mpObsMatrixW)(i_row, i_col);
+            }
+        }
 
-        // create a permutation matrix for the LU-factorization
-        pmatrix pm(A.size1());
-
-        // perform LU-factorization
-        int res = lu_factorize(A, pm);
-        if (res != 0)
-            return false;
-
-        // create identity matrix of "inverse"
-        inverse.assign(identity_matrix<double> (A.size1()));
-
-        // backsubstitute to get the inverse
-        lu_substitute(A, pm, inverse);
-
-        return true;
+        // Set the member observation matrices pointers
+        std::swap(mpObsMatrixV,p_aux_v);
+        std::swap(mpObsMatrixW,p_aux_w);
     }
 
     ///@}
-
-    ///@name Protected  Access
-    ///@{
-    ///@}
-
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
-
-    ///@name Protected LifeCycle
-    ///@{
-    ///@{
-
-private:
-
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-
-    ///@name Member Variables
-    ///@{
-    ///@}
-
-    ///@name Private Operators
-    ///@{
-    ///@}
-
     ///@name Private Operations
     ///@{
-    ///@}
 
+    ///@}
     ///@name Private  Access
     ///@{
-    ///@}
 
+    ///@}
     ///@name Serialization
     ///@{
 
+    ///@}
     ///@name Private Inquiry
     ///@{
-    ///@}
 
+    ///@}
     ///@name Un accessible methods
     ///@{
+
     ///@}
 
 }; /* Class MVQNFullJacobianConvergenceAccelerator */
