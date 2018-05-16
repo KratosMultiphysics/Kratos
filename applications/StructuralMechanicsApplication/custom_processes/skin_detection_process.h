@@ -244,17 +244,6 @@ private:
     SizeType ComputeReserveSize(ElementsIteratorType itElem);
 
     /**
-     * @brief This method returns the subgeometry of the current geometry we are interested of
-     * @param BaseGeometry The base geometry where we get the subgeometry
-     * @param IndexSubGeometry The index of the corresponding subgeometry
-     * @return The corresponding subgeometry
-     */
-    GeometryType& GetSubGeometry(
-        GeometryType& BaseGeometry,
-        const IndexType IndexSubGeometry
-        );
-
-    /**
      * @brief This method should be called in case that the current list of neighbour must be drop
      */
     void ClearNeighbours();

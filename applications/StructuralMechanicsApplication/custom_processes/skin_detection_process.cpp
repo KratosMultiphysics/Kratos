@@ -71,15 +71,19 @@ void SkinDetectionProcess<TDim>::Execute()
 
         for (IndexType i_face = 0; i_face < reserve_size; ++i_face) {
 
-            GeometryType& sub_geom = GetSubGeometry(geom, i_face);
-
             /* FACES/EDGES */
-            const SizeType number_nodes = sub_geom.PointsNumber();
+            const SizeType number_nodes = TDim == 2 ? geom.Edges()[i_face].size() : geom.Faces()[i_face].size();
             VectorIndexType vector_ids(number_nodes);
 
             /* FACE/EDGE */
-            for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
-                vector_ids[i_node] = sub_geom[i_node].Id();
+            if (TDim == 2) {
+                for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
+                    vector_ids[i_node] = geom.Edges()[i_face][i_node].Id();
+                }
+            } else {
+                for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
+                    vector_ids[i_node] = geom.Faces()[i_face][i_node].Id();
+                }
             }
 
             /*** THE ARRAY OF IDS MUST BE ORDERED!!! ***/
@@ -123,15 +127,19 @@ void SkinDetectionProcess<TDim>::Execute()
         if (r_neighbour_elements.size() < reserve_size) {
             for (IndexType i_face = 0; i_face < reserve_size; ++i_face) {
 
-                GeometryType& sub_geom = GetSubGeometry(geom, i_face);
-
                 /* FACES/EDGES */
-                const SizeType number_nodes = sub_geom.PointsNumber();
+                const SizeType number_nodes = TDim == 2 ? geom.Edges()[i_face].size() : geom.Faces()[i_face].size();
                 VectorIndexType vector_ids(number_nodes);
 
                 /* FACE/EDGE */
-                for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
-                    vector_ids[i_node] = sub_geom[i_node].Id();
+                if (TDim == 2) {
+                    for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
+                        vector_ids[i_node] = geom.Edges()[i_face][i_node].Id();
+                    }
+                } else {
+                    for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
+                        vector_ids[i_node] = geom.Faces()[i_face][i_node].Id();
+                    }
                 }
 
                 /*** THE ARRAY OF IDS MUST BE ORDERED!!! ***/
@@ -144,8 +152,13 @@ void SkinDetectionProcess<TDim>::Execute()
                     condition_id += 1;
 
                     const std::string complete_name = name_condition + std::to_string(TDim) + "D" + std::to_string(number_nodes) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
-                    auto p_cond = p_auxiliar_model_part->CreateNewCondition(complete_name, condition_id, sub_geom, it_elem->pGetProperties());
-                    p_cond->Set(INTERFACE, true);
+                    if (TDim == 2) {
+                        auto p_cond = p_auxiliar_model_part->CreateNewCondition(complete_name, condition_id, geom.Edges()[i_face], it_elem->pGetProperties());
+                        p_cond->Set(INTERFACE, true);
+                    } else {
+                        auto p_cond = p_auxiliar_model_part->CreateNewCondition(complete_name, condition_id, geom.Faces()[i_face], it_elem->pGetProperties());
+                        p_cond->Set(INTERFACE, true);
+                    }
                 }
             }
         }
@@ -203,30 +216,6 @@ SizeType SkinDetectionProcess<3>::ComputeReserveSize(ElementsIteratorType itElem
 {
     const auto& geometry = itElem->GetGeometry();
     return geometry.FacesNumber();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-GeometryType& SkinDetectionProcess<2>::GetSubGeometry(
-    GeometryType& BaseGeometry,
-    const IndexType IndexSubGeometry
-    )
-{
-    return BaseGeometry.Edges()[IndexSubGeometry];
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-GeometryType& SkinDetectionProcess<3>::GetSubGeometry(
-    GeometryType& BaseGeometry,
-    const IndexType IndexSubGeometry
-    )
-{
-    return BaseGeometry.Faces()[IndexSubGeometry];
 }
 
 /***********************************************************************************/
