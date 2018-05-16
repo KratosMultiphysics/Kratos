@@ -115,18 +115,12 @@ namespace Kratos {
 
         KRATOS_TRY
         
-        //array_1d<double, 3>& external_applied_force  = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
         array_1d<double, 3> water_drag_force;
         const array_1d<double, 3> velocity = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
-        // Drag forces due to water. We are assuming the ship is moving in the X direction
-        // Quadratic laws were chosen. They may be linear
         water_drag_force[0] = ((velocity[0] >= 0.0) ? -mDragConstantVector[0] * velocity[0] * velocity[0] : mDragConstantVector[0] * velocity[0] * velocity[0]);
         water_drag_force[1] = ((velocity[1] >= 0.0) ? -mDragConstantVector[1] * velocity[1] * velocity[1] : mDragConstantVector[1] * velocity[1] * velocity[1]);
         water_drag_force[2] = ((velocity[2] >= 0.0) ? -mDragConstantVector[2] * velocity[2] * velocity[2] : mDragConstantVector[2] * velocity[2] * velocity[2]);
-        //external_applied_force[0] += ((velocity[0] >= 0.0) ? -mDragConstantVector[0] * velocity[0] * velocity[0] : mDragConstantVector[0] * velocity[0] * velocity[0]);
-        //external_applied_force[1] += ((velocity[1] >= 0.0) ? -mDragConstantVector[1] * velocity[1] * velocity[1] : mDragConstantVector[1] * velocity[1] * velocity[1]);
-        //external_applied_force[2] += ((velocity[2] >= 0.0) ? -mDragConstantVector[2] * velocity[2] * velocity[2] : mDragConstantVector[2] * velocity[2] * velocity[2]);
         
         noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += water_drag_force;
 
@@ -136,7 +130,7 @@ namespace Kratos {
     void ShipElement3D::ComputeExternalForces(const array_1d<double,3>& gravity) {
 
         KRATOS_TRY
-        // Gravity
+
         noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += RigidBodyElement3D::GetMass() * gravity;
         
         ComputeBuoyancyEffects();
