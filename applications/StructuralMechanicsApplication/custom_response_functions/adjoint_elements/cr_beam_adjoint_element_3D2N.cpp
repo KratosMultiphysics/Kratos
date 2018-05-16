@@ -655,32 +655,39 @@ namespace Kratos
             boundary_values_pseudo_load[0] = function_prefactor;
             boundary_values_pseudo_load[1] = -1.0 * function_prefactor;
 
+            unsigned int NumNodes = this->GetGeometry().PointsNumber();
+
             unsigned int num_gauss_points = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
             Vector DetJ = ZeroVector(num_gauss_points);
-            this->GetGeometry().DeterminantOfJacobian(DetJ,GeometryData::GI_GAUSS_2); //=0.5*l
-
             Vector integration_weigths;
             integration_weigths.resize(num_gauss_points);
 
-            const Matrix &Ncontainer = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            this->GetGeometry().DeterminantOfJacobian(DetJ,GeometryData::GI_GAUSS_2); 
+
+            const Matrix NContainer = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
 
             const auto& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
 
-            double analytic_sensitivity =  0.0;
-            for (unsigned int g = 0; g < num_gauss_points; g++)
-            {
-                integration_weigths[g] = DetJ[g]*IntegrationPoints[g].Weight();
+            double analytic_sensitivity = 0.0;
 
-                for(unsigned int i = 0; i < this->GetGeometry().PointsNumber(); i++ )
+            for (unsigned int g = 0; g < num_gauss_points; ++g)
+            {
+                const Kratos::Vector& N = row(NContainer,g);
+                const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
+
+                for (unsigned int i=0; i<NumNodes; ++i)
                 {
-                    analytic_sensitivity += Ncontainer(g, i) * Ncontainer(g, i) * 
-                            this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X) * integration_weigths[g] * 
-                            boundary_values_pseudo_load[i];
+                    for (unsigned int j=0; j<NumNodes; ++j)
+                    {
+                        analytic_sensitivity += GaussWeight * N[i] * N[j] *
+                        this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X) * boundary_values_pseudo_load[j];
+                    }
+
                 }
             }
-            //std::cout << "Discrete sensitivity = " << this->GetValue(CROSS_AREA_SENSITIVITY) << std::endl;
-            //std::cout << "Analytic sensitivity = " << 0.5 * analytic_sensitivity << std::endl;
-            std::cout << "Difference = " << 0.5 * analytic_sensitivity - this->GetValue(CROSS_AREA_SENSITIVITY) << std::endl;
+
+            KRATOS_ERROR_IF(std::abs(analytic_sensitivity - this->GetValue(CROSS_AREA_SENSITIVITY) > 1e-12 ))
+                << "Analytic scalarproduct is unequal to the corresponding discrete one!" << std::endl;
             //************************************************
 
         }
