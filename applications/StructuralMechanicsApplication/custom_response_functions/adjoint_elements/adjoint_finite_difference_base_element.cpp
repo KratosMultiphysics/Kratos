@@ -606,7 +606,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative
         {
             mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 1.0;
 
-            mpPrimalElement->Calculate(rStressVariable, stress_derivatives_vector, rCurrentProcessInfo);
+            this->Calculate(rStressVariable, stress_derivatives_vector, rCurrentProcessInfo);
 
             for(unsigned int k = 0; k < stress_derivatives_vector.size(); k++)
                 rOutput(index+j, k) = stress_derivatives_vector[k];
@@ -637,7 +637,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
     Vector stress_vector_dist;
 
     // Compute stress on GP before disturbance
-    mpPrimalElement->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+    this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
     // Get disturbance measure
     double delta= this->GetValue(DISTURBANCE_MEASURE);
@@ -666,7 +666,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
         mpPrimalElement->Initialize();
 
         // Compute stress on GP after disturbance
-        mpPrimalElement->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+        this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
         // Compute derivative of stress w.r.t. design variable with finite differences
         noalias(stress_vector_dist)  -= stress_vector_undist;
@@ -712,7 +712,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
         rOutput.resize(dimension * number_of_nodes, num_gps);
 
         // Compute stress on GP before disturbance
-        mpPrimalElement->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+        this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
         int index = 0;
         //TODO: look that this works also for parallel computing
@@ -724,7 +724,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
                 node_i.GetInitialPosition()[coord_dir_i] += delta;
 
                 // Compute stress on GP after disturbance
-                mpPrimalElement->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+                this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 
                 // Compute derivative of stress w.r.t. design variable with finite differences
                 noalias(stress_vector_dist)  -= stress_vector_undist;
