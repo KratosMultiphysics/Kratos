@@ -615,10 +615,12 @@ void PrestressMembraneElement::CalculateAll(
     if(this->Has(IS_FORMFINDING)){
         if(this->GetValue(IS_FORMFINDING))
             constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        else
+            constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     }
     else
         constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
+        
     Values.SetStrainVector(strain_vector);       // this is the input parameter
     Values.SetStressVector(stress_vector);       // this is an output parameter
 
@@ -693,6 +695,10 @@ void PrestressMembraneElement::CalculateAll(
         // Adding the pre-stress values as forces over length
         for (int i = 0; i < 3; ++i)
             strain_deformation[i] += GetValue(MEMBRANE_PRESTRESS)(i,point_number);
+
+        if (Id()==10){
+            std::cout<<"Strain deformation, membrane prestress:"<<strain_deformation<<","<<GetValue(MEMBRANE_PRESTRESS)<<std::endl;
+        }
 
         // calculate B matrices
         Matrix B(3, mat_size);
