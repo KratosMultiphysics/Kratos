@@ -9,7 +9,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Check external dependencies
 try:
   import KratosMultiphysics 
-  import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+  import KratosMultiphysics.SolidMechanicsApplication
+  import KratosMultiphysics.ConstitutiveModelsApplication
+  import KratosMultiphysics.ExternalSolversApplication as ExternalSolver
+  import KratosMultiphysics.PfemApplication as PfemApplication
+  import KratosMultiphysics.PfemSolidMechanicsApplication as PfemSolid
+  import KratosMultiphysics.ContactMechanicsApplication as Contact
   missing_external_dependencies = False
   missing_application = ''
 except ImportError as e:
@@ -30,11 +35,12 @@ class PatchTest2D(TF.TestFactory):
 def SetTestSuite(suites):
     small_suite = suites['small']
     
-    small_suite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            #SDE
-            PatchTest2D,
-        ])
-    )
+    if (missing_external_dependencies == False):
+        small_suite.addTests(
+            KratosUnittest.TestLoader().loadTestsFromTestCases([
+                #SDE
+                PatchTest2D,
+            ])
+        )
 
     return small_suite
