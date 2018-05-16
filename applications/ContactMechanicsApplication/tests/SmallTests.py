@@ -23,8 +23,8 @@ except ImportError as e:
 
 # Small displacement elements SDE
 class PatchTest2D(TF.TestFactory):
-    file_name = "patch_test/ContactPatchTest_EP_2D"
-    file_parameters = "patch_test/ProjectParameters.json"
+    file_name = "contact_patch_test/ContactPatchTest_EP_2D"
+    file_parameters = "contact_patch_test/ProjectParameters.json"
     
 
 def SetTestSuite(suites):
