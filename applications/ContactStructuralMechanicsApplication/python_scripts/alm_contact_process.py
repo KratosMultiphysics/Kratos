@@ -86,8 +86,7 @@ class ALMContactProcess(python_process.PythonProcess):
                 "max_gap_factor"              : 1.0e-3
             },
             "alternative_formulations" : {
-                "axisymmetric"                : false,
-                "double_formulation"          : false
+                "axisymmetric"                : false
             }
         }
         """)
@@ -424,15 +423,11 @@ class ALMContactProcess(python_process.PythonProcess):
                     condition_name = "ALMNVFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "ALMNVFrictionlessMortarContact"
-                    if self.settings["alternative_formulations"]["double_formulation"].GetBool():
-                        condition_name = "D" + condition_name
             else:
                 if self.settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
                     condition_name = "ALMFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "ALMFrictionlessMortarContact"
-                    if self.settings["alternative_formulations"]["double_formulation"].GetBool():
-                        condition_name = "D" + condition_name
         elif self.settings["contact_type"].GetString() == "FrictionlessComponents":
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
                 condition_name = "ALMNVFrictionlessComponentsMortarContact"
@@ -455,7 +450,6 @@ class ALMContactProcess(python_process.PythonProcess):
         search_parameters.AddValue("allocation_size", self.settings["search_parameters"]["max_number_results"])
         search_parameters.AddValue("bucket_size", self.settings["search_parameters"]["bucket_size"])
         search_parameters.AddValue("search_factor", self.settings["search_parameters"]["search_factor"])
-        search_parameters.AddValue("double_formulation", self.settings["alternative_formulations"]["double_formulation"])
         search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
         search_parameters["condition_name"].SetString(condition_name)
         search_parameters["predefined_master_slave"].SetBool(self.predefined_master_slave)

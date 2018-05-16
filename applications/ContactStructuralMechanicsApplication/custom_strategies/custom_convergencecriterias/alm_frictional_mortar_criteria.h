@@ -221,6 +221,7 @@ public:
                 it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array;
                 if (it_node->Is(ACTIVE)) {
                     it_node->Set(ACTIVE, false);
+                    it_node->Set(SLIP, false);
                     is_converged_active += 1;
                 }
             }
