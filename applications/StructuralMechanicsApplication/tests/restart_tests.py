@@ -76,8 +76,6 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
             load_mp_import_settings["input_type"].SetString("rest")
             load_mp_import_settings["restart_load_file_label"].SetString("3.0")
 
-            # print(self.project_parameters_load.PrettyPrintJsonString())
-
     def test_execution(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
