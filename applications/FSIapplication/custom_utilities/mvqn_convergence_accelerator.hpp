@@ -260,7 +260,7 @@ public:
             const auto svd_its = SVDUtils<double>::SingularValueDecomposition(aux2,u_svd,w_svd,v_svd);
 
             // Set the cuf-off threshold
-            const double cut_off_tol = mCutOffEpsilon * TSpace::TwoNorm(aux2);
+            const double cut_off_tol = mCutOffEpsilon * TSpace::TwoNorm(w_svd);
 
             // Check if the last information columns are linear dependent
             const std::size_t last_col = w_svd.size2() - 1;
