@@ -108,6 +108,7 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         else:
             if (error_criteria == "adaptative_remesh_criteria"):
                 adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.adaptative_remesh_settings)
+                adaptative_error_criteria.SetEchoLevel(conv_settings["echo_level"].GetInt())
                 return adaptative_error_criteria
 
         # Regular convergence criteria
@@ -118,6 +119,7 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         if (missing_meshing_dependencies is False):
             if ("_with_adaptative_remesh" in error_criteria):
                 adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.adaptative_remesh_settings)
+                adaptative_error_criteria.SetEchoLevel(conv_settings["echo_level"].GetInt())
                 convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
         return convergence_criterion.mechanical_convergence_criterion
 
