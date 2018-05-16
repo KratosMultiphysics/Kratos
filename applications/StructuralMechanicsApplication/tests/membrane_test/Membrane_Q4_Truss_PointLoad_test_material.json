@@ -12,7 +12,7 @@
                             "POISSON_RATIO": 3.00000E-001,
                             "DENSITY" : 7.85e3,
                             "THICKNESS": 1.00000E-1,
-                            "MEMBRANE_PRESTRESS": [[100.0,100.0,0.0]]
+                            "PRESTRESS_VECTOR": [100.0,100.0,0.0]
                     },
                     "Tables": {}
             }

@@ -120,8 +120,6 @@ void PrestressMembraneElement::Initialize()
 
 {
     KRATOS_TRY
-    if(this->Id()==1)
-    std::cout<<"Element initialized"<<std::endl;
 
     // reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
@@ -230,9 +228,6 @@ void PrestressMembraneElement::CalculateMassMatrix(
             rMassMatrix(index, index) = temp;
         }
     }
-    if(Id()== 27){
-        std::cout<<"Mass matrix calculated"<<std::endl;
-    }
 
     KRATOS_CATCH("")
 }
@@ -274,9 +269,6 @@ void PrestressMembraneElement::CalculateDampingMatrix(
         }
     }
 
-    if(Id()== 27){
-        std::cout<<"Damping matrix calculated"<<std::endl;
-    }
     KRATOS_CATCH("")
 }
 
@@ -620,7 +612,7 @@ void PrestressMembraneElement::CalculateAll(
     }
     else
         constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-        
+
     Values.SetStrainVector(strain_vector);       // this is the input parameter
     Values.SetStressVector(stress_vector);       // this is an output parameter
 
@@ -695,10 +687,6 @@ void PrestressMembraneElement::CalculateAll(
         // Adding the pre-stress values as forces over length
         for (int i = 0; i < 3; ++i)
             strain_deformation[i] += GetValue(MEMBRANE_PRESTRESS)(i,point_number);
-
-        if (Id()==10){
-            std::cout<<"Strain deformation, membrane prestress:"<<strain_deformation<<","<<GetValue(MEMBRANE_PRESTRESS)<<std::endl;
-        }
 
         // calculate B matrices
         Matrix B(3, mat_size);

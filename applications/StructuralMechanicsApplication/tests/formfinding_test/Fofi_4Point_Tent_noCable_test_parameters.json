@@ -33,7 +33,7 @@
         "problem_domain_sub_model_part_list" : ["Parts_membrane"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichlet"],
         "rotation_dofs"                      : false,
-        "print_formfinding_iterations": true,
+        "print_formfinding_iterations": false,
         "include_line_search": false
     },
     "constraints_process_list" : [{
@@ -60,7 +60,7 @@
         "incremental_load"         : false,
         "incremental_displacement" : false
     },
-    "_list_other_processes": [
+    "list_other_processes": [
     {
         "python_module" : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
@@ -88,7 +88,7 @@
         }
     }
     ],
-    "formfinding_IO_process" :[
+    "_formfinding_IO_process" :[
         {
             "python_module"   : "formfinding_IO_process",
             "kratos_module"   : "KratosMultiphysics.StructuralMechanicsApplication",

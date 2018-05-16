@@ -48,17 +48,17 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,1.0)
-        prestress = KratosMultiphysics.Matrix(1,3)  
-        prestress[0,0]=2.0
-        prestress[0,1]=1.0
-        prestress[0,2]=0.0
-        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.MEMBRANE_PRESTRESS,prestress)
+        prestress = KratosMultiphysics.Vector(3)  
+        prestress[0]=2.0
+        prestress[1]=1.0
+        prestress[2]=0.0
+        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.PRESTRESS_VECTOR,prestress)
 
         
         cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
 
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
-        
+        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.PROJECTION_TYPE_COMBO,"planar")
 
     def _solve(self,mp):
         #define a minimal newton raphson solver
