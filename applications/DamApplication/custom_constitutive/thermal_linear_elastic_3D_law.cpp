@@ -40,7 +40,6 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     KRATOS_TRY
     
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
-    const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
     Flags& Options = rValues.GetOptions();
     
     Vector& StrainVector = rValues.GetStrainVector();
@@ -62,7 +61,6 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
     //2.- Thermal constants    
     ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION]; 
-    ElasticVariables.ReferenceTemperature = CurrentProcessInfo[REFERENCE_TEMPERATURE];
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )){
     
@@ -74,7 +72,8 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         this->CalculateDomainTemperature( ElasticVariables, Temperature);
 
         Vector ThermalStrainVector;
-        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,Temperature);
+        double NodalReferenceTemperature;
+        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,Temperature,NodalReferenceTemperature);
 
         Vector tmp(StrainVector.size());
         noalias(tmp) = StrainVector - ThermalStrainVector;
@@ -95,8 +94,9 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
         double Temperature;
         this->CalculateDomainTemperature( ElasticVariables, Temperature);
-
-        this->CalculateThermalStrain(StrainVector,ElasticVariables,Temperature);
+        
+        double NodalReferenceTemperature;
+        this->CalculateThermalStrain(StrainVector,ElasticVariables,Temperature,NodalReferenceTemperature);
 
         noalias(StressVector) = prod(ConstitutiveMatrix,StrainVector);
       }
@@ -108,7 +108,8 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         this->CalculateDomainTemperature( ElasticVariables, Temperature);
 
         Vector ThermalStrainVector;
-        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,Temperature);
+        double NodalReferenceTemperature;
+        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,Temperature,NodalReferenceTemperature);
 
         Vector tmp(StrainVector.size());
         noalias(tmp) = StrainVector - ThermalStrainVector;
@@ -124,8 +125,9 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 	// Thermal strain
 	double Temperature;
 	this->CalculateDomainTemperature( ElasticVariables, Temperature);
-        
-	this->CalculateThermalStrain(StrainVector,ElasticVariables,Temperature);
+    
+    double NodalReferenceTemperature;
+	this->CalculateThermalStrain(StrainVector,ElasticVariables,Temperature,NodalReferenceTemperature);
       }
       //other strain: to implement
       
@@ -159,9 +161,21 @@ double&  ThermalLinearElastic3DLaw::CalculateDomainTemperature (const MaterialRe
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void ThermalLinearElastic3DLaw::CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables& rElasticVariables, double & rTemperature)
+void ThermalLinearElastic3DLaw::CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables& rElasticVariables, double & rTemperature, double & rNodalReferenceTemperature)
 {
     KRATOS_TRY
+    
+    //1.-Nodal Reference Temperature from nodes 
+    const GeometryType& DomainGeometry = rElasticVariables.GetElementGeometry();
+    const Vector& ShapeFunctionsValues = rElasticVariables.GetShapeFunctionsValues();
+    const unsigned int number_of_nodes = DomainGeometry.size();
+    
+    rNodalReferenceTemperature = 0.0;
+    
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    {
+      rNodalReferenceTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
+    }
     
     //Identity vector
     rThermalStrainVector.resize(6,false);
@@ -173,7 +187,7 @@ void ThermalLinearElastic3DLaw::CalculateThermalStrain( Vector& rThermalStrainVe
     rThermalStrainVector[5] = 0.0;
 
     // Delta T
-    double DeltaTemperature = rTemperature - rElasticVariables.ReferenceTemperature;
+    double DeltaTemperature = rTemperature - rNodalReferenceTemperature;
 
     //Thermal strain vector
     for(unsigned int i = 0; i < 6; i++)

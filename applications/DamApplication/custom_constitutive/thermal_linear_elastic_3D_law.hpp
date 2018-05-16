@@ -59,7 +59,7 @@ protected:
 
     double& CalculateDomainTemperature ( const MaterialResponseVariables & rElasticVariables, double & rTemperature);
 
-    virtual void CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables & rElasticVariables, double & rTemperature);
+    virtual void CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables & rElasticVariables, double & rTemperature, double & rNodalReferenceTemperature);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
