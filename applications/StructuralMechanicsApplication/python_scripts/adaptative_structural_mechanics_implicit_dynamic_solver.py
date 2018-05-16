@@ -98,6 +98,9 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
 
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()
+        conv_settings = self._get_convergence_criterion_settings()
+        if ("_with_adaptative_remesh" in error_criteria):
+            conv_settings["convergence_criterion"].SetString(error_criteria.replace("_with_adaptative_remesh", ""))
         # If we just use the adaptative convergence criteria
         if (missing_meshing_dependencies is True):
             if ("adaptative_remesh" in error_criteria):
@@ -109,11 +112,11 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
 
         # Regular convergence criteria
         import convergence_criteria_factory
-        convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
+        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_settings)
 
         # If we combine the regular convergence criteria with adaptative
         if (missing_meshing_dependencies is False):
-            if ("with_adaptative_remesh" in error_criteria):
+            if ("_with_adaptative_remesh" in error_criteria):
                 adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.adaptative_remesh_settings, self.processes_list, self.post_process)
                 convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
         return convergence_criterion.mechanical_convergence_criterion

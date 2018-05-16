@@ -99,10 +99,13 @@ class AdaptativeContactImplicitMechanicalSolver(contact_structural_mechanics_imp
         self.print_on_rank_zero("::[AdaptativeContactImplicitMechanicalSolver]:: ", "Variables ADDED")
 
     def _create_convergence_criterion(self):
-        import contact_convergence_criteria_factory
-        convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
-
         error_criteria = self.settings["convergence_criterion"].GetString()
+        conv_settings = self._get_convergence_criterion_settings()
+        if ("_with_adaptative_remesh" in error_criteria):
+            conv_settings["convergence_criterion"].SetString(error_criteria.replace("_with_adaptative_remesh", ""))
+        import contact_convergence_criteria_factory
+        convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(conv_settings)
+
         # If we just use the adaptative convergence criteria
         if (missing_meshing_dependencies is True):
             if ("adaptative_remesh" in error_criteria):

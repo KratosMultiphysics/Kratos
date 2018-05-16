@@ -40,28 +40,28 @@ class convergence_criterion:
             if (self.fancy_convergence_criterion == True):
                 self.table = KM.TableStreamUtility()
 
-            if("contact_displacement_criterion" in self.convergence_criterion_name):
+            if(self.convergence_criterion_name == "contact_displacement_criterion"):
                 if (self.fancy_convergence_criterion == True):
                     self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT, ensure_contact, self.table, self.print_convergence_criterion)
                 else:
                     self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT, ensure_contact)
                 self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
 
-            elif("contact_residual_criterion" in self.convergence_criterion_name):
+            elif(self.convergence_criterion_name == "contact_residual_criterion"):
                 if (self.fancy_convergence_criterion == True):
                     self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, self.table, self.print_convergence_criterion)
                 else:
                     self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact)
                 self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
 
-            elif("contact_mixed_criterion" in self.convergence_criterion_name):
+            elif(self.convergence_criterion_name == "contact_mixed_criterion"):
                 if (self.fancy_convergence_criterion == True):
                     self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, self.table, self.print_convergence_criterion)
                 else:
                     self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact)
                 self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
 
-            elif("contact_and_criterion" in self.convergence_criterion_name):
+            elif(self.convergence_criterion_name == "contact_and_criterion"):
                 if (self.fancy_convergence_criterion == True):
                     Displacement = CSMA.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, CD_RT, CD_AT, ensure_contact, self.table, self.print_convergence_criterion)
                     Residual = CSMA.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, self.table, self.print_convergence_criterion)
@@ -73,7 +73,7 @@ class convergence_criterion:
                 Residual.SetEchoLevel(self.echo_level)
                 self.mechanical_convergence_criterion = KM.AndCriteria(Residual, Displacement)
 
-            elif("contact_or_criterion" in self.convergence_criterion_name):
+            elif(self.convergence_criterion_name == "contact_or_criterion"):
                 if (self.fancy_convergence_criterion == True):
                     Displacement = CSMA.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, CD_RT, CD_AT, ensure_contact, self.table, self.print_convergence_criterion)
                     Residual = CSMA.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, self.table, self.print_convergence_criterion)
@@ -138,7 +138,7 @@ class convergence_criterion:
             self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
             self.mechanical_convergence_criterion.SetActualizeRHSFlag(True)
 
-        elif "adaptative_remesh_criteria" == self.convergence_criterion_name:
+        elif self.convergence_criterion_name == "adaptative_remesh_criteria":
             self.mechanical_convergence_criterion = None
         else: # Standard criteria (same as structural mechanics application)
             # Construction of the class convergence_criterion
