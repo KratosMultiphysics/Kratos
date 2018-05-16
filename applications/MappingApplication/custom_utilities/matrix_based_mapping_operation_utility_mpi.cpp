@@ -23,8 +23,10 @@
 
 namespace Kratos
 {
-    using UtilityType = MatrixBasedMappingOperationUtility<MapperDefinitions::MPISparseSpaceType,
-        MapperDefinitions::DenseSpaceType>;
+    using SparseSpaceType = MapperDefinitions::MPISparseSpaceType;
+    using DenseSpaceType = MapperDefinitions::DenseSpaceType;
+
+    using UtilityType = MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType>;
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
@@ -182,6 +184,6 @@ namespace Kratos
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class MatrixBasedMappingOperationUtility< MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType >;
+template class MatrixBasedMappingOperationUtility< SparseSpaceType, DenseSpaceType >;
 
 }  // namespace Kratos.
