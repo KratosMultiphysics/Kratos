@@ -293,10 +293,10 @@ class ParticleMPMSolver(object):
         for element in self.model_part2.Elements:
             element.Set(KratosMultiphysics.ACTIVE, True)
 
-        # Clone property of model_part2 to model_part3
-        self.model_part3.Properties = self.model_part2.Properties
+        # Specify domain size
+        self.domain_size = self.model_part3.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
-        # Read material property
+         # Read material property
         materials_imported = self._import_constitutive_laws()
         if materials_imported:
             if self._is_printing_rank():
@@ -305,14 +305,16 @@ class ParticleMPMSolver(object):
             if self._is_printing_rank():
                 KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","Constitutive law was not imported.")
 
+        # Clone property of model_part2 to model_part3
+        self.model_part3.Properties = self.model_part2.Properties
+
     def _import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
             import read_materials_process
             # Create a dictionary of model parts.
             Model = KratosMultiphysics.Model()
-            Model.AddModelPart(self.model_part3)
-            self.domain_size = self.model_part3.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            Model.AddModelPart(self.model_part2)
             # Add constitutive laws and material properties from json file to model parts.
             read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
                        
