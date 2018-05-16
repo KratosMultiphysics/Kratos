@@ -30,12 +30,6 @@ def CreateSolver(main_model_part, custom_settings):
         elif (solver_type == "static" or solver_type == "Static"):
             solver_module_name = "structural_mechanics_static_solver"
 
-        elif (solver_type == "adaptative_static" or solver_type == "AdaptativeStatic"):
-            solver_module_name = "adaptative_structural_mechanics_static_solver"
-
-        elif (solver_type == "adaptative_dynamic" or solver_type == "AdaptativeDynamic"):
-            solver_module_name = "adaptative_structural_mechanics_implicit_dynamic_solver"
-
         elif (solver_type == "eigen_value"):
             solver_module_name = "structural_mechanics_eigensolver"
 
