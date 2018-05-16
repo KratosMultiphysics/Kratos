@@ -514,9 +514,6 @@ void PrestressMembraneElement::CalculateStrain(
 
 //***********************************************************************************
 //***********************************************************************************
-// Anna I think this function is not used
-// pleae have a look into one of the solid elemens on how to use it
-// also please make it concisitent with the function from the solids, I think there are some deficiencies
 void PrestressMembraneElement::CalculateAndAdd_BodyForce(
     const Vector& rN,
     const ProcessInfo& rCurrentProcessInfo,
@@ -549,8 +546,6 @@ void PrestressMembraneElement::CalculateAndAdd_BodyForce(
 
 //***********************************************************************************
 //***********************************************************************************
-
-// Anna I think this is not used, is it needed?
 void PrestressMembraneElement::CalculateAndAdd_PressureForce(
     VectorType& rResidualVector,
     const Vector& rN,
