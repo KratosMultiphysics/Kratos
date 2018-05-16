@@ -100,6 +100,11 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
                 count += 1
                 # KratosMultiphysics.Logger.PrintInfo("Process " + str(count), process) # FIXME
 
+        ## Add the processes to the solver
+        self.solver.AddProcessesList(self.list_of_processes)
+        if (self.output_post is True):
+            self.solver.AddPostProcess(self.gid_output)
+
     def _GetSimulationName(self):
         return "::[KCSM Simulation]:: "
 
