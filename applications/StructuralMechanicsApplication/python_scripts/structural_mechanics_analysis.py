@@ -130,7 +130,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def _ExecuteInitialize(self):
         """ Initializing the Analysis """
         ## ModelPart is being prepared to be used by the solver
-        self.solver.PrepareModelPartForSolver()
+        self.solver.PrepareModelPart()
 
         ## Adds the Dofs if they don't exist
         self.solver.AddDofs()
