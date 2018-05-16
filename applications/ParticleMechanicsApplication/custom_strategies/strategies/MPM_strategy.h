@@ -424,17 +424,6 @@ public:
 
             mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofAtEachIteration,MoveMeshFlags) );
         }
-
-
-
-
-        initial_model_part.Nodes().clear();
-        initial_model_part.Elements().clear();
-
-
-
-
-
     }
     /*@} */
 
