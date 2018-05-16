@@ -16,8 +16,6 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/variables.h"
 #include "utilities/qr_utility.h"
 #include "includes/ublas_interface.h"
 #include "convergence_accelerator.hpp"
