@@ -1057,53 +1057,54 @@ namespace Kratos {
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
             ModelPart& submp = *sub_model_part;
-            if (!submp[FREE_BODY_MOTION]) break;
+            if (submp[FREE_BODY_MOTION])
+            {
+                double vel_start = 0.0, vel_stop = std::numeric_limits<double>::max();
+                if ((*sub_model_part).Has(VELOCITY_START_TIME)) {
+                    vel_start = (*sub_model_part)[VELOCITY_START_TIME];
+                }
+                if ((*sub_model_part).Has(VELOCITY_STOP_TIME)) {
+                    vel_stop = (*sub_model_part)[VELOCITY_STOP_TIME];
+                }
 
-            double vel_start = 0.0, vel_stop = std::numeric_limits<double>::max();
-            if ((*sub_model_part).Has(VELOCITY_START_TIME)) {
-                vel_start = (*sub_model_part)[VELOCITY_START_TIME];
-            }
-            if ((*sub_model_part).Has(VELOCITY_STOP_TIME)) {
-                vel_stop = (*sub_model_part)[VELOCITY_STOP_TIME];
-            }
+                if (time < vel_start || time > vel_stop) continue;
 
-            if (time < vel_start || time > vel_stop) continue;
+                ElementsArrayType& pElements = mpFem_model_part->Elements();
+                ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
+                RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
 
-            ElementsArrayType& pElements = mpFem_model_part->Elements();
-            ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
-            RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
-
-            if ((*sub_model_part).Has(IMPOSED_VELOCITY_X_VALUE)) {
-                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = (*sub_model_part)[IMPOSED_VELOCITY_X_VALUE];
+                if ((*sub_model_part).Has(IMPOSED_VELOCITY_X_VALUE)) {
+                    rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
+                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = (*sub_model_part)[IMPOSED_VELOCITY_X_VALUE];
+                }
+                else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
+                if ((*sub_model_part).Has(IMPOSED_VELOCITY_Y_VALUE)) {
+                    rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
+                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = (*sub_model_part)[IMPOSED_VELOCITY_Y_VALUE];
+                }
+                else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
+                if ((*sub_model_part).Has(IMPOSED_VELOCITY_Z_VALUE)) {
+                    rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
+                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = (*sub_model_part)[IMPOSED_VELOCITY_Z_VALUE];
+                }
+                else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
+                if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) {
+                    rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
+                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
+                }
+                else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
+                if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) {
+                    rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];
+                }
+                else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+                if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) {
+                    rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
+                }
+                else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+                rigid_body_elements_counter++;
             }
-            else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
-            if ((*sub_model_part).Has(IMPOSED_VELOCITY_Y_VALUE)) {
-                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = (*sub_model_part)[IMPOSED_VELOCITY_Y_VALUE];
-            }
-            else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
-            if ((*sub_model_part).Has(IMPOSED_VELOCITY_Z_VALUE)) {
-                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = (*sub_model_part)[IMPOSED_VELOCITY_Z_VALUE];
-            }
-            else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
-            if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) {
-                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
-            }
-            else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
-            if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) {
-                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];
-            }
-            else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-            if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) {
-                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
-            }
-            else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
-            rigid_body_elements_counter++;
         }
 
         KRATOS_CATCH("")
@@ -1145,34 +1146,36 @@ namespace Kratos {
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
             ModelPart& submp = *sub_model_part;
-            if (!submp[FREE_BODY_MOTION]) break;
 
-            ElementsArrayType& pElements = mpFem_model_part->Elements();
-            ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
-            RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
+            if (submp[FREE_BODY_MOTION])
+            {
+                ElementsArrayType& pElements = mpFem_model_part->Elements();
+                ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
+                RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
 
-            if ((*sub_model_part).Has(INITIAL_VELOCITY_X_VALUE)) {
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = (*sub_model_part)[INITIAL_VELOCITY_X_VALUE];
-            }
-            if ((*sub_model_part).Has(INITIAL_VELOCITY_Y_VALUE)) {
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = (*sub_model_part)[INITIAL_VELOCITY_Y_VALUE];
-            }
-            if ((*sub_model_part).Has(INITIAL_VELOCITY_Z_VALUE)) {
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = (*sub_model_part)[INITIAL_VELOCITY_Z_VALUE];
-            }
-            if ((*sub_model_part).Has(INITIAL_ANGULAR_VELOCITY_X_VALUE)) {
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_X_VALUE];
-            }
-            if ((*sub_model_part).Has(INITIAL_ANGULAR_VELOCITY_Y_VALUE)) {
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Y_VALUE];
-            }
-            if ((*sub_model_part).Has(INITIAL_ANGULAR_VELOCITY_Z_VALUE)) {
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Z_VALUE];
-            }
+                if ((*sub_model_part).Has(INITIAL_VELOCITY_X_VALUE)) {
+                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = (*sub_model_part)[INITIAL_VELOCITY_X_VALUE];
+                }
+                if ((*sub_model_part).Has(INITIAL_VELOCITY_Y_VALUE)) {
+                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = (*sub_model_part)[INITIAL_VELOCITY_Y_VALUE];
+                }
+                if ((*sub_model_part).Has(INITIAL_VELOCITY_Z_VALUE)) {
+                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = (*sub_model_part)[INITIAL_VELOCITY_Z_VALUE];
+                }
+                if ((*sub_model_part).Has(INITIAL_ANGULAR_VELOCITY_X_VALUE)) {
+                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_X_VALUE];
+                }
+                if ((*sub_model_part).Has(INITIAL_ANGULAR_VELOCITY_Y_VALUE)) {
+                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Y_VALUE];
+                }
+                if ((*sub_model_part).Has(INITIAL_ANGULAR_VELOCITY_Z_VALUE)) {
+                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Z_VALUE];
+                }
 
-            if (submp[FREE_BODY_MOTION]) rigid_body_element.CustomInitialize(submp);
+                if (submp[FREE_BODY_MOTION]) rigid_body_element.CustomInitialize(submp);
 
-            rigid_body_elements_counter++;
+                rigid_body_elements_counter++;
+            }
         }
 
         KRATOS_CATCH("")
