@@ -64,16 +64,13 @@ class MaterialTest(object):
       self.new_strain = 0.0
 
       # for the graph plotting
-      self.loading_velocity = 0.0
       self.height = self.parameters["SpecimenLength"].GetDouble()
       self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
       self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
       self.test_type = self.parameters["TestType"].GetString()
       self.problem_name = self.parameters["problem_name"].GetString()
-      self.LoadingVelocityTop = self.parameters["LoadingVelocityTop"].GetDouble()
-      self.LoadingVelocityBot = self.parameters["LoadingVelocityBot"].GetDouble()
+      self.LoadingVelocity = self.parameters["LoadingVelocity"].GetDouble()
       self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()
-      self.LoadingVelocityBot = self.parameters["LoadingVelocityBot"].GetDouble()
       self.MeshType = self.parameters["MeshType"].GetString()
       self.MeshPath = self.parameters["MeshPath"].GetString()
 
@@ -363,7 +360,7 @@ class MaterialTest(object):
 
     dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
-    self.strain += -100*self.length_correction_factor*1.0*self.LoadingVelocityTop*dt/self.height
+    self.strain += -100*self.length_correction_factor*1.0*self.LoadingVelocity*dt/self.height
 
     if (self.test_type =="BTS"):
 
@@ -375,7 +372,7 @@ class MaterialTest(object):
         total_force_bts += force_node_y
 
       self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.height*self.diameter*1e6)
-      self.strain_bts += -100*2*self.LoadingVelocityTop*dt/self.diameter
+      self.strain_bts += -100*2*self.LoadingVelocity*dt/self.diameter
     else:
 
       if (self.test_type =="Hydrostatic"):
@@ -454,7 +451,7 @@ class MaterialTest(object):
 
   def PrintChart(self):
 
-    loading_velocity = self.LoadingVelocityTop
+    loading_velocity = self.LoadingVelocity
 
     print ('************DEM VIRTUAL LAB******************'+'\n')
     print ('Loading velocity: ' + str(loading_velocity) + '\n')

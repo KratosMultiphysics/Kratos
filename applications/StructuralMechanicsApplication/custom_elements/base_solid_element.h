@@ -676,7 +676,7 @@ protected:
      * @param detJ The determinant of the jacobian of the element
      */
     virtual double GetIntegrationWeight(
-        const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
+        const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
         const unsigned int PointNumber,
         const double detJ
         );

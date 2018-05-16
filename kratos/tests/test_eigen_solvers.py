@@ -1,4 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
@@ -55,7 +55,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             import KratosMultiphysics.ExternalSolversApplication
         except:
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-            
+
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -83,7 +83,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             import KratosMultiphysics.ExternalSolversApplication
         except:
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-            
+
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -188,6 +188,8 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
         try:
             import KratosMultiphysics.EigenSolversApplication
+            if not hasattr(KratosMultiphysics.EigenSolversApplication, "ComplexPardisoLUSolver"):
+                self.skipTest("'ComplexPardisoLUSolver' is not available")
         except:
             self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
 

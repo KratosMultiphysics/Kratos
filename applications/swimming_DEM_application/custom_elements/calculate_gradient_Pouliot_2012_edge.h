@@ -58,7 +58,7 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = 2 >
-class ComputeGradientPouliot2012Edge : public Element
+class KRATOS_API(SWIMMING_DEM_APPLICATION) ComputeGradientPouliot2012Edge : public Element
 {
 public:
     ///@name Type Definitions
