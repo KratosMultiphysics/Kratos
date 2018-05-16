@@ -83,65 +83,61 @@ namespace Kratos
 
       const Properties& MaterialProperties  = rValues.GetMaterialProperties();
 
+      // Strain information
       const Vector& rStrainVector                  = rValues.GetStrainVector();
-      Vector& rStressVector                  = rValues.GetStressVector();
-
-      // Convert strain to 3D and compute the incremental strain (3D)
       Vector StrainVector = ZeroVector(6);
       unsigned int thisSize = 3;
-      if ( rStressVector.size() == 3)
+      if ( rStrainVector.size() == 3)
          thisSize = 2;
       Matrix StrainTensor = ZeroMatrix(thisSize,thisSize);
-
       StrainTensor = MathUtils<double>::StrainVectorToTensor( rStrainVector);
       StrainTensor = ConvertStrainTensorTo3D( StrainTensor);
       StrainVector = MathUtils<double>::StrainTensorToVector( StrainTensor, 6);
       Vector IncrementalStrain = (StrainVector - mStrainPrevious);
 
-
+      // Stress information
+      Vector& rStressVector                  = rValues.GetStressVector();
+      Vector StressVector = ZeroVector(6);
+      Vector IncrementalStress = ZeroVector(6);
       Matrix ConstitutiveMatrix( StrainVector.size() ,StrainVector.size());
       noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size() ,StrainVector.size());
 
-      Vector StressVector = ZeroVector(6);
-
+      // Plastic information
       Vector PlasticVariables = mHistoricalVariablesPrevious;
 
 
-      //-----------------------------//
-      //1.- Lame constants
+      //---------------------------------------------------------------
+      // Calculation of the constitutive model ------------------------
       const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
       const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
+
       CalculateLinearElasticStiffnessMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-
-
-      // Constitutive Model
-      Vector IncrementalStress = ZeroVector(6);
 
       IncrementalStress = prod(ConstitutiveMatrix, IncrementalStrain);
       StressVector = mStressPrevious + IncrementalStress;
 
 
 
+      // End of the calculation of the constitutive model -------------
+      //---------------------------------------------------------------
 
-      //7.-Calculate total Kirchhoff stress
 
+      // Pass the information to the element
       if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
 
          Matrix StressTensor = ZeroMatrix(3,3);
-
          StressTensor = MathUtils<double>::StressVectorToTensor( StressVector);
          rStressVector = MathUtils<double>::StressTensorToVector( StressTensor, rStressVector.size() );
       }
 
-
       if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
          Matrix& rConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
-
          rConstitutiveMatrix = ConvertConstitutiveMatrixAppropiateSize( rConstitutiveMatrix, ConstitutiveMatrix, rStressVector.size() );
 
       }
 
+      // Finalize the material response
       if( Options.Is( ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE ) ) {
          mHistoricalVariablesPrevious = PlasticVariables;
          mStrainPrevious = StrainVector;
@@ -170,7 +166,6 @@ namespace Kratos
    // convert the constitutive matrix to the appropiate size
    Matrix & NewNKLH3DLaw::ConvertConstitutiveMatrixAppropiateSize( Matrix & rOutput, const Matrix & rInput, const int voigtSize)
    {
-
       KRATOS_TRY
 
       if ( voigtSize == 6) // 3D 
@@ -202,8 +197,6 @@ namespace Kratos
       }
 
       return rOutput;
-
-
 
       KRATOS_CATCH("")
    }
@@ -243,6 +236,8 @@ namespace Kratos
          const double &rYoungModulus,
          const double &rPoissonCoefficient )
    {
+      KRATOS_TRY
+
       rConstitutiveMatrix.clear();
 
       // 3D linear elastic constitutive matrix
@@ -263,6 +258,7 @@ namespace Kratos
       rConstitutiveMatrix ( 1 , 2 ) = rConstitutiveMatrix ( 0 , 1 );
       rConstitutiveMatrix ( 2 , 1 ) = rConstitutiveMatrix ( 0 , 1 );
 
+      KRATOS_CATCH("")
    }
 
 
@@ -306,18 +302,18 @@ namespace Kratos
       if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
          KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ", "" )
 
-            const double& nu = rMaterialProperties[POISSON_RATIO];
+      const double& nu = rMaterialProperties[POISSON_RATIO];
       const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
 
       if(POISSON_RATIO.Key() == 0 || check==true)
          KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero invalid value ", "" )
 
 
-            if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
-               KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero or invalid value ", "" )
+      if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
+         KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero or invalid value ", "" )
 
 
-                  return 0;
+      return 0;
 
    }
 
