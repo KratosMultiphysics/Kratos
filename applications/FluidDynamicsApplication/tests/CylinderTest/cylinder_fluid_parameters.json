@@ -129,6 +129,7 @@
             "output_file_name"    : "cylinder_test_probe1.dat",
             "reference_file_name" : "cylinder_test_probe1_ref.dat",
             "comparison_type"     : "dat_file",
+            "remove_output_file"    : true,
             "decimal_places"      : 7
         }
     },{
@@ -140,6 +141,7 @@
             "output_file_name"    : "cylinder_test_probe2.dat",
             "reference_file_name" : "cylinder_test_probe2_ref.dat",
             "comparison_type"     : "dat_file",
+            "remove_output_file"    : true,
 	        "decimal_places"      : 7
         }
     }]
