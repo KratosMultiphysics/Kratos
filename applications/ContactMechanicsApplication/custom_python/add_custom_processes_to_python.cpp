@@ -22,6 +22,7 @@
 #include "custom_processes/clear_point_contact_conditions_process.hpp"
 #include "custom_processes/build_contact_conditions_process.hpp"
 
+#include "custom_processes/hm_parametric_wall_contact_search_process.hpp"
 
 namespace Kratos
 {
@@ -62,6 +63,15 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, std::vector<std::string>&, int>())
       ;
 
+      class_<HMParametricWallContactSearchProcess, bases< ProcessBaseType >, boost::noncopyable >
+	("HMParametricWallContactSearch", init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
+	;
+
+      class_<BuildContactModelPartProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "BuildContactModelPart", init<ModelPart&, ModelerUtilities::MeshingParameters&, std::vector<std::string>&, int>()
+	 )
+	;
   class_<ClearPointContactConditionsProcess, Process>
       (m,"ClearPointContactConditions")
       .def(init<ModelPart&, int>())

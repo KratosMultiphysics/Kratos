@@ -10,8 +10,8 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mechanical solver base class
 import solid_mechanics_implicit_dynamic_solver as BaseSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return PfemDynamicMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(custom_settings):
+    return PfemDynamicMechanicalSolver(custom_settings)
 
 class PfemDynamicMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
     """The pfem solid mechanics dynamic solver to add Pfem solid variables
@@ -22,18 +22,31 @@ class PfemDynamicMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
 
     See solid_mechanics_solver.py for more information.
     """    
-    def __init__(self, main_model_part, custom_settings): 
+    def __init__(self, custom_settings): 
         
-        super(PfemDynamicMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(PfemDynamicMechanicalSolver, self).__init__( custom_settings)
+
 
 
     def _create_solution_scheme(self):
         
-        integration_method = self.time_integration_settings["integration_method"].GetString()
-
-        #if(integration_method == "Newmark"):           
         damp_factor_m = 0.0
-        mechanical_scheme = KratosPfemSolid.ResidualBasedUWBossakScheme(damp_factor_m, 1.0)
+        alphaM = 0.0
+        dynamic = 1
+        alphaF = 0
+        beta = 0.3025
+        gamma = 0.6
+
+        self.process_info[KratosMultiphysics.NEWMARK_BETA] = beta
+        self.process_info[KratosMultiphysics.NEWMARK_GAMMA] = gamma
+        self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = alphaM
+
+        time_integration_method = KratosSolid.BossakMethod()
+        #time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
+        
+        time_integration_method.SetParameters(self.process_info)
+
+        mechanical_scheme = KratosPfemSolid.ResidualBasedUWBossakScheme()
                     
         return mechanical_scheme
  

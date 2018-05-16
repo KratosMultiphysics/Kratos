@@ -13,7 +13,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_J_W_wP_stab_element.hpp"
+#include "custom_elements/updated_lagrangian_U_J_W_wP_DME_element.hpp"
 #include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application_variables.h"
 
@@ -22,7 +22,7 @@ namespace Kratos
 
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
-   UpdatedLagrangianUJWwPStabElement::UpdatedLagrangianUJWwPStabElement()
+   UpdatedLagrangianUJWwPDMEElement::UpdatedLagrangianUJWwPDMEElement()
       : UpdatedLagrangianUJWwPElement()
    {
       //DO NOT CALL IT: only needed for Register and Serialization!!!
@@ -32,7 +32,7 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUJWwPStabElement::UpdatedLagrangianUJWwPStabElement( IndexType NewId, GeometryType::Pointer pGeometry )
+   UpdatedLagrangianUJWwPDMEElement::UpdatedLagrangianUJWwPDMEElement( IndexType NewId, GeometryType::Pointer pGeometry )
       : UpdatedLagrangianUJWwPElement( NewId, pGeometry )
    {
       //DO NOT ADD DOFS HERE!!!
@@ -42,7 +42,7 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUJWwPStabElement::UpdatedLagrangianUJWwPStabElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+   UpdatedLagrangianUJWwPDMEElement::UpdatedLagrangianUJWwPDMEElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
       : UpdatedLagrangianUJWwPElement( NewId, pGeometry, pProperties )
    {
    }
@@ -51,7 +51,7 @@ namespace Kratos
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
-   UpdatedLagrangianUJWwPStabElement::UpdatedLagrangianUJWwPStabElement( UpdatedLagrangianUJWwPStabElement const& rOther)
+   UpdatedLagrangianUJWwPDMEElement::UpdatedLagrangianUJWwPDMEElement( UpdatedLagrangianUJWwPDMEElement const& rOther)
       :UpdatedLagrangianUJWwPElement(rOther)
    {
    }
@@ -60,7 +60,7 @@ namespace Kratos
    //*******************************ASSIGMENT OPERATOR***********************************
    //************************************************************************************
 
-   UpdatedLagrangianUJWwPStabElement&  UpdatedLagrangianUJWwPStabElement::operator=(UpdatedLagrangianUJWwPStabElement const& rOther)
+   UpdatedLagrangianUJWwPDMEElement&  UpdatedLagrangianUJWwPDMEElement::operator=(UpdatedLagrangianUJWwPDMEElement const& rOther)
    {
       UpdatedLagrangianUJWwPElement::operator=(rOther);
 
@@ -71,19 +71,19 @@ namespace Kratos
    //*********************************OPERATIONS*****************************************
    //************************************************************************************
 
-   Element::Pointer UpdatedLagrangianUJWwPStabElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+   Element::Pointer UpdatedLagrangianUJWwPDMEElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
    {
-      return Element::Pointer( new UpdatedLagrangianUJWwPStabElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+      return Element::Pointer( new UpdatedLagrangianUJWwPDMEElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
    }
 
 
    //************************************CLONE*******************************************
    //************************************************************************************
 
-   Element::Pointer UpdatedLagrangianUJWwPStabElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+   Element::Pointer UpdatedLagrangianUJWwPDMEElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
    {
 
-      UpdatedLagrangianUJWwPStabElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+      UpdatedLagrangianUJWwPDMEElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
       //-----------//
 
@@ -118,26 +118,50 @@ namespace Kratos
       NewElement.SetData(this->GetData());
       NewElement.SetFlags(this->GetFlags());
 
-      return Element::Pointer( new UpdatedLagrangianUJWwPStabElement(NewElement) );
+      return Element::Pointer( new UpdatedLagrangianUJWwPDMEElement(NewElement) );
    }
 
 
    //*******************************DESTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUJWwPStabElement::~UpdatedLagrangianUJWwPStabElement()
+   UpdatedLagrangianUJWwPDMEElement::~UpdatedLagrangianUJWwPDMEElement()
    {
    }
 
    // *********************************************************************************
-   //         Calculate the Mass matrix part due to the stabilization
-   void UpdatedLagrangianUJWwPStabElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   //         Calculate the Damping matrix part due to the stabilization
+   void UpdatedLagrangianUJWwPDMEElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      const unsigned int number_of_nodes = GetGeometry().size();
-      const unsigned int dofs_per_node = 2*dimension + 2;
+
+      unsigned int dofs_per_node = 2*dimension + 2;
+
+      double ElementSize = 0;
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         double aux = 0;
+         for (unsigned int iDim = 0; iDim < dimension; iDim++) {
+            aux += rVariables.DN_DX(i, iDim);
+         }
+         ElementSize += fabs( aux); 
+      }
+      ElementSize *= sqrt( double(dimension) );
+      ElementSize = 4.0/ ElementSize;
+
+      ProcessInfo SomeProcessInfo; 
+      std::vector< double> Mmodulus;
+      GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
+      double ConstrainedModulus = Mmodulus[0];
+      if ( ConstrainedModulus < 1e-5)
+      {
+         const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
+         const double& nu    = GetProperties()[POISSON_RATIO];
+         ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
+      }
+
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
@@ -147,43 +171,42 @@ namespace Kratos
       double density_solid = (density_mixture0 - porosity0*WaterDensity) / ( 1.0 - porosity0);
       double CurrentDensity = ( 1.0 - porosity) * density_solid + porosity * WaterDensity;
 
-      const double &  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];
+      double StabFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
+      //   double WaveVelocity = sqrt((ConstrainedModulus+rWaterBulk)/CurrentDensity);
+      double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
+      double alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
 
-      const double & rStabFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
+      double tau_factor=0;
+      if (WaterDensity > 1e-3)
+         tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
+
 
       Matrix SmallMatrix = ZeroMatrix( number_of_nodes, number_of_nodes);
 
-      if ( ( fabs(rStabFactor) > 1.0e-9) && dimension==2)  {
+      if ( fabs(StabFactor) > 1.0e-9)  {
 
          // assume that K is a unit tensor by k
          for (unsigned int i = 0; i < number_of_nodes; i++) {
             for (unsigned int j = 0; j < number_of_nodes; j++) {
-               SmallMatrix(i,j) -= rVariables.N[i] * rVariables.N[j] * rStabFactor * CurrentDensity * rIntegrationWeight / rWaterBulk;
+               for (unsigned p = 0; p < dimension; p++) {
+                  SmallMatrix(i,j) += rVariables.DN_DX(i,p) * rVariables.DN_DX(j,p) * alpha_factor*(tau_factor-1) * rIntegrationWeight;
+               }
             }
          } 
          for (unsigned int i = 0; i < number_of_nodes; i++) {
             for (unsigned int j = 0; j < number_of_nodes; j++) {
-               rMassMatrix( (i+1)*dofs_per_node-1, (j+1)*dofs_per_node-1) += SmallMatrix(i,j);
+               rDampingMatrix( (i+1)*dofs_per_node-1, (j+1)*dofs_per_node-1) -=SmallMatrix(i,j);
             }
          }
       }
 
-   KRATOS_CATCH("")
 
+      KRATOS_CATCH("")
    }
 
    // *********************************************************************************
-   //         Calculate the Damping matrix part due to the stabilization
-   void UpdatedLagrangianUJWwPStabElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
-   {
-      KRATOS_TRY
-
-      KRATOS_CATCH("")
-   }
-
-   //************************************************************************************
-   //         Matrix due to the the water pressure stabilization contribution to the internal forces   
-   void UpdatedLagrangianUJWwPStabElement::CalculateAndAddKPPStab( MatrixType & rLeftHandSide, ElementVariables & rVariables, double & rIntegrationWeight)
+   //         Calculate the MASS matrix part due to the stabilization   
+   void UpdatedLagrangianUJWwPDMEElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -192,6 +215,17 @@ namespace Kratos
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       unsigned int dofs_per_node = 2*dimension + 2;
+
+      double ElementSize = 0;
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+         double aux = 0;
+         for (unsigned int iDim = 0; iDim < dimension; iDim++) {
+            aux += rVariables.DN_DX(i, iDim);
+         }
+         ElementSize += fabs( aux); 
+      }
+      ElementSize *= sqrt( double(dimension) );
+      ElementSize = 4.0/ ElementSize;
 
       ProcessInfo SomeProcessInfo; 
       std::vector< double> Mmodulus;
@@ -204,92 +238,62 @@ namespace Kratos
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
 
-      const double & rWaterBulk = GetProperties()[WATER_BULK_MODULUS];
-      double ConstrainedModulusMixture = 1 + ConstrainedModulus / rWaterBulk;
 
-      //double StabFactor = CalculateStabilizationFactor( Variables, StabFactor); 
+      double density_mixture0 = GetProperties()[DENSITY];
+      double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
+      double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
+
+      double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0; 
+      double density_solid = (density_mixture0 - porosity0*WaterDensity) / ( 1.0 - porosity0);
+      double CurrentDensity = ( 1.0 - porosity) * density_solid + porosity * WaterDensity;
+
       double StabFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
+      //   double WaveVelocity = sqrt((ConstrainedModulus+rWaterBulk)/CurrentDensity);
+      double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
+      double alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
 
-      Matrix SmallMatrix = ZeroMatrix( number_of_nodes, number_of_nodes);
+      double tau_factor=0;
+      if (WaterDensity > 1e-3)
+         tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
 
-      if ( ( fabs(StabFactor) > 1.0e-9) && dimension==2)  {
+      const double & rPermeability = GetProperties()[PERMEABILITY];
 
-         // assume that K is a unit tensor by k
+      if ( fabs(StabFactor) > 1.0e-9)  {
+
+         Matrix Q = ZeroMatrix( number_of_nodes, dimension*number_of_nodes);
+         unsigned int voigtSize = 3;
+         if ( dimension == 3) voigtSize = 6;
+         Matrix m = ZeroMatrix( 1, voigtSize);
+         for ( unsigned int i = 0; i < dimension; i++)
+            m(0,i) = 1.0;
+         Matrix partial =  prod( m, rVariables.B );
          for (unsigned int i = 0; i < number_of_nodes; i++) {
-            for (unsigned int j = 0; j < number_of_nodes; j++) {
-               for (unsigned p = 0; p < dimension; p++) {
-                  SmallMatrix(i,j) -= rVariables.DN_DX(i,p) * rVariables.DN_DX(j,p) * StabFactor * ConstrainedModulusMixture * rIntegrationWeight;
-               }
-            }
-         } 
-         for (unsigned int i = 0; i < number_of_nodes; i++) {
-            for (unsigned int j = 0; j < number_of_nodes; j++) {
-               rLeftHandSide( (i+1)*dofs_per_node-1, (j+1)*dofs_per_node-1) += SmallMatrix(i,j);
+            for (unsigned int j = 0; j < dimension*number_of_nodes; j++ ) {
+               Q(i,j) = rVariables.N[i] * partial(0,j) * rIntegrationWeight;
             }
          }
-      }
 
-      KRATOS_CATCH("")
-   }
- 
-   // ****************************************************************************
-   //     Right hand side part due to the stabilization technique
-   void UpdatedLagrangianUJWwPStabElement::CalculateAndAddStabilizationRHS(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
-         double& rIntegrationWeight)
-   {
-      KRATOS_TRY
-
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      unsigned int dofs_per_node = 2*dimension + 2;
-
-      ProcessInfo SomeProcessInfo; 
-      std::vector< double> Mmodulus;
-      GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
-      double ConstrainedModulus = Mmodulus[0];
-      if ( ConstrainedModulus < 1e-5)
-      {
-         const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
-         const double& nu    = GetProperties()[POISSON_RATIO];
-         ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
-      }
-
-      const double  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];
-      double ConstrainedModulusMixture = 1 + ConstrainedModulus / rWaterBulk;
-
-      //double StabFactor = CalculateStabilizationFactor( Variables, StabFactor); 
-      double StabFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP); 
-
-      Vector SmallRHS = ZeroVector(number_of_nodes);
-
-      if ( ( fabs(StabFactor) > 1.0e-9) && dimension==2)  {
-         
          for (unsigned int i = 0; i < number_of_nodes; i++) {
             for (unsigned int j = 0; j < number_of_nodes; j++) {
-               for (unsigned p = 0; p < dimension; p++) {
-		  const double & WaterPressure = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
-                  SmallRHS(i) += rVariables.DN_DX(i,p) * rVariables.DN_DX(j,p) * StabFactor * ConstrainedModulusMixture * WaterPressure * rIntegrationWeight;
+               for (unsigned int jDim = 0; jDim < dimension; jDim++) {
+                  rMassMatrix( (i+1)*dofs_per_node -1, j*dofs_per_node + jDim + (dimension+1) ) -= alpha_factor*tau_factor/rPermeability*Q(i, j*dimension+jDim);
                }
             }
          }
-      	for (unsigned int i = 0; i < number_of_nodes; i++) {
-            rRightHandSideVector((i+1)*dofs_per_node-1 ) += SmallRHS(i);
-      	}
-      } 
+
+      }
+
 
       KRATOS_CATCH("")
-
    }
 
 
-   void UpdatedLagrangianUJWwPStabElement::save( Serializer& rSerializer ) const
+   void UpdatedLagrangianUJWwPDMEElement::save( Serializer& rSerializer ) const
    {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangianUJWwPElement )
    }
+   void UpdatedLagrangianUJWwPDMEElement::load( Serializer& rSerializer )
 
-   void UpdatedLagrangianUJWwPStabElement::load( Serializer& rSerializer )
    {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangianUJWwPElement )
    }
