@@ -1,15 +1,11 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication
-import KratosMultiphysics.ConstitutiveModelsApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits:
 
-# CORE TESTS
-import CoreTests
 # SMALL TESTS
 import SmallTests
 # NIGTHLY TESTS
@@ -21,9 +17,6 @@ def AssambleTestSuites():
 
     # Suites to run
     suites = KratosUnittest.KratosSuites
-
-    # CORE TESTS
-    CoreTests.SetTestSuite(suites)
 
     # SMALL TESTS
     small_suite = SmallTests.SetTestSuite(suites)

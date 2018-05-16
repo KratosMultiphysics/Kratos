@@ -1,7 +1,4 @@
 import KratosMultiphysics
-import sys
-from math import *
-
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -42,9 +39,6 @@ class CheckScalarOnElementsProcess(KratosMultiphysics.Process, KratosUnittest.Te
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME] #- self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-
-        AllElements = self.mesh.Elements
         FirstElement = self.mesh.Elements[1]
 
         SomeProcessInfo = KratosMultiphysics.ProcessInfo()
@@ -58,5 +52,3 @@ class CheckScalarOnElementsProcess(KratosMultiphysics.Process, KratosUnittest.Te
             for i in range(0, VariableValue.Size1()):
                 for j in range(0, VariableValue.Size2()):
                     self.assertAlmostEqual( VariableValue[i,j], ThisValue[i,j], self.tol)
-
-
