@@ -128,7 +128,7 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
             label = self.printed_step_count
         
         # Write results to the initiated result file
-        self._write_mp_results(time)
+        self._write_mp_results(label)
 
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
@@ -185,7 +185,7 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
         """
         return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetVariable, "Variable")
 
-    def _write_mp_results(self, time):
+    def _write_mp_results(self, label):
         clock_time = self._start_time_measure()
 
         for i in range(self.variable_list.size()):
@@ -197,9 +197,9 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
             self.result_file.write(var_name)
             
             if var_name == "MP_PRESSURE" or var_name == "MP_EQUIVALENT_PLASTIC_STRAIN":
-                self.result_file.write('" "Kratos" {} Scalar OnNodes\n'.format(time))
+                self.result_file.write('" "Kratos" {} Scalar OnNodes\n'.format(label))
             else:
-                self.result_file.write('" "Kratos" {} Vector OnNodes\n'.format(time))
+                self.result_file.write('" "Kratos" {} Vector OnNodes\n'.format(label))
             
             self.result_file.write("Values\n")
             for mpm in self.model_part.Elements:
@@ -214,8 +214,11 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
                     self.result_file.write("{} {}\n".format(mpm.Id, print_variable))
                 elif print_size == 3:
                     self.result_file.write("{} {} {} {}\n".format(mpm.Id, print_variable[0], print_variable[1], print_variable[2]))            
-                else:
-                    KratosMultiphysics.Logger.PrintInfo("Warning in mpm gid output", "Printing format is not defined for variable size: ", print_size)
+                elif print_size == 6:
+                    self.result_file.write("{} {} {} {} {} {} {}\n".format(mpm.Id, print_variable[0], print_variable[1], print_variable[2], print_variable[3], print_variable[4], print_variable[5]))
+                else:    
+                    KratosMultiphysics.Logger.PrintInfo("Warning in mpm gid output", "Printing format is not defined for variable: ", var_name, "with size: ", print_size)
+
             self.result_file.write("End Values\n")
 
         self._stop_time_measure(clock_time)
