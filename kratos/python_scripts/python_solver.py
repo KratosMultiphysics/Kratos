@@ -46,13 +46,18 @@ class PythonSolver(object):
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
         problem_path = os.getcwd()
         input_filename = self.solver_settings["model_import_settings"]["input_filename"].GetString()
-        if self.is_restarted():
-            self.get_restart_utility().LoadRestart()
-        elif(self.solver_settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+        input_type = self.solver_settings["model_import_settings"]["input_type"].GetString()
+
+        if (input_type == "mdpa"):
             # Import model part from mdpa file.
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
+        elif (input_type == "rest"):
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
+            from restart_utility import RestartUtility
+            RestartUtility(self.main_model_part, self._GetRestartSettings()).LoadRestart()
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
         else:
             raise Exception("Other model part input options are not yet implemented.")
         KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
@@ -148,3 +153,12 @@ class PythonSolver(object):
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.solver_settings["computing_model_part_name"].GetString())
+
+
+    def _GetRestartSettings(self):
+        restart_settings = KratosMultiphysics.Parameters("""{}""")
+        restart_settings.AddValue("input_filename", self.solver_settings["model_import_settings"]["input_filename"])
+        if self.solver_settings.Has("echo_level")
+            restart_settings.AddValue("echo_level", self.solver_settings["echo_level"])
+
+        return restart_settings
