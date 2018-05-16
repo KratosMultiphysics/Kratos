@@ -102,7 +102,7 @@ class MatrixBasedMappingOperationUtility
         TSystemVectorUniquePointerType& rpQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        const MapperLocalSystemPointerVector& rMapperLocalSystems) const override;
+        MapperLocalSystemPointerVector& rMapperLocalSystems) const override;
 
     // The "Build" function
     void BuildMappingMatrix(const MapperLocalSystemPointerVector& rMapperLocalSystems,
@@ -288,7 +288,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void ConstructMatrixStructure(const MapperLocalSystemPointerVector& rMapperLocalSystems,
+    void ConstructMatrixStructure(MapperLocalSystemPointerVector& rMapperLocalSystems,
                                   TSystemMatrixType& rMdo) const;
 
 

@@ -32,9 +32,10 @@ namespace Kratos
     /***********************************************************************************/
     template<>
     UtilityType::MatrixBasedMappingOperationUtility(Parameters Settings)
-        : MappingOperationUtility<MapperDefinitions::MPISparseSpaceType,
-          MapperDefinitions::DenseSpaceType>(Settings)
+        : MappingOperationUtility<SparseSpaceType, DenseSpaceType>(Settings)
     {
+        KRATOS_ERROR_IF_NOT(SparseSpaceType::IsDistributed())
+            << "Using a non-distributed Space!" << std::endl;
         KRATOS_WATCH("MPI-Ctor")
 
     }
@@ -46,7 +47,7 @@ namespace Kratos
         TSystemVectorUniquePointerType& rpQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        const MapperLocalSystemPointerVector& rMapperLocalSystems) const
+        MapperLocalSystemPointerVector& rMapperLocalSystems) const
     {
 
 
@@ -172,7 +173,7 @@ namespace Kratos
     /* PROTECTED Methods */
     /***********************************************************************************/
     template<>
-    void UtilityType::ConstructMatrixStructure(const MapperLocalSystemPointerVector& rMapperLocalSystems,
+    void UtilityType::ConstructMatrixStructure(MapperLocalSystemPointerVector& rMapperLocalSystems,
                                                TSystemMatrixType& rMdo) const
     {
 
