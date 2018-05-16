@@ -15,7 +15,7 @@
 // System includes
 
 // External includes
-#include <unordered_map>
+#include <unordered_set>
 
 // Project includes
 #include "processes/process.h"
@@ -92,7 +92,7 @@ public:
     typedef WeakPointerVector<Element> ElementPointerVector;
 
     /// Definition of the vector indexes considered
-    typedef vector<IndexType> VectorIndexType;
+    typedef std::vector<IndexType> VectorIndexType;
 
     /// Definition of the hasher considered
     typedef VectorIndexHasher<VectorIndexType> VectorIndexHasherType;
@@ -100,17 +100,11 @@ public:
     /// Definition of the key comparor considered
     typedef VectorIndexComparor<VectorIndexType> VectorIndexComparorType;
 
-    /// Define the map considered for indexes
-    typedef std::unordered_map<VectorIndexType, IndexType, VectorIndexHasherType, VectorIndexComparorType > HashMapVectorIntIntType;
-
-    /// Define the HashMapVectorIntIntType iterator type
-    typedef HashMapVectorIntIntType::iterator HashMapVectorIntIntIteratorType;
-
     /// Define the map considered for elemento pointers
-    typedef std::unordered_map<VectorIndexType, Element::Pointer, VectorIndexHasherType, VectorIndexComparorType > HashMapVectorIntElementPointerType;
+    typedef std::unordered_set<VectorIndexType, VectorIndexHasherType, VectorIndexComparorType > HashSetVectorIntType;
 
     /// Define the HashMapVectorIntElementPointerType iterator type
-    typedef HashMapVectorIntElementPointerType::iterator HashMapVectorIntElementPointerIteratorType;
+    typedef HashSetVectorIntType::iterator HashSetVectorIntTypeIteratorType;
 
     ///@}
     ///@name Life Cycle
@@ -146,11 +140,6 @@ public:
      * @brief This method executes the algorithm that looks for neighbour nodes and elements in a  mesh of prismatic elements
      */
     void Execute() override;
-
-    /**
-     * @brief This function is designed for being called at the end of the computations right after reading the model and the groups
-     */
-    void ExecuteFinalize() override;
 
     ///@}
     ///@name Access
@@ -236,41 +225,12 @@ private:
     ///@{
 
     /**
-     * @brief This method computes the required reserve size for neighbours
+     * @brief This method computes the potential size for neighbours
      * @param itElem The element iterator where to check the size and so on
      * @return The reserve size for the neighbour elements vector
      * @todo Check that EdgesNumber() and FacesNumber() are properly implemeted on the geometries of interest
      */
-    SizeType ComputeReserveSize(ElementsIteratorType itElem);
-
-    /**
-     * @brief This method should be called in case that the current list of neighbour must be drop
-     */
-    void ClearNeighbours();
-
-    /**
-     * @brief This method add a unique weak pointer for any class
-     * @param rPointerVector The vector containing the pointers of the defined class
-     * @param Candidate The potential candidate  to add to the vector of pointers
-     * @tparam TDataType The class type of the pointer
-     * @todo Move this method to a common class (it is reused in the prism neighbour)
-     */
-    template< class TDataType >
-    void  AddUniqueWeakPointer(
-        WeakPointerVector< TDataType >& rPointerVector,
-        const typename TDataType::WeakPointer Candidate
-        )
-    {
-        typename WeakPointerVector< TDataType >::iterator beginit = rPointerVector.begin();
-        typename WeakPointerVector< TDataType >::iterator endit   = rPointerVector.end();
-        while ( beginit != endit && beginit->Id() != (Candidate.lock())->Id()) {
-            beginit++;
-        }
-        if( beginit == endit ) {
-            rPointerVector.push_back(Candidate);
-        }
-
-    }
+    SizeType ComputePotentialNeighboursSize(ElementsIteratorType itElem);
 
     ///@}
     ///@name Private Operations
