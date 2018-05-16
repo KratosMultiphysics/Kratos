@@ -670,23 +670,37 @@ proc ::wkcf::WriteMatTestData {fileid} {
     } else {
 	puts $fileid "\"TestType\"                       : \"None\","
     }
-    set LVel 0.0
+    set LVelt 0.0
+    set LVelb 0.0
     set cxpath "DEM//c.DEM-MaterialTest//i.DEM-ConfinementPressure"
     set ConfPress [::xmlutils::setXml $cxpath "dv"]
     puts $fileid "\"ConfinementPressure\"              : $ConfPress,"
+    
     set basexpath "DEM//c.DEM-MaterialTest//c.DEM-TopLayerGroup"
     set topgroup [::xmlutils::setXmlContainerIds $basexpath]
     if {[llength $topgroup]} {
-	set basexpath "DEM//c.DEM-Conditions//c.DEM-FEM-Wall"
-	set gproplist [::xmlutils::setXmlContainerIds $basexpath]
-	if {[llength $gproplist]} {
-	    set cxpath "DEM//c.DEM-Conditions//c.DEM-FEM-Wall//c.[lindex $topgroup 0]//c.LinearVelocity//i.LinearVelocityY"
-	    set LVel [::xmlutils::setXml $cxpath "dv"]
-	}
+    set basexpath "DEM//c.DEM-Conditions//c.DEM-FEM-Wall"
+    set gproplist [::xmlutils::setXmlContainerIds $basexpath]
+    if {[llength $gproplist]} {
+        set cxpath "DEM//c.DEM-Conditions//c.DEM-FEM-Wall//c.[lindex $topgroup 0]//c.LinearVelocity//i.LinearVelocityY"
+        set LVelt [::xmlutils::setXml $cxpath "dv"]
     }
-    if {$TestTypeOn eq "No"} {set LVel 0.0}
-    puts $fileid "\"LoadingVelocityTop\"              : $LVel,"
-    puts $fileid "\"LoadingVelocityBot\"               : 0.0,"
+    }
+    
+    set basexpath "DEM//c.DEM-MaterialTest//c.DEM-BotLayerGroup"
+    set botgroup [::xmlutils::setXmlContainerIds $basexpath]
+    if {[llength $botgroup]} {
+    set basexpath "DEM//c.DEM-Conditions//c.DEM-FEM-Wall"
+    set gproplist [::xmlutils::setXmlContainerIds $basexpath]
+    if {[llength $gproplist]} {
+        set cxpath "DEM//c.DEM-Conditions//c.DEM-FEM-Wall//c.[lindex $botgroup 0]//c.LinearVelocity//i.LinearVelocityY"
+        set LVelb [::xmlutils::setXml $cxpath "dv"]
+    }
+    }
+    
+    if {$TestTypeOn eq "No"} {set LVelt 0.0}
+    if {$TestTypeOn eq "No"} {set LVelb 0.0}
+    puts $fileid "\"LoadingVelocity\"              : [expr ($LVelt-$LVelb)],"    
     set cxpath "DEM//c.DEM-MaterialTest//i.DEM-MeshType"
     set mt [::xmlutils::setXml $cxpath "dv"]
     puts $fileid "\"MeshType\"                        : \"$mt\","
