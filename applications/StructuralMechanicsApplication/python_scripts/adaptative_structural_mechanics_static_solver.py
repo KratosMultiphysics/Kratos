@@ -107,7 +107,7 @@ class AdaptativeStaticMechanicalSolver(structural_mechanics_static_solver.Static
                 raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
         else:
             if (error_criteria == "adaptative_remesh_criteria"):
-                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.adaptative_remesh_settings, self.processes_list, self.post_process)
+                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.adaptative_remesh_settings)
                 return adaptative_error_criteria
 
         # Regular convergence criteria
@@ -117,7 +117,7 @@ class AdaptativeStaticMechanicalSolver(structural_mechanics_static_solver.Static
         # If we combine the regular convergence criteria with adaptative
         if (missing_meshing_dependencies is False):
             if ("_with_adaptative_remesh" in error_criteria):
-                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.adaptative_remesh_settings, self.processes_list, self.post_process)
+                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.adaptative_remesh_settings)
                 convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
         return convergence_criterion.mechanical_convergence_criterion
 
