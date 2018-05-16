@@ -29,22 +29,26 @@ class PythonSolver(object):
         self.solver_settings = solver_settings
 
     def AddVariables(self):
+        """This function add the Variables needed by this PythonSolver to the the ModelPart
+        It has to be called BEFORE the ModelPart is read!
+        """
         pass
 
     def AddDofs(self):
-        pass
-
-    def GetMinimumBufferSize(self):
+        """This function add the Dofs needed by this PythonSolver to the the ModelPart
+        It has to be called AFTER the ModelPart is read!
+        """
         pass
 
     def ReadModelPart(self):
-        # TODO replace the functions in the solvers in Fluid and Structure
+        """This function reads the ModelPart
+        """
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
         problem_path = os.getcwd()
-        input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
+        input_filename = self.solver_settings["model_import_settings"]["input_filename"].GetString()
         if self.is_restarted():
             self.get_restart_utility().LoadRestart()
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+        elif(self.solver_settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
@@ -54,41 +58,93 @@ class PythonSolver(object):
         KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]:: ", "Finished reading model part.")
 
-    def PrepareModelPartForSolver(self):
+    def PrepareModelPart(self):
+        """This function prepares the ModelPart for being used by the PythonSolver
+        """
         pass
 
+    def GetMinimumBufferSize(self):
+        """This function returns the minimum buffer size needed for this PythonSolver
+        """
+        raise Exception('Please implement "GetMinimumBufferSize" in your derived solver')
+
+    def ImportModelPart(self):
+        warning_msg  = 'Using "ImportModelPart" is deprecated and will be removed in the future!\n'
+        warning_msg  = 'Use "ReadModelPart" + "PrepareModelPart" instead'
+        KratosMultiphysics.Logger.PrintWarning("::[PythonSolver]::", warning_msg)
+        self.ReadModelPart()
+        self.PrepareModelPart()
+
     def ExportModelPart(self):
-        name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
+        """This function exports the ModelPart to and mdpa-file
+        """
+        name_out_file = self.solver_settings["model_import_settings"]["input_filename"].GetString()+".out"
         file = open(name_out_file + ".mdpa","w")
         file.close()
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def AdvanceInTime(self):
-        pass
-
-    def ComputeDeltaTime(self):
+        """This function advances the PythonSolver in time
+        Usage: It is designed to be called once per solution step, before performing the solution
+        """
         pass
 
     def Initialize(self):
+        """This function initializes the PythonSolver
+        Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
+        """
+        pass
+
+    def Finalize(self):
+        """This function finalizes the PythonSolver
+        Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
+        """
         pass
 
     def Predict(self):
+        """This function performs all the required operations that should be executed
+        (for each step) ONCE, AFTER initializing the solution step.
+        """
         pass
 
     def InitializeSolutionStep(self):
+        """This function performs all the required operations that should be executed
+        (for each step) BEFORE solving the solution step.
+        """
         pass
 
     def FinalizeSolutionStep(self):
+        """This function performs all the required operations that should be executed
+        (for each step) AFTER solving the solution step.
+        """
         pass
 
     def SolveSolutionStep(self):
+        """This function solves the current step.
+        It can be called multiple times within one solution step
+        """
         pass
 
     def Check(self):
+        """This function checks the PythonSolver
+        """
         pass
 
+    def Solve(self):
+        warning_msg  = 'Using "Solve" is deprecated and will be removed in the future!\n'
+        warning_msg += 'Use the separate calls to "Initialize", "InitializeSolutionStep", "Predict", '
+        warning_msg += '"SolveSolutionStep" and "FinalizeSolutionStep"'
+        KratosMultiphysics.Logger.PrintWarning("::[PythonSolver]::", warning_msg)
+        self.Initialize()
+        self.Predict()
+        self.InitializeSolutionStep()
+        self.SolveSolutionStep()
+        self.FinalizeSolutionStep()
+
     def Clear(self):
+        """This function clears the PythonSolver
+        """
         pass
 
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        return self.main_model_part.GetSubModelPart(self.solver_settings["computing_model_part_name"].GetString())
