@@ -57,6 +57,18 @@ namespace Kratos
 namespace Python
 {
 
+/**
+ * @brief Sets the current table utility on the process info
+ * @param rCurrentProcessInfo The process info
+ */
+void SetOnProcessInfo(
+    typename TableStreamUtility::Pointer pTable,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    rCurrentProcessInfo[TABLE_UTILITY] = pTable;
+}
+
 
 void AddUtilitiesToPython(pybind11::module& m)
 {
@@ -398,6 +410,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     class_<TableStreamUtility, typename TableStreamUtility::Pointer>(m,"TableStreamUtility")
     .def(init<>())
     .def(init< bool >())
+    .def("SetOnProcessInfo",SetOnProcessInfo)
     ;
 
     // Exact integration (for testing)
