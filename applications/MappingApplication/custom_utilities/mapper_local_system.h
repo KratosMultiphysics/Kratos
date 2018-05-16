@@ -70,9 +70,10 @@ public:
     using MapperLocalSystemUniquePointer = Kratos::unique_ptr<MapperLocalSystem>;
     using MapperInterfaceInfoPointer = MapperInterfaceInfo::Pointer;
 
+    using IndexType = std::size_t;
+
     using MappingWeightsVector = std::vector<double>;
-    using OriginIdVector       = std::vector<int>;
-    using DestinationIdVector  = std::vector<int>;
+    using EquationIdVector     = std::vector<IndexType>;
 
     using NodeType = Node<3>;
     using GeometryType = Geometry<NodeType>;
@@ -101,10 +102,38 @@ public:
     virtual MapperLocalSystemUniquePointer Create(const NodeType& rNode) const;
     virtual MapperLocalSystemUniquePointer Create(const GeometryType& rGeometry) const;
 
+    void EquationIdVectors(EquationIdVector& rOriginIds,
+                           EquationIdVector& rDestinationIds)
+    {
+        if (!mIsComputed)
+        {
+            CalculateAll(mMappingWeights, mOriginIds, mDestinationIds);
+            mIsComputed = true;
+        }
 
-    virtual void CalculateAll(MappingWeightsVector& rMappingWeights,
-                              OriginIdVector&       rOriginIds,
-                              DestinationIdVector&  rDestinationIds) = 0;
+        rOriginIds      = mOriginIds;
+        rDestinationIds = mDestinationIds;
+    }
+
+    void CalculateLocalSystem(MappingWeightsVector& rMappingWeights,
+                              EquationIdVector&     rOriginIds,
+                              EquationIdVector&     rDestinationIds)
+    {
+        if (mIsComputed)
+        {
+            // This will be called if the EquationIdVectors have been querried before
+            // i.e. matrix-based mapping
+            rMappingWeights = mMappingWeights;
+            rOriginIds      = mOriginIds;
+            rDestinationIds = mDestinationIds;
+        }
+        else
+        {
+            // This will be called if the EquationIdVectors have NOT been querried before
+            // i.e. matrix-free mapping
+            CalculateAll(rMappingWeights, rOriginIds, rDestinationIds);
+        }
+    }
 
 
     // This specifies if Nodes should be used for the construction
@@ -114,6 +143,7 @@ public:
 
     void AddInterfaceInfo(MapperInterfaceInfoPointer pInterfaceInfo)
     {
+        // pInterfaceInfo is a shared_ptr, therefore passing by value
         mInterfaceInfos.push_back(pInterfaceInfo);
     }
 
@@ -121,6 +151,13 @@ public:
     virtual void Clear()
     {
         mInterfaceInfos.clear();
+        if (mIsComputed)
+        {
+            mMappingWeights.clear();
+            mOriginIds.clear();
+            mDestinationIds.clear();
+            mIsComputed = false;
+        }
     }
 
 
@@ -166,6 +203,12 @@ protected:
 
     std::vector<MapperInterfaceInfoPointer> mInterfaceInfos;
 
+    bool mIsComputed = false;
+
+    MappingWeightsVector mMappingWeights;
+    EquationIdVector mOriginIds;
+    EquationIdVector mDestinationIds;
+
 
     ///@}
     ///@name Protected Operators
@@ -175,6 +218,13 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    // This function calculates the components necessary for the mapping
+    // Note that it is "const", therefore it can NOT modify its members
+    // Whether members are to be saved is decided in other functions of this class
+    virtual void CalculateAll(MappingWeightsVector& rMappingWeights,
+                              EquationIdVector&     rOriginIds,
+                              EquationIdVector&     rDestinationIds) const = 0;
 
 
     ///@}

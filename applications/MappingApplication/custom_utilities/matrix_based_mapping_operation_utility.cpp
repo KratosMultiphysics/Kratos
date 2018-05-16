@@ -45,8 +45,12 @@ namespace Kratos
                                                TSystemMatrixType& rMdo) const
     {
         // A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
-        for (auto& r_local_sys : rMapperLocalSystems)
+        MapperLocalSystem::EquationIdVector origin_ids;
+        MapperLocalSystem::EquationIdVector destination_ids;
+
+        for (/*const*/auto& r_local_sys : rMapperLocalSystems) // TODO I think this can be const bcs it is the ptr
         {
+            r_local_sys->EquationIdVectors(origin_ids, destination_ids);
 
         }
 

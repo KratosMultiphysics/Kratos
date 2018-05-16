@@ -71,6 +71,8 @@ class MappingOperationUtility
     using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
     using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
 
+    using EquationIdVector = typename MapperLocalSystem::EquationIdVector;
+
     using TSystemMatrixType = typename TSparseSpace::MatrixType;
     using TSystemVectorType = typename TSparseSpace::VectorType;
 
@@ -109,7 +111,7 @@ class MappingOperationUtility
         TSystemVectorUniquePointerType& rpQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        const MapperLocalSystemPointerVector& rMapperLocalSystems) const = 0;
+        MapperLocalSystemPointerVector& rMapperLocalSystems) const = 0;
 
     // The "Build" function
     virtual void BuildMappingMatrix(const MapperLocalSystemPointerVector& rMapperLocalSystems,
