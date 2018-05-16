@@ -150,14 +150,14 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         factory = KratosProcessFactory(self.model)
         self.list_of_processes = factory.ConstructListOfProcesses(self.project_parameters["constraints_process_list"])
         self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["loads_process_list"])
-        if (self.project_parameters.Has("list_other_processes") == True):
+        if (self.project_parameters.Has("list_other_processes") is True):
             self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["list_other_processes"])
-        if (self.project_parameters.Has("json_output_process") == True):
+        if (self.project_parameters.Has("json_output_process") is True):
             self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_output_process"])
         # Processes for tests
-        if (self.project_parameters.Has("json_check_process") == True):
+        if (self.project_parameters.Has("json_check_process") is True):
             self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_check_process"])
-        if (self.project_parameters.Has("check_analytic_results_process") == True):
+        if (self.project_parameters.Has("check_analytic_results_process") is True):
             self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
 
         #TODO this should be generic
@@ -189,7 +189,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True:
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] is True:
             self.time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         else:
             self.time = start_time
@@ -202,8 +202,8 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         return "::[KSM Simulation]:: "
 
     def __CheckForDeprecatedGiDSettings(self):
-        if self.ProjectParameters["output_configuration"].Has("result_file_configuration"):
-            res_file_config = self.ProjectParameters["output_configuration"]["result_file_configuration"]
+        if self.project_parameters["output_configuration"].Has("result_file_configuration"):
+            res_file_config = self.project_parameters["output_configuration"]["result_file_configuration"]
             if res_file_config.Has("nodal_results"):
                 nodal_res = res_file_config["nodal_results"]
                 for i in range(nodal_res.size()):
