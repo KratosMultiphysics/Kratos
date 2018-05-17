@@ -140,14 +140,11 @@ class GhostsTestSolution(main_script.Solution):
 
 
     def CheckTotalNumberOfCrossingParticles(self):
-        import numpy as np
         import h5py
 
         input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
         n_accum_h5 = input_data.get('1/n_accum')
-        n_accum = np.array(n_accum_h5)
-        print(n_accum)
-        if self.time > 0.145 and n_accum[-1] != -4:
+        if self.time > 0.145 and n_accum_h5[-1] != -4:
             raise ValueError('The total value of crossing particles was not the expected!')
 
     def Finalize(self):
@@ -176,7 +173,9 @@ class MultiGhostsTestSolution(main_script.Solution):
         if self.IsTimeToPrintPostProcess():
             for sub_part in self.rigid_face_model_part.SubModelParts:
                 if sub_part[IS_GHOST]:
+                    print(sub_part)
                     if sub_part[Kratos.IDENTIFIER] == 'DEM-wall2':
+                        print(sub_part[Kratos.IDENTIFIER])
                         self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(self.time)
                         #times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
                         #face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
@@ -184,14 +183,12 @@ class MultiGhostsTestSolution(main_script.Solution):
 
 
     def CheckTotalNumberOfCrossingParticles(self):
-        import numpy as np
         import h5py
 
         input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
         n_accum_h5 = input_data.get('2/n_accum')
-        n_accum = np.array(n_accum_h5)
-        print(n_accum)
-        if self.time > 1.9 and n_accum[-1] != -4:
+        print(n_accum_h5[-1])
+        if self.time > 1.9 and n_accum_h5[-1] != -4:
             raise ValueError('The total value of crossing particles was not the expected!')
 
     def Finalize(self):
