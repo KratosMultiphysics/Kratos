@@ -7,7 +7,7 @@
         "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
-        "echo_level"      : 2
+        "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
@@ -22,7 +22,7 @@
         },
         "line_search"                        : false,
         "convergence_criterion"              : "displacement_criterion",
-        "displacement_relative_tolerance"        : 0.0000001,
+        "displacement_relative_tolerance"        : 1e-7,
         "max_iteration"                      : 10,
 		"move_mesh_flag"					 : true,
         "linear_solver_settings"             : {
@@ -33,8 +33,7 @@
         "problem_domain_sub_model_part_list" : ["Parts_membrane"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichlet"],
         "rotation_dofs"                      : false,
-        "print_formfinding_iterations": false,
-        "include_line_search": false
+        "print_formfinding_iterations": false
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",

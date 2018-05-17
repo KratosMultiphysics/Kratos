@@ -39,9 +39,6 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
 
 
-    def _apply_neumann_BCs(self,mp):
-        pass
-
     def _apply_material_properties(self,mp):
         #define properties
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,0.0)
@@ -73,7 +70,7 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
         calculate_norm_dx = False
         move_mesh_flag = True
         print_after_formfinding = False
-        include_line_search = False
+        line_search = False
         strategy = KratosMultiphysics.StructuralMechanicsApplication.FormfindingUpdatedReferenceStrategy(mp, 
                                                                   scheme, 
                                                                   linear_solver, 
@@ -83,7 +80,7 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
                                                                   reform_step_dofs,
                                                                   move_mesh_flag,
                                                                   print_after_formfinding,
-                                                                  include_line_search)
+                                                                  line_search)
         strategy.SetEchoLevel(0)        
         strategy.Check()
         strategy.Solve()
@@ -130,7 +127,7 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
 
         self.execute_formfinding_test(element_name, 
                                 displacement_results, 
-                                True) # Do PostProcessing for GiD?
+                                False) # Do PostProcessing for GiD?
 
 
    

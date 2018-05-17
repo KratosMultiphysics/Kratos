@@ -240,9 +240,9 @@ void UpdateDatabase(
             //compute half step residual
             BaseType::UpdateDatabase(A,aux,b,MoveMesh);
             TSparseSpace::SetToZero(b);
-            std::map<int,Matrix> prestress;
-            std::map<int,Matrix> base_1;
-            std::map<int,Matrix> base_2;
+            std::unordered_map<int,Matrix> prestress;
+            std::unordered_map<int,Matrix> base_1;
+            std::unordered_map<int,Matrix> base_2;
             for(auto& elem:BaseType::GetModelPart().Elements()){
                 prestress.insert(std::make_pair(elem.Id(),elem.GetValue(MEMBRANE_PRESTRESS)));
                 base_1.insert(std::make_pair(elem.Id(),elem.GetValue(BASE_REF_1)));
@@ -263,7 +263,6 @@ void UpdateDatabase(
             }
             pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
             double rf = TSparseSpace::TwoNorm(b);
-            std::cout<<"r0: "<<ro<<", rh: "<<rh<<", rf: "<<rf<<std::endl;
             //compute optimal (limited to the range 0-1)
             //parabola is y = a*x^2 + b*x + c -> min/max for
             //x=0   --> r=ro
@@ -275,10 +274,9 @@ void UpdateDatabase(
             double parabola_b = 4*rh - rf - 3*ro;
             double xmin = 1.0e-3;
             double xmax = 1.0;
-            if( parabola_a > 0) //if parabola has a local minima
+            if( parabola_a > 0.0) //if parabola has a local minima
             {
                 xmax = -0.5 * parabola_b/parabola_a; // -b / 2a
-                std::cout<<"x_max: "<<xmax<<std::endl;
                 if( xmax > 1.0)
                     xmax = 1.0;
                 else if(xmax < 0.0)
@@ -286,12 +284,10 @@ void UpdateDatabase(
             }
             else //parabola degenerates to either a line or to have a local max. best solution on either extreme
             {
-                if(rf < ro){
+                if(rf < ro)
                     xmax = 1.0;
-                    std::cout<<"full step"<<std::endl;}
-                else{
+                else
                     xmax = xmin; //should be zero, but otherwise it will stagnate
-                    std::cout<<"minimal step"<<std::endl;}
             }
 
             //perform final update

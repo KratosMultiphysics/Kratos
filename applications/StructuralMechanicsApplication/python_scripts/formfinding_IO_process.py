@@ -13,9 +13,12 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return FormfindingIO(Model,settings)
+    return FormfindingIOProcess(Model,settings)
 
 class FormfindingIO(KratosMultiphysics.Process):
+    """
+    This class is responsible for the input and output of prestress and modelpart data for formfinding/ membrane analysis. 
+    """
     def __init__(self, Model, settings):
 
         default_settings = KratosMultiphysics.Parameters(

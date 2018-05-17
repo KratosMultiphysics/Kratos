@@ -385,8 +385,8 @@ public:
         BoundedMatrix<double,TDim,TDim>& rTensor)
     {
         // metric computation (of the target systems)
-        bounded_matrix<double,TDim,TDim> metric_left = ZeroMatrix(TDim,TDim); // Anna noalias?
-        bounded_matrix<double,TDim,TDim> metric_right = ZeroMatrix(TDim,TDim); // Anna noalias?
+        BoundedMatrix<double,TDim,TDim> metric_left = ZeroMatrix(TDim,TDim);
+        BoundedMatrix<double,TDim,TDim> metric_right = ZeroMatrix(TDim,TDim); 
         for(int i=0;i<TDim;i++){
             for(int j=0;j<TDim;j++){
                 metric_left(i,j) += inner_prod(column(rTargetLeft,i),column(rTargetLeft,j));

@@ -599,14 +599,11 @@ void PrestressMembraneElement::CalculateAll(
     constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     // for formfinding: Constitutive Tensor is 0 Tensor
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     if(this->Has(IS_FORMFINDING)){
         if(this->GetValue(IS_FORMFINDING))
             constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-        else
-            constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     }
-    else
-        constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     Values.SetStrainVector(strain_vector);       // this is the input parameter
     Values.SetStressVector(stress_vector);       // this is an output parameter
@@ -1305,7 +1302,7 @@ void PrestressMembraneElement::ComputePrestress(const unsigned int& rIntegration
         Matrix& prestress_axis_1 = this->GetValue(PRESTRESS_AXIS_1);
         Matrix& prestress_axis_2 = this->GetValue(PRESTRESS_AXIS_2);
 
-        if(GetProperties()[PRESTRESS_VECTOR](0)== GetProperties()[PRESTRESS_VECTOR](1) && GetProperties()[PRESTRESS_VECTOR](2) == 0)
+        if(std::abs(GetProperties()[PRESTRESS_VECTOR](0)- GetProperties()[PRESTRESS_VECTOR](1)) <std::numeric_limits<double>::epsilon() && GetProperties()[PRESTRESS_VECTOR](2) == 0)
             mAnisotropicPrestress = false;
 
         else
@@ -1554,12 +1551,12 @@ int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
             mConstitutiveLawVector[i]->GetLawFeatures(LawFeatures);
 
             if (LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW))
-                KRATOS_THROW_ERROR(std::logic_error, "Constitutive law is compatible only with a plane stress 2D law for membrane element with Id", this->Id())
+                KRATOS_ERROR(std::logic_error, "Constitutive law is compatible only with a plane stress 2D law for membrane element with Id", this->Id())
 
                 if (LawFeatures.mOptions.IsNot(ConstitutiveLaw::INFINITESIMAL_STRAINS))
-                    KRATOS_THROW_ERROR(std::logic_error, "Constitutive law is compatible only with a law using infinitessimal strains for membrane element with Id", this->Id())
+                    KRATOS_ERROR(std::logic_error, "Constitutive law is compatible only with a law using infinitessimal strains for membrane element with Id", this->Id())
 
-                    if (LawFeatures.mStrainSize != 3) KRATOS_THROW_ERROR(std::logic_error, "Constitutive law expects a strain size different from 3 for membrane element with Id", this->Id())
+                    if (LawFeatures.mStrainSize != 3) KRATOS_ERROR(std::logic_error, "Constitutive law expects a strain size different from 3 for membrane element with Id", this->Id())
         }
     }
     return 0;

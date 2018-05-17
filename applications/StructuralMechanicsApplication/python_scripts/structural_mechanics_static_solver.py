@@ -47,13 +47,13 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                 "etmna": 0.1
             },
             "print_formfinding_iterations": false,
-            "include_line_search": false
+            "line_search": false
         }
         """)
         self.validate_and_transfer_matching_settings(custom_settings, static_settings)
         self.arc_length_settings = static_settings["arc_length_settings"]
         self.print_formfinding_settings = static_settings["print_formfinding_iterations"]
-        self.include_line_search = static_settings["include_line_search"]
+        self.line_search = static_settings["line_search"]
         # Validate the remaining settings in the base class.
 
         # Construct the base solver.
@@ -104,7 +104,6 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
     def _create_mechanical_solution_strategy(self):
-        KratosMultiphysics.Logger.PrintInfo("hi spakos")
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
             mechanical_solution_strategy = self._create_linear_strategy()
@@ -159,4 +158,4 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                 self.settings["move_mesh_flag"].GetBool(),
                                                                 self.print_formfinding_settings.GetBool(),
-                                                                self.include_line_search.GetBool())
+                                                                self.line_search.GetBool())

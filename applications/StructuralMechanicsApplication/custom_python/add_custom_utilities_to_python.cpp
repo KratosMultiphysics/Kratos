@@ -21,7 +21,7 @@
 
 
 //Utilities
-#include "custom_utilities/formfinding_IO_utility.h"
+#include "custom_utilities/formfinding_io_utility.h"
 
 
 namespace Kratos

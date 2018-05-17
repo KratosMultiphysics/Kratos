@@ -7,7 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher 
+//  Main authors:    Anna Rehr 
 //
 	        
 
@@ -18,8 +18,7 @@
 
 
 // Project includes
-#include "includes/checks.h"
-#include "formfinding_IO_utility.h"
+#include "formfinding_io_utility.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/model_part_io.h"
 #include "includes/model_part.h"
@@ -32,6 +31,8 @@ namespace Kratos
 		mModelPart(rModelPart)
 		{}
     void FormfindingIOUtility::PrintModelPart(){
+
+		KRATOS_INFO("FormfindingIOUtility") << "Attention: Removing internal modelpart data. The modelpart will not work in the same way as before." << std::endl;
 		// erase nodal data
     	mModelPart.GetNodalSolutionStepVariablesList().clear();
 
@@ -49,13 +50,13 @@ namespace Kratos
     	}
 
     	// erase conditional data
-    	for( auto& cond: mModelPart.Conditions()){
+    	for( auto& cond: mModelPart.Conditions())
     	        cond.Data().Clear();
-    	}
+    	
 		// erase properties
-		for( auto& prop: mModelPart.rProperties()){
+		for( auto& prop: mModelPart.rProperties())
 			prop.Data().Clear();
-		}
+		
 
 		// Write ModelPart
     	ModelPartIO model_part_io("formfinding_out", IO::WRITE);
@@ -87,7 +88,6 @@ namespace Kratos
 	void FormfindingIOUtility::ReadPrestressData(){
 		ModelPartIO model_part_io("prestress_data", IO::READ);
 		model_part_io.ReadInitialValues(mModelPart);
-		std::cout<<"Prestress read"<<std::endl;
 	}
 }  // namespace Kratos.
 
