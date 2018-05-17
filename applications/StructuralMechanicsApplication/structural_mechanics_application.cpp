@@ -170,10 +170,10 @@ void KratosStructuralMechanicsApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    std::cout << "     KRATOS   ___|  |                   |                   |                     " << std::endl;
-    std::cout << "            \\___ \\  __|  __| |   |  __| __| |   |  __| _` | |                   " << std::endl;
-    std::cout << "                  | |   |    |   | (    |   |   | |   (   | |                     " << std::endl;
-    std::cout << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS     " << std::endl;
+    KRATOS_INFO("") << "     KRATOS   ___|  |                   |                   |                     " << std::endl
+                    << "            \\___ \\  __|  __| |   |  __| __| |   |  __| _` | |                   " << std::endl
+                    << "                  | |   |    |   | (    |   |   | |   (   | |                     " << std::endl
+                    << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS     " << std::endl;
 
     // Generalized eigenvalue problem
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
