@@ -297,7 +297,7 @@ namespace Kratos {
             EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, vel, delta_displ);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, data_buffer.mDt, ang_vel, neighbour_iterator);
+               RelativeDisplacementAndVelocityOfContactPointDueToRotationQuat(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, data_buffer.mDt, ang_vel, neighbour_iterator);
             }
 
             RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, neighbour_iterator);
@@ -428,7 +428,38 @@ namespace Kratos {
     } //  ComputeBallToBallContactForce
 
     void SphericContinuumParticle::ComputeForceWithNeighbourFinalOperations(){}
+    
+    void SphericContinuumParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
+        
+        KRATOS_TRY
 
+//         array_1d<double, 3>& contact_force =         this->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
+        const array_1d<double, 3> velocity =         this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double, 3> angular_velocity = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_X)) {
+            total_forces[0] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[0] * velocity[0]));
+        }
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_Y)) {
+            total_forces[1] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[1] * velocity[1]));
+        }
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_Z)) {
+            total_forces[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[2] * velocity[2]));
+        }
+    
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_ANG_VEL_X)) {
+            total_moment[0] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[0] * angular_velocity[0]));
+        }
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_ANG_VEL_Y)) {
+            total_moment[1] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[1] * angular_velocity[1]));
+        }
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_ANG_VEL_Z)) {
+            total_moment[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[2] * angular_velocity[2]));
+        }
+
+        KRATOS_CATCH("")
+    }
+    
     void SphericContinuumParticle::ComputeBrokenBondsRatio() {
 
         int BrokenBondsCounter = 0.0;
