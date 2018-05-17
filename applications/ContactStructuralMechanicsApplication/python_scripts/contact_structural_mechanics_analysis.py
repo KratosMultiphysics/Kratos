@@ -102,8 +102,8 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
 
         ## Add the processes to the solver
         self.solver.AddProcessesList(self.list_of_processes)
-        if (self.output_post is True):
-            self.solver.AddPostProcess(self.gid_output)
+        if (self.have_output is True):
+            self.solver.AddPostProcess(self.output)
 
     def _GetSimulationName(self):
         return "::[KCSM Simulation]:: "
