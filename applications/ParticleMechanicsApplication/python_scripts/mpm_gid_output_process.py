@@ -119,7 +119,7 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
 
     def PrintOutput(self):
         # Print the output
-        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        time = self._get_gid_output_time()
         self.printed_step_count += 1
         self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP] = self.printed_step_count
         if self.output_label_is_time:
@@ -133,7 +133,7 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
-                while self.next_output <= time:
+                while self.next_output <= self.model_part.ProcessInfo[KratosMultiphysics.TIME]:
                     self.next_output += self.output_frequency
             else:
                 while self.next_output <= self.step_count:
@@ -148,6 +148,15 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
     
 
     # Private Functions
+    def _get_gid_output_time(self):
+        # get pretty gid output time
+        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        time = "{0:.12g}".format(time)
+        time = float(time)
+
+        return time 
+
+
     def _get_attribute(self, my_string, function_pointer, attribute_type):
         """Return the python object named by the string argument.
 
@@ -188,13 +197,6 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
     def _write_mp_results(self, step_label=None):
         clock_time = self._start_time_measure()
 
-        if step_label is None:
-            pretty_label = ""
-        elif self.output_label_is_time:
-            pretty_label = "{0:.12g}".format(step_label) # floating point format
-        else:
-            pretty_label = "{0}".format(step_label) # int format
-
         for i in range(self.variable_list.size()):
             var_name = self.variable_list[i].GetString()
             variable = self._get_variable(var_name)
@@ -204,9 +206,9 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
             self.result_file.write(var_name)
             
             if var_name == "MP_PRESSURE" or var_name == "MP_EQUIVALENT_PLASTIC_STRAIN":
-                self.result_file.write('" "Kratos" {} Scalar OnNodes\n'.format(pretty_label))
+                self.result_file.write('" "Kratos" {} Scalar OnNodes\n'.format(step_label))
             else:
-                self.result_file.write('" "Kratos" {} Vector OnNodes\n'.format(pretty_label))
+                self.result_file.write('" "Kratos" {} Vector OnNodes\n'.format(step_label))
             
             self.result_file.write("Values\n")
             for mpm in self.model_part.Elements:
