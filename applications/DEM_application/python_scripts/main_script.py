@@ -5,8 +5,6 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 sys.path.insert(0, '')
-import csv
-import numpy as np
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
@@ -143,17 +141,6 @@ class Solution(object):
     def MakeAnalyticsMeasurements(self):
         for face_watcher in self.face_watcher_dict.values():
             face_watcher.MakeMeasurements()
-
-    '''
-    def FlushFluxData(self):
-        for face_watcher_name in self.face_watcher_dict.keys():
-            times, number_flux, mass_flux = [], [], []
-            self.face_watcher_dict[face_watcher_name].GetTotalFlux(times, number_flux, mass_flux)
-            with open('ghost'+ face_watcher_name +'.csv', 'w+') as f1:
-                writer = csv.writer(f1, delimiter='\t')
-                writer.writerows(zip(times, number_flux))
-            f1.close()
-    '''
 
     def SetFinalTime(self):
         self.final_time = self.DEM_parameters["FinalTime"].GetDouble()
