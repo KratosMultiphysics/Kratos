@@ -36,8 +36,8 @@ namespace Kratos {
 
         const double beta = 1.432;
         const double modified_radius =  equiv_radius * 0.31225; // r * sqrt(alpha * (2.0 - alpha)) = 0.31225
-        const double mKn_augmenter = 100.0;
-        mKn = mKn_augmenter * beta * equiv_young * Globals::Pi * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;
+        const double kn_augmenter = 100.0;
+        mKn = kn_augmenter * beta * equiv_young * Globals::Pi * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
@@ -60,8 +60,8 @@ namespace Kratos {
         const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
 
         const double modified_radius = effective_radius * 0.31225;
-        const double mKn_augmenterFEM = 100.0;
-        mKn = mKn_augmenterFEM * equiv_young * Globals::Pi * modified_radius; // 2.0 * equiv_young * sqrt_equiv_radius;
+        const double kn_augmenterFEM = 100.0;
+        mKn = kn_augmenterFEM * equiv_young * Globals::Pi * modified_radius; // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
