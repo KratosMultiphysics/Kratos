@@ -65,7 +65,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
 */
 template<SizeType TDim>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SkinDetectionProcess
+class KRATOS_API(KRATOS_CORE) SkinDetectionProcess
     : public Process
 {
 public:
