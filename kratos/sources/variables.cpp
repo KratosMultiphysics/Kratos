@@ -466,6 +466,7 @@ KRATOS_CREATE_VARIABLE(double, SEARCH_RADIUS)
 
 KRATOS_CREATE_VARIABLE(double, INTEGRATION_WEIGHT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
+KRATOS_CREATE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
 
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -1013,6 +1014,7 @@ void KratosApplication::RegisterVariables() {
 
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
+    KRATOS_REGISTER_VARIABLE(TABLE_UTILITY)
 
     //Register objects with general definition
     Serializer::Register("Node", Node<3>());
