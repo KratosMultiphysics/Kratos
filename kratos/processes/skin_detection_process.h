@@ -61,7 +61,6 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief An algorithm that looks for neighbour elements in a mesh and creates a submodelpart containing the skin of the disconnected elements (interface elements)
  * @details For that pourpose if builds an unordered map of the surrounding elements and nodes and performs different checks.
- * @todo Move this to the core if people demands this
  * @tparam TDim The dimension where the problem is computed
  * @author Vicente Mataix Ferrandiz
 */

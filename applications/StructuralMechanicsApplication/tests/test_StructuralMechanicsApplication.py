@@ -54,7 +54,6 @@ from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTes
 from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 # Eigenvalues Postprocessing Process test
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
-from test_skin_detection_process import TestSkinDetecttionProcess as TTestSkinDetecttionProcess
 # Test adjoint elements
 
 ##### SMALL TESTS #####
@@ -225,7 +224,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
     # Eigenvalues Postprocessing Process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSkinDetecttionProcess]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
