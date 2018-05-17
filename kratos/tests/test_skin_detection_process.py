@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 
@@ -19,7 +18,7 @@ class TestSkinDetecttionProcess(KratosUnittest.TestCase):
         for node in model_part.GetSubModelPart("Skin_Part").Nodes:
             node.Set(KratosMultiphysics.ACTIVE, True)
 
-        detect_skin = StructuralMechanicsApplication.SkinDetectionProcess3D(model_part)
+        detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
         detect_skin.Execute()
 
         for node in model_part.Nodes:
