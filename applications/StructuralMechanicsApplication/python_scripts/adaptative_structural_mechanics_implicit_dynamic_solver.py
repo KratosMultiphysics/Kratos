@@ -86,6 +86,11 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
 
         # Construct the base solver.
         super(AdaptativeImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
+
+        if (self.settings["reform_dofs_at_each_step"].GetBool() is False):
+            self.print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
+            self.settings["reform_dofs_at_each_step"].SetBool(True)
+
         self.print_on_rank_zero("::[AdaptativeImplicitMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
