@@ -1717,7 +1717,7 @@ int _GiD_BeginResult(CPostFile *File,
   loc = (Where == GiD_OnNodes) ? "OnNodes" : "OnGaussPoints";
   res_name = change_quotes(strdup( Result));
   analysis_name = change_quotes(strdup( Analysis));
-  snprintf(line, LINE_SIZE-1, "Result \"%s\" \"%s\" %.16g %s %s",
+  snprintf(line, LINE_SIZE-1, "Result \"%s\" \"%s\" %.12g %s %s",
 	   res_name, analysis_name, step, GetResultTypeName(Type, 0), loc);
   free(res_name);
   free(analysis_name);
@@ -1815,7 +1815,7 @@ int _GiD_BeginResultHeader(CPostFile         *File,
   loc = (Where == GiD_OnNodes) ? "OnNodes" : "OnGaussPoints";
   res_name = change_quotes(strdup(Result));
   analysis_name = change_quotes(strdup(Analysis));
-  snprintf(line, LINE_SIZE-1, "Result \"%s\" \"%s\" %.16g %s %s",
+  snprintf(line, LINE_SIZE-1, "Result \"%s\" \"%s\" %.12g %s %s",
 	   res_name, analysis_name, step, GetResultTypeName(Type,0), loc);
   free(res_name);
   free(analysis_name);
@@ -2058,7 +2058,7 @@ int _GiD_BeginResultGroup(CPostFile         *File,
 
   loc = (Where == GiD_OnNodes) ? "OnNodes" : "OnGaussPoints";
   analysis_name = change_quotes(strdup(Analysis));
-  snprintf(line, LINE_SIZE-1, "ResultGroup \"%s\" %.16g %s",
+  snprintf(line, LINE_SIZE-1, "ResultGroup \"%s\" %.12g %s",
 	   analysis_name, step, loc);
   free(analysis_name);
   if (Where == GiD_OnGaussPoints) {
