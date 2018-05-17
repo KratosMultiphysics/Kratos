@@ -317,7 +317,7 @@ namespace Kratos
 	    noalias(current_displacement) += mTime.Delta * current_velocity;    
   
 	  }else{
-	    std::cout<<"in updateMomentum ISOLATED NODE "<<(itNode)->X()<<" "<<(itNode)->Y()<<std::endl;
+	    // std::cout<<"in updateMomentum ISOLATED NODE "<<(itNode)->X()<<" "<<(itNode)->Y()<<std::endl;
 	    array_1d<double,3>& current_velocity        = (itNode)->FastGetSolutionStepValue(VELOCITY);
 	    array_1d<double,3>& current_displacement    = (itNode)->FastGetSolutionStepValue(DISPLACEMENT);
 	    array_1d<double,3>& current_acceleration    = (itNode)->FastGetSolutionStepValue(ACCELERATION);
@@ -615,17 +615,20 @@ namespace Kratos
 
       double current_delta_time = rCurrentProcessInfo[DELTA_TIME];
 
-      if(stable_delta_time<current_delta_time){
+      // std::cout<< " ATTENTION!!!!! Stable delta time is "<< stable_delta_time <<" and current delta time is "<< current_delta_time<<std::endl;
+      
+      if(stable_delta_time<(0.99999*current_delta_time)){
 	std::cout<< " ATTENTION!!!!! Stable delta time is "<< stable_delta_time <<" and current delta time is "<< current_delta_time<<std::endl;
       }
-      // if(stable_delta_time < mDeltaTime.Maximum){
-      // 	rCurrentProcessInfo[DELTA_TIME] = stable_delta_time;	  
-      // }
-      // else{
-      // 	if( current_delta_time > mDeltaTime.Maximum/safety_factor )
-      // 	  rCurrentProcessInfo[DELTA_TIME] = mDeltaTime.Maximum;
-      // }
-
+      
+      if(stable_delta_time < mDeltaTime.Maximum){
+       	rCurrentProcessInfo[DELTA_TIME] = stable_delta_time;	  
+       }
+      else{
+       	if( current_delta_time > mDeltaTime.Maximum/safety_factor )
+       	  rCurrentProcessInfo[DELTA_TIME] = mDeltaTime.Maximum;
+      }
+      
       // std::cout<< "  [EXPLICIT PREDICTION LEVEL"<<mDeltaTime.PredictionLevel<<"]:(computed stable time step = "<< stable_delta_time <<" s)"<< std::endl;
       // std::cout<< "  Using  = "<< rCurrentProcessInfo[DELTA_TIME] <<" s as time step DELTA_TIME)"<< std::endl;
         

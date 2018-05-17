@@ -141,7 +141,7 @@ public:
     {
         KRATOS_TRY
 
-	std::cout<<" GaussSeidelLinearStrategy"<<std::endl;
+	/* std::cout<<" GaussSeidelLinearStrategy"<<std::endl; */
 
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
         mCalculateNormDxFlag = CalculateNormDxFlag;
@@ -548,7 +548,7 @@ private:
         typename TSchemeType::Pointer pScheme = GetScheme();
         int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-    	ProcessInfo& pCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+    	/* ProcessInfo& pCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo(); */
 
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
@@ -558,7 +558,7 @@ private:
             mInitializeWasPerformed = true;
     	  }
 
-	std::cout << "Gauss-Seidel VP Strategy,  CurrentTime: " << pCurrentProcessInfo[TIME] << std::endl;
+	/* std::cout << "Gauss-Seidel VP Strategy,  CurrentTime: " << pCurrentProcessInfo[TIME] << std::endl; */
 
         //loop to reform the dofset
         boost::timer system_construction_time;

@@ -327,9 +327,9 @@ public:
       }
 
     ProcessInfo rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-    double currentTime   = rCurrentProcessInfo[TIME]; 
-    int step   = rCurrentProcessInfo[STEP]; 
-    double timeStep     = rCurrentProcessInfo[DELTA_TIME];
+    //double currentTime   = rCurrentProcessInfo[TIME]; 
+    //int step   = rCurrentProcessInfo[STEP]; 
+    //double timeStep     = rCurrentProcessInfo[DELTA_TIME];
 
     
        
@@ -375,10 +375,11 @@ public:
 
     // pBuilderAndSolver->Build(pScheme, r_model_part, mA, mb);
 
-    // this->UpdateDensity(r_model_part,rCurrentProcessInfo); // it computes the new density and saves the previous ones in PRESSURE,1
-    this->ComputeAndUpdatePressureFromDensity(r_model_part,rCurrentProcessInfo);
+    // this->ComputeAndUpdatePressureFromDensity(r_model_part,rCurrentProcessInfo);
     // if(timeStep<currentTime)
-      // this->UpdatePressure(r_model_part,rCurrentProcessInfo); // it computes the new pressures
+
+    this->UpdateDensity(r_model_part,rCurrentProcessInfo); // it computes the new density and saves the previous ones in PRESSURE,1
+    this->UpdatePressure(r_model_part,rCurrentProcessInfo); // it computes the new pressures
 
     pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mBcontinuity);
 
@@ -575,9 +576,6 @@ public:
     const int nnodes = static_cast<int>(rModelPart.Nodes().size());
     NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
-    // double currentTime   = rCurrentProcessInfo[TIME];  //the first step is (time = initial_time + delta time )
-    // double timeStep     = rCurrentProcessInfo[DELTA_TIME];
-
 #pragma omp parallel for firstprivate(NodeBegin)
     for(int i = 0;  i < nnodes; i++)
       {
@@ -586,22 +584,15 @@ public:
 	// Current step information "N+1" (before step update).
 	const double& bulk_term  = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
 	double& density_rhs  = (itNode)->FastGetSolutionStepValue(NODAL_ERROR);
-	double& current_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
+	double& current_density  = (itNode)->FastGetSolutionStepValue(DENSITY,0);
 	// double& previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
 
 	if(bulk_term!=0){
 	  // Solution of the explicit equation:
-	  if((itNode)->IsFixed(PRESSURE) == false && (itNode)->IsNot(ISOLATED)){
-	    (itNode)->FastGetSolutionStepValue(PRESSURE,1)=current_density;
-	      // previous_density=current_density;
-	    // if(currentTime>timeStep){
-	    //   previous_density=current_density;
-	    // }else{
-	    //   previous_density=1000;
-	    // }
-	    current_density =  density_rhs/bulk_term;
-	    // std::cout<<currentTime<<" s) -> current_density "<<current_density<<" density_rhs= "<<density_rhs<<"   bulk_term "<<bulk_term<<std::endl;
-	  }
+	  // (itNode)->FastGetSolutionStepValue(PRESSURE,1)=current_density;
+	  current_density =  density_rhs/bulk_term;
+	  // std::cout<<currentTime<<" s) -> current_density "<<current_density<<" density_rhs= "<<density_rhs<<"   bulk_term "<<bulk_term<<std::endl;
+
 	}
 
       }
@@ -631,6 +622,7 @@ public:
 	  
 	// Current step information "N+1" (before step update).
 	double& current_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
+	double& current_density  = (itNode)->FastGetSolutionStepValue(DENSITY,0);
 	// double current_density=current_pressure;
 	// double previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
 
@@ -639,7 +631,7 @@ public:
 	  double bulkModulus=2100000000;
 	  double initialDensity=1000;
 	  double gammaExponent=7.0;
-	  double densityRatio=current_pressure/initialDensity;
+	  double densityRatio=current_density/initialDensity;
 	  double powerDensityRatio=pow(densityRatio,gammaExponent);
 
 	  current_pressure = - bulkModulus*(powerDensityRatio-1.0);
