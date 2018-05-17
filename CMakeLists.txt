@@ -108,6 +108,7 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 17.0)
+      # pybind requires this:
       message( "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
       message( FATAL_ERROR "Please use Version 17 or greater")
     endif()
