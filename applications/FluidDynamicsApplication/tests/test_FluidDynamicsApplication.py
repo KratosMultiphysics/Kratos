@@ -17,6 +17,7 @@ from manufactured_solution_test import ManufacturedSolutionTest
 from navier_stokes_wall_condition_test import NavierStokesWallConditionTest
 from time_integrated_fluid_element_test import TimeIntegratedFluidElementTest
 from volume_source_test import VolumeSourceTest
+from fluid_analysis_test import FluidAnalysisTest
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -78,6 +79,7 @@ def AssambleTestSuites():
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
+    allSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
 
     return suites
 
