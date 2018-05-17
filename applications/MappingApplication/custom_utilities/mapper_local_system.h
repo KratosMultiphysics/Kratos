@@ -116,8 +116,8 @@ public:
     }
 
     void CalculateLocalSystem(MappingWeightsVector& rMappingWeights,
-                              EquationIdVectorType&     rOriginIds,
-                              EquationIdVectorType&     rDestinationIds)
+                              EquationIdVectorType& rOriginIds,
+                              EquationIdVectorType& rDestinationIds) const
     {
         if (mIsComputed)
         {

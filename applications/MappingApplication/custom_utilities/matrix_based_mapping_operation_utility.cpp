@@ -29,12 +29,15 @@ namespace Kratos
     using UtilityType = MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType>;
 
     using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
+    using MappingWeightsVector = typename MapperLocalSystem::MappingWeightsVector;
 
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
 
-
+    /***********************************************************************************/
+    /* Functions for internal use in this file */
+    /***********************************************************************************/
     void InitializeVector(UtilityType::TSystemVectorUniquePointerType& rpVector,
                          const SizeType VectorSize)
     {
@@ -58,11 +61,30 @@ namespace Kratos
         EquationIdVectorType origin_ids;
         EquationIdVectorType destination_ids;
 
+        // TODO omp
         for (/*const*/auto& r_local_sys : rMapperLocalSystems) // TODO I think this can be const bcs it is the ptr
         {
             r_local_sys->EquationIdVectors(origin_ids, destination_ids);
 
         }
+    }
+
+    template< class TVarType>
+    void FillSystemVector(UtilityType::TSystemVectorType& rVector,
+                          ModelPart& rModelPart,
+                          const TVarType& rVariable,
+                          const Kratos::Flags& rMappingOptions)
+    {
+
+    }
+
+    template< class TVarType>
+    void Update(UtilityType::TSystemVectorType& rVector,
+                ModelPart& rModelPart,
+                const TVarType& rVariable,
+                const Kratos::Flags& rMappingOptions)
+    {
+
     }
 
     /***********************************************************************************/
@@ -105,7 +127,7 @@ namespace Kratos
         }
         else
         {
-            TSparseSpace::SetToZero(*rpMdo);
+            SparseSpaceType::SetToZero(*rpMdo);
         }
 
         InitializeVector(rpQo, num_nodes_origin);
@@ -120,7 +142,22 @@ namespace Kratos
         const MapperLocalSystemPointerVector& rMapperLocalSystems,
         TSystemMatrixType& rMdo) const
     {
+        MappingWeightsVector mapping_weights;
 
+        EquationIdVectorType origin_ids;
+        EquationIdVectorType destination_ids;
+
+        KRATOS_INFO("BuildMappingMatrix, non-mpi") << "Entering" << std::endl;
+
+        for (auto& r_local_sys : rMapperLocalSystems) // TODO omp
+        {
+            r_local_sys->CalculateLocalSystem(mapping_weights, origin_ids, destination_ids);
+            KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != origin_ids.size()) << "OriginID vector size mismatch" << std::endl;
+            KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != destination_ids.size()) << "DestinationID vector size mismatch" << std::endl;
+
+            for (IndexType i=0; i<mapping_weights.size(); ++i)
+                rMdo(origin_ids[i], destination_ids[i]) += mapping_weights[i];
+        }
     }
 
     // The "Solve" function
@@ -136,6 +173,18 @@ namespace Kratos
         const Kratos::Flags MappingOptions,
         const bool UseTranspose) const
     {
+        if (UseTranspose)
+        {
+            // FillSystemVector(rQd, rModelPartDestination, rDestinationVariable, MappingOptions);
+        }
+        else
+        {
+            FillSystemVector(rQo, rModelPartOrigin, rOriginVariable, MappingOptions);
+            SparseSpaceType::Mult(rMdo, rQo, rQd); // rQd = rMdo * rQo
+            Update(rQd, rModelPartDestination, rDestinationVariable, MappingOptions);
+        }
+
+
 
     }
 

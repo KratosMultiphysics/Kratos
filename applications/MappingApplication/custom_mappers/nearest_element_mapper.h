@@ -185,9 +185,7 @@ protected:
 
     void InitializeMapperLocalSystem(MapperLocalSystemPointer& pMapperLocalSystem) const override
     {
-        KRATOS_WATCH("BEFORE")
         pMapperLocalSystem = Kratos::make_unique<NearestElementLocalSystem>();
-        KRATOS_WATCH("AFTER")
     }
 
     ///@}
