@@ -16,12 +16,6 @@ def CreateSolver(main_model_part, custom_settings):
 
 class UPwSolver(object):
 
-    ##constructor. the constructor shall only take care of storing the settings
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the
-    ##model part is still not filled and the variables are not yet allocated
-    ##
-    ##real construction shall be delayed to the function "Initialize" which
-    ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings):
 
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
@@ -132,8 +126,25 @@ class UPwSolver(object):
 
         print("Variables correctly added")
 
-    def GetMinimumBufferSize(self):
-        return 2
+    def ImportModelPart(self):
+
+        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+
+            # Read ModelPart
+            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+
+            # Create computing_model_part, set constitutive law and buffer size
+            self._ExecuteAfterReading()
+
+        else:
+            raise Exception("Other input options are not yet implemented.")
+
+        print ("Model reading finished")
+
+    def ExportModelPart(self):
+        ## Model part writing
+        name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
+        KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def AddDofs(self):
 
@@ -158,22 +169,25 @@ class UPwSolver(object):
 
         print("DOFs correctly added")
 
-    def ImportModelPart(self):
+    def AdaptMesh(self):
+        pass
 
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+    def GetComputingModelPart(self):
+        return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
 
-            # Read ModelPart
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+    def GetOutputVariables(self):
+        pass
 
-            # Create computing_model_part, set constitutive law and buffer size
-            self._ExecuteAfterReading()
+    def ComputeDeltaTime(self):
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-        else:
-            raise Exception("Other input options are not yet implemented.")
-
-        print ("Model reading finished")
+    def GetMinimumBufferSize(self):
+        return 2
 
     def Initialize(self):
+
+        # Fill the previous steps of the buffer with the initial conditions
+        self._FillBuffer()
 
         # Set ProcessInfo variables
         if(self.settings["nodal_smoothing"].GetBool() == True):
@@ -200,54 +214,19 @@ class UPwSolver(object):
         # Set echo_level
         self.Solver.SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        # Check if everything is assigned correctly
-        self.Solver.Check()
-
-        print ("Initialization UPwSolver finished")
-
-    def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
-
-    def GetOutputVariables(self):
-        pass
-
-    def ComputeDeltaTime(self):
-        pass
-
-    def SaveRestart(self):
-        pass #one should write the restart file here
-
-    def Solve(self):
-        if self.settings["clear_storage"].GetBool():
-            self.Clear()
-
-        self.Solver.Solve()
-
-    # solve :: sequencial calls
-
-    def InitializeStrategy(self):
+        # Initialize Strategy
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
         self.Solver.Initialize()
 
-    def InitializeSolutionStep(self):
-        self.Solver.InitializeSolutionStep()
+        # Check if everything is assigned correctly
+        self.Check()
 
-    def Predict(self):
-        self.Solver.Predict()
+        print ("Initialization UPwSolver finished")
 
-    def SolveSolutionStep(self):
-        self.Solver.SolveSolutionStep()
-
-    def FinalizeSolutionStep(self):
-        self.Solver.FinalizeSolutionStep()
-
-    # solve :: sequencial calls
-
-    def SetEchoLevel(self, level):
-
-        self.Solver.SetEchoLevel(level)
+    def SaveRestart(self):
+        pass #one should write the restart file here
 
     def Clear(self):
 
@@ -256,6 +235,41 @@ class UPwSolver(object):
     def Check(self):
 
         self.Solver.Check()
+
+    def SetEchoLevel(self, level):
+
+        self.Solver.SetEchoLevel(level)
+
+    def AdvanceInTime(self, current_time):
+        dt = self.ComputeDeltaTime()
+        new_time = current_time + dt
+
+        self.main_model_part.CloneTimeStep(new_time)
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+
+        return new_time
+
+    def InitializeSolutionStep(self):
+        self.Solver.InitializeSolutionStep()
+
+    def Predict(self):
+        self.Solver.Predict()
+
+    def SolveSolutionStep(self):
+        is_converged = self.Solver.SolveSolutionStep()
+        return is_converged
+
+    def FinalizeSolutionStep(self):
+        self.Solver.FinalizeSolutionStep()
+
+    def Solve(self):
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
+
+        self.InitializeSolutionStep()
+        self.Predict()
+        self.SolveSolutionStep()
+        self.FinalizeSolutionStep()
 
     #### Specific internal functions ####
 
@@ -275,10 +289,24 @@ class UPwSolver(object):
         import poromechanics_constitutivelaw_utility
         poromechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
 
+        self._SetBufferSize()
+
+    def _SetBufferSize(self):
         self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
         minimum_buffer_size = self.GetMinimumBufferSize()
         if(minimum_buffer_size > self.main_model_part.GetBufferSize()):
             self.main_model_part.SetBufferSize( minimum_buffer_size )
+
+    def _FillBuffer(self):
+        buffer_size = self.main_model_part.GetBufferSize()
+        time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+
+        time = time - (buffer_size-1)*delta_time
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
+        for step in range(buffer_size-1):
+            time = time + delta_time
+            self.main_model_part.CloneTimeStep(time)
 
     def _ConstructBuilderAndSolver(self, block_builder):
 
