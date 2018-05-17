@@ -104,6 +104,14 @@ KRATOS_CREATE_VARIABLE(ClusterInformation, CLUSTER_INFORMATION)
 KRATOS_CREATE_VARIABLE(std::string, CLUSTER_FILE_NAME)
 KRATOS_CREATE_VARIABLE(std::string, INJECTOR_ELEMENT_TYPE)
 KRATOS_CREATE_VARIABLE(int, CONTINUUM_OPTION)
+KRATOS_CREATE_VARIABLE(int, FLOATING_OPTION)
+KRATOS_CREATE_VARIABLE(double, DEM_ENGINE_POWER)
+KRATOS_CREATE_VARIABLE(double, DEM_MAX_ENGINE_FORCE)
+KRATOS_CREATE_VARIABLE(double, DEM_THRESHOLD_VELOCITY)
+KRATOS_CREATE_VARIABLE(double, DEM_ENGINE_PERFORMANCE)
+KRATOS_CREATE_VARIABLE(double, DEM_DRAG_CONSTANT_X)
+KRATOS_CREATE_VARIABLE(double, DEM_DRAG_CONSTANT_Y)
+KRATOS_CREATE_VARIABLE(double, DEM_DRAG_CONSTANT_Z)
 
 KRATOS_CREATE_VARIABLE(double, INITIAL_VELOCITY_X_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_VELOCITY_Y_VALUE)
@@ -412,6 +420,7 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mSolidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mRigidFace3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mAnalyticRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
@@ -500,6 +509,14 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(CLUSTER_FILE_NAME)
     KRATOS_REGISTER_VARIABLE(INJECTOR_ELEMENT_TYPE)
     KRATOS_REGISTER_VARIABLE(CONTINUUM_OPTION)
+    KRATOS_REGISTER_VARIABLE(FLOATING_OPTION)
+    KRATOS_REGISTER_VARIABLE(DEM_ENGINE_POWER)
+    KRATOS_REGISTER_VARIABLE(DEM_MAX_ENGINE_FORCE)
+    KRATOS_REGISTER_VARIABLE(DEM_THRESHOLD_VELOCITY)
+    KRATOS_REGISTER_VARIABLE(DEM_ENGINE_PERFORMANCE)
+    KRATOS_REGISTER_VARIABLE(DEM_DRAG_CONSTANT_X)
+    KRATOS_REGISTER_VARIABLE(DEM_DRAG_CONSTANT_Y)
+    KRATOS_REGISTER_VARIABLE(DEM_DRAG_CONSTANT_Z)
 
     KRATOS_REGISTER_VARIABLE(INITIAL_VELOCITY_X_VALUE)
     KRATOS_REGISTER_VARIABLE(INITIAL_VELOCITY_Y_VALUE)
@@ -791,6 +808,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_CONDITION("SolidFace3D3N", mSolidFace3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D4N", mSolidFace3D4N)
     KRATOS_REGISTER_CONDITION("RigidFace3D", mRigidFace3D3N)
+    KRATOS_REGISTER_CONDITION("RigidFace3D2N", mRigidFace3D2N)
     KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D3N", mRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D3N", mAnalyticRigidFace3D3N)
