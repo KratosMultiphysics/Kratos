@@ -243,6 +243,8 @@ void AxisymmetricUpdatedLagrangianElement::InitializeElementVariables (ElementVa
     rVariables.F0.resize(3,3,false);
     rVariables.F0 = IdentityMatrix(3);
 
+    rVariables.H.resize(3,3,false);
+    
     //set variables including all integration points values
 
     //reading shape functions
@@ -567,7 +569,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateGreenLagrangeStrain(const Ma
 
     //Right Cauchy-Green Calculation
     Matrix C ( 3, 3 );
-    noalias( C ) = prod( trans( rF ), rF );
+    noalias ( C )  = prod( trans( rF ), rF );
 
     if( dimension == 2 )
     {

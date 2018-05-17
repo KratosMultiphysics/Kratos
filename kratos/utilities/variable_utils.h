@@ -337,6 +337,30 @@ public:
         );
 
     /**
+     * @brief Takes the value of a non-historical vector variable and sets it in other non-historical variable
+     * @param OriginVariable reference to the origin vector variable
+     * @param SavedVariable reference to the destination vector variable
+     * @param rNodes reference to the objective node set
+     */
+    void SaveVectorNonHistoricalVar(
+        const ArrayVarType& OriginVariable,
+        const ArrayVarType& SavedVariable,
+        NodesContainerType& rNodes
+        );
+
+    /**
+     * @brief Takes the value of a non-historical scalar variable and sets it in other non-historical variable
+     * @param OriginVariable reference to the origin scalar variable
+     * @param SavedVariable reference to the destination scalar variable
+     * @param rNodes reference to the objective node set
+     */
+    void SaveScalarNonHistoricalVar(
+        const DoubleVarType& OriginVariable,
+        DoubleVarType& SavedVariable,
+        NodesContainerType& rNodes
+        );
+
+    /**
      * @brief Takes the value of an historical vector variable and sets it in other variable
      * @param OriginVariable reference to the origin vector variable
      * @param DestinationVariable reference to the destination vector variable
