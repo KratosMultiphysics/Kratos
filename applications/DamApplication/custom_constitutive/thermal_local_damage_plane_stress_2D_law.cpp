@@ -78,7 +78,7 @@ void ThermalLocalDamagePlaneStress2DLaw::CalculateLinearElasticMatrix( Matrix& r
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void ThermalLocalDamagePlaneStress2DLaw::CalculateThermalStrain(Vector& rThermalStrainVector, const MaterialResponseVariables& ElasticVariables)
+void ThermalLocalDamagePlaneStress2DLaw::CalculateThermalStrain(Vector& rThermalStrainVector, const MaterialResponseVariables& ElasticVariables, double & rNodalReferenceTemperature)
 {
     KRATOS_TRY
 
@@ -88,12 +88,10 @@ void ThermalLocalDamagePlaneStress2DLaw::CalculateThermalStrain(Vector& rThermal
     const unsigned int number_of_nodes = DomainGeometry.size();
 
     double Temperature = 0.0;
-    double rNodalReferenceTemperature = 0.0;
 
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
         Temperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(TEMPERATURE);
-        rNodalReferenceTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
     }
 
     //Identity vector
