@@ -10,18 +10,6 @@ KM.CheckRegisteredApplications("ContactStructuralMechanicsApplication")
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
-try:
-    # Check that applications were imported in the main script
-    KM.CheckRegisteredApplications("MeshingApplication")
-    import KratosMultiphysics.MeshingApplication as MA
-    missing_meshing_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_meshing_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
-
 # Import the implicit solver (the explicit one is derived from it)
 import structural_mechanics_static_solver
 
@@ -108,10 +96,10 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         super(ContactStaticMechanicalSolver, self).AddVariables()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
-        if  mortar_type != "":
+        if mortar_type != "":
             self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)  # Add normal
             self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # Add nodal size variable
-            if  mortar_type == "ALMContactFrictionless":
+            if mortar_type == "ALMContactFrictionless":
                 self.main_model_part.AddNodalSolutionStepVariable(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) # Add normal contact stress
                 self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)                         # Add normal contact gap
                 self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL)             # Add scalar LM residual
@@ -124,10 +112,10 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                 self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)                         # Add normal contact gap
                 self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SLIP)                        # Add contact slip
                 self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)             # Add vector LM residual
-            elif  mortar_type == "ScalarMeshTying":
+            elif mortar_type == "ScalarMeshTying":
                 self.main_model_part.AddNodalSolutionStepVariable(KM.SCALAR_LAGRANGE_MULTIPLIER)             # Add scalar LM
                 self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL)             # Add scalar LM residual
-            elif  mortar_type == "ComponentsMeshTying":
+            elif mortar_type == "ComponentsMeshTying":
                 self.main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)             # Add vector LM
                 self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)             # Add vector LM residual
 
@@ -188,6 +176,10 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
 
     def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
+        if (self.contact_settings["fancy_convergence_criterion"].GetBool() is True):
+            table = KM.TableStreamUtility()
+            table.SetOnProcessInfo(self.main_model_part.ProcessInfo)
+
         conv_params = KM.Parameters("{}")
         conv_params.AddValue("convergence_criterion", self.settings["convergence_criterion"])
         conv_params.AddValue("rotation_dofs", self.settings["rotation_dofs"])
@@ -202,7 +194,6 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         conv_params.AddValue("contact_residual_absolute_tolerance", self.contact_settings["contact_residual_absolute_tolerance"])
         conv_params.AddValue("mortar_type", self.contact_settings["mortar_type"])
         conv_params.AddValue("condn_convergence_criterion", self.contact_settings["condn_convergence_criterion"])
-        conv_params.AddValue("fancy_convergence_criterion", self.contact_settings["fancy_convergence_criterion"])
         conv_params.AddValue("print_convergence_criterion", self.contact_settings["print_convergence_criterion"])
         conv_params.AddValue("ensure_contact", self.contact_settings["ensure_contact"])
         conv_params.AddValue("gidio_debug", self.contact_settings["gidio_debug"])
