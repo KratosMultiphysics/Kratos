@@ -900,60 +900,6 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMisesPlaneStrain2DLaw",mIsotropicDamageModifiedMisesPlaneStrain2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMisesPlaneStress2DLaw",mIsotropicDamageModifiedMisesPlaneStress2DLaw);
 
-
-    //Register Constitutive Laws with Serializer
-    //Hyperelastic laws
-    Serializer::Register("HyperElastic3DLaw", mHyperElastic3DLaw);
-    Serializer::Register(
-        "HyperElasticPlaneStrain2DLaw", mHyperElasticPlaneStrain2DLaw);
-    Serializer::Register("HyperElasticAxisym2DLaw", mHyperElasticAxisym2DLaw);
-
-    //Hyperelastic laws U-P
-    Serializer::Register("HyperElasticUP3DLaw", mHyperElasticUP3DLaw);
-    Serializer::Register(
-        "HyperElasticUPPlaneStrain2DLaw", mHyperElasticUPPlaneStrain2DLaw);
-    Serializer::Register(
-        "HyperElasticUPAxisym2DLaw", mHyperElasticUPAxisym2DLaw);
-
-    //Linear Elastic laws
-    Serializer::Register("LinearElastic3DLaw", mLinearElastic3DLaw);
-    Serializer::Register(
-        "LinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw);
-    Serializer::Register(
-        "LinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw);
-    Serializer::Register("LinearElasticAxisym2DLaw", mLinearElasticAxisym2DLaw);
-
-    //Hyperelastic Plastic J2 specilization laws
-    Serializer::Register(
-        "HyperElasticPlasticJ23DLaw", mHyperElasticPlasticJ23DLaw);
-    Serializer::Register("HyperElasticPlasticJ2PlaneStrain2DLaw",
-        mHyperElasticPlasticJ2PlaneStrain2DLaw);
-    Serializer::Register(
-        "HyperElasticPlasticJ2Axisym2DLaw", mHyperElasticPlasticJ2Axisym2DLaw);
-
-    //Hyperelastic Plastic J2 specilization laws U-P
-    Serializer::Register(
-        "HyperElasticPlasticUPJ23DLaw", mHyperElasticPlasticUPJ23DLaw);
-    Serializer::Register("HyperElasticPlasticUPJ2PlaneStrain2DLaw",
-        mHyperElasticPlasticUPJ2PlaneStrain2DLaw);
-    Serializer::Register("HyperElasticPlasticUPJ2Axisym2DLaw",
-        mHyperElasticPlasticUPJ2Axisym2DLaw);
-
-    //Isotropic Damage laws
-    Serializer::Register(
-        "IsotropicDamageSimoJu3DLaw", mIsotropicDamageSimoJu3DLaw);
-    Serializer::Register("IsotropicDamageSimoJuPlaneStrain2DLaw",
-        mIsotropicDamageSimoJuPlaneStrain2DLaw);
-    Serializer::Register("IsotropicDamageSimoJuPlaneStress2DLaw",
-        mIsotropicDamageSimoJuPlaneStress2DLaw);
-
-    Serializer::Register("IsotropicDamageModifiedMises3DLaw",
-        mIsotropicDamageModifiedMises3DLaw);
-    Serializer::Register("IsotropicDamageModifiedMisesPlaneStrain2DLaw",
-        mIsotropicDamageModifiedMisesPlaneStrain2DLaw);
-    Serializer::Register("IsotropicDamageModifiedMisesPlaneStress2DLaw",
-        mIsotropicDamageModifiedMisesPlaneStress2DLaw);
-
     //Flow Rules
     Serializer::Register("NonLinearAssociativePlasticFlowRule",
         mNonLinearAssociativePlasticFlowRule);
