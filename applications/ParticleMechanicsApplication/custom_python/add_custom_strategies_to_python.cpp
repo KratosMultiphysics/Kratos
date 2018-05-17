@@ -83,7 +83,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 // 				;
     // MPM Residual Based Bossak Scheme Type
     class_< MPMResidualBasedBossakSchemeType,typename MPMResidualBasedBossakSchemeType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakScheme")
-        .def(init < ModelPart&, double, double >())
+        .def(init < ModelPart&, unsigned int, double, double>())
         .def("Initialize", &MPMResidualBasedBossakSchemeType::Initialize)
         .def("IterativeExtrapolation", &MPMResidualBasedBossakSchemeType::IterativeExtrapolation)
         ;

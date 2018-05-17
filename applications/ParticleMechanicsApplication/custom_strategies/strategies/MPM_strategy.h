@@ -377,7 +377,7 @@ public:
         {
             double Alpham;
             double Dynamic;
-            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, Alpham = 0.0, Dynamic=1) );
+            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, Alpham = 0.0, Dynamic=1) );
 
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
             if(BlockBuilder == true){
@@ -406,7 +406,7 @@ public:
         {
             double Alpham;
             double Dynamic;
-            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, Alpham = 0.00, Dynamic=0) );
+            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, Alpham = 0.00, Dynamic=0) );
 
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
             if(BlockBuilder == true){
