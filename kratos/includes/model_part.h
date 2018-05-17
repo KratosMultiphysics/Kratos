@@ -210,11 +210,27 @@ public:
     usage. */
     typedef TablesContainerType::const_iterator TableConstantIterator;
 
+
+    /**
+     *
+     */
     // Defining the constraint base type
     typedef MasterSlaveConstraint MasterSlaveConstraintType;
 
     /// The container of the constraints
-    typedef PointerVectorMap<SizeType, ConstraintType> MasterSlaveConstraintContainerType;    
+    typedef PointerVectorMap<DofType, ConstraintType> MasterSlaveConstraintContainerType;    
+
+    /** Iterator over the constraints. This iterator is an indirect
+    iterator over MasterSlaveConstraint::Pointer which turn back a reference to
+    Table by * operator and not a pointer for more convenient
+    usage. */
+    typedef MasterSlaveConstraintContainerType::iterator MasterSlaveConstraintIterator;
+
+    /** Const iterator over the constraints. This iterator is an indirect
+    iterator over MasterSlaveConstraint::Pointer which turn back a reference to
+    Table by * operator and not a pointer for more convenient
+    usage. */
+    typedef MasterSlaveConstraintContainerType::const_iterator MasterSlaveConstraintConstantIterator;    
 
 
     /// The container of the sub model parts. A hash table is used.
