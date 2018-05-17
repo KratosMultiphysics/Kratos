@@ -90,6 +90,9 @@ class AdaptativeStaticMechanicalSolver(structural_mechanics_static_solver.Static
         if (self.settings["reform_dofs_at_each_step"].GetBool() is False):
             self.print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
             self.settings["reform_dofs_at_each_step"].SetBool(True)
+        if (self.settings["max_iteration"].GetInt() > 1):
+            self.print_on_rank_zero("NL Iteration", "Stage takes into account the NL iterations, setting to 1")
+            self.settings["max_iteration"].SetInt(1)
 
         self.print_on_rank_zero("::[AdaptativeStaticMechanicalSolver]:: ", "Construction finished")
 
