@@ -67,16 +67,16 @@ void  AddConvergenceCriterias(pybind11::module& m)
     //typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 
-    typedef Epetra_FECrsMatrix FECrsMatrix;
+    //typedef Epetra_FECrsMatrix FECrsMatrix;
 
 
     //********************************************************************
     //********************************************************************
     //convergence criteria base class
     typedef ConvergenceCriteria< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosConvergenceCriteria;
-    
+
     typedef typename ConvergenceCriteria< TrilinosSparseSpaceType, TrilinosLocalSpaceType > ::Pointer TrilinosConvergenceCriteriaPointer;
-    
+
     class_< TrilinosConvergenceCriteria, TrilinosConvergenceCriteriaPointer > (m,"TrilinosConvergenceCriteria")
     .def(init<>())
     .def("SetActualizeRHSFlag", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::SetActualizeRHSFlag)
@@ -102,19 +102,19 @@ void  AddConvergenceCriterias(pybind11::module& m)
             .def(init< double, double, double, double >());
 
     class_< ResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
-            typename ResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,  
+            typename ResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
             TrilinosConvergenceCriteria >
             (m,"TrilinosResidualCriteria")
             .def(init< TrilinosSparseSpaceType::DataType, TrilinosSparseSpaceType::DataType >());
 
-    class_<And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >, 
-            typename And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,  
+    class_<And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
+            typename And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
             TrilinosConvergenceCriteria>
             (m,"TrilinosAndCriteria")
             .def(init<TrilinosConvergenceCriteriaPointer, TrilinosConvergenceCriteriaPointer > ());
 
-    class_<Or_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >, 
-            typename Or_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,  
+    class_<Or_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
+            typename Or_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
             TrilinosConvergenceCriteria>
             (m,"TrilinosOrCriteria")
             .def(init<TrilinosConvergenceCriteriaPointer, TrilinosConvergenceCriteriaPointer > ());

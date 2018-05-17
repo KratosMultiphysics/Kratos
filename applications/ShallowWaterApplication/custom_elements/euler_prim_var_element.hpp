@@ -11,9 +11,9 @@
 //
 
 #if !defined(KRATOS_EULER_PRIMITIVE_VAR_ELEM_H_INCLUDED)
-#define  KRATOS_EULER_PRIMITIVE_VAR_ELEM_H_INCLUDED 
+#define  KRATOS_EULER_PRIMITIVE_VAR_ELEM_H_INCLUDED
 
-// System includes 
+// System includes
 
 
 // External includes
@@ -117,7 +117,7 @@ public:
     ///@{
 
     /// Create a new Euler Primitive element and return a pointer to it
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesPointerType pProperties) const
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesPointerType pProperties) const override
     {
         KRATOS_TRY
         return Kratos::make_shared< EulerPrimVarElement < TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
@@ -132,7 +132,7 @@ public:
     }
 
     /// Check that all required data containers are properly initialized and registered in Kratos
-    /** 
+    /**
      * @return 0 if no errors are detected.
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;

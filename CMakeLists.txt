@@ -303,7 +303,6 @@ endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 ##*****************************
 #finding Mpi
-set(MPI_NEEDED OFF)
 if(${METIS_APPLICATION} MATCHES ON )
   set(MPI_NEEDED ON)
 endif(${METIS_APPLICATION} MATCHES ON )
@@ -341,6 +340,14 @@ else( ZLIB_FOUND )
   set( ZLIB_LIBRARIES zlib )
 endif( ZLIB_FOUND )
 
+# including the AMatrix
+if( AMATRIX_DIR )
+    message("AMATRIX_DIR : ${AMATRIX_DIR}")
+    include_directories ( "${AMATRIX_DIR}/include" )
+    add_definitions(-DKRATOS_USE_AMATRIX)
+else()
+    message( "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
+endif()
 
 ##echo user options
 message( " ")

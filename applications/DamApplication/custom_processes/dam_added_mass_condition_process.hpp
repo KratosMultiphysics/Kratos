@@ -80,7 +80,7 @@ class DamAddedMassConditionProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
         KRATOS_TRY;
 
@@ -134,7 +134,7 @@ class DamAddedMassConditionProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
 
@@ -187,19 +187,19 @@ class DamAddedMassConditionProcess : public Process
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamAddedMassConditionProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamAddedMassConditionProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 

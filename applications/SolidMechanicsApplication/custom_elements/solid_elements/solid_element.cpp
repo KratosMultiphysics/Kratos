@@ -563,6 +563,9 @@ void SolidElement::InitializeElementVariables (ElementVariables& rVariables, con
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
 
+    //set process info
+    rVariables.SetProcessInfo(rCurrentProcessInfo);
+    
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
@@ -591,18 +594,33 @@ void SolidElement::TransformElementVariables(ElementVariables& rVariables, const
 //************************************************************************************
 //************************************************************************************
 
+unsigned int SolidElement::GetDofsSize()
+{
+  KRATOS_TRY
+     
+  const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+  const unsigned int number_of_nodes = GetGeometry().PointsNumber();    
+  
+  unsigned int size = number_of_nodes * dimension; //usual size for displacement based elements
+  
+  return size;   
+  
+  KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
 void SolidElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 					    VectorType& rRightHandSideVector,
 					    Flags& rCalculationFlags)
 
 {
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
     //resizing as needed the LHS
-    unsigned int MatSize = number_of_nodes * dimension;
-
+    const unsigned int MatSize = this->GetDofsSize();
+    
     if ( rCalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
         if ( rLeftHandSideMatrix.size1() != MatSize )
@@ -866,8 +884,8 @@ void SolidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, El
   //mass matrix
   const unsigned int number_of_nodes = GetGeometry().PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-  unsigned int MatSize = dimension * number_of_nodes;
-
+  const unsigned int MatSize = this->GetDofsSize();
+    
   if(rLeftHandSideMatrix.size1() != MatSize)
     rLeftHandSideMatrix.resize (MatSize, MatSize, false);
 
@@ -913,8 +931,8 @@ void SolidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, E
   //mass matrix
   const unsigned int number_of_nodes = GetGeometry().PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-  unsigned int MatSize = dimension * number_of_nodes;
-
+  const unsigned int MatSize = this->GetDofsSize();
+  
   MatrixType MassMatrix( MatSize, MatSize );
   noalias(MassMatrix) = ZeroMatrix( MatSize, MatSize );
   
@@ -1632,8 +1650,8 @@ void SolidElement::CalculateFirstDerivativesContributions(MatrixType& rLeftHandS
     //1.-Calculate Tangent Inertia Matrix:
     this->CalculateDampingMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
 
-    double MatSize = rLeftHandSideMatrix.size1();
-
+    const unsigned int MatSize = this->GetDofsSize();
+  
     //2.-Calculate Inertial Forces:
     if ( rRightHandSideVector.size() != MatSize )
       rRightHandSideVector.resize( MatSize, false );
@@ -1692,7 +1710,7 @@ void SolidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHand
       //1.-Calculate Tangent Inertia Matrix:
       this->CalculateMassMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
 
-      double MatSize = rLeftHandSideMatrix.size1();
+      const unsigned int MatSize = this->GetDofsSize();
 
       //2.-Calculate Inertial Forces:
       if ( rRightHandSideVector.size() != MatSize )
@@ -1807,8 +1825,8 @@ void SolidElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVecto
       //1.-Calculate Tangent Inertia Matrix:
       this->CalculateMassMatrix( LeftHandSideMatrix, rCurrentProcessInfo );
 
-      double MatSize = LeftHandSideMatrix.size1();
-
+      const unsigned int MatSize = this->GetDofsSize();
+      
       //2.-Calculate Inertial Forces:
       if ( rRightHandSideVector.size() != MatSize )
 	rRightHandSideVector.resize( MatSize, false );
@@ -1877,8 +1895,7 @@ void SolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rC
       //lumped
       unsigned int dimension = GetGeometry().WorkingSpaceDimension();
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-      unsigned int MatSize = dimension * number_of_nodes;
-
+      const unsigned int MatSize = this->GetDofsSize();
       if ( rMassMatrix.size1() != MatSize )
         rMassMatrix.resize( MatSize, MatSize, false );
 
@@ -1917,11 +1934,9 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
     KRATOS_TRY
 
     //0.-Initialize the DampingMatrix:
-    unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
-    unsigned int MatSize = number_of_nodes * dimension;
+    const unsigned int MatSize = this->GetDofsSize();
 
     if ( rDampingMatrix.size1() != MatSize )
         rDampingMatrix.resize( MatSize, MatSize, false );
@@ -2009,7 +2024,6 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
 
             //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateValue(Values,rVariable,rOutput[PointNumber]);
-	    std::cout<<" rOutput "<<rOutput[PointNumber]<<std::endl;
 
         }
     }    

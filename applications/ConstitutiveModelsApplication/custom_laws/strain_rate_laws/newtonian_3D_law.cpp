@@ -207,7 +207,7 @@ void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
     rFeatures.mOptions.Set( ISOTROPIC );
     
     //Set strain measure required by the consitutive law
-    //rFeatures.mStrainMeasures.push_back(StrainMeasure_Velocity_Gradient);
+    rFeatures.mStrainMeasures.push_back(StrainMeasure_Velocity_Gradient);
 
     //Set the strain size
     rFeatures.mStrainSize = GetStrainSize();

@@ -105,7 +105,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
 
     /**
@@ -115,7 +115,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     //************* GETTING METHODS
 
@@ -123,27 +123,27 @@ public:
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0);
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
     //************* STARTING - ENDING  METHODS
@@ -152,7 +152,7 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize();
+    void Initialize() override;
   
 
     //************* COMPUTING  METHODS
@@ -163,7 +163,7 @@ public:
      * @param rMassMatrix: the elemental mass matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -177,7 +177,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Translatory Rigid Body Element #" << Id();
@@ -185,13 +185,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Translatory Rigid Body Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -224,7 +224,7 @@ protected:
      */
     virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          Flags& rCalculationFlags);
+                                          Flags& rCalculationFlags) override;
 
 
  
@@ -233,20 +233,20 @@ protected:
       */
     virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
 					   ElementVariables& rVariables,
-					   ProcessInfo& rCurrentProcessInfo);
+					   ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * Calculation of the Inertial Forces Vector
       */
     virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
 					   ElementVariables& rVariables,
-					   ProcessInfo& rCurrentProcessInfo);
+					   ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
       * Update rigid body nodes and positions
       */
-    virtual void UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo);
+    virtual void UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -283,9 +283,9 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
   
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
   
     ///@name Private Inquiry
     ///@{

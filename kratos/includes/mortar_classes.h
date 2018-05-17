@@ -511,15 +511,15 @@ public:
     ///@{
 
     // Auxiliar types
-    typedef bounded_matrix<int, 1, 1> DummyBoundedMatrixType;
+    typedef BoundedMatrix<int, 1, 1> DummyBoundedMatrixType;
 
     typedef array_1d<double, TNumNodes> GeometryArrayType;
 
-    typedef bounded_matrix<double, TNumNodes, TDim> GeometryDoFMatrixType;
+    typedef BoundedMatrix<double, TNumNodes, TDim> GeometryDoFMatrixType;
 
-    typedef bounded_matrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+    typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
 
-    typedef typename std::conditional<TNumNodes == 2, DummyBoundedMatrixType, bounded_matrix<double, 3, 3>>::type VertexDerivativesMatrixType;
+    typedef typename std::conditional<TNumNodes == 2, DummyBoundedMatrixType, BoundedMatrix<double, 3, 3>>::type VertexDerivativesMatrixType;
 
     // Auxiliar sizes
     static const std::size_t DummySize = 1;
@@ -761,7 +761,7 @@ public:
     typedef DerivativeData<TDim, TNumNodes, TNormalVariation> BaseClassType;
 
     /// The bounded matrix employed class
-    typedef bounded_matrix<double, TNumNodes, TDim> GeometryDoFMatrixType;
+    typedef BoundedMatrix<double, TNumNodes, TDim> GeometryDoFMatrixType;
 
     // Size of DoFs of a not paired dependency
     static const std::size_t DoFSizeGeometry = (TNumNodes * TDim);
@@ -923,7 +923,7 @@ public:
     typedef MortarKinematicVariables<TNumNodes> KinematicVariables;
 
     /// The bounded matrix employed class
-    typedef bounded_matrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+    typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
 
     /// Counted pointer of MortarOperator
     KRATOS_CLASS_POINTER_DEFINITION( MortarOperator );
@@ -1114,7 +1114,7 @@ public:
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
 
     // Auxiliar types
-    typedef bounded_matrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+    typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
 
     // Auxiliar sizes
     static const std::size_t DoFSizeGeometry = (TNumNodes * TDim);
@@ -1332,7 +1332,7 @@ public:
     typedef MortarKinematicVariables<TNumNodes> KinematicVariables;
 
     /// The bounded matrix employed class
-    typedef bounded_matrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+    typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
 
     /// Counted pointer of DualLagrangeMultiplierOperators
     KRATOS_CLASS_POINTER_DEFINITION( DualLagrangeMultiplierOperators );
@@ -1399,20 +1399,28 @@ public:
         const double norm_me = norm_frobenius(Me);
 
         // Now we normalize the matrix
-        const GeometryMatrixType normalized_Me = Me/norm_me;
+        if (norm_me >= tolerance) {
+            const GeometryMatrixType normalized_Me = Me/norm_me;
 
-        // We compute the normalized inverse
-        double aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me);
-        if (std::abs(aux_det) >= tolerance) {
-            const GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);
+            // We compute the normalized inverse
+            double aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me);
+            if (std::abs(aux_det) >= tolerance) {
+                const GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);
 
-            noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me);
-            return true;
+                noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me);
+                return true;
+            }
+        #ifdef KRATOS_DEBUG
+            else {
+                KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not be inverted. Determinant: " << aux_det << std::endl;
+                KRATOS_WATCH(normalized_Me);
+            }
+        #endif
         }
     #ifdef KRATOS_DEBUG
         else {
-            KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not bee inverted. Determinant: " << aux_det << std::endl;
-            KRATOS_WATCH(normalized_Me);
+            KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not be inverted. Norm: " << norm_me << std::endl;
+            KRATOS_WATCH(Me);
         }
     #endif
 
@@ -1556,7 +1564,7 @@ public:
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
 
     // Auxiliar types
-    typedef bounded_matrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
+    typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
 
     // Auxiliar sizes
     static const std::size_t DoFSizeGeometry = (TNumNodes * TDim);
@@ -1597,7 +1605,7 @@ public:
         BaseClassType::Initialize();
 
         // Derivatives matrices
-	const bounded_matrix<double, TNumNodes, TNumNodes> zeromatrix = ZeroMatrix(TNumNodes, TNumNodes);
+	const BoundedMatrix<double, TNumNodes, TNumNodes> zeromatrix = ZeroMatrix(TNumNodes, TNumNodes);
         for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i) {
             noalias(DeltaMe[i]) = zeromatrix;
             noalias(DeltaDe[i]) = zeromatrix;

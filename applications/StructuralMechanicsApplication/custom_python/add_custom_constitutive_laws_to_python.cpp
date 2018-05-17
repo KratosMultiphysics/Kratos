@@ -35,6 +35,7 @@
 
 #include "custom_constitutive/linear_j2_plasticity_3d.h"
 #include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
+#include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
 namespace Kratos
 {
@@ -105,6 +106,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     class_< LinearJ2Plasticity3D, typename LinearJ2Plasticity3D::Pointer,  ConstitutiveLaw >
     (m,"LinearJ2Plasticity3DLaw").def( init<>())
+    ;
+
+    class_< LinearIsotropicDamage3D, typename LinearIsotropicDamage3D::Pointer,  ConstitutiveLaw  >
+    (m,"LinearIsotropicDamage3DLaw").def( init<>())
     ;
 }
 

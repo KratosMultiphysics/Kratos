@@ -20,7 +20,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "includes/ale_variables.h"
+#include "includes/mesh_moving_variables.h"
 #include "includes/fsi_variables.h"
 #include "containers/array_1d.h"
 #include "includes/model_part.h"

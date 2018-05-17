@@ -307,10 +307,10 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPStress(const Matrix& StressContain
         NodalStressTensor[Node].resize(2,2);
     }
 
-    boost::numeric::ublas::bounded_matrix<double,4,4> ExtrapolationMatrix;
+    BoundedMatrix<double,4,4> ExtrapolationMatrix;
     ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
-    boost::numeric::ublas::bounded_matrix<double,4,3> AuxNodalStress;
+    BoundedMatrix<double,4,3> AuxNodalStress;
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
 
     /* INFO:
@@ -391,10 +391,10 @@ void UPwSmallStrainElement<3,8>::ExtrapolateGPStress(const Matrix& StressContain
         NodalStressTensor[Node].resize(3,3);
     }
 
-    boost::numeric::ublas::bounded_matrix<double,8,8> ExtrapolationMatrix;
+    BoundedMatrix<double,8,8> ExtrapolationMatrix;
     ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
-    boost::numeric::ublas::bounded_matrix<double,8,6> AuxNodalStress;
+    BoundedMatrix<double,8,6> AuxNodalStress;
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
 
     for(unsigned int i = 0; i < 8; i++) //TNumNodes
@@ -501,8 +501,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         array_1d<double,TNumNodes*TDim> VolumeAcceleration;
         ElementUtilities::GetVolumeAccelerationVector(VolumeAcceleration,Geom);
         array_1d<double,TDim> BodyAcceleration;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim> GradNpT;
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> PermeabilityMatrix;
+        BoundedMatrix<double,TNumNodes, TDim> GradNpT;
+        BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
         ElementUtilities::CalculatePermeabilityMatrix(PermeabilityMatrix,Prop);
         const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
         const double& FluidDensity = Prop[DENSITY_WATER];
@@ -709,7 +709,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         const unsigned int NumGPoints = this->GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
         
         //If the permeability of the element is a given property
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> PermeabilityMatrix;
+        BoundedMatrix<double,TDim,TDim> PermeabilityMatrix;
         ElementUtilities::CalculatePermeabilityMatrix(PermeabilityMatrix,this->GetProperties());
     
         //Loop over integration points
@@ -726,7 +726,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::CaculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
+void UPwSmallStrainElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
 {    
     KRATOS_TRY
 
@@ -1120,7 +1120,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatrix
     noalias(rVariables.PMatrix) = rVariables.DtPressureCoefficient*rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
     
     //Distribute compressibility block matrix into the elemental matrix
-    ElementUtilities::AssemblePBlockMatrix< boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
+    ElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1133,7 +1133,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(Ma
     noalias(rVariables.PMatrix) = rVariables.DynamicViscosityInverse*prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
     
     //Distribute permeability block matrix into the elemental matrix
-    ElementUtilities::AssemblePBlockMatrix< boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
+    ElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------

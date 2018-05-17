@@ -30,12 +30,8 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
-#include "custom_utilities/response_functions/strain_energy_response_function.h"
-#include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/input_output/vtk_file_io.h"
-#include "custom_utilities/response_functions/eigenfrequency_response_function.h"
-#include "custom_utilities/response_functions/eigenfrequency_response_function_lin_scal.h"
 // ==============================================================================
 
 namespace Kratos
@@ -116,44 +112,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetMeshToReferenceMesh", &MeshControllerUtilities::SetMeshToReferenceMesh)
         .def("SetReferenceMeshToMesh", &MeshControllerUtilities::SetReferenceMeshToMesh)
         .def("SetDeformationVariablesToZero", &MeshControllerUtilities::SetDeformationVariablesToZero)
-        ;
-
-    // ========================================================================
-    // For calculations related to response functions
-    // ========================================================================
-    class_<StrainEnergyResponseFunction >(m, "StrainEnergyResponseFunction")
-        .def(init<ModelPart&, Parameters>())
-        .def("Initialize", &StrainEnergyResponseFunction::Initialize)
-        .def("CalculateValue", &StrainEnergyResponseFunction::CalculateValue)
-        .def("CalculateGradient", &StrainEnergyResponseFunction::CalculateGradient)
-        .def("GetValue", &StrainEnergyResponseFunction::GetValue)
-        .def("GetGradient", &StrainEnergyResponseFunction::GetGradient)
-        ;
-    class_<MassResponseFunction >(m, "MassResponseFunction")
-        .def(init<ModelPart&, Parameters>())
-        .def("Initialize", &MassResponseFunction::Initialize)
-        .def("CalculateValue", &MassResponseFunction::CalculateValue)
-        .def("CalculateGradient", &MassResponseFunction::CalculateGradient)
-        .def("GetValue", &MassResponseFunction::GetValue)
-        .def("GetGradient", &MassResponseFunction::GetGradient)
-        ;
-
-   class_<EigenfrequencyResponseFunction >(m, "EigenfrequencyResponseFunction")
-        .def(init<ModelPart&, Parameters&>())
-        .def("Initialize", &EigenfrequencyResponseFunction::Initialize)
-        .def("CalculateValue", &EigenfrequencyResponseFunction::CalculateValue)
-        .def("CalculateGradient", &EigenfrequencyResponseFunction::CalculateGradient)
-        .def("GetValue", &EigenfrequencyResponseFunction::GetValue)
-        .def("GetGradient", &EigenfrequencyResponseFunction::GetGradient)
-        ;
-
-    class_<EigenfrequencyResponseFunctionLinScal >(m, "EigenfrequencyResponseFunctionLinScal")
-        .def(init<ModelPart&, Parameters&>())
-        .def("Initialize", &EigenfrequencyResponseFunctionLinScal::Initialize)
-        .def("CalculateValue", &EigenfrequencyResponseFunctionLinScal::CalculateValue)
-        .def("CalculateGradient", &EigenfrequencyResponseFunctionLinScal::CalculateGradient)
-        .def("GetValue", &EigenfrequencyResponseFunctionLinScal::GetValue)
-        .def("GetGradient", &EigenfrequencyResponseFunctionLinScal::GetGradient)
         ;
 
     // ========================================================================
