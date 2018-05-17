@@ -19,7 +19,6 @@ class convergence_criterion:
         self.echo_level = convergence_criterion_parameters["echo_level"].GetInt()
         self.convergence_criterion_name = convergence_criterion_parameters["convergence_criterion"].GetString()
         self.mortar_type = convergence_criterion_parameters["mortar_type"].GetString()
-        self.fancy_convergence_criterion = convergence_criterion_parameters["fancy_convergence_criterion"].GetBool()
         self.print_convergence_criterion = convergence_criterion_parameters["print_convergence_criterion"].GetBool()
         self.gidio_debug = convergence_criterion_parameters["gidio_debug"].GetBool()
         if "contact" in self.convergence_criterion_name:
@@ -37,19 +36,19 @@ class convergence_criterion:
             if(self.echo_level >= 1):
                 KM.Logger.PrintInfo("::[Mechanical Solver]:: ", "CONVERGENCE CRITERION : " + self.convergence_criterion_name)
 
-            if(convergence_criterion_name == "contact_displacement_criterion"):
+            if(self.convergence_criterion_name == "contact_displacement_criterion"):
                 self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT, ensure_contact, self.print_convergence_criterion)
-                self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
+                self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
 
-            elif(convergence_criterion_name == "contact_residual_criterion"):
+            elif(self.convergence_criterion_name == "contact_residual_criterion"):
                 self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, self.print_convergence_criterion)
-                self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
+                self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
 
-            elif(convergence_criterion_name == "contact_mixed_criterion"):
+            elif(self.convergence_criterion_name == "contact_mixed_criterion"):
                 self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, self.print_convergence_criterion)
-                self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
+                self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
 
-            elif(convergence_criterion_name == "contact_and_criterion"):
+            elif(self.convergence_criterion_name == "contact_and_criterion"):
                 Displacement = CSMA.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, CD_RT, CD_AT, ensure_contact, self.print_convergence_criterion)
                 Residual = CSMA.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, self.print_convergence_criterion)
 
@@ -57,7 +56,7 @@ class convergence_criterion:
                 Residual.SetEchoLevel(self.echo_level)
                 self.mechanical_convergence_criterion = KM.AndCriteria(Residual, Displacement)
 
-            elif(convergence_criterion_name == "contact_or_criterion"):
+            elif(self.convergence_criterion_name == "contact_or_criterion"):
                 Displacement = CSMA.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, CD_RT, CD_AT, ensure_contact, self.print_convergence_criterion)
                 Residual = CSMA.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, self.print_convergence_criterion)
 
@@ -69,52 +68,51 @@ class convergence_criterion:
 
             Mortar = self.GetMortarCriteria()
 
-            if (self.fancy_convergence_criterion is True):
-                if (condn_convergence_criterion is True):
-                    # Construct the solver
-                    import eigen_solver_factory
-                    settings_max = KM.Parameters("""
-                    {
-                        "solver_type"             : "power_iteration_highest_eigenvalue_solver",
-                        "max_iteration"           : 10000,
+            if (condn_convergence_criterion is True):
+                # Construct the solver
+                import eigen_solver_factory
+                settings_max = KM.Parameters("""
+                {
+                    "solver_type"             : "power_iteration_highest_eigenvalue_solver",
+                    "max_iteration"           : 10000,
+                    "tolerance"               : 1e-9,
+                    "required_eigen_number"   : 1,
+                    "verbosity"               : 0,
+                    "linear_solver_settings"  : {
+                        "solver_type"             : "SuperLUSolver",
+                        "max_iteration"           : 500,
                         "tolerance"               : 1e-9,
-                        "required_eigen_number"   : 1,
-                        "verbosity"               : 0,
-                        "linear_solver_settings"  : {
-                            "solver_type"             : "SuperLUSolver",
-                            "max_iteration"           : 500,
-                            "tolerance"               : 1e-9,
-                            "scaling"                 : false,
-                            "verbosity"               : 0
-                        }
+                        "scaling"                 : false,
+                        "verbosity"               : 0
                     }
-                    """)
-                    eigen_solver_max = eigen_solver_factory.ConstructSolver(settings_max)
-                    settings_min = KM.Parameters("""
-                    {
-                        "solver_type"             : "power_iteration_eigenvalue_solver",
-                        "max_iteration"           : 10000,
+                }
+                """)
+                eigen_solver_max = eigen_solver_factory.ConstructSolver(settings_max)
+                settings_min = KM.Parameters("""
+                {
+                    "solver_type"             : "power_iteration_eigenvalue_solver",
+                    "max_iteration"           : 10000,
+                    "tolerance"               : 1e-9,
+                    "required_eigen_number"   : 1,
+                    "verbosity"               : 0,
+                    "linear_solver_settings"  : {
+                        "solver_type"             : "SuperLUSolver",
+                        "max_iteration"           : 500,
                         "tolerance"               : 1e-9,
-                        "required_eigen_number"   : 1,
-                        "verbosity"               : 0,
-                        "linear_solver_settings"  : {
-                            "solver_type"             : "SuperLUSolver",
-                            "max_iteration"           : 500,
-                            "tolerance"               : 1e-9,
-                            "scaling"                 : false,
-                            "verbosity"               : 0
-                        }
+                        "scaling"                 : false,
+                        "verbosity"               : 0
                     }
-                    """)
-                    eigen_solver_min = eigen_solver_factory.ConstructSolver(settings_min)
+                }
+                """)
+                eigen_solver_min = eigen_solver_factory.ConstructSolver(settings_min)
 
-                    condition_number_utility = KM.ConditionNumberUtility(eigen_solver_max, eigen_solver_min)
+                condition_number_utility = KM.ConditionNumberUtility(eigen_solver_max, eigen_solver_min)
             else:
                 condition_number_utility = None
 
             self.mechanical_convergence_criterion = CSMA.MortarAndConvergenceCriteria(self.mechanical_convergence_criterion, Mortar,  self.print_convergence_criterion, condition_number_utility)
 
-            self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
+            self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
             self.mechanical_convergence_criterion.SetActualizeRHSFlag(True)
 
         elif self.convergence_criterion_name == "adaptative_remesh_criteria":
@@ -135,25 +133,22 @@ class convergence_criterion:
     def GetMortarCriteria(self, include_table = True):
         # Adding the mortar criteria
         if (self.mortar_type == "ALMContactFrictionless"):
-            if (self.fancy_convergence_criterion is True and include_table is True):
-                Mortar = CSMA.ALMFrictionlessMortarConvergenceCriteria(self.table, self.print_convergence_criterion, self.gidio_debug)
+            if (include_table is True):
+                Mortar = CSMA.ALMFrictionlessMortarConvergenceCriteria(self.print_convergence_criterion, self.gidio_debug)
             else:
                 Mortar = CSMA.ALMFrictionlessMortarConvergenceCriteria()
         elif (self.mortar_type == "ALMContactFrictionlessComponents"):
-            if (self.fancy_convergence_criterion is True and include_table is True):
-                Mortar = CSMA.ALMFrictionlessComponentsMortarConvergenceCriteria(self.table, self.print_convergence_criterion, self.gidio_debug)
+            if (include_table is True):
+                Mortar = CSMA.ALMFrictionlessComponentsMortarConvergenceCriteria(self.print_convergence_criterion, self.gidio_debug)
             else:
                 Mortar = CSMA.ALMFrictionlessComponentsMortarConvergenceCriteria()
         elif (self.mortar_type == "ALMContactFrictional"):
-            if (self.fancy_convergence_criterion is True and include_table is True):
-                Mortar = CSMA.ALMFrictionalMortarConvergenceCriteria(self.table, self.print_convergence_criterion, self.gidio_debug)
+            if (include_table is True):
+                Mortar = CSMA.ALMFrictionalMortarConvergenceCriteria(self.print_convergence_criterion, self.gidio_debug)
             else:
                 Mortar = CSMA.ALMFrictionalMortarConvergenceCriteria()
         elif ("MeshTying" in self.mortar_type):
-            if (self.fancy_convergence_criterion is True and include_table is True):
-                Mortar = CSMA.MeshTyingMortarConvergenceCriteria(self.table)
-            else:
-                Mortar = CSMA.MeshTyingMortarConvergenceCriteria()
+            Mortar = CSMA.MeshTyingMortarConvergenceCriteria()
 
         Mortar.SetEchoLevel(self.echo_level)
 
