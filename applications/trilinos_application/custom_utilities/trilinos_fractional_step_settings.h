@@ -14,7 +14,8 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
-#include "solving_strategies/schemes/scheme.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "processes/process.h"
@@ -22,8 +23,6 @@
 // Application includes
 #include "custom_processes/trilinos_spalart_allmaras_turbulence_model.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme_slip.h"
 
 // FluidDynamicsApplication dependences
 #include "../FluidDynamicsApplication/custom_utilities/solver_settings.h"
@@ -145,12 +144,12 @@ public:
             if (UseSlip)
             {
                 double DomainSize = this->GetDomainSize();
-                SchemePointerType Temp = SchemePointerType(new TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace > (DomainSize,DomainSize));
+                SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace > (DomainSize,DomainSize));
                 pScheme.swap(Temp);
             }
             else
             {
-                SchemePointerType Temp = SchemePointerType(new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+                SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
                 pScheme.swap(Temp);
             }
 
@@ -162,7 +161,7 @@ public:
         {
             // Pressure Builder and Solver
             BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver >(mrComm,RowSizeGuess,pLinearSolver));
-            SchemePointerType pScheme = SchemePointerType(new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+            SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
             // Strategy
             this->mStrategies[BaseType::Pressure] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));

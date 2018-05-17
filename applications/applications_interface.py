@@ -39,7 +39,6 @@ Import_KratosSwimmingDEMApplication = False
 Import_KratosMixedElementApplication = False
 Import_ThermoMechanicalApplication = False
 Import_DEM_FEM_Application = False
-Import_WindTurbineApplication = False
 Import_MultiScaleApplication = False
 Import_ContactStructuralMechanicsApplication = False
 Import_KratosMappingApplication = False
@@ -83,7 +82,6 @@ print("Import_KratosSwimmingDEMApplication: False")
 print("Import_KratosMixedElementApplication: False")
 print("Import_ThermoMechanicalApplication: False")
 print("Import_DEM_FEM_Application: False")
-print("Import_WindTurbineApplication: False")
 print("Import_MultiScaleApplication: False")
 print("Import_ContactStructuralMechanicsApplication: False")
 print("Import_KratosMappingApplication: False")
@@ -131,7 +129,6 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_KratosSwimmingDEMApplication:  " + str(Import_KratosSwimmingDEMApplication))
     print("Import_ThermoMechanicalApplication: " + str(Import_ThermoMechanicalApplication))
     print("Import_DEM_FEM_Application: " + str(Import_DEM_FEM_Application))
-    print("Import_WindTurbineApplication: " + str(Import_WindTurbineApplication))
     print("Import_MultiScaleApplication: " + str(Import_MultiScaleApplication))
     print("Import_ContactStructuralMechanicsApplication: " + str(Import_ContactStructuralMechanicsApplication))
     print("Import_KratosMappingApplication: " + str(Import_KratosMappingApplication))
@@ -447,14 +444,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.ImportApplication(dem_fem_application)
         print("KratosDem_Fem_Application sucessfully imported")
 
-    if(Import_WindTurbineApplication):
-        print("importing KratosWindTurbineApplication ...")
-        sys.path.append(applications_path + '/wind_turbine_application/python_scripts')
-        from KratosWindTurbineApplication import *
-        wind_turbine_application = KratosWindTurbineApplication()
-        kernel.ImportApplication(wind_turbine_application)
-        print("KratosWindTurbineApplication sucessfully imported")
-
     if(Import_MultiScaleApplication):
         print("importing KratosMultiscaleApplication ...")
         sys.path.append(applications_path + '/MultiScaleApplication/python_scripts')
@@ -567,8 +556,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(thermo_mechanical_application)
     if(Import_DEM_FEM_Application):
         kernel.InitializeApplication(dem_fem_application)
-    if(Import_WindTurbineApplication):
-        kernel.InitializeApplication(wind_turbine_application)
     if(Import_MultiScaleApplication):
         kernel.InitializeApplication(MultiScaleApplication)
     if(Import_ContactMechanicsApplication):

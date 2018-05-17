@@ -69,7 +69,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/array_1d.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/coordinate_transformation_utilities.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
+/* NOTE: the include below uses an ugly relative path because this file is also used within the trilinos application.
+ * The correct way to do this would be to either formalize the dependence (so that the trilinos application explicitly
+ * includes this folder in its include path) or invert it (the incompressible fluid depending on the trilinos application),
+ * which is probably the better option for Kratos. Until either of those happen, we need this patch. JC
+ */
+#include "../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
 
 
 namespace Kratos
@@ -191,7 +196,7 @@ public:
                             DofsArrayType& rDofSet,
                             TSystemMatrixType& A,
                             TSystemVectorType& Dv,
-                            TSystemVectorType& b)
+                            TSystemVectorType& b) override
         {
             KRATOS_TRY;
 
@@ -204,7 +209,7 @@ public:
             BaseType::AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b);
 
             KRATOS_CATCH("")
-        }    
+        }
     //*************************************************************************************
     //*************************************************************************************
 
@@ -213,19 +218,19 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         BaseType::InitializeSolutionStep(r_model_part, A, Dx, b);
-	
+
         //loop over elements to copy teh enriched pressure to AUX
-	ModelPart::ElementsContainerType::iterator elem_bg = r_model_part.ElementsBegin();	
-	int n_elems = r_model_part.Elements().size();		
+	ModelPart::ElementsContainerType::iterator elem_bg = r_model_part.ElementsBegin();
+	int n_elems = r_model_part.Elements().size();
 	for ( int jj=0; jj<n_elems; ++jj)
 	      {
 		const double enriche_pr = (elem_bg + jj)->GetValue(PRESSUREAUX);
 	        (elem_bg + jj)->SetValue(AUX_INDEX,enriche_pr);
 	      }
-        
+
     }
     //***************************************************************************
 
@@ -246,14 +251,13 @@ public:
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
 
         //Initializing the non linear iteration for the current element
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-        //KRATOS_WATCH(LHS_Contribution);
         //basic operations for the element considered
         (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
@@ -267,83 +271,82 @@ public:
 
         this->AddDynamicsToLHS(LHS_Contribution, BaseType::mDamp[k], BaseType::mMass[k], CurrentProcessInfo);
         this->AddDynamicsToRHS(rCurrentElement, RHS_Contribution, BaseType::mDamp[k], BaseType::mMass[k], CurrentProcessInfo);
-	
+
 	//In case of enriched element save the last row of LHS and the last column of RHS and condense the matrices
 	const unsigned int Dim = (rCurrentElement)->GetGeometry().WorkingSpaceDimension();
 	const unsigned int NumberOfNodes = (rCurrentElement)->GetGeometry().size();
 	const unsigned int enriched_size = (Dim + 1) * NumberOfNodes + 1;
-	
+
         if( LHS_Contribution.size1() == enriched_size )
 	{
 	  //save the last row
 	  Vector& enriched_vec = (rCurrentElement)->GetValue(GAPS);
 	  enriched_vec.resize(enriched_size + 1, false );
-	  
+
 	  for(unsigned int ii = 0; ii < enriched_size; ++ii)
 	    enriched_vec[ii] = LHS_Contribution(enriched_size-1,ii);
 	  //add RHS contribution
 	  enriched_vec[enriched_size] = RHS_Contribution[enriched_size-1];
-	
+
 	  //Condense
-	  const unsigned int local_size = (Dim + 1) * NumberOfNodes;	
+	  const unsigned int local_size = (Dim + 1) * NumberOfNodes;
 	 // LocalSystemMatrixType aux_LHS;
       boost::numeric::ublas::bounded_matrix <double, 16,16> aux_LHS;
 	  //LocalSystemVectorType aux_RHS;
 	  array_1d<double,16>  aux_RHS;
 	  //aux_LHS.resize(local_size,local_size,false);
 	  //aux_RHS.resize(local_size,false);
-	  
+
 	  double inv_D = 0.0;
 	  if( LHS_Contribution(enriched_size-1,enriched_size-1) != 0.0)
 	    inv_D = 1.0 / LHS_Contribution(enriched_size-1,enriched_size-1);
 	  else
 	  {
-	    KRATOS_WATCH((rCurrentElement)->Id());	    
-	    KRATOS_WATCH(((rCurrentElement)->GetGeometry())[0]);
-	    KRATOS_WATCH(((rCurrentElement)->GetGeometry())[1]);
-	    KRATOS_WATCH(((rCurrentElement)->GetGeometry())[2]);
-	    KRATOS_WATCH(((rCurrentElement)->GetGeometry())[3]);
-	    KRATOS_WATCH(LHS_Contribution);
-	    KRATOS_THROW_ERROR(std::logic_error,"!!!!ENRICHED ELEMENT MUST HAVE NON-ZERO DIAGONAL MEMBER!!!!","");
-	    
+          KRATOS_ERROR << "!!!!ENRICHED ELEMENT MUST HAVE NON-ZERO DIAGONAL MEMBER!!!!" << std::endl
+                       << "Id: " << rCurrentElement->Id() << " Nodes:" << std::endl
+                       << (rCurrentElement)->GetGeometry()[0] << std::endl
+                       << (rCurrentElement)->GetGeometry()[1] << std::endl
+                       << (rCurrentElement)->GetGeometry()[2] << std::endl
+                       << (rCurrentElement)->GetGeometry()[3] << std::endl
+                       << "LHS contribution: " << LHS_Contribution << std::endl;
 	  }
-	  
+
 	  double inv_D_f_2 = RHS_Contribution[enriched_size-1] * inv_D;
 
 	  for(unsigned int ii = 0; ii < local_size; ++ii)
 	   {
-	     //Condensed RHS 
+	     //Condensed RHS
 	     int last_index = enriched_size-1;
 	     aux_RHS[ii] = RHS_Contribution[ii] - LHS_Contribution(ii,last_index) * inv_D_f_2;
-	     
+
 	     for(unsigned int jj = 0; jj < local_size; ++jj)
 		aux_LHS(ii,jj) = LHS_Contribution(ii,jj) - LHS_Contribution(ii,last_index) * inv_D * LHS_Contribution(last_index,jj);
-	    
+
 	   }
-   
+
 	  //Replace
-	  LHS_Contribution.resize(local_size,local_size,false);	  
+	  LHS_Contribution.resize(local_size,local_size,false);
 	  RHS_Contribution.resize(local_size,false);
-	  
+
 	  LHS_Contribution = aux_LHS;
-	  RHS_Contribution = aux_RHS;	  
+	  RHS_Contribution = aux_RHS;
 	}
-	
+
 	// If there is a slip condition, apply it on a rotated system of coordinates
 	mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
 
-	mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());	
+	mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
 
         KRATOS_CATCH("")
 
     }
     //*************************************************************************************
-    //*************************************************************************************    
+    //*************************************************************************************
     void Calculate_RHS_Contribution(
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         int k = OpenMPUtils::ThisThread();
 
@@ -366,29 +369,29 @@ public:
 	const unsigned int Dim = (rCurrentElement)->GetGeometry().WorkingSpaceDimension();
 	const unsigned int NumberOfNodes = (rCurrentElement)->GetGeometry().size();
 	const unsigned int enriched_size = (Dim + 1) * NumberOfNodes + 1;
-	
+
         if( RHS_Contribution.size() == enriched_size )
 	{
-	  const unsigned int local_size = enriched_size-1;	
+	  const unsigned int local_size = enriched_size-1;
 	  LocalSystemVectorType aux_RHS;
 	  aux_RHS.resize(local_size,false);
-	   
+
 	  for(unsigned int ii = 0; ii < local_size; ++ii)
 	   {
-	     //copy RHS 
-	     aux_RHS[ii] = RHS_Contribution[ii];	    
+	     //copy RHS
+	     aux_RHS[ii] = RHS_Contribution[ii];
 	   }
 	  //Replace
 	  RHS_Contribution.resize(local_size,false);
 
 	  RHS_Contribution = aux_RHS;
-	  
+
 	 }
 	  // If there is a slip condition, apply it on a rotated system of coordinates
 	  mRotationTool.Rotate(RHS_Contribution,rCurrentElement->GetGeometry());
-	  mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());	 
-	 
-    }    
+	  mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
+
+    }
     //*************************************************************************************
     //*************************************************************************************
         /** functions totally analogous to the precedent but applied to
@@ -398,7 +401,7 @@ public:
                                                             LocalSystemMatrixType& LHS_Contribution,
                                                             LocalSystemVectorType& RHS_Contribution,
                                                             Element::EquationIdVectorType& EquationId,
-                                                            ProcessInfo& CurrentProcessInfo)
+                                                            ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
             int k = OpenMPUtils::ThisThread();
@@ -426,7 +429,7 @@ public:
         virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
                                                           LocalSystemVectorType& RHS_Contribution,
                                                           Element::EquationIdVectorType& EquationId,
-                                                          ProcessInfo& rCurrentProcessInfo)
+                                                          ProcessInfo& rCurrentProcessInfo) override
         {
             KRATOS_TRY;
 
@@ -493,7 +496,7 @@ protected:
     /**@name Protected Operators*/
     /*@{ */
 
- 
+
     /*@} */
     /**@name Protected Operations*/
     /*@{ */
