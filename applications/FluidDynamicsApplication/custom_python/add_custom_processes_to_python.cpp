@@ -52,46 +52,46 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    class_< SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, Process >
+    class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, Process >
     (m,"SpalartAllmarasTurbulenceModel")
     .def(init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
     .def("ActivateDES", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
     .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::AdaptForFractionalStep)
     ;
 
-    class_< StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >, Process >
+    class_<StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >, Process >
     (m,"StokesInitializationProcess")
     .def(init<ModelPart::Pointer, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
     .def("SetConditions",&StokesInitializationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>::SetConditions)
     ;
 
-    class_< BoussinesqForceProcess, Process >
+    class_<BoussinesqForceProcess, Process >
     (m,"BoussinesqForceProcess")
     .def(init<ModelPart::Pointer, Parameters& >())
     ;
 
-    class_< WindkesselModel, Process >
+    class_<WindkesselModel, Process >
     (m,"WindkesselModel")
     .def(init < ModelPart&>())
     ;
 
-    class_< DistanceModificationProcess, Process >
+    class_<DistanceModificationProcess, Process >
     (m,"DistanceModificationProcess")
     .def(init < ModelPart&, const double, const double, const bool, const bool, const bool >())
     .def(init< ModelPart&, Parameters& >())
     ;
 
-    class_< EmbeddedNodesInitializationProcess, Process >
+    class_<EmbeddedNodesInitializationProcess, Process >
     (m,"EmbeddedNodesInitializationProcess")
     .def(init < ModelPart&, unsigned int >())
     ;
 
-    class_< EmbeddedPostprocessProcess, Process >
+    class_<EmbeddedPostprocessProcess, Process >
     (m,"EmbeddedPostprocessProcess")
     .def(init < ModelPart& >())
     ;
 
-    class_< EmbeddedSkinVisualizationProcess, Process >
+    class_<EmbeddedSkinVisualizationProcess, Process >
     (m,"EmbeddedSkinVisualizationProcess")
     .def(init < 
         ModelPart&, 
@@ -104,7 +104,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(init< ModelPart&, ModelPart&, Parameters& >())
     ;
 
-    class_< MoveRotorProcess, Process >
+    class_<MoveRotorProcess, Process >
     (m,"MoveRotorProcess")
     .def(init < ModelPart&, const double, const double, const double, const double, const double, const unsigned int >())
     .def(init< ModelPart&, Parameters& >())
