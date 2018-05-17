@@ -19,6 +19,10 @@
 // Project includes
 #include "spatial_containers/dem_search.h"
 
+// Application includes
+#include "custom_configures/mpi_discrete_particle_configure.h"
+#include "custom_utilities/bins_dynamic_objects_mpi.h"
+
 #define CUSTOMTIMER 1
 
 /* Timer defines */

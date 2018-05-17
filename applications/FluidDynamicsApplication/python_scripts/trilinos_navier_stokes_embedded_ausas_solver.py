@@ -115,6 +115,5 @@ class NavierStokesMPIEmbeddedAusasMonolithicSolver(trilinos_navier_stokes_embedd
         (self.bdf_process).Execute()
         (self.find_nodal_neighbours_process).Execute()
 
-        # Note that the first two time steps are dropped to fill the BDF buffer
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= 2):
+        if self._TimeBufferIsInitialized():
             (self.solver).Solve()
