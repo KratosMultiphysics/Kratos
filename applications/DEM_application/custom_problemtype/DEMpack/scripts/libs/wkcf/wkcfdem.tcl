@@ -3436,7 +3436,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    incr dem_group_mesh_property_number
 	    set TableNumber 0
 	    set TableVelocityComponent 0
-	    foreach {FreeBodyMotion RigidBodyMass CentroidX CentroidY CentroidZ InertiaX InertiaY InertiaZ Buoyancy} {0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0} {}
+	    foreach {FreeBodyMotion RigidBodyMass CentroidX CentroidY CentroidZ InertiaX InertiaY InertiaZ Buoyancy} {0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 "No"} {}
 	    set type_of_motion [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//i.DEM-RBImposedMotion" dv]
 	    if {$type_of_motion=="None"} {
 		foreach {LinearVelocityX LinearVelocityY LinearVelocityZ AngularVelocityX AngularVelocityY AngularVelocityZ RigidBodyMotionOption} {0.0 0.0 0.0 0.0 0.0 0.0 0} {}
@@ -3462,7 +3462,29 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    set ExternalMX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.ExternalMoments//i.MX" dv]
 	    set ExternalMY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.ExternalMoments//i.MY" dv]
 	    set ExternalMZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.ExternalMoments//i.MZ" dv]
-	    set Buoyancy [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.IceSettings//i.Buoyancy" dv]
+	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.ShipElement"
+		    set Buoyancy [::xmlutils::setXml $cxpath dv]
+		    if {$Buoyancy=="Yes"} {
+		        set Buoyancy 1
+		    } else {
+		        set Buoyancy 0
+		    }
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.EnginePower"
+		    set enginepower [::xmlutils::setXml $cxpath dv]
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.MaxEngineForce"
+		    set maxengineforce [::xmlutils::setXml $cxpath dv]
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.ThresholdVelocity"
+		    set thresholdvelocity [::xmlutils::setXml $cxpath dv]
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.EnginePerformance"
+		    set engineperformance [::xmlutils::setXml $cxpath dv]
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.DragConstantX"
+		    set dragconstantx [::xmlutils::setXml $cxpath dv]
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.DragConstantY"
+		    set dragconstanty [::xmlutils::setXml $cxpath dv]
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.DragConstantZ"
+		    set dragconstantz [::xmlutils::setXml $cxpath dv]
+	    }
 	}
 	    GiD_File fprintf $demfemchannel "Begin SubModelPart $dem_group_mesh_property_number // DEM-FEM-Wall. Group name: $cgroupid"
 	    GiD_File fprintf $demfemchannel "  Begin SubModelPartData // DEM-FEM-Wall. Group name: $cgroupid"
@@ -3520,7 +3542,16 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.VEnd" "dv"]"
 	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE \[3\] ($ExternalFX,$ExternalFY,$ExternalFZ)"
 	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT \[3\] ($ExternalMX,$ExternalMY,$ExternalMZ)"
-	    GiD_File fprintf $demfemchannel "  //FLOATING_OPTION $Buoyancy"
+	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
+		GiD_File fprintf $demfemchannel "  FLOATING_OPTION $Buoyancy"
+		GiD_File fprintf $demfemchannel "  DEM_ENGINE_POWER $enginepower"
+		GiD_File fprintf $demfemchannel "  DEM_MAX_ENGINE_FORCE $maxengineforce"
+		GiD_File fprintf $demfemchannel "  DEM_THRESHOLD_VELOCITY $thresholdvelocity"
+		GiD_File fprintf $demfemchannel "  DEM_ENGINE_PERFORMANCE $engineperformance"
+		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_X $dragconstantx"
+		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_Y $dragconstanty"
+		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_Z $dragconstantz"
+	    }
 	    }
 	    GiD_File fprintf $demfemchannel "  FIXED_MESH_OPTION $fixed_wall_value"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MOTION $RigidBodyMotionOption"
