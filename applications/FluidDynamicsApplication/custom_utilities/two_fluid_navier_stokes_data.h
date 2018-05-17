@@ -56,7 +56,7 @@ NodalScalarData Distance;
 
 double Density;
 double DynamicViscosity;
-double EffectiveViscosity; // Includes smagorinsky contribution
+double CorrectedViscosity; // Includes smagorinsky contribution
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 

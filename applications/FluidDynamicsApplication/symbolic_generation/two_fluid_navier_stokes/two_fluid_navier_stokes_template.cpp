@@ -263,7 +263,7 @@ template <>
 void TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >::ComputeGaussPointLHSContribution(
 	TwoFluidNavierStokesData<2, 3>& rData, MatrixType& rLHS) {
     const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
+    const double mu = rData.CorrectedViscosity;
 
     const double h = rData.ElementSize;
 
@@ -299,7 +299,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
 	TwoFluidNavierStokesData<3, 4>& rData, MatrixType& rLHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
+    const double mu = rData.CorrectedViscosity;
 
     const double h = rData.ElementSize;
 
@@ -336,7 +336,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
 	TwoFluidNavierStokesData<2, 3>& rData, VectorType& rRHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
+    const double mu = rData.CorrectedViscosity;
 
     const double h = rData.ElementSize;
 
@@ -378,7 +378,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
 	TwoFluidNavierStokesData<3, 4>& rData, VectorType& rRHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
+    const double mu = rData.CorrectedViscosity;
 
     const double h = rData.ElementSize;
 
@@ -423,7 +423,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
 	VectorType& rRHS_ee) {
 
 	const double rho = rData.Density;
-	const double mu = rData.EffectiveViscosity;
+	const double mu = rData.CorrectedViscosity;
 
 	const double h = rData.ElementSize;
 
@@ -484,7 +484,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
 	VectorType& rRHS_ee) {
 
 	const double rho = rData.Density;
-	const double mu = rData.EffectiveViscosity;
+	const double mu = rData.CorrectedViscosity;
 
 	const double h = rData.ElementSize;
 
@@ -823,9 +823,9 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::CalculateMaterialProp
 
 		double length_scale = c_smag*rData.ElementSize;
 		length_scale *= length_scale; // square
-		rData.EffectiveViscosity = rData.DynamicViscosity + 2.0*length_scale*strain_rate_norm;
+		rData.CorrectedViscosity = rData.DynamicViscosity + 2.0*length_scale*strain_rate_norm;
 	}
-	else rData.EffectiveViscosity = rData.DynamicViscosity;
+	else rData.CorrectedViscosity = rData.DynamicViscosity;
 
 }
 template<>
@@ -864,9 +864,9 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::CalculateMaterialProp
 
 		double length_scale = c_smag*rData.ElementSize;
 		length_scale *= length_scale; // square
-		rData.EffectiveViscosity = rData.DynamicViscosity + 2.0*length_scale*strain_rate_norm;
+		rData.CorrectedViscosity = rData.DynamicViscosity + 2.0*length_scale*strain_rate_norm;
 	}
-	else rData.EffectiveViscosity = rData.DynamicViscosity;
+	else rData.CorrectedViscosity = rData.DynamicViscosity;
 }
 
 
