@@ -36,54 +36,77 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
     def __init__(self, model, project_parameters):
 
         # Construct the base analysis.
+        self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
         super(AdaptativeStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
         super(AdaptativeStructuralMechanicsAnalysis, self).Initialize()
-        self.non_linear_iterations = self.project_parameters["solver_settings"]["max_iteration"].GetInt()
-        self.project_parameters["solver_settings"]["max_iteration"].SetInt(1)
         self.solver.SetEchoLevel(self.echo_level)
 
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
+        computing_model_part = self.solver.GetComputingModelPart()
 
+        # Default solution, works for very simple problem, but doesn't set the dof and BC
         while self.time < self.end_time:
             self.time = self.solver.AdvanceInTime(self.time)
-            non_linear_iteration = 1
-            computing_model_part = self.main_model_part.GetSubModelPart(self.project_parameters["solver_settings"]["computing_model_part_name"].GetString())
-            while non_linear_iteration < self.non_linear_iterations:
-                is_remeshed = computing_model_part.Is(KratosMultiphysics.MODIFIED)
-                if (non_linear_iteration == 1 or is_remeshed):
-                    self.InitializeSolutionStep()
-                    self.solver.Predict()
-                if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
-                    # Set again all
-                    self._SetUpListOfProcesses()
-                    # WE INITIALIZE THE SOLVER
-                    #self.solver.Initialize()
-                    # WE RECOMPUTE THE PROCESSES AGAIN
-                    # Processes initialization
-                    for process in self.list_of_processes:
-                        process.ExecuteInitialize()
-                    ## Processes before the loop
-                    for process in self.list_of_processes:
-                        process.ExecuteBeforeSolutionLoop()
-                    ## Processes of initialize the solution step
-                    for process in self.list_of_processes:
-                        process.ExecuteInitializeSolutionStep()
-                    computing_model_part.Set(KratosMultiphysics.MODIFIED, False)
-                computing_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, non_linear_iteration)
-                self.solver.SolveSolutionStep()
-                self.FinalizeSolutionStep()
-                if (self.main_model_part[MA.ERROR_ESTIMATE] < 0.0):
-                    KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
-                    break
-                else:
-                    non_linear_iteration += 1
+            self.InitializeSolutionStep()
+            self.solver.Predict()
+            self.solver.SolveSolutionStep()
+            self.FinalizeSolutionStep()
+            if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                self._SetUpGiDOutput()
+                if self.have_output:
+                    self.list_of_processes[-1] = self.output
+                    self.output.ExecuteInitialize()
+                    self.output.ExecuteBeforeSolutionLoop()
+                    self.output.ExecuteInitializeSolutionStep()
             self.OutputSolutionStep()
+
+        #while self.time < self.end_time:
+            #self.time = self.solver.AdvanceInTime(self.time)
+            #non_linear_iteration = 1
+            #while non_linear_iteration <= self.non_linear_iterations:
+                #if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                    ## Set again all  GiD  I/O
+                    #self._SetUpGiDOutput()
+                    #if self.have_output:
+                        #self.list_of_processes[-1] = self.output
+                    ##self._SetUpListOfProcesses()
+                    ## WE INITIALIZE THE SOLVER
+                    ##self.solver.Initialize()
+                    ## WE RECOMPUTE THE PROCESSES AGAIN
+                    ### Processes initialization
+                    ##for process in self.list_of_processes:
+                        ##process.ExecuteInitialize()
+                    #self.output.ExecuteInitialize()
+                    ### Processes before the loop
+                    #for process in self.list_of_processes:
+                        #process.ExecuteBeforeSolutionLoop()
+                    ### Processes of initialize the solution step
+                    #for process in self.list_of_processes:
+                        #process.ExecuteInitializeSolutionStep()
+                #if (non_linear_iteration == 1 or computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                    #self.InitializeSolutionStep()
+                    #self.solver.Predict()
+                    #computing_model_part.Set(KratosMultiphysics.MODIFIED, False)
+                #computing_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, non_linear_iteration)
+                #self.solver.SolveSolutionStep()
+                #if (computing_model_part[MA.ERROR_ESTIMATE] < 0.0):
+                    #is_converged = True
+                #else:
+                    #is_converged = False
+                #if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True or is_converged):
+                    #self.FinalizeSolutionStep()
+                #if (is_converged):
+                    #KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
+                    #break
+                #else:
+                    #non_linear_iteration += 1
+            #self.OutputSolutionStep()
 
     #### Internal functions ####
     def _CreateSolver(self, external_model_part=None):
