@@ -306,11 +306,31 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
 
-    
+#define YEAR ((((__DATE__ [7] - '0') * 10 + (__DATE__ [8] - '0')) * 10 \
+              + (__DATE__ [9] - '0')) * 10 + (__DATE__ [10] - '0'))
+
+#define MONTH (__DATE__ [2] == 'n' ? 0 \
+               : __DATE__ [2] == 'b' ? 1 \
+               : __DATE__ [2] == 'r' ? (__DATE__ [0] == 'M' ? 2 : 3) \
+               : __DATE__ [2] == 'y' ? 4 \
+               : __DATE__ [2] == 'n' ? 5 \
+               : __DATE__ [2] == 'l' ? 6 \
+               : __DATE__ [2] == 'g' ? 7 \
+               : __DATE__ [2] == 'p' ? 8 \
+               : __DATE__ [2] == 't' ? 9 \
+               : __DATE__ [2] == 'v' ? 10 : 11)
+
+#define DAY ((__DATE__ [4] == ' ' ? 0 : __DATE__ [4] - '0') * 10 + (__DATE__ [5] - '0'))
+
+#define DATE_AS_INT (((YEAR - 2000) * 12 + MONTH) * 31 + DAY)
     
 #if __cplusplus >= 201402L
 #define KRATOS_DEPRECATED [[deprecated]]
 #define KRATOS_DEPRECATED_MESSAGE(deprecated_message) [[deprecated(deprecated_message)]]
+#define KRATOS_DEPRECATED_BEFORE(dat) 
+	#if date < DATE_AS_INT [[deprecated("This method will expire eventually, please remove")]]
+	#else #error "This method is deprecated, please remove"
+	#endif
 #elif __GNUC__
 #define KRATOS_DEPRECATED __attribute__((deprecated))
 #define KRATOS_DEPRECATED_MESSAGE(deprecated_message) KRATOS_DEPRECATED
