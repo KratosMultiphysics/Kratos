@@ -15,8 +15,8 @@
 // External includes
 
 // Project includes
-#include "custom_strategies/schemes/residual_based_displacement_bossak_scheme.hpp"
-#include "custom_strategies/time_integration_methods/bossak_method.hpp"
+#include "custom_solvers/solution_schemes/displacement_bossak_scheme.hpp"
+#include "custom_solvers/time_integration_methods/bossak_method.hpp"
 
 namespace Kratos
 {
@@ -38,7 +38,7 @@ namespace Kratos
    /** @brief Bossak integration scheme (for dynamic problems)
     */
    template<class TSparseSpace,  class TDenseSpace >
-      class ResidualBasedUWBossakScheme: public ResidualBasedDisplacementBossakScheme<TSparseSpace,TDenseSpace>
+      class ResidualBasedUWBossakScheme: public DisplacementBossakScheme<TSparseSpace,TDenseSpace>
    {   
       public:
 
@@ -46,31 +46,28 @@ namespace Kratos
          ///@{
          KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedUWBossakScheme );
 
-         typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
+         typedef SolutionScheme<TSparseSpace,TDenseSpace>                      BaseType;
+         typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
+     typedef typename BaseType::LocalFlagType                               LocalFlagType;
 
-         typedef typename Element::DofsArrayType                  DofsArrayType;
-
-         typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
-
-         typedef typename BaseType::TSystemVectorType         TSystemVectorType;
-
-         typedef typename BaseType::Pointer                     BaseTypePointer;
-
+    typedef typename BaseType::NodeType                                          NodeType;
+    typedef typename BaseType::DofsArrayType                                DofsArrayType;
+    typedef typename BaseType::SystemMatrixType                          SystemMatrixType;
+    typedef typename BaseType::SystemVectorType                          SystemVectorType;
          typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
          typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-         typedef ResidualBasedDisplacementBossakScheme<TSparseSpace,TDenseSpace>  DerivedType;
+    typedef typename BaseType::NodesContainerType                      NodesContainerType;
+    typedef typename BaseType::ElementsContainerType                ElementsContainerType;
+    typedef typename BaseType::ConditionsContainerType            ConditionsContainerType;
+         typedef DisplacementBossakScheme<TSparseSpace,TDenseSpace>  DerivedType;
 
-         typedef ModelPart::NodesContainerType                   NodesArrayType;
+         typedef typename DerivedType::IntegrationPointerType           IntegrationPointerType;
 
-         typedef typename DerivedType::IntegrationTypePointer           IntegrationTypePointer;
-
-         typedef typename DerivedType::NodeType                                       NodeType;
 
          typedef TimeIntegrationMethod< Variable<double>, double>    ScalarIntegrationType;
 
-         typedef typename ScalarIntegrationType::Pointer     ScalarIntegrationTypePointer;
+         typedef typename ScalarIntegrationType::Pointer     ScalarIntegrationPointerType;
 
 
          ///@}
@@ -83,6 +80,12 @@ namespace Kratos
          {
          }
 
+        /// Constructor.
+	ResidualBasedUWBossakScheme(Flags& rOptions)
+          :DerivedType(rOptions)
+        {
+        }
+    
          /// Copy Constructor.
          ResidualBasedUWBossakScheme(ResidualBasedUWBossakScheme& rOther)
             :DerivedType(rOther)
@@ -90,28 +93,24 @@ namespace Kratos
          }
 
 
-         /** Destructor.
-          */
-         virtual ~ResidualBasedUWBossakScheme
-            () {}
-
-         /*@} */
-         /**@name Operators
-          */
-         /*@{ */
-
-
          /**
           * Clone 
           */
-         BaseTypePointer Clone() override
+         BasePointerType Clone() override
          {
-            return BaseTypePointer( new ResidualBasedUWBossakScheme(*this) );
+            return BasePointerType( new ResidualBasedUWBossakScheme(*this) );
          }
 
          /// Destructor.
          ~ResidualBasedUWBossakScheme() override {}
 
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
          /**
           * It initializes time step solution. Only for reasons if the time step solution is restarted
           * @param rModelPart: The model of the problem to solve
@@ -121,10 +120,7 @@ namespace Kratos
           *
           */
 
-         void InitializeSolutionStep(ModelPart& rModelPart,
-               TSystemMatrixType& A,
-               TSystemVectorType& Dx,
-               TSystemVectorType& b ) override
+         void InitializeSolutionStep(ModelPart& rModelPart) override
          {
             KRATOS_TRY;
 
@@ -135,17 +131,10 @@ namespace Kratos
             mpWaterPressureIntegrationMethod->SetParameters( rCurrentProcessInfo);
 
 
-            ResidualBasedDisplacementBossakScheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
+            DisplacementBossakScheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(rModelPart);
 
             KRATOS_CATCH( "" );
          }
-         ///@}
-         ///@name Operators
-         ///@{
-
-         ///@}
-         ///@name Operations
-         ///@{
 
          ///@}
          ///@name Access
@@ -194,9 +183,9 @@ namespace Kratos
          ///@name Protected member Variables
          ///@{
 
-         IntegrationTypePointer mpWaterDisplacementIntegrationMethod;
+         IntegrationPointerType mpWaterDisplacementIntegrationMethod;
 
-         ScalarIntegrationTypePointer mpWaterPressureIntegrationMethod;
+         ScalarIntegrationPointerType mpWaterPressureIntegrationMethod;
 
          ///@}
          ///@name Protected Operators
@@ -210,7 +199,7 @@ namespace Kratos
          {
             KRATOS_TRY
 
-            this->mpIntegrationMethod = IntegrationTypePointer( new BossakMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+            this->mpIntegrationMethod = IntegrationPointerType( new BossakMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
             // Set scheme variables
             this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
@@ -221,7 +210,7 @@ namespace Kratos
             // Modify ProcessInfo scheme parameters
             this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
 
-            this->mpWaterDisplacementIntegrationMethod = IntegrationTypePointer( new BossakMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+            this->mpWaterDisplacementIntegrationMethod = IntegrationPointerType( new BossakMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
             // Set scheme variables
             this->mpWaterDisplacementIntegrationMethod->SetVariables(WATER_DISPLACEMENT,WATER_VELOCITY,WATER_ACCELERATION);
@@ -229,7 +218,7 @@ namespace Kratos
             // Set scheme parameters
             this->mpWaterDisplacementIntegrationMethod->SetParameters(rCurrentProcessInfo);
 
-            this->mpWaterPressureIntegrationMethod = ScalarIntegrationTypePointer( new BossakMethod< Variable<double>, double>);
+            this->mpWaterPressureIntegrationMethod = ScalarIntegrationPointerType( new BossakMethod< Variable<double>, double>);
 
             // Set scheme variables
             this->mpWaterPressureIntegrationMethod->SetVariables(WATER_PRESSURE,WATER_PRESSURE_VELOCITY,WATER_PRESSURE_ACCELERATION);

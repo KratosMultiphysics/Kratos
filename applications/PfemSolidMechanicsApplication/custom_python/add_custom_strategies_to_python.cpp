@@ -31,6 +31,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef UblasSpace<double, CompressedMatrix, Vector>                         SparseSpaceType;
   typedef UblasSpace<double, Matrix, Vector>                                    LocalSpaceType;
   typedef Scheme< SparseSpaceType, LocalSpaceType >                                 SchemeType;
+  typedef SolutionScheme<SparseSpaceType, LocalSpaceType>                   SolutionSchemeType;
 
   //custom scheme types
   typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >              ResidualBasedBossakSchemeType;
@@ -44,16 +45,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   class_<ResidualBasedBossakSchemeType, typename ResidualBasedBossakSchemeType::Pointer, SchemeType>
       (m,"ResidualBasedBossakScheme")
       .def(init< double , double >())
-	
       .def("Initialize", &ResidualBasedBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
       ;
       
 
   // Residual Based Bossak Scheme Type
-  class_<ResidualBasedUWBossakSchemeType, typename ResidualBasedUWBossakSchemeType::Pointer, SchemeType>
+  class_<ResidualBasedUWBossakSchemeType, typename ResidualBasedUWBossakSchemeType::Pointer, SolutionSchemeType>
       (m,"ResidualBasedUWBossakScheme")
-      .def(init< double , double >())
-      .def("Initialize", &ResidualBasedUWBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      .def(init<>())
+      .def(init<Flags&>())
       ;
                      
 }

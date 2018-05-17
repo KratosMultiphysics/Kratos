@@ -58,20 +58,15 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def(init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
       ;
 
+  class_<HMParametricWallContactSearchProcess, Process > 
+	   (m,"HMParametricWallContactSearch")
+      .def(init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
+	   ;
+
   class_<BuildContactModelPartProcess, Process>
       (m,"BuildContactModelPart")
       .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, std::vector<std::string>&, int>())
       ;
-
-      class_<HMParametricWallContactSearchProcess, bases< ProcessBaseType >, boost::noncopyable >
-	("HMParametricWallContactSearch", init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
-	;
-
-      class_<BuildContactModelPartProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "BuildContactModelPart", init<ModelPart&, ModelerUtilities::MeshingParameters&, std::vector<std::string>&, int>()
-	 )
-	;
   class_<ClearPointContactConditionsProcess, Process>
       (m,"ClearPointContactConditions")
       .def(init<ModelPart&, int>())
