@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -71,10 +72,10 @@ public:
     typedef std::ptrdiff_t  SignedIndexType;
 
     /// A vector of indexes
-    typedef vector<IndexType> IndexVectorType;
+    typedef DenseVector<IndexType> IndexVectorType;
 
     /// A vector of indexes (signed)
-    typedef vector<SignedIndexType> SignedIndexVectorType;
+    typedef DenseVector<SignedIndexType> SignedIndexVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -99,6 +100,33 @@ public:
     struct value_type {
         typedef typename T::value_type type;
     };
+
+    /**
+     * @brief Matrix-matrix product C = A·B
+     * @detail This method uses a template for each matrix
+     * @param rA The first matrix
+     * @param rB The second matrix
+     * @param rC The resulting matrix
+     */
+    template <class AMatrix, class BMatrix, class CMatrix>
+    static void MatrixMultiplication(
+        const AMatrix& rA,
+        const BMatrix& rB,
+        CMatrix& rC
+        )
+    {
+    #ifdef _OPENMP
+        const int nt = omp_get_max_threads();
+    #else
+        const int nt = 1;
+    #endif
+
+        if (nt > 16) {
+            MatrixMultiplicationRMerge(rA, rB, rC);
+        } else {
+            MatrixMultiplicationSaad(rA, rB, rC);
+        }
+    }
 
     /**
      * @brief The first is an OpenMP-enabled modification of classic algorithm from Saad
