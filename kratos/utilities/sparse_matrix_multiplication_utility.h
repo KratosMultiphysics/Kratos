@@ -109,7 +109,7 @@ public:
      * @param rC The resulting matrix
      */
     template <class AMatrix, class BMatrix, class CMatrix>
-    void MatrixMultiplication(
+    static void MatrixMultiplication(
         const AMatrix& rA,
         const BMatrix& rB,
         CMatrix& rC
