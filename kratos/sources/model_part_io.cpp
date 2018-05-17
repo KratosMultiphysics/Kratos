@@ -797,9 +797,7 @@ namespace Kratos
                 bool temp;
 
                 ReadWord(value); // reading value
-                std::stringstream str_stream(value);
-                str_stream >> std::boolalpha >> temp;
-
+                ExtractValue(value,temp);
                 rModelPart[KratosComponents<Variable<bool> >::Get(variable_name)] = temp;
             }
             else if(KratosComponents<Variable<int> >::Has(variable_name))
