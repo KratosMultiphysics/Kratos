@@ -25,12 +25,12 @@
 #include "../custom_constitutive/DEM_D_Linear_confined_CL.h"
 #include "../custom_constitutive/DEM_D_Linear_HighStiffness_CL.h"
 
-
 #include "../custom_constitutive/DEM_Dempack_CL.h"
 #include "../custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "../custom_constitutive/DEM_KDEM_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.h"
+#include "../custom_constitutive/dem_kdem_fissured_rock_cl.h"
 #include "../custom_constitutive/DEM_sintering_continuum_CL.h"
 #include "../custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "../custom_constitutive/DEM_ExponentialHC_CL.h"
@@ -121,6 +121,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
     class_<DEM_D_Linear_HighStiffness, DEM_D_Linear_HighStiffness::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_HighStiffness")
         .def(init<>())
         ;
+    // DEM Continuum Constitutive Laws:
 
     // DEM Continuum Constitutive Laws:
 
@@ -173,6 +174,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     class_<DEM_KDEM_Mohr_Coulomb, DEM_KDEM_Mohr_Coulomb::Pointer, DEM_KDEM_Rankine>(m, "DEM_KDEM_Mohr_Coulomb")
+        .def(init<>())
+        ;
+
+    class_<DEM_KDEM_Fissured_Rock_CL, DEM_KDEM_Fissured_Rock_CL::Pointer, DEM_KDEM_Rankine>(m, "DEM_KDEM_Fissured_Rock")
         .def(init<>())
         ;
 

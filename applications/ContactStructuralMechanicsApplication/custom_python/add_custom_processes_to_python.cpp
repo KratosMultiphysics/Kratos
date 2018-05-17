@@ -41,13 +41,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     class_<ALMFastInit, ProcessBaseType >
     (m, "ALMFastInit")
     .def(init<ModelPart&>())
-    .def("Execute", &ALMFastInit::Execute)
     ;
     
     class_<MasterSlaveProcess, ProcessBaseType >
     (m, "MasterSlaveProcess")
     .def(init<ModelPart&>())
-    .def("Execute", &MasterSlaveProcess::Execute)
     ;
     
     class_<ALMVariablesCalculationProcess, ProcessBaseType >
@@ -55,7 +53,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, Variable<double>&>()) // Considering default variables
     .def(init<ModelPart&>()) 
-    .def("Execute", &ALMVariablesCalculationProcess::Execute)
     ;
 }
 }  // namespace Python.
