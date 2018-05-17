@@ -179,12 +179,14 @@ proc ::wkcf::AssignSpecialBoundaries {ndime entitylist} {
 	    set endlinelist [list]
 	    foreach surfid $entitylist {
 		set surfprop [GiD_Geometry get surface $surfid]
-		# set surfacetype [lindex $surfprop 0]
+		set surfacetype [lindex $surfprop 0]
 		set nline [lindex $surfprop 2]
 		set lineprop [list]
-		#if {$surfacetype eq "nurbssurface"} {
+		if {$surfacetype eq "nurbssurface"} {
 		    set lineprop [lrange $surfprop 9 [expr {9+$nline-1}]]
-		    #}
+		} else {
+		    set lineprop [lrange $surfprop 3 [expr {3+$nline-1}]]
+		}
 		foreach lprop $lineprop {
 		    lassign $lprop lineid orientation
 		    lappend endlinelist $lineid
