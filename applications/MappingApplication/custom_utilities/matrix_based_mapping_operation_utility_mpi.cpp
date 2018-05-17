@@ -172,12 +172,12 @@ namespace Kratos
     /***********************************************************************************/
     /* PROTECTED Methods */
     /***********************************************************************************/
-    template<>
-    void UtilityType::ConstructMatrixStructure(MapperLocalSystemPointerVector& rMapperLocalSystems,
-                                               TSystemMatrixType& rMdo) const
-    {
+    // template<>
+    // void UtilityType::ConstructMatrixStructure(MapperLocalSystemPointerVector& rMapperLocalSystems,
+    //                                            TSystemMatrixType& rMdo) const
+    // {
 
-    }
+    // }
 
     /***********************************************************************************/
     /* PRIVATE Methods */

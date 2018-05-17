@@ -151,7 +151,7 @@ Condition::Pointer NearestElementCondition::Clone(IndexType NewId, NodesArrayTyp
  * @param rResult: the condition equation ID vector
  * @param rCurrentProcessInfo: the current process info instance
  */
-void NearestElementCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) {
+void NearestElementCondition::EquationIdVectorType(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) {
   unsigned int number_of_nodes = GetGeometry().PointsNumber();
   if (rResult.size() != number_of_nodes)
     rResult.resize(number_of_nodes, false);

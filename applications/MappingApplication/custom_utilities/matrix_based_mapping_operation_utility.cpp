@@ -27,6 +27,44 @@ namespace Kratos
     using DenseSpaceType = MapperDefinitions::DenseSpaceType;
 
     using UtilityType = MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType>;
+
+    using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
+
+    using SizeType = std::size_t;
+    using IndexType = std::size_t;
+
+
+
+    void InitializeVector(UtilityType::TSystemVectorUniquePointerType& rpVector,
+                         const SizeType VectorSize)
+    {
+        if (rpVector == nullptr || rpVector->size() != VectorSize) //if the pointer is not initialized initialize it to an empty vector
+        {
+            UtilityType::TSystemVectorUniquePointerType p_new_vector = Kratos::make_unique<UtilityType::TSystemVectorType>(VectorSize);
+            rpVector.swap(p_new_vector);
+
+            // TODO do I also have to set to zero the contents?
+        }
+        else
+        {
+            SparseSpaceType::SetToZero(*rpVector);
+        }
+    }
+
+    void ConstructMatrixStructure(UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems,
+                                  UtilityType::TSystemMatrixType& rMdo)
+    {
+        // A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
+        EquationIdVectorType origin_ids;
+        EquationIdVectorType destination_ids;
+
+        for (/*const*/auto& r_local_sys : rMapperLocalSystems) // TODO I think this can be const bcs it is the ptr
+        {
+            r_local_sys->EquationIdVectors(origin_ids, destination_ids);
+
+        }
+    }
+
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
@@ -37,23 +75,6 @@ namespace Kratos
         KRATOS_WATCH("Non-MPI-Ctor")
         KRATOS_ERROR_IF(SparseSpaceType::IsDistributed())
             << "Using a distributed Space!" << std::endl;
-    }
-
-    // TODO this function is protected but has to be declared before it is being used the first time!
-    template<>
-    void UtilityType::ConstructMatrixStructure(MapperLocalSystemPointerVector& rMapperLocalSystems,
-                                               TSystemMatrixType& rMdo) const
-    {
-        // A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
-        MapperLocalSystem::EquationIdVector origin_ids;
-        MapperLocalSystem::EquationIdVector destination_ids;
-
-        for (/*const*/auto& r_local_sys : rMapperLocalSystems) // TODO I think this can be const bcs it is the ptr
-        {
-            r_local_sys->EquationIdVectors(origin_ids, destination_ids);
-
-        }
-
     }
 
     template<>
@@ -67,12 +88,14 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const std::size_t num_nodes_origin = rModelPartOrigin.NumberOfNodes();
-        const std::size_t num_nodes_destination = rModelPartDestination.NumberOfNodes();
+        const SizeType num_nodes_origin = rModelPartOrigin.NumberOfNodes();
+        const SizeType num_nodes_destination = rModelPartDestination.NumberOfNodes();
 
         if (rpMdo == nullptr || rpMdo->size1() != num_nodes_origin || rpMdo->size2() != num_nodes_destination) //if the pointer is not initialized initialize it to an empty matrix
         {
-            const std::size_t num_non_zeros = 100; // TODO this should be computed
+            const SizeType num_non_zeros = 100; // TODO this should be computed
+
+            // ConstructMatrixStructure(rpMdo, rMapperLocalSystems);
 
             TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(
                 num_nodes_origin,num_nodes_destination, num_non_zeros);
@@ -82,33 +105,11 @@ namespace Kratos
         }
         else
         {
-            SparseSpaceType::SetToZero(*rpMdo);
+            TSparseSpace::SetToZero(*rpMdo);
         }
 
-
-        if (rpQo == nullptr || rpQo->size() != num_nodes_origin) //if the pointer is not initialized initialize it to an empty vector
-        {
-            TSystemVectorUniquePointerType p_Do = Kratos::make_unique<TSystemVectorType>(num_nodes_origin);
-            rpQo.swap(p_Do);
-
-            // TODO do I also have to set to zero the contents?
-        }
-        else
-        {
-            SparseSpaceType::SetToZero(*rpQo);
-        }
-
-        if (rpQd == nullptr || rpQd->size() != num_nodes_destination) //if the pointer is not initialized initialize it to an empty vector
-        {
-            TSystemVectorUniquePointerType p_Dd = Kratos::make_unique<TSystemVectorType>(num_nodes_destination);
-            rpQd.swap(p_Dd);
-
-            // TODO do I also have to set to zero the contents?
-        }
-        else
-        {
-            SparseSpaceType::SetToZero(*rpQo);
-        }
+        InitializeVector(rpQo, num_nodes_origin);
+        InitializeVector(rpQd, num_nodes_destination);
 
         KRATOS_CATCH("")
     }

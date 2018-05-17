@@ -137,7 +137,7 @@ public:
     * @param rResult: the condition equation ID vector
     * @param rCurrentProcessInfo: the current process info instance
     */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
+    void EquationIdVectorType(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
 
     /**
     * CONDITIONS inherited from this class have to implement next

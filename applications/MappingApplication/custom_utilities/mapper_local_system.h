@@ -73,7 +73,7 @@ public:
     using IndexType = std::size_t;
 
     using MappingWeightsVector = std::vector<double>;
-    using EquationIdVector     = std::vector<IndexType>;
+    using EquationIdVectorType     = std::vector<IndexType>;
 
     using NodeType = Node<3>;
     using GeometryType = Geometry<NodeType>;
@@ -102,8 +102,8 @@ public:
     virtual MapperLocalSystemUniquePointer Create(const NodeType& rNode) const;
     virtual MapperLocalSystemUniquePointer Create(const GeometryType& rGeometry) const;
 
-    void EquationIdVectors(EquationIdVector& rOriginIds,
-                           EquationIdVector& rDestinationIds)
+    void EquationIdVectors(EquationIdVectorType& rOriginIds,
+                           EquationIdVectorType& rDestinationIds)
     {
         if (!mIsComputed)
         {
@@ -116,8 +116,8 @@ public:
     }
 
     void CalculateLocalSystem(MappingWeightsVector& rMappingWeights,
-                              EquationIdVector&     rOriginIds,
-                              EquationIdVector&     rDestinationIds)
+                              EquationIdVectorType&     rOriginIds,
+                              EquationIdVectorType&     rDestinationIds)
     {
         if (mIsComputed)
         {
@@ -206,8 +206,8 @@ protected:
     bool mIsComputed = false;
 
     MappingWeightsVector mMappingWeights;
-    EquationIdVector mOriginIds;
-    EquationIdVector mDestinationIds;
+    EquationIdVectorType mOriginIds;
+    EquationIdVectorType mDestinationIds;
 
 
     ///@}
@@ -223,8 +223,8 @@ protected:
     // Note that it is "const", therefore it can NOT modify its members
     // Whether members are to be saved is decided in other functions of this class
     virtual void CalculateAll(MappingWeightsVector& rMappingWeights,
-                              EquationIdVector&     rOriginIds,
-                              EquationIdVector&     rDestinationIds) const = 0;
+                              EquationIdVectorType&     rOriginIds,
+                              EquationIdVectorType&     rDestinationIds) const = 0;
 
 
     ///@}

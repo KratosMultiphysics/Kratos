@@ -64,6 +64,9 @@ class MatrixBasedMappingOperationUtility
 
     using BaseType = MappingOperationUtility<TSparseSpace, TDenseSpace>;
 
+    using SizeType = typename BaseType::SizeType;
+    using IndexType = typename BaseType::IndexType;
+
     using MapperLocalSystemPointerType = typename BaseType::MapperLocalSystemPointer;
     using MapperLocalSystemPointerVector = typename BaseType::MapperLocalSystemPointerVector;
     using MapperLocalSystemPointerVectorPointer = typename BaseType::MapperLocalSystemPointerVectorPointer;
@@ -287,9 +290,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void ConstructMatrixStructure(MapperLocalSystemPointerVector& rMapperLocalSystems,
-                                  TSystemMatrixType& rMdo) const;
 
 
     ///@}
