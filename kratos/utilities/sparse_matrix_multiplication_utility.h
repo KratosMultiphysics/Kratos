@@ -102,6 +102,33 @@ public:
     };
 
     /**
+     * @brief Matrix-matrix product C = A·B
+     * @detail This method uses a template for each matrix
+     * @param rA The first matrix
+     * @param rB The second matrix
+     * @param rC The resulting matrix
+     */
+    template <class AMatrix, class BMatrix, class CMatrix>
+    void MatrixMultiplication(
+        const AMatrix& rA,
+        const BMatrix& rB,
+        CMatrix& rC
+        )
+    {
+    #ifdef _OPENMP
+        const int nt = omp_get_max_threads();
+    #else
+        const int nt = 1;
+    #endif
+
+        if (nt > 16) {
+            MatrixMultiplicationRMerge(rA, rB, rC);
+        } else {
+            MatrixMultiplicationSaad(rA, rB, rC);
+        }
+    }
+
+    /**
      * @brief The first is an OpenMP-enabled modification of classic algorithm from Saad
      * @details It is used whenever number of OpenMP cores is 4 or less. Saad, Yousef. Iterative methods for sparse linear systems. Siam, 2003.
      * @param A The first matrix to multiply
