@@ -188,6 +188,7 @@ class PfemFluidSolver:
         for node in self.main_model_part.Nodes:
             # adding dofs
             node.AddDof(KratosMultiphysics.PRESSURE)
+            node.AddDof(KratosMultiphysics.DENSITY)
             node.AddDof(KratosMultiphysics.VELOCITY_X)
             node.AddDof(KratosMultiphysics.VELOCITY_Y)
             node.AddDof(KratosMultiphysics.VELOCITY_Z)
@@ -306,10 +307,11 @@ class PfemFluidSolver:
         #adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         #adaptive_time_interval.Execute()
 
-        unactive_peak_elements = False
-        unactive_sliver_elements = False
-        set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
-        set_active_flag.Execute()
+        pass
+        #unactive_peak_elements = False
+        #unactive_sliver_elements = False
+        #set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
+        #set_active_flag.Execute()
 
         #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         #split_elements.ExecuteInitialize()
@@ -326,10 +328,12 @@ class PfemFluidSolver:
         #pass
         self.fluid_solver.FinalizeSolutionStep()  
 
+        #print("set_active_flag.ExecuteFinalize()")
         unactive_peak_elements = False
         unactive_sliver_elements = False
-        set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
-        set_active_flag.ExecuteFinalize()
+        if(unactive_peak_elements == True or unactive_sliver_elements == True):
+            set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
+            set_active_flag.ExecuteFinalize()
 
         #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         #split_elements.ExecuteFinalize()
