@@ -471,9 +471,11 @@ public:
     {
         if (!mpVariablesList->Has(ThisVariable))
         {
+            // This error prevents memory leaks if variables are being added to a non-empty modelpart
             KRATOS_ERROR_IF((this->GetRootModelPart()).Nodes().size() != 0)
                 << "Attempting to add the variable \"" << ThisVariable.Name()
                 << "\" to the model part with name \"" << this->Name() << "\" which is not empty" << std::endl;
+
             mpVariablesList->Add(ThisVariable);
         }
     }
