@@ -380,7 +380,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements SmallDisplacementElement3D4N// GUI group identifier: Parts Auto1
+Begin Elements Element3D4N// GUI group identifier: Parts Auto1
         1          0        352        330        340        295 
         2          0        352        330        295        345 
         3          0        340        352        295        315 
