@@ -98,8 +98,6 @@ void ThermalLinearElastic2DPlaneStrain::CalculateThermalStrain( Vector& rThermal
     // Delta T
     double DeltaTemperature = rTemperature - rNodalReferenceTemperature;
 
-    KRATOS_WATCH(DeltaTemperature)
-
     //Thermal strain vector // LameMu = (1 + poisson)
     for(unsigned int i = 0; i < 3; i++)
         rThermalStrainVector[i] *= rElasticVariables.LameMu * rElasticVariables.ThermalExpansionCoefficient * DeltaTemperature;
