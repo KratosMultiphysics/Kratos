@@ -1,8 +1,8 @@
 //
-//   Project Name:   
-//   Last modified by:    $Author:     
-//   Date:                $Date:     
-//   Revision:            $Revision:     
+//   Project Name:
+//   Last modified by:    $Author:
+//   Date:                $Date:
+//   Revision:            $Revision:
 //
 
 /* Project includes */
@@ -62,7 +62,7 @@ void ThermalLinearElastic2DPlaneStrain::GetLawFeatures(Features& rFeatures)
     //Set strain measure required by the consitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-    
+
     //Set the strain size
     rFeatures.mStrainSize = GetStrainSize();
 
@@ -76,7 +76,7 @@ void ThermalLinearElastic2DPlaneStrain::GetLawFeatures(Features& rFeatures)
 void ThermalLinearElastic2DPlaneStrain::CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables& rElasticVariables, double & rTemperature)
 {
     KRATOS_TRY
-    
+    KRATOS_WATCH("HELLOOOOOOOOOOOOOOOO")
     //Identity vector
     rThermalStrainVector.resize(3,false);
     rThermalStrainVector[0] = 1.0;
@@ -89,7 +89,7 @@ void ThermalLinearElastic2DPlaneStrain::CalculateThermalStrain( Vector& rThermal
     //Thermal strain vector // LameMu = (1 + poisson)
     for(unsigned int i = 0; i < 3; i++)
         rThermalStrainVector[i] *= rElasticVariables.LameMu * rElasticVariables.ThermalExpansionCoefficient * DeltaTemperature;
-        
+
     KRATOS_CATCH( "" )
 }
 
