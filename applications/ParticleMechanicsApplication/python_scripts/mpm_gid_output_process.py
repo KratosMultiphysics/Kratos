@@ -205,7 +205,7 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
             self.result_file.write("Result \"")
             self.result_file.write(var_name)
             
-            if var_name == "MP_PRESSURE" or var_name == "MP_EQUIVALENT_PLASTIC_STRAIN":
+            if var_name == "MP_MATERIAL_ID" or var_name == "MP_PRESSURE" or var_name == "MP_EQUIVALENT_PLASTIC_STRAIN":
                 self.result_file.write('" "Kratos" {} Scalar OnNodes\n'.format(step_label))
             else:
                 self.result_file.write('" "Kratos" {} Vector OnNodes\n'.format(step_label))
@@ -214,10 +214,11 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
             for mpm in self.model_part.Elements:
                 print_variable = mpm.GetValue(variable)
                 # Check whether variable is a scalar or vector
-                if isinstance(print_variable, float):
+                if isinstance(print_variable, float) or isinstance(print_variable, int):
                     print_size = 1
                 else:
                     print_size = print_variable.Size()
+
                 # Write variable as formated
                 if print_size == 1:
                     self.result_file.write("{} {}\n".format(mpm.Id, print_variable))
