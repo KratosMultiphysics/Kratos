@@ -51,6 +51,7 @@
 #include "processes/reorder_and_optimize_modelpart_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/simple_mortar_mapper_process.h"
+#include "processes/skin_detection_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -535,7 +536,15 @@ void  AddProcessesToPython(pybind11::module& m)
     .value("ALL", FastTransferBetweenModelPartsProcess::EntityTransfered::ALL)
     ;
 
+    class_<SkinDetectionProcess<2>, Process>(m, "SkinDetectionProcess2D")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters >())
+        ;
 
+    class_<SkinDetectionProcess<3>, Process>(m, "SkinDetectionProcess3D")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters >())
+        ;
 }
 
 }  // namespace Python.
