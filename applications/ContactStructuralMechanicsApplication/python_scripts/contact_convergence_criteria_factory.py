@@ -1,5 +1,3 @@
-## This script collects the available convergence criteria to be used in the ContactStructuralMechanicsApplication
-
 from __future__ import print_function, absolute_import, division  # makes KM backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics as KM
