@@ -311,20 +311,6 @@ namespace Kratos
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
    
-      virtual void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
-						 double& MeanValue,
-						 const ShapeFunctionDerivativesType& rShapeDeriv,
-						 const double secondLame,
-						 double& bulkModulus,
-						 const double Weight,
-						 double& MeanValueMass,
-						 const double TimeStep);   
-	
-      virtual void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
-						   MatrixType StiffnessMatrix,
-						   double& meanValueStiff,
-						   double& bulkCoefficient,
-						   double timeStep);
       
       double ComputeNonLinearViscosity(double & equivalentStrainRate);
 
@@ -357,25 +343,6 @@ namespace Kratos
       void ComputeBulkMatrixRHS(MatrixType& BulkMatrix,
 				const double Weight);
       
-      void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
-				const ShapeFunctionsType& rN,
-				const double Weight);
-
-      void ComputeBoundRHSVector(VectorType& BoundRHSVector,
-				const ShapeFunctionsType& rN,
-				const double TimeStep,
-				const double BoundRHSCoeffAcc,
-				const double BoundRHSCoeffDev);
-
-     void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
-				     const ShapeFunctionDerivativesType& rShapeDeriv,
-				     const double Weight);
-
-      /* bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
-      /* 				const ProcessInfo& rCurrentProcessInfo, */
-      /* 				const ShapeFunctionDerivativesType& rDN_DX, */
-      /* 				unsigned int g); */
-
       void GetPositions(Vector& rValues,
 			const ProcessInfo& rCurrentProcessInfo,
 			const double theta);
@@ -383,41 +350,6 @@ namespace Kratos
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
 					    unsigned int g);
-
-      virtual void CalculateTauFIC(double& TauOne,
-				   double ElemSize,
-				   const double Density,
-				   const double Viscosity,
-				   const ProcessInfo& rCurrentProcessInfo);
-
-      void AddStabilizationMatrixLHS(MatrixType& rLeftHandSideMatrix,
-				     Matrix& BulkAccMatrix,
-				     const ShapeFunctionsType& rN,
-				     const double Weight);
-
-      void AddStabilizationNodalTermsLHS(MatrixType& rLeftHandSideMatrix,
-					 const double Tau,
-					 const double Weight,
-					 const ShapeFunctionDerivativesType& rDN_DX,
-					 const SizeType i);
-
-      void AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
-					 const double Tau,
-					 const double Density,
-					 const double Weight,
-					 const ShapeFunctionDerivativesType& rDN_DX,
-					 const SizeType i);
-
-      /* void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, */
-      /* 						 VectorType& rRightHandSideVector, */
-      /* 						 ProcessInfo& rCurrentProcessInfo);  */
-
-      void GetPressureVelocityValues(Vector& rValues,
-				     const int Step);
-
-
-      void GetPressureAccelerationValues(Vector& rValues,
-					 const int Step);
 
       double GetThetaMomentum (){return 0.5;};
 

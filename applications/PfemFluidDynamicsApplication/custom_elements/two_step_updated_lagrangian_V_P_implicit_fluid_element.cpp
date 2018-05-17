@@ -10,29 +10,29 @@
  
 // System includes
 
-// External includes
+// External includes 
 
 // Project includes
-#include "custom_elements/two_step_updated_lagrangian_V_P_fluid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.h"
 #include "includes/cfd_variables.h"
 #include <math.h>
 
 namespace Kratos {
 
   /* 
-   * public TwoStepUpdatedLagrangianVPFluidElement<TDim> functions
+   * public TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim> functions
    */
 
   template< unsigned int TDim >
-  Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  Element::Pointer TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
  
-    TwoStepUpdatedLagrangianVPFluidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
+    TwoStepUpdatedLagrangianVPImplicitFluidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new TwoStepUpdatedLagrangianVPFluidElement(NewElement) );
+    return Element::Pointer( new TwoStepUpdatedLagrangianVPImplicitFluidElement(NewElement) );
 
   }
 
@@ -40,20 +40,20 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::Initialize()
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Initialize()
   {
     KRATOS_TRY; 
     KRATOS_CATCH( "" );
   }
   
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
   {
 
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY; 
     KRATOS_CATCH( "" );
@@ -61,7 +61,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeMaterialParameters(double& Density,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeMaterialParameters(double& Density,
 									       double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
 									       ProcessInfo &currentProcessInfo,
@@ -130,7 +130,7 @@ namespace Kratos {
   
 
   template< unsigned int TDim>
-  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeNonLinearViscosity(double & equivalentStrainRate)
+  double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeNonLinearViscosity(double & equivalentStrainRate)
   {
     double FluidViscosity=0;
     
@@ -154,7 +154,7 @@ namespace Kratos {
   
 
   template< unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeMaterialParametersGranularGas(double& Density,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeMaterialParametersGranularGas(double& Density,
 											  double& DeviatoricCoeff,
 											  double& VolumetricCoeff,
 											  ProcessInfo &currentProcessInfo,
@@ -244,7 +244,7 @@ namespace Kratos {
 
   
   template< unsigned int TDim>
-  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeJopMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeJopMuIrheologyViscosity(ElementalVariables & rElementalVariables)
   {
     double FluidViscosity=0;
 
@@ -284,7 +284,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim>
-  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables)
   {
     double FluidViscosity=0;
     double staticFrictionCoefficient=0;
@@ -325,7 +325,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim>
-  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputePapanastasiouMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputePapanastasiouMuIrheologyViscosity(ElementalVariables & rElementalVariables)
   {
     double FluidViscosity=0;
     double staticFrictionCoefficient=0;
@@ -376,7 +376,7 @@ namespace Kratos {
   }
 
   template< unsigned int TDim>
-  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBarkerMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBarkerMuIrheologyViscosity(ElementalVariables & rElementalVariables)
   {
     double FluidViscosity=0;
     double staticFrictionCoefficient=0;
@@ -426,7 +426,7 @@ namespace Kratos {
 
   
   template< unsigned int TDim>
-  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables)
   {
 
     double FluidViscosity=0;
@@ -491,7 +491,7 @@ namespace Kratos {
 
   
   template< unsigned int TDim >
-  int TwoStepUpdatedLagrangianVPFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -553,7 +553,7 @@ namespace Kratos {
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPFluidElement<2>::ComputeMeanValueMaterialTangentMatrix(ElementalVariables & rElementalVariables,double& MeanValue,const ShapeFunctionDerivativesType& rDN_DX,const double secondLame,double & bulkModulus,const double Weight,double& MeanValueMass,const double TimeStep)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::ComputeMeanValueMaterialTangentMatrix(ElementalVariables & rElementalVariables,double& MeanValue,const ShapeFunctionDerivativesType& rDN_DX,const double secondLame,double & bulkModulus,const double Weight,double& MeanValueMass,const double TimeStep)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     const double FourThirds = 4.0 / 3.0;
@@ -603,7 +603,7 @@ namespace Kratos {
   }
 
   template<>
-  void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeMeanValueMaterialTangentMatrix(ElementalVariables & rElementalVariables,double& MeanValue,const ShapeFunctionDerivativesType& rDN_DX,const double secondLame,double & bulkModulus,const double Weight,double& MeanValueMass,const double TimeStep)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::ComputeMeanValueMaterialTangentMatrix(ElementalVariables & rElementalVariables,double& MeanValue,const ShapeFunctionDerivativesType& rDN_DX,const double secondLame,double & bulkModulus,const double Weight,double& MeanValueMass,const double TimeStep)
   {
 
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
@@ -662,7 +662,7 @@ namespace Kratos {
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPFluidElement<2>::ComputeBulkReductionCoefficient(MatrixType MassMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::ComputeBulkReductionCoefficient(MatrixType MassMatrix,
 										  MatrixType StiffnessMatrix,
 										  double& meanValueStiff,
 										  double& bulkCoefficient,
@@ -713,7 +713,7 @@ namespace Kratos {
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBulkReductionCoefficient(MatrixType MassMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::ComputeBulkReductionCoefficient(MatrixType MassMatrix,
 										  MatrixType StiffnessMatrix,
 										  double& meanValueStiff,
 										  double& bulkCoefficient,
@@ -768,7 +768,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBulkMatrix(Matrix& BulkMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBulkMatrix(Matrix& BulkMatrix,
 								       const ShapeFunctionsType& rN,
 								       const double Weight)
   {
@@ -787,7 +787,7 @@ namespace Kratos {
   }
 
   template< >
-  void TwoStepUpdatedLagrangianVPFluidElement<2>::ComputeBulkMatrixConsistent(Matrix& BulkMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::ComputeBulkMatrixConsistent(Matrix& BulkMatrix,
 									      const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
@@ -807,7 +807,7 @@ namespace Kratos {
   }
 
   template< >
-  void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBulkMatrixConsistent(Matrix& BulkMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::ComputeBulkMatrixConsistent(Matrix& BulkMatrix,
 									      const double Weight)
   {
     std::cout<<"TO IMPLEMENT AND CHECK "<<std::endl;
@@ -829,7 +829,7 @@ namespace Kratos {
   
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBulkMatrixLump(Matrix& BulkMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBulkMatrixLump(Matrix& BulkMatrix,
 									   const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
@@ -850,7 +850,7 @@ namespace Kratos {
 
 
   template< >
-  void TwoStepUpdatedLagrangianVPFluidElement<2>::ComputeBoundLHSMatrix(Matrix& BoundLHSMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::ComputeBoundLHSMatrix(Matrix& BoundLHSMatrix,
 									const ShapeFunctionsType& rN,
 									const double Weight)
   {
@@ -937,7 +937,7 @@ namespace Kratos {
   }
 
   template<  >
-  void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundLHSMatrix(Matrix& BoundLHSMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::ComputeBoundLHSMatrix(Matrix& BoundLHSMatrix,
 									const ShapeFunctionsType& rN,
 									const double Weight)
   {
@@ -1011,7 +1011,7 @@ namespace Kratos {
 
 
   template< >
-  void TwoStepUpdatedLagrangianVPFluidElement<2>::ComputeBoundRHSVector(VectorType& BoundRHSVector,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::ComputeBoundRHSVector(VectorType& BoundRHSVector,
 									const ShapeFunctionsType& rN,
 									const double TimeStep,
 									const double BoundRHSCoeffAcc,
@@ -1066,9 +1066,10 @@ namespace Kratos {
       const double factor = 0.5/TimeStep;
       const double one_third = 1.0/3.0;
 
+
       if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) ){ 
 	noalias(AccA)= factor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
-	noalias(AccB)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
+	noalias(AccB)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
 	const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
 	const array_1d<double, 3> &NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
 	if(rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
@@ -1102,7 +1103,7 @@ namespace Kratos {
 
 
   template< >
-  void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundRHSVector(VectorType& BoundRHSVector,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::ComputeBoundRHSVector(VectorType& BoundRHSVector,
 									const ShapeFunctionsType& rN,
 									const double TimeStep,
 									const double BoundRHSCoeffAcc,
@@ -1220,7 +1221,7 @@ namespace Kratos {
 
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::CalculateTauFIC(double& Tau,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::CalculateTauFIC(double& Tau,
 								     double ElemSize,
 								     const double Density,
 								     const double Viscosity,
@@ -1249,7 +1250,7 @@ namespace Kratos {
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::AddStabilizationMatrixLHS(MatrixType& rLeftHandSideMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::AddStabilizationMatrixLHS(MatrixType& rLeftHandSideMatrix,
 									       Matrix& BulkAccMatrix,
 									       const ShapeFunctionsType& rN,
 									       const double Weight)
@@ -1275,7 +1276,7 @@ namespace Kratos {
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
 										const ShapeFunctionDerivativesType& rDN_DX,
 										const double Weight)
 										
@@ -1298,7 +1299,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::AddStabilizationNodalTermsLHS(MatrixType& rLeftHandSideMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::AddStabilizationNodalTermsLHS(MatrixType& rLeftHandSideMatrix,
 										   const double Tau,
 										   const double Weight,
 										   const ShapeFunctionDerivativesType& rDN_DX,
@@ -1320,7 +1321,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
 										   const double Tau,
 										   const double Density,
 										   const double Weight,
@@ -1341,23 +1342,8 @@ namespace Kratos {
   }
 
 
-
-  // template< unsigned int TDim>
-  // bool TwoStepUpdatedLagrangianVPFluidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
-  // 									  const ProcessInfo& rCurrentProcessInfo,
-  // 									  const ShapeFunctionDerivativesType& rDN_DX,
-  // 									  unsigned int g)
-  // {
-  //   double theta=this->GetThetaMomentum();
-  //   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-  //   bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-  //   this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
-  //   return computeElement;
-  // } 
-
-
   template<>
-  void TwoStepUpdatedLagrangianVPFluidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -1377,7 +1363,7 @@ namespace Kratos {
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPFluidElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -1398,7 +1384,7 @@ namespace Kratos {
 
 
   template <  unsigned int TDim> 
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
   {
     KRATOS_TRY;
 
@@ -1452,27 +1438,25 @@ namespace Kratos {
 
 
   template < > 
-  void TwoStepUpdatedLagrangianVPFluidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g)
   {
 
     double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
-    double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
- 
-    double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
+    // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
+    // double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
     double DefX=rElementalVariables.SpatialDefRate[0];
     double DefY=rElementalVariables.SpatialDefRate[1];
     double DefXY=rElementalVariables.SpatialDefRate[2];
 
     double DefVol=rElementalVariables.VolumetricDefRate;
-
     double sigmaDev_xx= 2*CurrSecondLame*(DefX - DefVol/3.0);
     double sigmaDev_yy= 2*CurrSecondLame*(DefY - DefVol/3.0);
     double sigmaDev_xy= 2*CurrSecondLame*DefXY;
 
-    double sigmaTot_xx= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefX;
-    double sigmaTot_yy= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefY;
-    double sigmaTot_xy= 2.0*CurrSecondLame*DefXY;
+    // double sigmaTot_xx= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefX;
+    // double sigmaTot_yy= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefY;
+    // double sigmaTot_xy= 2.0*CurrSecondLame*DefXY;
 
     // sigmaDev_xx=rElementalVariables.CurrentDeviatoricCauchyStress[0];
     // sigmaDev_yy=rElementalVariables.CurrentDeviatoricCauchyStress[1];
@@ -1482,9 +1466,9 @@ namespace Kratos {
     // sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
     // sigmaTot_xy+=rElementalVariables.CurrentTotalCauchyStress[2];
 
-    sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
-    sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
-    sigmaTot_xy= sigmaDev_xy;
+    double sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
+    double sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
+    double sigmaTot_xy= sigmaDev_xy;
 
     // sigmaDev_xx= sigmaTot_xx - rElementalVariables.MeanPressure;
     // sigmaDev_yy= sigmaTot_yy - rElementalVariables.MeanPressure;
@@ -1509,8 +1493,8 @@ namespace Kratos {
     // 	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=DeviatoricCoeff;
     // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=rElementalVariables.EquivalentStrainRate;
     //   }
-    // GeometryType& rGeom = this->GetGeometry();
-    // const SizeType NumNodes = rGeom.PointsNumber();
+
+  
     // if(TauNorm>FluidYieldShear){
     //   this->SetValue(YIELDED,1.0);
 
@@ -1532,43 +1516,15 @@ namespace Kratos {
     // }
 
   }
-
-//    template< unsigned int TDim >
-//   void TwoStepUpdatedLagrangianVPFluidElement<TDim>::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-// 									      std::vector<ConstitutiveLaw::Pointer>& rValues,
-// 									      const ProcessInfo& rCurrentProcessInfo )
-//   {
-
-//     if(rVariable == YIELDED)
-//     {
-
-//       rValues[0] = 1.5
-//         // if ( rValues.size() != mConstitutiveLawVector.size() )
-//         // {
-//         //     rValues.resize(mConstitutiveLawVector.size());
-//         // }
-
-//         // for(unsigned int i=0; i<rValues.size(); i++)
-//         // {
-//         //     rValues[i] = 1.5;
-//         // }
-//     }
-
-// }
-
-
-  
-
-  
+ 
 
   template < > 
-  void TwoStepUpdatedLagrangianVPFluidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
   {
 
     double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
-    double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
-
-    double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
+    // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
+    // double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
    
     double DefX=rElementalVariables.SpatialDefRate[0];
     double DefY=rElementalVariables.SpatialDefRate[1];
@@ -1586,12 +1542,12 @@ namespace Kratos {
     double sigmaDev_xz= 2*CurrSecondLame*DefXZ;
     double sigmaDev_yz= 2*CurrSecondLame*DefYZ;
 
-    double sigmaTot_xx= CurrFirstLame*DefVol + 2*CurrSecondLame*DefX;
-    double sigmaTot_yy= CurrFirstLame*DefVol + 2*CurrSecondLame*DefY;
-    double sigmaTot_zz= CurrFirstLame*DefVol + 2*CurrSecondLame*DefZ;
-    double sigmaTot_xy= 2*CurrSecondLame*DefXY;
-    double sigmaTot_xz= 2*CurrSecondLame*DefXZ;
-    double sigmaTot_yz= 2*CurrSecondLame*DefYZ;
+    // double sigmaTot_xx= CurrFirstLame*DefVol + 2*CurrSecondLame*DefX;
+    // double sigmaTot_yy= CurrFirstLame*DefVol + 2*CurrSecondLame*DefY;
+    // double sigmaTot_zz= CurrFirstLame*DefVol + 2*CurrSecondLame*DefZ;
+    // double sigmaTot_xy= 2*CurrSecondLame*DefXY;
+    // double sigmaTot_xz= 2*CurrSecondLame*DefXZ;
+    // double sigmaTot_yz= 2*CurrSecondLame*DefYZ;
 
 
     // sigmaDev_xx+=rElementalVariables.CurrentDeviatoricCauchyStress[0];
@@ -1601,12 +1557,12 @@ namespace Kratos {
     // sigmaDev_xz+=rElementalVariables.CurrentDeviatoricCauchyStress[4];
     // sigmaDev_yz+=rElementalVariables.CurrentDeviatoricCauchyStress[5];
 
-    sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
-    sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
-    sigmaTot_zz= sigmaDev_zz + rElementalVariables.MeanPressure;
-    sigmaTot_xy= sigmaDev_xy;
-    sigmaTot_xz= sigmaDev_xz;
-    sigmaTot_yz= sigmaDev_yz;
+    double sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
+    double sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
+    double sigmaTot_zz= sigmaDev_zz + rElementalVariables.MeanPressure;
+    double sigmaTot_xy= sigmaDev_xy;
+    double sigmaTot_xz= sigmaDev_xz;
+    double sigmaTot_yz= sigmaDev_yz;
 
     // sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
     // sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
@@ -1641,7 +1597,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
   {
 
 
@@ -1666,9 +1622,6 @@ namespace Kratos {
     this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
 
-    // MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
-    // MatrixType BulkAccMatrix = ZeroMatrix(NumNodes,NumNodes);
-
     double TimeStep=rCurrentProcessInfo[DELTA_TIME];
     double theta=this->GetThetaContinuity();
     double ElemSize = this->ElementSize();
@@ -1682,9 +1635,7 @@ namespace Kratos {
     // if(DeviatoricCoeff>0.01){
     //   DeviatoricCoeff=0.01;
     // }
-    // if(DeviatoricCoeff>0.1){
-    //   DeviatoricCoeff=0.1;
-    // }
+
     double Tau=0;
     this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
 
@@ -1702,7 +1653,6 @@ namespace Kratos {
 	if(computeElement==true){
 	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
 	  // this->ComputeBulkMatrix(BulkVelMatrix,N,BulkCoeff);
-	
 	  // double BulkStabCoeff=BulkCoeff*Tau*Density/TimeStep;
 	  // this->ComputeBulkMatrix(BulkAccMatrix,N,BulkStabCoeff);
 
@@ -1753,22 +1703,23 @@ namespace Kratos {
       MatrixType BulkMatrixConsistent = ZeroMatrix(NumNodes,NumNodes);
       double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
       double lumpedBulkStabCoeff=lumpedBulkCoeff*Tau*Density/TimeStep;
+
       this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkCoeff);
-      this->ComputeBulkMatrixConsistent(BulkMatrix,lumpedBulkCoeff);
+      // this->ComputeBulkMatrixConsistent(BulkMatrixConsistent,lumpedBulkCoeff);
       noalias(rLeftHandSideMatrix)+=BulkMatrix;
+      // noalias(rLeftHandSideMatrix)+=BulkMatrixConsistent;
       noalias(rRightHandSideVector) -= prod(BulkMatrix,PressureValuesForRHS);
-      // noalias(rRightHandSideVector) -= prod(BulkMatrixConsistent,PressureValuesForRHS);
-      // rRightHandSideVector -= prod(BulkVelMatrix,PressureValuesForRHS);
+      // noalias(rRightHandSideVector) -=prod(BulkMatrixConsistent,PressureValuesForRHS);
 
       this->GetPressureVelocityValues(PressureValues,0);
       noalias(PressureValuesForRHS)+=-PressureValues*TimeStep;
       noalias(BulkMatrix) = ZeroMatrix(NumNodes,NumNodes);
       this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkStabCoeff);
-      this->ComputeBulkMatrixConsistent(BulkMatrix,lumpedBulkStabCoeff);
+      // this->ComputeBulkMatrixConsistent(BulkMatrixConsistent,lumpedBulkStabCoeff);
       noalias(rLeftHandSideMatrix)+=BulkMatrix;
-      noalias(rRightHandSideVector) -=prod(BulkMatrix,PressureValuesForRHS);
+      // noalias(rLeftHandSideMatrix)+=BulkMatrixConsistent;
+      noalias(rRightHandSideVector) -= prod(BulkMatrix,PressureValuesForRHS);
       // noalias(rRightHandSideVector) -=prod(BulkMatrixConsistent,PressureValuesForRHS);
-      // rRightHandSideVector -=prod(BulkAccMatrix,PressureVelocityVariation);
 
     }else{
       double lumpedBulkCoeff =totalVolume*Tau*Density/(TimeStep*VolumetricCoeff);
@@ -1789,7 +1740,7 @@ namespace Kratos {
   
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::GetPressureVelocityValues(Vector& rValues,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::GetPressureVelocityValues(Vector& rValues,
 									       const int Step)
   {
     GeometryType& rGeom = this->GetGeometry();
@@ -1804,7 +1755,7 @@ namespace Kratos {
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::GetPressureAccelerationValues(Vector& rValues,
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::GetPressureAccelerationValues(Vector& rValues,
 										   const int Step)
   {
     GeometryType& rGeom = this->GetGeometry();
@@ -1821,7 +1772,7 @@ namespace Kratos {
 
 
 
-  template class TwoStepUpdatedLagrangianVPFluidElement<2>;
-  template class TwoStepUpdatedLagrangianVPFluidElement<3>;
+  template class TwoStepUpdatedLagrangianVPImplicitFluidElement<2>;
+  template class TwoStepUpdatedLagrangianVPImplicitFluidElement<3>;
 
 }

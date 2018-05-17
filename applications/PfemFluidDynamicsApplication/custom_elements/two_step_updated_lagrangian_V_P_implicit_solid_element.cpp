@@ -13,20 +13,20 @@
 // External includes
  
 // Project includes
-#include "custom_elements/two_step_updated_lagrangian_V_P_solid_element.h"
-#include "includes/cfd_variables.h" 
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_solid_element.h"
+#include "includes/cfd_variables.h"  
 
 namespace Kratos {
 
   /*
-   * public TwoStepUpdatedLagrangianVPSolidElement<TDim> functions
+   * public TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> functions
    */
   
 template< unsigned int TDim >
-Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Element::Pointer TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
   // return Element::Pointer( BaseType::Clone(NewId,rThisNodes) );
-  TwoStepUpdatedLagrangianVPSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
+  TwoStepUpdatedLagrangianVPImplicitSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
   if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
     NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
@@ -66,12 +66,12 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
 
-  return Element::Pointer( new TwoStepUpdatedLagrangianVPSolidElement(NewElement) );
+  return Element::Pointer( new TwoStepUpdatedLagrangianVPImplicitSolidElement(NewElement) );
 }
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::Initialize()
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Initialize()
   {
     KRATOS_TRY;
 
@@ -108,7 +108,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
   {
    KRATOS_TRY;
 
@@ -126,13 +126,13 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
   {
 
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeMaterialParameters(double& Density,
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::ComputeMaterialParameters(double& Density,
 									       double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
 									       ProcessInfo &currentProcessInfo,
@@ -171,7 +171,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
 
   template< unsigned int TDim >
-  int TwoStepUpdatedLagrangianVPSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -233,7 +233,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeBulkMatrixForPressureVelLump(Matrix& BulkVelMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::ComputeBulkMatrixForPressureVelLump(Matrix& BulkVelMatrix,
 											 const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
@@ -270,7 +270,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeBulkMatrixForPressureVel(Matrix& BulkVelMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::ComputeBulkMatrixForPressureVel(Matrix& BulkVelMatrix,
 										     const ShapeFunctionsType& rN,
 										     const double Weight)
   {
@@ -292,7 +292,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
 
 // template< unsigned int TDim>
-// bool TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+// bool TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 // 									const ProcessInfo& rCurrentProcessInfo,
 // 									const ShapeFunctionDerivativesType& rDN_DX,
 // 									unsigned int g)
@@ -307,7 +307,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPSolidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
   {
 
     GeometryType& rGeom = this->GetGeometry();
@@ -329,7 +329,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPSolidElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -353,7 +353,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
 
 template <  unsigned int TDim> 
-void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
+void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
  {
     unsigned int voigtsize  = 3;
     if( TDim == 3 )
@@ -385,7 +385,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: InitializeElementalVariables
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+void TwoStepUpdatedLagrangianVPImplicitSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
 {
 
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
@@ -444,7 +444,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
 }
 
 template < > 
-void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+void TwoStepUpdatedLagrangianVPImplicitSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
 {
 
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
@@ -517,7 +517,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitte
 
 
 template < unsigned int TDim > 
-void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned int g,ProcessInfo &rCurrentProcessInfo)
+void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>:: UpdateCauchyStress(unsigned int g,ProcessInfo &rCurrentProcessInfo)
 {
    
   double theta=this->GetThetaContinuity();
@@ -590,7 +590,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
   {
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -673,7 +673,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
   }
   
 
-  template class TwoStepUpdatedLagrangianVPSolidElement<2>;
-  template class TwoStepUpdatedLagrangianVPSolidElement<3>;
+  template class TwoStepUpdatedLagrangianVPImplicitSolidElement<2>;
+  template class TwoStepUpdatedLagrangianVPImplicitSolidElement<3>;
 
 }

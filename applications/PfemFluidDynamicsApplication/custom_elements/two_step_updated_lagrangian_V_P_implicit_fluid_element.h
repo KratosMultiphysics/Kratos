@@ -6,17 +6,25 @@
 //
 //
 
-#if !defined(KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_SOLID_ELEMENT_H_INCLUDED )
-#define  KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_SOLID_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_IMPLICIT_FLUID_ELEMENT_H_INCLUDED )
+#define  KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_IMPLICIT_FLUID_ELEMENT_H_INCLUDED
 
-// System includes
+// System includes 
 #include <string>
 #include <iostream>
 
 // External includes
 
+ 
+// Project includes
+#include "containers/array_1d.h"
+#include "includes/define.h"
+/* #include "includes/element.h" */
+#include "includes/serializer.h" 
+#include "geometries/geometry.h"
+#include "utilities/math_utils.h"
 
-#include "custom_elements/two_step_updated_lagrangian_V_P_element.h" 
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_element.h"
 
 namespace Kratos
 {
@@ -46,20 +54,19 @@ namespace Kratos
   /// A stabilized element for the incompressible Navier-Stokes equations.
   /**
    */
-/* class TwoStepUpdatedLagrangianVPSolidElement : public Element */
-  template< unsigned int TDim > 
-  class TwoStepUpdatedLagrangianVPSolidElement : public TwoStepUpdatedLagrangianVPElement<TDim>
+  template< unsigned int TDim >
+    class TwoStepUpdatedLagrangianVPImplicitFluidElement : public TwoStepUpdatedLagrangianVPImplicitElement<TDim>
     {
-  
+
     public:
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of TwoStepUpdatedLagrangianVPSolidElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPSolidElement);
+      /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitFluidElement
+      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitFluidElement);
 
       ///base type: 
-      typedef TwoStepUpdatedLagrangianVPElement<TDim> BaseType;
+      typedef TwoStepUpdatedLagrangianVPImplicitElement<TDim> BaseType;
 
       /// Node type (default is: Node<3>)
       typedef Node <3> NodeType;
@@ -103,7 +110,7 @@ namespace Kratos
 
       typedef typename BaseType::ElementalVariables ElementalVariables;
 
- 
+
       ///@}
       ///@name Life Cycle
       ///@{
@@ -114,7 +121,7 @@ namespace Kratos
       /**
        * @param NewId Index number of the new element (optional)
        */
-    TwoStepUpdatedLagrangianVPSolidElement(IndexType NewId = 0) :
+    TwoStepUpdatedLagrangianVPImplicitFluidElement(IndexType NewId = 0) :
       BaseType(NewId)
       {}
 
@@ -123,7 +130,7 @@ namespace Kratos
        * @param NewId Index of the new element
        * @param ThisNodes An array containing the nodes of the new element
        */
-    TwoStepUpdatedLagrangianVPSolidElement(IndexType NewId, const NodesArrayType& ThisNodes) :
+    TwoStepUpdatedLagrangianVPImplicitFluidElement(IndexType NewId, const NodesArrayType& ThisNodes) :
       BaseType(NewId, ThisNodes)
 	{}
 
@@ -132,7 +139,7 @@ namespace Kratos
        * @param NewId Index of the new element
        * @param pGeometry Pointer to a geometry object
        */
-    TwoStepUpdatedLagrangianVPSolidElement(IndexType NewId, GeometryType::Pointer pGeometry) :
+    TwoStepUpdatedLagrangianVPImplicitFluidElement(IndexType NewId, GeometryType::Pointer pGeometry) :
       BaseType(NewId, pGeometry)
 	{}
 
@@ -142,18 +149,20 @@ namespace Kratos
        * @param pGeometry Pointer to a geometry object
        * @param pProperties Pointer to the element's properties
        */
-    TwoStepUpdatedLagrangianVPSolidElement(IndexType NewId, GeometryType::Pointer pGeometry, pPropertiesType pProperties) : BaseType(NewId, pGeometry, pProperties)
+    TwoStepUpdatedLagrangianVPImplicitFluidElement(IndexType NewId, GeometryType::Pointer pGeometry, pPropertiesType pProperties) :
+      BaseType(NewId, pGeometry, pProperties)
 	{}
 
 
-   /// copy constructor
+     /// copy constructor
 
-    TwoStepUpdatedLagrangianVPSolidElement(TwoStepUpdatedLagrangianVPSolidElement const& rOther):
-      BaseType(rOther)
+    TwoStepUpdatedLagrangianVPImplicitFluidElement(TwoStepUpdatedLagrangianVPImplicitFluidElement const& rOther):
+        BaseType(rOther)
       {}
+ 
 
       /// Destructor.
-      virtual ~TwoStepUpdatedLagrangianVPSolidElement()
+      virtual ~TwoStepUpdatedLagrangianVPImplicitFluidElement()
 	{}
 
 
@@ -168,7 +177,7 @@ namespace Kratos
 
       /// Create a new element of this type
       /**
-       * Returns a pointer to a new TwoStepUpdatedLagrangianVPSolidElement element, created using given input
+       * Returns a pointer to a new TwoStepUpdatedLagrangianVPImplicitFluidElement element, created using given input
        * @param NewId: the ID of the new element
        * @param ThisNodes: the nodes of the new element
        * @param pProperties: the properties assigned to the new element
@@ -177,11 +186,10 @@ namespace Kratos
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
 			      pPropertiesType pProperties) const
 	{
-	  return Element::Pointer(new TwoStepUpdatedLagrangianVPSolidElement(NewId, BaseType::GetGeometry().Create(ThisNodes), pProperties));
+	  return Element::Pointer(new TwoStepUpdatedLagrangianVPImplicitFluidElement(NewId, BaseType::GetGeometry().Create(ThisNodes), pProperties));
 	}
 
       Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
-
 
       virtual void Initialize();
 
@@ -195,7 +203,7 @@ namespace Kratos
 					 ProcessInfo& rCurrentProcessInfo)
       {
 	KRATOS_TRY;
-	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPSolidElement::CalculateLeftHandSide not implemented","");
+	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPImplicitFluidElement::CalculateLeftHandSide not implemented","");
 	KRATOS_CATCH("");
       }
 
@@ -203,7 +211,7 @@ namespace Kratos
 					  ProcessInfo& rCurrentProcessInfo)
       {
 	KRATOS_TRY;
-	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPSolidElement::CalculateRightHandSide not implemented","");
+	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPImplicitFluidElement::CalculateRightHandSide not implemented","");
 	KRATOS_CATCH("");
       }
 
@@ -215,19 +223,14 @@ namespace Kratos
        * @param rResult A vector containing the global Id of each row
        * @param rCurrentProcessInfo the current process info object (unused)
        */
-
+ 
       /// Returns a list of the element's Dofs
       /**
        * @param ElementalDofList the list of DOFs
        * @param rCurrentProcessInfo the current process info instance
        */
 
-
-      virtual void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo);
-
       virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables);
-
-      /* virtual void CalculateDeltaPosition (Matrix & rDeltaPosition); */
 
       ///@}
       ///@name Access
@@ -261,14 +264,14 @@ namespace Kratos
       virtual std::string Info() const
 	{
 	  std::stringstream buffer;
-	  buffer << "TwoStepUpdatedLagrangianVPSolidElement #" << BaseType::Id();
+	  buffer << "TwoStepUpdatedLagrangianVPImplicitFluidElement #" << BaseType::Id();
 	  return buffer.str();
 	}
 
       /// Print information about this object.
       virtual void PrintInfo(std::ostream& rOStream) const
       {
-	rOStream << "TwoStepUpdatedLagrangianVPSolidElement" << TDim << "D";
+	rOStream << "TwoStepUpdatedLagrangianVPImplicitFluidElement" << TDim << "D";
       }
 
       //        /// Print object's data.
@@ -290,10 +293,7 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-      std::vector< Vector > mCurrentTotalCauchyStress;
-      std::vector< Vector > mCurrentDeviatoricCauchyStress;
-      std::vector< Vector > mUpdatedTotalCauchyStress;
-      std::vector< Vector > mUpdatedDeviatoricCauchyStress;
+
       ///@}
       ///@name Protected Operators
       ///@{
@@ -303,80 +303,131 @@ namespace Kratos
       ///@name Protected Operations
       ///@{
 
-
       void ComputeMaterialParameters (double& Density,
 				      double& DeviatoricCoeff,
 				      double& VolumetricCoeff,
-				      ProcessInfo &rCurrentProcessInfo,
+				      ProcessInfo& rCurrentProcessInfo,
 				      ElementalVariables& rElementalVariables);
 
+   
 
-      /// Add integration point contribution to the mass matrix.
       /**
        * A constistent mass matrix is used.
        * @param rMassMatrix The local matrix where the result will be added.
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
-
-
-      /* void ComputeLumpedMassMatrix(Matrix& rMassMatrix, */
-      /* 				   const double Weight, */
-      /* 				   double& MeanValue); */
-
-      void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
+   
+      virtual void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
 						 double& MeanValue,
 						 const ShapeFunctionDerivativesType& rShapeDeriv,
 						 const double secondLame,
 						 double& bulkModulus,
 						 const double Weight,
 						 double& MeanValueMass,
-						 const double TimeStep){};
+						 const double TimeStep);   
+	
+      virtual void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
+						   MatrixType StiffnessMatrix,
+						   double& meanValueStiff,
+						   double& bulkCoefficient,
+						   double timeStep);
       
-      void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
-					   MatrixType StiffnessMatrix,
-					   double& meanValueStiff,
-					   double& bulkCoefficient,
-					   double timeStep){};
+      double ComputeNonLinearViscosity(double & equivalentStrainRate);
+
+      void ComputeMaterialParametersGranularGas(double& Density,
+						double& DeviatoricCoeff,
+						double& VolumetricCoeff,
+						ProcessInfo& rCurrentProcessInfo,
+						ElementalVariables& rElementalVariables);
+
+      double ComputeJopMuIrheologyViscosity(ElementalVariables & rElementalVariables);
+
+      double ComputeBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
+
+      double ComputePapanastasiouMuIrheologyViscosity(ElementalVariables & rElementalVariables);
+
+      double ComputeBarkerMuIrheologyViscosity(ElementalVariables & rElementalVariables);
+
+      double ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
+   
+      void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
+				 const double Weight);
       
-      void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
-					       const double Weight);
-
-
-      void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix,
-				       const ShapeFunctionsType& rN,
+      void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix,
 				       const double Weight);
-
-     void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
+       
+      void ComputeBulkMatrix(MatrixType& BulkMatrix,
+			     const ShapeFunctionsType& rN,
+			     const double Weight);
+      
+      void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
 				const ShapeFunctionsType& rN,
-				const double Weight){};
+				const double Weight);
 
-     void ComputeBoundRHSVector(VectorType& BoundRHSVector,
+      void ComputeBoundRHSVector(VectorType& BoundRHSVector,
 				const ShapeFunctionsType& rN,
 				const double TimeStep,
 				const double BoundRHSCoeffAcc,
-				const double BoundRHSCoeffDev){};
+				const double BoundRHSCoeffDev);
 
-      /* virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
-      /* 					const ProcessInfo& rCurrentProcessInfo, */
-      /* 					const ShapeFunctionDerivativesType& rDN_DX, */
-      /* 					unsigned int g); */
-	
+     void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
+				     const ShapeFunctionDerivativesType& rShapeDeriv,
+				     const double Weight);
+
+      /* bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
+      /* 				const ProcessInfo& rCurrentProcessInfo, */
+      /* 				const ShapeFunctionDerivativesType& rDN_DX, */
+      /* 				unsigned int g); */
+
       void GetPositions(Vector& rValues,
 			const ProcessInfo& rCurrentProcessInfo,
 			const double theta);
 	
-      virtual void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
-						    double TimeStep,
-						    unsigned int g);
-     
-      virtual void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
-							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo);
- 
-      double GetThetaMomentum (){return 1.0;};
+      void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
+					    double TimeStep,
+					    unsigned int g);
+
+      virtual void CalculateTauFIC(double& TauOne,
+				   double ElemSize,
+				   const double Density,
+				   const double Viscosity,
+				   const ProcessInfo& rCurrentProcessInfo);
+
+      void AddStabilizationMatrixLHS(MatrixType& rLeftHandSideMatrix,
+				     Matrix& BulkAccMatrix,
+				     const ShapeFunctionsType& rN,
+				     const double Weight);
+
+      void AddStabilizationNodalTermsLHS(MatrixType& rLeftHandSideMatrix,
+					 const double Tau,
+					 const double Weight,
+					 const ShapeFunctionDerivativesType& rDN_DX,
+					 const SizeType i);
+
+      void AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
+					 const double Tau,
+					 const double Density,
+					 const double Weight,
+					 const ShapeFunctionDerivativesType& rDN_DX,
+					 const SizeType i);
+
+      void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
+						 VectorType& rRightHandSideVector,
+						 ProcessInfo& rCurrentProcessInfo); 
+
+      void GetPressureVelocityValues(Vector& rValues,
+				     const int Step);
+
+
+      void GetPressureAccelerationValues(Vector& rValues,
+					 const int Step);
+
+      double GetThetaMomentum (){return 0.5;};
 
       double GetThetaContinuity (){return 1.0;};
+      
+
 
       ///@}
       ///@name Protected  Access
@@ -444,14 +495,14 @@ namespace Kratos
       ///@{
 
       /// Assignment operator.
-      TwoStepUpdatedLagrangianVPSolidElement & operator=(TwoStepUpdatedLagrangianVPSolidElement const& rOther);
+      TwoStepUpdatedLagrangianVPImplicitFluidElement & operator=(TwoStepUpdatedLagrangianVPImplicitFluidElement const& rOther);
 
       /* /// Copy constructor. */
-      /* TwoStepUpdatedLagrangianVPSolidElement(TwoStepUpdatedLagrangianVPSolidElement const& rOther); */
+      /* TwoStepUpdatedLagrangianVPImplicitFluidElement(TwoStepUpdatedLagrangianVPImplicitFluidElement const& rOther); */
 
       ///@}
 
-    }; // Class TwoStepUpdatedLagrangianVPSolidElement
+    }; // Class TwoStepUpdatedLagrangianVPImplicitFluidElement
 
   ///@}
 
@@ -467,7 +518,7 @@ namespace Kratos
   /// input stream function
   template< unsigned int TDim >
     inline std::istream& operator >>(std::istream& rIStream,
-                                     TwoStepUpdatedLagrangianVPSolidElement<TDim>& rThis)
+                                     TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>& rThis)
     {
       return rIStream;
     }
@@ -475,7 +526,7 @@ namespace Kratos
   /// output stream function
   template< unsigned int TDim >
     inline std::ostream& operator <<(std::ostream& rOStream,
-                                     const TwoStepUpdatedLagrangianVPSolidElement<TDim>& rThis)
+                                     const TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -486,4 +537,4 @@ namespace Kratos
 
 } // namespace Kratos.
 
-#endif // KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_SOLID_ELEMENT  defined
+#endif // KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_FLUID_ELEMENT  defined

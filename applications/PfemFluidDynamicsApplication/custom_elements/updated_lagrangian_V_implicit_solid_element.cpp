@@ -13,20 +13,20 @@
 // External includes
  
 // Project includes
-#include "custom_elements/updated_lagrangian_V_solid_element.h"
-#include "includes/cfd_variables.h" 
+#include "custom_elements/updated_lagrangian_V_implicit_solid_element.h"
+#include "includes/cfd_variables.h"  
 
 namespace Kratos {
 
   /*
-   * public UpdatedLagrangianVSolidElement<TDim> functions
+   * public UpdatedLagrangianVImplicitSolidElement<TDim> functions
    */
   
 template< unsigned int TDim >
-Element::Pointer UpdatedLagrangianVSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Element::Pointer UpdatedLagrangianVImplicitSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
   // return Element::Pointer( BaseType::Clone(NewId,rThisNodes) );
-  UpdatedLagrangianVSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
+  UpdatedLagrangianVImplicitSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
  
   if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
     NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
@@ -66,13 +66,13 @@ Element::Pointer UpdatedLagrangianVSolidElement<TDim>::Clone( IndexType NewId, N
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
 
-  return Element::Pointer( new UpdatedLagrangianVSolidElement(NewElement) );
+  return Element::Pointer( new UpdatedLagrangianVImplicitSolidElement(NewElement) );
 }
 
 
 
 template < > 
-void UpdatedLagrangianVSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+void UpdatedLagrangianVImplicitSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
 {
 
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
@@ -120,7 +120,7 @@ void UpdatedLagrangianVSolidElement<2>:: CalcElasticPlasticCauchySplitted(Elemen
 }
 
 template < > 
-void UpdatedLagrangianVSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+void UpdatedLagrangianVImplicitSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
 {
 
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
@@ -193,7 +193,7 @@ void UpdatedLagrangianVSolidElement<3>:: CalcElasticPlasticCauchySplitted(Elemen
 }
   
 
-  template class UpdatedLagrangianVSolidElement<2>;
-  template class UpdatedLagrangianVSolidElement<3>;
+  template class UpdatedLagrangianVImplicitSolidElement<2>;
+  template class UpdatedLagrangianVImplicitSolidElement<3>;
 
 }

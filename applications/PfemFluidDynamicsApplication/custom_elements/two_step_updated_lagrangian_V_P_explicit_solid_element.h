@@ -323,22 +323,7 @@ namespace Kratos
       /* void ComputeLumpedMassMatrix(Matrix& rMassMatrix, */
       /* 				   const double Weight, */
       /* 				   double& MeanValue); */
-
-      void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
-						 double& MeanValue,
-						 const ShapeFunctionDerivativesType& rShapeDeriv,
-						 const double secondLame,
-						 double& bulkModulus,
-						 const double Weight,
-						 double& MeanValueMass,
-						 const double TimeStep){};
-      
-      void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
-					   MatrixType StiffnessMatrix,
-					   double& meanValueStiff,
-					   double& bulkCoefficient,
-					   double timeStep){};
-         
+        
       /* void ComputeBulkMatrixLump(MatrixType& BulkMatrix, */
       /* 				 const double Weight); */
       
