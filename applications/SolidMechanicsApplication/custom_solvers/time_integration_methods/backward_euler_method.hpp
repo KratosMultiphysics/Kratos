@@ -47,7 +47,7 @@ namespace Kratos
    * This class performs predict and update of dofs variables, their time derivatives and time integrals
    */
   template<class TVariableType, class TValueType>
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) BackwardEulerMethod : public TimeIntegrationMethod<TVariableType,TValueType>
+  class BackwardEulerMethod : public TimeIntegrationMethod<TVariableType,TValueType>
   {
   public:
 

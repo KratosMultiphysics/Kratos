@@ -116,21 +116,7 @@ public:
     std::cout << "PressureRelaxationFactor = " << mPressureRelaxationFactor << std::endl;
     mRotationTool.RotateVelocities(rModelPart);
 
-    int NumThreads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector DofSetPartition;
-    OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
-
-#pragma omp parallel
-    {
-      int k = OpenMPUtils::ThisThread();
-
-      typename DofsArrayType::iterator DofSetBegin = rDofSet.begin() + DofSetPartition[k];
-      typename DofsArrayType::iterator DofSetEnd = rDofSet.begin() + DofSetPartition[k + 1];
-
-      for (typename DofsArrayType::iterator itDof = DofSetBegin; itDof != DofSetEnd; itDof++)
-        if (itDof->IsFree())
-          itDof->GetSolutionStepValue() += TSparseSpace::GetValue(rDx, itDof->EquationId());
-    }
+    mpDofUpdater->UpdateDofs(rDofSet,rDx);
 
     mRotationTool.RecoverVelocities(rModelPart);
 
@@ -460,6 +446,7 @@ private:
   double mPressureRelaxationFactor;
   CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> mRotationTool;
   Process::Pointer mpTurbulenceModel;
+  typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
   ///@}
 };
