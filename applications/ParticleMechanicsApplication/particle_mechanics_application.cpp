@@ -238,12 +238,12 @@ void KratosParticleMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlasticUP3DLaw", mHenckyMCPlasticUP3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlasticPlaneStrainUP2DLaw", mHenckyMCPlasticPlaneStrainUP2DLaw);
 
-    Serializer::Register( "HyperElasticViscoplastic3DLaw", mHyperElasticViscoplastic3DLaw );
-    Serializer::Register( "HyperElasticViscoplasticPlaneStrain2DLaw", mHyperElasticViscoplasticPlaneStrain2DLaw );
-    Serializer::Register("HenckyMCPlastic3DLaw", mHenckyMCPlastic3DLaw);
-    Serializer::Register("HenckyMCPlasticPlaneStrain2DLaw", mHenckyMCPlasticPlaneStrain2DLaw);
-    Serializer::Register("HenckyMCPlasticUP3DLaw", mHenckyMCPlasticUP3DLaw);
-    Serializer::Register("HenckyMCPlasticPlaneStrainUP2DLaw", mHenckyMCPlasticPlaneStrainUP2DLaw);
+    // Serializer::Register( "HyperElasticViscoplastic3DLaw", mHyperElasticViscoplastic3DLaw );
+    // Serializer::Register( "HyperElasticViscoplasticPlaneStrain2DLaw", mHyperElasticViscoplasticPlaneStrain2DLaw );
+    // Serializer::Register("HenckyMCPlastic3DLaw", mHenckyMCPlastic3DLaw);
+    // Serializer::Register("HenckyMCPlasticPlaneStrain2DLaw", mHenckyMCPlasticPlaneStrain2DLaw);
+    // Serializer::Register("HenckyMCPlasticUP3DLaw", mHenckyMCPlasticUP3DLaw);
+    // Serializer::Register("HenckyMCPlasticPlaneStrainUP2DLaw", mHenckyMCPlasticPlaneStrainUP2DLaw);
 
     //Hyperelastic Drucker-Prager laws
 
