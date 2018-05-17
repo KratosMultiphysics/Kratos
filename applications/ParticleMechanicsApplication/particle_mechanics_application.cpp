@@ -143,11 +143,11 @@ void KratosParticleMechanicsApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    KRATOS_INFO("ParticleMechanics") << "           ____ __   ____ _____ _ ___ _   ____                 " << std::endl;
-    KRATOS_INFO("ParticleMechanics") << "     KRATOS  _ |  \\ |  _ |_   _| |   | | | ___|               " << std::endl;
-    KRATOS_INFO("ParticleMechanics") << "          |   _| \\ \\|    | | | | |  (  |_| _|_               " << std::endl;
-    KRATOS_INFO("ParticleMechanics") << "          |__|__/ \\_\\_|\\_\\ |_| |_|___|___|____| MECHANICS  " << std::endl;
-    KRATOS_INFO("ParticleMechanics") << "    Initializing KratosParticleMechanicsApplication...         " << std::endl;
+    KRATOS_INFO("") << "           ____ __   ____ _____ _  ___ _   ____                 " << std::endl
+                    << "     KRATOS  _ |  \\ |  _ |_   _| |/   | | | ___|               " << std::endl
+                    << "          |   _| \\ \\|    | | | | |   (  |_| _|_               " << std::endl
+                    << "          |__|__/ \\_\\_|\\_\\ |_| |_|\\___|___|____| MECHANICS " << std::endl
+                    << "Initializing KratosParticleMechanicsApplication...              " << std::endl;
 
 // 	    KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
 // 	    KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
