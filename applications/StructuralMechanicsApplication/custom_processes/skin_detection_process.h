@@ -9,8 +9,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SKIN_DTEECTION_PROCESS_H_INCLUDED )
-#define  KRATOS_SKIN_DTEECTION_PROCESS_H_INCLUDED
+#if !defined(KRATOS_SKIN_DETECTION_PROCESS_H_INCLUDED )
+#define  KRATOS_SKIN_DETECTION_PROCESS_H_INCLUDED
 
 // System includes
 
@@ -60,8 +60,6 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief An algorithm that looks for neighbour elements in a mesh and creates a submodelpart containing the skin of the disconnected elements (interface elements)
  * @details For that pourpose if builds an unordered map of the surrounding elements and nodes and performs different checks.
- * @warning Please check that you geometry is compatible, it will be assumed that a geometry has a neighbour geometries of the same class. If your geometries combines for example hexahedra, prism, pyramids and tetrahedra you will need to refactor this
- * @todo Solve the previous problem
  * @todo Move this to the core if people demands this
  * @tparam TDim The dimension where the problem is computed
  * @author Vicente Mataix Ferrandiz
@@ -290,4 +288,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SKIN_DTEECTION_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_SKIN_DETECTION_PROCESS_H_INCLUDED  defined
