@@ -79,15 +79,15 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this hardening law
      */
-    HardeningLaw::Pointer Clone() const;
+    HardeningLaw::Pointer Clone() const override;
 
     ///@}
     ///@name Operations
     ///@{
 
-    double& CalculateHardening(double &rHardening, const Parameters& rValues);
+    double& CalculateHardening(double &rHardening, const Parameters& rValues) override;
 
-    double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues);
+    double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues) override;
     
     ///@}
     ///@name Access
@@ -173,9 +173,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry

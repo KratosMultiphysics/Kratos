@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main author:     Jordi Cotela
@@ -75,7 +75,7 @@ double ElementSizeCalculator<2,4>::MinimumElementSize(const Geometry<Node<3> >& 
     // Distance between face centers (xi direction)
     double dxi_x = x21 - x03;
     double dxi_y = y21 - y03;
-    
+
     double h2_xi = dxi_x*dxi_x + dxi_y*dxi_y;
 
     // Distance between face centers (eta direction)
@@ -178,9 +178,9 @@ double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node<3> >& 
     return std::sqrt(h2);
 }
 
-// Triangle2D3 version. 
+// Triangle2D3 version.
 template<std::size_t TDim, std::size_t TNumNodes>
-double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const bounded_matrix<double,3,2>& rDN_DX) {
+double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,3,2>& rDN_DX) {
 
     double h = 0.0;
     for(unsigned int i = 0; i < 3; ++i){
@@ -193,9 +193,9 @@ double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const bounded
     return sqrt(h)/3.0;
 }
 
-// Tetrahedra3D4 version. 
+// Tetrahedra3D4 version.
 template<std::size_t TDim, std::size_t TNumNodes>
-double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const bounded_matrix<double,4,3>& rDN_DX) {
+double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,4,3>& rDN_DX) {
 
     double h = 0.0;
     for(unsigned int i = 0; i < 4; ++i){

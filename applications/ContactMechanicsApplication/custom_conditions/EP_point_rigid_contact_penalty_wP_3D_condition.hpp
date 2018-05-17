@@ -15,118 +15,118 @@
 namespace Kratos
 {
 
-   class EPPointRigidContactPenaltywP3DCondition
-      : public EPPointRigidContactPenalty3DCondition
-   {
-      public:
-         typedef Vector VectorType;
+class EPPointRigidContactPenaltywP3DCondition
+    : public EPPointRigidContactPenalty3DCondition
+{
+ public:
+  typedef Vector VectorType;
 
-         KRATOS_CLASS_POINTER_DEFINITION( EPPointRigidContactPenaltywP3DCondition );
+  KRATOS_CLASS_POINTER_DEFINITION( EPPointRigidContactPenaltywP3DCondition );
 
-         /// Serialization constructor
-         EPPointRigidContactPenaltywP3DCondition(){};
+  /// Serialization constructor
+  EPPointRigidContactPenaltywP3DCondition(){};
 
-         /// Default constructor.
-         EPPointRigidContactPenaltywP3DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+  /// Default constructor.
+  EPPointRigidContactPenaltywP3DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-         EPPointRigidContactPenaltywP3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+  EPPointRigidContactPenaltywP3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-         EPPointRigidContactPenaltywP3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
-
-
-         /// Copy constructor
-         EPPointRigidContactPenaltywP3DCondition( EPPointRigidContactPenaltywP3DCondition const& rOther);
+  EPPointRigidContactPenaltywP3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
 
 
-         /// Destructor.
-         virtual ~EPPointRigidContactPenaltywP3DCondition();
-
-         /**
-          * creates a new condition pointer
-          * @param NewId: the ID of the new condition
-          * @param ThisNodes: the nodes of the new condition
-          * @param pProperties: the properties assigned to the new condition
-          * @return a Pointer to the new condition
-          */
-         Condition::Pointer Create(IndexType NewId, NodesArrayType const&
-               ThisNodes,  PropertiesType::Pointer pProperties) const;
+  /// Copy constructor
+  EPPointRigidContactPenaltywP3DCondition( EPPointRigidContactPenaltywP3DCondition const& rOther);
 
 
-   /**
-     * clones the selected condition variables, creating a new one
-     * @param NewId: the ID of the new condition
-     * @param ThisNodes: the nodes of the new condition
-     * @param pProperties: the properties assigned to the new condition
-     * @return a Pointer to the new condition
-     */
-    Condition::Pointer Clone(IndexType NewId, 
-			     NodesArrayType const& ThisNodes) const;
+  /// Destructor.
+  virtual ~EPPointRigidContactPenaltywP3DCondition();
 
-         void GetDofList(DofsVectorType& rConditionDofList,
-               ProcessInfo& rCurrentProcessInfo );
-
-         /**
-          * Sets on rResult the ID's of the element degrees of freedom
-          */
-         void EquationIdVector(EquationIdVectorType& rResult,
-               ProcessInfo& rCurrentProcessInfo );
-
-         /**
-          * Sets on rValues the nodal displacements
-          */
-         void GetValuesVector(Vector& rValues,
-               int Step = 0 );
-
-         /**
-          * Sets on rValues the nodal velocities
-          */
-         void GetFirstDerivativesVector(Vector& rValues,
-               int Step = 0 );
-
-         /**
-          * Sets on rValues the nodal accelerations
-          */
-         void GetSecondDerivativesVector(Vector& rValues,
-               int Step = 0 );
-
-      protected:
-         ///@name Protected static Member Variables
-         ///@{
-         virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-               VectorType& rRightHandSideVector,
-               Flags& rCalculationFlags);
+  /**
+   * creates a new condition pointer
+   * @param NewId: the ID of the new condition
+   * @param ThisNodes: the nodes of the new condition
+   * @param pProperties: the properties assigned to the new condition
+   * @return a Pointer to the new condition
+   */
+  Condition::Pointer Create(IndexType NewId, NodesArrayType const&
+                            ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
 
-         /**
-          * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
-          */
-         virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-               ConditionVariables& rVariables,
-               double& rIntegrationWeight);
+  /**
+   * clones the selected condition variables, creating a new one
+   * @param NewId: the ID of the new condition
+   * @param ThisNodes: the nodes of the new condition
+   * @param pProperties: the properties assigned to the new condition
+   * @return a Pointer to the new condition
+   */
+  Condition::Pointer Clone(IndexType NewId, 
+                           NodesArrayType const& ThisNodes) const override;
 
-         virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-               ConditionVariables& rVariables,
-               double& rIntegrationWeight);
+  void GetDofList(DofsVectorType& rConditionDofList,
+                  ProcessInfo& rCurrentProcessInfo ) override;
 
-      private:
-         friend class Serializer;
+  /**
+   * Sets on rResult the ID's of the element degrees of freedom
+   */
+  void EquationIdVector(EquationIdVectorType& rResult,
+                        ProcessInfo& rCurrentProcessInfo ) override;
 
-         virtual void save(Serializer& rSerializer) const
-         {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, EPPointRigidContactPenalty3DCondition )
-         }
+  /**
+   * Sets on rValues the nodal displacements
+   */
+  void GetValuesVector(Vector& rValues,
+                       int Step = 0 ) override;
 
-         virtual void load(Serializer& rSerializer)
-         {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, EPPointRigidContactPenalty3DCondition )
-         }
+  /**
+   * Sets on rValues the nodal velocities
+   */
+  void GetFirstDerivativesVector(Vector& rValues,
+                                 int Step = 0 ) override;
+
+  /**
+   * Sets on rValues the nodal accelerations
+   */
+  void GetSecondDerivativesVector(Vector& rValues,
+                                  int Step = 0 ) override;
+
+ protected:
+  ///@name Protected static Member Variables
+  ///@{
+  void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+                                VectorType& rRightHandSideVector,
+                                Flags& rCalculationFlags) override;
+
+
+  /**
+   * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
+   */
+  void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+                           ConditionVariables& rVariables,
+                           double& rIntegrationWeight) override;
+
+  void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
+                                  ConditionVariables& rVariables,
+                                  double& rIntegrationWeight) override;
+
+ private:
+  friend class Serializer;
+
+  void save(Serializer& rSerializer) const override
+  {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, EPPointRigidContactPenalty3DCondition )
+        }
+
+  void load(Serializer& rSerializer) override
+  {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, EPPointRigidContactPenalty3DCondition )
+        }
 
 
 
-   }; // end class
+}; // end class
 
 
-   } // end Namespace Kratos
+} // end Namespace Kratos
 
 
 

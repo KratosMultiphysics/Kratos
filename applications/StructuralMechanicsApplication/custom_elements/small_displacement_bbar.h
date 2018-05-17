@@ -201,7 +201,7 @@ public:
         void CalculateKinematicVariables(
                 KinematicVariables& rThisKinematicVariables,
                 const unsigned int PointNumber,
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+                const GeometryType::IntegrationMethod& rIntegrationMethod
                 ) override;
 
         /**
@@ -245,9 +245,7 @@ public:
          */
         virtual void CalculateB(
                 Matrix& rB,
-                const Matrix& DN_DX,
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                const unsigned int PointNumber
+                const Matrix& DN_DX
         );
         virtual Matrix ComputeEquivalentF(const Vector& rStrainTensor);
 

@@ -56,7 +56,7 @@ namespace Kratos
 
     ///@name Type Definitions
     ///@{
-    typedef bounded_matrix<double,3,3>    MatrixType;
+    typedef BoundedMatrix<double,3,3>    MatrixType;
     typedef array_1d<double,6>            VectorType;
     ///@}
     ///@name Life Cycle
@@ -107,6 +107,42 @@ namespace Kratos
 
       KRATOS_CATCH(" ")
     }
+
+    /**
+     * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 0 in the diagonal
+     * if the matrix passed is 3D is does nothing
+     * if the matrix passed is bigger or smaller throws an error
+     * @param rL : the VelocityGradient in 2D / 3D
+     * @param rL3D : the VelocityGradient in 3D
+     */
+    static inline MatrixType& VelocityGradientTo3D(const MatrixType& rL, MatrixType& rL3D)
+    {
+      KRATOS_TRY
+	
+      for(unsigned int i=0; i<rL.size1(); i++)
+	for(unsigned int j=0; j<rL.size2(); j++)
+	  rL3D(i,j) = rL(i,j);
+      
+      if (rL.size1() == 2 && rL.size2() == 2)
+	{	      
+	  rL3D( 0 , 2 ) = 0.0;
+	  rL3D( 1 , 2 ) = 0.0;
+
+	  rL3D( 2 , 0 ) = 0.0;
+	  rL3D( 2 , 1 ) = 0.0;
+
+	  rL3D( 2 , 2 ) = 0.0;
+	}
+      else if(rL.size1() != 3 && rL.size2() != 3)
+	{
+	  KRATOS_ERROR << "Matrix Dimensions are not correct" << std::endl;
+	}
+
+      return rL3D;
+
+      KRATOS_CATCH(" ")
+    }
+    
 
     /**
      * Computes the RightCauchyGreen (C=FT*F) given the DeformationGradientF
@@ -385,7 +421,7 @@ namespace Kratos
      * @param rMatrix the corresponding second order tensor in voigt size matrix form
      */
     
-    static inline Matrix& ConstitutiveTensorToMatrix(const bounded_matrix<double,6,6>& rTensor, Matrix& rMatrix)
+    static inline Matrix& ConstitutiveTensorToMatrix(const BoundedMatrix<double,6,6>& rTensor, Matrix& rMatrix)
     {
         KRATOS_TRY;
 	
@@ -429,6 +465,100 @@ namespace Kratos
         KRATOS_CATCH("");
      }
 
+
+    /**
+     * Transforms a given Vector to a non symmetric 3D Tensor:
+     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (9*1) Vector
+     * in the 2D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
+     * @param rTensor the given symmetric second order stress tensor
+     * @return the corresponding stress tensor in vector form
+     */    
+    static inline MatrixType& VectorToTensor(const Vector& rVector, MatrixType& rTensor)
+    {
+        KRATOS_TRY;
+        
+        // vector2D = [ a00, a11, a01, a10, a21, a02 ]
+        // vector3D = [ a00, a11, a22, a01, a12, a20, a10, a21, a02 ]
+        
+	if (rVector.size() == 4)
+        {
+   	    rTensor(0,0) = rVector[0];
+	    rTensor(0,1) = rVector[2];
+	    rTensor(0,2) = 0.0;
+
+	    rTensor(1,0) = rVector[3];
+	    rTensor(1,1) = rVector[1];
+	    rTensor(1,2) = 0.0;
+
+	    rTensor(2,0) = 0.0;
+	    rTensor(2,1) = 0.0;
+	    rTensor(2,2) = 0.0;
+        }
+        else if (rVector.size() == 9) 
+        {
+	    rTensor(0,0) = rVector[0];
+	    rTensor(0,1) = rVector[3];
+	    rTensor(0,2) = rVector[8];
+
+	    rTensor(1,0) = rVector[6];
+	    rTensor(1,1) = rVector[1];
+	    rTensor(1,2) = rVector[4];
+
+	    rTensor(2,0) = rVector[5];
+	    rTensor(2,1) = rVector[7];
+	    rTensor(2,2) = rVector[2];	    
+        }
+        else{
+          KRATOS_ERROR << " VectorToTensor transform Vector Size not correct : " << rVector.size() <<std::endl;
+        }
+
+        return rTensor;
+	
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Transforms a given non symmetric Tensor to a Vector:
+     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (9*1) Vector
+     * in the 2D case: from a second order tensor (2*2) Matrix  to a corresponing (4*1) Vector
+     * @param rTensor the given symmetric second order stress tensor
+     * @return the corresponding stress tensor in vector form
+     */
+    
+    static inline Vector& TensorToVector(const MatrixType& rTensor, Vector& rVector)
+    {
+        KRATOS_TRY;
+
+        // vector2D = [ a00, a11, a01, a10, a21, a02 ]
+        // vector3D = [ a00, a11, a22, a01, a12, a20, a10, a21, a02 ]
+        
+        if (rVector.size() == 4)
+        {
+	    rVector[0] = rTensor(0,0);
+            rVector[1] = rTensor(1,1);
+            rVector[2] = rTensor(0,1);
+            rVector[3] = rTensor(1,0);            
+        }
+        else if (rVector.size() == 9)
+        {
+            rVector[0] = rTensor(0,0);
+            rVector[1] = rTensor(1,1);
+            rVector[2] = rTensor(2,2);
+            rVector[3] = rTensor(0,1);
+            rVector[4] = rTensor(1,2);
+            rVector[5] = rTensor(2,0);
+            rVector[6] = rTensor(1,0);
+            rVector[7] = rTensor(2,1);
+            rVector[8] = rTensor(0,2);
+        }
+        else{
+          KRATOS_ERROR << " TensorToVector transform Vector Size not correct : " << rVector.size() <<std::endl;
+        }
+
+        return rVector;
+        
+        KRATOS_CATCH("");
+    }
     
     /**
      * Transforms a given 3D symmetric Tensor from Voigt notation to Matrix notation
@@ -534,9 +664,9 @@ namespace Kratos
 
     /**
      * Transforms a given symmetric Strain Tensor to Voigt Notation:
-     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
-     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
-     * in the 2D case: from a second order tensor (3*3) Matrix  to a corresponing (3*1) Vector
+     * in the 3D  case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+     * in the 2Da case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
+     * in the 2D  case: from a second order tensor (3*3) Matrix  to a corresponing (3*1) Vector
      * @param rStrainTensor the given symmetric second order stress tensor
      * @return the corresponding stress tensor in vector form
      */
@@ -595,9 +725,9 @@ namespace Kratos
     
     /**
      * Transforms a given symmetric Strain Tensor to Voigt Notation:
-     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
-     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
-     * in the 2D case: from a second order tensor (3*3) Matrix  to a corresponing (3*1) Vector
+     * in the 3D  case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+     * in the 2Da case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
+     * in the 2D  case: from a second order tensor (3*3) Matrix  to a corresponing (3*1) Vector
      * @param rStrainTensor the given symmetric second order stress tensor
      * @return the corresponding stress tensor in vector form
      */
@@ -637,9 +767,9 @@ namespace Kratos
     
     /**
      * Transforms a given symmetric Stress Tensor to Voigt Notation:
-     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
-     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
-     * in the 2D case: from a second order tensor (3*3) Matrix  to a corresponing (3*1) Vector
+     * in the 3D  case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+     * in the 2Da case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
+     * in the 2D  case: from a second order tensor (3*3) Matrix  to a corresponing (3*1) Vector
      * @param rStressTensor the given symmetric second order stress tensor
      * @return the corresponding stress tensor in vector form
      */
@@ -698,9 +828,9 @@ namespace Kratos
 
     /**
      * Transforms a given symmetric Stress Tensor to Voigt Notation:
-     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
-     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
-     * in the 2D case: from a second order tensor (3*3) Matrix  to a corresponing (3*1) Vector
+     * in the 3D  case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+     * in the 2Da case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
+     * in the 2D  case: from a second order tensor (3*3) Matrix  to a corresponing (3*1) Vector
      * @param rStressTensor the given symmetric second order stress tensor
      * @return the corresponding stress tensor in vector form
      */
@@ -1196,8 +1326,311 @@ namespace Kratos
 	return (absDiff/maxAbs) < 1E-8;
 	
     }
-    
 
+
+
+    /**
+     * Methods to transform Constitutive Matrices:
+     * @param rConstitutiveMatrix the constitutive matrix
+     * @param rF the DeformationGradientF matrix between the configurations
+     */
+    
+    /**
+     * This method performs a pull-back of the constitutive matrix
+     */
+    static inline void PullBackConstitutiveMatrix( Matrix& rConstitutiveMatrix,
+                                                   const Matrix & rF )
+    {
+      Matrix OriginalConstitutiveMatrix = rConstitutiveMatrix;
+      
+      rConstitutiveMatrix.clear();
+
+      Matrix InverseF ( 3, 3 );
+      double detF = 0;
+      MathUtils<double>::InvertMatrix( rF, InverseF, detF);
+
+      ConstitutiveMatrixTransformation( rConstitutiveMatrix, OriginalConstitutiveMatrix, InverseF );
+    }
+
+    
+    /**
+     * This method performs a push-forward of the constitutive matrix
+     */
+    static inline void PushForwardConstitutiveMatrix( Matrix& rConstitutiveMatrix,
+                                                      const Matrix & rF )
+    {
+      Matrix OriginalConstitutiveMatrix = rConstitutiveMatrix;
+      
+      rConstitutiveMatrix.clear();
+
+      ConstitutiveMatrixTransformation( rConstitutiveMatrix, OriginalConstitutiveMatrix, rF );
+    }
+
+
+    /**
+     * This method performs a pull-back or a push-forward between two constitutive matrices
+     */
+    static inline void ConstitutiveMatrixTransformation ( Matrix& rConstitutiveMatrix,
+                                                          const Matrix& rOriginalConstitutiveMatrix,
+                                                          const Matrix & rF )
+    {
+      unsigned int size = rOriginalConstitutiveMatrix.size1();
+      if(  size == 6 )
+      {
+        const unsigned int IndexVoigt3D6C [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
+        
+        for(unsigned int i=0; i<6; i++)
+        {
+          for(unsigned int j=0; j<6; j++)
+          {
+            rConstitutiveMatrix( i, j ) = TransformConstitutiveComponent(rConstitutiveMatrix( i, j ), rOriginalConstitutiveMatrix, rF,
+                                                                         IndexVoigt3D6C[i][0], IndexVoigt3D6C[i][1], IndexVoigt3D6C[j][0], IndexVoigt3D6C[j][1]);
+          }
+
+        }
+      }
+      else if( size == 4 )
+      {
+
+        const unsigned int IndexVoigt2D4C [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
+        
+        for(unsigned int i=0; i<4; i++)
+        {
+          for(unsigned int j=0; j<4; j++)
+          {
+            rConstitutiveMatrix( i, j ) = TransformConstitutiveComponent(rConstitutiveMatrix( i, j ), rOriginalConstitutiveMatrix, rF,
+                                                                         IndexVoigt2D4C[i][0], IndexVoigt2D4C[i][1], IndexVoigt2D4C[j][0], IndexVoigt2D4C[j][1]);
+          }
+
+        }
+      }
+      else if( size == 3 )
+      {
+
+        const unsigned int IndexVoigt2D3C [3][2] = { {0, 0}, {1, 1}, {0, 1} };
+        
+        for(unsigned int i=0; i<3; i++)
+        {
+          for(unsigned int j=0; j<3; j++)
+          {
+            rConstitutiveMatrix( i, j ) = TransformConstitutiveComponent(rConstitutiveMatrix( i, j ), rOriginalConstitutiveMatrix, rF,
+                                                                         IndexVoigt2D3C[i][0], IndexVoigt2D3C[i][1], IndexVoigt2D3C[j][0], IndexVoigt2D3C[j][1]);
+          }
+
+        }
+      }
+
+
+    }
+
+
+    /**
+     * This method performs a pull-back or a push-forward between two constitutive tensor components
+     */
+    static inline double& TransformConstitutiveComponent(double & rCabcd,
+                                                         const Matrix & rConstitutiveMatrix,
+                                                         const Matrix & rF,
+                                                         const unsigned int& a, const unsigned int& b,
+                                                         const unsigned int& c, const unsigned int& d)
+        
+    {
+
+      rCabcd = 0;
+      double Cijkl=0;
+
+      unsigned int dimension = rF.size1();
+
+      //Cabcd
+      for(unsigned int j=0; j<dimension; j++)
+      {
+        for(unsigned int l=0; l<dimension; l++)
+        {
+          for(unsigned int k=0; k<dimension; k++)
+          {
+            for(unsigned int i=0; i<dimension; i++)
+            {
+              //Cijkl
+              rCabcd +=rF(a,i)*rF(b,j)*rF(c,k)*rF(d,l)*GetConstitutiveComponent(Cijkl,rConstitutiveMatrix,i,j,k,l);
+            }
+          }
+        }
+      }
+
+      return rCabcd;
+
+    }
+
+    /**
+     * This method gets the constitutive tensor components
+     * from a consitutive matrix supplied in voigt notation
+     */
+    static inline double& GetConstitutiveComponent(double & rCabcd,
+                                                   const Matrix& rConstitutiveMatrix,
+                                                   const unsigned int& a, const unsigned int& b,
+                                                   const unsigned int& c, const unsigned int& d)
+    {
+      // matrix indices
+      unsigned int k=0, l= 0;
+
+      unsigned int size = rConstitutiveMatrix.size1();
+      
+      if( size == 3 )
+      {
+
+        const unsigned int IndexVoigt2D3C [3][2] = { {0, 0}, {1, 1}, {0, 1} };
+
+        //index k
+        for(unsigned int i=0; i<3; i++)
+        {
+          if( a == b )
+          {
+            if( IndexVoigt2D3C[i][0] == a && IndexVoigt2D3C[i][1] == b )
+            {
+              k = i;
+              break;
+            }
+          }
+          else
+          {
+            if( (IndexVoigt2D3C[i][0] == a && IndexVoigt2D3C[i][1] == b) ||
+                (IndexVoigt2D3C[i][1] == a && IndexVoigt2D3C[i][0] == b) )
+            {
+              k = i;
+              break;
+            }
+          }
+        }
+
+        //index l
+        for(unsigned int i=0; i<3; i++)
+        {
+          if( c == d )
+          {
+            if( IndexVoigt2D3C[i][0] == c && IndexVoigt2D3C[i][1] == d )
+            {
+              l = i;
+              break;
+            }
+          }
+          else
+          {
+            if( (IndexVoigt2D3C[i][0] == c && IndexVoigt2D3C[i][1] == d) ||
+                (IndexVoigt2D3C[i][1] == c && IndexVoigt2D3C[i][0] == d) )
+            {
+              l = i;
+              break;
+            }
+          }
+        }
+
+
+      }
+      else if( size == 4 )
+      {
+
+        const unsigned int IndexVoigt2D4C [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
+        //index k
+        for(unsigned int i=0; i<4; i++)
+        {
+          if( a == b )
+          {
+            if( IndexVoigt2D4C[i][0] == a && IndexVoigt2D4C[i][1] == b )
+            {
+              k = i;
+              break;
+            }
+          }
+          else
+          {
+            if( (IndexVoigt2D4C[i][0] == a && IndexVoigt2D4C[i][1] == b) ||
+                (IndexVoigt2D4C[i][1] == a && IndexVoigt2D4C[i][0] == b) )
+            {
+              k = i;
+              break;
+            }
+          }
+        }
+
+        //index l
+        for(unsigned int i=0; i<4; i++)
+        {
+          if( c == d )
+          {
+            if( IndexVoigt2D4C[i][0] == c && IndexVoigt2D4C[i][1] == d )
+            {
+              l = i;
+              break;
+            }
+          }
+          else
+          {
+            if( (IndexVoigt2D4C[i][0] == c && IndexVoigt2D4C[i][1] == d) ||
+                (IndexVoigt2D4C[i][1] == c && IndexVoigt2D4C[i][0] == d) )
+            {
+              l = i;
+              break;
+            }
+          }
+        }
+
+      }
+      else if( size == 6 )
+      {
+
+        const unsigned int IndexVoigt3D6C [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
+        
+        //index k
+        for(unsigned int i=0; i<6; i++)
+        {
+          if( a == b )
+          {
+            if( IndexVoigt3D6C[i][0] == a && IndexVoigt3D6C[i][1] == b )
+            {
+              k = i;
+              break;
+            }
+          }
+          else
+          {
+            if( (IndexVoigt3D6C[i][0] == a && IndexVoigt3D6C[i][1] == b) ||
+                (IndexVoigt3D6C[i][1] == a && IndexVoigt3D6C[i][0] == b) )
+            {
+              k = i;
+              break;
+            }
+          }
+        }
+
+        //index l
+        for(unsigned int i=0; i<6; i++)
+        {
+          if( c == d )
+          {
+            if( IndexVoigt3D6C[i][0] == c && IndexVoigt3D6C[i][1] == d )
+            {
+              l = i;
+              break;
+            }
+          }
+          else
+          {
+            if( (IndexVoigt3D6C[i][0] == c && IndexVoigt3D6C[i][1] == d) ||
+                (IndexVoigt3D6C[i][1] == c && IndexVoigt3D6C[i][0] == d) )
+            {
+              l = i;
+              break;
+            }
+          }
+        }
+      }
+
+      rCabcd = rConstitutiveMatrix(k,l);
+
+      return rCabcd;
+    }
+
+
+    
     ///@}
     ///@name Access
     ///@{

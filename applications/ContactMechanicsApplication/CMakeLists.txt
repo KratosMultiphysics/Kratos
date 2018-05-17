@@ -92,7 +92,7 @@ set_target_properties(KratosContactMechanicsCore PROPERTIES COMPILE_DEFINITIONS 
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosContactMechanicsApplication MODULE ${KRATOS_CONTACT_MECHANICS_APPLICATION_PYTHON_INTERFACE})
+pybind11_add_module(KratosContactMechanicsApplication MODULE THIN_LTO ${KRATOS_CONTACT_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosContactMechanicsApplication PRIVATE KratosContactMechanicsCore)
 set_target_properties(KratosContactMechanicsApplication PROPERTIES PREFIX "")
 

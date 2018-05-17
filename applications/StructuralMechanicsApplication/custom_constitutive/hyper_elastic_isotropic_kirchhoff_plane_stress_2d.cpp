@@ -53,7 +53,7 @@ HyperElasticIsotropicKirchhoffPlaneStress2D::~HyperElasticIsotropicKirchhoffPlan
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateMaterialResponsePK1 (Parameters& rValues) {
+void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) {
 
     CalculateMaterialResponsePK2(rValues);
 
@@ -68,13 +68,12 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateMaterialResponsePK1 (
 //************************************************************************************
 
 void  HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) {
-
+    KRATOS_TRY;
     // Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
     const Properties& material_properties  = rValues.GetMaterialProperties();
     Vector& strain_vector                  = rValues.GetStrainVector();
-    Vector& stress_vector                  = rValues.GetStressVector();
 
     // The material properties
     const double& young_modulus = material_properties[YOUNG_MODULUS];
@@ -90,10 +89,7 @@ void  HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateMaterialResponsePK2(
     }
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-        if (rValues.IsSetDeformationGradientF() == true) {
-            CalculateGreenLagrangianStrain(rValues, strain_vector);
-        }
-
+        Vector& stress_vector = rValues.GetStressVector();
         if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )  {
             Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
             noalias(stress_vector) = prod(constitutive_matrix, strain_vector);
@@ -101,12 +97,13 @@ void  HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateMaterialResponsePK2(
             CalculatePK2Stress( strain_vector, stress_vector, young_modulus, poisson_coefficient );
         }
     }
+    KRATOS_CATCH("");
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateMaterialResponseKirchhoff (Parameters& rValues) {
+void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) {
 
     // Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
@@ -142,7 +139,7 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateMaterialResponseKirch
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateMaterialResponseCauchy (Parameters& rValues) {
+void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) {
 
     CalculateMaterialResponseKirchhoff(rValues);
 
@@ -158,7 +155,7 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateMaterialResponseCauch
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicKirchhoffPlaneStress2D::FinalizeMaterialResponsePK1(Parameters& rValues) {
+void HyperElasticIsotropicKirchhoffPlaneStress2D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) {
 //     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 //     this->CalculateMaterialResponsePK1(rValues);
 //     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
@@ -167,7 +164,7 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::FinalizeMaterialResponsePK1(Pa
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicKirchhoffPlaneStress2D::FinalizeMaterialResponsePK2(Parameters& rValues) {
+void HyperElasticIsotropicKirchhoffPlaneStress2D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) {
 //     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 //     this->CalculateMaterialResponsePK2(rValues);
 //     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
@@ -176,7 +173,7 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::FinalizeMaterialResponsePK2(Pa
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicKirchhoffPlaneStress2D::FinalizeMaterialResponseCauchy(Parameters& rValues) {
+void HyperElasticIsotropicKirchhoffPlaneStress2D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) {
 //     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 //     this->CalculateMaterialResponseCauchy(rValues);
 //     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
@@ -185,7 +182,7 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::FinalizeMaterialResponseCauchy
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicKirchhoffPlaneStress2D::FinalizeMaterialResponseKirchhoff(Parameters& rValues) {
+void HyperElasticIsotropicKirchhoffPlaneStress2D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) {
 //     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 //     this->CalculateMaterialResponseKirchhoff(rValues);
 //     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
@@ -196,7 +193,7 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::FinalizeMaterialResponseKirchh
 
 
 double& HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateValue(
-    Parameters& rParameterValues,
+    ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue) {
 
@@ -351,7 +348,7 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateKirchhoffStress(
 //************************************************************************************
 
 void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateGreenLagrangianStrain(
-    Parameters& rValues,
+    ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector) {
 
     //1.-Compute total deformation gradient
@@ -369,7 +366,7 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateGreenLagrangianStrain
 //************************************************************************************
 
 void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateAlmansiStrain(
-    Parameters& rValues,
+    ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector) {
         
     //1.-Compute total deformation gradient

@@ -26,7 +26,7 @@
 
 #ifdef OPT_1_POINT_INTEGRATION
 #define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_1
-#define OPT_NUM_GP 1 
+#define OPT_NUM_GP 1
 #else
 #define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_2
 #define OPT_NUM_GP 3
@@ -63,7 +63,7 @@ namespace Kratos
 #ifdef OPT_AVARAGE_RESULTS
 			v1 = (vg1+vg2+vg3)/3.0;
 			v2 = (vg1+vg2+vg3)/3.0;
-			v3 = (vg1+vg2+vg3)/3.0; 
+			v3 = (vg1+vg2+vg3)/3.0;
 #else
 			v1 = (2.0*vg1)/3.0 - vg2/3.0       + (2.0*vg3)/3.0;
 			v2 = (2.0*vg1)/3.0 + (2.0*vg2)/3.0 - vg3/3.0;
@@ -135,15 +135,15 @@ namespace Kratos
     //
     // =====================================================================================
 
-    OptTriangleElement::OptTriangleElement(IndexType NewId, 
+    OptTriangleElement::OptTriangleElement(IndexType NewId,
                                                GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {
         mThisIntegrationMethod = OPT_INTEGRATION_METHOD;
     }
-    
-    OptTriangleElement::OptTriangleElement(IndexType NewId, 
-                                               GeometryType::Pointer pGeometry, 
+
+    OptTriangleElement::OptTriangleElement(IndexType NewId,
+                                               GeometryType::Pointer pGeometry,
                                                PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
@@ -159,12 +159,12 @@ namespace Kratos
         GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
         return Element::Pointer( new OptTriangleElement(NewId, newGeom, pProperties) );
     }
-    
+
     OptTriangleElement::IntegrationMethod OptTriangleElement::GetIntegrationMethod() const
     {
         return mThisIntegrationMethod;
     }
-    
+
     void OptTriangleElement::Initialize()
     {
         KRATOS_TRY
@@ -277,7 +277,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        GeometryType& geom = GetGeometry(); 
+        GeometryType& geom = GetGeometry();
 
         // verify that the variables are correctly initialized
         if(DISPLACEMENT.Key() == 0)
@@ -352,7 +352,7 @@ namespace Kratos
 
     void OptTriangleElement::GetFirstDerivativesVector(Vector& values, int Step)
     {
-        if(values.size() != OPT_NUM_DOFS)   
+        if(values.size() != OPT_NUM_DOFS)
             values.resize(OPT_NUM_DOFS,false);
 
         const GeometryType & geom = GetGeometry();
@@ -369,7 +369,7 @@ namespace Kratos
 
     void OptTriangleElement::GetSecondDerivativesVector(Vector& values, int Step)
     {
-        if(values.size() != OPT_NUM_DOFS)   
+        if(values.size() != OPT_NUM_DOFS)
             values.resize(OPT_NUM_DOFS,false);
 
         const GeometryType & geom = GetGeometry();
@@ -456,7 +456,7 @@ namespace Kratos
                                                     VectorType& rRightHandSideVector,
                                                     ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true); 
+        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
     }
 
     void OptTriangleElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
@@ -538,7 +538,7 @@ namespace Kratos
 					output.resize(2,2,false);
 
 				data.gpIndex = i;
-				
+
 				// calculate beta0
 				CalculateBeta0( data );
 
@@ -579,7 +579,7 @@ namespace Kratos
 		for(unsigned int i=0; i<rValues.size(); i++)
 			rValues[i] = mConstitutiveLawVector[i];
 	}
-    
+
 
     // =====================================================================================
     //
@@ -611,17 +611,17 @@ namespace Kratos
 		const NodeType& p3 = geom[2];
 
 		const double x12 = p1.X0() - p2.X0();
-		const double x23 = p2.X0() - p3.X0(); 
+		const double x23 = p2.X0() - p3.X0();
 		const double x31 = p3.X0() - p1.X0();
-		const double x21 = -x12; 
-		const double x32 = -x23; 
+		const double x21 = -x12;
+		const double x32 = -x23;
 		const double x13 = -x31;
 
 		const double y12 = p1.Y0() - p2.Y0();
-		const double y23 = p2.Y0() - p3.Y0(); 
+		const double y23 = p2.Y0() - p3.Y0();
 		const double y31 = p3.Y0() - p1.Y0();
-		const double y21 = -y12; 
-		const double y32 = -y23; 
+		const double y21 = -y12;
+		const double y32 = -y23;
 		const double y13 = -y31;
 
 		const double A  = 0.5*(y21*x13 - x21*y13);
@@ -633,11 +633,11 @@ namespace Kratos
 		const double LL32 = x32*x32 + y32*y32;
 		const double LL13 = x13*x13 + y13*y13;
 
-		// Note: here we compute the avarage thickness, 
+		// Note: here we compute the avarage thickness,
 		// since L is constant over the element.
-		// Now it is not necessary to compute the avarage 
-		// because the current implementation of the cross section 
-		// doesn't have a variable thickness 
+		// Now it is not necessary to compute the avarage
+		// because the current implementation of the cross section
+		// doesn't have a variable thickness
 		// (for example as a function of the spatial coordinates...).
 		// This is just a place-holder for future
 		// implementation of a variable thickness
@@ -660,7 +660,7 @@ namespace Kratos
 		array_1d<double,3>& gp0 = data.gpLocations[0];
 		array_1d<double,3>& gp1 = data.gpLocations[1];
 		array_1d<double,3>& gp2 = data.gpLocations[2];
-#ifdef OPT_USES_INTERIOR_GAUSS_POINTS 
+#ifdef OPT_USES_INTERIOR_GAUSS_POINTS
 		gp0[0] = 1.0/6.0; gp0[1] = 1.0/6.0; gp0[2] = 2.0/3.0;
 		gp1[0] = 2.0/3.0; gp1[1] = 1.0/6.0; gp1[2] = 1.0/6.0;
 		gp2[0] = 1.0/6.0; gp2[1] = 2.0/3.0; gp2[2] = 1.0/6.0;
@@ -815,13 +815,13 @@ namespace Kratos
 		data.Q3(2,2) = b1*A2/(LL13*3.00);
 
 		//--------------------------------------
-		// calculate Te, TTu - 
+		// calculate Te, TTu -
 		// transformation matrices
 		// for the construction of the
 		// higher order stiffness
 
 		data.Te.resize(3, 3, false);
-		
+
 		data.Te(0,0) = 1.0/AA4 * y23*y13*LL21;
 		data.Te(0,1) = 1.0/AA4 * y31*y21*LL32;
 		data.Te(0,2) = 1.0/AA4 * y12*y32*LL13;
@@ -838,10 +838,10 @@ namespace Kratos
 		{
 			data.TTu(i, 0) = 1.0/A4 * x32;
 			data.TTu(i, 1) = 1.0/A4 * y32;
-			data.TTu(i, 2) = 0.0;	
+			data.TTu(i, 2) = 0.0;
 			data.TTu(i, 3) = 1.0/A4 * x13;
 			data.TTu(i, 4) = 1.0/A4 * y13;
-			data.TTu(i, 5) = 0.0;			 
+			data.TTu(i, 5) = 0.0;
 			data.TTu(i, 6) = 1.0/A4 * x21;
 			data.TTu(i, 7) = 1.0/A4 * y21;
 			data.TTu(i, 8) = 0.0;
@@ -914,10 +914,10 @@ namespace Kratos
 		const NodeType& p3 = geom[2];
 
 		const double x12 = p1.X0() - p2.X0();
-		const double x23 = p2.X0() - p3.X0(); 
+		const double x23 = p2.X0() - p3.X0();
 		const double x31 = p3.X0() - p1.X0();
 		const double y12 = p1.Y0() - p2.Y0();
-		const double y23 = p2.Y0() - p3.Y0(); 
+		const double y23 = p2.Y0() - p3.Y0();
 		const double y31 = p3.Y0() - p1.Y0();
 
 		//---------------------------------------------
@@ -950,7 +950,7 @@ namespace Kratos
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
 		const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 		for(int nodeid = 0; nodeid < OPT_NUM_NODES; nodeid++)
-			data.N(nodeid) = shapeFunctions(data.gpIndex, nodeid); 
+			data.N(nodeid) = shapeFunctions(data.gpIndex, nodeid);
 #else
 		const array_1d<double,3>& loc = data.gpLocations[data.gpIndex];
 		data.N(0) = 1.0 - loc[1] - loc[2];
@@ -992,7 +992,7 @@ namespace Kratos
 	}
 
 	void OptTriangleElement::AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector)
-	{	
+	{
 		const GeometryType& geom = GetGeometry();
 
 		// Get shape functions

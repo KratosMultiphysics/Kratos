@@ -76,6 +76,15 @@ namespace Kratos
     /// Default Constructor.
     StaticMethod() : BaseType() {}
 
+    /// Constructor.
+    StaticMethod(const TVariableType& rVariable) : BaseType(rVariable) {}
+
+    /// Constructor.
+    StaticMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : BaseType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    StaticMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
+    
     /// Copy Constructor.
     StaticMethod(StaticMethod& rOther) : BaseType(rOther) {}
 
@@ -95,15 +104,22 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-     
+
+    
+    // assign
+    void Assign(NodeType& rNode) override
+    {
+
+    }
+
     // predict
-    virtual void Predict(NodeType& rNode) override
+    void Predict(NodeType& rNode) override
     {
 
     }
 
     // update
-    virtual void Update(NodeType& rNode) override
+    void Update(NodeType& rNode) override
     {
 
     }
@@ -122,7 +138,7 @@ namespace Kratos
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "StaticMethod";
@@ -130,13 +146,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "StaticMethod";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "StaticMethod Data";     
     }
@@ -206,12 +222,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     };
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     };

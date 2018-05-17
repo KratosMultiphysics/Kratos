@@ -201,9 +201,10 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
             typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-	          typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
-	          typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
+            typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
+            typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
             typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFDisplacementSchemeType;
+            typedef ResidualBasedBDFCustomScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFCustomSchemeType;
 
             class_< BaseSchemeType, typename BaseSchemeType::Pointer >(m,"Scheme")
             .def(init< >())
@@ -232,12 +233,19 @@ namespace Kratos
                     (m, "ResidualBasedIncrementalUpdateStaticScheme")
                     .def(init< >()
                     );
-
+                    
+            
+            typedef typename ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>::RotationToolPointerType RotationToolPointerType;
+            
+            
+                   
             class_< ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>,
                     typename ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>::Pointer,
                     ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> >
                     (m,"ResidualBasedIncrementalUpdateStaticSchemeSlip")
-                    .def(init<unsigned int, unsigned int>());
+                    .def(init<unsigned int, unsigned int>())
+                    .def(init<RotationToolPointerType>());                   
+ 
 
 	         // Residual Based Bossak Scheme Type
 	         class_< ResidualBasedBossakDisplacementSchemeType,
@@ -263,13 +271,11 @@ namespace Kratos
             ;
             
             // Residual Based BDF custom Scheme Type
-            // Charlie: Commenting this. I don't know what it is but is using boost.
-            /*class_< ResidualBasedBDFCustomSchemeType, bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedBDFCustomScheme", init<  >() )
+            class_< ResidualBasedBDFCustomSchemeType, typename ResidualBasedBDFCustomSchemeType::Pointer, BaseSchemeType  >(m,"ResidualBasedBDFCustomScheme")
+                .def(init<  >() )
                 .def(init <const std::size_t>())
                 .def(init <const std::size_t, Parameters>())
-            ;*/
+            ;
 
             //********************************************************************
             //********************************************************************

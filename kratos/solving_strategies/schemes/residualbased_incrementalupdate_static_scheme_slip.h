@@ -88,7 +88,9 @@ public:
 
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
+    typedef CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> RotationToolType;
+    typedef typename CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double>::Pointer RotationToolPointerType;
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -100,7 +102,16 @@ public:
     ResidualBasedIncrementalUpdateStaticSchemeSlip(unsigned int DomainSize,
                                                    unsigned int BlockSize):
         ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
-        mRotationTool(DomainSize,BlockSize,IS_STRUCTURE,0.0)
+        mpRotationTool(Kratos::make_shared<RotationToolType>(DomainSize,BlockSize,IS_STRUCTURE,0.0))
+    {}
+
+    /// Constructor providing a custom rotation tool.
+
+    /** @param pRotationTool a pointer to the helper class that manages DOF rotation.
+      */
+    ResidualBasedIncrementalUpdateStaticSchemeSlip(RotationToolPointerType pRotationTool):
+        ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
+        mpRotationTool(pRotationTool)
     {}
 
     /// Destructor.
@@ -124,11 +135,11 @@ public:
     {
         KRATOS_TRY;
 
-        mRotationTool.RotateVelocities(r_model_part);
+        mpRotationTool->RotateVelocities(r_model_part);
 
         BaseType::Update(r_model_part,rDofSet,A,Dx,b);
 
-        mRotationTool.RecoverVelocities(r_model_part);
+        mpRotationTool->RecoverVelocities(r_model_part);
 
         KRATOS_CATCH("");
     }
@@ -145,8 +156,8 @@ public:
 
         BaseType::CalculateSystemContributions(rCurrentElement,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
-        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
-        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+        mpRotationTool->Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+        mpRotationTool->ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
 
         KRATOS_CATCH("");
     }
@@ -161,8 +172,8 @@ public:
 
         BaseType::Calculate_RHS_Contribution(rCurrentElement,RHS_Contribution,EquationId,CurrentProcessInfo);
 
-        mRotationTool.Rotate(RHS_Contribution,rCurrentElement->GetGeometry());
-        mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
+        mpRotationTool->Rotate(RHS_Contribution,rCurrentElement->GetGeometry());
+        mpRotationTool->ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
 
         KRATOS_CATCH("");
     }
@@ -178,8 +189,8 @@ public:
         BaseType::Calculate_LHS_Contribution(rCurrentElement,LHS_Contribution,EquationId,CurrentProcessInfo);
 
         LocalSystemVectorType Temp = ZeroVector(LHS_Contribution.size1());
-        mRotationTool.Rotate(LHS_Contribution,Temp,rCurrentElement->GetGeometry());
-        mRotationTool.ApplySlipCondition(LHS_Contribution,Temp,rCurrentElement->GetGeometry());
+        mpRotationTool->Rotate(LHS_Contribution,Temp,rCurrentElement->GetGeometry());
+        mpRotationTool->ApplySlipCondition(LHS_Contribution,Temp,rCurrentElement->GetGeometry());
 
         KRATOS_CATCH("");
     }
@@ -196,8 +207,8 @@ public:
 
         BaseType::Condition_CalculateSystemContributions(rCurrentCondition,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
-        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
-        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+        mpRotationTool->Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+        mpRotationTool->ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
 
         KRATOS_CATCH("");
     }
@@ -212,8 +223,8 @@ public:
 
         BaseType::Condition_Calculate_RHS_Contribution(rCurrentCondition,RHS_Contribution,EquationId,CurrentProcessInfo);
 
-        mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
-        mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
+        mpRotationTool->Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
+        mpRotationTool->ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
 
         KRATOS_CATCH("");
     }
@@ -289,7 +300,7 @@ private:
     ///@{
 
     /// Rotation tool instance
-    CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> mRotationTool;
+    RotationToolPointerType mpRotationTool;
 
     ///@}
     ///@name Serialization

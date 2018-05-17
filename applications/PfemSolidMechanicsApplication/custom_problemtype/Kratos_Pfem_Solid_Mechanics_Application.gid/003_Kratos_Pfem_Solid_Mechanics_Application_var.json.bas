@@ -162,13 +162,13 @@
               },
               "dofs"                            : [
 *if(strcmp(GenData(DOFS),"ROTATIONS")==0)
-                                                "ROTATION",
+                                                "ROTATION"
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
-                                                "PRESSURE",
+                                                "PRESSURE"
 *endif
 *if(strcmp(GenData(DOFS),"U-wP")==0 )
-                                                "WATER_PRESSURE",
+                                                "WATER_PRESSURE"
 *endif
 *if( strcmp(GenData(DOFS),"U-J-wP")==0 )
                                                 "WATER_PRESSURE",

@@ -80,6 +80,15 @@ namespace Kratos
     /// Default Constructor.
     SimoMethod() : DerivedType() {}
 
+    /// Constructor.
+    SimoMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+
+    /// Constructor.
+    SimoMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    SimoMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
+
     /// Copy Constructor.
     SimoMethod(SimoMethod& rOther) : DerivedType(rOther) {}
 
@@ -114,7 +123,7 @@ namespace Kratos
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "SimoMethod";
@@ -122,13 +131,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SimoMethod";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SimoMethod Data";     
     }
@@ -159,7 +168,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual void PredictFromVariable(NodeType& rNode) override
+    void AssignFromVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -167,7 +176,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     } 
     
-    virtual void PredictFromFirstDerivative(NodeType& rNode) override
+    void AssignFromFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -182,7 +191,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void PredictFromSecondDerivative(NodeType& rNode) override
+    void AssignFromSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -201,14 +210,14 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void PredictVariable(NodeType& rNode) override
+    void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
       KRATOS_CATCH( "" )
     }
     
-    virtual void PredictFirstDerivative(NodeType& rNode) override
+    void PredictFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -222,7 +231,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void PredictSecondDerivative(NodeType& rNode) override
+    void PredictSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -238,8 +247,16 @@ namespace Kratos
       KRATOS_CATCH( "" )              
     }
     
-
-    virtual void UpdateVariable(NodeType& rNode) override
+    void UpdateFromFirstDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+          
+      KRATOS_ERROR << " Calling UpdateFromSecondDerivative for Simo time integration method : NOT IMPLEMENTED " <<std::endl;
+       
+      KRATOS_CATCH( "" )
+    }
+    
+    void UpdateVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -247,7 +264,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    virtual void UpdateFirstDerivative(NodeType& rNode) override
+    void UpdateFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -261,7 +278,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void UpdateSecondDerivative(NodeType& rNode) override
+    void UpdateSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -320,12 +337,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
     };
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
     };

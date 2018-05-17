@@ -35,6 +35,7 @@
 #include "custom_laws/large_strain_laws/large_strain_axisymmetric_2D_law.hpp"
 
 // Strain rate laws
+#include "custom_laws/strain_rate_laws/strain_rate_plane_strain_2D_law.hpp"
 #include "custom_laws/strain_rate_laws/newtonian_plane_strain_2D_law.hpp"
 
 // Constitutive models
@@ -51,6 +52,7 @@
 #include "custom_models/elasticity_models/borja_model.hpp"
 #include "custom_models/elasticity_models/ogden_model.hpp"
 #include "custom_models/elasticity_models/isochoric_ogden_model.hpp"
+#include "custom_models/elasticity_models/incompressible_hypo_elastic_model.hpp"
 
 // Plasticity models
 #include "custom_models/plasticity_models/von_mises_linear_elastic_plasticity_model.hpp"
@@ -79,18 +81,9 @@ typedef ConstitutiveModel                                          ConstitutiveM
 typedef ConstitutiveModel::Pointer                                  ConstitutiveModelPointer;
     
     
-void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
-                                  ConstitutiveLawPointer ThisConstitutiveLaw )
-{
-  ThisMaterialsContainer.push_back( ThisConstitutiveLaw );
-}
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
-  class_< MaterialsContainer >(m, "MaterialsContainer")
-      .def( init<>() )
-      .def( "PushBack", Push_Back_Constitutive_Laws )
-      ;
 
   //outfitted python laws
   // class_< PythonOutfittedConstitutiveLaw, typename PythonOutfittedConstitutiveLaw::Pointer, ConstitutiveLawBaseType >
@@ -151,6 +144,16 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
 
   //strain rate laws
+  class_< StrainRate3DLaw, typename StrainRate3DLaw::Pointer, ConstitutiveLawBaseType >
+      (m, "StrainRate3DLaw")
+      .def( init<ConstitutiveModelPointer>() )
+      ;
+    
+  class_< StrainRatePlaneStrain2DLaw, typename StrainRatePlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >
+      (m, "StrainRatePlaneStrain2DLaw")
+      .def( init<ConstitutiveModelPointer>() )
+      ;
+  
   class_< Newtonian3DLaw, typename Newtonian3DLaw::Pointer, ConstitutiveLawBaseType >(m, "Newtonian3DLaw")
       .def( init<>() )
       ;
@@ -215,11 +218,27 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       (m, "OgdenModel")
       .def( init<>() )
       ;
+  
   class_< IsochoricOgdenModel, typename IsochoricOgdenModel::Pointer, ConstitutiveModelBaseType >
       (m, "IsochoricOgdenModel")
       .def( init<>() )
       ;
+  
+  class_< HypoElasticModel, typename HypoElasticModel::Pointer, ConstitutiveModelBaseType >
+      (m, "HypoElasticModel")
+      .def( init<>() )
+      ;
 
+  class_< IsochoricHypoElasticModel, typename IsochoricHypoElasticModel::Pointer, ConstitutiveModelBaseType >
+      (m, "IsochoricHypoElasticModel")
+      .def( init<>() )
+      ;
+
+  class_< IncompressibleHypoElasticModel, typename IncompressibleHypoElasticModel::Pointer, ConstitutiveModelBaseType >
+      (m, "IncompressibleHypoElasticModel")
+      .def( init<>() )
+      ;
+  
   //plasticity models
   class_< VonMisesLinearElasticPlasticityModel, typename VonMisesLinearElasticPlasticityModel::Pointer, ConstitutiveModelBaseType >
       (m, "VonMisesLinearElasticPlasticityModel")

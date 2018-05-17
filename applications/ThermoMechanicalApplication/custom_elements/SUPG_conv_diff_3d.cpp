@@ -1,23 +1,15 @@
-// Kratos Multi-Physics
-// 
-// Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-// 
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-// 	
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Kazem Kamran
+//                   Riccardo Rossi
+//
 
 // System includes
 
@@ -87,26 +79,26 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
         rRightHandSideVector.resize(matsize,false); //false says not to preserve existing storage!!
 
 
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize, matsize);
-        noalias(rRightHandSideVector) = ZeroVector(matsize);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize, matsize);
+    noalias(rRightHandSideVector) = ZeroVector(matsize);
 
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    BoundedMatrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
     //getting data for the given geometry
     double Volume;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
     array_1d<double, 3 > ms_vel_gauss;
-    
+
     //4 Gauss points coordinates
-    bounded_matrix<double, 4, 4 > GaussCrd = ZeroMatrix(4, 4);
+    BoundedMatrix<double, 4, 4 > GaussCrd = ZeroMatrix(4, 4);
     GaussCrd(0,0) = 0.58541020; GaussCrd(0,1) = 0.13819660; GaussCrd(0,2) = 0.13819660; GaussCrd(0,3) = 0.13819660;
-    GaussCrd(1,0) = 0.13819660; GaussCrd(1,1) = 0.58541020; GaussCrd(1,2) = 0.13819660; GaussCrd(1,3) = 0.13819660;	
+    GaussCrd(1,0) = 0.13819660; GaussCrd(1,1) = 0.58541020; GaussCrd(1,2) = 0.13819660; GaussCrd(1,3) = 0.13819660;
     GaussCrd(2,0) = 0.13819660; GaussCrd(2,1) = 0.13819660; GaussCrd(2,2) = 0.58541020; GaussCrd(2,3) = 0.13819660;
     GaussCrd(3,0) = 0.13819660; GaussCrd(3,1) = 0.13819660; GaussCrd(3,2) = 0.13819660; GaussCrd(3,3) = 0.58541020;
-    
+
     double wgauss = lumping_factor;
 
 
@@ -121,26 +113,26 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
 
     //compute common matrix terms ( Laplacian, mass)
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > Laplacian_Matrix = prod(DN_DX , trans(DN_DX));
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > msMassFactors = 1.0 / 4.0 * IdentityMatrix(4, 4);
+    BoundedMatrix<double, 4, 4 > Laplacian_Matrix = prod(DN_DX , trans(DN_DX));
+    BoundedMatrix<double, 4, 4 > msMassFactors = 1.0 / 4.0 * IdentityMatrix(4, 4);
     //Take N_value terms
     array_1d<double, 4 > step_unknown;
     for (unsigned int iii = 0; iii < nodes_number; iii++)
 	step_unknown[iii] =  GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar, 1);
-    
+
 	//Phase change parameters
     double LL = rCurrentProcessInfo[LATENT_HEAT];
 	double solid_T = rCurrentProcessInfo[SOLID_TEMPERATURE];
     double fluid_T = rCurrentProcessInfo[FLUID_TEMPERATURE];
 	array_1d<double, 4 > phase_change_vec = ZeroVector(4);
-	boost::numeric::ublas::bounded_matrix<double, 4, 4 > tan_phase_change =ZeroMatrix(matsize, matsize);
+	BoundedMatrix<double, 4, 4 > tan_phase_change =ZeroMatrix(matsize, matsize);
 	double mid_T = 0.5*(solid_T + fluid_T);
 
     //4GP integration rule
     for(unsigned int gp = 0; gp<4; ++gp)
     {
-        N[0] = GaussCrd(gp,0); N[1] = GaussCrd(gp,1); N[2] = GaussCrd(gp,2); N[3] = GaussCrd(gp,3); 
-       
+        N[0] = GaussCrd(gp,0); N[1] = GaussCrd(gp,1); N[2] = GaussCrd(gp,2); N[3] = GaussCrd(gp,3);
+
 	double conductivity = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
 	double specific_heat = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SPECIFIC_HEAT);
 	double density = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
@@ -150,7 +142,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	double gp_dist = N[0]*GetGeometry()[0].FastGetSolutionStepValue(DISTANCE);
 
 	double FF = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLIDFRACTION);
-	double old_FF = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLIDFRACTION,1);	
+	double old_FF = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLIDFRACTION,1);
     double DF_DT = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLIDFRACTION_RATE);
 	double old_T = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar, 1);
 	double T =  N[0]*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
@@ -168,7 +160,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	    FF += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SOLIDFRACTION);
 	    old_FF += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SOLIDFRACTION,1);
 	    DF_DT += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SOLIDFRACTION_RATE);
-	    old_T += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar, 1);	    
+	    old_T += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar, 1);
 	    T += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
 		gp_dist += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
 
@@ -205,7 +197,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	specific_heat += c_star;
 
 	double tau;
-	double conductivity_scaled = conductivity/(density*specific_heat);    
+	double conductivity_scaled = conductivity/(density*specific_heat);
 	CalculateTau(ms_vel_gauss,tau,conductivity_scaled,delta_t, Volume, rCurrentProcessInfo);
 	//tau = 0.0;
     //        tau *= density * specific_heat;
@@ -223,7 +215,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	//Advective term
 	array_1d<double, 4 > a_dot_grad;
 	noalias(a_dot_grad) = prod(DN_DX, ms_vel_gauss);
-	boost::numeric::ublas::bounded_matrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
+	BoundedMatrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
 	noalias(rLeftHandSideMatrix) += (1.0-cr_nk) * density * specific_heat * Advective_Matrix;
 
 	//stabilization terms
@@ -245,7 +237,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     // 	noalias(rRightHandSideVector) -= cr_nk * conductivity * prod(Laplacian_Matrix, step_unknown);
 
 	//Add all n_step terms
-	boost::numeric::ublas::bounded_matrix<double, 4, 4 > old_step_matrix = dt_inv * density * specific_heat * msMassFactors ;
+	BoundedMatrix<double, 4, 4 > old_step_matrix = dt_inv * density * specific_heat * msMassFactors ;
 	old_step_matrix -= ( cr_nk * density * specific_heat * Advective_Matrix + cr_nk * conductivity * Laplacian_Matrix);
 	noalias(rRightHandSideVector) += prod(old_step_matrix, step_unknown);
 
@@ -254,11 +246,11 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	double old_res = inner_prod(a_dot_grad_and_mass, step_unknown);
 	old_res += heat_source;
 	noalias(rRightHandSideVector) +=  tau * a_dot_grad * old_res;
-	
-	//add shock capturing 
-	double art_visc = 0.0;	    
+
+	//add shock capturing
+	double art_visc = 0.0;
 	CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Volume,conductivity_scaled);
-	noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat * Laplacian_Matrix;	 
+	noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat * Laplacian_Matrix;
 
 	//solidification terms RHS
 	/*if( gp_dist <= 0.0)
@@ -395,8 +387,8 @@ void SUPGConvDiff3D::CalculateTau(array_1d<double, 3 >& ms_adv_vel, double& tau,
 }
 //*************************************************************************************
 //*************************************************************************************
-void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,  
-						      boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, 
+void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
+						      BoundedMatrix<double, 4, 3 > DN_DX,
 						      array_1d<double, 3 > ms_vel_gauss,
 						      const Variable<double>& temperature,
 						      const double volume,
@@ -408,10 +400,10 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 	int negative = 0;
 	double pos_dist_max = -1000.0;
 	double neg_dist_max = +1000.0;
-	
+
 	double ele_length = pow(12.0*volume,0.333333333333333333333);
 	ele_length = 0.666666667 * ele_length * 1.732;
- 
+
 	for( int ii = 0; ii<4; ++ii)
 	{
 	 double nd_dist = this->GetGeometry()[ii].FastGetSolutionStepValue(DISTANCE);
@@ -424,27 +416,27 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 	 if( nd_dist < 0.0 && nd_dist < neg_dist_max)
 		 neg_dist_max = nd_dist;
     }
-	
+
  if( negative != 4 && negative != 0)
  	  not_cutted = 0;
 
 
-	
+
 	 array_1d<double, 3 > grad_t;
-         unsigned int number_of_nodes = GetGeometry().PointsNumber();	 
+         unsigned int number_of_nodes = GetGeometry().PointsNumber();
 	 double temp_cup = GetGeometry()[0].FastGetSolutionStepValue(temperature);
 	 grad_t[0] = DN_DX(0,0) * temp_cup;
-	 grad_t[1] = DN_DX(0,1) * temp_cup;	
-	 grad_t[2] = DN_DX(0,2) * temp_cup;	 
-	 
+	 grad_t[1] = DN_DX(0,1) * temp_cup;
+	 grad_t[2] = DN_DX(0,2) * temp_cup;
+
 	for(unsigned int ii=1; ii < number_of_nodes; ++ii)
-	{	
+	{
 	   temp_cup = GetGeometry()[ii].FastGetSolutionStepValue(temperature);
 	   grad_t[0] += DN_DX(ii,0) * temp_cup;
-	   grad_t[1] += DN_DX(ii,1) * temp_cup;	
-	   grad_t[2] += DN_DX(ii,2) * temp_cup;		   
+	   grad_t[1] += DN_DX(ii,1) * temp_cup;
+	   grad_t[2] += DN_DX(ii,2) * temp_cup;
 	}
-	
+
 	double norm_grad_t = MathUtils<double>::Norm3(grad_t);
 	if(norm_grad_t < 0.000001){
 	  art_visc = 0.0;
@@ -453,25 +445,25 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 	{
 	  double a_parallel = (ms_vel_gauss[0]*grad_t[0] + ms_vel_gauss[1]*grad_t[1] + ms_vel_gauss[2]*grad_t[2]) / norm_grad_t;
 	  a_parallel = fabs(a_parallel);
-	  
-	  
+
+
 	  double Effective_K = scaled_K;
 	  if(scaled_K < 0.00000000001)
 	    Effective_K = 0.00000000001;
-	    
+
 	  double Peclet_parallel = a_parallel*ele_length / (2.0*Effective_K);
 	  double alpha;
 	  if(Peclet_parallel == 0.0)
 		 alpha = 0.0;
 	  else
 		 alpha =1.0 - 1.0/Peclet_parallel;
-	  
+
 	  if (alpha < 0.0)
 	       alpha = 0.0;
-	  
+
 	  //art_visc = 100.0*0.5 * alpha * ele_length * a_parallel;
 	  art_visc =  1.0 *  alpha * ele_length * a_parallel;
-	  
+
 	}
 
    // for cut elements apply higher art_visc
@@ -484,9 +476,9 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 	}
 
 	this->GetValue(PR_ART_VISC) = art_visc;
-   
-	KRATOS_CATCH("")  
-  
+
+	KRATOS_CATCH("")
+
 }
 //************************************************************************************
 //************************************************************************************
@@ -494,7 +486,7 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 //{
 //
 //    /*        double delta_t = rCurrentProcessInfo[DELTA_TIME];*/
-//    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+//    BoundedMatrix<double, 4, 3 > DN_DX;
 //    array_1d<double, 4 > N;
 //    //getting data for the given geometry
 //    double volume;
@@ -511,7 +503,7 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 //	}
 //    }
 //
-//}   
+//}
 
 } // Namespace Kratos
 

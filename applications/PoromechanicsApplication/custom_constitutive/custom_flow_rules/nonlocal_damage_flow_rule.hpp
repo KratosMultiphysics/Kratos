@@ -37,20 +37,20 @@ public:
     NonlocalDamageFlowRule& operator=(NonlocalDamageFlowRule const& rOther);
 	
     /// Destructor
-    virtual ~NonlocalDamageFlowRule();
+    ~NonlocalDamageFlowRule() override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    FlowRule::Pointer Clone() const;
+    FlowRule::Pointer Clone() const override;
     
-    void InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties);
+    void InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, 
-                                Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
+                                Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen) override;
     
-    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
+    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -62,7 +62,7 @@ protected:
     
     void CalculateLocalInternalVariables(RadialReturnVariables& rReturnMappingVariables);
     
-    bool CalculateInternalVariables(RadialReturnVariables& rReturnMappingVariables);
+    bool CalculateInternalVariables(RadialReturnVariables& rReturnMappingVariables) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -72,12 +72,12 @@ private:
     
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FlowRule )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule )
     }

@@ -50,7 +50,7 @@ public:
    ///@name Type Definitions
 
     ///Tensor order 1 definition
-    typedef bounded_vector<double, 3>     PointType;
+    typedef BoundedVector<double, 3>     PointType;
 
     ///@{
     // Counted pointer of PointRigidContactCondition
@@ -96,7 +96,7 @@ public:
      * @return a Pointer to the new condition
      */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const&
-                              ThisNodes,  PropertiesType::Pointer pProperties) const;
+                              ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected condition variables, creating a new one
@@ -106,7 +106,7 @@ public:
      * @return a Pointer to the new condition
      */
     Condition::Pointer Clone(IndexType NewId,
-			     NodesArrayType const& ThisNodes) const;
+			     NodesArrayType const& ThisNodes) const override;
 
     ///@name Access
     ///@{
@@ -140,29 +140,29 @@ protected:
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables,
+    void CalculateKinematics(ConditionVariables& rVariables,
 				     const ProcessInfo& rCurrentProcessInfo,
-				     const double& rPointNumber);
+				     const double& rPointNumber) override;
 
 
 
     /**
      * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 				     ConditionVariables& rVariables,
-				     double& rIntegrationWeight);
+				     double& rIntegrationWeight) override;
 
     virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-				     ConditionVariables& rVariables,
-				     double& rIntegrationWeight);
+                                            ConditionVariables& rVariables,
+                                            double& rIntegrationWeight);
 
     /**
      * Calculation of the External Forces Vector for a force or pressure vector
      */
-    virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
+    void CalculateAndAddContactForces(Vector& rRightHandSideVector,
 					      ConditionVariables& rVariables,
-					      double& rIntegrationWeight );
+					      double& rIntegrationWeight ) override;
 
 
     virtual void CalculateAndAddNormalContactForce(Vector& rRightHandSideVector, ConditionVariables& rVariables, double& rIntegrationWeight);
@@ -232,12 +232,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointRigidContactCondition )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointRigidContactCondition )
     }
