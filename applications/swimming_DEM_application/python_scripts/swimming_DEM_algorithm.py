@@ -91,7 +91,7 @@ class Algorithm(object):
         # creating a basset_force tool to perform the operations associated
         # with the calculation of this force along the path of each particle
         self.GetBassetForceTools()
-        self.SetAnalyticFaceWatcher()
+        self.disperse_phase_solution.SetAnalyticFaceWatcher()
 
         # defining member variables for the model_parts (for convenience)
         self.fluid_model_part = self.fluid_solution.fluid_model_part
@@ -829,13 +829,15 @@ class Algorithm(object):
 
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor)
 
+    '''
+    
     def SetAnalyticFaceWatcher(self):
         from analytic_tools import analytic_data_procedures
         self.watcher = AnalyticFaceWatcher()
         self.watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(
             analytic_face_watcher=self.watcher,
             path=self.main_path)
-
+    '''
     def SetAnalyticParticleWatcher(self):
         from analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
