@@ -52,11 +52,13 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
 
         while self.time < self.end_time:
             self.time = self.solver.AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self.solver.Predict()
             non_linear_iteration = 1
             computing_model_part = self.main_model_part.GetSubModelPart(self.project_parameters["solver_settings"]["computing_model_part_name"].GetString())
             while non_linear_iteration < self.non_linear_iterations:
+                is_remeshed = computing_model_part.Is(KratosMultiphysics.MODIFIED)
+                if (non_linear_iteration == 1 or is_remeshed):
+                    self.InitializeSolutionStep()
+                    self.solver.Predict()
                 if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
                     # Set again all
                     self._SetUpListOfProcesses()
@@ -75,10 +77,12 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
                     computing_model_part.Set(KratosMultiphysics.MODIFIED, False)
                 computing_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, non_linear_iteration)
                 self.solver.SolveSolutionStep()
-                non_linear_iteration += 1
+                self.FinalizeSolutionStep()
                 if (self.main_model_part[MA.ERROR_ESTIMATE] < 0.0):
+                    KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
                     break
-            self.FinalizeSolutionStep()
+                else:
+                    non_linear_iteration += 1
             self.OutputSolutionStep()
 
     #### Internal functions ####
