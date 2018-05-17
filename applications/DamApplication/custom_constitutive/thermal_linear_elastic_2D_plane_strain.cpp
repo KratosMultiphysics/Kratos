@@ -76,7 +76,19 @@ void ThermalLinearElastic2DPlaneStrain::GetLawFeatures(Features& rFeatures)
 void ThermalLinearElastic2DPlaneStrain::CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables& rElasticVariables, double & rTemperature)
 {
     KRATOS_TRY
-    KRATOS_WATCH("HELLOOOOOOOOOOOOOOOO")
+
+    //1.-Nodal Reference Temperature from nodes
+    const GeometryType& DomainGeometry = rElasticVariables.GetElementGeometry();
+    const Vector& ShapeFunctionsValues = rElasticVariables.GetShapeFunctionsValues();
+    const unsigned int number_of_nodes = DomainGeometry.size();
+
+    double rNodalReferenceTemperature = 0.0;
+
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    {
+      rNodalReferenceTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
+    }
+
     //Identity vector
     rThermalStrainVector.resize(3,false);
     rThermalStrainVector[0] = 1.0;
@@ -84,7 +96,9 @@ void ThermalLinearElastic2DPlaneStrain::CalculateThermalStrain( Vector& rThermal
     rThermalStrainVector[2] = 0.0;
 
     // Delta T
-    double DeltaTemperature = rTemperature - rElasticVariables.ReferenceTemperature;
+    double DeltaTemperature = rTemperature - rNodalReferenceTemperature;
+
+    KRATOS_WATCH(DeltaTemperature)
 
     //Thermal strain vector // LameMu = (1 + poisson)
     for(unsigned int i = 0; i < 3; i++)

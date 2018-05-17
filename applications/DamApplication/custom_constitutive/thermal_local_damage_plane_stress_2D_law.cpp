@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:                  KratosDamApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:           February 2017 $
@@ -65,7 +65,7 @@ void ThermalLocalDamagePlaneStress2DLaw::CalculateLinearElasticMatrix( Matrix& r
         const double& PoissonCoefficient )
 {
     rLinearElasticMatrix.clear();
-    
+
     // Plane stress constitutive matrix
     rLinearElasticMatrix ( 0 , 0 ) = (YoungModulus)/(1.0-PoissonCoefficient*PoissonCoefficient);
     rLinearElasticMatrix ( 1 , 1 ) = rLinearElasticMatrix ( 0 , 0 );
@@ -82,16 +82,20 @@ void ThermalLocalDamagePlaneStress2DLaw::CalculateThermalStrain(Vector& rThermal
 {
     KRATOS_TRY
 
-    //1.-Temperature from nodes 
+    //1.-Temperature from nodes
     const GeometryType& DomainGeometry = ElasticVariables.GetElementGeometry();
     const Vector& ShapeFunctionsValues = ElasticVariables.GetShapeFunctionsValues();
     const unsigned int number_of_nodes = DomainGeometry.size();
-    
+
     double Temperature = 0.0;
-    
+    double rNodalReferenceTemperature = 0.0;
+
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
-      Temperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(TEMPERATURE);
-    
+    {
+        Temperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(TEMPERATURE);
+        rNodalReferenceTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
+    }
+
     //Identity vector
     if(rThermalStrainVector.size()!=3)
         rThermalStrainVector.resize(3,false);
@@ -100,12 +104,12 @@ void ThermalLocalDamagePlaneStress2DLaw::CalculateThermalStrain(Vector& rThermal
     rThermalStrainVector[2] = 0.0;
 
     // Delta T
-    double DeltaTemperature = Temperature - ElasticVariables.ReferenceTemperature;
+    double DeltaTemperature = Temperature - rNodalReferenceTemperature;
 
     //Thermal strain vector
     for(unsigned int i = 0; i < 3; i++)
         rThermalStrainVector[i] *= ElasticVariables.ThermalExpansionCoefficient * DeltaTemperature;
-    
+
     KRATOS_CATCH( "" )
 }
 

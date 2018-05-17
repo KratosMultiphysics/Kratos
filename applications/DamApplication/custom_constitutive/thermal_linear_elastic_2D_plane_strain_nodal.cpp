@@ -1,8 +1,8 @@
 //
-//   Project Name:   
-//   Last modified by:    $Author:     
-//   Date:                $Date:     
-//   Revision:            $Revision:     
+//   Project Name:
+//   Last modified by:    $Author:
+//   Date:                $Date:
+//   Revision:            $Revision:
 //
 
 /* Project includes */
@@ -62,7 +62,7 @@ void ThermalLinearElastic2DPlaneStrainNodal::GetLawFeatures(Features& rFeatures)
     //Set strain measure required by the consitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-    
+
     //Set the strain size
     rFeatures.mStrainSize = GetStrainSize();
 
@@ -76,7 +76,19 @@ void ThermalLinearElastic2DPlaneStrainNodal::GetLawFeatures(Features& rFeatures)
 void ThermalLinearElastic2DPlaneStrainNodal::CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables& rElasticVariables, double & rTemperature)
 {
     KRATOS_TRY
-    
+
+    //1.-Nodal Reference Temperature from nodes
+    const GeometryType& DomainGeometry = rElasticVariables.GetElementGeometry();
+    const Vector& ShapeFunctionsValues = rElasticVariables.GetShapeFunctionsValues();
+    const unsigned int number_of_nodes = DomainGeometry.size();
+
+    double rNodalReferenceTemperature = 0.0;
+
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    {
+      rNodalReferenceTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
+    }
+
     //Identity vector
     rThermalStrainVector.resize(3,false);
     rThermalStrainVector[0] = 1.0;
@@ -84,12 +96,12 @@ void ThermalLinearElastic2DPlaneStrainNodal::CalculateThermalStrain( Vector& rTh
     rThermalStrainVector[2] = 0.0;
 
     // Delta T
-    double DeltaTemperature = rTemperature - rElasticVariables.ReferenceTemperature;
+    double DeltaTemperature = rTemperature - rNodalReferenceTemperature;
 
     //Thermal strain vector // LameMu = (1 + poisson)
     for(unsigned int i = 0; i < 3; i++)
         rThermalStrainVector[i] *= rElasticVariables.LameMu * rElasticVariables.ThermalExpansionCoefficient * DeltaTemperature;
-        
+
     KRATOS_CATCH( "" )
 }
 
