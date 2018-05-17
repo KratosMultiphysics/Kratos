@@ -185,8 +185,15 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
         """
         return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetVariable, "Variable")
 
-    def _write_mp_results(self, label):
+    def _write_mp_results(self, step_label=None):
         clock_time = self._start_time_measure()
+
+        if step_label is None:
+            pretty_label = ""
+        elif self.output_label_is_time:
+            pretty_label = "{0:.12g}".format(step_label) # floating point format
+        else:
+            pretty_label = "{0}".format(step_label) # int format
 
         for i in range(self.variable_list.size()):
             var_name = self.variable_list[i].GetString()
@@ -197,9 +204,9 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
             self.result_file.write(var_name)
             
             if var_name == "MP_PRESSURE" or var_name == "MP_EQUIVALENT_PLASTIC_STRAIN":
-                self.result_file.write('" "Kratos" {} Scalar OnNodes\n'.format(label))
+                self.result_file.write('" "Kratos" {} Scalar OnNodes\n'.format(pretty_label))
             else:
-                self.result_file.write('" "Kratos" {} Vector OnNodes\n'.format(label))
+                self.result_file.write('" "Kratos" {} Vector OnNodes\n'.format(pretty_label))
             
             self.result_file.write("Values\n")
             for mpm in self.model_part.Elements:
