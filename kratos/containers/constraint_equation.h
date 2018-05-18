@@ -101,7 +101,14 @@ class MasterSlaveRelation
 
   public:
 
-    // TODO: formulate a empty constructor and methods to add master and slave independently.
+    // empty constructor and methods to add master and slave independently.
+    MasterSlaveRelation() : mId(0), mKey(0)
+    {
+        SetConstant(0.0);
+        SetConstantUpdate(0.0);
+    }
+
+
     MasterSlaveRelation(DofType const &rSlaveDof) : mId(rSlaveDof.Id()), mKey(rSlaveDof.GetVariable().Key())
     {
         SetConstant(0.0);
@@ -117,11 +124,11 @@ class MasterSlaveRelation
 
     void SetConstant(double Constant) { mConstant = Constant; }
     void SetConstantUpdate(double ConstantUpdate) { mConstantUpdate = ConstantUpdate; }
-    double Constant() { return mConstant; }
-    double ConstantUpdate() { return mConstantUpdate; }
-    std::size_t SlaveDofId() { return mId; }
-    std::size_t SlaveDofKey() { return mKey; }
-    std::size_t SlaveEquationId() { return mEquationId; }
+    double Constant() const { return mConstant; }
+    double ConstantUpdate() const { return mConstantUpdate; }
+    std::size_t SlaveDofId() const { return mId; }
+    std::size_t SlaveDofKey() const { return mKey; }
+    std::size_t SlaveEquationId() const { return mEquationId; }
     void SetSlaveEquationId(std::size_t Id) { mEquationId = Id; }
 
     // Add a master or update a master(if already present) to this slave given are the masterDofId, masterDofKey, weight
@@ -155,27 +162,74 @@ class MasterSlaveRelation
     }
 
     // Get number of masters for this slave
-    std::size_t NumberOfMasters()
+    std::size_t GetNumberOfMasters() const
     {
         return mMasterDataSet.size();
     }
 
-    void PrintInfo()
+    void PrintInfo(std::ostream& Output) const
     {
-        std::cout << "##############################" << std::endl;
-        std::cout << "SlaveDofID :: " << SlaveDofId() << std::endl;
-        std::cout << "SlaveDofKey :: " << SlaveDofKey() << std::endl;
-        std::cout << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
-        std::cout << "Constant :: " << Constant() << std::endl;
+        Output << "##############################" << std::endl;
+        Output << "SlaveDofID :: " << SlaveDofId() << std::endl;
+        Output << "SlaveDofKey :: " << SlaveDofKey() << std::endl;
+        Output << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
+        Output << "Constant :: " << Constant() << std::endl;
         int index = 0;
-        std::cout << "############################## :: Masters" << std::endl;
+        Output << "############################## :: Masters" << std::endl;
         for (auto &master : mMasterDataSet)
         {
-            std::cout << index << " Master  ID :: " << (*master).MasterDofId() << ", weight :: " << (*master).MasterWeight() << std::endl;
+            Output << index << " Master  ID :: " << (*master).MasterDofId() << ", weight :: " << (*master).MasterWeight() << std::endl;
             index++;
         }
-        std::cout << "##############################" << std::endl;
+        Output << "##############################" << std::endl;
     }
+
+    void Clear()
+    {
+        mMasterDataSet.clear();
+    }
+
+
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+ 
+    virtual void save(Serializer &rSerializer) const
+    {
+        rSerializer.save("slave_id", mId);            // saving the vector of the slave id
+        rSerializer.save("slave_key", mKey);          // saving the vector of the slave key
+        rSerializer.save("constant", mConstant);              // saving the id of the master
+        rSerializer.save("constant_update", mConstantUpdate); // saving the id of the master
+        rSerializer.save("num_masters", GetNumberOfMasters());    // Writint number of masters for this slave
+        for (const auto &master_data : mMasterDataSet)
+        {
+            rSerializer.save("master_id", master_data->MasterDofId());   // saving the id of the master
+            rSerializer.save("master_key", master_data->MasterDofKey()); // saving the id of the master
+            rSerializer.save("weight", master_data->MasterWeight());     // saving the id of the master
+        }
+    }
+
+    virtual void load(Serializer &rSerializer)
+    {
+        std::size_t slave_id(0), slave_key(0), num_masters(0);
+        double constant(0.0), constant_update(0.0);
+        rSerializer.load("slave_id", slave_id);
+        rSerializer.load("slave_key", slave_key);
+        rSerializer.load("constant", constant);
+        rSerializer.load("constant_update", constant_update);
+        rSerializer.load("num_masters", num_masters);
+
+        for (std::size_t j = 0; j < num_masters; j++)
+        {
+            std::size_t master_id(0), master_key(0);
+            double weight(0);
+            rSerializer.load("master_id", master_id);
+            rSerializer.load("master_key", master_key);
+            rSerializer.load("weight", weight);
+            this->AddMaster(master_id, master_key, weight);
+        }
+    }
+    ///@}
 
   private:
     std::unordered_set<MasterDataPointerType, MasterHasher, MasterComparator> mMasterDataSet;

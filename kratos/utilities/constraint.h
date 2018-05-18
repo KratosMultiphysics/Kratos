@@ -43,7 +43,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef ConstantType double;
+    typedef double ConstantType;
     typedef Matrix MatrixType;
 
     ///@name Life Cycle
@@ -106,7 +106,9 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
                                       ProcessInfo& rCurrentProcessInfo)
     {
       if (rTransformationMatrix.size1() != 0)
-    	  rTransformationMatrix.resize(0, 0, false);
+      {
+    	rTransformationMatrix.resize(0, 0, false);
+      }
 
 	  rConstant = 0.00;
     }
@@ -153,7 +155,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     //@{
 
     ///@}
-    virtual void PrintInfo(std::ostream &rOStream) const
+    virtual void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << " Constraint base class !" << std::endl;
         mConstraintEquation.PrintInfo(rOStream);
@@ -163,12 +165,12 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer &rSerializer) const
+    virtual void save(Serializer &rSerializer) const override
     {
         this->mConstraintEquation.save(rSerializer);
     }
 
-    virtual void load(Serializer &rSerializer)
+    virtual void load(Serializer &rSerializer) override
     {
         this->mConstraintEquation.load(rSerializer);
     }
@@ -181,10 +183,29 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     ///@}
 };
 
+
+
 ///@name Input/Output funcitons
 ///@{
 
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                MasterSlaveConstraint& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                const MasterSlaveConstraint& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+
+    return rOStream;
+}
+    
+
 ///@}
+
+
 
 } // namespace Kratos
 
